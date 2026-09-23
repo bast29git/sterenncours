@@ -5,13 +5,14 @@
  * PBKDF2 avec sel, écrite au provisionnement. Les tentatives sont limitées
  * par adresse pour qu'un code court ne puisse pas être trouvé par essais.
  */
-import { json, erreur, creerSession, cookieSession, deriver, egal, DUREE_SESSION, ROLES } from '../_commun.js';
+import { json, erreur, gerer, creerSession, cookieSession, deriver, egal, DUREE_SESSION, ROLES } from '../_commun.js';
 
 const MAX_TENTATIVES = 12;
 const FENETRE = 600; // 10 minutes
 
-export async function onRequestPost(context) {
+export const onRequestPost = gerer(async (context) => {
   const { request, env } = context;
+  if (!env.SESSIONS) return erreur('Stockage des sessions non configuré.', 503);
 
   const ip = request.headers.get('cf-connecting-ip') || 'inconnue';
   const cleLimite = 'tentatives:' + ip;
@@ -39,4 +40,4 @@ export async function onRequestPost(context) {
 
   await env.SESSIONS.put(cleLimite, String(tentatives + 1), { expirationTtl: FENETRE });
   return erreur('Ce code n\'est pas reconnu.', 401);
-}
+});

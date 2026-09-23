@@ -7,7 +7,14 @@ import { json, gerer, lireSession } from '../_commun.js';
 
 export const onRequestGet = gerer(async (context) => {
   const session = await lireSession(context.request, context.env);
+  // Les trois booléens disent si les ressources Cloudflare sont bien reliées.
+  // Ils ne révèlent aucune donnée : ils servent au diagnostic de déploiement.
+  const relie = {
+    kv: Boolean(context.env.SESSIONS),
+    db: Boolean(context.env.DB),
+    r2: Boolean(context.env.FICHIERS),
+  };
   return session
-    ? json({ role: session.role, depuis: session.cree })
-    : json({ role: null });
+    ? json({ role: session.role, depuis: session.cree, relie })
+    : json({ role: null, relie });
 });
