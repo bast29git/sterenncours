@@ -2310,4 +2310,145 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'histoire-geo/G1': {
+    titre: "Espaces et paysages de l'urbanisation",
+    items: [
+      {
+        type: 'saisie',
+        q: 'En quelle année la population urbaine mondiale a-t-elle dépassé la population rurale ?',
+        reponses: ['2007', 'en 2007'],
+        explication: "2007. C'est la date charnière du chapitre : pour la première fois dans l'histoire, plus d'un humain sur deux vit en ville. On prévoit 68 % d'urbains en 2050."
+      },
+      {
+        type: 'qcm',
+        q: 'Que recouvre le mot « urbanisation » ?',
+        choix: ['Seulement la hausse du nombre d\'urbains', 'La hausse du nombre d\'urbains ET l\'extension spatiale des villes', 'Seulement la construction d\'immeubles'],
+        reponse: 1,
+        explication: "Les deux à la fois. Une ville peut s'étendre beaucoup tout en perdant des habitants dans son centre : c'est le cas de nombreuses villes européennes."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce que l\'exode rural ?',
+        choix: ['Le retour des citadins à la campagne', 'Le départ durable des habitants des campagnes vers les villes', 'Le tourisme vert'],
+        reponse: 1,
+        explication: "Le départ durable des ruraux vers les villes. Massif en Europe au XIXᵉ siècle, il est aujourd'hui le principal moteur de l'urbanisation en Afrique et en Asie."
+      },
+      {
+        type: 'qcm',
+        q: 'Paris compte 2,1 millions d\'habitants, 10,8 millions et environ 13 millions selon la délimitation. À quoi correspondent 13 millions ?',
+        choix: ['La ville', 'L\'agglomération', 'L\'aire urbaine'],
+        reponse: 2,
+        explication: "L'aire urbaine : l'agglomération plus toutes les communes dont une part importante des habitants vient y travailler. 2,1 millions, c'est la commune ; 10,8 millions, l'agglomération au bâti continu."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qui définit une métropole ?',
+        choix: ['Son nombre d\'habitants', 'Ses fonctions de commandement', 'Sa superficie'],
+        reponse: 1,
+        explication: "Les fonctions de commandement : économiques, politiques, culturelles et de communication. Une ville peut être très peuplée sans commander quoi que ce soit au-delà d'elle-même."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Mégapole et mégalopole sont deux mots pour la même chose.',
+        reponse: false,
+        explication: "Faux. Une mégapole est UNE agglomération de plus de 10 millions d'habitants. Une mégalopole est un chapelet de grandes villes presque continues, comme Boston-Washington."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la première aire urbaine mondiale ?',
+        choix: ['New York', 'Tokyo', 'Shanghai'],
+        reponse: 1,
+        explication: "Tokyo, avec environ 37 millions d'habitants dans son aire urbaine. New York abrite la première bourse mondiale et le siège de l'ONU, Shanghai le premier port à conteneurs du monde."
+      },
+      {
+        type: 'qcm',
+        q: 'Quand on s\'éloigne du centre d\'une ville, en général :',
+        choix: ['la densité augmente et le bâti monte', 'la densité baisse et le bâti s\'abaisse', 'rien ne change'],
+        reponse: 1,
+        explication: "La densité baisse, les bâtiments sont plus bas et plus dispersés, et les espaces verts ou agricoles apparaissent. C'est le principe d'organisation observable dans la plupart des villes du monde."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce que la périurbanisation ?',
+        choix: ['La rénovation des centres anciens', 'L\'extension pavillonnaire sur d\'anciennes communes rurales', 'La destruction des bidonvilles'],
+        reponse: 1,
+        explication: "L'extension de la ville par lotissements et zones d'activités sur des communes autrefois rurales. Les habitants y vivent mais travaillent dans l'agglomération : la voiture devient indispensable."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi un ménage part-il s\'installer en périurbain ?',
+        choix: ['D\'abord pour le prix du logement', 'Uniquement par goût de la nature', 'Pour se rapprocher de son travail'],
+        reponse: 0,
+        explication: "D'abord pour un arbitrage économique : on obtient une maison avec jardin pour le prix d'un appartement. En contrepartie, le temps de trajet et le budget transport augmentent fortement."
+      },
+      {
+        type: 'saisie',
+        q: 'Comment appelle-t-on la hausse des loyers d\'un quartier rénové, qui en chasse les habitants modestes ?',
+        reponses: ['gentrification', 'la gentrification', 'gentrificaton'],
+        explication: "La gentrification. Le quartier va mieux, mais les gens qui y vivaient n'y sont plus. C'est pourquoi les politiques urbaines imposent des quotas de logements sociaux dans les rénovations."
+      },
+      {
+        type: 'vraifaux',
+        q: 'En géographie, le mot « banlieue » désigne les quartiers pauvres.',
+        reponse: false,
+        explication: "Faux. Le mot est neutre : il désigne les communes qui entourent la ville-centre. Neuilly-sur-Seine et Clichy-sous-Bois sont toutes deux en banlieue parisienne, avec des situations sociales opposées."
+      },
+      {
+        type: 'qcm',
+        q: 'Un paysage montre des tours de bureaux vitrées, une large avenue, un métro aérien, aucun logement. De quelle zone s\'agit-il ?',
+        choix: ['Un espace périurbain', 'Un quartier d\'affaires', 'Un centre-ville ancien'],
+        reponse: 1,
+        explication: "Un quartier d'affaires. Les indices : tours récentes, fonction « travailler » seule visible, forte desserte en transports. Il se vide le soir puisque personne n'y habite."
+      },
+      {
+        type: 'qcm',
+        q: 'Un paysage montre des maisons identiques avec jardin, des rues en impasse, deux voitures par maison, des champs au fond. De quelle zone s\'agit-il ?',
+        choix: ['Une banlieue de grands ensembles', 'Un espace périurbain', 'Un quartier d\'affaires'],
+        reponse: 1,
+        explication: "Un espace périurbain. Les indices : bâti bas et répétitif, densité faible, absence de commerce et de transport en commun, champs à l'arrière-plan. Les deux voitures signalent la dépendance automobile."
+      },
+      {
+        type: 'qcm',
+        q: 'Où se situe le quartier d\'affaires de La Défense par rapport à Paris ?',
+        choix: ['Au cœur historique', 'À la limite ouest de l\'agglomération', 'À 50 km du centre'],
+        reponse: 1,
+        explication: "À la limite ouest de l'agglomération. Le centre historique parisien est protégé : on ne pouvait pas y construire de tours. À New York, au contraire, les tours de Manhattan sont au cœur de la ville."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans les pays en développement, quel est le principal moteur de l\'urbanisation ?',
+        choix: ['La périurbanisation', 'L\'exode rural et la croissance naturelle', 'Le tourisme'],
+        reponse: 1,
+        explication: "L'exode rural et une forte croissance naturelle. Les habitants arrivent plus vite que les logements et les réseaux ne peuvent être construits : c'est de là que naissent les quartiers informels."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien de personnes vivent dans un habitat précaire dans le monde ?',
+        choix: ['Environ 100 millions', 'Environ 1 milliard', 'Environ 3 milliards'],
+        reponse: 1,
+        explication: "Environ 1 milliard, soit près d'un urbain sur quatre. Le quartier de Dharavi, à Bombay, compte à lui seul environ 700 000 habitants sur 2,4 km²."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Les bidonvilles sont des espaces sans activité économique.',
+        reponse: false,
+        explication: "Faux. Dharavi abrite des milliers d'ateliers de recyclage, de poterie et de textile. Ce qui manque n'est pas le travail, ce sont les droits, les titres de propriété et les réseaux d'eau et d'assainissement."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle réponse publique conserve le tissu social et économique d\'un quartier informel ?',
+        choix: ['La destruction', 'Le relogement loin des emplois', 'La réhabilitation sur place'],
+        reponse: 2,
+        explication: "La réhabilitation sur place. Elle est lente, coûteuse et juridiquement complexe, mais elle ne détruit ni les emplois ni les liens existants, contrairement au relogement en périphérie."
+      },
+      {
+        type: 'qcm',
+        q: 'Un quartier neuf a des toits végétalisés mais se trouve à 28 km du centre, sans transport en commun. Est-il durable ?',
+        choix: ['Oui, grâce aux toits végétalisés', 'Non, car son bilan réel est mauvais', 'On ne peut pas savoir'],
+        reponse: 1,
+        explication: "Non. Les économies faites sur le bâtiment sont annulées par les déplacements quotidiens imposés et par les terres agricoles consommées. Le critère est le bilan global, pas l'apparence verte."
+      }
+    ]
+  }
 };
