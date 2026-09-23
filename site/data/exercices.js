@@ -2030,4 +2030,144 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'histoire-geo/H2': {
+    titre: "L'Europe des Lumières",
+    items: [
+      {
+        type: 'qcm',
+        q: 'Entre quelles années se situe le XVIII<sup>e</sup> siècle ?',
+        choix: ['1700 à 1799', '1701 à 1800', '1750 à 1850'],
+        reponse: 1,
+        explication: "De 1701 à 1800. Le premier siècle commence en l'an 1 et il n'y a pas d'année zéro : chaque siècle va donc de l'année 01 à l'année 00 suivante."
+      },
+      {
+        type: 'qcm',
+        q: 'Les Lumières sont un mouvement :',
+        choix: ['uniquement français', 'européen', 'limité à la ville de Paris'],
+        reponse: 1,
+        explication: "Européen. On parle d'Enlightenment en Angleterre, d'Aufklärung dans les pays de langue allemande, d'Ilustración en Espagne. Les idées circulent par les traductions, les voyages et la correspondance."
+      },
+      {
+        type: 'qcm',
+        q: 'Au XVIII<sup>e</sup> siècle, un « philosophe » est avant tout :',
+        choix: ['un penseur retiré du monde', 'un écrivain engagé qui publie et débat', 'un professeur d\'université'],
+        reponse: 1,
+        explication: "Un écrivain engagé. Il écrit pour être lu, discute dans les salons, publie des textes courts et cherche à transformer la société par les idées. Ce n'est pas un savant enfermé dans son cabinet."
+      },
+      {
+        type: 'saisie',
+        q: 'Quel philosophe a écrit « De l\'esprit des lois » en 1748 ?',
+        reponses: ['montesquieu', 'Montesquieu', 'de montesquieu'],
+        explication: "Montesquieu. Il y expose la séparation des trois pouvoirs, législatif, exécutif et judiciaire, et écrit qu'« il faut que, par la disposition des choses, le pouvoir arrête le pouvoir »."
+      },
+      {
+        type: 'qcm',
+        q: 'Quels sont les trois pouvoirs distingués par Montesquieu ?',
+        choix: ['royal, religieux, militaire', 'législatif, exécutif, judiciaire', 'national, régional, local'],
+        reponse: 1,
+        explication: "Le législatif fait les lois, l'exécutif les applique et gouverne, le judiciaire juge ceux qui ne les respectent pas. Ces trois pouvoirs doivent être confiés à des organes différents."
+      },
+      {
+        type: 'qcm',
+        q: 'Qui a écrit « Du contrat social » en 1762 ?',
+        choix: ['Voltaire', 'Rousseau', 'Diderot'],
+        reponse: 1,
+        explication: "Rousseau. Il y défend la souveraineté du peuple : le pouvoir ne vient ni de Dieu ni de la naissance, mais d'un contrat par lequel les citoyens se donnent à eux-mêmes leurs lois."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Tous les philosophes des Lumières défendent les mêmes idées politiques.',
+        reponse: false,
+        explication: "Faux. Voltaire espère des réformes venues d'un roi éclairé, Rousseau défend la souveraineté du peuple, Montesquieu une monarchie tempérée. Ils partagent une méthode et des adversaires, pas un programme."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans quelle affaire Voltaire s\'engage-t-il à partir de 1762 ?',
+        choix: ['L\'affaire Calas', 'L\'affaire Dreyfus', 'L\'affaire du collier'],
+        reponse: 0,
+        explication: "L'affaire Calas. Ce marchand protestant de Toulouse, accusé sans preuve d'avoir tué son fils, est torturé puis exécuté. Voltaire mobilise l'opinion et obtient sa réhabilitation en 1765."
+      },
+      {
+        type: 'qcm',
+        q: 'Qui dirige l\'Encyclopédie ?',
+        choix: ['Voltaire et Rousseau', 'Diderot et D\'Alembert', 'Montesquieu et Condorcet'],
+        reponse: 1,
+        explication: "Diderot et D'Alembert. Elle paraît de 1751 à 1772 : 17 volumes de texte, 11 volumes de planches, environ 72 000 articles rédigés par plus de 150 auteurs."
+      },
+      {
+        type: 'saisie',
+        q: 'En quelle année paraît le premier volume de l\'Encyclopédie ?',
+        reponses: ['1751', 'en 1751'],
+        explication: "1751. La publication s'étend jusqu'en 1772, malgré une condamnation royale en 1759 : l'ouvrage continue de paraître grâce à des complicités, dont celle de Malesherbes, chargé du contrôle des livres."
+      },
+      {
+        type: 'qcm',
+        q: 'À quoi sert un « renvoi » dans l\'Encyclopédie ?',
+        choix: ['À gagner de la place', 'À faire faire au lecteur un rapprochement critique non écrit', 'À citer ses sources'],
+        reponse: 1,
+        explication: "L'article « Anthropophages » renvoie à « Eucharistie » : la critique n'est jamais imprimée, c'est le lecteur qui la fait dans sa tête. On ne peut pas censurer ce qui n'est pas écrit."
+      },
+      {
+        type: 'vraifaux',
+        q: 'L\'Encyclopédie était assez bon marché pour être lue par le peuple.',
+        reponse: false,
+        explication: "Faux. Une souscription complète coûtait plusieurs mois de salaire d'un ouvrier qualifié. Elle se diffuse dans la noblesse et la bourgeoisie cultivées, en France et dans toute l'Europe."
+      },
+      {
+        type: 'qcm',
+        q: 'Que fait-on dans un salon au XVIII<sup>e</sup> siècle ?',
+        choix: ['On lit et on discute, invité par une femme de la haute société', 'On assiste à un office religieux', 'On achète des livres interdits'],
+        reponse: 0,
+        explication: "Le salon est tenu par une femme, comme Madame Geoffrin ou Julie de Lespinasse. Elle choisit les invités, dirige la conversation, met les auteurs en relation et les finance parfois."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce que la censure au XVIII<sup>e</sup> siècle en France ?',
+        choix: ['Une taxe sur les livres', 'Le contrôle par l\'État et l\'Église de ce qui est imprimé', 'Une académie de correcteurs'],
+        reponse: 1,
+        explication: "Un livre doit obtenir un privilège royal pour paraître légalement. Un ouvrage jugé dangereux peut être saisi et brûlé, et son auteur emprisonné ou exilé."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel moyen les auteurs utilisent-ils pour contourner la censure ?',
+        choix: ['Publier à l\'étranger sous une fausse adresse', 'Écrire uniquement en latin', 'Attendre la mort du roi'],
+        reponse: 0,
+        explication: "Ils publient à Amsterdam, Genève ou Londres, souvent sans nom d'auteur et avec une fausse adresse d'éditeur, puis font entrer les exemplaires en fraude. Ils recourent aussi à la critique indirecte et aux renvois."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans les « Lettres persanes », Montesquieu critique la France en la faisant décrire par :',
+        choix: ['un paysan', 'deux voyageurs persans', 'un moine'],
+        reponse: 1,
+        explication: "Deux voyageurs persans imaginaires s'étonnent de coutumes que le lecteur français trouve naturelles. Ce n'est pas l'auteur qui critique : c'est un personnage étranger qui s'interroge, ce qui déjoue la censure."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce que le despotisme éclairé ?',
+        choix: ['Une monarchie devenue démocratique', 'Un pouvoir absolu qui mène des réformes inspirées des Lumières', 'Un régime sans roi'],
+        reponse: 1,
+        explication: "Frédéric II en Prusse, Catherine II en Russie, Joseph II en Autriche réforment par le haut, sans partager le pouvoir. Ils prennent des Lumières ce qui renforce l'État et écartent ce qui le limiterait."
+      },
+      {
+        type: 'saisie',
+        q: 'Qui publie en 1791 la « Déclaration des droits de la femme et de la citoyenne » ?',
+        reponses: ['olympe de gouges', 'Olympe de Gouges', 'de gouges', 'olympe degouges'],
+        explication: "Olympe de Gouges. Elle reprend article par article la Déclaration de 1789 et écrit que « la femme a le droit de monter sur l'échafaud ; elle doit avoir également celui de monter à la tribune ». Elle est guillotinée en 1793."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Les Lumières ont obtenu l\'abolition de l\'esclavage au XVIII<sup>e</sup> siècle.',
+        reponse: false,
+        explication: "Faux. Plusieurs textes le condamnent, comme l'article « Esclavage » de l'Encyclopédie ou les Réflexions de Condorcet en 1781, mais la plupart réclament une abolition progressive. L'abolition définitive en France date de 1848."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel lien y a-t-il entre les Lumières et la Révolution française ?',
+        choix: ['Les Lumières ont causé la Révolution', 'Les Lumières ont fourni le vocabulaire et les principes des textes révolutionnaires', 'Il n\'y a aucun lien'],
+        reponse: 1,
+        explication: "Ce sont les crises financière, sociale et politique de 1788-1789 qui déclenchent la Révolution. Mais l'article 3 de la Déclaration de 1789, sur la souveraineté de la Nation, vient tout droit de Rousseau."
+      }
+    ]
+  }
 };
