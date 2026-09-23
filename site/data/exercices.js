@@ -2865,4 +2865,143 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'espagnol-lv2/L02': {
+    titre: 'Ser, estar, hay',
+    items: [
+      {
+        type: 'saisie',
+        q: 'Complète : « Yo ___ española. » (verbe ser)',
+        reponses: ['soy'],
+        explication: "soy. La nationalité se dit toujours avec ser, qui définit ce que la personne est. Les six formes sont soy, eres, es, somos, sois, son."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète avec estar, accent compris : « Tú ___ cansado. »',
+        reponses: ['estás', 'estas'],
+        explication: "estás, avec un accent écrit sur le a. Seules estoy et estamos s'écrivent sans accent ; estás, está, estáis et están en portent un, et l'oublier est une faute."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : « Madrid ___ en España. »',
+        choix: ['es', 'está', 'hay'],
+        reponse: 1,
+        explication: "está. Le lieu se dit TOUJOURS avec estar, même pour une ville qui ne bouge jamais. La règle ne dépend pas de la durée mais du type d'information."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : « Mi padre ___ profesor. »',
+        choix: ['es', 'está', 'hay'],
+        reponse: 0,
+        explication: "es. La profession se dit avec ser, comme la nationalité, la matière, la possession et l'heure : tout ce qui définit ce qu'une personne ou une chose est."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment dit-on « je suis fatiguée » ?',
+        choix: ['Soy cansada.', 'Estoy cansada.', 'Hay cansada.'],
+        reponse: 1,
+        explication: "Estoy cansada. La fatigue est un état passager : c'est le domaine de estar. « Soy cansada » n'a pas de sens en espagnol."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : « ___ las tres de la tarde. »',
+        choix: ['Son', 'Están', 'Hay'],
+        reponse: 0,
+        explication: "Son. L'heure se dit avec ser, et au pluriel à partir de deux heures. On dit seulement « Es la una » au singulier, pour une heure."
+      },
+      {
+        type: 'vraifaux',
+        q: 'On dit « La fiesta está en mi casa ».',
+        reponse: false,
+        explication: "Faux. On dit « La fiesta es en mi casa ». C'est l'exception à connaître : un ÉVÉNEMENT a lieu, il ne se situe pas, donc il prend ser. Un objet ou une personne prendrait estar."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : « En mi calle ___ una farmacia. »',
+        choix: ['hay', 'está', 'es'],
+        reponse: 0,
+        explication: "hay. On signale l'existence d'une pharmacie qu'on n'a pas encore nommée, avec un article indéfini. Pour dire où elle se trouve ensuite, on dirait « La farmacia está... »."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : « La farmacia ___ al lado del banco. »',
+        choix: ['hay', 'está', 'es'],
+        reponse: 1,
+        explication: "está. L'article défini « la » montre qu'on parle d'une pharmacie déjà connue : on dit alors où elle se trouve. Introduire avec hay, situer avec estar."
+      },
+      {
+        type: 'vraifaux',
+        q: 'On peut écrire « Hay el libro en la mesa ».',
+        reponse: false,
+        explication: "Faux. hay n'est jamais suivi d'un article défini. Dès qu'on parle d'une chose précise et connue, on emploie estar : « El libro está en la mesa »."
+      },
+      {
+        type: 'saisie',
+        q: 'Traduis : « Il y a trois chaises. »',
+        reponses: ['hay tres sillas', 'Hay tres sillas.', 'hay tres sillas.', 'Hay tres sillas'],
+        explication: "Hay tres sillas. hay est invariable : il ne se conjugue jamais, même devant un pluriel. On n'écrit ni « hayn » ni « hays »."
+      },
+      {
+        type: 'qcm',
+        q: 'Que signifie « El profesor está aburrido » ?',
+        choix: ['Le professeur est ennuyeux', 'Le professeur s\'ennuie', 'Le professeur est absent'],
+        reponse: 1,
+        explication: "Le professeur s'ennuie. Avec ser, « es aburrido » signifierait qu'il est ennuyeux. C'est le même adjectif pour deux sens opposés selon le verbe."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment dit-on « je suis prêt » ?',
+        choix: ['Soy listo.', 'Estoy listo.', 'Hay listo.'],
+        reponse: 1,
+        explication: "Estoy listo. Avec ser, « soy listo » signifie « je suis intelligent ». C'est l'un des huit adjectifs qui changent complètement de sens selon le verbe."
+      },
+      {
+        type: 'qcm',
+        q: '« La manzana está verde » signifie :',
+        choix: ['La pomme est de couleur verte', 'La pomme n\'est pas mûre', 'La pomme est pourrie'],
+        reponse: 1,
+        explication: "La pomme n'est pas mûre. Avec ser, « la puerta es verde » désignerait bien la couleur. Avec estar, verde indique un état passager : le fruit n'est pas encore mûr."
+      },
+      {
+        type: 'saisie',
+        q: 'Comment dit-on « elle a quinze ans » ? Écris la phrase complète.',
+        reponses: ['tiene quince años', 'Tiene quince años.', 'tiene quince anos', 'Tiene quince años'],
+        explication: "Tiene quince años. L'âge se dit avec tener, comme en français avec « avoir ». Ni « es quince años » ni « está quince años » n'existent."
+      },
+      {
+        type: 'qcm',
+        q: 'Que demande « ¿Cómo eres? »',
+        choix: ['Comment vas-tu ?', 'Comment es-tu physiquement et de caractère ?', 'Où es-tu ?'],
+        reponse: 1,
+        explication: "Comment es-tu, physiquement et de caractère. Pour demander comment quelqu'un va, on dit « ¿Cómo estás? », à quoi on répond « Estoy bien », jamais « Soy bien »."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle préposition signifie « sous » ?',
+        choix: ['encima de', 'debajo de', 'delante de'],
+        reponse: 1,
+        explication: "debajo de. encima de veut dire « sur », delante de « devant ». Les autres à connaître : detrás de (derrière), al lado de (à côté de), enfrente de (en face de)."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans une description de chambre, quel est le bon ordre ?',
+        choix: ['D\'abord estar pour situer, ensuite hay', 'D\'abord hay pour dire ce qui existe, ensuite estar pour situer', 'Peu importe l\'ordre'],
+        reponse: 1,
+        explication: "D'abord hay, ensuite estar. On introduit les objets avec hay et un article indéfini, puis on les situe avec estar et un article défini. Inverser sonne artificiel en espagnol."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète : « Nosotras ___ contentas. » (verbe estar)',
+        reponses: ['estamos'],
+        explication: "estamos, sans accent. Attention aussi à l'accord de l'adjectif : « contentas » au féminin pluriel, puisque le sujet est « nosotras »."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle règle est la plus fiable pour choisir entre ser et estar ?',
+        choix: ['ser pour ce qui ne change pas, estar pour ce qui change', 'ser pour ce que la chose EST, estar pour OÙ elle est et COMMENT elle va', 'ser au présent, estar aux autres temps'],
+        reponse: 1,
+        explication: "La seconde. La règle de la durée échoue sur « Madrid está en España », qui est pourtant définitif. Ce qui compte, c'est le type d'information : définir ou situer."
+      }
+    ]
+  }
 };
