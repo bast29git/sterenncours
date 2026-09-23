@@ -2170,4 +2170,144 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'francais/L06': {
+    titre: 'Les expansions du nom',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Quel est le noyau du groupe nominal « le chapeau de paille de ma grand-mère » ?',
+        choix: ['chapeau', 'paille', 'grand-mère'],
+        reponse: 0,
+        explication: "Le noyau est « chapeau » : c'est de lui qu'on parle. « Paille » et « grand-mère » ne font que le préciser. Le test : on peut dire « le chapeau », pas « la paille de ma grand-mère » avec le même sens."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien y a-t-il de sortes d\'expansions du nom ?',
+        choix: ['Deux', 'Trois', 'Cinq'],
+        reponse: 1,
+        explication: "Trois : l'adjectif qualificatif épithète, le complément du nom, et la proposition subordonnée relative. Toutes les trois peuvent se supprimer sans rendre la phrase incorrecte."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle expansion contient toujours un verbe conjugué ?',
+        choix: ['L\'adjectif épithète', 'Le complément du nom', 'La proposition relative'],
+        reponse: 2,
+        explication: "La proposition relative. C'est le critère de reconnaissance le plus fiable : « une route qui monte » contient le verbe « monte », alors que « une route étroite » et « une route de montagne » n'en ont aucun."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « une chemise en lin », quelle est la nature de « en lin » ?',
+        choix: ['Adjectif épithète', 'Complément du nom', 'Proposition relative'],
+        reponse: 1,
+        explication: "Un complément du nom, introduit par la préposition « en ». Il indique ici la matière. Les prépositions les plus fréquentes sont de, à, en, pour, sans, avec, par."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Dans « Elle regarde la route », le groupe « la route » est une expansion du nom.',
+        reponse: false,
+        explication: "Faux. Il complète le verbe « regarde », c'est un complément d'objet. Une expansion complète un nom et se supprime librement ; ici, « elle regarde » resterait en suspens."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « la mer semble calme », l\'adjectif « calme » est :',
+        choix: ['épithète', 'attribut du sujet', 'complément du nom'],
+        reponse: 1,
+        explication: "Attribut du sujet : le verbe d'état « semble » sépare le nom de l'adjectif. Sans verbe entre les deux, comme dans « une mer calme », ce serait une épithète."
+      },
+      {
+        type: 'saisie',
+        q: 'Accorde : « des maisons au toit (rouge) ». Écris l\'adjectif correctement.',
+        reponses: ['rouge'],
+        explication: "« rouge », sans s. L'adjectif complète « toit », qui est au singulier, et non « maisons ». On écrirait « aux toits rouges » si le complément était au pluriel."
+      },
+      {
+        type: 'saisie',
+        q: 'Accorde : « une veste et un pantalon (neuf) ».',
+        reponses: ['neufs'],
+        explication: "« neufs ». Quand un adjectif complète deux noms de genres différents, il se met au masculin pluriel. Si les deux noms étaient féminins, on écrirait le féminin pluriel."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : « la chanson ___ j\'écoute ».',
+        choix: ['qui', 'que', 'dont'],
+        reponse: 1,
+        explication: "« que » : j'écoute quoi ? la chanson. Le pronom est complément d'objet direct. Test rapide : remplaçable par « la », donc « que ». Remplaçable par « elle », ce serait « qui »."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : « la chanson ___ me plaît ».',
+        choix: ['qui', 'que', 'où'],
+        reponse: 0,
+        explication: "« qui » : qui me plaît ? la chanson. Le pronom est sujet du verbe « plaît ». Remplaçable par « elle », donc « qui »."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète : « le livre ___ je t\'ai parlé ».',
+        reponses: ['dont'],
+        explication: "« dont », parce qu'on dit « parler DE quelque chose ». Le « de » est déjà contenu dans « dont » : on n'écrit jamais « dont je t'ai parlé de »."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Le pronom relatif « où » ne peut indiquer qu\'un lieu.',
+        reponse: false,
+        explication: "Faux. Il indique aussi le temps : « le jour où tu es arrivé », « l'année où nous avons déménagé ». C'est un emploi fréquemment raté en dictée."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle phrase est correcte ?',
+        choix: ['C\'est moi qui est responsable.', 'C\'est moi qui suis responsable.', 'C\'est moi qui était responsable.'],
+        reponse: 1,
+        explication: "« C'est moi qui suis responsable. » Le verbe de la relative s'accorde avec l'antécédent du pronom « qui », ici « moi », donc la première personne du singulier."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « la personne dont je connais le frère », quelle formulation serait fautive ?',
+        choix: ['dont je connais le frère', 'dont je connais son frère', 'de qui je connais le frère'],
+        reponse: 1,
+        explication: "« dont je connais son frère » est fautif : « dont » contient déjà l'idée de « de cette personne », donc « son » fait doublon. C'est l'erreur la plus fréquente avec ce pronom."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle différence entre « un homme grand » et « un grand homme » ?',
+        choix: ['Aucune', 'Le premier parle de la taille, le second de l\'importance', 'Le second est incorrect'],
+        reponse: 1,
+        explication: "Placé après le nom, l'adjectif garde son sens propre : la taille. Placé avant, il prend souvent un sens figuré : l'importance. Même chose pour « un livre cher » et « un cher ami »."
+      },
+      {
+        type: 'qcm',
+        q: 'Que change la virgule dans « Les élèves, fatigués, sont rentrés » ?',
+        choix: ['Rien', 'Tous les élèves sont rentrés, et ils étaient fatigués', 'Seuls les élèves fatigués sont rentrés'],
+        reponse: 1,
+        explication: "Avec les virgules, l'adjectif est détaché : il commente l'ensemble du groupe. Sans virgules, « les élèves fatigués sont rentrés » trie : seuls ceux qui étaient fatigués sont partis."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment appelle-t-on un adjectif séparé du nom par une virgule ?',
+        choix: ['Une apposition', 'Une épithète détachée', 'Un attribut'],
+        reponse: 1,
+        explication: "Une épithète détachée. L'apposition, elle, est un groupe nominal placé à côté d'un autre nom : « Paris, capitale de la France, compte deux millions d'habitants »."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « un verre de vin » et « un verre en verre », qu\'est-ce qui change le sens ?',
+        choix: ['Le nom qui suit', 'La préposition', 'La place du complément'],
+        reponse: 1,
+        explication: "La préposition. « de » indique le contenu, « en » indique la matière. C'est elle qu'il faut lire, pas seulement le nom qui suit : « une tasse de thé » et « une tasse à thé » ne désignent pas la même chose."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « le toit de la maison qui domine le village », la relative complète :',
+        choix: ['toit', 'maison', 'village'],
+        reponse: 1,
+        explication: "Elle complète « maison », le nom qui précède immédiatement le pronom. C'est pourquoi on rapproche toujours un pronom relatif de son antécédent : sinon la phrase devient ambiguë."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Plus un groupe nominal a d\'expansions, plus la description est précise.',
+        reponse: false,
+        explication: "Faux. Au-delà de deux ou trois expansions, la phrase devient illisible et les informations se répètent. Une description est précise quand chaque mot ajoute quelque chose, pas quand elle est longue."
+      }
+    ]
+  }
 };
