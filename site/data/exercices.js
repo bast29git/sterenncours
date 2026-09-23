@@ -4405,4 +4405,143 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'physique-chimie/L05': {
+    titre: 'Les forces',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Quels sont les trois effets possibles d\'une action mécanique ?',
+        choix: ['Chauffer, refroidir, éclairer', 'Mettre en mouvement ou arrêter, modifier le mouvement, déformer', 'Attirer, repousser, dissoudre'],
+        reponse: 1,
+        explication: "Une action mécanique peut mettre en mouvement ou arrêter, modifier un mouvement en vitesse ou en direction, et déformer. Une même action peut produire plusieurs effets à la fois."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Une force peut exister sans qu\'un objet l\'exerce.',
+        reponse: false,
+        explication: "Faux. Une force implique toujours deux objets : celui qui l'exerce et celui qui la subit. On la nomme donc « force exercée par A sur B »."
+      },
+      {
+        type: 'qcm',
+        q: 'La résistance de l\'air sur un cycliste est une action :',
+        choix: ['à distance', 'de contact', 'ni l\'une ni l\'autre'],
+        reponse: 1,
+        explication: "De contact : l'air touche le cycliste, même s'il est invisible. Seules la gravitation, le magnétisme et l'électricité agissent à distance."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans le bilan des forces s\'exerçant sur un livre posé sur une table, que faut-il inclure ?',
+        choix: ['Le poids, la réaction de la table, et la force du livre sur la table', 'Le poids et la réaction de la table', 'Seulement le poids'],
+        reponse: 1,
+        explication: "Seulement deux forces. Un bilan recense uniquement les forces exercées SUR l'objet d'étude. La force du livre sur la table existe, mais elle s'applique à la table."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien de caractéristiques une force possède-t-elle ?',
+        choix: ['Deux', 'Trois', 'Quatre'],
+        reponse: 2,
+        explication: "Quatre : le point d'application, la direction, le sens et la valeur. Sur une flèche, elles se lisent respectivement à l'origine, à l'orientation du trait, à la pointe et à la longueur."
+      },
+      {
+        type: 'saisie',
+        q: 'Quelle est l\'unité de force ? Écris son nom au singulier.',
+        reponses: ['newton', 'le newton', 'Newton'],
+        explication: "Le newton, de symbole N. Un newton correspond environ au poids d'une masse de 100 g, celui d'une petite pomme."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la différence entre le poids et la masse ?',
+        choix: ['Aucune', 'La masse est une quantité de matière, le poids est une force', 'Le poids est plus précis'],
+        reponse: 1,
+        explication: "La masse se mesure en kilogrammes à la balance et ne change pas avec le lieu. Le poids est une force, se mesure en newtons au dynamomètre, et dépend de l'astre."
+      },
+      {
+        type: 'saisie',
+        q: 'Écris la relation entre le poids P, la masse m et l\'intensité de la pesanteur g.',
+        reponses: ['P = m x g', 'P = m × g', 'p = m x g', 'P=m×g', 'P=mxg', 'P = mg'],
+        explication: "P = m × g. P en newtons, m en kilogrammes, g en newtons par kilogramme. Sur Terre, g vaut environ 9,8 N/kg, souvent arrondi à 10."
+      },
+      {
+        type: 'saisie',
+        q: 'Calcule le poids d\'un objet de 30 kg sur Terre, avec g = 9,8 N/kg. Réponds en newtons.',
+        reponses: ['294', '294 N', '294N'],
+        explication: "P = 30 × 9,8 = 294 N. Avec g arrondi à 10, on trouverait 300 N. Un poids se donne toujours en newtons, jamais en kilogrammes."
+      },
+      {
+        type: 'saisie',
+        q: 'Un objet a un poids de 147 N. Quelle est sa masse en kg, avec g = 9,8 N/kg ?',
+        reponses: ['15', '15 kg', '15kg'],
+        explication: "m = P ÷ g = 147 ÷ 9,8 = 15 kg. Contrôler l'unité du résultat détecte la quasi-totalité des erreurs de formule."
+      },
+      {
+        type: 'qcm',
+        q: 'Un astronaute de 120 kg part sur la Lune. Que devient sa masse ?',
+        choix: ['Elle est divisée par 6', 'Elle reste 120 kg', 'Elle devient nulle'],
+        reponse: 1,
+        explication: "Elle reste 120 kg : la masse est une quantité de matière, indépendante du lieu. C'est son POIDS qui est divisé par environ six, de 1176 N à 192 N."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien vaut l\'intensité de la pesanteur sur la Lune ?',
+        choix: ['9,8 N/kg', '1,6 N/kg', '3,7 N/kg'],
+        reponse: 1,
+        explication: "1,6 N/kg, soit environ six fois moins que sur Terre. Mars est à 3,7 N/kg et Jupiter à 24,8 N/kg."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Dans une station spatiale, la masse des objets disparaît.',
+        reponse: false,
+        explication: "Faux. Seule la SENSATION de poids disparaît, car la station et tout ce qu'elle contient tombent ensemble. Pousser une caisse de 100 kg y demande le même effort que sur Terre."
+      },
+      {
+        type: 'qcm',
+        q: 'À quelle condition deux forces se compensent-elles ?',
+        choix: ['Même direction, sens opposés, même valeur', 'Même sens et même valeur', 'Elles ne se compensent jamais'],
+        reponse: 0,
+        explication: "Les trois conditions doivent être réunies. Leur effet combiné est alors nul : l'objet immobile reste immobile, l'objet en mouvement continue en ligne droite à vitesse constante."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Si les forces se compensent, l\'objet est forcément immobile.',
+        reponse: false,
+        explication: "Faux. Un parachutiste en chute stabilisée tombe à 200 km/h avec des forces compensées. Ce qui est nul, ce n'est pas la vitesse mais sa VARIATION."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi la vitesse d\'un parachutiste devient-elle constante en chute stabilisée ?',
+        choix: ['Parce que le poids disparaît', 'Parce que la résistance de l\'air a augmenté jusqu\'à égaler le poids', 'Parce qu\'il freine avec les bras'],
+        reponse: 1,
+        explication: "La résistance de l'air augmente avec la vitesse. Tant que le poids l'emporte, la vitesse croît, donc la résistance aussi. Le processus s'arrête quand les deux sont égales."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans quel sens s\'exerce une force de frottement ?',
+        choix: ['Dans le sens du mouvement', 'Dans le sens opposé au mouvement', 'Perpendiculairement au mouvement'],
+        reponse: 1,
+        explication: "Toujours dans le sens opposé au mouvement. Une force de frottement ne peut donc jamais accélérer un objet : elle le freine, sans exception."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi un objet lancé sur une table finit-il par s\'arrêter ?',
+        choix: ['Parce qu\'il n\'a plus de force', 'Parce que les frottements ne sont compensés par rien', 'Parce que son poids augmente'],
+        reponse: 1,
+        explication: "Les frottements sont une force non compensée dirigée contre le mouvement. Sans frottement, l'objet continuerait indéfiniment en ligne droite à vitesse constante : c'est le principe d'inertie."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la direction et le sens de la réaction d\'un support horizontal ?',
+        choix: ['Horizontale, vers l\'avant', 'Verticale, vers le haut', 'Verticale, vers le bas'],
+        reponse: 1,
+        explication: "Perpendiculaire au support, donc verticale ici, et dirigée vers le haut. Sur un plan horizontal, elle compense exactement le poids quand l'objet est immobile."
+      },
+      {
+        type: 'qcm',
+        q: 'Un satellite en orbite subit une seule force, son poids. Son mouvement est-il modifié ?',
+        choix: ['Non, il va tout droit', 'Oui, sa direction change en permanence', 'Non, les forces se compensent'],
+        reponse: 1,
+        explication: "Oui. Sa vitesse est constante en valeur, mais sa direction change sans arrêt : il est en chute permanente vers la Terre, qui se dérobe sous lui à mesure qu'il tombe."
+      }
+    ]
+  }
 };
