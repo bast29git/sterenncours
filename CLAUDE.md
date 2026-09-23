@@ -1,17 +1,19 @@
-# sterenncours — Conventions de travail
+# sterenncours : Conventions de travail
 
 Supports de cours **4ème** préparés par Bastien pour **Sterenn**.
-Profil : **TSA sans déficience intellectuelle**. Le niveau d'exigence intellectuelle reste celui du programme officiel ; c'est la **forme** qui s'adapte, jamais le fond.
+Le niveau d'exigence intellectuelle est celui du programme officiel ; c'est la **forme** qui s'adapte, jamais le fond.
 
-Objectif de validation : **acquis officiels du cycle 4 (4ème)**, format attendu par le **CNED** (validation des acquis par matière, évaluations notées et grilles de compétences du socle commun).
+**Règle de discrétion.** Aucun document produit ne nomme de diagnostic, de trouble ou de profil médical, ni en clair ni par allusion. Les aménagements sont présentés comme des **choix de conception pédagogique**, rien d'autre. Cela vaut pour les fiches, le site, les titres de fichiers et les messages de commit.
+
+Objectif de validation : les **acquis officiels du cycle 4 (4ᵉ)**, par matière, avec évaluations notées et positionnement sur les compétences du socle commun.
 
 ---
 
 ## 1. Architecture du dépôt
 
 ```
-00-pilotage/        Vue d'ensemble : synthèse du programme, adaptations TSA,
-                    référentiel CNED, progression annuelle, journal de séances
+00-pilotage/        Vue d'ensemble : synthèse du programme, cadre pédagogique,
+                    progression annuelle, journal de séances
 matieres/<matiere>/ Un dossier par matière, puis un dossier par leçon
   L01-<slug>/
     1-cours.md        Fiche de Cours Complète
@@ -28,22 +30,33 @@ public/             Sortie générée (non versionnée)
 Matières couvertes : `maths`, `francais`, `physique-chimie`, `svt`,
 `histoire-geo`, `emc`, `anglais-lv1`, `espagnol-lv2`.
 
+## 1 bis. Sources de vérité
+
+- **`00-pilotage/programme.json`** : le programme officiel de 4ᵉ et les **69 leçons**
+  (matières, thèmes, attendus de fin d'année, compétences, période de traitement).
+  Toute nouvelle leçon se déclare **d'abord** ici. Le build échoue si un dossier de
+  leçon existe sur le disque sans être déclaré.
+- **`site/data/exercices.js`** : la banque d'exercices interactifs, indexée par
+  `"<matiere>/<ref>"`.
+- Le site et les dossiers par matière sont **entièrement générés** à partir de ces
+  deux fichiers plus le contenu Markdown. On ne les édite jamais dans `public/`.
+
 ## 2. Le quatuor OBLIGATOIRE par leçon
 
 Aucune leçon n'est « faite » tant que les **4 documents** n'existent pas :
 
 | # | Document | Rôle | Longueur cible |
 |---|----------|------|----------------|
-| 1 | **Fiche de Cours Complète** | Théorie, définitions, formules, exemples guidés | 5–9 pages A4 |
-| 2 | **Fiche de Révision** | Synthèse visuelle, mots-clés, pièges à éviter | 2–3 pages + auto-test |
-| 3 | **Exercices Corrigés** | Énoncés progressifs + corrigés détaillés pas à pas | 15–25 exercices, dont un sujet de type devoir |
-| 4 | **Grille d'Évaluation** | Critères : Insuffisant / Fragile / Satisfaisant / Très bien | 6–10 critères |
+| 1 | **Fiche de Cours Complète** | Théorie, définitions, formules, exemples guidés | 5-9 pages A4 |
+| 2 | **Fiche de Révision** | Synthèse visuelle, mots-clés, pièges à éviter | 2-3 pages + auto-test |
+| 3 | **Exercices Corrigés** | Énoncés progressifs + corrigés détaillés pas à pas | 15-25 exercices, dont un sujet de type devoir |
+| 4 | **Grille d'Évaluation** | Critères : Insuffisant / Fragile / Satisfaisant / Très bien | 6-10 critères |
 
 La **Grille d'Évaluation** utilise toujours ces **4 niveaux exacts**, dans cet ordre, avec les codes couleur et pictogrammes du design system (jamais la couleur seule).
 
-## 3. Adaptations TSA — non négociables
+## 3. Principes de conception : non négociables
 
-Détail complet dans `00-pilotage/adaptations-tsa.md`. Les invariants :
+Détail complet dans `00-pilotage/cadre-pedagogique.md`. Les invariants :
 
 1. **Prévisibilité** : tous les documents d'un même type ont exactement la même structure, dans le même ordre. Aucune surprise de mise en page.
 2. **Annonce explicite** : chaque fiche commence par `Plan de la fiche`, une durée estimée, et le matériel nécessaire.
@@ -54,8 +67,37 @@ Détail complet dans `00-pilotage/adaptations-tsa.md`. Les invariants :
    Toute évaluation dit ce qui est attendu, pas seulement ce qui est demandé.
 7. **Charge sensorielle maîtrisée** : fond crème (jamais blanc pur), pas de texte justifié, pas de fond coloré derrière un long texte, pas d'animation automatique, interlignage 1.7.
 8. **Redondance du sens** : couleur + pictogramme + libellé texte. Un daltonien ou une impression noir et blanc doivent rester lisibles.
-9. **Intérêts spécifiques** : les exemples peuvent et doivent s'appuyer sur les centres d'intérêt de Sterenn (cf. `00-pilotage/adaptations-tsa.md`).
+9. **Intérêts personnels** : les énoncés s'appuient en priorité sur les centres d'intérêt de Sterenn (cf. `00-pilotage/cadre-pedagogique.md`).
 10. **Pas d'infantilisation** : vocabulaire de 4ème, exigence de 4ème.
+
+## 3 bis. Le portail de cours (`site/`)
+
+Application d'une seule page, sans dépendance ni serveur.
+Codes : **`sanka29`** ouvre l'espace de Sterenn, **`babas29`** l'espace professeur.
+C'est une **séparation d'usages, pas une protection** : les codes sont lisibles dans
+le source de la page. Ne jamais y placer de donnée sensible.
+
+Le suivi des acquis vit dans le `localStorage` du navigateur, avec export et import
+JSON. Aucune donnée ne part sur un serveur.
+
+**À faire pour chaque leçon livrée** : ajouter sa série d'exercices interactifs dans
+`site/data/exercices.js` (12 à 15 questions, types `qcm`, `vraifaux`, `saisie`).
+Chaque question porte une **explication rédigée** : une réponse fausse doit apprendre
+quelque chose, pas seulement signaler l'erreur.
+
+## 3 ter. Rythme de travail et supports
+
+- **Trois séances par semaine**, 1 h à 1 h 30 maximum, à la maison ou en visio.
+  Jamais prolongées, même quand ça se passe bien.
+- **Sur écran avec Bastien, à la main en autonomie.** Chaque exercice porte son
+  support en 4ᵉ argument du conteneur : `::: exercice 3 | entrainement | 10 min | ecran`
+  ou `| main`. Les rédactions et les exercices d'approfondissement vont **à la main**.
+- Le travail personnel, c'est **deux fois 15 minutes** entre deux séances, annoncées,
+  jamais sur une notion non vue ensemble.
+- Les énoncés s'appuient en priorité sur les **centres d'intérêt de Sterenn**
+  (cf. `00-pilotage/cadre-pedagogique.md`, section 10).
+- Ce qui est acquis est **nommé précisément, coché devant elle, puis rappelé** la
+  séance suivante. La valorisation porte sur l'acquis, jamais sur l'effort supposé.
 
 ## 4. Rédaction du contenu
 
@@ -69,10 +111,15 @@ Détail complet dans `00-pilotage/adaptations-tsa.md`. Les invariants :
 
 ```bash
 npm install          # une seule fois
-npm run build        # Markdown → HTML dans public/
-npm run pdf          # HTML → PDF A4 prêt à imprimer
-npm run all          # les deux
+npm run build        # Markdown vers HTML, données du site, dossiers par matière
+npm run pdf          # PDF : un dossier complet par matière, le pilotage, les outils
+npm run pdf:tout     # en plus, un PDF par fiche individuelle
+npm run all          # build + pdf
+npm run serve        # relecture sur http://localhost:4321
 ```
+
+Le build **échoue** (`exit 1`) si un front-matter est incomplet, si une clé a absorbé
+la ligne suivante, ou si un lien interne est cassé. Ne jamais committer sur un build rouge.
 
 - Rendu HTML : `build/build.mjs` (markdown-it + conteneurs personnalisés).
 - PDF : `build/pdf.mjs` via Chromium headless (`--print-to-pdf`), format A4.
@@ -109,9 +156,9 @@ competences:
 
 Le dépôt voisin **bg3s** contient du contenu scolaire déjà rédigé et vérifié :
 
-- `app/src/data/curriculum.ts` — programmes officiels par niveau × matière (14 programmes de 4ème, découpés en séquences).
-- `app/public/learning/lecons/4e-*.js` — contenu pédagogique rédigé pour la 4ème.
-- `app/src/data/exams.ts` — format d'examens blancs avec barèmes et corrigés.
+- `app/src/data/curriculum.ts` : programmes officiels par niveau × matière (14 programmes de 4ème, découpés en séquences).
+- `app/public/learning/lecons/4e-*.js` : contenu pédagogique rédigé pour la 4ème.
+- `app/src/data/exams.ts` : format d'examens blancs avec barèmes et corrigés.
 
 Ce contenu sert de **socle à réutiliser et à enrichir**, jamais à recopier tel quel :
-il doit être ré-adapté au format 4 documents et aux adaptations TSA ci-dessus.
+il doit être ré-adapté au format 4 documents et aux principes de conception ci-dessus.

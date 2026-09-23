@@ -1,0 +1,332 @@
+/* =========================================================================
+   app.css : interface du portail de cours.
+   S'appuie sur les jetons de ../theme/cours.css (couleurs, polices, matières).
+   ========================================================================= */
+
+body.app { margin: 0; background: var(--fond-page); }
+
+/* [hidden] doit l'emporter sur les display: grid / flex déclarés plus bas. */
+[hidden] { display: none !important; }
+
+/* ---------- Portail de connexion ---------------------------------------- */
+.portail {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+.portail-carte {
+  width: min(26rem, 100%);
+  background: var(--fond-carte);
+  border: 2px solid var(--trait);
+  border-radius: 18px;
+  padding: 2rem 1.75rem 1.75rem;
+  text-align: center;
+}
+.portail-carte h1 { font-size: 1.6rem; margin-bottom: 0.2rem; }
+.portail-carte .sous { color: var(--texte-doux); margin-bottom: 1.6rem; }
+.portail-carte label { display: block; text-align: left; font-weight: 700; font-size: 0.9rem; margin-bottom: 0.35rem; }
+.portail-carte input {
+  width: 100%;
+  font: inherit;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  padding: 0.7rem 0.9rem;
+  border: 2px solid var(--trait-fort);
+  border-radius: 10px;
+  background: var(--fond-page);
+  color: var(--texte);
+}
+.portail-carte input:focus { outline: 3px solid var(--accent-trait); border-color: var(--accent); }
+.portail-erreur {
+  display: none;
+  margin-top: 0.7rem;
+  color: var(--insuffisant);
+  background: var(--insuffisant-bg);
+  border: 1px solid var(--insuffisant);
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.9rem;
+}
+.portail-erreur.visible { display: block; }
+
+.btn {
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid var(--accent);
+  background: var(--accent);
+  color: var(--fond-carte);
+  border-radius: 10px;
+  padding: 0.6rem 1.1rem;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn-large { width: 100%; margin-top: 1rem; padding: 0.75rem; font-size: 1.05rem; }
+.btn-doux { background: var(--accent-doux); color: var(--accent); border-color: var(--accent-trait); }
+.btn-neutre { background: var(--fond-doux); color: var(--texte); border-color: var(--trait-fort); }
+
+/* ---------- Barre supérieure -------------------------------------------- */
+.barre {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  background: var(--fond-carte);
+  border-bottom: 2px solid var(--trait);
+  padding: 0.6rem 1rem;
+}
+.barre-titre { font-weight: 700; font-size: 1.05rem; }
+.barre-titre a { color: var(--texte); text-decoration: none; }
+.barre-role {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  background: var(--accent-doux);
+  border: 1px solid var(--accent-trait);
+  color: var(--accent);
+}
+.barre nav { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-left: auto; }
+.barre nav a {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--texte-doux);
+  border-radius: 8px;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid transparent;
+}
+.barre nav a:hover { background: var(--fond-doux); color: var(--texte); }
+.barre nav a.actif { background: var(--accent-doux); border-color: var(--accent-trait); color: var(--accent); }
+
+/* ---------- Conteneur --------------------------------------------------- */
+.vue { max-width: 60rem; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+.vue h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
+.vue > .intro { color: var(--texte-doux); margin-bottom: 1.6rem; }
+.section-titre {
+  font-size: 1.2rem;
+  margin: 2rem 0 0.8rem;
+  padding-bottom: 0.3em;
+  border-bottom: 3px solid var(--accent-trait);
+  color: var(--accent);
+}
+
+/* ---------- Grille de matières ------------------------------------------ */
+.grille-matieres {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.9rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.grille-matieres a {
+  display: block;
+  height: 100%;
+  text-decoration: none;
+  color: var(--texte);
+  background: var(--fond-carte);
+  border: 2px solid var(--trait);
+  border-top: 6px solid var(--m, var(--accent));
+  border-radius: 12px;
+  padding: 0.9rem 1rem 0.8rem;
+}
+.grille-matieres a:hover { border-color: var(--m); border-top-color: var(--m); }
+.grille-matieres .m-icone { font-size: 1.5rem; display: block; margin-bottom: 0.2rem; }
+.grille-matieres .m-nom { display: block; font-weight: 700; font-size: 1.05rem; color: var(--m); }
+.grille-matieres .m-info { display: block; font-size: 0.85rem; color: var(--texte-doux); margin-bottom: 0.55rem; }
+
+/* ---------- Jauge de progression ---------------------------------------- */
+.jauge {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--fond-doux);
+  border: 1px solid var(--trait);
+  overflow: hidden;
+}
+.jauge > i { display: block; height: 100%; background: var(--m, var(--accent)); }
+.jauge-legende { font-size: 0.78rem; color: var(--texte-doux); margin-top: 0.25rem; display: block; }
+
+/* ---------- Liste de leçons --------------------------------------------- */
+.liste-lecons { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.6rem; }
+.liste-lecons > li {
+  background: var(--fond-carte);
+  border: 2px solid var(--trait);
+  border-left: 7px solid var(--trait-fort);
+  border-radius: 12px;
+  padding: 0.75rem 0.95rem 0.65rem;
+}
+.liste-lecons > li.prete { border-left-color: var(--m, var(--accent)); }
+.lecon-ligne { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.puce-ref {
+  font-size: 0.78rem;
+  font-weight: 700;
+  min-width: 2.4rem;
+  text-align: center;
+  border-radius: 6px;
+  padding: 0.1rem 0.4rem;
+  background: var(--accent-doux);
+  border: 1px solid var(--accent-trait);
+  color: var(--accent);
+}
+.lecon-nom { font-weight: 700; }
+.lecon-periode { font-size: 0.78rem; color: var(--texte-doux); margin-left: auto; }
+.lecon-notions { font-size: 0.85rem; color: var(--texte-doux); margin: 0.3rem 0 0.5rem; }
+.lecon-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.lecon-actions a, .lecon-actions button, .lecon-actions span.indispo {
+  font: inherit;
+  font-size: 0.84rem;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 0.22rem 0.6rem;
+  border: 1px solid var(--accent-trait);
+  background: var(--accent-doux);
+  color: var(--accent);
+  cursor: pointer;
+}
+.lecon-actions a:hover, .lecon-actions button:hover { background: var(--accent); color: var(--fond-carte); }
+.lecon-actions span.indispo {
+  border-style: dashed;
+  border-color: var(--trait-fort);
+  background: transparent;
+  color: var(--texte-doux);
+  cursor: default;
+}
+
+/* ---------- Pastilles de niveau ----------------------------------------- */
+.niv {
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.niv-insuffisant  { color: var(--insuffisant);  background: var(--insuffisant-bg); }
+.niv-fragile      { color: var(--fragile);      background: var(--fragile-bg); }
+.niv-satisfaisant { color: var(--satisfaisant); background: var(--satisfaisant-bg); }
+.niv-tresbien     { color: var(--tresbien);     background: var(--tresbien-bg); }
+.niv-vide         { color: var(--texte-doux);   background: var(--fond-doux); border-style: dashed; }
+
+/* ---------- Exercices interactifs --------------------------------------- */
+.exo-carte {
+  background: var(--fond-carte);
+  border: 2px solid var(--trait);
+  border-radius: 14px;
+  padding: 1.1rem 1.2rem 1rem;
+  margin-bottom: 1rem;
+}
+.exo-compteur { font-size: 0.82rem; color: var(--texte-doux); margin-bottom: 0.5rem; }
+.exo-question { font-size: 1.08rem; font-weight: 700; margin-bottom: 0.9rem; line-height: 1.5; }
+.exo-choix { list-style: none; padding: 0; margin: 0 0 0.9rem; display: grid; gap: 0.5rem; }
+.exo-choix button {
+  font: inherit;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background: var(--fond-page);
+  border: 2px solid var(--trait-fort);
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  color: var(--texte);
+}
+.exo-choix button:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-doux); }
+.exo-choix button:disabled { cursor: default; }
+.exo-choix button.juste { border-color: var(--satisfaisant); background: var(--satisfaisant-bg); color: var(--satisfaisant); font-weight: 700; }
+.exo-choix button.faux { border-color: var(--insuffisant); background: var(--insuffisant-bg); color: var(--insuffisant); }
+.exo-saisie { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+.exo-saisie input {
+  font: inherit;
+  flex: 1 1 12rem;
+  padding: 0.6rem 0.8rem;
+  border: 2px solid var(--trait-fort);
+  border-radius: 10px;
+  background: var(--fond-page);
+  color: var(--texte);
+}
+.exo-retour {
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 0.8rem;
+  border: 2px solid var(--trait);
+}
+.exo-retour.ok { border-color: var(--satisfaisant); background: var(--satisfaisant-bg); }
+.exo-retour.ko { border-color: var(--fragile); background: var(--fragile-bg); }
+.exo-retour strong { display: block; margin-bottom: 0.2rem; }
+.exo-barre { display: flex; gap: 0.3rem; margin-bottom: 1rem; }
+.exo-barre i {
+  flex: 1;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--fond-doux);
+  border: 1px solid var(--trait);
+}
+.exo-barre i.ok { background: var(--satisfaisant); border-color: var(--satisfaisant); }
+.exo-barre i.ko { background: var(--fragile); border-color: var(--fragile); }
+.exo-barre i.en-cours { background: var(--accent); border-color: var(--accent); }
+
+/* ---------- Badges et résultats ----------------------------------------- */
+.badges { display: flex; flex-wrap: wrap; gap: 0.6rem; list-style: none; padding: 0; margin: 1rem 0; }
+.badges > li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--fond-carte);
+  border: 2px solid var(--trait);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem 0.35rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.badges > li.obtenu { border-color: var(--satisfaisant); background: var(--satisfaisant-bg); color: var(--satisfaisant); }
+.badges .b-icone { font-size: 1.15rem; }
+
+.tuiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.7rem;
+  list-style: none;
+  padding: 0;
+  margin: 1.2rem 0;
+}
+.tuiles > li {
+  text-align: center;
+  background: var(--fond-carte);
+  border: 2px solid var(--trait);
+  border-radius: 12px;
+  padding: 0.8rem 0.5rem 0.6rem;
+}
+.tuiles strong { display: block; font-size: 1.8rem; line-height: 1.1; color: var(--accent); }
+.tuiles span { display: block; font-size: 0.8rem; color: var(--texte-doux); }
+
+/* ---------- Tableau de suivi -------------------------------------------- */
+.tableau-suivi { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.tableau-suivi th, .tableau-suivi td { border: 1px solid var(--trait-fort); padding: 0.4rem 0.55rem; text-align: left; }
+.tableau-suivi thead th { background: var(--accent-doux); color: var(--accent); }
+.tableau-suivi select { font: inherit; font-size: 0.85rem; padding: 0.2rem; border-radius: 6px; border: 1px solid var(--trait-fort); background: var(--fond-carte); color: var(--texte); }
+
+/* ---------- Divers ------------------------------------------------------- */
+.encart {
+  background: var(--fond-carte);
+  border: 2px solid var(--trait);
+  border-left: 7px solid var(--accent);
+  border-radius: 12px;
+  padding: 0.85rem 1rem 0.7rem;
+  margin: 1.2rem 0;
+}
+.encart h3 { margin: 0 0 0.4rem; font-size: 1rem; color: var(--accent); }
+.encart p:last-child { margin-bottom: 0; }
+.outils-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+.discret { font-size: 0.85rem; color: var(--texte-doux); }
+.prof-seul { border-left-color: var(--fragile); }
+.prof-seul h3 { color: var(--fragile); }
+
+@media (max-width: 34rem) {
+  .barre nav { margin-left: 0; width: 100%; }
+  .vue { padding: 1rem 0.75rem 3rem; }
+}

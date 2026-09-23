@@ -51,9 +51,9 @@ Viser 100 % de temps utile est le meilleur moyen d'obtenir 40 %.
 
 ::: methode Les transitions
 ::: etapes
-1. **Prévenir** — « dans 3 minutes, on passe aux exercices ».
-2. **Nommer** — « on quitte la leçon, on passe à l'entraînement ».
-3. **Clore** — « la partie cours est terminée, on n'y revient plus aujourd'hui ».
+1. **Prévenir** : « dans 3 minutes, on passe aux exercices ».
+2. **Nommer** : « on quitte la leçon, on passe à l'entraînement ».
+3. **Clore** : « la partie cours est terminée, on n'y revient plus aujourd'hui ».
 :::
 :::
 

@@ -1,9 +1,9 @@
 /**
- * build.mjs — Markdown → HTML pour les supports de cours de Sterenn.
+ * build.mjs : Markdown → HTML pour les supports de cours de Sterenn.
  *
  * Zéro style en ligne : tout le rendu passe par le design system
  * (theme/cours.css) et par un jeu fermé de conteneurs `:::`.
- * Objectif TSA : une syntaxe = un bloc visuel, toujours le même,
+ * Objectif : une syntaxe = un bloc visuel, toujours le même,
  * avec pictogramme + libellé + couleur (redondance du sens).
  */
 import fs from 'node:fs';
@@ -101,7 +101,7 @@ for (const [nom, def] of Object.entries(BLOCS)) {
     render(tokens, idx) {
       if (tokens[idx].nesting !== 1) return '</div>\n';
       const suffixe = tokens[idx].info.trim().slice(nom.length).trim();
-      const titre = suffixe ? `${def.libelle} — ${echapper(suffixe)}` : def.libelle;
+      const titre = suffixe ? `${def.libelle} : ${echapper(suffixe)}` : def.libelle;
       return `<div class="bloc ${def.classe}">\n`
            + `<p class="bloc-titre"><span class="picto" aria-hidden="true">${def.picto}</span>`
            + `<span>${titre}</span></p>\n`;
@@ -118,9 +118,16 @@ md.use(container, 'exercice', {
     const cle = (args[1] || 'application').toLowerCase().replace(/[^a-z]/g, '');
     const niveau = NIVEAUX_EX[cle] || NIVEAUX_EX.application;
     const duree = args[2] || '';
+    // 4e argument : le support attendu. « main » pour les exercices faits en
+    // autonomie (travail de l'écriture), « ecran » pour ceux faits à deux.
+    const support = (args[3] || '').toLowerCase();
+    const badgeSupport = support === 'main'
+      ? '<span class="exercice-support support-main">✍️ à la main</span>'
+      : (support === 'ecran' ? '<span class="exercice-support support-ecran">💻 sur écran</span>' : '');
     return `<section class="exercice">\n<div class="exercice-entete">`
          + `<span class="exercice-num">Exercice ${echapper(num)}</span>`
          + `<span class="exercice-niveau niveau-${cle}">${niveau}</span>`
+         + badgeSupport
          + (duree ? `<span class="exercice-duree">⏱️ ${echapper(duree)}</span>` : '')
          + `</div>\n`;
   },
@@ -132,7 +139,7 @@ md.use(container, 'corrige', {
     if (tokens[idx].nesting !== 1) return '</div>\n</details>\n';
     const suffixe = tokens[idx].info.trim().slice('corrige'.length).trim();
     return `<details class="corrige" open>\n<summary>Corrigé détaillé`
-         + (suffixe ? ` — ${echapper(suffixe)}` : '') + `</summary>\n<div class="corrige-corps">\n`;
+         + (suffixe ? ` : ${echapper(suffixe)}` : '') + `</summary>\n<div class="corrige-corps">\n`;
   },
 });
 
@@ -144,6 +151,11 @@ md.use(container, 'etapes', {
   },
 });
 
+// ::: frise : conteneur simple pour une frise SVG
+md.use(container, 'frise', {
+  render: (tokens, idx) => (tokens[idx].nesting === 1 ? '<div class="frise">\n' : '</div>\n'),
+});
+
 // ::: formule-cle → encadré central
 md.use(container, 'formule-cle', {
   render(tokens, idx) {
@@ -152,7 +164,7 @@ md.use(container, 'formule-cle', {
 });
 
 // ::: motscles / ::: echelle / ::: cartes / ::: cocher → listes stylées
-for (const nom of ['motscles', 'echelle', 'cartes', 'cocher', 'grille']) {
+for (const nom of ['motscles', 'echelle', 'cartes', 'cocher', 'grille', 'panorama', 'chiffres']) {
   md.use(container, nom, {
     render(tokens, idx) {
       return tokens[idx].nesting === 1
@@ -184,8 +196,9 @@ md.use(container, 'saut', {
    On peut donc écrire `:::` partout dans le Markdown.                       */
 const NOMS_CONTENEURS = new Set([
   ...Object.keys(BLOCS),
-  'exercice', 'corrige', 'etapes', 'formule-cle',
-  'motscles', 'echelle', 'cartes', 'cocher', 'grille', 'reponse', 'saut',
+  'exercice', 'corrige', 'etapes', 'formule-cle', 'frise',
+  'motscles', 'echelle', 'cartes', 'cocher', 'grille', 'panorama', 'chiffres',
+  'reponse', 'saut',
 ]);
 
 function normaliserConteneurs(corps) {
@@ -237,6 +250,8 @@ function appliquerClassesListes(html) {
     .replace(/<div class="enveloppe-echelle">\s*<ul>/g, '<ul class="echelle">')
     .replace(/<div class="enveloppe-cartes">\s*<ul>/g, '<ul class="cartes">')
     .replace(/<div class="enveloppe-cocher">\s*<ul>/g, '<ul class="cocher">')
+    .replace(/<div class="enveloppe-panorama">\s*<ul>/g, '<ul class="panorama">')
+    .replace(/<div class="enveloppe-chiffres">\s*<ul>/g, '<ul class="chiffres">')
     .replace(/<div class="enveloppe-grille">\s*<table>/g, '<table class="grille">')
     // On ne supprime QUE les fermetures d'enveloppe dont l'ouverture a été absorbée
     // par la liste ou le tableau ci-dessus. Les autres gardent leur </div>.
@@ -272,7 +287,7 @@ function gabarit({ meta, contenu, profondeur, chemin }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${echapper(meta.titre || 'Support de cours')} — ${typeDoc}</title>
+<title>${echapper(meta.titre || 'Support de cours')} : ${typeDoc}</title>
 <meta name="description" content="${echapper(meta.resume || `${typeDoc} · ${filAriane} · classe de 4ᵉ`)}">
 <link rel="stylesheet" href="${versRacine}theme/cours.css">
 </head>
@@ -347,12 +362,12 @@ for (const dossier of DOSSIERS_CONTENU) {
     // suite, pas découvert plus tard dans un sommaire qui affiche des chemins.
     const manquants = ['type', 'matiere', 'titre'].filter((c) => !meta[c]);
     if (manquants.length) {
-      console.warn(`   ⚠️  ${relatif} — front-matter incomplet : ${manquants.join(', ')}`);
+      console.warn(`   ⚠️  ${relatif} : front-matter incomplet : ${manquants.join(', ')}`);
       avertissements += 1;
     }
     for (const [cle, valeur] of Object.entries(meta)) {
       if (typeof valeur === 'string' && /\s[a-z_-]+:\s/.test(valeur)) {
-        console.warn(`   ⚠️  ${relatif} — la clé « ${cle} » semble avoir absorbé la ligne suivante`);
+        console.warn(`   ⚠️  ${relatif} : la clé « ${cle} » semble avoir absorbé la ligne suivante`);
         avertissements += 1;
       }
     }
@@ -391,7 +406,7 @@ function construireSommaire() {
     const lecon = lecons.get(cle);
     lecon.docs[fiche.meta.type] = fiche.relatif.replace(/\.md$/, '.html').split(path.sep).join('/');
     if (fiche.meta.type === 'cours' && fiche.meta.titre) lecon.titre = fiche.meta.titre;
-    if (!lecon.titre && fiche.meta.titre) lecon.titre = fiche.meta.titre.replace(/ —.*$/, '');
+    if (!lecon.titre && fiche.meta.titre) lecon.titre = fiche.meta.titre.replace(/  : .*$/, '');
   }
 
   const sections = [];
@@ -427,7 +442,7 @@ function construireSommaire() {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cours de 4ᵉ — Sommaire</title>
+<title>Cours de 4ᵉ : Sommaire</title>
 <link rel="stylesheet" href="theme/cours.css">
 </head>
 <body>
@@ -437,6 +452,7 @@ function construireSommaire() {
   <h1>Sommaire des supports de cours</h1>
   <p>Tous les documents de l'année, classés par matière. Chaque leçon comporte quatre documents : cours, révision, exercices corrigés et grille d'évaluation.</p>
   <ul class="fiche-meta"><li>📚 ${lecons.size} leçon(s) commencée(s)</li><li>📄 ${fiches.length} document(s)</li></ul>
+  <p><a class="fiche-type" style="text-decoration:none" href="site/index.html">🌐 Ouvrir le portail de cours</a></p>
 </header>
 ${bloc('Pilotage', pilotage)}
 ${sections.join('\n')}
@@ -449,6 +465,139 @@ ${bloc('Outils complémentaires', outils)}
 }
 
 fs.writeFileSync(path.join(SORTIE, 'index.html'), construireSommaire());
+
+/* ── Données du site : programme + disponibilité des documents ──────────── */
+const FICHIERS_DOC = {
+  cours: '1-cours', revision: '2-revision',
+  exercices: '3-exercices', evaluation: '4-evaluation',
+};
+
+function construireDonneesSite() {
+  const source = path.join(RACINE, '00-pilotage', 'programme.json');
+  if (!fs.existsSync(source)) {
+    console.warn('   ⚠️  00-pilotage/programme.json introuvable : données du site non générées');
+    return 0;
+  }
+  const programme = JSON.parse(fs.readFileSync(source, 'utf8'));
+  const attendus = new Set();
+  let incomplets = 0;
+
+  for (const m of programme.matieres) {
+    for (const l of m.lecons) {
+      attendus.add(`${m.id}/${l.dossier}`);
+      l.docs = Object.entries(FICHIERS_DOC)
+        .filter(([, fichier]) => fs.existsSync(
+          path.join(RACINE, 'matieres', m.id, l.dossier, `${fichier}.md`),
+        ))
+        .map(([type]) => type);
+      if (l.docs.length > 0 && l.docs.length < 4) incomplets += 1;
+    }
+  }
+
+  // Un dossier de leçon présent sur le disque mais absent du programme est une
+  // dérive silencieuse : il n'apparaîtrait nulle part dans le site.
+  for (const m of programme.matieres) {
+    const dossierMatiere = path.join(RACINE, 'matieres', m.id);
+    if (!fs.existsSync(dossierMatiere)) continue;
+    for (const e of fs.readdirSync(dossierMatiere, { withFileTypes: true })) {
+      if (!e.isDirectory()) continue;
+      if (!attendus.has(`${m.id}/${e.name}`)) {
+        console.warn(`   ⚠️  matieres/${m.id}/${e.name} n'est pas déclaré dans 00-pilotage/programme.json`);
+        avertissements += 1;
+      }
+    }
+  }
+
+  const cible = path.join(SORTIE, 'site', 'data', 'programme.js');
+  fs.mkdirSync(path.dirname(cible), { recursive: true });
+  fs.writeFileSync(cible,
+    '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
+    + 'window.PROGRAMME = ' + JSON.stringify(programme, null, 2) + ';\n');
+
+  const prets = programme.matieres.reduce((n, m) =>
+    n + m.lecons.filter((l) => l.docs.length === 4).length, 0);
+  const total = programme.matieres.reduce((n, m) => n + m.lecons.length, 0);
+  console.log(`   🌐 site : ${prets}/${total} leçons complètes` + (incomplets ? `, ${incomplets} partielle(s)` : ''));
+  return programme;
+}
+
+const programmeSite = construireDonneesSite();
+
+/* ── Dossiers complets par matière (un seul document imprimable) ────────── */
+function construireDossiersMatiere(programme) {
+  if (!programme) return 0;
+  const dossierSortie = path.join(SORTIE, 'dossiers');
+  fs.mkdirSync(dossierSortie, { recursive: true });
+  let produits = 0;
+
+  for (const m of programme.matieres) {
+    const lecons = m.lecons.filter((l) => l.docs.length > 0);
+    if (!lecons.length) continue;
+
+    const sommaire = lecons.map((l) => {
+      const manquants = 4 - l.docs.length;
+      return `<li><span class="puce-ref">${echapper(l.ref)}</span> ${echapper(l.titre)}`
+        + (manquants ? ` <span class="discret">(${manquants} document(s) à venir)</span>` : '')
+        + '</li>';
+    }).join('');
+
+    let corps = `<header class="fiche-entete">
+  <p class="fiche-fil">Classe de 4ᵉ</p>
+  <h1>${echapper(m.nom)} : dossier complet</h1>
+  <p><span class="fiche-type">Cours · Révision · Exercices · Évaluation</span></p>
+  <ul class="fiche-meta"><li>📚 ${lecons.length} leçon(s) sur ${m.lecons.length}</li><li>⏱️ ${echapper(m.horaire)}</li></ul>
+</header>
+<div class="bloc bloc-plan">
+  <p class="bloc-titre"><span class="picto" aria-hidden="true">🧭</span><span>Les thèmes officiels</span></p>
+  <ul>${m.themes.map((t) => `<li>${echapper(t)}</li>`).join('')}</ul>
+</div>
+<div class="bloc bloc-retenir">
+  <p class="bloc-titre"><span class="picto" aria-hidden="true">🧠</span><span>Attendus de fin d'année</span></p>
+  <ul>${m.attendus.map((a) => `<li>${echapper(a)}</li>`).join('')}</ul>
+</div>
+<h2>Leçons contenues dans ce dossier</h2>
+<ul class="sommaire-dossier">${sommaire}</ul>
+`;
+
+    for (const l of lecons) {
+      for (const [type, fichier] of Object.entries(FICHIERS_DOC)) {
+        if (!l.docs.includes(type)) continue;
+        const source = path.join(RACINE, 'matieres', m.id, l.dossier, `${fichier}.md`);
+        const { meta, corps: brut } = lireFrontMatter(fs.readFileSync(source, 'utf8'));
+        corps += `<section class="doc-dossier saut-page">
+<p class="doc-fil"><span class="puce-ref">${echapper(l.ref)}</span> ${echapper(l.titre)}</p>
+<h2>${echapper(meta.titre || l.titre)}</h2>
+<p><span class="fiche-type">${TYPES_DOC[type] || type}</span></p>
+${appliquerClassesListes(md.render(normaliserConteneurs(brut)))}
+</section>`;
+      }
+    }
+
+    const page = `<!DOCTYPE html>
+<html lang="fr" data-matiere="${m.id}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${echapper(m.nom)} : dossier complet de 4ᵉ</title>
+<link rel="stylesheet" href="../theme/cours.css">
+</head>
+<body>
+<main class="page">
+${corps}
+<footer class="fiche-pied"><span>Sterenn · Classe de 4ᵉ</span><span>${echapper(m.nom)} : dossier complet</span></footer>
+</main>
+</body>
+</html>
+`;
+    fs.writeFileSync(path.join(dossierSortie, `${m.id}.html`), page);
+    produits += 1;
+  }
+
+  console.log(`   📚 ${produits} dossier(s) complet(s) par matière dans public/dossiers/`);
+  return produits;
+}
+
+construireDossiersMatiere(programmeSite);
 
 /* ── Vérification des liens internes ────────────────────────────────────── */
 function verifierLiens() {
@@ -481,6 +630,6 @@ const liensCasses = verifierLiens();
 
 console.log(`✅ ${fiches.length} fiche(s) générée(s) dans public/ (+ sommaire)`);
 if (avertissements || liensCasses) {
-  console.error(`❌ ${avertissements} avertissement(s) de front-matter, ${liensCasses} lien(s) cassé(s) — corrige avant de committer.`);
+  console.error(`❌ ${avertissements} avertissement(s) de front-matter, ${liensCasses} lien(s) cassé(s), corrige avant de committer.`);
   process.exitCode = 1;
 }

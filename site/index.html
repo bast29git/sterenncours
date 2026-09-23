@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr" data-matiere="pilotage">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cours de 4ᵉ</title>
+<meta name="description" content="Portail des cours de 4ᵉ : programme, leçons, exercices et suivi des acquis.">
+<link rel="stylesheet" href="../theme/cours.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="app">
+
+<div id="portail" class="portail">
+  <form class="portail-carte" id="form-portail" autocomplete="off">
+    <h1>Cours de 4ᵉ</h1>
+    <p class="sous">Entre ton code pour ouvrir ton espace.</p>
+    <label for="code">Code d'accès</label>
+    <input id="code" name="code" type="text" inputmode="text" autocapitalize="none" spellcheck="false" placeholder="ton code">
+    <p class="portail-erreur" id="portail-erreur" role="alert">Ce code n'est pas reconnu. Vérifie les lettres et les chiffres.</p>
+    <button class="btn btn-large" type="submit">Entrer</button>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header class="barre">
+    <span class="barre-titre"><a href="#/accueil">Cours de 4ᵉ</a></span>
+    <span class="barre-role" id="badge-role"></span>
+    <nav id="nav-principal"></nav>
+    <button class="btn btn-neutre" id="btn-sortir" type="button">Sortir</button>
+  </header>
+  <main class="vue" id="vue" tabindex="-1"></main>
+</div>
+
+<script src="data/programme.js"></script>
+<script src="data/exercices.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

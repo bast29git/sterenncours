@@ -1,7 +1,7 @@
 ---
 type: pilotage
 matiere: pilotage
-titre: Modèle — fiche de séance
+titre: Modèle : fiche de séance
 resume: Le gabarit à copier pour chaque séance : annonce, déroulé, bilan en trois lignes.
 duree: 5 min à remplir
 objectifs:
@@ -42,7 +42,7 @@ Copier ce fichier sous le nom `AAAA-MM-JJ-matiere.md` dans
 | Clôture | 5 min | | |
 :::
 
-## Après la séance — le bilan en trois lignes
+## Après la séance : le bilan en trois lignes
 
 ::: grille
 | | |
@@ -62,5 +62,5 @@ Copier ce fichier sous le nom `AAAA-MM-JJ-matiere.md` dans
 ::: aide Ce qu'on cherche dans ce journal
 Pas la performance d'une séance, mais les **répétitions** : un même type de blocage
 au même moment de la séance, sur plusieurs semaines. C'est ce motif-là qui indique
-quoi changer dans le dispositif — pas dans l'élève.
+quoi changer dans le dispositif : pas dans l'élève.
 :::

@@ -1,7 +1,7 @@
 ---
 type: outil
 matiere: histoire-geo
-titre: Méthode — analyser un document
+titre: Méthode : analyser un document
 resume: La grille en 5 questions qui fonctionne en histoire, en géographie, en EMC et en français, avec les formulations exactes à réutiliser.
 duree: 20 min
 objectifs:
@@ -34,15 +34,15 @@ loi, article de presse, témoignage, œuvre d'art. Les 5 questions ne changent p
 ## 2. La grille en 5 questions
 
 ::: etapes
-1. **De quoi s'agit-il ?** — la **nature** du document : est-ce un texte de loi, un discours, une photographie, une caricature, une carte, un graphique ?
-2. **Qui l'a produit ?** — l'**auteur**, et ce que l'on sait de lui : sa fonction, son camp, son intérêt dans l'affaire.
-3. **Quand ?** — la **date**, et surtout ce qui se passe à cette date-là. Une date sans contexte ne sert à rien.
-4. **Pour qui, et pourquoi ?** — le **destinataire** et l'**intention** : informer, convaincre, dénoncer, vendre, faire rire, commémorer.
-5. **Que dit-il ?** — le **contenu** : deux ou trois informations précises, **citées ou chiffrées**, prises dans le document.
+1. **De quoi s'agit-il ?** La **nature** du document : est-ce un texte de loi, un discours, une photographie, une caricature, une carte, un graphique ?
+2. **Qui l'a produit ?** L'**auteur**, et ce que l'on sait de lui : sa fonction, son camp, son intérêt dans l'affaire.
+3. **Quand ?** La **date**, et surtout ce qui se passe à cette date-là. Une date sans contexte ne sert à rien.
+4. **Pour qui, et pourquoi ?** Le **destinataire** et l'**intention** : informer, convaincre, dénoncer, vendre, faire rire, commémorer.
+5. **Que dit-il ?** Le **contenu** : deux ou trois informations précises, **citées ou chiffrées**, prises dans le document.
 :::
 
 ::: retenir Le moyen mnémotechnique
-**N · A · D · I · C** — **N**ature, **A**uteur, **D**ate, **I**ntention, **C**ontenu.
+**N · A · D · I · C** : **N**ature, **A**uteur, **D**ate, **I**ntention, **C**ontenu.
 Cinq lettres, cinq phrases, dans cet ordre. Une analyse complète tient en cinq phrases.
 :::
 
@@ -66,19 +66,19 @@ Ne jamais inventer, ne jamais sauter la question en silence.
 
 ## 4. Les trois pièges
 
-::: piege Piège 1 — raconter le cours au lieu de lire le document
+::: piege Piège 1 : raconter le cours au lieu de lire le document
 La question dit « d'après ce document ». Tout ce qui est écrit doit pouvoir être
 **pointé du doigt dans le document**. Les connaissances personnelles viennent
 seulement **après**, et à condition que la consigne les demande.
 :::
 
-::: piege Piège 2 — confondre ce que dit le document et ce qui est vrai
+::: piege Piège 2 : confondre ce que dit le document et ce qui est vrai
 Une affiche de propagande dit ce que son auteur **veut faire croire**.
 On écrit donc : « L'auteur **affirme que** … », et non « … est vrai ».
 C'est exactement ce qui distingue une analyse d'un résumé.
 :::
 
-::: piege Piège 3 — rester vague sur le contenu
+::: piege Piège 3 : rester vague sur le contenu
 « Ce document parle de la Révolution » ne vaut aucun point.
 « Le document indique que la Déclaration des droits de l'homme est adoptée
 le 26 août 1789 » en vaut. Le contenu doit être **cité ou chiffré**.
@@ -87,7 +87,7 @@ le 26 août 1789 » en vaut. Le contenu doit être **cité ou chiffré**.
 ## 5. Un exemple complet
 
 ::: exemple Document : la Déclaration des droits de l'homme et du citoyen (extrait, 1789)
-> « Article premier — Les hommes naissent et demeurent libres et égaux en droits. »
+> « Article premier. Les hommes naissent et demeurent libres et égaux en droits. »
 
 **Analyse rédigée :**
 

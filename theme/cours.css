@@ -1,7 +1,6 @@
 /* =========================================================================
-   cours.css — Design system des supports de cours de Sterenn (4e)
-   Conçu pour un profil TSA sans déficience intellectuelle :
-   prévisibilité, charge sensorielle maîtrisée, redondance du sens
+   cours.css : Design system des supports de cours de Sterenn (4e)
+   Principes : prévisibilité, charge visuelle maîtrisée, redondance du sens
    (couleur + pictogramme + libellé), séquençage visuel court.
    Cible : lecture écran ET impression A4 (PDF).
    ========================================================================= */
@@ -19,7 +18,7 @@
   --trait:          #ded5c4;
   --trait-fort:     #c4b8a1;
 
-  /* Couleurs de statut (grille d'évaluation) — toujours doublées d'un picto */
+  /* Couleurs de statut (grille d'évaluation) : toujours doublées d'un picto */
   --insuffisant:    #b3261e;
   --insuffisant-bg: #fbeae8;
   --fragile:        #a35b00;
@@ -29,7 +28,7 @@
   --tresbien:       #15507d;
   --tresbien-bg:    #e6f0f8;
 
-  /* Couleur de matière — surchargée par [data-matiere] */
+  /* Couleur de matière : surchargée par [data-matiere] */
   --accent:         #1b5fa8;
   --accent-doux:    #e7effa;
   --accent-trait:   #b9d0ec;
@@ -480,7 +479,7 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
   .cocher li { margin-bottom: 0.35rem; }
   .fiche-pied { margin-top: 1.5rem; padding-top: 0.6rem; }
 
-  /* Ne jamais couper ce qui perd son sens coupé — mais laisser les blocs longs
+  /* Ne jamais couper ce qui perd son sens coupé : mais laisser les blocs longs
      se répartir, sinon une page entière reste blanche avant chaque encadré. */
   .formule-cle, .schema, .echelle li, .bloc-pause { break-inside: avoid; }
   .bloc, .exercice, .corrige, table { break-inside: auto; }
@@ -557,4 +556,157 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
   border-color: var(--trait-fort);
   background: transparent;
   color: var(--texte-doux);
+}
+
+/* ---------- 16. Jetons de couleur par matière (indépendants de la page) --- */
+:root {
+  --c-maths: #1b5fa8;           --c-maths-bg: #e7effa;
+  --c-francais: #6d3a91;        --c-francais-bg: #f1e9f7;
+  --c-histoire-geo: #9c5511;    --c-histoire-geo-bg: #fbeedd;
+  --c-emc: #0f6b63;             --c-emc-bg: #e3f2f0;
+  --c-physique-chimie: #a8360b; --c-physique-chimie-bg: #fbe9e2;
+  --c-svt: #1f6b32;             --c-svt-bg: #e7f3e9;
+  --c-anglais-lv1: #2f3894;     --c-anglais-lv1-bg: #e8eaf8;
+  --c-espagnol-lv2: #a3154f;    --c-espagnol-lv2-bg: #fbe6ee;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) {
+    --c-maths: #7fb4ef;           --c-maths-bg: #1d2a3a;
+    --c-francais: #c49ae0;        --c-francais-bg: #2a2134;
+    --c-histoire-geo: #e2a463;    --c-histoire-geo-bg: #332619;
+    --c-emc: #6fc9bf;             --c-emc-bg: #172e2c;
+    --c-physique-chimie: #f09b78; --c-physique-chimie-bg: #33211a;
+    --c-svt: #79c28c;             --c-svt-bg: #1a2c20;
+    --c-anglais-lv1: #9aa3e8;     --c-anglais-lv1-bg: #20233a;
+    --c-espagnol-lv2: #eb92b5;    --c-espagnol-lv2-bg: #341e28;
+  }
+}
+
+/* ---------- 17. Panorama des matières ----------------------------------- */
+.panorama {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: 0.8rem;
+  margin: 1.4rem 0;
+  padding: 0;
+  list-style: none;
+}
+.panorama > li { margin: 0; }
+.panorama [data-m] {
+  display: block;
+  height: 100%;
+  border: 2px solid var(--trait);
+  border-top: 6px solid var(--m, var(--accent));
+  border-radius: var(--rayon);
+  background: var(--fond-carte);
+  padding: 0.75rem 0.9rem 0.6rem;
+  break-inside: avoid;
+}
+.panorama .p-nom {
+  display: block;
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--m, var(--accent));
+  margin-bottom: 0.15rem;
+}
+.panorama .p-chiffres {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--texte-doux);
+  margin-bottom: 0.4rem;
+}
+.panorama .p-themes { display: block; font-size: 0.88rem; }
+.panorama [data-m="maths"]            { --m: var(--c-maths); }
+.panorama [data-m="francais"]         { --m: var(--c-francais); }
+.panorama [data-m="histoire-geo"]     { --m: var(--c-histoire-geo); }
+.panorama [data-m="emc"]              { --m: var(--c-emc); }
+.panorama [data-m="physique-chimie"]  { --m: var(--c-physique-chimie); }
+.panorama [data-m="svt"]              { --m: var(--c-svt); }
+.panorama [data-m="anglais-lv1"]      { --m: var(--c-anglais-lv1); }
+.panorama [data-m="espagnol-lv2"]     { --m: var(--c-espagnol-lv2); }
+
+/* ---------- 18. Chiffres clés ------------------------------------------- */
+.chiffres {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.7rem;
+  margin: 1.3rem 0;
+  padding: 0;
+  list-style: none;
+}
+.chiffres > li {
+  margin: 0;
+  text-align: center;
+  border: 2px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--fond-carte);
+  padding: 0.7rem 0.5rem 0.55rem;
+  break-inside: avoid;
+}
+.chiffres strong {
+  display: block;
+  font-size: 1.7rem;
+  line-height: 1.1;
+  color: var(--accent);
+}
+.chiffres span { display: block; font-size: 0.8rem; color: var(--texte-doux); }
+
+/* ---------- 19. Frise des périodes -------------------------------------- */
+.frise { margin: 1.3rem 0; break-inside: avoid; }
+.frise svg { width: 100%; height: auto; }
+.frise .p-bloc { stroke: var(--fond-page); stroke-width: 2; }
+.frise text { font-family: var(--police); fill: var(--fond-carte); font-weight: 700; font-size: 13px; }
+.frise .p-sous { fill: var(--texte-doux); font-weight: 400; font-size: 12px; }
+
+/* ---------- 20. Dossier complet par matière ------------------------------ */
+.sommaire-dossier { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: 0.4rem; }
+.sommaire-dossier > li {
+  margin: 0;
+  border: 1px solid var(--trait);
+  border-left: 5px solid var(--accent);
+  border-radius: 8px;
+  background: var(--fond-carte);
+  padding: 0.35rem 0.7rem;
+}
+.puce-ref {
+  display: inline-block;
+  min-width: 2.4rem;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 0.05rem 0.4rem;
+  margin-right: 0.45rem;
+  background: var(--accent-doux);
+  border: 1px solid var(--accent-trait);
+  color: var(--accent);
+}
+.discret { font-size: 0.85rem; color: var(--texte-doux); }
+.doc-dossier { margin-top: 2.5rem; }
+.doc-fil {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texte-doux);
+  margin-bottom: 0.3rem;
+}
+.doc-dossier > h2 {
+  margin-top: 0.2rem;
+  border-bottom: 3px solid var(--accent-trait);
+}
+
+/* ---------- 21. Support attendu d'un exercice --------------------------- */
+.exercice-support {
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.12rem 0.6rem;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.support-main  { color: #8a4d00; background: #fdf7ea; }
+.support-ecran { color: var(--tresbien); background: var(--tresbien-bg); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) .support-main { color: #f2b552; background: #382a15; }
 }

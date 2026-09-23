@@ -1,7 +1,7 @@
 ---
 type: outil
 matiere: pilotage
-titre: Suivi des acquis — tableau de bord de l'année
+titre: Suivi des acquis : tableau de bord de l'année
 resume: Les 69 leçons de l'année, avec le niveau atteint, la date d'évaluation et la date de reprise à trois semaines.
 duree: 10 min par mise à jour
 objectifs:
@@ -26,9 +26,9 @@ objectifs:
 
 ::: methode Les trois colonnes
 ::: etapes
-1. **Niveau** — le niveau retenu après la grille d'évaluation de la leçon.
-2. **Évaluée le** — la date à laquelle la grille a été remplie.
-3. **Revoir le** — la date d'évaluation **+ 3 semaines**, pour les leçons en ◕. C'est ce contrôle différé qui distingue « appris » de « retenu ».
+1. **Niveau** : le niveau retenu après la grille d'évaluation de la leçon.
+2. **Évaluée le** : la date à laquelle la grille a été remplie.
+3. **Revoir le** : la date d'évaluation **+ 3 semaines**, pour les leçons en ◕. C'est ce contrôle différé qui distingue « appris » de « retenu ».
 :::
 :::
 
@@ -180,11 +180,11 @@ l'année, pas la journée. Le détail d'une séance va dans `00-pilotage/journal
 ::: grille
 | Période | Leçons traitées | En ◔ ou ◑ | Décision pour la période suivante |
 |---|---|---|---|
-| **P1** · sept.–oct. | | | |
-| **P2** · nov.–déc. | | | |
-| **P3** · janv.–févr. | | | |
-| **P4** · mars–avr. | | | |
-| **P5** · mai–juin | | | |
+| **P1** · sept.-oct. | | | |
+| **P2** · nov.-déc. | | | |
+| **P3** · janv.-févr. | | | |
+| **P4** · mars-avr. | | | |
+| **P5** · mai-juin | | | |
 :::
 
 ::: piege Ce qu'il ne faut pas faire avec ce tableau

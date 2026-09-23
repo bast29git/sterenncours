@@ -1,0 +1,261 @@
+{
+  "niveau": "4e",
+  "annee": "Cycle 4",
+  "matieres": [
+    {
+      "id": "maths",
+      "nom": "Mathématiques",
+      "icone": "➗",
+      "horaire": "3 h 30 / semaine",
+      "themes": [
+        "Nombres et calculs",
+        "Organisation et gestion de données, fonctions",
+        "Grandeurs et mesures",
+        "Espace et géométrie",
+        "Algorithmique et programmation"
+      ],
+      "competences": ["Chercher", "Modéliser", "Représenter", "Raisonner", "Calculer", "Communiquer"],
+      "attendus": [
+        "Calculer avec des fractions et des puissances, y compris en notation scientifique",
+        "Développer, réduire et factoriser une expression littérale simple",
+        "Résoudre une équation du premier degré et mettre un problème en équation",
+        "Appliquer le théorème de Pythagore et sa réciproque, en rédigeant la démonstration",
+        "Calculer moyenne, médiane et étendue, et déterminer une probabilité simple",
+        "Construire l'image d'une figure par translation et par rotation",
+        "Écrire et corriger un programme comportant une boucle et une condition"
+      ],
+      "lecons": [
+        {"ref": "L01", "dossier": "L01-relatifs-fractions", "titre": "Nombres relatifs et fractions", "periode": 1, "notions": ["Addition et soustraction de fractions", "Multiplication et division", "Priorités opératoires"]},
+        {"ref": "L02", "dossier": "L02-puissances", "titre": "Puissances et notation scientifique", "periode": 1, "notions": ["Exposants entiers", "Puissances de 10", "Écriture scientifique"]},
+        {"ref": "L03", "dossier": "L03-calcul-litteral", "titre": "Calcul littéral : développer, réduire, factoriser", "periode": 2, "notions": ["Simple et double distributivité", "Réduction", "Facteur commun"]},
+        {"ref": "L04", "dossier": "L04-equations", "titre": "Équations du premier degré", "periode": 2, "notions": ["Résoudre ax + b = c", "Mise en équation", "Vérification"]},
+        {"ref": "L05", "dossier": "L05-proportionnalite", "titre": "Proportionnalité, pourcentages, vitesses", "periode": 3, "notions": ["Quatrième proportionnelle", "Pourcentages successifs", "Grandeurs composées"]},
+        {"ref": "L06", "dossier": "L06-statistiques", "titre": "Statistiques : moyenne, médiane, étendue", "periode": 4, "notions": ["Effectifs et fréquences", "Indicateurs", "Lecture de graphiques"]},
+        {"ref": "L07", "dossier": "L07-probabilites", "titre": "Probabilités", "periode": 4, "notions": ["Expérience aléatoire", "Issues", "Probabilité d'un événement"]},
+        {"ref": "L08", "dossier": "L08-pythagore", "titre": "Le théorème de Pythagore et sa réciproque", "periode": 3, "notions": ["Hypoténuse", "Racine carrée", "Démonstration", "Triplets"]},
+        {"ref": "L09", "dossier": "L09-transformations", "titre": "Translation et rotation", "periode": 4, "notions": ["Image d'une figure", "Conservation des longueurs et des angles"]},
+        {"ref": "L10", "dossier": "L10-pyramides-cones", "titre": "Pyramides et cônes", "periode": 5, "notions": ["Représentation", "Patron", "Volume"]},
+        {"ref": "L11", "dossier": "L11-droites-remarquables", "titre": "Droites remarquables du triangle", "periode": 5, "notions": ["Médiatrices", "Médianes", "Hauteurs", "Cercle circonscrit"]},
+        {"ref": "L12", "dossier": "L12-algorithmique", "titre": "Algorithmique et programmation", "periode": 5, "notions": ["Variables", "Boucles", "Conditions", "Débogage"]}
+      ]
+    },
+    {
+      "id": "francais",
+      "nom": "Français",
+      "icone": "✒️",
+      "horaire": "4 h 30 / semaine",
+      "themes": [
+        "Se chercher, se construire : dire l'amour",
+        "Vivre en société : individu et société, confrontations de valeurs",
+        "Regarder le monde, inventer des mondes : la fiction pour interroger le réel",
+        "Agir sur le monde : informer, s'informer, déformer ?",
+        "Étude de la langue"
+      ],
+      "competences": ["Lire", "Écrire", "Dire", "Comprendre le fonctionnement de la langue"],
+      "attendus": [
+        "Lire une nouvelle intégrale et en rendre compte par écrit",
+        "Distinguer réalisme et fantastique, et nommer les procédés qui les créent",
+        "Maîtriser les expansions du nom",
+        "Passer du discours direct au discours indirect avec la concordance des temps",
+        "Transformer une phrase de la voix active à la voix passive",
+        "Accorder correctement le participe passé",
+        "Rédiger un récit, une lettre, un article informatif et un texte argumenté court"
+      ],
+      "lecons": [
+        {"ref": "L01", "dossier": "L01-poesie-lyrique", "titre": "Dire l'amour : la poésie lyrique", "periode": 1, "notions": ["Vers et strophe", "Rimes", "Images", "Registre lyrique"]},
+        {"ref": "L02", "dossier": "L02-individu-societe", "titre": "Individu et société : confrontations de valeurs", "periode": 4, "notions": ["Théâtre", "Conflit", "Argumentation", "Personnage"]},
+        {"ref": "L03", "dossier": "L03-realisme", "titre": "La fiction pour interroger le réel : le réalisme", "periode": 2, "notions": ["Description", "Point de vue", "Effet de réel"]},
+        {"ref": "L04", "dossier": "L04-fantastique", "titre": "La fiction pour interroger le réel : le fantastique", "periode": 3, "notions": ["Hésitation", "Gradation", "Narrateur", "Chute"]},
+        {"ref": "L05", "dossier": "L05-informer", "titre": "Informer, s'informer, déformer ?", "periode": 5, "notions": ["Fait et opinion", "Source", "Image d'information", "Rumeur"]},
+        {"ref": "L06", "dossier": "L06-expansions-nom", "titre": "Les expansions du nom", "periode": 1, "notions": ["Adjectif", "Complément du nom", "Proposition relative"]},
+        {"ref": "L07", "dossier": "L07-discours-rapporte", "titre": "Le discours rapporté", "periode": 2, "notions": ["Direct et indirect", "Concordance des temps", "Ponctuation"]},
+        {"ref": "L08", "dossier": "L08-temps-du-recit", "titre": "Les temps du récit", "periode": 3, "notions": ["Passé simple", "Imparfait", "Plus-que-parfait", "Valeurs"]},
+        {"ref": "L09", "dossier": "L09-voix-passive", "titre": "Voix passive et accords du participe passé", "periode": 4, "notions": ["Transformation passive", "Accord avec être et avoir"]},
+        {"ref": "L10", "dossier": "L10-methodes-ecriture", "titre": "Méthodes d'écriture", "periode": 5, "notions": ["Récit", "Lettre", "Article", "Texte argumenté"]}
+      ]
+    },
+    {
+      "id": "physique-chimie",
+      "nom": "Physique-Chimie",
+      "icone": "⚗️",
+      "horaire": "environ 1 h 30 / semaine",
+      "themes": [
+        "Organisation et transformations de la matière",
+        "Mouvements et interactions",
+        "L'énergie et ses conversions",
+        "Des signaux pour observer et communiquer"
+      ],
+      "competences": ["Pratiquer une démarche scientifique", "Mesurer", "Modéliser", "Communiquer"],
+      "attendus": [
+        "Lire une formule chimique et distinguer atome, molécule, corps pur et mélange",
+        "Écrire le bilan d'une transformation chimique et utiliser la conservation de la masse",
+        "Calculer une masse volumique et une vitesse moyenne, avec les unités",
+        "Représenter une force par une flèche",
+        "Mesurer tension et intensité, appliquer les lois des circuits série et dérivation",
+        "Utiliser la vitesse de la lumière et l'année-lumière"
+      ],
+      "lecons": [
+        {"ref": "L01", "dossier": "L01-atomes-molecules", "titre": "Atomes et molécules", "periode": 1, "notions": ["Constitution de la matière", "Formules chimiques"]},
+        {"ref": "L02", "dossier": "L02-transformations-chimiques", "titre": "Transformations chimiques", "periode": 2, "notions": ["Réactifs et produits", "Conservation de la masse"]},
+        {"ref": "L03", "dossier": "L03-masse-volumique", "titre": "Masse volumique et états de la matière", "periode": 2, "notions": ["Masse volumique", "Changements d'état"]},
+        {"ref": "L04", "dossier": "L04-mouvements", "titre": "Mouvements : vitesse et trajectoire", "periode": 3, "notions": ["Vitesse", "Relativité du mouvement"]},
+        {"ref": "L05", "dossier": "L05-forces", "titre": "Les forces", "periode": 3, "notions": ["Action mécanique", "Poids et masse", "Représentation"]},
+        {"ref": "L06", "dossier": "L06-circuits", "titre": "Circuits électriques", "periode": 4, "notions": ["Tension", "Intensité", "Série et dérivation", "Sécurité"]},
+        {"ref": "L07", "dossier": "L07-energie", "titre": "L'énergie et ses conversions", "periode": 5, "notions": ["Formes d'énergie", "Chaîne énergétique", "Puissance"]},
+        {"ref": "L08", "dossier": "L08-lumiere", "titre": "La lumière", "periode": 5, "notions": ["Propagation rectiligne", "Vitesse", "Année-lumière", "Couleurs"]}
+      ]
+    },
+    {
+      "id": "svt",
+      "nom": "SVT",
+      "icone": "🌍",
+      "horaire": "environ 1 h 30 / semaine",
+      "themes": [
+        "La planète Terre, l'environnement et l'action humaine",
+        "Le vivant et sa diversité",
+        "Le corps humain et la santé"
+      ],
+      "competences": ["Pratiquer une démarche scientifique", "Observer", "Modéliser", "Communiquer"],
+      "attendus": [
+        "Expliquer un séisme par la rupture de roches en profondeur et sa propagation en ondes",
+        "Distinguer les deux grands types d'éruptions volcaniques et leurs risques",
+        "Relier la tectonique des plaques à la répartition des séismes et des volcans",
+        "Décrire la fécondation et le trajet des cellules reproductrices",
+        "Distinguer risque et aléa, et proposer des mesures de prévention"
+      ],
+      "lecons": [
+        {"ref": "L01", "dossier": "L01-tectonique", "titre": "Structure de la Terre et tectonique des plaques", "periode": 1, "notions": ["Croûte, manteau, noyau", "Dorsales", "Subduction"]},
+        {"ref": "L02", "dossier": "L02-seismes", "titre": "Les séismes", "periode": 2, "notions": ["Faille", "Foyer et épicentre", "Magnitude", "Prévention"]},
+        {"ref": "L03", "dossier": "L03-volcanisme", "titre": "Le volcanisme", "periode": 2, "notions": ["Effusif et explosif", "Magma", "Risques"]},
+        {"ref": "L04", "dossier": "L04-meteo-climats", "titre": "Météorologie et climats", "periode": 3, "notions": ["Masses d'air", "Zones climatiques", "Changement climatique"]},
+        {"ref": "L05", "dossier": "L05-reproduction", "titre": "Reproduction et transmission de la vie", "periode": 4, "notions": ["Fécondation", "Cellules reproductrices", "Puberté"]},
+        {"ref": "L06", "dossier": "L06-peuplement", "titre": "Le peuplement des milieux", "periode": 5, "notions": ["Conditions de vie", "Alternance des formes", "Saisons"]},
+        {"ref": "L07", "dossier": "L07-environnement", "titre": "Activités humaines et environnement", "periode": 5, "notions": ["Ressources", "Risques", "Gestion durable"]}
+      ]
+    },
+    {
+      "id": "histoire-geo",
+      "nom": "Histoire-Géographie",
+      "icone": "🏛️",
+      "horaire": "3 h / semaine avec l'EMC",
+      "themes": [
+        "Histoire I : le XVIIIᵉ siècle, expansions, Lumières et révolutions",
+        "Histoire II : l'Europe et le monde au XIXᵉ siècle",
+        "Histoire III : société, culture et politique dans la France du XIXᵉ siècle",
+        "Géographie I : l'urbanisation du monde",
+        "Géographie II : les mobilités humaines transnationales",
+        "Géographie III : des espaces transformés par la mondialisation"
+      ],
+      "competences": ["Se repérer dans le temps", "Se repérer dans l'espace", "Analyser un document", "Pratiquer différents langages", "Raisonner"],
+      "attendus": [
+        "Placer sur une frise les repères : 1789, 1789-1799, 1804-1815, 1848, 1870, 1881-1882, 1905",
+        "Expliquer en quoi la Révolution rompt avec l'Ancien Régime",
+        "Analyser un document : nature, auteur, date, destinataire, intention",
+        "Décrire un paysage urbain et le situer",
+        "Distinguer migration économique, migration forcée et tourisme",
+        "Rédiger un développement construit d'une vingtaine de lignes"
+      ],
+      "lecons": [
+        {"ref": "H1", "dossier": "H1-negoces-traite", "titre": "Négoces internationaux et traite négrière", "periode": 1, "notions": ["Commerce triangulaire", "Ports négriers", "Esclavage"]},
+        {"ref": "H2", "dossier": "H2-lumieres", "titre": "L'Europe des Lumières", "periode": 2, "notions": ["Philosophes", "Encyclopédie", "Diffusion des idées"]},
+        {"ref": "H3", "dossier": "H3-revolution", "titre": "La Révolution française et l'Empire", "periode": 2, "notions": ["1789", "Déclaration des droits", "Terreur", "Napoléon"]},
+        {"ref": "H4", "dossier": "H4-revolution-industrielle", "titre": "L'Europe de la révolution industrielle", "periode": 3, "notions": ["Usine", "Prolétariat", "Bourgeoisie", "Urbanisation"]},
+        {"ref": "H5", "dossier": "H5-colonisation", "titre": "Conquêtes et sociétés coloniales", "periode": 4, "notions": ["Empires", "Colonisation", "Sociétés coloniales"]},
+        {"ref": "H6", "dossier": "H6-france-xixe", "titre": "La France de 1815 à 1914", "periode": 5, "notions": ["Suffrage universel", "IIIᵉ République", "Lois scolaires", "Laïcité"]},
+        {"ref": "G1", "dossier": "G1-urbanisation", "titre": "Espaces et paysages de l'urbanisation", "periode": 1, "notions": ["Métropole", "Périurbanisation", "Centre et périphérie"]},
+        {"ref": "G2", "dossier": "G2-villes-connectees", "titre": "Des villes inégalement connectées", "periode": 2, "notions": ["Mégalopole", "Réseaux", "Fracture"]},
+        {"ref": "G3", "dossier": "G3-migrations", "titre": "Un monde de migrants", "periode": 3, "notions": ["Migrations économiques", "Réfugiés", "Flux"]},
+        {"ref": "G4", "dossier": "G4-tourisme", "titre": "Le tourisme et ses espaces", "periode": 4, "notions": ["Flux touristiques", "Aménagement", "Impacts"]},
+        {"ref": "G5", "dossier": "G5-maritimisation", "titre": "Mers et océans : un monde maritimisé", "periode": 5, "notions": ["Routes maritimes", "Conteneurs", "ZEE", "Ressources"]},
+        {"ref": "G6", "dossier": "G6-etats-unis", "titre": "Les États-Unis et la mondialisation", "periode": 5, "notions": ["Façades maritimes", "Métropolisation", "Frontières"]}
+      ]
+    },
+    {
+      "id": "emc",
+      "nom": "EMC",
+      "icone": "⚖️",
+      "horaire": "intégré aux 3 h d'histoire-géographie",
+      "themes": [
+        "Respecter autrui",
+        "Acquérir et partager les valeurs de la République",
+        "Construire une culture civique"
+      ],
+      "competences": ["Argumenter", "Comprendre la règle et le droit", "Exercer son jugement"],
+      "attendus": [
+        "Distinguer libertés individuelles et libertés collectives, et citer leurs limites légales",
+        "Expliquer pourquoi une liberté sans limite supprime la liberté des autres",
+        "Nommer les grandes juridictions françaises et la différence civil / pénal",
+        "Identifier une discrimination au sens de la loi et connaître les recours",
+        "Argumenter par écrit sur une question civique en citant un texte de référence"
+      ],
+      "lecons": [
+        {"ref": "L01", "dossier": "L01-libertes", "titre": "Les libertés fondamentales", "periode": 3, "notions": ["Libertés individuelles et collectives", "Limites", "Loi"]},
+        {"ref": "L02", "dossier": "L02-egalite", "titre": "Égalité et discriminations", "periode": 4, "notions": ["Égalité de droit", "Discrimination", "Recours"]},
+        {"ref": "L03", "dossier": "L03-justice", "titre": "La justice en France", "periode": 4, "notions": ["Civil et pénal", "Juridictions", "Droits de la défense"]},
+        {"ref": "L04", "dossier": "L04-expression-donnees", "titre": "Liberté d'expression, médias et données", "periode": 5, "notions": ["Presse et réseaux", "Vie privée", "Cyberharcèlement"]}
+      ]
+    },
+    {
+      "id": "anglais-lv1",
+      "nom": "Anglais LV1",
+      "icone": "🇬🇧",
+      "horaire": "3 h / semaine",
+      "themes": [
+        "Parler du futur et de ses projets",
+        "Exprimer obligation, conseil et permission",
+        "Raconter au passé",
+        "Donner son opinion et argumenter",
+        "Mondes anglophones"
+      ],
+      "competences": ["Écouter et comprendre", "Lire et comprendre", "Parler en continu", "Réagir et dialoguer", "Écrire"],
+      "attendus": [
+        "Raconter un événement passé au prétérit, à l'écrit comme à l'oral",
+        "Exprimer une obligation, un conseil et une interdiction avec le bon modal",
+        "Parler de projets avec will, be going to et le présent continu sans les confondre",
+        "Donner son opinion et la justifier en 5 à 8 phrases reliées",
+        "Comprendre l'essentiel d'un document audio ou vidéo court sur un sujet connu"
+      ],
+      "lecons": [
+        {"ref": "L01", "dossier": "L01-future", "titre": "Talking about the future", "periode": 1, "notions": ["will", "be going to", "présent continu"]},
+        {"ref": "L02", "dossier": "L02-modals", "titre": "Obligation, advice, permission", "periode": 2, "notions": ["must", "have to", "should", "can", "may"]},
+        {"ref": "L03", "dossier": "L03-past", "titre": "Telling a story", "periode": 2, "notions": ["Prétérit simple et continu", "Connecteurs de récit"]},
+        {"ref": "L04", "dossier": "L04-present-perfect", "titre": "Present perfect", "periode": 3, "notions": ["have / has + participe passé", "since", "for", "ever", "never"]},
+        {"ref": "L05", "dossier": "L05-comparing", "titre": "Comparing and describing", "periode": 3, "notions": ["Comparatifs", "Superlatifs", "Adjectifs"]},
+        {"ref": "L06", "dossier": "L06-opinions", "titre": "Giving opinions and reasons", "periode": 4, "notions": ["I think", "because", "however", "in my opinion"]},
+        {"ref": "L07", "dossier": "L07-conditionals", "titre": "Conditionals 0, 1, 2", "periode": 5, "notions": ["if + présent", "if + prétérit", "would"]},
+        {"ref": "L08", "dossier": "L08-english-worlds", "titre": "English-speaking worlds", "periode": 5, "notions": ["Repères culturels", "Exposé", "Compréhension de documents"]}
+      ]
+    },
+    {
+      "id": "espagnol-lv2",
+      "nom": "Espagnol LV2",
+      "icone": "🇪🇸",
+      "horaire": "2 h 30 / semaine",
+      "themes": [
+        "La vie quotidienne",
+        "Décrire et localiser",
+        "Exprimer ses goûts",
+        "Raconter au passé",
+        "Cultures hispaniques"
+      ],
+      "competences": ["Écouter et comprendre", "Lire et comprendre", "Parler en continu", "Réagir et dialoguer", "Écrire"],
+      "attendus": [
+        "Se présenter et décrire sa journée au présent, avec les verbes irréguliers courants",
+        "Choisir correctement entre ser, estar et hay",
+        "Exprimer ses goûts avec gustar et la bonne construction",
+        "Raconter un événement passé au pretérito perfecto et au pretérito indefinido",
+        "Écrire un texte de 60 à 80 mots cohérent sur un sujet du quotidien"
+      ],
+      "lecons": [
+        {"ref": "L01", "dossier": "L01-vida-cotidiana", "titre": "Presentarse y la vida cotidiana", "periode": 1, "notions": ["Présent régulier", "Verbes pronominaux", "L'heure"]},
+        {"ref": "L02", "dossier": "L02-ser-estar", "titre": "Ser, estar, hay", "periode": 2, "notions": ["Description", "Localisation", "État"]},
+        {"ref": "L03", "dossier": "L03-gustar", "titre": "Gustar y la opinión", "periode": 2, "notions": ["gustar", "encantar", "Pronoms COI"]},
+        {"ref": "L04", "dossier": "L04-ciudad", "titre": "La ciudad y los desplazamientos", "periode": 3, "notions": ["Lexique de la ville", "Impératif", "Directions"]},
+        {"ref": "L05", "dossier": "L05-preterito-perfecto", "titre": "Hablar del pasado : pretérito perfecto", "periode": 3, "notions": ["he / has + participio", "Marqueurs temporels"]},
+        {"ref": "L06", "dossier": "L06-indefinido-imperfecto", "titre": "Contar un recuerdo : indefinido e imperfecto", "periode": 4, "notions": ["Opposition des deux passés", "Récit"]},
+        {"ref": "L07", "dossier": "L07-futuro", "titre": "Hablar del futuro", "periode": 5, "notions": ["ir a + infinitivo", "Futur simple"]},
+        {"ref": "L08", "dossier": "L08-culturas", "titre": "Culturas hispánicas", "periode": 5, "notions": ["Fêtes", "Traditions", "Exposé"]}
+      ]
+    }
+  ]
+}

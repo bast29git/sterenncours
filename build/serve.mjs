@@ -1,5 +1,5 @@
 /**
- * serve.mjs — petit serveur statique pour relire les fiches dans le navigateur.
+ * serve.mjs : petit serveur statique pour relire les fiches dans le navigateur.
  * Usage : npm run serve  →  http://localhost:4321
  */
 import http from 'node:http';

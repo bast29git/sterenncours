@@ -3,7 +3,7 @@ type: cours
 matiere: maths
 lecon: L08
 titre: Le théorème de Pythagore et sa réciproque
-resume: Calculer une longueur dans un triangle rectangle, et démontrer qu'un triangle est rectangle — ou qu'il ne l'est pas.
+resume: Calculer une longueur dans un triangle rectangle, et démontrer qu'un triangle est rectangle, ou qu'il ne l'est pas.
 duree: 2 séances de 45 min
 competences:
   - Représenter
@@ -20,7 +20,7 @@ objectifs:
 ---
 
 ::: plan
-**Séance 1 — calculer une longueur**
+**Séance 1 : calculer une longueur**
 
 1. Le vocabulaire du triangle rectangle
 2. Le théorème de Pythagore
@@ -32,7 +32,7 @@ objectifs:
 
 6. Rédiger une démonstration
 
-**Séance 2 — démontrer**
+**Séance 2 : démontrer**
 
 7. La réciproque : démontrer qu'un triangle est rectangle
 8. Démontrer qu'un triangle n'est **pas** rectangle
@@ -198,11 +198,11 @@ En 4ᵉ, on n'attend plus seulement le bon résultat : on attend une **rédactio
 
 ::: methode Les trois temps d'une démonstration
 ::: etapes
-1. **Je pose le cadre** — nommer le triangle et dire où est l'angle droit.
+1. **Je pose le cadre** : nommer le triangle et dire où est l'angle droit.
    *« Le triangle ABC est rectangle en A. »*
-2. **Je cite le théorème** — dire que je l'applique, et écrire l'égalité générale.
+2. **Je cite le théorème** : dire que je l'applique, et écrire l'égalité générale.
    *« D'après le théorème de Pythagore, BC² = AB² + AC². »*
-3. **Je calcule et je conclus** — remplacer, calculer, et donner la réponse avec son unité.
+3. **Je calcule et je conclus** : remplacer, calculer, et donner la réponse avec son unité.
    *« Donc BC² = 36 + 64 = 100, d'où BC = √100 = 10. BC mesure 10 cm. »*
 :::
 :::
@@ -305,7 +305,7 @@ Si un calcul comporte plusieurs étapes, on garde les valeurs **exactes** jusqu'
 On écrit **=** pour une valeur exacte (BC = √74) et **≈** pour une valeur arrondie (BC ≈ 8,6 cm). Utiliser **=** avec une valeur arrondie est une erreur comptée en contrôle.
 :::
 
-## 10. Les pièges à éviter — récapitulatif
+## 10. Les pièges à éviter : récapitulatif
 
 ::: grille
 | Piège | Ce qui se passe | Le réflexe qui l'évite |

@@ -1,9 +1,9 @@
 ---
 type: pilotage
 matiere: pilotage
-titre: Programme de 4ᵉ — Synthèse complète
-resume: Vue d'ensemble de l'année de 4ᵉ : horaires, socle commun, échelle officielle d'évaluation, les 8 matières thème par thème, le plan des 69 leçons et la progression sur l'année.
-duree: Lecture 35 min
+titre: Programme de 4ᵉ : Synthèse complète
+resume: Le panorama des 8 matières, le socle commun, l'échelle d'évaluation, les attendus de fin d'année thème par thème, le plan des 69 leçons et la progression sur les 5 périodes.
+duree: Lecture 25 min
 niveau: Classe de 4ᵉ · Cycle 4
 objectifs:
   - Savoir exactement ce qui est au programme de 4ᵉ, matière par matière
@@ -12,19 +12,60 @@ objectifs:
 ---
 
 ::: plan
-1. Comment lire ce document
-2. L'année de 4ᵉ en un coup d'œil
-3. Le socle commun : ce qui est réellement évalué
-4. L'échelle officielle d'évaluation — les 4 niveaux
-5. Le cadre CNED : la validation des acquis
-6. Les 8 matières, thème par thème
-7. Le plan complet des 69 leçons
-8. La progression sur l'année (5 périodes)
-9. Les adaptations mises en place
+1. L'année en un coup d'œil
+2. Comment lire ce document
+3. Le programme officiel de 4ᵉ
+4. Le socle commun : ce qui est réellement évalué
+5. L'échelle d'évaluation : les 4 niveaux
+6. La validation des acquis
+7. Les 8 matières, thème par thème
+8. Le plan complet des 69 leçons
+9. La progression sur l'année
 10. Les outils complémentaires
 :::
 
-## 1. Comment lire ce document
+## 1. L'année en un coup d'œil
+
+::: chiffres
+- <strong>8</strong><span>matières couvertes</span>
+- <strong>69</strong><span>leçons sur l'année</span>
+- <strong>4</strong><span>documents par leçon</span>
+- <strong>5</strong><span>périodes</span>
+- <strong>3</strong><span>séances par semaine</span>
+:::
+
+::: panorama
+- <span data-m="maths"><span class="p-nom">Mathématiques</span><span class="p-chiffres">12 leçons · 5 thèmes officiels</span><span class="p-themes">Puissances, calcul littéral, équations, Pythagore, transformations, statistiques et probabilités, algorithmique.</span></span>
+- <span data-m="francais"><span class="p-nom">Français</span><span class="p-chiffres">10 leçons · 4 entrées de culture littéraire</span><span class="p-themes">Poésie lyrique, théâtre et roman, réalisme et fantastique du XIXᵉ, médias et information, langue.</span></span>
+- <span data-m="physique-chimie"><span class="p-nom">Physique-Chimie</span><span class="p-chiffres">8 leçons · 4 thèmes officiels</span><span class="p-themes">Atomes et molécules, transformations chimiques, vitesse et forces, électricité, énergie, lumière.</span></span>
+- <span data-m="svt"><span class="p-nom">SVT</span><span class="p-chiffres">7 leçons · 3 thèmes officiels</span><span class="p-themes">Tectonique des plaques, séismes, volcanisme, climats, reproduction, peuplement, environnement.</span></span>
+- <span data-m="histoire-geo"><span class="p-nom">Histoire-Géographie</span><span class="p-chiffres">12 leçons · 6 thèmes officiels</span><span class="p-themes">XVIIIᵉ siècle et Révolution, industrialisation, colonisation, IIIᵉ République, urbanisation, mobilités, mondialisation.</span></span>
+- <span data-m="emc"><span class="p-nom">EMC</span><span class="p-chiffres">4 leçons · 3 axes</span><span class="p-themes">Libertés fondamentales, égalité et discriminations, justice, liberté d'expression et données personnelles.</span></span>
+- <span data-m="anglais-lv1"><span class="p-nom">Anglais LV1</span><span class="p-chiffres">8 leçons · niveau A2 confirmé</span><span class="p-themes">Futur, modaux, prétérit, present perfect, comparatifs, opinion, conditionnels, mondes anglophones.</span></span>
+- <span data-m="espagnol-lv2"><span class="p-nom">Espagnol LV2</span><span class="p-chiffres">8 leçons · niveau A1 vers A2</span><span class="p-themes">Présent, ser et estar, gustar, la ville, pretérito perfecto, indefinido et imperfecto, futur, cultures hispaniques.</span></span>
+:::
+
+::: frise
+<svg viewBox="0 0 900 96" role="img" aria-label="Frise des cinq périodes de l'année, de septembre à juin.">
+  <rect class="p-bloc" x="0"   y="20" width="175" height="40" rx="6" fill="#1b5fa8"/>
+  <rect class="p-bloc" x="175" y="20" width="175" height="40" rx="6" fill="#6d3a91"/>
+  <rect class="p-bloc" x="350" y="20" width="150" height="40" rx="6" fill="#9c5511"/>
+  <rect class="p-bloc" x="500" y="20" width="150" height="40" rx="6" fill="#1f6b32"/>
+  <rect class="p-bloc" x="650" y="20" width="250" height="40" rx="6" fill="#a8360b"/>
+  <text x="87"  y="45" text-anchor="middle">P1</text>
+  <text x="262" y="45" text-anchor="middle">P2</text>
+  <text x="425" y="45" text-anchor="middle">P3</text>
+  <text x="575" y="45" text-anchor="middle">P4</text>
+  <text x="775" y="45" text-anchor="middle">P5</text>
+  <text class="p-sous" x="87"  y="78" text-anchor="middle">sept. oct. · 7 sem.</text>
+  <text class="p-sous" x="262" y="78" text-anchor="middle">nov. déc. · 7 sem.</text>
+  <text class="p-sous" x="425" y="78" text-anchor="middle">janv. févr. · 6 sem.</text>
+  <text class="p-sous" x="575" y="78" text-anchor="middle">mars avr. · 6 sem.</text>
+  <text class="p-sous" x="775" y="78" text-anchor="middle">mai juin · 9 sem.</text>
+</svg>
+:::
+
+## 2. Comment lire ce document
 
 Ce document est la **carte générale** de l'année. Il ne contient pas les cours :
 il dit **ce qu'il y a à apprendre**, **dans quel ordre**, et **comment ce sera évalué**.
@@ -48,9 +89,9 @@ Ce qui est adapté, c'est la **forme** : structure identique d'un document à l'
 ::: saut
 :::
 
-## 2. L'année de 4ᵉ en un coup d'œil
+## 3. Le programme officiel de 4ᵉ
 
-La 4ᵉ est la **troisième année du cycle 4** (5ᵉ – 4ᵉ – 3ᵉ). C'est l'année où la plupart des matières passent du « constat » à la **démonstration** et à l'**argumentation** : on ne demande plus seulement le bon résultat, on demande aussi **comment on le sait**.
+La 4ᵉ est la **troisième année du cycle 4** (5ᵉ - 4ᵉ - 3ᵉ). C'est l'année où la plupart des matières passent du « constat » à la **démonstration** et à l'**argumentation** : on ne demande plus seulement le bon résultat, on demande aussi **comment on le sait**.
 
 ### Horaires officiels hebdomadaires (grille collège, 4ᵉ)
 
@@ -60,8 +101,8 @@ La 4ᵉ est la **troisième année du cycle 4** (5ᵉ – 4ᵉ – 3ᵉ). C'est 
 | Français | 4 h 30 | Traité intégralement |
 | Mathématiques | 3 h 30 | Traité intégralement |
 | Histoire-Géographie-EMC | 3 h 00 | Traité intégralement |
-| Langue vivante 1 — Anglais | 3 h 00 | Traité intégralement |
-| Langue vivante 2 — Espagnol | 2 h 30 | Traité intégralement |
+| Langue vivante 1 : Anglais | 3 h 00 | Traité intégralement |
+| Langue vivante 2 : Espagnol | 2 h 30 | Traité intégralement |
 | Sciences et technologie (SVT · Physique-Chimie · Technologie) | 4 h 30 | SVT et Physique-Chimie traités ; Technologie en complément |
 | EPS | 3 h 00 | Hors périmètre écrit |
 | Arts plastiques | 1 h 00 | Hors périmètre écrit |
@@ -80,7 +121,7 @@ La 4ᵉ est la **troisième année du cycle 4** (5ᵉ – 4ᵉ – 3ᵉ). C'est 
 ::: saut
 :::
 
-## 3. Le socle commun : ce qui est réellement évalué
+## 4. Le socle commun : ce qui est réellement évalué
 
 Au collège, les notes portent sur des exercices, mais le **bilan officiel** porte sur
 **cinq domaines de compétences** (le socle commun). C'est ce qui figure sur le bulletin et qui compte pour le brevet en fin de 3ᵉ.
@@ -121,7 +162,7 @@ Elles reviennent dans **chaque** grille d'évaluation de maths :
 ::: saut
 :::
 
-## 4. L'échelle officielle d'évaluation — les 4 niveaux
+## 5. L'échelle d'évaluation : les 4 niveaux
 
 Toutes les **grilles d'évaluation** de ce dossier utilisent **l'échelle officielle du livret scolaire**, sans variante. Quatre niveaux, toujours dans cet ordre, toujours avec le même pictogramme et la même couleur.
 
@@ -145,32 +186,40 @@ Ce sont deux actions différentes ; les confondre fait perdre du temps.
 ::: saut
 :::
 
-## 5. Le cadre CNED : la validation des acquis
+## 6. La validation des acquis
 
-L'enseignement à distance impose une discipline que la classe fournit d'ordinaire toute seule : **des échéances régulières** et **des traces écrites évaluables**.
+Le travail à la maison demande ce qu'une classe fournit d'ordinaire toute seule : **des échéances régulières** et **des traces écrites évaluables**. Quatre dispositifs s'en chargent.
 
+::: grille
+| Dispositif | Quand | Support | Ce qu'il mesure |
+|---|---|---|---|
+| **Grille de leçon** | À la fin de chaque leçon | Remplie à deux, sur écran | Les critères de la leçon, un par un, sur les 4 niveaux |
+| **Évaluation type** | Une par leçon, en fin de fiche d'exercices | **À la main**, en conditions réelles | La capacité à traiter un sujet complet, rédaction comprise |
+| **Bilan de période** | 5 fois dans l'année | Tableau de suivi | Ce qui est acquis, ce qui reste à reprendre |
+| **Évaluation de fin d'année** | En juin | **À la main** | Les attendus de fin de 4ᵉ, matière par matière |
+:::
+
+::: methode Le double positionnement
 ::: etapes
-1. **Des devoirs notés envoyés à correction**, répartis sur les trois trimestres, dans chaque matière. Ce sont eux qui construisent le bulletin et le conseil de classe.
-2. **Un bulletin trimestriel** qui reprend les notes **et** le positionnement sur les domaines du socle (les quatre niveaux ci-dessus).
-3. **Un livret scolaire unique (LSU)** alimenté toute l'année, qui suit l'élève jusqu'au brevet.
+1. **Sterenn se positionne seule** sur les critères, sans discussion préalable.
+2. **Bastien se positionne de son côté**, à partir des exercices rendus.
+3. **On compare les deux colonnes.** Un écart n'est pas une erreur de l'un ou de l'autre : c'est l'information la plus utile de la séance.
+4. **On décide** de l'action pour chaque critère qui n'est pas encore en ◕ ou ●.
+:::
 :::
 
-::: aide
-Le nombre exact de devoirs et le calendrier de retour varient selon la formule d'inscription. **À vérifier dans le livret d'accompagnement CNED de l'année en cours**, puis à reporter dans `00-pilotage/progression-annuelle.md` : c'est cette date-là, et pas une autre, qui pilote la progression.
+::: info Pourquoi deux positionnements
+Se positionner soi-même est une compétence à part entière, inscrite au domaine 2 du socle. L'écart entre l'auto-évaluation et l'évaluation externe dit s'il faut travailler la notion, ou la confiance. Ce ne sont pas les mêmes actions.
 :::
 
-### Ce que ce dossier apporte au format CNED
-
-- Chaque leçon se termine par une **grille d'évaluation** au format exact du socle, qui prépare directement le devoir envoyé à correction.
-- Chaque série d'exercices comporte des **exercices de type devoir** (énoncé long, plusieurs questions liées, barème visible) pour s'entraîner dans les conditions réelles.
-- La **progression annuelle** aligne les leçons sur les périodes, pour qu'aucun devoir n'arrive sur une notion non traitée.
-
-::: saut
+::: retenir Ce qui est validé est dit, coché, et rappelé
+Un acquis n'existe vraiment que s'il est **nommé précisément** (« tu sais reconnaître l'hypoténuse sans figure »), **coché devant elle**, puis **rappelé à la séance suivante**.
+La valorisation porte sur ce qui est acquis, jamais sur l'effort supposé ni sur la vitesse.
 :::
 
-## 6. Les 8 matières, thème par thème
+## 7. Les 8 matières, thème par thème
 
-### 6.1 Mathématiques — 3 h 30 / semaine · 12 leçons
+### 7.1 Mathématiques : 3 h 30 / semaine · 12 leçons
 
 Cinq thèmes officiels, travaillés en parallèle toute l'année.
 
@@ -194,7 +243,7 @@ Cinq thèmes officiels, travaillés en parallèle toute l'année.
 - Écrire et corriger un programme comportant une boucle et une condition.
 :::
 
-### 6.2 Français — 4 h 30 / semaine · 10 leçons
+### 7.2 Français : 4 h 30 / semaine · 10 leçons
 
 Quatre **entrées de culture littéraire** obligatoires, plus l'étude de la langue.
 
@@ -217,7 +266,7 @@ Quatre **entrées de culture littéraire** obligatoires, plus l'étude de la lan
 - Rédiger un récit, une lettre, un article informatif et un texte argumenté court.
 :::
 
-### 6.3 Physique-Chimie — ~1 h 30 / semaine · 8 leçons
+### 7.3 Physique-Chimie : ~1 h 30 / semaine · 8 leçons
 
 ::: grille
 | Thème officiel | Contenu de 4ᵉ |
@@ -237,7 +286,7 @@ Quatre **entrées de culture littéraire** obligatoires, plus l'étude de la lan
 - Utiliser la **vitesse de la lumière** (300 000 km/s) et l'**année-lumière**.
 :::
 
-### 6.4 SVT — ~1 h 30 / semaine · 7 leçons
+### 7.4 SVT : ~1 h 30 / semaine · 7 leçons
 
 ::: grille
 | Thème officiel | Contenu de 4ᵉ |
@@ -255,9 +304,9 @@ Quatre **entrées de culture littéraire** obligatoires, plus l'étude de la lan
 - Distinguer **risque** et **aléa**, et proposer des mesures de prévention.
 :::
 
-### 6.5 Histoire-Géographie — 3 h / semaine (avec l'EMC) · 12 leçons
+### 7.5 Histoire-Géographie : 3 h / semaine (avec l'EMC) · 12 leçons
 
-**Histoire — trois thèmes**
+**Histoire : trois thèmes**
 
 ::: grille
 | Thème | Chapitres |
@@ -267,7 +316,7 @@ Quatre **entrées de culture littéraire** obligatoires, plus l'étude de la lan
 | III. Société, culture et politique dans la France du XIXᵉ siècle | Une difficile conquête : **voter de 1815 à 1870** · La **Troisième République** · **Conditions féminines** dans une société en mutation |
 :::
 
-**Géographie — trois thèmes**
+**Géographie : trois thèmes**
 
 ::: grille
 | Thème | Chapitres |
@@ -286,7 +335,7 @@ Quatre **entrées de culture littéraire** obligatoires, plus l'étude de la lan
 - Rédiger un **développement construit** d'une vingtaine de lignes.
 :::
 
-### 6.6 EMC — intégré aux 3 h d'histoire-géo · 4 leçons
+### 7.6 EMC : intégré aux 3 h d'histoire-géo · 4 leçons
 
 ::: grille
 | Axe | Contenu de 4ᵉ |
@@ -304,7 +353,7 @@ Quatre **entrées de culture littéraire** obligatoires, plus l'étude de la lan
 - Argumenter par écrit sur une question civique, en citant un texte de référence.
 :::
 
-### 6.7 Anglais LV1 — 3 h / semaine · 8 leçons
+### 7.7 Anglais LV1 : 3 h / semaine · 8 leçons
 
 Niveau visé : **A2 confirmé en 4ᵉ**, vers le **B1 en fin de 3ᵉ**.
 
@@ -325,7 +374,7 @@ Niveau visé : **A2 confirmé en 4ᵉ**, vers le **B1 en fin de 3ᵉ**.
 - Comprendre l'essentiel d'un document audio ou vidéo court sur un sujet connu.
 :::
 
-### 6.8 Espagnol LV2 — 2 h 30 / semaine · 8 leçons
+### 7.8 Espagnol LV2 : 2 h 30 / semaine · 8 leçons
 
 Deuxième année d'apprentissage. Niveau visé : **A1 confirmé vers A2**.
 
@@ -349,11 +398,11 @@ Deuxième année d'apprentissage. Niveau visé : **A1 confirmé vers A2**.
 ::: saut
 :::
 
-## 7. Le plan complet des 69 leçons
+## 8. Le plan complet des 69 leçons
 
 Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · évaluation).
 
-### Mathématiques — `matieres/maths/`
+### Mathématiques : `matieres/maths/`
 
 ::: grille
 | Réf | Leçon | Notions clés |
@@ -372,7 +421,7 @@ Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · 
 | L12 | Algorithmique et programmation | Variables, boucles, conditions, débogage (Scratch) |
 :::
 
-### Français — `matieres/francais/`
+### Français : `matieres/francais/`
 
 ::: grille
 | Réf | Leçon | Notions clés |
@@ -389,7 +438,7 @@ Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · 
 | L10 | Méthodes d'écriture | Récit, lettre, article, texte argumenté |
 :::
 
-### Physique-Chimie — `matieres/physique-chimie/`
+### Physique-Chimie : `matieres/physique-chimie/`
 
 ::: grille
 | Réf | Leçon | Notions clés |
@@ -404,7 +453,7 @@ Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · 
 | L08 | La lumière | Propagation rectiligne, vitesse, année-lumière, couleurs |
 :::
 
-### SVT — `matieres/svt/`
+### SVT : `matieres/svt/`
 
 ::: grille
 | Réf | Leçon | Notions clés |
@@ -418,7 +467,7 @@ Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · 
 | L07 | Activités humaines et environnement | Ressources, risques, gestion durable |
 :::
 
-### Histoire-Géographie — `matieres/histoire-geo/`
+### Histoire-Géographie : `matieres/histoire-geo/`
 
 ::: grille
 | Réf | Leçon | Notions clés |
@@ -437,7 +486,7 @@ Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · 
 | G6 | Les États-Unis et la mondialisation | Façades maritimes, métropolisation, frontières |
 :::
 
-### EMC — `matieres/emc/`
+### EMC : `matieres/emc/`
 
 ::: grille
 | Réf | Leçon | Notions clés |
@@ -448,7 +497,7 @@ Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · 
 | L04 | Liberté d'expression, médias et données | Presse, réseaux, vie privée, RGPD, cyberharcèlement |
 :::
 
-### Anglais LV1 — `matieres/anglais-lv1/`
+### Anglais LV1 : `matieres/anglais-lv1/`
 
 ::: grille
 | Réf | Leçon | Notions clés |
@@ -463,7 +512,7 @@ Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · 
 | L08 | English-speaking worlds (projet) | Repères culturels, exposé, compréhension de documents |
 :::
 
-### Espagnol LV2 — `matieres/espagnol-lv2/`
+### Espagnol LV2 : `matieres/espagnol-lv2/`
 
 ::: grille
 | Réf | Leçon | Notions clés |
@@ -481,50 +530,31 @@ Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · 
 ::: saut
 :::
 
-## 8. La progression sur l'année (5 périodes)
+## 9. La progression sur l'année
 
-Le découpage suit les cinq périodes scolaires. Il est **indicatif** : il se cale sur les dates de devoirs CNED une fois celles-ci connues.
+Le découpage suit les cinq périodes scolaires. Il est **indicatif** : le détail des séances et des évaluations est dans `00-pilotage/progression-annuelle.md`.
 
 ::: grille
 | Période | Maths | Français | PC | SVT | Hist-Géo / EMC | Anglais | Espagnol |
 |---|---|---|---|---|---|---|---|
-| **P1** · sept.–oct. | L01 · L02 | L01 · L06 | L01 | L01 | H1 · G1 | L01 | L01 |
-| **P2** · nov.–déc. | L03 · L04 | L03 · L07 | L02 · L03 | L02 · L03 | H2 · H3 · G2 | L02 · L03 | L02 · L03 |
-| **P3** · janv.–févr. | L05 · L08 | L04 · L08 | L04 · L05 | L04 | H4 · G3 · EMC L01 | L04 · L05 | L04 · L05 |
-| **P4** · mars–avr. | L06 · L07 · L09 | L02 · L09 | L06 | L05 | H5 · G4 · EMC L02 · L03 | L06 | L06 |
-| **P5** · mai–juin | L10 · L11 · L12 | L05 · L10 | L07 · L08 | L06 · L07 | H6 · G5 · G6 · EMC L04 | L07 · L08 | L07 · L08 |
+| **P1** · sept.-oct. | L01 · L02 | L01 · L06 | L01 | L01 | H1 · G1 | L01 | L01 |
+| **P2** · nov.-déc. | L03 · L04 | L03 · L07 | L02 · L03 | L02 · L03 | H2 · H3 · G2 | L02 · L03 | L02 · L03 |
+| **P3** · janv.-févr. | L05 · L08 | L04 · L08 | L04 · L05 | L04 | H4 · G3 · EMC L01 | L04 · L05 | L04 · L05 |
+| **P4** · mars-avr. | L06 · L07 · L09 | L02 · L09 | L06 | L05 | H5 · G4 · EMC L02 · L03 | L06 | L06 |
+| **P5** · mai-juin | L10 · L11 · L12 | L05 · L10 | L07 · L08 | L06 · L07 | H6 · G5 · G6 · EMC L04 | L07 · L08 | L07 · L08 |
 :::
 
 :::: methode Rythme d'une leçon
 ::: etapes
-1. **Fiche de cours** — lecture active, en deux temps de 20 minutes séparés par une pause.
-2. **Exercices d'application** — les 4 à 6 premiers, corrigé masqué puis vérifié exercice par exercice.
-3. **Fiche de révision** — relecture, puis restitution orale des mots-clés sans regarder.
-4. **Exercices d'entraînement et d'approfondissement** — en autonomie, corrigé consulté après.
-5. **Grille d'évaluation** — auto-positionnement par l'élève, puis positionnement par l'adulte, puis comparaison des deux.
+1. **Fiche de cours** : lecture active, en deux temps de 20 minutes séparés par une pause.
+2. **Exercices d'application** : les 4 à 6 premiers, corrigé masqué puis vérifié exercice par exercice.
+3. **Fiche de révision** : relecture, puis restitution orale des mots-clés sans regarder.
+4. **Exercices d'entraînement et d'approfondissement** : en autonomie, corrigé consulté après.
+5. **Grille d'évaluation** : auto-positionnement par l'élève, puis positionnement par l'adulte, puis comparaison des deux.
 :::
 ::::
 
 ::: saut
-:::
-
-## 9. Les adaptations mises en place
-
-Le détail est dans `00-pilotage/adaptations-tsa.md`. En résumé, dix principes appliqués à **tous** les documents :
-
-::: grille
-| Principe | Traduction concrète |
-|---|---|
-| Prévisibilité | Même structure, même ordre des blocs, même mise en page dans tous les documents d'un même type |
-| Annonce explicite | Chaque fiche s'ouvre sur son plan, sa durée et le matériel nécessaire |
-| Séquençage court | Une idée par bloc, 5 à 7 lignes maximum, puis un repère visuel |
-| Langage littéral | Aucune ironie, aucune métaphore non expliquée, aucune consigne implicite |
-| Consignes atomiques | Une consigne = une action ; les consignes multiples sont numérotées |
-| Critères explicites | L'élève peut savoir seul s'il a réussi, avant même la correction |
-| Charge sensorielle maîtrisée | Fond crème, pas de texte justifié, interligne large, aucune animation automatique |
-| Redondance du sens | Couleur **+** pictogramme **+** libellé texte, jamais la couleur seule |
-| Points de pause balisés | Un repère 🔁 indique où s'arrêter sans perdre le fil |
-| Exigence maintenue | Vocabulaire et attentes de 4ᵉ, sans simplification du fond |
 :::
 
 ## 10. Les outils complémentaires
@@ -545,5 +575,6 @@ Disponibles dans `outils/` :
 - Ce qui est évalué officiellement, ce sont les **5 domaines du socle commun**.
 - L'échelle d'évaluation est celle du livret scolaire : **Insuffisant · Fragile · Satisfaisant · Très bien**.
 - Chaque leçon vient avec **4 documents** : cours, révision, exercices, grille.
-- Le calendrier réel est donné par les **dates de devoirs CNED** : c'est la première chose à reporter dans la progression.
+- Ce qui est acquis est **nommé, coché et rappelé** : c'est ce qui fait avancer.
+- Le rythme est de **trois séances par semaine**, d'1 h à 1 h 30, jamais prolongées.
 :::

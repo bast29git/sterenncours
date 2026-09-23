@@ -2,7 +2,7 @@
 type: exercices
 matiere: maths
 lecon: L08
-titre: Pythagore — exercices corrigés
+titre: Pythagore : exercices corrigés
 resume: 21 exercices progressifs, du calcul direct au problème de type devoir, avec un corrigé détaillé pas à pas pour chacun.
 duree: 3 séances de 45 min
 competences:
@@ -17,16 +17,21 @@ objectifs:
 ---
 
 ::: plan
-- **Exercices 1 à 8** — niveau *Application* : calcul direct, résultats entiers
-- **Exercices 9 à 15** — niveau *Entraînement* : arrondis, réciproque, situations concrètes
-- **Exercices 16 à 20** — niveau *Approfondissement* : problèmes en plusieurs étapes
-- **Exercice 21** — sujet de type devoir, noté sur 20
+- **Exercices 1 à 8** : niveau *Application* : calcul direct, résultats entiers
+- **Exercices 9 à 15** : niveau *Entraînement* : arrondis, réciproque, situations concrètes
+- **Exercices 16 à 20** : niveau *Approfondissement* : problèmes en plusieurs étapes
+- **Exercice 21** : sujet de type devoir, noté sur 20
 :::
 
 ::: materiel
 - Une calculatrice avec la touche `√`
 - Une feuille de brouillon pour les calculs
 - La fiche de révision `2-revision` à portée de main pour les 8 premiers exercices
+:::
+
+::: info Le repère de support, en tête de chaque exercice
+**💻 sur écran** : exercice fait avec Bastien, corrigé vérifié ensemble juste après.
+**✍️ à la main** : exercice fait seule, sur papier. La rédaction compte autant que le résultat.
 :::
 
 ::: methode Comment utiliser cette fiche
@@ -43,11 +48,11 @@ Séance 1 : exercices **1 à 8**. Séance 2 : exercices **9 à 15**. Séance 3 :
 L'exercice 21 se fait à part, en conditions de devoir. Le nombre est annoncé à l'avance et ne change pas en cours de séance.
 :::
 
-## Niveau Application — exercices 1 à 8
+## Niveau Application : exercices 1 à 8
 
 Dans tous ces exercices, les résultats tombent juste : **aucun arrondi n'est nécessaire**.
 
-::: exercice 1 | application | 4 min
+::: exercice 1 | application | 4 min | ecran
 Le triangle ABC est rectangle en **A**, avec AB = 3 cm et AC = 4 cm.
 Calculer la longueur BC.
 
@@ -64,7 +69,7 @@ Donc BC = √25 = 5.
 :::
 :::
 
-::: exercice 2 | application | 4 min
+::: exercice 2 | application | 4 min | ecran
 Le triangle RST est rectangle en **R**, avec RS = 9 cm et RT = 12 cm.
 Calculer la longueur ST.
 
@@ -80,7 +85,7 @@ Donc ST = √225 = 15.
 :::
 :::
 
-::: exercice 3 | application | 4 min
+::: exercice 3 | application | 4 min | ecran
 Un triangle est rectangle. Son hypoténuse mesure 10 cm et l'un des côtés de l'angle droit mesure 6 cm. Calculer la longueur du troisième côté.
 
 ::: corrige
@@ -98,7 +103,7 @@ Donc c = √64 = 8.
 :::
 :::
 
-::: exercice 4 | application | 4 min
+::: exercice 4 | application | 4 min | ecran
 Le triangle MNP est rectangle en **M**, avec MN = 5 cm et MP = 12 cm.
 Calculer NP.
 
@@ -113,7 +118,7 @@ Donc NP = √169 = 13.
 :::
 :::
 
-::: exercice 5 | application | 4 min
+::: exercice 5 | application | 4 min | ecran
 Un triangle rectangle a une hypoténuse de 25 cm et un côté de l'angle droit de 7 cm.
 Calculer l'autre côté de l'angle droit.
 
@@ -131,7 +136,7 @@ Donc c = √576 = 24.
 :::
 :::
 
-::: exercice 6 | application | 4 min
+::: exercice 6 | application | 4 min | ecran
 Le triangle ABC est rectangle en **A**, avec AB = 8 cm et AC = 15 cm.
 Calculer BC.
 
@@ -146,7 +151,7 @@ Donc BC = √289 = 17.
 :::
 :::
 
-::: exercice 7 | application | 4 min
+::: exercice 7 | application | 4 min | ecran
 Un triangle rectangle a une hypoténuse de 41 cm et un côté de l'angle droit de 40 cm.
 Calculer le troisième côté.
 
@@ -162,7 +167,7 @@ Donc c = √81 = 9.
 :::
 :::
 
-::: exercice 8 | application | 5 min
+::: exercice 8 | application | 5 min | ecran
 Un triangle rectangle a des côtés de l'angle droit de **2,4 cm** et **3,2 cm**.
 Calculer son hypoténuse.
 
@@ -186,11 +191,11 @@ Fin de la séance 1. Reprends à l'exercice 9.
 ::: saut
 :::
 
-## Niveau Entraînement — exercices 9 à 15
+## Niveau Entraînement : exercices 9 à 15
 
 Les résultats ne tombent plus toujours juste : **arrondis au dixième** sauf indication contraire.
 
-::: exercice 9 | entrainement | 6 min
+::: exercice 9 | entrainement | 6 min | ecran
 Un triangle rectangle a des côtés de l'angle droit de 5 cm et 7 cm.
 Calculer l'hypoténuse, arrondie au dixième de centimètre.
 
@@ -211,7 +216,7 @@ On écrit **h = √74** (exact) puis **h ≈ 8,6 cm** (arrondi).
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min
+::: exercice 10 | entrainement | 6 min | ecran
 Un triangle rectangle a une hypoténuse de 12 cm et un côté de l'angle droit de 5 cm.
 Calculer l'autre côté, arrondi au dixième.
 
@@ -229,7 +234,7 @@ Donc c = √119 ≈ 10,908…
 :::
 :::
 
-::: exercice 11 | entrainement | 6 min
+::: exercice 11 | entrainement | 6 min | ecran
 Un triangle a pour côtés 6 cm, 8 cm et 10 cm.
 Ce triangle est-il rectangle ? Justifier par une démonstration complète.
 
@@ -244,7 +249,7 @@ Donc, d'après la **réciproque du théorème de Pythagore**, ce triangle **est 
 :::
 :::
 
-::: exercice 12 | entrainement | 6 min
+::: exercice 12 | entrainement | 6 min | ecran
 Un triangle a pour côtés 7 cm, 8 cm et 12 cm.
 Ce triangle est-il rectangle ? Justifier.
 
@@ -259,7 +264,7 @@ Donc, d'après la réciproque du théorème de Pythagore, ce triangle **n'est pa
 :::
 :::
 
-::: exercice 13 | entrainement | 8 min
+::: exercice 13 | entrainement | 8 min | ecran
 Une échelle de **4 m** est appuyée contre un mur vertical. Son pied est posé à **1,5 m**
 du mur. À quelle hauteur l'échelle touche-t-elle le mur ? Arrondir au dixième de mètre.
 
@@ -284,7 +289,7 @@ ces expressions annoncent toutes un **angle droit**. C'est la première chose à
 :::
 :::
 
-::: exercice 14 | entrainement | 8 min
+::: exercice 14 | entrainement | 8 min | ecran
 Un écran de télévision rectangulaire mesure **1,10 m** de largeur et **0,62 m** de hauteur.
 Quelle est la longueur de sa diagonale, arrondie au centimètre ?
 
@@ -301,7 +306,7 @@ Donc d = √1,5944 ≈ 1,2627…
 :::
 :::
 
-::: exercice 15 | entrainement | 6 min
+::: exercice 15 | entrainement | 6 min | ecran
 ABCD est un rectangle avec AB = 12 cm et BC = 9 cm.
 Calculer la longueur de la diagonale [AC].
 
@@ -324,11 +329,11 @@ Fin de la séance 2. Reprends à l'exercice 16.
 ::: saut
 :::
 
-## Niveau Approfondissement — exercices 16 à 20
+## Niveau Approfondissement : exercices 16 à 20
 
 Ces exercices demandent **deux raisonnements** : trouver ce qu'il faut calculer, puis calculer.
 
-::: exercice 16 | approfondissement | 10 min
+::: exercice 16 | approfondissement | 10 min | main
 Un terrain rectangulaire mesure **60 m** de long et **25 m** de large.
 Pour aller d'un coin au coin opposé, on peut longer deux côtés, ou couper en diagonale.
 **Combien de mètres économise-t-on en coupant en diagonale ?**
@@ -346,7 +351,7 @@ Pour aller d'un coin au coin opposé, on peut longer deux côtés, ou couper en 
 :::
 :::
 
-::: exercice 17 | approfondissement | 12 min
+::: exercice 17 | approfondissement | 12 min | main
 ABCD est un trapèze rectangle en **A** et en **D**, avec
 AB = 15 cm, DC = 9 cm et AD = 8 cm.
 Calculer la longueur BC.
@@ -387,7 +392,7 @@ Tracer la hauteur issue de C est le geste à retenir, il revient très souvent.
 :::
 :::
 
-::: exercice 18 | approfondissement | 8 min
+::: exercice 18 | approfondissement | 8 min | main
 Un élève affirme : « Un triangle de côtés 9 cm, 12 cm et 16 cm est rectangle, parce que 9 et 12 font partie du trio 9-12-15. »
 **A-t-il raison ?** Justifier par une démonstration.
 
@@ -410,7 +415,7 @@ Un triangle rectangle est déterminé par les **trois** longueurs, jamais par de
 :::
 :::
 
-::: exercice 19 | approfondissement | 10 min
+::: exercice 19 | approfondissement | 10 min | main
 La charpente d'une maison a la forme d'un triangle isocèle.
 La **portée** (la largeur au sol) mesure **8 m** et la hauteur au faîtage (le sommet) mesure **3 m**.
 1. Calculer la longueur d'un versant du toit.
@@ -434,7 +439,7 @@ Dans un triangle isocèle, la hauteur issue du sommet principal le coupe en
 :::
 :::
 
-::: exercice 20 | approfondissement | 8 min
+::: exercice 20 | approfondissement | 8 min | main
 Un mât vertical est maintenu par un hauban (un câble tendu).
 Le hauban est fixé sur le mât à **9 m** de hauteur, et ancré au sol à **12 m**
 du pied du mât.
@@ -457,46 +462,46 @@ Donc L = √225 = **15**.
 ::: saut
 :::
 
-## Sujet de type devoir — exercice 21
+## Sujet de type devoir : exercice 21
 
 ::: info Conditions
 Durée conseillée : **40 minutes**. Calculatrice autorisée. Rédaction exigée.
 Barème sur **20 points**. Le corrigé se consulte **après** avoir tout rédigé.
 :::
 
-::: exercice 21 | approfondissement | 40 min
+::: exercice 21 | approfondissement | 40 min | main
 **La cabane**
 
 Sterenn construit une cabane. Le **plancher** est un rectangle de **2,4 m** de long et **1,8 m** de large.
 
-**Question 1 — 5 points.**
+**Question 1 : 5 points.**
 Calculer la longueur de la diagonale du plancher.
 
 ::: reponse 5
 :::
 
-**Question 2 — 5 points.**
+**Question 2 : 5 points.**
 Pour monter dans la cabane, une échelle de **2,6 m** est appuyée contre la paroi verticale. Le pied de l'échelle est posé à **1 m** de la paroi.
 À quelle hauteur l'échelle touche-t-elle la paroi ?
 
 ::: reponse 5
 :::
 
-**Question 3 — 6 points.**
+**Question 3 : 6 points.**
 Pour rigidifier un angle, Sterenn découpe une équerre triangulaire dont les côtés mesurent **1,2 m**, **1,6 m** et **2 m**.
 Cette équerre forme-t-elle bien un angle droit ? Justifier par une démonstration.
 
 ::: reponse 6
 :::
 
-**Question 4 — 4 points.**
+**Question 4 : 4 points.**
 Recopier et compléter la phrase suivante, qui doit obligatoirement figurer dans la question 1 : « D'après … , la diagonale vérifie … »
 
 ::: reponse 2
 :::
 
 ::: corrige Barème détaillé sur 20 points
-**Question 1 — 5 points**
+**Question 1 : 5 points**
 
 Le plancher est un rectangle, donc ses angles sont droits. *(1 pt)*
 La diagonale est l'hypoténuse d'un triangle rectangle de côtés 2,4 m et 1,8 m.
@@ -507,7 +512,7 @@ Donc d = √9 = 3.
 
 ---
 
-**Question 2 — 5 points**
+**Question 2 : 5 points**
 
 La paroi est verticale et le sol horizontal : le triangle formé est **rectangle**, et l'échelle en est l'**hypoténuse**. *(1 pt)*
 Notons *h* la hauteur atteinte. L'inconnue n'est pas l'hypoténuse → je soustrais.
@@ -518,7 +523,7 @@ Donc h = √5,76 = 2,4.
 
 ---
 
-**Question 3 — 6 points**
+**Question 3 : 6 points**
 
 Le plus grand côté mesure **2 m**. *(1 pt)*
 D'un côté : 2² = **4** *(1 pt)*
@@ -529,7 +534,7 @@ Donc, d'après la **réciproque du théorème de Pythagore**, le triangle est re
 
 ---
 
-**Question 4 — 4 points**
+**Question 4 : 4 points**
 
 « D'après **le théorème de Pythagore**, la diagonale vérifie **d² = 2,4² + 1,8²**. »
 
@@ -541,7 +546,7 @@ Donc, d'après la **réciproque du théorème de Pythagore**, le triangle est re
 - **Question 1** : reconnaître un triangle rectangle caché dans un rectangle.
 - **Question 2** : choisir la soustraction plutôt que l'addition.
 - **Question 3** : utiliser la réciproque avec **deux calculs séparés**.
-- **Question 4** : la rédaction — c'est elle qui distingue un résultat d'une démonstration.
+- **Question 4** : la rédaction : c'est elle qui distingue un résultat d'une démonstration.
 :::
 :::
 :::

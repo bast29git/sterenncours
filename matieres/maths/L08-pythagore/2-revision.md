@@ -2,7 +2,7 @@
 type: revision
 matiere: maths
 lecon: L08
-titre: Pythagore — fiche de révision
+titre: Pythagore : fiche de révision
 resume: Tout le chapitre en deux pages : le schéma, les deux formules, les deux méthodes, les mots-clés, les pièges et un auto-test de 8 questions.
 duree: 15 min
 competences:
@@ -61,7 +61,7 @@ Si ABC est rectangle en A, alors BC² = AB² + AC²
 
 ## 3. Les deux méthodes en 4 étapes
 
-::: methode Méthode A — calculer une longueur
+::: methode Méthode A : calculer une longueur
 ::: etapes
 1. Repérer **où est l'angle droit** → en déduire l'hypoténuse.
 2. Se demander : l'inconnue **est-elle l'hypoténuse** ?
@@ -70,7 +70,7 @@ Si ABC est rectangle en A, alors BC² = AB² + AC²
 :::
 :::
 
-::: methode Méthode B — démontrer avec la réciproque
+::: methode Méthode B : démontrer avec la réciproque
 ::: etapes
 1. Identifier le **plus grand côté**.
 2. Calculer, **à part**, le carré du plus grand côté.
@@ -104,7 +104,7 @@ Si ABC est rectangle en A, alors BC² = AB² + AC²
 :::
 
 ::: info Les trois trios qui reviennent tout le temps
-**3 – 4 – 5**  ·  **5 – 12 – 13**  ·  **8 – 15 – 17**
+**3 - 4 - 5**  ·  **5 - 12 - 13**  ·  **8 - 15 - 17**
 
 Et tous leurs multiples : 6-8-10, 9-12-15, 30-40-50, 10-24-26…
 Quand ces nombres apparaissent dans un énoncé, le résultat tombe juste.
@@ -149,7 +149,7 @@ Réponds **sans regarder la fiche de cours**, puis vérifie avec le corrigé.
 5. c² = 17² − 8² = 289 − 64 = 225, donc c = √225 = **15 cm**. *(trio 8-15-17)*
 6. Plus grand côté : 11 cm. D'un côté 11² = **121**. De l'autre 6² + 8² = 36 + 64 = **100**. 121 ≠ 100, donc le triangle **n'est pas rectangle**.
 7. Parce que 8,6 est une **valeur arrondie** : la valeur exacte est √74. Le signe **≈** signale l'arrondi.
-8. **« D'après le théorème de Pythagore »** — c'est elle qui justifie qu'on a le droit d'écrire l'égalité.
+8. **« D'après le théorème de Pythagore »** : c'est elle qui justifie qu'on a le droit d'écrire l'égalité.
 :::
 :::
 :::

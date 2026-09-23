@@ -2,7 +2,7 @@
 type: evaluation
 matiere: maths
 lecon: L08
-titre: Pythagore — grille d'évaluation
+titre: Pythagore : grille d'évaluation
 resume: Les 8 critères du chapitre positionnés sur l'échelle officielle Insuffisant · Fragile · Satisfaisant · Très bien, avec la décision à prendre pour chaque niveau.
 duree: 20 min
 competences:
@@ -47,7 +47,7 @@ C'est l'échelle du **livret scolaire officiel**, la même que celle qui sera co
 
 ::: info Pourquoi deux positionnements
 Se positionner soi-même est une compétence à part entière (domaine 2 du socle :
-« les méthodes et outils pour apprendre »). L'écart entre l'auto-évaluation et l'évaluation externe dit s'il faut travailler la notion — ou la confiance.
+« les méthodes et outils pour apprendre »). L'écart entre l'auto-évaluation et l'évaluation externe dit s'il faut travailler la notion, ou la confiance.
 :::
 
 ::: saut
@@ -84,11 +84,11 @@ Se positionner soi-même est une compétence à part entière (domaine 2 du socl
 ::: grille
 | Compétence de maths | Critères concernés | Domaine du socle |
 |---|---|---|
-| **Chercher** | 8 | D2 — Méthodes et outils pour apprendre |
-| **Représenter** | 1, 8 | D1 — Langages pour penser et communiquer |
-| **Raisonner** | 2, 6, 7 | D4 — Systèmes naturels et techniques |
-| **Calculer** | 3, 4, 5 | D4 — Systèmes naturels et techniques |
-| **Communiquer** | 7 | D1 — Langages pour penser et communiquer |
+| **Chercher** | 8 | D2 : Méthodes et outils pour apprendre |
+| **Représenter** | 1, 8 | D1 : Langages pour penser et communiquer |
+| **Raisonner** | 2, 6, 7 | D4 : Systèmes naturels et techniques |
+| **Calculer** | 3, 4, 5 | D4 : Systèmes naturels et techniques |
+| **Communiquer** | 7 | D1 : Langages pour penser et communiquer |
 :::
 
 ## 5. Que faire selon le niveau atteint
@@ -99,7 +99,7 @@ Se positionner soi-même est une compétence à part entière (domaine 2 du socl
 | ◔ **Insuffisant** | Reprendre **la partie concernée de la fiche de cours**, à voix haute, puis refaire **uniquement** les exercices 1 à 4. Ne pas ajouter d'exercices. | Séance suivante |
 | ◑ **Fragile** | Refaire **3 exercices du même type**, espacés : un aujourd'hui, un dans 2 jours, un dans 1 semaine. La répétition espacée vaut mieux que la quantité. | Sur 1 semaine |
 | ◕ **Satisfaisant** | Passer à la leçon suivante. Reprendre **un** exercice de ce chapitre dans 3 semaines pour vérifier que c'est resté. | Contrôle à 3 semaines |
-| ● **Très bien** | Passer à la suite. Ce critère peut servir de point d'appui quand un autre chapitre coince. | — |
+| ● **Très bien** | Passer à la suite. Ce critère peut servir de point d'appui quand un autre chapitre coince. |  |
 :::
 
 ::: piege La règle qui évite de perdre du temps

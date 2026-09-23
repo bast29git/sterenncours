@@ -1,7 +1,7 @@
 ---
 type: outil
 matiere: maths
-titre: Méthode — résoudre un problème de maths
+titre: Méthode : résoudre un problème de maths
 resume: Les 6 étapes, de la lecture de l'énoncé à la vérification, avec les mots de l'énoncé qui indiquent l'opération à faire.
 duree: 20 min
 objectifs:
@@ -22,12 +22,12 @@ objectifs:
 ## 1. Pourquoi on bloque devant un problème
 
 Un problème n'est pas un calcul : c'est un **texte** dont il faut **extraire** un calcul.
-Le blocage vient presque toujours de là — pas du calcul lui-même, mais du passage
+Le blocage vient presque toujours de là : pas du calcul lui-même, mais du passage
 du texte au calcul. Cette méthode découpe ce passage en étapes courtes.
 
 ::: info Ce que dit cette méthode
 Tu n'as pas à « voir » la solution d'un coup. Tu as à faire **six choses dans l'ordre**.
-La solution apparaît à l'étape 4, pas avant — et c'est normal.
+La solution apparaît à l'étape 4, pas avant : et c'est normal.
 :::
 
 ## 2. Les 6 étapes
@@ -88,23 +88,23 @@ Quand ils apparaissent, on ne rend pas la copie : on reprend l'étape 5.
 ::: exemple Énoncé
 « Un cycliste parcourt 45 km en 1 h 30 min. Quelle est sa vitesse moyenne en km/h ? »
 
-**Étape 1 — Lecture.** Un cycliste, une distance, une durée, on demande une vitesse.
+**Étape 1 : Lecture.** Un cycliste, une distance, une durée, on demande une vitesse.
 
-**Étape 2 — Données.**
+**Étape 2 : Données.**
 distance = 45 km
 durée = 1 h 30 min
 
-**Étape 3 — Question.** « Combien de kilomètres parcourt-il en une heure ? »
+**Étape 3 : Question.** « Combien de kilomètres parcourt-il en une heure ? »
 
-**Étape 4 — Outil.** Le mot « vitesse » et les unités km et h annoncent la formule
+**Étape 4 : Outil.** Le mot « vitesse » et les unités km et h annoncent la formule
 **v = d ÷ t**. Attention : la durée doit être en **heures**.
 
-**Étape 5 — Calcul.**
+**Étape 5 : Calcul.**
 1 h 30 min = 1,5 h
 v = 45 ÷ 1,5
 v = 30
 
-**Étape 6 — Vérification et conclusion.**
+**Étape 6 : Vérification et conclusion.**
 Ordre de grandeur : 30 km/h pour un cycliste, c'est plausible. ✔
 Unité : km/h. ✔
 Question : on demandait bien la vitesse moyenne. ✔

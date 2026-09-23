@@ -1,7 +1,7 @@
 ---
 type: outil
 matiere: histoire-geo
-titre: Méthode — rédiger un développement construit
+titre: Méthode : rédiger un développement construit
 resume: Le plan type, la longueur attendue, les connecteurs à utiliser et un exemple entièrement rédigé.
 duree: 25 min
 objectifs:
@@ -39,10 +39,10 @@ Au-delà de 30, c'est presque toujours du hors-sujet.
 ## 2. Le plan type en 3 parties
 
 ::: etapes
-1. **Introduction — 2 à 3 lignes.** Reformuler le sujet avec ses propres mots et annoncer ce dont on va parler. Pas de suspense : on annonce le plan.
-2. **Paragraphe 1 — 6 à 8 lignes.** Une idée principale, expliquée, puis **au moins un exemple précis**.
-3. **Paragraphe 2 — 6 à 8 lignes.** Une deuxième idée, différente de la première, avec son exemple.
-4. **Conclusion — 2 à 3 lignes.** Répondre clairement au sujet. Une phrase qui commence par « Ainsi » ou « En définitive ».
+1. **Introduction : 2 à 3 lignes.** Reformuler le sujet avec ses propres mots et annoncer ce dont on va parler. Pas de suspense : on annonce le plan.
+2. **Paragraphe 1 : 6 à 8 lignes.** Une idée principale, expliquée, puis **au moins un exemple précis**.
+3. **Paragraphe 2 : 6 à 8 lignes.** Une deuxième idée, différente de la première, avec son exemple.
+4. **Conclusion : 2 à 3 lignes.** Répondre clairement au sujet. Une phrase qui commence par « Ainsi » ou « En définitive ».
 :::
 
 ::: methode Trouver ses deux idées en 3 minutes
@@ -74,23 +74,23 @@ Trois ou quatre connecteurs bien placés suffisent ; au-delà, le texte devient 
 
 ## 4. Les quatre pièges
 
-::: piege Piège 1 — la liste déguisée
+::: piege Piège 1 : la liste déguisée
 Écrire « Il y a l'industrie, il y a les villes, il y a les ouvriers » n'est pas un
 développement. Chaque idée doit être **expliquée**, pas seulement nommée.
 :::
 
-::: piege Piège 2 — l'exemple absent
+::: piege Piège 2 : l'exemple absent
 « Les villes grandissent beaucoup » ne vaut rien sans exemple.
 « Londres passe d'environ 1 million d'habitants en 1800 à plus de 6 millions en 1900 »
 est un exemple précis. **Un paragraphe sans exemple perd la moitié de ses points.**
 :::
 
-::: piege Piège 3 — recopier le cours en entier
+::: piege Piège 3 : recopier le cours en entier
 Le sujet pose une question précise. Tout ce qui n'y répond pas est du hors-sujet,
 même si c'est juste. **Relire le sujet après chaque paragraphe.**
 :::
 
-::: piege Piège 4 — l'absence de conclusion
+::: piege Piège 4 : l'absence de conclusion
 Un développement sans conclusion est compté comme inachevé.
 Deux lignes suffisent, mais elles doivent exister.
 :::

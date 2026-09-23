@@ -1,5 +1,5 @@
 /**
- * pdf.mjs — HTML (public/) → PDF A4 prêts à imprimer (public/pdf/).
+ * pdf.mjs : HTML (public/) → PDF A4 prêts à imprimer (public/pdf/).
  *
  * Utilise Chromium en mode headless (`--print-to-pdf`). Aucune dépendance npm.
  * Le chemin du navigateur est détecté automatiquement ; il peut être forcé
@@ -36,12 +36,30 @@ function trouverNavigateur() {
   return null;
 }
 
+/**
+ * Par défaut on n'imprime QUE ce qui se lit sur papier : un dossier complet par
+ * matière, les documents de pilotage et les outils. Les fiches individuelles
+ * sont déjà contenues dans les dossiers ; `--tout` les imprime séparément.
+ */
+const TOUT = process.argv.includes('--tout');
+
+function aImprimer(relatif) {
+  const chemin = relatif.split(path.sep).join('/');
+  if (chemin.startsWith('site/')) return false;
+  if (TOUT) return true;
+  return chemin.startsWith('dossiers/')
+    || chemin.startsWith('00-pilotage/')
+    || chemin.startsWith('outils/');
+}
+
 function parcourir(dossier, liste = []) {
   for (const e of fs.readdirSync(dossier, { withFileTypes: true })) {
-    if (e.name === 'pdf' || e.name === 'theme') continue;
+    if (e.name === 'pdf' || e.name === 'theme' || e.name === 'site') continue;
     const complet = path.join(dossier, e.name);
     if (e.isDirectory()) parcourir(complet, liste);
-    else if (e.name.endsWith('.html')) liste.push(complet);
+    else if (e.name.endsWith('.html') && aImprimer(path.relative(SOURCE, complet))) {
+      liste.push(complet);
+    }
   }
   return liste;
 }

@@ -1,4 +1,4 @@
-# Design system — lexique des blocs
+# Design system : lexique des blocs
 
 Toute la mise en forme passe par des **conteneurs `:::`**. Aucun style en ligne n'est autorisé dans le Markdown : c'est ce qui garantit qu'une fiche de maths et une fiche d'espagnol se lisent exactement de la même façon.
 
