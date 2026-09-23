@@ -141,8 +141,8 @@ Avec une source **étendue**, une partie de l'écran voit une portion de la sour
 :::
 
 ::: piege L'ordre des trois astres
-Pour une éclipse **de Soleil**, l'ordre est `Soleil – Lune – Terre`.
-Pour une éclipse **de Lune**, l'ordre est `Soleil – Terre – Lune`.
+Pour une éclipse **de Soleil**, l'ordre est `Soleil, Lune, Terre`.
+Pour une éclipse **de Lune**, l'ordre est `Soleil, Terre, Lune`.
 Retenir le nom de l'astre **caché** évite l'erreur : c'est lui qui donne son nom à l'éclipse.
 :::
 
@@ -372,7 +372,7 @@ Dans un milieu non homogène, la lumière ne va pas en ligne droite : c'est le m
 :::
 
 ::: piege 4. L'ordre des astres dans une éclipse
-`Soleil – Lune – Terre` pour une éclipse de Soleil, `Soleil – Terre – Lune` pour une éclipse de Lune.
+`Soleil, Lune, Terre` pour une éclipse de Soleil, `Soleil, Terre, Lune` pour une éclipse de Lune.
 :::
 
 ::: piege 5. L'année-lumière

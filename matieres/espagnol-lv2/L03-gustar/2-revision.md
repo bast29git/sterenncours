@@ -135,10 +135,10 @@ Tous se construisent **exactement comme `gustar`**, accord compris.
 :::
 
 ::: exemple Les quatre cas
-`— Me gusta el cine. — A mí también.`
-`— Me gusta el fútbol. — A mí no.`
-`— No me gusta el café. — A mí tampoco.`
-`— No me gusta bailar. — A mí sí.`
+`Me gusta el cine. → A mí también.`
+`Me gusta el fútbol. → A mí no.`
+`No me gusta el café. → A mí tampoco.`
+`No me gusta bailar. → A mí sí.`
 :::
 
 ::: retenir Les formules d'opinion
@@ -224,8 +224,8 @@ Réponds sans regarder la fiche de cours. Les réponses sont juste en dessous.
 4. Traduis : « Je n'aime pas le café. »
 5. Complète : `A mi hermana ……… gusta el cine.`
 6. Complète : `……… duelen los pies.` (à moi)
-7. Réponds : `— Me gusta el fútbol. — ………` (tu es d'accord)
-8. Réponds : `— No me gusta madrugar. — ………` (tu n'es pas d'accord)
+7. Réponds : `Me gusta el fútbol. → ………` (tu es d'accord)
+8. Réponds : `No me gusta madrugar. → ………` (tu n'es pas d'accord)
 9. Comment dit-on « j'adore » ?
 10. Cite trois formules pour donner son opinion.
 

@@ -268,8 +268,8 @@ futur simple = hypothèse sur le PRÉSENT
 :::
 
 ::: exemple Des hypothèses, pas des prédictions
-- `¿Qué hora es?` — `Serán las tres.` Quelle heure est-il ? — Il doit être trois heures.
-- `¿Dónde está Ana?` — `Estará en el instituto.` Où est Ana ? — Elle doit être au lycée.
+- `¿Qué hora es?` `Serán las tres.` Quelle heure est-il ? Il doit être trois heures.
+- `¿Dónde está Ana?` `Estará en el instituto.` Où est Ana ? Elle doit être au lycée.
 - `Tendrá unos veinte años.` Il doit avoir la vingtaine.
 :::
 

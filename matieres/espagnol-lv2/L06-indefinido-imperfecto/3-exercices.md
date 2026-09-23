@@ -335,14 +335,14 @@ Ton dialogue doit contenir : deux formules du souvenir, trois imperfectos de des
 ::: corrige
 Exemple de réponse attendue.
 
-« `— ¿Te acuerdas de nuestro primer día en el instituto?`
-`— Claro. Llovía muchísimo y yo no llevaba paraguas.`
-`— Yo tampoco. Recuerdo que llegamos empapados.`
-`— Y mientras esperábamos en el patio, un profesor nos preguntó si estábamos perdidos.`
-`— ¡Es verdad! Y nos acompañó hasta el aula.`
-`— Estábamos muertos de miedo.`
-`— Sí, pero al final aquel día fue divertido.`
-`— Nunca olvidaré esa mañana.` »
+« `A. ¿Te acuerdas de nuestro primer día en el instituto?`
+`B. Claro. Llovía muchísimo y yo no llevaba paraguas.`
+`A. Yo tampoco. Recuerdo que llegamos empapados.`
+`B. Y mientras esperábamos en el patio, un profesor nos preguntó si estábamos perdidos.`
+`A. ¡Es verdad! Y nos acompañó hasta el aula.`
+`B. Estábamos muertos de miedo.`
+`A. Sí, pero al final aquel día fue divertido.`
+`B. Nunca olvidaré esa mañana.` »
 
 Critères de réussite : les six éléments imposés présents, l'alternance correcte des deux temps, et un dialogue qui progresse au lieu de répéter.
 :::

@@ -291,9 +291,9 @@ Compte : neuf pretéritos perfectos, dont deux irréguliers, `hecho` et `visto`,
 :::
 
 ::: exemple Un échange type
-`— ¿Alguna vez has visto una corrida?`
-`— No, nunca la he visto. ¿Y tú?`
-`— Yo tampoco. Pero ya he estado en Sevilla dos veces.`
+`A. ¿Alguna vez has visto una corrida?`
+`B. No, nunca la he visto. ¿Y tú?`
+`A. Yo tampoco. Pero ya he estado en Sevilla dos veces.`
 
 Remarque `nunca la he visto` : le pronom `la` se glisse entre `nunca` et `he`, toujours avant l'auxiliaire.
 :::

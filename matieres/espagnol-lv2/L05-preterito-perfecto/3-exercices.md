@@ -320,14 +320,14 @@ Ton dialogue doit contenir : deux questions au pretérito perfecto, une phrase a
 ::: corrige
 Exemple de réponse attendue.
 
-« `— ¿Qué has hecho esta semana?`
-`— He estudiado mucho, porque hemos tenido dos exámenes. ¿Y tú?`
-`— Yo he trabajado el martes y el jueves en la tienda de mi tío.`
-`— ¿Ya has terminado el trabajo de español?`
-`— No, todavía no lo he terminado. Lo he empezado esta mañana.`
-`— Yo tampoco. Nunca he escrito un texto tan largo.`
-`— ¿Has visto la nueva serie?`
-`— Sí, ya he visto los tres primeros capítulos.` »
+« `A. ¿Qué has hecho esta semana?`
+`B. He estudiado mucho, porque hemos tenido dos exámenes. ¿Y tú?`
+`A. Yo he trabajado el martes y el jueves en la tienda de mi tío.`
+`B. ¿Ya has terminado el trabajo de español?`
+`A. No, todavía no lo he terminado. Lo he empezado esta mañana.`
+`B. Yo tampoco. Nunca he escrito un texto tan largo.`
+`A. ¿Has visto la nueva serie?`
+`B. Sí, ya he visto los tres primeros capítulos.` »
 
 Critères de réussite : les six éléments imposés présents, pronoms et négations placés devant `haber`, participes irréguliers corrects.
 :::

@@ -291,10 +291,10 @@ Les points 1, 3 et 5 relèvent tous du même piège, le plus fréquent du chapit
 Lis ce dialogue et réponds aux questions.
 
 ::: exemple Diálogo
-`— Perdone, ¿cómo se va al mercado?`
-`— Siga todo recto por esta calle hasta el segundo semáforo. Luego gire a la izquierda y cruce la plaza. No coja la primera calle, es una calle sin salida. El mercado está al final, enfrente de la biblioteca.`
-`— ¿Está lejos?`
-`— No, está a unos diez minutos a pie.`
+`A. Perdone, ¿cómo se va al mercado?`
+`B. Siga todo recto por esta calle hasta el segundo semáforo. Luego gire a la izquierda y cruce la plaza. No coja la primera calle, es una calle sin salida. El mercado está al final, enfrente de la biblioteca.`
+`A. ¿Está lejos?`
+`B. No, está a unos diez minutos a pie.`
 :::
 
 1. Relève les trois impératifs affirmatifs et donne leur infinitif.
@@ -316,10 +316,10 @@ Lis ce dialogue et réponds aux questions.
 Récris entièrement le dialogue de l'exercice 15 en **tutoiement**.
 
 ::: corrige
-« `— Perdona, ¿cómo se va al mercado?`
-`— Sigue todo recto por esta calle hasta el segundo semáforo. Luego gira a la izquierda y cruza la plaza. No cojas la primera calle, es una calle sin salida. El mercado está al final, enfrente de la biblioteca.`
-`— ¿Está lejos?`
-`— No, está a unos diez minutos a pie.`` »
+« `A. Perdona, ¿cómo se va al mercado?`
+`B. Sigue todo recto por esta calle hasta el segundo semáforo. Luego gira a la izquierda y cruza la plaza. No cojas la primera calle, es una calle sin salida. El mercado está al final, enfrente de la biblioteca.`
+`A. ¿Está lejos?`
+`B. No, está a unos diez minutos a pie.`` »
 
 Cinq changements : `Perdone` devient `Perdona`, `Siga` devient `Sigue`, `gire` devient `gira`, `cruce` devient `cruza`, et `No coja` devient `No cojas` avec le `s` du tutoiement au négatif. Le reste ne bouge pas, car `está` et `es` sont des présents, pas des impératifs.
 :::
@@ -347,14 +347,14 @@ Ton dialogue doit contenir : une formule de politesse, une question avec `¿Dón
 ::: corrige
 Exemple de réponse attendue.
 
-« `— Perdone, ¿dónde está el museo, por favor?`
-`— Está en el centro. Siga todo recto hasta la plaza mayor.`
-`— ¿Y después?`
-`— Luego cruce la plaza y gire a la derecha. No coja la avenida, hay demasiado tráfico.`
-`— ¿Está lejos de aquí?`
-`— No, está a unos diez minutos a pie, al lado de la biblioteca.`
-`— Muchas gracias.`
-`— De nada. Buen viaje.` »
+« `A. Perdone, ¿dónde está el museo, por favor?`
+`B. Está en el centro. Siga todo recto hasta la plaza mayor.`
+`A. ¿Y después?`
+`B. Luego cruce la plaza y gire a la derecha. No coja la avenida, hay demasiado tráfico.`
+`A. ¿Está lejos de aquí?`
+`B. No, está a unos diez minutos a pie, al lado de la biblioteca.`
+`A. Muchas gracias.`
+`B. De nada. Buen viaje.` »
 
 Critères de réussite : les sept éléments imposés présents, vouvoiement tenu du début à la fin, aucun infinitif employé comme consigne.
 :::
@@ -441,18 +441,18 @@ e. `La farmacia está al lado del banco.` Contraction obligatoire de `de` + `el`
 
 Exemple de réponse attendue, dix à douze répliques :
 
-« `— Perdone, ¿cómo se va a la estación, por favor?`
-`— Está un poco lejos, pero se puede ir a pie.`
-`— ¿Cuánto tiempo se tarda?`
-`— Unos quince minutos. Salga de la plaza por la calle de la derecha.`
-`— ¿Y luego?`
-`— Siga todo recto hasta el segundo semáforo y cruce la avenida.`
-`— ¿Cruzo por el paso de peatones?`
-`— Sí, siempre. No cruce por el medio, hay mucho tráfico.`
-`— De acuerdo.`
-`— Después, gire a la izquierda. La estación está al final de la calle, enfrente del mercado y al lado del hospital.`
-`— Muchas gracias, muy amable.`
-`— De nada. Buen viaje.` »
+« `A. Perdone, ¿cómo se va a la estación, por favor?`
+`B. Está un poco lejos, pero se puede ir a pie.`
+`A. ¿Cuánto tiempo se tarda?`
+`B. Unos quince minutos. Salga de la plaza por la calle de la derecha.`
+`A. ¿Y luego?`
+`B. Siga todo recto hasta el segundo semáforo y cruce la avenida.`
+`A. ¿Cruzo por el paso de peatones?`
+`B. Sí, siempre. No cruce por el medio, hay mucho tráfico.`
+`A. De acuerdo.`
+`B. Después, gire a la izquierda. La estación está al final de la calle, enfrente del mercado y al lado del hospital.`
+`A. Muchas gracias, muy amable.`
+`B. De nada. Buen viaje.` »
 
 **Barème indicatif**
 Parte A : 5 points (2 pour les six mots, 1 pour les transports, 2 pour les prépositions).

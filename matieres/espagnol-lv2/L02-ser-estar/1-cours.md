@@ -346,11 +346,11 @@ Répondre `Soy bien` à la seconde question est une faute fréquente : on répon
 :::
 
 ::: exemple Un mini-dialogue complet
-`— ¡Hola! ¿Qué tal estás?`
-`— Estoy un poco nerviosa, tengo un examen mañana.`
-`— ¿De qué es el examen?`
-`— Es de matemáticas. Pero estoy lista, he estudiado mucho.`
-`— ¡Ánimo! Eres muy trabajadora, va a salir bien.`
+`A. ¡Hola! ¿Qué tal estás?`
+`B. Estoy un poco nerviosa, tengo un examen mañana.`
+`A. ¿De qué es el examen?`
+`B. Es de matemáticas. Pero estoy lista, he estudiado mucho.`
+`A. ¡Ánimo! Eres muy trabajadora, va a salir bien.`
 
 Noter `estoy lista`, « je suis prête », et non `soy lista`, qui voudrait dire « je suis intelligente ».
 :::

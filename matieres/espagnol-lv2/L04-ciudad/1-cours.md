@@ -304,12 +304,12 @@ Négatif `usted` : `¡No gire!`
 ## 10. Le dialogue type
 
 ::: exemple Demander et indiquer un chemin
-`— Perdone, ¿dónde está el museo, por favor?`
-`— Siga todo recto hasta el semáforo. Luego gire a la izquierda. El museo está al final de la calle, enfrente del parque.`
-`— ¿Está lejos?`
-`— No, está a cinco minutos a pie.`
-`— Muchas gracias.`
-`— De nada.`
+`A. Perdone, ¿dónde está el museo, por favor?`
+`B. Siga todo recto hasta el semáforo. Luego gire a la izquierda. El museo está al final de la calle, enfrente del parque.`
+`A. ¿Está lejos?`
+`B. No, está a cinco minutos a pie.`
+`A. Muchas gracias.`
+`B. De nada.`
 :::
 
 ::: methode Indiquer un chemin en quatre étapes

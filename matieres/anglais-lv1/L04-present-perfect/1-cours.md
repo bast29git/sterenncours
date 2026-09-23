@@ -266,9 +266,9 @@ Une seule négation par phrase en anglais.
 :::
 
 ::: exemple Le dialogue type
-`— Have you ever ridden a horse?`
-`— Yes, I have. I rode one last summer.`
-`— No, I haven't. I have never ridden a horse.`
+`A. Have you ever ridden a horse?`
+`B. Yes, I have. I rode one last summer.`
+`A. No, I haven't. I have never ridden a horse.`
 
 Remarque la deuxième phrase : dès qu'on précise **quand**, on bascule au prétérit.
 :::

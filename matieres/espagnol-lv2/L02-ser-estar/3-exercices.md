@@ -357,18 +357,18 @@ Critères d'évaluation :
 ::: exercice 19 | approfondissement | 10 min | main
 Traduis ce dialogue en espagnol.
 
-« — Salut, comment vas-tu ?
-— Je suis un peu nerveuse, j'ai un examen demain.
-— De quoi est l'examen ?
-— C'est un examen de mathématiques. Mais je suis prête, j'ai beaucoup travaillé.
-— Courage ! Tu es très travailleuse, ça va bien se passer. »
+« A. Salut, comment vas-tu ?
+B. Je suis un peu nerveuse, j'ai un examen demain.
+A. De quoi est l'examen ?
+B. C'est un examen de mathématiques. Mais je suis prête, j'ai beaucoup travaillé.
+A. Courage ! Tu es très travailleuse, ça va bien se passer. »
 
 ::: corrige
-`— ¡Hola! ¿Cómo estás?`
-`— Estoy un poco nerviosa, tengo un examen mañana.`
-`— ¿De qué es el examen?`
-`— Es de matemáticas. Pero estoy lista, he estudiado mucho.`
-`— ¡Ánimo! Eres muy trabajadora, va a salir bien.`
+`A. ¡Hola! ¿Cómo estás?`
+`B. Estoy un poco nerviosa, tengo un examen mañana.`
+`A. ¿De qué es el examen?`
+`B. Es de matemáticas. Pero estoy lista, he estudiado mucho.`
+`A. ¡Ánimo! Eres muy trabajadora, va a salir bien.`
 
 Points de vigilance :
 - « comment vas-tu » donne `¿Cómo estás?`, et non `¿Cómo eres?`, qui demanderait comment tu es physiquement ;

@@ -237,16 +237,16 @@ Range ces formules de la plus positive à la plus négative.
 ::: exercice 13 | application | 5 min | ecran
 Réponds à chaque phrase selon la consigne.
 
-1. `— Me gusta el cine.` Tu es d'accord.
-2. `— Me gusta el fútbol.` Tu n'es pas d'accord.
-3. `— No me gusta el café.` Tu es d'accord.
-4. `— No me gusta bailar.` Tu n'es pas d'accord.
+1. `A. Me gusta el cine.` Tu es d'accord.
+2. `B. Me gusta el fútbol.` Tu n'es pas d'accord.
+3. `A. No me gusta el café.` Tu es d'accord.
+4. `B. No me gusta bailar.` Tu n'es pas d'accord.
 
 ::: corrige
-1. `— A mí también.`
-2. `— A mí no.`
-3. `— A mí tampoco.`
-4. `— A mí sí.`
+1. `A. A mí también.`
+2. `B. A mí no.`
+3. `A. A mí tampoco.`
+4. `B. A mí sí.`
 
 Le tableau à quatre cases : positive et accord → `también` ; positive et désaccord → `no` ; négative et accord → `tampoco` ; négative et désaccord → `sí`.
 :::
@@ -255,13 +255,13 @@ Le tableau à quatre cases : positive et accord → `también` ; positive et dé
 ::: exercice 14 | entrainement | 6 min | main
 Ces réponses sont fautives. Corrige-les et explique.
 
-1. `— No me gusta madrugar. — A mí también.`
-2. `— Me encanta el chocolate. — A mí sí.`
-3. `— Me encanta mucho la música.`
+1. `No me gusta madrugar. → A mí también.`
+2. `Me encanta el chocolate. → A mí sí.`
+3. `Me encanta mucho la música.`
 
 ::: corrige
-1. `— A mí tampoco.` `también` ne s'emploie qu'après une phrase **positive**. Après une phrase négative, l'accord se dit `tampoco`.
-2. `— A mí también.` `sí` sert à marquer un **désaccord** après une phrase négative. Ici la phrase est positive et la réponse exprime un accord : il faut `también`.
+1. `A. A mí tampoco.` `también` ne s'emploie qu'après une phrase **positive**. Après une phrase négative, l'accord se dit `tampoco`.
+2. `B. A mí también.` `sí` sert à marquer un **désaccord** après une phrase négative. Ici la phrase est positive et la réponse exprime un accord : il faut `también`.
 3. `Me encanta la música.` `encantar` signifie déjà « adorer » : ajouter `mucho` est un pléonasme. Pour nuancer, on dirait `me gusta mucho la música`.
 :::
 :::
@@ -290,12 +290,12 @@ Contraintes : au moins un `también`, un `tampoco`, un `a mí no` et une forme t
 ::: corrige
 Production attendue, à adapter :
 
-`— A mí me encanta el cine. ¿Y a ti?`
-`— A mí también. Me gusta mucho el cine español.`
-`— Pues a mí no me gustan las películas de terror.`
-`— A mí tampoco. Prefiero las comedias.`
-`— ¿Te gusta leer?`
-`— Sí, me gusta bastante, pero me gusta más el cine.`
+`A. A mí me encanta el cine. ¿Y a ti?`
+`B. A mí también. Me gusta mucho el cine español.`
+`A. Pues a mí no me gustan las películas de terror.`
+`B. A mí tampoco. Prefiero las comedias.`
+`A. ¿Te gusta leer?`
+`B. Sí, me gusta bastante, pero me gusta más el cine.`
 
 Critères d'évaluation :
 - `también` employé après une phrase positive ;
@@ -387,10 +387,10 @@ d. `Me encanta mucho la música.`
 
 **Partie C : réagir** (5 points)
 Réponds à chaque phrase selon la consigne, puis explique la règle en une phrase.
-a. `— Me gusta el cine.` Accord.
-b. `— No me gusta el café.` Accord.
-c. `— Me gusta el fútbol.` Désaccord.
-d. `— No me gusta bailar.` Désaccord.
+a. `A. Me gusta el cine.` Accord.
+b. `B. No me gusta el café.` Accord.
+c. `A. Me gusta el fútbol.` Désaccord.
+d. `B. No me gusta bailar.` Désaccord.
 e. Énonce la règle qui commande ces quatre réponses.
 
 **Partie D : expression écrite** (5 points)
@@ -416,10 +416,10 @@ d. `Me encanta la música.` `encantar` contient déjà l'idée d'intensité : aj
 
 **Partie C**
 
-a. `— A mí también.`
-b. `— A mí tampoco.`
-c. `— A mí no.`
-d. `— A mí sí.`
+a. `A. A mí también.`
+b. `B. A mí tampoco.`
+c. `A. A mí no.`
+d. `B. A mí sí.`
 e. La règle : la réponse dépend de **deux choses**, le caractère positif ou négatif de la phrase de départ, et le fait d'être d'accord ou non. Positive et accord donne `también` ; négative et accord donne `tampoco` ; positive et désaccord donne `no` ; négative et désaccord donne `sí`.
 
 **Partie D**

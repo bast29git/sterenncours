@@ -267,10 +267,10 @@ Cette redondance paraît étrange en français, elle est obligatoire en espagnol
 ::: grille
 | Situation | Formule | Exemple |
 |---|---|---|
-| Accord sur une phrase positive | `a mí también` | `— Me gusta el cine. — A mí también.` |
-| Accord sur une phrase négative | `a mí tampoco` | `— No me gusta el café. — A mí tampoco.` |
-| Désaccord sur une phrase positive | `a mí no` | `— Me gusta el fútbol. — A mí no.` |
-| Désaccord sur une phrase négative | `a mí sí` | `— No me gusta bailar. — A mí sí.` |
+| Accord sur une phrase positive | `a mí también` | `Me gusta el cine. → A mí también.` |
+| Accord sur une phrase négative | `a mí tampoco` | `No me gusta el café. → A mí tampoco.` |
+| Désaccord sur une phrase positive | `a mí no` | `Me gusta el fútbol. → A mí no.` |
+| Désaccord sur une phrase négative | `a mí sí` | `No me gusta bailar. → A mí sí.` |
 :::
 
 ::: retenir Le tableau à quatre cases
@@ -387,7 +387,7 @@ Enfin, `largo` signifie « **long** », et non « large », qui se dit `ancho`. 
 | La négation | `Me no gusta.` | `**No me** gusta.` |
 | La forme tonique | `A mí gusta.` | `A mí **me** gusta.` |
 | Encantar | `Me encanta mucho.` | `Me encanta`, tout seul |
-| También et tampoco | `— No me gusta. — A mí también.` | `— A mí **tampoco**.` |
+| También et tampoco | `No me gusta. → A mí también.` | `A mí **tampoco**.` |
 | Largo | il signifie « large » | il signifie « **long** » |
 :::
 

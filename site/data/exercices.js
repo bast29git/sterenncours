@@ -4095,21 +4095,21 @@ window.EXERCICES = {
       },
       {
         type: 'qcm',
-        q: '« — Me gusta el cine. » Tu es d\'accord. Que réponds-tu ?',
+        q: '« Me gusta el cine. » Tu es d\'accord. Que réponds-tu ?',
         choix: ['A mí también.', 'A mí tampoco.', 'A mí sí.'],
         reponse: 0,
         explication: "A mí también. La phrase est positive et tu es d'accord : también. « Tampoco » ne s'emploie qu'après une phrase négative."
       },
       {
         type: 'qcm',
-        q: '« — No me gusta el café. » Tu es d\'accord. Que réponds-tu ?',
+        q: '« No me gusta el café. » Tu es d\'accord. Que réponds-tu ?',
         choix: ['A mí también.', 'A mí tampoco.', 'A mí no.'],
         reponse: 1,
         explication: "A mí tampoco. La phrase est négative et tu es d'accord : tampoco. Répondre « también » après une phrase négative est une faute de logique autant que de langue."
       },
       {
         type: 'qcm',
-        q: '« — No me gusta bailar. » Tu n\'es pas d\'accord. Que réponds-tu ?',
+        q: '« No me gusta bailar. » Tu n\'es pas d\'accord. Que réponds-tu ?',
         choix: ['A mí tampoco.', 'A mí sí.', 'A mí no.'],
         reponse: 1,
         explication: "A mí sí. Le tableau à quatre cases : positive et accord → también ; négative et accord → tampoco ; positive et désaccord → no ; négative et désaccord → sí."
@@ -6492,7 +6492,7 @@ window.EXERCICES = {
         choix: ["Le futur simple", "Ir a + infinitif", "Le présent à valeur de futur", "Le futur de probabilité"],
         reponse: 2,
         explication: "Le présent, pour un événement programmé et certain comme un horaire. Le français fait pareil : « le train part à huit heures ». C'est le marqueur de temps ou le contexte qui projette la phrase dans l'avenir." },
-      { type: "qcm", q: "Que signifie « ¿Qué hora es? — Serán las tres. » ?",
+      { type: "qcm", q: "Que signifie « ¿Qué hora es? Serán las tres. » ?",
         choix: ["Il sera trois heures demain", "Il doit être trois heures", "Il était trois heures", "Il sera bientôt trois heures"],
         reponse: 1,
         explication: "Il doit être trois heures. C'est le futur de probabilité : le verbe est au futur, mais la phrase formule une hypothèse sur le PRÉSENT. Le français traduit par « il doit », « sans doute »." },

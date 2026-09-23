@@ -279,16 +279,16 @@ Règle générale : `already`, `just`, `ever` et `never` se placent **entre l'au
 ::: exercice 15 | entrainement | 7 min | ecran
 Complète ce dialogue en conjuguant au temps qui convient.
 
-`— (you / ever / try) ……… surfing?`
-`— Yes, I ……… . I (try) ……… it last summer in Brittany.`
-`— (it / be) ……… difficult?`
-`— At first, yes. But I (take) ……… three lessons and now I can stand up. I (never / forget) ……… my first wave.`
+`A. (you / ever / try) ……… surfing?`
+`B. Yes, I ……… . I (try) ……… it last summer in Brittany.`
+`A. (it / be) ……… difficult?`
+`B. At first, yes. But I (take) ……… three lessons and now I can stand up. I (never / forget) ……… my first wave.`
 
 ::: corrige
-`— Have you ever tried surfing?`
-`— Yes, I have. I tried it last summer in Brittany.`
-`— Was it difficult?`
-`— At first, yes. But I took three lessons and now I can stand up. I have never forgotten my first wave.`
+`A. Have you ever tried surfing?`
+`B. Yes, I have. I tried it last summer in Brittany.`
+`A. Was it difficult?`
+`B. At first, yes. But I took three lessons and now I can stand up. I have never forgotten my first wave.`
 
 Observe le mouvement : la question d'ouverture est au **present perfect**, car elle porte sur l'expérience. Dès que `last summer` apparaît, on bascule au **prétérit** et on y reste tant qu'on raconte l'épisode. La dernière phrase revient au present perfect parce qu'elle décrit un effet qui dure encore.
 :::

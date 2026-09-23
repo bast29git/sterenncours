@@ -191,7 +191,7 @@ Afficher s
 ::: corrige
 | Tour | `i` | `s` avant | `s` après |
 |---|---|---|---|
-| initial | – | – | 0 |
+| initial | · | · | 0 |
 | 1 | 1 | 0 | 1 |
 | 2 | 2 | 1 | 3 |
 | 3 | 3 | 3 | 6 |
@@ -228,7 +228,7 @@ Afficher c
 | 5 | 16 | vrai | 32 | 5 |
 | 6 | 32 | vrai | 64 | 6 |
 | 7 | 64 | vrai | 128 | 7 |
-| – | 128 | `128 ≤ 100` **faux** | – | – |
+| · | 128 | `128 ≤ 100` **faux** | · | · |
 
 Le programme affiche `n = **128**` et `c = **7**`.
 
@@ -253,8 +253,8 @@ Déroulement pour `n = 4` :
 
 | Instruction | `n` | `i` | `s` |
 |---|---|---|---|
-| `Saisir n` | 4 | – | – |
-| `s ← 0` | 4 | – | 0 |
+| `Saisir n` | 4 | · | · |
+| `s ← 0` | 4 | · | 0 |
 | tour 1 | 4 | 1 | 1 |
 | tour 2 | 4 | 2 | 3 |
 | tour 3 | 4 | 3 | 6 |
@@ -288,8 +288,8 @@ Que calcule-t-il ?
 ::: corrige
 | Instruction | `x` | `y` | `i` | Affichage |
 |---|---|---|---|---|
-| `x ← 4` | 4 | – | – | |
-| `y ← 1` | 4 | 1 | – | |
+| `x ← 4` | 4 | · | · | |
+| `y ← 1` | 4 | 1 | · | |
 | tour 1 | 4 | 4 | 1 | |
 | tour 2 | 4 | 16 | 2 | |
 | tour 3 | 4 | 64 | 3 | |
@@ -594,7 +594,7 @@ Fin Si
 a.
 | Instruction | `p` | `i` | Affichage |
 |---|---|---|---|
-| `p ← 1` | 1 | – | |
+| `p ← 1` | 1 | · | |
 | tour 1 | 2 | 1 | |
 | tour 2 | 4 | 2 | |
 | tour 3 | 8 | 3 | |

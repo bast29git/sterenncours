@@ -271,20 +271,20 @@ Et surtout : on ne cumule **jamais** `Although it is expensive, but it is useful
 ::: exercice 14 | entrainement | 6 min | ecran
 Complète ce dialogue avec des expressions d'accord et de désaccord variées.
 
-`— I think school should start later in the morning.`
-`— ………, but ………`
-`— Really? Why?`
-`— ………`
-`— ………. I hadn't thought of that.`
+`A. I think school should start later in the morning.`
+`B. ………, but ………`
+`A. Really? Why?`
+`B. ………`
+`A. ………. I hadn't thought of that.`
 
 ::: corrige
 Exemple de réponse attendue.
 
-`— I think school should start later in the morning.`
-`— **I see your point, but** I'm not sure it would change much.`
-`— Really? Why?`
-`— **Because** students would simply go to bed later, **so** they would sleep the same number of hours.`
-`— **That's a good point**. I hadn't thought of that.`
+`A. I think school should start later in the morning.`
+`B. **I see your point, but** I'm not sure it would change much.`
+`A. Really? Why?`
+`B. **Because** students would simply go to bed later, **so** they would sleep the same number of hours.`
+`A. **That's a good point**. I hadn't thought of that.`
 
 Critères de réussite : un désaccord poli en trois temps, reconnaître, opposer, justifier ; au moins deux connecteurs logiques ; et une reconnaissance finale qui relance l'échange plutôt qu'elle ne le referme.
 :::
@@ -350,16 +350,16 @@ Ton dialogue doit contenir : deux expressions d'opinion différentes, un désacc
 ::: corrige
 Exemple de réponse attendue.
 
-« `— In my opinion, living in a city is much better.`
-`— Really? Why do you say that?`
-`— Because everything is close: schools, shops, cinemas. You don't waste time travelling.`
-`— I see your point, but I think the countryside is more pleasant, because it is quieter and cheaper.`
-`— Maybe, although you need a car for everything.`
-`— That's true. What about you, would you live in a village?`
-`— To be honest, not permanently. However, I would like to spend the summer there.`
-`— So would I. In a way, we agree: a city for studying, the countryside for holidays.`
-`— Exactly. It also depends on your age.`
-`— That's a good point. I hadn't thought of that.` »
+« `A. In my opinion, living in a city is much better.`
+`B. Really? Why do you say that?`
+`A. Because everything is close: schools, shops, cinemas. You don't waste time travelling.`
+`B. I see your point, but I think the countryside is more pleasant, because it is quieter and cheaper.`
+`A. Maybe, although you need a car for everything.`
+`B. That's true. What about you, would you live in a village?`
+`A. To be honest, not permanently. However, I would like to spend the summer there.`
+`B. So would I. In a way, we agree: a city for studying, the countryside for holidays.`
+`A. Exactly. It also depends on your age.`
+`B. That's a good point. I hadn't thought of that.` »
 
 Critères de réussite : les six éléments imposés présents, le désaccord exprimé poliment, et un échange qui progresse au lieu de répéter deux positions figées.
 :::
@@ -415,11 +415,11 @@ d. Corrige : `Although it's raining, but we will go out.`
 
 Complète ce dialogue avec des expressions variées.
 
-`— I think homework should be reduced.`
-`— ………, but ………`
-`— Why do you think so?`
-`— ………`
-`— ………. What about you?`
+`A. I think homework should be reduced.`
+`B. ………, but ………`
+`A. Why do you think so?`
+`B. ………`
+`A. ………. What about you?`
 
 **Part D. Writing**
 
@@ -458,11 +458,11 @@ d. `Although it's raining, we will go out.` ou `It's raining but we will go out.
 
 Exemple de réponse attendue :
 
-`— I think homework should be reduced.`
-`— **I see your point, but** I'm not sure that would help everyone.`
-`— Why do you think so?`
-`— **Because** some students need to practise at home to understand, **so** removing homework might make things harder for them.`
-`— **That's a good point.** What about you?`
+`A. I think homework should be reduced.`
+`B. **I see your point, but** I'm not sure that would help everyone.`
+`A. Why do you think so?`
+`B. **Because** some students need to practise at home to understand, **so** removing homework might make things harder for them.`
+`A. **That's a good point.** What about you?`
 
 **Part D**
 
