@@ -3284,4 +3284,146 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'francais/L03': {
+    titre: 'La fiction pour interroger le réel : le réalisme',
+    items: [
+      {
+        type: 'qcm',
+        q: 'De quel siècle date le mouvement réaliste ?',
+        choix: ['Le XVIII<sup>e</sup>', 'Le XIX<sup>e</sup>', 'Le XX<sup>e</sup>'],
+        reponse: 1,
+        explication: "Le XIXᵉ siècle. Le mouvement s'affirme vers 1850 et domine la seconde moitié du siècle, à l'époque de la révolution industrielle et de l'apparition de la photographie."
+      },
+      {
+        type: 'qcm',
+        q: 'À quel mouvement le réalisme s\'oppose-t-il ?',
+        choix: ['Au romantisme', 'Au classicisme', 'Au surréalisme'],
+        reponse: 0,
+        explication: "Au romantisme, qui privilégiait le héros exceptionnel, les sentiments extrêmes et les lieux rêvés. Le réalisme préfère le personnage ordinaire, la vie quotidienne et les lieux vérifiables."
+      },
+      {
+        type: 'saisie',
+        q: 'Quel auteur a écrit « Germinal » en 1885, après être descendu dans une mine du Nord ?',
+        reponses: ['zola', 'Zola', 'emile zola', 'Émile Zola', 'emile zola'],
+        explication: "Émile Zola. Il a pris des notes pendant plusieurs jours sur place : salaires, durées de travail, vocabulaire des mineurs. Le roman est une fiction, mais tout ce qui l'entoure est vérifiable."
+      },
+      {
+        type: 'qcm',
+        q: 'Qui a écrit « Madame Bovary » en 1857 ?',
+        choix: ['Balzac', 'Flaubert', 'Maupassant'],
+        reponse: 1,
+        explication: "Flaubert. Il fut poursuivi la même année pour « outrage à la morale publique », puis acquitté : montrer une femme adultère sans la condamner explicitement semblait déjà une approbation."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Un roman réaliste raconte une histoire qui s\'est réellement passée.',
+        reponse: false,
+        explication: "Faux. C'est une fiction : personnages et intrigue sont inventés. Ce qui est réaliste, c'est la MANIÈRE de raconter : lieux vérifiables, métiers exacts, comportements plausibles."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce que « l\'effet de réel » ?',
+        choix: ['Le fait de raconter une histoire vraie', 'L\'impression de vérité produite par des procédés précis', 'Une figure de style'],
+        reponse: 1,
+        explication: "L'impression de vérité produite par des procédés : lieux réels, dates, chiffres, vocabulaire technique, détails gratuits, notations sensorielles. Le lecteur oublie qu'il lit une fiction."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi un romancier réaliste mentionne-t-il un objet qui ne servira jamais à l\'intrigue ?',
+        choix: ['Par étourderie', 'Pour produire l\'effet de réel', 'Pour allonger le texte'],
+        reponse: 1,
+        explication: "Un monde inventé ne contiendrait que des objets utiles. Un détail gratuit signale que le monde existe indépendamment du récit : c'est le procédé du « détail inutile », le plus efficace de tous."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel type de notation sensorielle produit l\'effet de réel le plus fort ?',
+        choix: ['La visuelle', 'L\'olfactive ou l\'auditive', 'Aucune, elles se valent'],
+        reponse: 1,
+        explication: "Les notations non visuelles. Une odeur ou un bruit surprend et ne peut pas venir d'une image : le lecteur doit se le représenter physiquement. Zola les emploie systématiquement."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans un roman réaliste, à quoi sert principalement la description d\'un logement ?',
+        choix: ['À faire joli', 'À caractériser celui qui l\'habite', 'À reposer le lecteur'],
+        reponse: 1,
+        explication: "Le lieu ressemble à celui qui l'habite. Décrire une pièce, c'est décrire une vie : ses moyens, ses goûts, son passé, ses illusions. Sauter une description, c'est souvent rater l'essentiel."
+      },
+      {
+        type: 'qcm',
+        q: 'Que suggère « un vieux fauteuil de cuir dont le dossier s\'affaissait » ?',
+        choix: ['Un intérieur neuf et riche', 'Un milieu qui a eu des moyens et n\'en a plus', 'Un mobilier bon marché dès l\'origine'],
+        reponse: 1,
+        explication: "Le cuir indique une qualité d'origine, l'usure une longue durée sans remplacement. Le détail dit le déclassement social sans que le mot soit écrit."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien y a-t-il de points de vue narratifs ?',
+        choix: ['Deux', 'Trois', 'Cinq'],
+        reponse: 1,
+        explication: "Trois : omniscient, interne et externe. Ils se distinguent par ce que le narrateur sait et montre, et donc par ce que le lecteur apprend."
+      },
+      {
+        type: 'qcm',
+        q: '« Elle entra. Elle ignorait que son frère l\'attendait depuis deux heures. » Quel point de vue ?',
+        choix: ['Omniscient', 'Interne', 'Externe'],
+        reponse: 0,
+        explication: "Omniscient. Le narrateur sait ce qu'elle IGNORE, et il sait ce que fait le frère depuis deux heures : il dispose d'informations qu'aucun personnage présent ne possède."
+      },
+      {
+        type: 'qcm',
+        q: '« Elle entra. Quelqu\'un était assis dans l\'ombre ; elle ne distinguait pas son visage. » Quel point de vue ?',
+        choix: ['Omniscient', 'Interne', 'Externe'],
+        reponse: 1,
+        explication: "Interne. « Elle ne distinguait pas » limite explicitement ce qui est rapporté à la perception d'un seul personnage : le lecteur ne voit que ce qu'elle voit."
+      },
+      {
+        type: 'qcm',
+        q: '« L\'homme se leva, prit son chapeau et sortit. » Quel point de vue ?',
+        choix: ['Omniscient', 'Interne', 'Externe'],
+        reponse: 2,
+        explication: "Externe. Aucune pensée n'est donnée, aucune explication : on ne voit que des gestes, comme une caméra. C'est le point de vue qui crée le plus de suspense."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel point de vue convient le mieux pour faire éprouver la peur d\'un personnage ?',
+        choix: ['Omniscient', 'Interne', 'Externe'],
+        reponse: 1,
+        explication: "Interne : il enferme le lecteur dans la perception du personnage. Ce que celui-ci ne voit pas, le lecteur ne le voit pas non plus, ce qui reproduit la situation de quelqu'un qui a peur."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Le point de vue reste le même du début à la fin d\'un roman.',
+        reponse: false,
+        explication: "Faux. Il peut changer d'un passage à l'autre, parfois dans la même page. La bonne question n'est jamais « quel est le point de vue du roman » mais « quel est celui de CE passage, et pourquoi »."
+      },
+      {
+        type: 'qcm',
+        q: 'Le narrateur réaliste juge-t-il ses personnages ?',
+        choix: ['Oui, explicitement', 'Non, le jugement est suggéré par le choix des détails', 'Il n\'y a aucun jugement'],
+        reponse: 1,
+        explication: "Le jugement est suggéré, jamais énoncé. Le lecteur tire lui-même la conclusion, ce qui lui donne plus de force. C'est justement cette discrétion qui rendait ces romans scandaleux."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle relation entre réalisme et naturalisme ?',
+        choix: ['Ce sont des mouvements opposés', 'Le naturalisme prolonge le réalisme', 'Le naturalisme est antérieur'],
+        reponse: 1,
+        explication: "Le naturalisme prolonge le réalisme. Zola prétend appliquer au roman la méthode des sciences expérimentales. Tout naturaliste est réaliste, mais tout réaliste n'est pas naturaliste."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Dans un roman réaliste, l\'auteur s\'efface vraiment et laisse voir le monde tel quel.',
+        reponse: false,
+        explication: "Faux. Chaque détail a été choisi : lesquels montrer, dans quel ordre, avec quels adjectifs, et surtout lesquels taire. L'apparente neutralité est le résultat d'un travail très maîtrisé."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans une description, où se trouve souvent l\'élément le plus important ?',
+        choix: ['Au tout début', 'Là où le regard s\'arrête, à la fin du parcours', 'Au milieu'],
+        reponse: 1,
+        explication: "Là où le regard s'arrête. L'auteur organise le parcours du regard, du général au détail, et le point d'arrivée porte en général l'information qui caractérise le lieu ou son habitant."
+      }
+    ]
+  }
 };
