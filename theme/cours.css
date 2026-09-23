@@ -1,0 +1,467 @@
+/* =========================================================================
+   cours.css — Design system des supports de cours de Sterenn (4e)
+   Conçu pour un profil TSA sans déficience intellectuelle :
+   prévisibilité, charge sensorielle maîtrisée, redondance du sens
+   (couleur + pictogramme + libellé), séquençage visuel court.
+   Cible : lecture écran ET impression A4 (PDF).
+   ========================================================================= */
+
+/* ---------- 1. Jetons de base ------------------------------------------ */
+:root {
+  /* Fonds : jamais de blanc pur (réduction de l'éblouissement) */
+  --fond-page:      #faf7f0;
+  --fond-carte:     #fffdf8;
+  --fond-doux:      #f2ede2;
+
+  /* Texte : contraste élevé mais non maximal */
+  --texte:          #23262e;
+  --texte-doux:     #565c6b;
+  --trait:          #ded5c4;
+  --trait-fort:     #c4b8a1;
+
+  /* Couleurs de statut (grille d'évaluation) — toujours doublées d'un picto */
+  --insuffisant:    #b3261e;
+  --insuffisant-bg: #fbeae8;
+  --fragile:        #a35b00;
+  --fragile-bg:     #fdf0de;
+  --satisfaisant:   #1f6b3a;
+  --satisfaisant-bg:#e7f3ea;
+  --tresbien:       #15507d;
+  --tresbien-bg:    #e6f0f8;
+
+  /* Couleur de matière — surchargée par [data-matiere] */
+  --accent:         #1b5fa8;
+  --accent-doux:    #e7effa;
+  --accent-trait:   #b9d0ec;
+
+  /* Rythme */
+  --rayon:          10px;
+  --interligne:     1.7;
+
+  --police: "Atkinson Hyperlegible", "Verdana", "DejaVu Sans", "Segoe UI",
+            system-ui, -apple-system, sans-serif;
+  --police-chiffres: "Atkinson Hyperlegible", "DejaVu Sans Mono", "Consolas",
+            ui-monospace, monospace;
+}
+
+/* ---------- 2. Couleurs par matière ------------------------------------ */
+[data-matiere="maths"]           { --accent:#1b5fa8; --accent-doux:#e7effa; --accent-trait:#b9d0ec; }
+[data-matiere="francais"]        { --accent:#6d3a91; --accent-doux:#f1e9f7; --accent-trait:#d5bfe5; }
+[data-matiere="histoire-geo"]    { --accent:#9c5511; --accent-doux:#fbeedd; --accent-trait:#e6c9a4; }
+[data-matiere="emc"]             { --accent:#0f6b63; --accent-doux:#e3f2f0; --accent-trait:#aed6d1; }
+[data-matiere="physique-chimie"] { --accent:#a8360b; --accent-doux:#fbe9e2; --accent-trait:#eebfae; }
+[data-matiere="svt"]             { --accent:#1f6b32; --accent-doux:#e7f3e9; --accent-trait:#b6d7bf; }
+[data-matiere="anglais-lv1"]     { --accent:#2f3894; --accent-doux:#e8eaf8; --accent-trait:#c0c6ea; }
+[data-matiere="espagnol-lv2"]    { --accent:#a3154f; --accent-doux:#fbe6ee; --accent-trait:#eeb6cd; }
+[data-matiere="pilotage"]        { --accent:#3f4757; --accent-doux:#ecedf1; --accent-trait:#c7cbd5; }
+
+/* ---------- 3. Base ---------------------------------------------------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fond-page);
+  color: var(--texte);
+  font-family: var(--police);
+  font-size: 17px;
+  line-height: var(--interligne);
+  /* Jamais de texte justifié : l'irrégularité des espaces gêne la lecture */
+  text-align: left;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 46rem;     /* ~66 caractères par ligne */
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 5rem;
+}
+
+p { margin: 0 0 0.9em; }
+strong { font-weight: 700; color: var(--texte); }
+em { font-style: italic; }
+a { color: var(--accent); text-underline-offset: 2px; }
+
+h1, h2, h3, h4 { line-height: 1.3; font-weight: 700; margin: 0 0 0.5em; }
+h1 { font-size: 1.9rem; }
+h2 {
+  font-size: 1.35rem;
+  margin-top: 2.2em;
+  padding-bottom: 0.3em;
+  border-bottom: 3px solid var(--accent-trait);
+  color: var(--accent);
+}
+h3 { font-size: 1.1rem; margin-top: 1.8em; color: var(--texte); }
+h4 { font-size: 1rem; margin-top: 1.4em; color: var(--texte-doux); }
+
+ul, ol { margin: 0 0 1em; padding-left: 1.4em; }
+li { margin-bottom: 0.45em; }
+li::marker { color: var(--accent); font-weight: 700; }
+
+hr { border: 0; border-top: 2px dashed var(--trait); margin: 2.2em 0; }
+
+code {
+  font-family: var(--police-chiffres);
+  background: var(--fond-doux);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.94em;
+}
+
+/* ---------- 4. En-tête de fiche ---------------------------------------- */
+.fiche-entete {
+  border: 2px solid var(--accent);
+  border-radius: var(--rayon);
+  background: var(--fond-carte);
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1.8rem;
+}
+.fiche-fil {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.35rem;
+}
+.fiche-entete h1 { margin-bottom: 0.4rem; }
+.fiche-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fiche-meta li {
+  margin: 0;
+  font-size: 0.85rem;
+  background: var(--accent-doux);
+  border: 1px solid var(--accent-trait);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+}
+.fiche-type {
+  display: inline-block;
+  background: var(--accent);
+  color: #fffdf8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 0.2rem 0.8rem;
+}
+
+/* ---------- 5. Blocs sémantiques (conteneurs :::) ---------------------- */
+.bloc {
+  border: 2px solid var(--trait);
+  border-left-width: 7px;
+  border-radius: var(--rayon);
+  background: var(--fond-carte);
+  padding: 0.95rem 1.1rem 0.6rem;
+  margin: 1.4rem 0;
+  break-inside: avoid;
+}
+.bloc > .bloc-titre {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0 0 0.55rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+.bloc > .bloc-titre .picto { font-size: 1.05rem; }
+.bloc > :last-child { margin-bottom: 0.35rem; }
+
+.bloc-objectif   { border-color: var(--accent-trait); border-left-color: var(--accent); background: var(--accent-doux); }
+.bloc-objectif   > .bloc-titre { color: var(--accent); }
+.bloc-plan       { border-color: var(--trait-fort); border-left-color: var(--texte-doux); background: var(--fond-doux); }
+.bloc-definition { border-color: #b9d0ec; border-left-color: #15507d; background: #eef4fb; }
+.bloc-definition > .bloc-titre { color: #15507d; }
+.bloc-formule    { border-color: #c9bde6; border-left-color: #5b3b96; background: #f2eefb; }
+.bloc-formule    > .bloc-titre { color: #5b3b96; }
+.bloc-exemple    { border-color: #b6d7bf; border-left-color: var(--satisfaisant); background: var(--satisfaisant-bg); }
+.bloc-exemple    > .bloc-titre { color: var(--satisfaisant); }
+.bloc-piege      { border-color: #eebfae; border-left-color: var(--insuffisant); background: var(--insuffisant-bg); }
+.bloc-piege      > .bloc-titre { color: var(--insuffisant); }
+.bloc-retenir    { border-color: var(--trait-fort); border-left-color: #a35b00; background: #fdf7ea; }
+.bloc-retenir    > .bloc-titre { color: #8a4d00; }
+.bloc-methode    { border-color: #aed6d1; border-left-color: #0f6b63; background: #e6f4f2; }
+.bloc-methode    > .bloc-titre { color: #0f6b63; }
+.bloc-aide       { border-color: var(--trait-fort); border-left-color: var(--texte-doux); background: var(--fond-doux); }
+.bloc-pause {
+  border: 2px dashed var(--trait-fort);
+  border-left-width: 2px;
+  background: transparent;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--texte-doux);
+  padding: 0.55rem 1rem 0.2rem;
+}
+
+/* Formule mise en avant */
+.formule-cle {
+  font-family: var(--police-chiffres);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: center;
+  background: var(--fond-carte);
+  border: 2px solid var(--accent-trait);
+  border-radius: var(--rayon);
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  break-inside: avoid;
+}
+
+/* ---------- 6. Étapes numérotées (résolution pas à pas) ---------------- */
+.etapes { counter-reset: etape; list-style: none; padding-left: 0; margin: 1rem 0; }
+.etapes > li {
+  counter-increment: etape;
+  position: relative;
+  padding: 0.15rem 0 0.15rem 2.6rem;
+  margin-bottom: 0.9rem;
+}
+.etapes > li::before {
+  content: counter(etape);
+  position: absolute;
+  left: 0;
+  top: 0.05rem;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fffdf8;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- 7. Mots-clés ----------------------------------------------- */
+.motscles { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0; margin: 0.6rem 0 0.2rem; list-style: none; }
+.motscles li {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: var(--accent-doux);
+  border: 1px solid var(--accent-trait);
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+}
+
+/* ---------- 8. Exercices & corrigés ------------------------------------ */
+.exercice {
+  border: 2px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--fond-carte);
+  padding: 0.9rem 1.1rem 0.6rem;
+  margin: 1.5rem 0;
+  break-inside: avoid;
+}
+.exercice-entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--trait);
+}
+.exercice-num { font-weight: 700; color: var(--accent); font-size: 1.02rem; }
+.exercice-niveau {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 999px;
+  padding: 0.12rem 0.6rem;
+  border: 1px solid currentColor;
+}
+.niveau-application     { color: var(--satisfaisant); background: var(--satisfaisant-bg); }
+.niveau-entrainement    { color: var(--fragile);      background: var(--fragile-bg); }
+.niveau-approfondissement { color: var(--tresbien);   background: var(--tresbien-bg); }
+.exercice-duree { font-size: 0.8rem; color: var(--texte-doux); margin-left: auto; }
+
+.corrige {
+  border: 2px solid var(--satisfaisant);
+  border-left-width: 7px;
+  border-radius: var(--rayon);
+  background: var(--satisfaisant-bg);
+  margin: 0.8rem 0 0.2rem;
+  padding: 0;
+  break-inside: avoid;
+}
+.corrige > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--satisfaisant);
+  padding: 0.6rem 1rem;
+  list-style: none;
+}
+.corrige > summary::-webkit-details-marker { display: none; }
+.corrige > summary::before { content: "✅ "; }
+.corrige[open] > summary { border-bottom: 2px solid #b6d7bf; }
+.corrige-corps { padding: 0.8rem 1.1rem 0.4rem; }
+
+/* Zone de réponse à remplir au stylo */
+.lignes-reponse { margin: 0.7rem 0 0.3rem; }
+.lignes-reponse span {
+  display: block;
+  border-bottom: 1px solid var(--trait-fort);
+  height: 1.85rem;
+}
+
+/* ---------- 9. Tableaux & grille d'évaluation -------------------------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2rem 0;
+  font-size: 0.95rem;
+  break-inside: avoid;
+}
+th, td {
+  border: 1px solid var(--trait-fort);
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  vertical-align: top;
+}
+thead th {
+  background: var(--accent-doux);
+  color: var(--accent);
+  font-size: 0.88rem;
+}
+tbody tr:nth-child(even) td { background: var(--fond-doux); }
+
+.grille { font-size: 0.88rem; }
+.grille th:first-child, .grille td:first-child { width: 26%; font-weight: 600; }
+.grille thead th { text-align: center; }
+.grille .n-insuffisant   { background: var(--insuffisant-bg);   color: var(--insuffisant); }
+.grille .n-fragile       { background: var(--fragile-bg);       color: var(--fragile); }
+.grille .n-satisfaisant  { background: var(--satisfaisant-bg);  color: var(--satisfaisant); }
+.grille .n-tresbien      { background: var(--tresbien-bg);      color: var(--tresbien); }
+
+.echelle { display: grid; gap: 0.5rem; margin: 1.2rem 0; padding: 0; list-style: none; }
+.echelle li {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 12.5rem 1fr;
+  gap: 0.8rem;
+  align-items: start;
+  border: 2px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--fond-carte);
+  padding: 0.55rem 0.8rem;
+}
+.echelle .niveau { font-weight: 700; border-radius: 6px; padding: 0.15rem 0.5rem; text-align: center; }
+.echelle .n-insuffisant  { background: var(--insuffisant-bg);  color: var(--insuffisant);  border: 1px solid var(--insuffisant); }
+.echelle .n-fragile      { background: var(--fragile-bg);      color: var(--fragile);      border: 1px solid var(--fragile); }
+.echelle .n-satisfaisant { background: var(--satisfaisant-bg); color: var(--satisfaisant); border: 1px solid var(--satisfaisant); }
+.echelle .n-tresbien     { background: var(--tresbien-bg);     color: var(--tresbien);     border: 1px solid var(--tresbien); }
+
+/* Cases à cocher d'auto-évaluation */
+.cocher { list-style: none; padding-left: 0; margin: 0.8rem 0; }
+.cocher li { position: relative; padding-left: 2.1rem; margin-bottom: 0.6rem; }
+.cocher li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.28rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  border: 2px solid var(--trait-fort);
+  border-radius: 4px;
+  background: var(--fond-carte);
+}
+
+/* ---------- 10. Cartes de navigation (index) --------------------------- */
+.cartes { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.9rem; margin: 1.4rem 0; padding: 0; list-style: none; }
+.cartes li { margin: 0; }
+.cartes a {
+  display: block;
+  height: 100%;
+  border: 2px solid var(--trait);
+  border-left: 7px solid var(--accent);
+  border-radius: var(--rayon);
+  background: var(--fond-carte);
+  padding: 0.8rem 0.95rem;
+  text-decoration: none;
+  color: var(--texte);
+}
+.cartes a:hover { border-color: var(--accent-trait); border-left-color: var(--accent); background: var(--accent-doux); }
+.cartes strong { display: block; color: var(--accent); margin-bottom: 0.2rem; }
+.cartes span { font-size: 0.88rem; color: var(--texte-doux); }
+
+/* ---------- 11. Pied de page ------------------------------------------- */
+.fiche-pied {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--trait);
+  font-size: 0.82rem;
+  color: var(--texte-doux);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ---------- 12. Lecture écran : thème sombre (confort) ----------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) {
+    --fond-page:  #191b20;
+    --fond-carte: #22252c;
+    --fond-doux:  #2b2f38;
+    --texte:      #e8e6e1;
+    --texte-doux: #a9aeba;
+    --trait:      #3a3f4a;
+    --trait-fort: #545b69;
+    --insuffisant-bg:#3a201e; --fragile-bg:#382a15;
+    --satisfaisant-bg:#1c2f22; --tresbien-bg:#1b2b3a;
+    --insuffisant:#ff9b91; --fragile:#f2b552;
+    --satisfaisant:#84d29b; --tresbien:#8dc2ee;
+  }
+  :root:not([data-theme="clair"]) [data-matiere="maths"]           { --accent:#7fb4ef; --accent-doux:#1d2a3a; --accent-trait:#3a557a; }
+  :root:not([data-theme="clair"]) [data-matiere="francais"]        { --accent:#c49ae0; --accent-doux:#2a2134; --accent-trait:#553f6b; }
+  :root:not([data-theme="clair"]) [data-matiere="histoire-geo"]    { --accent:#e2a463; --accent-doux:#332619; --accent-trait:#6d4f2c; }
+  :root:not([data-theme="clair"]) [data-matiere="emc"]             { --accent:#6fc9bf; --accent-doux:#172e2c; --accent-trait:#2f5a55; }
+  :root:not([data-theme="clair"]) [data-matiere="physique-chimie"] { --accent:#f09b78; --accent-doux:#33211a; --accent-trait:#6b4232; }
+  :root:not([data-theme="clair"]) [data-matiere="svt"]             { --accent:#79c28c; --accent-doux:#1a2c20; --accent-trait:#34573f; }
+  :root:not([data-theme="clair"]) [data-matiere="anglais-lv1"]     { --accent:#9aa3e8; --accent-doux:#20233a; --accent-trait:#424879; }
+  :root:not([data-theme="clair"]) [data-matiere="espagnol-lv2"]    { --accent:#eb92b5; --accent-doux:#341e28; --accent-trait:#6e3c53; }
+  :root:not([data-theme="clair"]) [data-matiere="pilotage"]        { --accent:#b0b7c6; --accent-doux:#262a33; --accent-trait:#4a515f; }
+  .fiche-type { color: #191b20; }
+  .etapes > li::before { color: #191b20; }
+}
+
+/* ---------- 13. Impression A4 ------------------------------------------ */
+@page {
+  size: A4;
+  margin: 16mm 15mm 16mm 15mm;
+}
+
+@media print {
+  html, body {
+    background: #ffffff;
+    color: #000000;
+    font-size: 10.8pt;
+  }
+  .page { max-width: none; margin: 0; padding: 0; }
+  .sans-impression { display: none !important; }
+
+  /* On garde les couleurs : elles portent du sens pédagogique */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  h2 { break-after: avoid; }
+  h3, h4 { break-after: avoid; }
+  .bloc, .exercice, .formule-cle, table, .echelle li, .corrige { break-inside: avoid; }
+  .saut-page { break-before: page; }
+
+  /* Les corrigés s'impriment toujours dépliés */
+  .corrige { break-inside: auto; }
+  .corrige > summary { list-style: none; }
+  details { display: block; }
+  details > summary { display: block; }
+
+  a { color: #000; text-decoration: none; }
+  .fiche-pied { border-top: 1pt solid #888; }
+}

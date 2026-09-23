@@ -1,0 +1,19 @@
+{
+  "name": "sterenncours",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Supports de cours 4e adaptes (TSA sans deficience intellectuelle) - alignes programme officiel cycle 4 / CNED",
+  "scripts": {
+    "build": "node build/build.mjs",
+    "pdf": "node build/pdf.mjs",
+    "all": "npm run build && npm run pdf",
+    "serve": "node build/serve.mjs"
+  },
+  "dependencies": {
+    "markdown-it": "^15.0.0",
+    "markdown-it-attrs": "^4.3.1",
+    "markdown-it-container": "^4.0.0",
+    "markdown-it-deflist": "^3.0.0"
+  }
+}
