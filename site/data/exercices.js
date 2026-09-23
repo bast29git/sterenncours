@@ -1753,4 +1753,142 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'physique-chimie/L02': {
+    titre: 'Transformations chimiques',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Un glaçon fond dans un verre. De quelle transformation s\'agit-il ?',
+        choix: ['Chimique', 'Physique', 'Ni l\'une ni l\'autre'],
+        reponse: 1,
+        explication: "Physique. Avant et après, ce sont les mêmes molécules d'eau H₂O : seule leur disposition change. Le test à retenir : les molécules de la fin sont-elles les mêmes qu'au début ?"
+      },
+      {
+        type: 'qcm',
+        q: 'Une feuille de papier brûle. De quelle transformation s\'agit-il ?',
+        choix: ['Physique', 'Chimique', 'Un changement d\'état'],
+        reponse: 1,
+        explication: "Chimique. Il se forme du dioxyde de carbone, de la vapeur d'eau et des cendres : des espèces qui n'existaient pas au départ. Les molécules du papier ont été détruites et leurs atomes réorganisés."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Un produit est une espèce chimique présente avant la transformation.',
+        reponse: false,
+        explication: "Faux. Un produit est formé pendant la transformation : il n'existe pas au départ. Ce qui est présent au début et consommé, c'est un réactif."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans le bilan « méthane + dioxygène → dioxyde de carbone + eau », quels sont les réactifs ?',
+        choix: ['Le dioxyde de carbone et l\'eau', 'Le méthane et le dioxygène', 'Le méthane seulement'],
+        reponse: 1,
+        explication: "Les réactifs sont à gauche de la flèche : le méthane et le dioxygène. Le dioxyde de carbone et l'eau sont à droite, ce sont les produits."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment se lit la flèche d\'une équation chimique ?',
+        choix: ['« égale »', '« donne »', '« plus »'],
+        reponse: 1,
+        explication: "Elle se lit « donne » ou « se transforme en ». Ce n'est pas une égalité de nombres mais un sens de transformation : les réactifs deviennent les produits."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Pour équilibrer une équation, on a le droit de changer un indice dans une formule.',
+        reponse: false,
+        explication: "Faux. On ajoute un coefficient DEVANT la formule. Changer H₂O en H₄O reviendrait à inventer une molécule qui n'existe pas. L'indice décrit la molécule, le coefficient compte les molécules."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète le coefficient manquant : H₂ + O₂ → ___ H₂O (après avoir mis 2 devant H₂).',
+        reponses: ['2', 'deux'],
+        explication: "L'équation équilibrée est 2 H₂ + O₂ → 2 H₂O. Vérification : hydrogène, 4 à gauche et 4 à droite. Oxygène, 2 à gauche et 2 à droite."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est l\'équation équilibrée de la combustion du méthane ?',
+        choix: ['CH₄ + O₂ → CO₂ + H₂O', 'CH₄ + 2 O₂ → CO₂ + 2 H₂O', 'CH₄ + O₂ → CO₂ + 2 H₂O'],
+        reponse: 1,
+        explication: "CH₄ + 2 O₂ → CO₂ + 2 H₂O. Carbone : 1 et 1. Hydrogène : 4 et 4. Oxygène : 4 à gauche (2 × 2) et 4 à droite (2 dans CO₂ plus 2 dans 2 H₂O)."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans l\'équation 4 Fe + 3 O₂ → 2 Fe₂O₃, combien y a-t-il d\'atomes d\'oxygène à droite ?',
+        choix: ['3', '5', '6'],
+        reponse: 2,
+        explication: "2 × 3 = 6 atomes d'oxygène. Le coefficient 2 multiplie toute la formule Fe₂O₃, qui contient 3 oxygènes. À gauche : 3 × 2 = 6 également, l'équation est bien équilibrée."
+      },
+      {
+        type: 'saisie',
+        q: 'On brûle 12 g de carbone avec 32 g de dioxygène. Quelle masse de dioxyde de carbone se forme, en grammes ?',
+        reponses: ['44', '44 g', '44g'],
+        explication: "12 + 32 = 44 g. La masse totale se conserve : la masse des réactifs consommés est égale à la masse des produits formés. C'est la loi de Lavoisier."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Quand une bûche brûle dans une cheminée, une partie de la matière disparaît réellement.',
+        reponse: false,
+        explication: "Faux. Rien ne disparaît : le dioxyde de carbone et la vapeur d'eau formés partent dans l'air et ne sont plus sur la balance. En récipient fermé, la masse ne change pas d'un gramme."
+      },
+      {
+        type: 'qcm',
+        q: 'Qui a établi la loi de conservation de la masse en 1789 ?',
+        choix: ['Lavoisier', 'Newton', 'Mendeleïev'],
+        reponse: 0,
+        explication: "Antoine Lavoisier. Il pesait ses expériences dans des récipients fermés, ce qui lui a permis de montrer que la masse gagnée par un métal qui brûle vient du gaz de l'air, et de nulle part ailleurs."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans une combustion, comment appelle-t-on le dioxygène ?',
+        choix: ['Le combustible', 'Le comburant', 'Le produit'],
+        reponse: 1,
+        explication: "Le comburant : c'est ce qui permet de brûler. Le combustible, c'est ce qui brûle (bois, méthane, papier). Ne pas inverser les deux mots, ils se ressemblent mais désignent des rôles opposés."
+      },
+      {
+        type: 'saisie',
+        q: 'Cite le troisième élément du triangle du feu, à côté du combustible et du comburant (deux mots).',
+        reponses: ['energie d\'activation', "énergie d'activation", 'energie activation', "l'énergie d'activation", 'energie d activation'],
+        explication: "L'énergie d'activation : l'étincelle, la flamme ou la forte chaleur qui déclenche. Retirer un seul des trois sommets du triangle suffit à éteindre un feu."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi un couvercle posé sur une poêle en feu l\'éteint-il ?',
+        choix: ['Il refroidit l\'huile', 'Il prive le feu de dioxygène', 'Il supprime le combustible'],
+        reponse: 1,
+        explication: "Le couvercle empêche l'air d'atteindre l'huile enflammée : on retire le comburant. L'eau, elle, serait dangereuse sur une friture : elle se vaporise brutalement et projette l'huile en flammes."
+      },
+      {
+        type: 'qcm',
+        q: 'Une flamme jaune et fumeuse qui dépose des traces noires indique :',
+        choix: ['une combustion complète', 'une combustion incomplète', 'un excès de dioxygène'],
+        reponse: 1,
+        explication: "Une combustion incomplète : le dioxygène manque. Les traces noires sont de la suie, du carbone non oxydé. Une combustion complète donne une flamme bleue et nette."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel gaz dangereux se forme lors d\'une combustion incomplète ?',
+        choix: ['Le dioxyde de carbone CO₂', 'Le monoxyde de carbone CO', 'Le diazote N₂'],
+        reponse: 1,
+        explication: "Le monoxyde de carbone CO. Il est incolore et inodore, donc indétectable par les sens, et il prend la place du dioxygène dans le sang. C'est pourquoi une pièce chauffée au gaz doit toujours rester ventilée."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Il faut boucher les grilles d\'aération d\'une pièce chauffée au gaz pour éviter les courants d\'air.',
+        reponse: false,
+        explication: "Faux, et c'est dangereux. Les grilles apportent le dioxygène nécessaire à la combustion. Sans air, la combustion devient incomplète et produit du monoxyde de carbone, mortel à faible dose."
+      },
+      {
+        type: 'saisie',
+        q: 'Équilibre la combustion du propane : C₃H₈ + ___ O₂ → 3 CO₂ + 4 H₂O. Quel coefficient manque ?',
+        reponses: ['5', 'cinq'],
+        explication: "5. À droite il y a 3 × 2 = 6 oxygènes dans 3 CO₂, plus 4 × 1 = 4 dans 4 H₂O, soit 10 en tout. Il faut donc 5 molécules O₂ à gauche, car 5 × 2 = 10."
+      },
+      {
+        type: 'qcm',
+        q: 'En équilibrant le butane, on trouve 13 oxygènes à droite, un nombre impair. Que fait-on ?',
+        choix: ['On met 6,5 devant O₂', 'On double tous les coefficients', 'On change un indice'],
+        reponse: 1,
+        explication: "On double toute l'équation, ce qui donne 2 C₄H₁₀ + 13 O₂ → 8 CO₂ + 10 H₂O. On ne peut pas prendre une demi-molécule, et on ne touche jamais aux indices."
+      }
+    ]
+  }
 };
