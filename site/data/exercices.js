@@ -3846,4 +3846,144 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'anglais-lv1/L03': {
+    titre: 'Telling a story',
+    items: [
+      {
+        type: 'saisie',
+        q: 'Donne le prétérit de « go ».',
+        reponses: ['went'],
+        explication: "went. C'est l'un des cinq verbes irréguliers indispensables, avec be, have, do et say : un récit au passé est presque impossible à écrire sans eux."
+      },
+      {
+        type: 'saisie',
+        q: 'Donne le prétérit de « think ».',
+        reponses: ['thought'],
+        explication: "thought. Attention à l'orthographe : le groupe « ough » se retrouve dans bought, brought et fought, tous irréguliers."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel est le prétérit du verbe « study » ?',
+        choix: ['studyed', 'studied', 'studed'],
+        reponse: 1,
+        explication: "studied. Après une CONSONNE, le y devient i. Après une voyelle il se conserve : play donne played."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel est le prétérit du verbe « stop » ?',
+        choix: ['stoped', 'stopped', 'stopt'],
+        reponse: 1,
+        explication: "stopped. Pour un verbe d'une syllabe terminé par une seule consonne après une voyelle, on double la consonne finale avant d'ajouter -ed."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Au prétérit, la troisième personne du singulier prend un s.',
+        reponse: false,
+        explication: "Faux. Toutes les personnes ont la même forme : I worked, he worked, they worked. Seul « be » change : I was, you were, he was, we were, they were."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle phrase est correcte ?',
+        choix: ['She didn\'t went to school.', 'She didn\'t go to school.', 'She didn\'t goes to school.'],
+        reponse: 1,
+        explication: "She didn't go to school. Après « did » ou « didn't », on emploie la BASE VERBALE : le passé est déjà porté par l'auxiliaire. C'est l'erreur la plus fréquente du chapitre."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle question est correcte ?',
+        choix: ['Did she took the bus?', 'Did she take the bus?', 'Did she takes the bus?'],
+        reponse: 1,
+        explication: "Did she take the bus ? Même règle qu'à la négative : après « did », la base verbale. La réponse courte serait « Yes, she did » ou « No, she didn't »."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment met-on « She was tired » à la forme interrogative ?',
+        choix: ['Did she be tired?', 'Was she tired?', 'Did she was tired?'],
+        reponse: 1,
+        explication: "Was she tired ? Le verbe « be » n'utilise jamais « did » : il se comporte comme un auxiliaire et fait sa question par inversion."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment construit-on le prétérit continu ?',
+        choix: ['did + verbe en -ing', 'was ou were + verbe en -ing', 'have + participe passé'],
+        reponse: 1,
+        explication: "was ou were + verbe en -ing : I was walking, they were walking. Il sert à décrire une action en cours, poser un décor ou marquer une action interrompue."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : « At 8 p.m. yesterday, I ___ a film. »',
+        choix: ['watched', 'was watching', 'have watched'],
+        reponse: 1,
+        explication: "was watching. On décrit ce qui était EN COURS à un moment précis. « I watched three films yesterday » serait au simple, car il s'agit d'un fait accompli."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la différence entre le prétérit simple et le prétérit continu dans un récit ?',
+        choix: ['Aucune', 'Le continu pose le décor, le simple raconte les événements', 'Le continu est plus poli'],
+        reponse: 1,
+        explication: "Le continu, c'est le plan large : il pleuvait, les gens marchaient. Le simple, c'est l'action : une porte claque, quelqu'un crie. Un bon récit alterne les deux, comme un film alterne les plans."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète : « I ___ (read) when the phone rang. » Écris les deux mots manquants.',
+        reponses: ['was reading'],
+        explication: "was reading. L'action longue est au continu, l'action courte qui l'interrompt est au simple. C'est le schéma type de la combinaison des deux temps."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : « ___ I was cooking, the lights went out. »',
+        choix: ['When', 'While', 'As soon as'],
+        reponse: 1,
+        explication: "While, qui introduit l'action longue au continu. « When » introduirait plutôt l'action courte : « When the lights went out, I was cooking » dit exactement la même chose autrement."
+      },
+      {
+        type: 'vraifaux',
+        q: '« When the phone rang, I was reading » et « While I was reading, the phone rang » ont le même sens.',
+        reponse: true,
+        explication: "Vrai. L'ordre des propositions et le connecteur changent, mais chaque verbe reste au même temps. Ce qui compte, ce n'est pas la place dans la phrase, c'est quel verbe est à quel temps."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle phrase est correcte ?',
+        choix: ['I was knowing the answer.', 'I knew the answer.', 'I was knew the answer.'],
+        reponse: 1,
+        explication: "I knew the answer. « know » est un verbe d'état : il ne se met jamais au continu. Même famille : believe, understand, want, like, love, hate, need, seem."
+      },
+      {
+        type: 'vraifaux',
+        q: 'On peut écrire « I have seen him yesterday ».',
+        reponse: false,
+        explication: "Faux. Un repère de temps précis dans le passé, comme yesterday, last week ou in 2019, impose le PRÉTÉRIT : « I saw him yesterday »."
+      },
+      {
+        type: 'qcm',
+        q: 'Que signifie « actually » ?',
+        choix: ['Actuellement', 'En fait', 'Éventuellement'],
+        reponse: 1,
+        explication: "En fait, en réalité. « Actuellement » se dit « currently », et « éventuellement » se dit « possibly ». Ce sont les trois faux amis les plus piégeux du chapitre."
+      },
+      {
+        type: 'qcm',
+        q: 'Que signifie « eventually » ?',
+        choix: ['Éventuellement', 'Finalement, au bout du compte', 'Également'],
+        reponse: 1,
+        explication: "Finalement, au bout du compte. « Eventually, he came » signifie qu'il a fini par venir. Rien à voir avec « éventuellement »."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel connecteur sert à conclure un récit ?',
+        choix: ['At first', 'Meanwhile', 'In the end'],
+        reponse: 2,
+        explication: "In the end, ou finally, ou at last. « At first » ouvre le récit, « meanwhile » situe deux actions simultanées."
+      },
+      {
+        type: 'qcm',
+        q: 'Par quel verbe plus précis remplacer « I went out of the room quickly » ?',
+        choix: ['I rushed out of the room.', 'I made out of the room.', 'I did out of the room.'],
+        reponse: 0,
+        explication: "I rushed out. Un verbe précis remplace un verbe plus un adverbe. De même, « understood suddenly » devient « realised », et « was very afraid » devient « was terrified »."
+      }
+    ]
+  }
 };
