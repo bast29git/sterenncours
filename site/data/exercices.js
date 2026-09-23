@@ -3986,4 +3986,145 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'espagnol-lv2/L03': {
+    titre: 'Gustar y la opinión',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Comment dit-on « j\'aime le chocolat » en espagnol ?',
+        choix: ['Yo gusto el chocolate.', 'Me gusta el chocolate.', 'Yo gusta el chocolate.'],
+        reponse: 1,
+        explication: "Me gusta el chocolate, littéralement « le chocolat me plaît ». La personne n'est jamais sujet de gustar : « yo gusto » signifierait « je plais »."
+      },
+      {
+        type: 'qcm',
+        q: 'Avec quoi le verbe gustar s\'accorde-t-il ?',
+        choix: ['Avec la personne qui aime', 'Avec la chose aimée', 'Il ne s\'accorde jamais'],
+        reponse: 1,
+        explication: "Avec la chose aimée, qui est le vrai sujet du verbe. D'où « me gusta el libro » mais « me gustan los libros »."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète : « Me ___ los libros. » (verbe gustar)',
+        reponses: ['gustan'],
+        explication: "gustan. « los libros » est un nom au PLURIEL, donc le verbe se met au pluriel. Le test unique : le mot qui suit est-il un nom pluriel ? Si oui, gustan."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète : « Me ___ leer y escribir. » (verbe gustar)',
+        reponses: ['gusta'],
+        explication: "gusta, au SINGULIER. Même avec deux infinitifs, le verbe reste au singulier. Deux NOMS entraîneraient en revanche le pluriel : « me gustan el cine y el teatro »."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel pronom emploie-t-on pour « il aime » ou « elle aime » ?',
+        choix: ['lo', 'le', 'la'],
+        reponse: 1,
+        explication: "« le » dans les deux cas : le pronom ne change jamais selon le genre. Pour lever l'ambiguïté, on ajoute une forme tonique : « a Marta le gusta »."
+      },
+      {
+        type: 'qcm',
+        q: 'Où place-t-on la négation ?',
+        choix: ['Me no gusta el café.', 'No me gusta el café.', 'Me gusta no el café.'],
+        reponse: 1,
+        explication: "No me gusta el café. L'ordre est toujours : no + pronom + verbe. C'est une différence avec le français, où la négation encadre le verbe."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle phrase est correcte ?',
+        choix: ['A mí gusta el cine.', 'A mí me gusta el cine.', 'A mí me gusto el cine.'],
+        reponse: 1,
+        explication: "A mí me gusta el cine. La forme tonique s'AJOUTE au pronom, elle ne le remplace jamais. Cette redondance paraît étrange en français, elle est obligatoire en espagnol."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment dit-on « j\'ai mal à la tête » ?',
+        choix: ['Tengo mal la cabeza.', 'Me duele la cabeza.', 'Duelo la cabeza.'],
+        reponse: 1,
+        explication: "Me duele la cabeza, littéralement « la tête me fait mal ». Le verbe doler se construit exactement comme gustar : « me duelen los pies » au pluriel."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète : « Me ___ los pies. » (verbe doler, j\'ai mal aux pieds)',
+        reponses: ['duelen'],
+        explication: "duelen. « los pies » est pluriel, donc le verbe aussi. C'est exactement la même règle d'accord que pour gustar : elle vaut pour toute la famille."
+      },
+      {
+        type: 'qcm',
+        q: 'Que signifie « me apetece un café » ?',
+        choix: ['Je déteste le café', 'J\'ai envie d\'un café', 'Le café me manque'],
+        reponse: 1,
+        explication: "J'ai envie d'un café. Autres verbes de la famille : interesar (intéresser), molestar (déranger), faltar (manquer), quedar (rester), parecer (sembler)."
+      },
+      {
+        type: 'vraifaux',
+        q: 'On peut dire « me encanta mucho ».',
+        reponse: false,
+        explication: "Faux. « Encantar » signifie déjà « adorer » : ajouter « mucho » est un pléonasme. Pour nuancer, on dit « me gusta mucho »."
+      },
+      {
+        type: 'qcm',
+        q: 'Range de la plus positive à la plus négative : me gusta un poco, me encanta, no me gusta nada, me gusta mucho.',
+        choix: ['me encanta, me gusta mucho, me gusta un poco, no me gusta nada', 'me gusta mucho, me encanta, no me gusta nada, me gusta un poco', 'me encanta, me gusta un poco, me gusta mucho, no me gusta nada'],
+        reponse: 0,
+        explication: "L'échelle complète : me encanta, me gusta mucho, me gusta, me gusta un poco, no me gusta, no me gusta nada, odio. Employer toujours la même formule coûte des points en rédaction."
+      },
+      {
+        type: 'qcm',
+        q: '« — Me gusta el cine. » Tu es d\'accord. Que réponds-tu ?',
+        choix: ['A mí también.', 'A mí tampoco.', 'A mí sí.'],
+        reponse: 0,
+        explication: "A mí también. La phrase est positive et tu es d'accord : también. « Tampoco » ne s'emploie qu'après une phrase négative."
+      },
+      {
+        type: 'qcm',
+        q: '« — No me gusta el café. » Tu es d\'accord. Que réponds-tu ?',
+        choix: ['A mí también.', 'A mí tampoco.', 'A mí no.'],
+        reponse: 1,
+        explication: "A mí tampoco. La phrase est négative et tu es d'accord : tampoco. Répondre « también » après une phrase négative est une faute de logique autant que de langue."
+      },
+      {
+        type: 'qcm',
+        q: '« — No me gusta bailar. » Tu n\'es pas d\'accord. Que réponds-tu ?',
+        choix: ['A mí tampoco.', 'A mí sí.', 'A mí no.'],
+        reponse: 1,
+        explication: "A mí sí. Le tableau à quatre cases : positive et accord → también ; négative et accord → tampoco ; positive et désaccord → no ; négative et désaccord → sí."
+      },
+      {
+        type: 'saisie',
+        q: 'Comment dit-on « à mon avis » en espagnol ? (trois mots)',
+        reponses: ['en mi opinión', 'en mi opinion'],
+        explication: "En mi opinión. Autres formules : creo que, pienso que, me parece que, para mí. On en choisit UNE par phrase : on varie, on ne les empile pas."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel connecteur sert à objecter ou à nuancer ?',
+        choix: ['Además', 'Sin embargo', 'Por ejemplo'],
+        reponse: 1,
+        explication: "Sin embargo, qui signifie « cependant ». « Además » ajoute, « por ejemplo » illustre, « por eso » conclut. Varier les connecteurs est l'un des critères d'évaluation."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qui distingue un goût d\'une opinion argumentée ?',
+        choix: ['Rien', 'La présence d\'une raison, introduite par porque', 'La longueur de la phrase'],
+        reponse: 1,
+        explication: "« Me gusta el fútbol » est un goût. « Me gusta el fútbol porque es un deporte de equipo » est une opinion. En production écrite, chaque affirmation appelle un porque ou un exemple."
+      },
+      {
+        type: 'qcm',
+        q: 'Que signifie l\'adjectif espagnol « largo » ?',
+        choix: ['Large', 'Long', 'Lourd'],
+        reponse: 1,
+        explication: "Long. « Large » se dit « ancho ». C'est l'un des faux amis les plus fréquents, et il revient constamment dans les descriptions."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans quel ordre s\'écrit une phrase complète avec forme tonique ?',
+        choix: ['forme tonique + pronom + verbe + ce qui plaît', 'pronom + forme tonique + verbe', 'verbe + pronom + forme tonique'],
+        reponse: 0,
+        explication: "A mí (tonique) + me (pronom) + gusta (verbe) + el cine (ce qui plaît). La forme tonique sert à insister ou à préciser de qui on parle, mais le pronom reste obligatoire."
+      }
+    ]
+  }
 };
