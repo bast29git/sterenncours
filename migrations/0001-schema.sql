@@ -66,3 +66,11 @@ CREATE TABLE IF NOT EXISTS seances (
   maj_le    TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_seances_date ON seances (date);
+
+-- Ajouts additifs sur les séances. Ces instructions échouent si la colonne
+-- existe déjà : le provisionnement tolère cette erreur précise et continue.
+ALTER TABLE seances ADD COLUMN debut TEXT NOT NULL DEFAULT '13:00';
+ALTER TABLE seances ADD COLUMN fin TEXT NOT NULL DEFAULT '14:30';
+ALTER TABLE seances ADD COLUMN type TEXT NOT NULL DEFAULT 'cours';
+ALTER TABLE seances ADD COLUMN choix TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE seances ADD COLUMN choisi_le TEXT;

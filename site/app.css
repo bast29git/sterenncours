@@ -566,3 +566,125 @@ body[data-espace="eleve"] .lecon-notions { display: none; }
   .tableau thead th { top: 2.9rem; }
 }
 @media (prefers-reduced-motion: reduce) { .lateral { transition: none; } }
+
+/* =========================================================================
+   Calendrier de la semaine.
+   Même grille pour les deux espaces, densité et actions différentes.
+   ========================================================================= */
+.cal-tete {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+.cal-tete h2 { margin: 0; font-size: 1.05rem; flex: 1 1 auto; }
+body[data-espace="eleve"] .cal-tete h2 { font-size: 1.25rem; }
+
+.calendrier {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+}
+.cal-jour {
+  background: var(--fond-carte);
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  padding: 0.5rem 0.55rem 0.6rem;
+  min-height: 7rem;
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+}
+.cal-jour.vide { background: transparent; border-style: dashed; }
+.cal-jour.aujourdhui { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.cal-jour.passe { opacity: 0.62; }
+.cal-jour-tete { display: flex; align-items: baseline; gap: 0.35rem; }
+.cal-jour-nom { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texte-doux); }
+.cal-jour-num { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--texte); }
+.cal-jour.aujourdhui .cal-jour-nom, .cal-jour.aujourdhui .cal-jour-num { color: var(--accent); }
+.cal-repos { font-size: 0.78rem; color: var(--texte-doux); }
+
+.evt {
+  border-radius: 8px;
+  border: 1px solid var(--trait);
+  border-left: 3px solid var(--accent);
+  background: var(--fond-page);
+  padding: 0.4rem 0.5rem;
+  display: grid;
+  gap: 0.2rem;
+}
+.evt-travail { border-left-style: dashed; border-left-color: var(--trait-fort); background: transparent; }
+.evt-faite { border-left-color: var(--satisfaisant); }
+.evt-reportee { border-left-color: var(--fragile); }
+.evt-heure { font-size: 0.72rem; font-weight: 700; color: var(--texte-doux); }
+.evt-titre { font-size: 0.84rem; font-weight: 700; line-height: 1.3; }
+.evt-mats { display: flex; flex-wrap: wrap; gap: 0.2rem; }
+.evt-mat {
+  font-size: 0.68rem; font-weight: 700; border-radius: 999px;
+  padding: 0.02rem 0.4rem; border: 1px solid currentColor;
+}
+.evt-texte { font-size: 0.78rem; color: var(--texte-doux); }
+.evt-liens { display: flex; flex-wrap: wrap; gap: 0.2rem; }
+.evt-liens a, .evt-liens button {
+  font: inherit; font-size: 0.74rem; font-weight: 600; text-decoration: none; cursor: pointer;
+  border: 1px solid var(--trait-fort); border-radius: 5px; padding: 0.1rem 0.4rem;
+  background: transparent; color: var(--texte-doux);
+}
+.evt-liens a:hover, .evt-liens button:hover { border-color: var(--accent); color: var(--accent); }
+.evt-drapeau {
+  font-size: 0.7rem; font-weight: 800; color: var(--accent);
+  background: var(--accent-doux); border-radius: 999px; padding: 0.02rem 0.45rem; justify-self: start;
+}
+
+body[data-espace="eleve"] .cal-jour { min-height: 8.5rem; padding: 0.65rem 0.7rem 0.75rem; }
+body[data-espace="eleve"] .evt { padding: 0.55rem 0.65rem; border-radius: 11px; }
+body[data-espace="eleve"] .evt-titre { font-size: 0.92rem; }
+body[data-espace="eleve"] .evt-liens a { font-size: 0.82rem; padding: 0.2rem 0.55rem; border-radius: 7px; }
+
+/* ---------- Choix de leçon ------------------------------------------------- */
+.choix-bloc {
+  background: var(--accent-doux);
+  border: 1px solid var(--accent-trait);
+  border-radius: var(--r);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.2rem;
+}
+.choix-bloc h2 { margin: 0 0 0.2rem; font-size: 1.15rem; border: 0; padding: 0; color: var(--texte); }
+.choix-bloc .aide { margin: 0 0 0.8rem; color: var(--texte-doux); font-size: 0.92rem; }
+.choix-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.6rem; list-style: none; padding: 0; margin: 0; }
+.choix-options button {
+  font: inherit; width: 100%; height: 100%; text-align: left; cursor: pointer;
+  display: grid; gap: 0.15rem;
+  background: var(--fond-carte); border: 1px solid var(--trait);
+  border-radius: 12px; padding: 0.75rem 0.85rem; color: var(--texte);
+}
+.choix-options button:hover { border-color: var(--accent); }
+.choix-options b { font-size: 0.95rem; }
+.choix-options span { font-size: 0.8rem; color: var(--texte-doux); }
+.choix-options .m { font-size: 0.72rem; font-weight: 800; }
+
+@media (max-width: 62rem) {
+  .calendrier { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 34rem) {
+  .calendrier { grid-template-columns: 1fr; }
+  .cal-jour { min-height: 0; }
+  .cal-jour.vide { display: none; }
+}
+
+/* Les cases du calendrier sont étroites : on borne ce qui peut déborder. */
+.evt-titre {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.evt-texte {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.evt-mat { white-space: nowrap; }
+.evt-titre { -webkit-line-clamp: 6; }
+.evt-part { display: block; }
+.evt-part + .evt-part { margin-top: 0.15rem; padding-top: 0.15rem; border-top: 1px dotted var(--trait); }

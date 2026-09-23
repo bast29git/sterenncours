@@ -78,7 +78,9 @@ function versOctets(chaineHex) {
 }
 __name(versOctets, "versOctets");
 __name2(versOctets, "versOctets");
+var ITERATIONS_MAX = 1e5;
 async function deriver(code, selHex, iterations) {
+  const tours = Math.min(Number(iterations) || ITERATIONS_MAX, ITERATIONS_MAX);
   const cle = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(code),
@@ -87,7 +89,7 @@ async function deriver(code, selHex, iterations) {
     ["deriveBits"]
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt: versOctets(selHex), iterations, hash: "SHA-256" },
+    { name: "PBKDF2", salt: versOctets(selHex), iterations: tours, hash: "SHA-256" },
     cle,
     256
   );
@@ -129,7 +131,168 @@ function gerer(fonction) {
 __name(gerer, "gerer");
 __name2(gerer, "gerer");
 var nouvelId = /* @__PURE__ */ __name2(() => hex(crypto.getRandomValues(new Uint8Array(12))), "nouvelId");
+var onRequestPost = gerer(async (context) => {
+  await exigerSession(context);
+  const id = context.params.id;
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur("Identifiant invalide.");
+  const seance = await context.env.DB.prepare("SELECT * FROM seances WHERE id = ?").bind(id).first();
+  if (!seance) return erreur("S\xE9ance introuvable.", 404);
+  let corps;
+  try {
+    corps = await context.request.json();
+  } catch (e) {
+    return erreur("Requ\xEAte invalide.");
+  }
+  const choisie = String(corps && corps.lecon || "");
+  let choix = [];
+  try {
+    choix = JSON.parse(seance.choix || "[]");
+  } catch (e) {
+    choix = [];
+  }
+  if (!choix.length) return erreur("Cette s\xE9ance ne propose pas de choix.");
+  if (!choix.includes(choisie)) return erreur("Cette le\xE7on ne fait pas partie des choix propos\xE9s.");
+  let lecons = [];
+  try {
+    lecons = JSON.parse(seance.lecons || "[]");
+  } catch (e) {
+    lecons = [];
+  }
+  const fixes = lecons.filter((r) => !choix.includes(r));
+  const nouvelles = [...fixes, choisie];
+  const matieres = [...new Set(nouvelles.map((r) => r.split("/")[0]))];
+  await context.env.DB.prepare(
+    "UPDATE seances SET lecons = ?, matieres = ?, choisi_le = ?, maj_le = ? WHERE id = ?"
+  ).bind(JSON.stringify(nouvelles), JSON.stringify(matieres), maintenant(), maintenant(), id).run();
+  return json({ id, lecons: nouvelles, matieres, choisi_le: maintenant() });
+});
+var DATE = /^\d{4}-\d{2}-\d{2}$/;
+var CRENEAUX = ["A", "B", "C"];
+var STATUTS = ["prevue", "faite", "reportee"];
+var TYPES = ["cours", "travail"];
+var HEURE = /^([01]\d|2[0-3]):[0-5]\d$/;
 var onRequestGet = gerer(async (context) => {
+  await exigerSession(context);
+  const url = new URL(context.request.url);
+  const du = url.searchParams.get("du");
+  const au = url.searchParams.get("au");
+  const requete = du && au && DATE.test(du) && DATE.test(au) ? context.env.DB.prepare(
+    "SELECT * FROM seances WHERE date BETWEEN ? AND ? ORDER BY date ASC, creneau ASC"
+  ).bind(du, au) : context.env.DB.prepare("SELECT * FROM seances ORDER BY date ASC, creneau ASC LIMIT 400");
+  const { results } = await requete.all();
+  return json({ seances: (results || []).map(decoder) });
+});
+var onRequestPost2 = gerer(async (context) => {
+  exigerProf(await exigerSession(context));
+  let corps;
+  try {
+    corps = await context.request.json();
+  } catch (e) {
+    return erreur("Requ\xEAte invalide.");
+  }
+  const erreurChamp = valider(corps);
+  if (erreurChamp) return erreur(erreurChamp);
+  const date = maintenant();
+  const seance = construire(corps, date);
+  await context.env.DB.prepare(REQUETE_INSERT).bind(...valeurs(seance)).run();
+  return json(decoder(seance), 201);
+});
+var REQUETE_INSERT = `INSERT INTO seances (id, date, creneau, debut, fin, type, matieres, lecons, choix,
+     objectif, travail, statut, bilan, cree_le, maj_le)
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+var valeurs = /* @__PURE__ */ __name2((s) => [
+  s.id,
+  s.date,
+  s.creneau,
+  s.debut,
+  s.fin,
+  s.type,
+  s.matieres,
+  s.lecons,
+  s.choix,
+  s.objectif,
+  s.travail,
+  s.statut,
+  s.bilan,
+  s.cree_le,
+  s.maj_le
+], "valeurs");
+function construire(corps, date) {
+  return {
+    id: nouvelId(),
+    date: corps.date,
+    creneau: corps.creneau,
+    debut: HEURE.test(String(corps.debut || "")) ? corps.debut : "13:00",
+    fin: HEURE.test(String(corps.fin || "")) ? corps.fin : "14:30",
+    type: TYPES.includes(corps.type) ? corps.type : "cours",
+    matieres: JSON.stringify(corps.matieres || []),
+    lecons: JSON.stringify(corps.lecons || []),
+    choix: JSON.stringify(corps.choix || []),
+    objectif: corps.objectif ? String(corps.objectif).slice(0, 300) : null,
+    travail: corps.travail ? String(corps.travail).slice(0, 500) : null,
+    statut: corps.statut && STATUTS.includes(corps.statut) ? corps.statut : "prevue",
+    bilan: null,
+    cree_le: date,
+    maj_le: date
+  };
+}
+__name(construire, "construire");
+__name2(construire, "construire");
+function valider(corps) {
+  if (!corps || !DATE.test(String(corps.date || ""))) return "Date invalide (AAAA-MM-JJ attendu).";
+  if (!CRENEAUX.includes(corps.creneau)) return "Cr\xE9neau invalide (A, B ou C).";
+  if (corps.matieres && !Array.isArray(corps.matieres)) return "matieres doit \xEAtre une liste.";
+  if (corps.lecons && !Array.isArray(corps.lecons)) return "lecons doit \xEAtre une liste.";
+  return null;
+}
+__name(valider, "valider");
+__name2(valider, "valider");
+function decoder(ligne) {
+  const lire = /* @__PURE__ */ __name2((v) => {
+    try {
+      return JSON.parse(v || "[]");
+    } catch (e) {
+      return [];
+    }
+  }, "lire");
+  return { ...ligne, matieres: lire(ligne.matieres), lecons: lire(ligne.lecons), choix: lire(ligne.choix) };
+}
+__name(decoder, "decoder");
+__name2(decoder, "decoder");
+var MAX = 400;
+var onRequestPost3 = gerer(async (context) => {
+  exigerProf(await exigerSession(context));
+  let corps;
+  try {
+    corps = await context.request.json();
+  } catch (e) {
+    return erreur("Requ\xEAte invalide.");
+  }
+  const liste = Array.isArray(corps && corps.seances) ? corps.seances : null;
+  if (!liste) return erreur("Un tableau \xAB seances \xBB est attendu.");
+  if (!liste.length) return erreur("Aucune s\xE9ance \xE0 cr\xE9er.");
+  if (liste.length > MAX) return erreur(`Trop de s\xE9ances d'un coup (maximum ${MAX}).`);
+  for (const s of liste) {
+    const probleme = valider(s);
+    if (probleme) return erreur(probleme);
+  }
+  const { results } = await context.env.DB.prepare("SELECT date, creneau FROM seances").all();
+  const existantes = new Set((results || []).map((r) => r.date + "|" + r.creneau));
+  const date = maintenant();
+  const aCreer = [];
+  for (const s of liste) {
+    const empreinte = s.date + "|" + s.creneau;
+    if (existantes.has(empreinte)) continue;
+    existantes.add(empreinte);
+    aCreer.push(construire(s, date));
+  }
+  if (aCreer.length) {
+    const requete = context.env.DB.prepare(REQUETE_INSERT);
+    await context.env.DB.batch(aCreer.map((s) => requete.bind(...valeurs(s))));
+  }
+  return json({ crees: aCreer.length, ignores: liste.length - aCreer.length }, 201);
+});
+var onRequestGet2 = gerer(async (context) => {
   await exigerSession(context);
   const id = context.params.id;
   if (!/^[0-9a-f]{24}$/.test(id)) return erreur("Identifiant invalide.");
@@ -161,9 +324,9 @@ var onRequestDelete = gerer(async (context) => {
   await context.env.DB.prepare("DELETE FROM fichiers WHERE id = ?").bind(id).run();
   return json({ supprime: id });
 });
-var STATUTS = ["prevue", "faite", "reportee"];
-var CRENEAUX = ["A", "B", "C"];
-var DATE = /^\d{4}-\d{2}-\d{2}$/;
+var STATUTS2 = ["prevue", "faite", "reportee"];
+var CRENEAUX2 = ["A", "B", "C"];
+var DATE2 = /^\d{4}-\d{2}-\d{2}$/;
 var onRequestPatch = gerer(async (context) => {
   exigerProf(await exigerSession(context));
   const id = context.params.id;
@@ -176,9 +339,9 @@ var onRequestPatch = gerer(async (context) => {
   } catch (e) {
     return erreur("Requ\xEAte invalide.");
   }
-  if (corps.statut && !STATUTS.includes(corps.statut)) return erreur("Statut invalide.");
-  if (corps.creneau && !CRENEAUX.includes(corps.creneau)) return erreur("Cr\xE9neau invalide.");
-  if (corps.date && !DATE.test(corps.date)) return erreur("Date invalide.");
+  if (corps.statut && !STATUTS2.includes(corps.statut)) return erreur("Statut invalide.");
+  if (corps.creneau && !CRENEAUX2.includes(corps.creneau)) return erreur("Cr\xE9neau invalide.");
+  if (corps.date && !DATE2.test(corps.date)) return erreur("Date invalide.");
   const fusion = {
     date: corps.date || existante.date,
     creneau: corps.creneau || existante.creneau,
@@ -222,7 +385,7 @@ var onRequestDelete2 = gerer(async (context) => {
 });
 var MAX_TENTATIVES = 12;
 var FENETRE = 600;
-var onRequestPost = gerer(async (context) => {
+var onRequestPost4 = gerer(async (context) => {
   const { request, env } = context;
   if (!env.SESSIONS) return erreur("Stockage des sessions non configur\xE9.", 503);
   const ip = request.headers.get("cf-connecting-ip") || "inconnue";
@@ -253,14 +416,14 @@ var onRequestPost = gerer(async (context) => {
   await env.SESSIONS.put(cleLimite, String(tentatives + 1), { expirationTtl: FENETRE });
   return erreur("Ce code n'est pas reconnu.", 401);
 });
-async function onRequestPost2(context) {
+async function onRequestPost5(context) {
   const session = await lireSession(context.request, context.env);
   if (session) await supprimerSession(context.env, session.jeton);
   return json({ deconnecte: true }, 200, { "set-cookie": cookieSession("", 0) });
 }
-__name(onRequestPost2, "onRequestPost2");
-__name2(onRequestPost2, "onRequestPost");
-var onRequestGet2 = gerer(async (context) => {
+__name(onRequestPost5, "onRequestPost5");
+__name2(onRequestPost5, "onRequestPost");
+var onRequestGet3 = gerer(async (context) => {
   const session = await exigerSession(context);
   const { DB } = context.env;
   const [suivi, resultats, fiches, messages] = await Promise.all([
@@ -323,14 +486,14 @@ var TYPES_AUTORISES = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation"
 ];
-var onRequestGet3 = gerer(async (context) => {
+var onRequestGet4 = gerer(async (context) => {
   await exigerSession(context);
   const { results } = await context.env.DB.prepare(
     "SELECT id, nom, type, taille, auteur, matiere, ref, note, cree_le FROM fichiers ORDER BY cree_le DESC LIMIT 200"
   ).all();
   return json({ fichiers: results || [], stockage: Boolean(context.env.FICHIERS) });
 });
-var onRequestPost3 = gerer(async (context) => {
+var onRequestPost6 = gerer(async (context) => {
   const session = await exigerSession(context);
   if (!context.env.FICHIERS) {
     return erreur("Le stockage de fichiers n'est pas activ\xE9 sur ce compte.", 503);
@@ -387,7 +550,7 @@ var onRequestPost3 = gerer(async (context) => {
   return json(publique, 201);
 });
 var LONGUEUR_MAX = 2e3;
-var onRequestGet4 = gerer(async (context) => {
+var onRequestGet5 = gerer(async (context) => {
   await exigerSession(context);
   const url = new URL(context.request.url);
   const apres = url.searchParams.get("apres");
@@ -400,7 +563,7 @@ var onRequestGet4 = gerer(async (context) => {
   const messages = apres ? results : (results || []).reverse();
   return json({ messages });
 });
-var onRequestPost4 = gerer(async (context) => {
+var onRequestPost7 = gerer(async (context) => {
   const session = await exigerSession(context);
   let corps;
   try {
@@ -432,7 +595,7 @@ var onRequestPatch2 = gerer(async (context) => {
   ).bind(maintenant(), session.role).run();
   return json({ lus: true });
 });
-var onRequestGet5 = gerer(async (context) => {
+var onRequestGet6 = gerer(async (context) => {
   const session = await lireSession(context.request, context.env);
   const relie = {
     kv: Boolean(context.env.SESSIONS),
@@ -471,83 +634,6 @@ var onRequestPut2 = gerer(async (context) => {
   const ligne = await DB.prepare("SELECT * FROM resultats WHERE cle = ?").bind(cle).first();
   return json(ligne);
 });
-var DATE2 = /^\d{4}-\d{2}-\d{2}$/;
-var CRENEAUX2 = ["A", "B", "C"];
-var STATUTS2 = ["prevue", "faite", "reportee"];
-var onRequestGet6 = gerer(async (context) => {
-  await exigerSession(context);
-  const url = new URL(context.request.url);
-  const du = url.searchParams.get("du");
-  const au = url.searchParams.get("au");
-  const requete = du && au && DATE2.test(du) && DATE2.test(au) ? context.env.DB.prepare(
-    "SELECT * FROM seances WHERE date BETWEEN ? AND ? ORDER BY date ASC, creneau ASC"
-  ).bind(du, au) : context.env.DB.prepare("SELECT * FROM seances ORDER BY date ASC, creneau ASC LIMIT 400");
-  const { results } = await requete.all();
-  return json({ seances: (results || []).map(decoder) });
-});
-var onRequestPost5 = gerer(async (context) => {
-  exigerProf(await exigerSession(context));
-  let corps;
-  try {
-    corps = await context.request.json();
-  } catch (e) {
-    return erreur("Requ\xEAte invalide.");
-  }
-  const erreurChamp = valider(corps);
-  if (erreurChamp) return erreur(erreurChamp);
-  const date = maintenant();
-  const seance = {
-    id: nouvelId(),
-    date: corps.date,
-    creneau: corps.creneau,
-    matieres: JSON.stringify(corps.matieres || []),
-    lecons: JSON.stringify(corps.lecons || []),
-    objectif: corps.objectif ? String(corps.objectif).slice(0, 300) : null,
-    travail: corps.travail ? String(corps.travail).slice(0, 500) : null,
-    statut: corps.statut && STATUTS2.includes(corps.statut) ? corps.statut : "prevue",
-    bilan: null,
-    cree_le: date,
-    maj_le: date
-  };
-  await context.env.DB.prepare(
-    `INSERT INTO seances (id, date, creneau, matieres, lecons, objectif, travail, statut, bilan, cree_le, maj_le)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).bind(
-    seance.id,
-    seance.date,
-    seance.creneau,
-    seance.matieres,
-    seance.lecons,
-    seance.objectif,
-    seance.travail,
-    seance.statut,
-    seance.bilan,
-    seance.cree_le,
-    seance.maj_le
-  ).run();
-  return json(decoder(seance), 201);
-});
-function valider(corps) {
-  if (!corps || !DATE2.test(String(corps.date || ""))) return "Date invalide (AAAA-MM-JJ attendu).";
-  if (!CRENEAUX2.includes(corps.creneau)) return "Cr\xE9neau invalide (A, B ou C).";
-  if (corps.matieres && !Array.isArray(corps.matieres)) return "matieres doit \xEAtre une liste.";
-  if (corps.lecons && !Array.isArray(corps.lecons)) return "lecons doit \xEAtre une liste.";
-  return null;
-}
-__name(valider, "valider");
-__name2(valider, "valider");
-function decoder(ligne) {
-  const lire = /* @__PURE__ */ __name2((v) => {
-    try {
-      return JSON.parse(v || "[]");
-    } catch (e) {
-      return [];
-    }
-  }, "lire");
-  return { ...ligne, matieres: lire(ligne.matieres), lecons: lire(ligne.lecons) };
-}
-__name(decoder, "decoder");
-__name2(decoder, "decoder");
 var NIVEAUX = ["insuffisant", "fragile", "satisfaisant", "tresbien"];
 var onRequestPut3 = gerer(async (context) => {
   const session = exigerProf(await exigerSession(context));
@@ -623,6 +709,20 @@ __name(entetes, "entetes");
 __name2(entetes, "entetes");
 var routes = [
   {
+    routePath: "/api/seances/:id/choix",
+    mountPath: "/api/seances/:id",
+    method: "POST",
+    middlewares: [],
+    modules: [onRequestPost]
+  },
+  {
+    routePath: "/api/seances/lot",
+    mountPath: "/api/seances",
+    method: "POST",
+    middlewares: [],
+    modules: [onRequestPost3]
+  },
+  {
     routePath: "/api/fichiers/:id",
     mountPath: "/api/fichiers",
     method: "DELETE",
@@ -634,7 +734,7 @@ var routes = [
     mountPath: "/api/fichiers",
     method: "GET",
     middlewares: [],
-    modules: [onRequestGet]
+    modules: [onRequestGet2]
   },
   {
     routePath: "/api/seances/:id",
@@ -655,21 +755,21 @@ var routes = [
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost]
+    modules: [onRequestPost4]
   },
   {
     routePath: "/api/deconnexion",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost2]
+    modules: [onRequestPost5]
   },
   {
     routePath: "/api/etat",
     mountPath: "/api",
     method: "GET",
     middlewares: [],
-    modules: [onRequestGet2]
+    modules: [onRequestGet3]
   },
   {
     routePath: "/api/fiches",
@@ -683,21 +783,21 @@ var routes = [
     mountPath: "/api/fichiers",
     method: "GET",
     middlewares: [],
-    modules: [onRequestGet3]
+    modules: [onRequestGet4]
   },
   {
     routePath: "/api/fichiers",
     mountPath: "/api/fichiers",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost3]
+    modules: [onRequestPost6]
   },
   {
     routePath: "/api/messages",
     mountPath: "/api",
     method: "GET",
     middlewares: [],
-    modules: [onRequestGet4]
+    modules: [onRequestGet5]
   },
   {
     routePath: "/api/messages",
@@ -711,14 +811,14 @@ var routes = [
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost4]
+    modules: [onRequestPost7]
   },
   {
     routePath: "/api/moi",
     mountPath: "/api",
     method: "GET",
     middlewares: [],
-    modules: [onRequestGet5]
+    modules: [onRequestGet6]
   },
   {
     routePath: "/api/resultats",
@@ -732,14 +832,14 @@ var routes = [
     mountPath: "/api",
     method: "GET",
     middlewares: [],
-    modules: [onRequestGet6]
+    modules: [onRequestGet]
   },
   {
     routePath: "/api/seances",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost5]
+    modules: [onRequestPost2]
   },
   {
     routePath: "/api/suivi",

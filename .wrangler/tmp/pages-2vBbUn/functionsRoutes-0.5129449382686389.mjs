@@ -1,3 +1,5 @@
+import { onRequestPost as __api_seances__id__choix_js_onRequestPost } from "/home/user/sterenncours/functions/api/seances/[id]/choix.js"
+import { onRequestPost as __api_seances_lot_js_onRequestPost } from "/home/user/sterenncours/functions/api/seances/lot.js"
 import { onRequestDelete as __api_fichiers__id__js_onRequestDelete } from "/home/user/sterenncours/functions/api/fichiers/[id].js"
 import { onRequestGet as __api_fichiers__id__js_onRequestGet } from "/home/user/sterenncours/functions/api/fichiers/[id].js"
 import { onRequestDelete as __api_seances__id__js_onRequestDelete } from "/home/user/sterenncours/functions/api/seances/[id].js"
@@ -20,6 +22,20 @@ import { onRequest as ___middleware_js_onRequest } from "/home/user/sterenncours
 
 export const routes = [
     {
+      routePath: "/api/seances/:id/choix",
+      mountPath: "/api/seances/:id",
+      method: "POST",
+      middlewares: [],
+      modules: [__api_seances__id__choix_js_onRequestPost],
+    },
+  {
+      routePath: "/api/seances/lot",
+      mountPath: "/api/seances",
+      method: "POST",
+      middlewares: [],
+      modules: [__api_seances_lot_js_onRequestPost],
+    },
+  {
       routePath: "/api/fichiers/:id",
       mountPath: "/api/fichiers",
       method: "DELETE",

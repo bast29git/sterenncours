@@ -25,11 +25,14 @@
     { id: 'exercices', libelle: 'Exercices', picto: '✍️' },
     { id: 'evaluation', libelle: 'Évaluation', picto: '📊' },
   ];
-  const CRENEAUX = {
-    A: 'Séance A · Maths et Français',
-    B: 'Séance B · Sciences et Histoire-Géo',
-    C: 'Séance C · Langues',
+  const CRENEAUX = { A: 'Lundi', B: 'Mercredi', C: 'Vendredi' };
+  const NOMS_COURTS = {
+    'maths': 'Maths', 'francais': 'Français', 'physique-chimie': 'Phys-Chimie',
+    'svt': 'SVT', 'histoire-geo': 'Hist-Géo', 'emc': 'EMC',
+    'anglais-lv1': 'Anglais', 'espagnol-lv2': 'Espagnol',
   };
+  const nomCourt = (id) => NOMS_COURTS[id] || id;
+  const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
   const STATUTS = { prevue: 'Prévue', faite: 'Faite', reportee: 'Reportée' };
 
   let role = null;
@@ -142,6 +145,7 @@
     if (donneesChargees) return;
     await chargerScript('data/programme.js');
     await chargerScript('data/exercices.js');
+    await chargerScript('planificateur.js');
     donneesChargees = true;
   }
   const enCours = {};
@@ -278,7 +282,8 @@
       document.getElementById('nav-lateral').innerHTML =
         `<div class="lateral-groupe"><h2>Quotidien</h2><ul>
            ${lien('accueil', '📌', 'Aujourd\'hui')}
-           ${lien('planning', '🗓️', 'Planning')}
+           ${lien('calendrier', '🗓️', 'Calendrier')}
+           ${lien('planning', '⚙️', 'Configurer le planning')}
            ${lien('suivi', '📈', 'Suivi des acquis')}
          </ul></div>
          <div class="lateral-groupe"><h2>Échanges</h2><ul>
@@ -296,6 +301,7 @@
     document.getElementById('nav-lateral').innerHTML =
       `<div class="lateral-groupe"><ul>
          ${lien('accueil', '📌', 'Aujourd\'hui')}
+         ${lien('calendrier', '🗓️', 'Mon calendrier')}
          ${lien('matieres', '📚', 'Mes matières')}
          ${lien('progres', '🏅', 'Mes progrès')}
          ${lien('messages', '💬', 'Messages', alerte)}
@@ -386,6 +392,126 @@
     });
   }
 
+  /* ---------- Calendrier de la semaine ------------------------------------------------ */
+  function evenement(s, aujourd) {
+    const mats = (s.matieres || []).map((id) => {
+      const m = matiere(id);
+      return m ? `<span class="evt-mat" style="color:var(--c-${id})">${m.icone} ${ech(nomCourt(id))}</span>` : '';
+    }).join('');
+
+    if (s.type === 'travail') {
+      return `<div class="evt evt-travail">
+        <span class="evt-heure">${ech(s.debut)} · 15 min</span>
+        <span class="evt-titre">Travail personnel</span>
+        ${s.travail ? `<span class="evt-texte" title="${ech(s.travail)}">${ech(s.travail)}</span>` : ''}
+      </div>`;
+    }
+
+    const aChoisir = (s.choix || []).length >= 2 && !s.choisi_le;
+    // Une leçon pas encore rédigée n'affiche pas de lien : la pastille de
+    // matière dit déjà de quoi il s'agit, inutile d'encombrer la case.
+    const liens = (s.lecons || []).map((r) => {
+      const info = libelleLecon(r);
+      if (!info || !(info.l.docs || []).length) return '';
+      return `<a href="#/lecon/${info.m.id}/${info.l.ref}/cours">${ech(info.l.ref)} · ouvrir</a>`;
+    }).join('');
+
+    const actions = estProf()
+      ? `<button data-action="faite" data-id="${s.id}" type="button">✓ faite</button>
+         <button data-action="bilan" data-id="${s.id}" type="button">bilan</button>`
+      : '';
+
+    return `<div class="evt evt-${s.statut}">
+      <span class="evt-heure">${ech(s.debut)} à ${ech(s.fin)}${s.statut !== 'prevue' ? ' · ' + ech(STATUTS[s.statut]) : ''}</span>
+      <span class="evt-titre">${String(s.objectif || 'Séance de travail').split(' · ')
+      .map((part) => `<span class="evt-part">${ech(part)}</span>`).join('')}</span>
+      ${mats ? `<span class="evt-mats">${mats}</span>` : ''}
+      ${aChoisir ? '<span class="evt-drapeau">À choisir</span>' : ''}
+      ${liens || actions ? `<span class="evt-liens">${liens}${actions}</span>` : ''}
+    </div>`;
+  }
+
+  function blocChoix(seances) {
+    const ouverts = seances.filter((s) => (s.choix || []).length >= 2 && !s.choisi_le);
+    if (!ouverts.length) return '';
+    return ouverts.map((s) => `<section class="choix-bloc" data-choix="${s.id}">
+      <h2>${estProf() ? 'Choix proposé à Sterenn' : 'À toi de choisir'}</h2>
+      <p class="aide">${estProf()
+      ? `Séance du ${ech(enFrancais(s.date, true))} : elle choisira la deuxième leçon parmi ces trois.`
+      : `Pour la séance du ${ech(enFrancais(s.date, true))}, tu choisis la deuxième leçon. Les trois sont au programme : prends celle qui te tente le plus.`}</p>
+      <ul class="choix-options">${(s.choix || []).map((r) => {
+      const info = libelleLecon(r);
+      if (!info) return '';
+      return `<li><button type="button" data-seance="${s.id}" data-lecon="${r}">
+        <span class="m" style="color:var(--c-${info.m.id})">${info.m.icone} ${ech(info.m.nom)}</span>
+        <b>${ech(info.l.titre)}</b>
+        <span>${info.l.notions.slice(0, 3).map(ech).join(' · ')}</span>
+      </button></li>`;
+    }).join('')}</ul></section>`).join('');
+  }
+
+  function brancherChoix(rafraichir) {
+    document.querySelectorAll('[data-seance][data-lecon]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        try {
+          await api('/seances/' + b.getAttribute('data-seance') + '/choix', {
+            method: 'POST', body: JSON.stringify({ lecon: b.getAttribute('data-lecon') }),
+          });
+          signaler('Choix enregistré.', 'succes');
+          rafraichir();
+        } catch (e) { signaler(e.message); }
+      });
+    });
+  }
+
+  async function vueCalendrier(depart) {
+    const valide = depart && /^\d{4}-\d{2}-\d{2}$/.test(depart);
+    const lundi = lundiDe(valide ? depart : jourIso());
+    const aujourd = jourIso();
+    afficher('<p class="vide">Chargement du calendrier…</p>', [{ texte: 'Calendrier' }]);
+    const seances = await chargerSeances(lundi, decaler(lundi, 6));
+
+    const colonnes = JOURS.map((nom, i) => {
+      const jour = decaler(lundi, i);
+      const duJour = seances.filter((s) => s.date === jour)
+        .sort((a, b) => String(a.debut).localeCompare(String(b.debut)));
+      const classes = ['cal-jour'];
+      if (!duJour.length) classes.push('vide');
+      if (jour === aujourd) classes.push('aujourdhui');
+      else if (jour < aujourd) classes.push('passe');
+      return `<div class="${classes.join(' ')}">
+        <p class="cal-jour-tete"><span class="cal-jour-nom">${nom}</span>
+          <span class="cal-jour-num">${Number(jour.slice(8, 10))}</span></p>
+        ${duJour.length ? duJour.map((s) => evenement(s, aujourd)).join('')
+        : '<p class="cal-repos">Rien de prévu</p>'}
+      </div>`;
+    }).join('');
+
+    const total = seances.filter((s) => s.type === 'cours').length;
+    afficher(
+      `<h1>${estProf() ? 'Calendrier' : 'Mon calendrier'}</h1>
+       <p class="intro">${estProf()
+        ? 'La semaine en un coup d\'œil. Les séances se configurent dans « Configurer le planning ».'
+        : 'Ta semaine. Les cours sont le lundi, le mercredi et le vendredi de 13 h à 14 h 30.'}</p>
+       ${blocChoix(seances)}
+       <div class="cal-tete">
+         <button class="bouton-secondaire" id="cal-prec" type="button">← Semaine précédente</button>
+         <h2>Semaine du ${ech(enFrancais(lundi, true))}</h2>
+         <button class="bouton-secondaire" id="cal-auj" type="button">Cette semaine</button>
+         <button class="bouton-secondaire" id="cal-suiv" type="button">Semaine suivante →</button>
+       </div>
+       <div class="calendrier">${colonnes}</div>
+       ${total ? '' : `<p class="vide">Aucune séance cette semaine.${estProf() ? ' <a href="#/planning">Configurer le planning</a>.' : ''}</p>`}`,
+      [{ texte: estProf() ? 'Calendrier' : 'Mon calendrier' }],
+    );
+
+    document.getElementById('cal-prec').addEventListener('click', () => { location.hash = '#/calendrier/' + decaler(lundi, -7); });
+    document.getElementById('cal-suiv').addEventListener('click', () => { location.hash = '#/calendrier/' + decaler(lundi, 7); });
+    document.getElementById('cal-auj').addEventListener('click', () => { location.hash = '#/calendrier/' + jourIso(); });
+    brancherActionsSeance(() => vueCalendrier(lundi));
+    brancherChoix(() => vueCalendrier(lundi));
+  }
+
   /* ---------- PROFESSEUR : aujourd'hui ---------------------------------------------- */
   async function vueProfAujourdhui() {
     const aujourd = jourIso();
@@ -461,28 +587,41 @@
     brancherActionsSeance(vueProfAujourdhui);
   }
 
-  /* ---------- PROFESSEUR : planning --------------------------------------------------- */
+  /* ---------- PROFESSEUR : configuration du planning --------------------------------- */
   async function vuePlanning(depart) {
-    const lundi = lundiDe(depart && /^\d{4}-\d{2}-\d{2}$/.test(depart) ? depart : jourIso());
-    const dimanche = decaler(lundi, 6);
-    afficher('<p class="vide">Chargement du planning…</p>', [{ texte: 'Planning' }]);
-    const seances = await chargerSeances(lundi, dimanche);
-
-    const jours = [];
-    for (let i = 0; i < 7; i += 1) jours.push(decaler(lundi, i));
+    const valide = depart && /^\d{4}-\d{2}-\d{2}$/.test(depart);
+    const lundi = lundiDe(valide ? depart : jourIso());
+    afficher('<p class="vide">Chargement…</p>', [{ texte: 'Configurer le planning' }]);
+    const seances = await chargerSeances(lundi, decaler(lundi, 6));
 
     const optionsLecons = PROGRAMME.matieres.map((m) =>
       `<optgroup label="${ech(m.nom)}">${m.lecons.map((l) =>
         `<option value="${m.id}/${l.ref}">${ech(l.ref)} · ${ech(l.titre)}</option>`).join('')}</optgroup>`).join('');
 
     afficher(
-      `<h1>Planning</h1>
-       <p class="intro">Trois séances par semaine. Coche ce qui est fait, note le travail donné.</p>
-       <div class="semaine-tete">
-         <button class="bouton-secondaire" id="sem-prec" type="button">← Semaine précédente</button>
-         <h2>Semaine du ${ech(enFrancais(lundi, true))}</h2>
-         <button class="bouton-secondaire" id="sem-suiv" type="button">Semaine suivante →</button>
-         <button class="bouton-secondaire" id="sem-auj" type="button">Aujourd'hui</button>
+      `<h1>Configurer le planning</h1>
+       <p class="intro">Rythme par défaut : lundi, mercredi et vendredi de 13 h à 14 h 30, plus deux temps de travail personnel le mardi et le jeudi.</p>
+
+       <section class="carte">
+         <p class="carte-titre">🪄 Pré-générer l'année</p>
+         <p class="discret" style="margin-top:0">Répartit les 69 leçons sur les trois séances hebdomadaires en alternant les matières, et place les temps de travail personnel entre les cours. Une séance sur quatre laisse à Sterenn le choix entre trois leçons. Rien n'est écrasé : une séance déjà présente sur un créneau est conservée.</p>
+         <form class="form-seance" id="form-generer">
+           <div class="ligne">
+             <div><label for="g-debut">Premier lundi</label>
+               <input type="date" id="g-debut" value="${lundiDe(jourIso())}" required></div>
+             <div><label for="g-semaines">Nombre de semaines</label>
+               <input type="number" id="g-semaines" value="36" min="1" max="45" required></div>
+           </div>
+           <button class="bouton" type="submit" id="btn-generer">Générer le planning</button>
+         </form>
+       </section>
+
+       <h2 class="titre-section">Semaine du ${ech(enFrancais(lundi, true))}</h2>
+       <div class="cal-tete">
+         <button class="bouton-secondaire" id="sem-prec" type="button">← Précédente</button>
+         <button class="bouton-secondaire" id="sem-auj" type="button">Cette semaine</button>
+         <button class="bouton-secondaire" id="sem-suiv" type="button">Suivante →</button>
+         <a class="bouton bouton-doux" href="#/calendrier/${lundi}">Voir en calendrier</a>
        </div>
        <div class="semaine" id="zone-semaine">${seances.length
         ? seances.map((s) => carteSeance(s)).join('')
@@ -491,22 +630,23 @@
        <h2 class="titre-section">Ajouter une séance</h2>
        <form class="carte form-seance" id="form-seance">
          <div class="ligne">
-           <div><label for="s-date">Date</label>
-             <input type="date" id="s-date" value="${jours[0]}" min="${decaler(lundi, -365)}" required></div>
-           <div><label for="s-creneau">Créneau</label>
+           <div><label for="s-date">Date</label><input type="date" id="s-date" value="${lundi}" required></div>
+           <div><label for="s-creneau">Jour type</label>
              <select id="s-creneau">${Object.entries(CRENEAUX).map(([k, v]) =>
               `<option value="${k}">${ech(v)}</option>`).join('')}</select></div>
+           <div><label for="s-debut">Début</label><input type="time" id="s-debut" value="13:00"></div>
+           <div><label for="s-fin">Fin</label><input type="time" id="s-fin" value="14:30"></div>
          </div>
          <div><label for="s-objectif">Objectif de la séance</label>
            <input type="text" id="s-objectif" maxlength="300" placeholder="Pythagore : calculer un côté et rédiger la démonstration"></div>
          <div><label for="s-lecons">Leçons travaillées</label>
            <select id="s-lecons" multiple size="6">${optionsLecons}</select>
-           <p class="discret" style="margin:0.25rem 0 0">Maintenir Ctrl (ou Cmd) pour en choisir plusieurs.</p></div>
+           <p class="discret" style="margin:0.25rem 0 0">Maintenir Ctrl ou Cmd pour en choisir plusieurs.</p></div>
          <div><label for="s-travail">Travail à faire d'ici la prochaine fois</label>
            <textarea id="s-travail" rows="2" maxlength="500" placeholder="Exercices 9 à 12, à la main"></textarea></div>
          <button class="bouton" type="submit">Ajouter la séance</button>
        </form>`,
-      [{ texte: 'Planning' }],
+      [{ texte: 'Configurer le planning' }],
     );
 
     document.getElementById('sem-prec').addEventListener('click', () => { location.hash = '#/planning/' + decaler(lundi, -7); });
@@ -514,19 +654,48 @@
     document.getElementById('sem-auj').addEventListener('click', () => { location.hash = '#/planning/' + jourIso(); });
     brancherActionsSeance(() => vuePlanning(lundi));
 
+    document.getElementById('form-generer').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const bouton = document.getElementById('btn-generer');
+      const debut = lundiDe(document.getElementById('g-debut').value);
+      const semaines = Math.max(1, Math.min(45, Number(document.getElementById('g-semaines').value) || 36));
+      bouton.disabled = true;
+      bouton.textContent = 'Génération…';
+      try {
+        const { seances: liste, restants } = window.PLANIFICATEUR.generer(debut, semaines);
+        let crees = 0;
+        let ignores = 0;
+        for (let i = 0; i < liste.length; i += 200) {
+          const r = await api('/seances/lot', { method: 'POST', body: JSON.stringify({ seances: liste.slice(i, i + 200) }) });
+          crees += r.crees;
+          ignores += r.ignores;
+        }
+        signaler(`${crees} séance(s) créée(s)` + (ignores ? `, ${ignores} déjà en place` : '')
+          + (restants ? `. ${restants} bloc(s) non placés : ajoute des semaines.` : '.'), 'succes');
+        vuePlanning(lundi);
+      } catch (e) {
+        signaler(e.message);
+      } finally {
+        bouton.disabled = false;
+        bouton.textContent = 'Générer le planning';
+      }
+    });
+
     document.getElementById('form-seance').addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const lecons = [...document.getElementById('s-lecons').selectedOptions].map((o) => o.value);
-      const matieres = [...new Set(lecons.map((r) => r.split('/')[0]))];
       try {
         await api('/seances', {
           method: 'POST',
           body: JSON.stringify({
             date: document.getElementById('s-date').value,
             creneau: document.getElementById('s-creneau').value,
+            debut: document.getElementById('s-debut').value,
+            fin: document.getElementById('s-fin').value,
             objectif: document.getElementById('s-objectif').value,
             travail: document.getElementById('s-travail').value,
-            lecons, matieres,
+            lecons,
+            matieres: [...new Set(lecons.map((r) => r.split('/')[0]))],
           }),
         });
         signaler('Séance ajoutée.', 'succes');
@@ -535,49 +704,63 @@
     });
   }
 
-  /* ---------- ÉLÈVE : aujourd'hui ------------------------------------------------------ */
+
+  /* ---------- ÉLÈVE : aujourd'hui ---------------------------------------------------- */
   async function vueEleveAujourdhui() {
     const aujourd = jourIso();
     afficher('<p class="vide">Chargement…</p>', [{ texte: 'Aujourd\'hui' }]);
-    const seances = await chargerSeances(decaler(aujourd, -21), decaler(aujourd, 21));
+    const seances = await chargerSeances(decaler(aujourd, -14), decaler(aujourd, 21));
 
-    const duJour = seances.find((s) => s.date === aujourd);
-    const prochaine = seances.filter((s) => s.date > aujourd && s.statut === 'prevue')
+    const coursJour = seances.find((s) => s.date === aujourd && s.type === 'cours');
+    const travailJour = seances.find((s) => s.date === aujourd && s.type === 'travail');
+    const prochaine = seances.filter((s) => s.date > aujourd && s.type === 'cours')
       .sort((a, b) => a.date.localeCompare(b.date))[0];
-    const aFaire = seances.filter((s) => s.date <= aujourd && s.travail)
+    const aFaire = seances.filter((s) => s.date <= aujourd && s.travail && s.type === 'cours')
       .sort((a, b) => b.date.localeCompare(a.date))[0];
 
-    const vedette = duJour || prochaine;
+    const vedette = coursJour || prochaine;
     const suivante = prochaineLecon();
-    const cibleLecon = vedette && (vedette.lecons || []).length
+    const cible = vedette && (vedette.lecons || []).length
       ? libelleLecon(vedette.lecons[0])
       : (suivante ? { m: suivante.m, l: suivante.l } : null);
-
     const c = chiffres();
+
+    const quand = coursJour ? 'Aujourd\'hui' : (prochaine ? 'Prochaine séance' : 'À faire maintenant');
+    const detail = vedette
+      ? (coursJour ? `De ${ech(vedette.debut)} à ${ech(vedette.fin)}` : ech(enFrancais(vedette.date, true)))
+        + ' · ' + (vedette.matieres || []).map((id) => {
+          const m = matiere(id);
+          return m ? m.icone + ' ' + ech(m.nom) : '';
+        }).filter(Boolean).join(' · ')
+      : (cible ? ech(cible.m.nom) : 'Les prochaines leçons arriveront bientôt.');
 
     afficher(
       `<section class="aujourdhui">
-        <p class="quand">${duJour ? 'Aujourd\'hui' : (prochaine ? 'Prochaine séance' : 'À faire maintenant')}</p>
-        <h1>${vedette
-        ? ech(vedette.objectif || CRENEAUX[vedette.creneau] || 'Séance de travail')
-        : (cibleLecon ? ech(cibleLecon.l.titre) : 'Rien à faire pour l\'instant')}</h1>
-        <p class="detail">${vedette
-        ? (duJour ? '' : ech(enFrancais(vedette.date, true)) + ' · ')
-          + (vedette.matieres || []).map((id) => { const m = matiere(id); return m ? m.icone + ' ' + ech(m.nom) : ''; }).join(' · ')
-        : (cibleLecon ? ech(cibleLecon.m.nom) : 'Les prochaines leçons arriveront bientôt.')}</p>
+        <p class="quand">${quand}</p>
+        <h1>${vedette ? ech(vedette.objectif || 'Séance de travail')
+        : (cible ? ech(cible.l.titre) : 'Rien à faire pour l\'instant')}</h1>
+        <p class="detail">${detail}</p>
         <p class="barre-actions">
-          ${cibleLecon && (cibleLecon.l.docs || []).length
-        ? `<a class="bouton" href="#/lecon/${cibleLecon.m.id}/${cibleLecon.l.ref}/cours">📘 Ouvrir ma leçon</a>` : ''}
-          ${cibleLecon && banque(cibleLecon.m.id, cibleLecon.l.ref)
-        ? `<a class="bouton bouton-doux" href="#/exos/${cibleLecon.m.id}/${cibleLecon.l.ref}">🎯 M'entraîner</a>` : ''}
+          ${cible && (cible.l.docs || []).length
+        ? `<a class="bouton" href="#/lecon/${cible.m.id}/${cible.l.ref}/cours">📘 Ouvrir ma leçon</a>` : ''}
+          ${cible && banque(cible.m.id, cible.l.ref)
+        ? `<a class="bouton bouton-doux" href="#/exos/${cible.m.id}/${cible.l.ref}">🎯 M'entraîner</a>` : ''}
+          <a class="bouton bouton-neutre" href="#/calendrier">🗓️ Voir ma semaine</a>
         </p>
        </section>
 
-       ${aFaire ? `<div class="carte" style="margin-bottom:1.2rem">
+       ${blocChoix(seances.filter((s) => s.date >= aujourd))}
+
+       ${travailJour ? `<div class="carte" style="margin-bottom:1.2rem">
+         <p class="carte-titre">⏱️ Ton temps de travail personnel, aujourd'hui</p>
+         <p style="margin:0">${ech(travailJour.travail || 'Un temps court de révision.')}</p></div>` : ''}
+
+       ${aFaire && !travailJour ? `<div class="carte" style="margin-bottom:1.2rem">
          <p class="carte-titre">📝 À faire d'ici la prochaine fois</p>
          <p style="margin:0">${ech(aFaire.travail)}</p></div>` : ''}
 
        <ul class="actions-eleve">
+         <li><a href="#/calendrier"><span class="ico" aria-hidden="true">🗓️</span><b>Mon calendrier</b><span>Ma semaine en un coup d'œil</span></a></li>
          <li><a href="#/matieres"><span class="ico" aria-hidden="true">📚</span><b>Mes matières</b><span>Toutes mes leçons</span></a></li>
          <li><a href="#/travail"><span class="ico" aria-hidden="true">📤</span><b>Envoyer mon travail</b><span>Une photo, un document</span></a></li>
          <li><a href="#/messages"><span class="ico" aria-hidden="true">💬</span><b>Messages</b><span>${etat.messagesNonLus ? etat.messagesNonLus + ' non lu(s)' : 'Poser une question'}</span></a></li>
@@ -585,7 +768,9 @@
        </ul>`,
       [{ texte: 'Aujourd\'hui' }],
     );
+    brancherChoix(vueEleveAujourdhui);
   }
+
 
   /* ---------- Commun : matières et leçons ------------------------------------------------ */
   function chiffres() {
@@ -1204,7 +1389,8 @@
     const p = (location.hash || '#/accueil').replace(/^#\/?/, '').split('/');
     switch (p[0]) {
       case '': case 'accueil': return vueAccueil();
-      case 'planning': return estProf() ? vuePlanning(p[1]) : vueAccueil();
+      case 'calendrier': return vueCalendrier(p[1]);
+      case 'planning': return estProf() ? vuePlanning(p[1]) : vueCalendrier(p[1]);
       case 'matieres': return vueMatieres();
       case 'matiere': return vueMatiere(p[1]);
       case 'lecon': return vueLecon(p[1], p[2], p[3]);

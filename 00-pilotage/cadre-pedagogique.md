@@ -39,18 +39,28 @@ Le vocabulaire, les attentes et les contenus restent ceux de la 4ᵉ.
 
 ## 2. Le rythme de la semaine
 
-**Trois séances par semaine**, à la maison ou en visio, **1 h à 1 h 30 consécutives au maximum**.
+**Trois séances par semaine**, à la maison ou en visio, **de 13 h à 14 h 30**, jamais plus.
 
 ::: grille
-| Séance | Durée | Matières | Format |
-|---|---|---|---|
-| **Séance A** | 1 h 30 | Mathématiques et Français | 2 blocs de 30 min, une pause entre les deux |
-| **Séance B** | 1 h 30 | Sciences (Physique-Chimie et SVT en alternance) et Histoire-Géographie / EMC | 2 blocs de 30 min, une pause entre les deux |
-| **Séance C** | 1 h | Anglais et Espagnol en alternance | 1 bloc de 26 min, une pause, puis 12 min d'application |
+| Jour | Horaire | Contenu |
+|---|---|---|
+| **Lundi** | 13 h 00 à 14 h 30 | Deux matières, 2 blocs de 30 min séparés par une pause |
+| **Mardi** | 15 à 20 min | **Travail personnel**, sur l'ordinateur |
+| **Mercredi** | 13 h 00 à 14 h 30 | Deux matières, 2 blocs de 30 min séparés par une pause |
+| **Jeudi** | 15 à 20 min | **Travail personnel**, à la main sur papier |
+| **Vendredi** | 13 h 00 à 14 h 30 | Deux matières, 2 blocs de 30 min séparés par une pause |
+:::
+
+::: info Les matières changent d'une séance à l'autre
+Les paires de matières ne sont pas figées : le planning les fait tourner pour qu'aucune semaine ne ressemble exactement à la précédente, tout en respectant le volume horaire de chacune. Chaque leçon occupe **trois blocs** : découverte, application, puis entraînement et bilan.
+:::
+
+::: info Une séance sur quatre, c'est elle qui choisit
+Le planning propose alors **trois leçons possibles** pour la seconde moitié de la séance. Toutes sont au programme, aucune n'est un cadeau : c'est l'ordre qui devient négociable, pas le contenu. Choisir soi-même ce qu'on va travailler change complètement l'entrée dans la tâche.
 :::
 
 ::: info Volume réel
-**4 heures encadrées par semaine**, plus deux temps courts de travail personnel.
+**4 h 30 encadrées par semaine**, plus deux temps courts de travail personnel.
 C'est peu comparé aux 26 h d'un emploi du temps de collège, et c'est normal : en séance individuelle, il n'y a ni appel, ni déplacement, ni temps de gestion de groupe. Le temps utile par heure est sans commune mesure.
 :::
 

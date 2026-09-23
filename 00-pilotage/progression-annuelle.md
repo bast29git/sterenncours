@@ -22,19 +22,15 @@ objectifs:
 
 ## 1. Le rythme de la semaine
 
-Trois séances, **1 h à 1 h 30 maximum** à chaque fois, à la maison ou en visio.
-
-::: grille
-| Séance | Durée | Bloc 1 | Bloc 2 |
-|---|---|---|---|
-| **A** | 1 h 30 | Mathématiques (30 min) | Français (30 min) |
-| **B** | 1 h 30 | Physique-Chimie **ou** SVT, en alternance (30 min) | Histoire-Géographie / EMC (30 min) |
-| **C** | 1 h | Anglais **ou** Espagnol, en alternance (26 min) | Application et exercices interactifs (12 min) |
-:::
+Trois séances, **lundi, mercredi et vendredi de 13 h à 14 h 30**, à la maison ou en visio. Deux matières par séance, en deux blocs de 30 minutes séparés par une pause. Entre les cours, deux temps courts de travail personnel, le mardi et le jeudi.
 
 ::: info Ce que ça donne sur l'année
-Sur 36 semaines : **36 blocs de maths**, 36 de français, 18 de physique-chimie, 18 de SVT, 36 d'histoire-géographie et EMC, 18 d'anglais, 18 d'espagnol.
-Soit **2 à 3 blocs par leçon**, ce qui correspond au cycle décrit ci-dessous.
+36 semaines × 3 séances × 2 blocs = **216 blocs de travail encadré**, pour **207 blocs nécessaires** (69 leçons × 3 blocs). La marge sert aux reprises.
+Répartition obtenue : 36 blocs de maths, 36 d'histoire-géographie, 30 de français, 24 de physique-chimie, 24 d'anglais, 24 d'espagnol, 21 de SVT, 12 d'EMC. C'est exactement le volume de chaque matière.
+:::
+
+::: info Le planning se pré-génère
+Dans l'espace professeur, « Configurer le planning » répartit automatiquement les 69 leçons sur l'année, fait tourner les matières, place les temps de travail personnel et réserve une séance sur quatre au choix de Sterenn. Tout reste modifiable séance par séance.
 :::
 
 ## 2. Le cycle d'une leçon

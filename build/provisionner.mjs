@@ -103,13 +103,21 @@ async function migrerD1(idBase) {
     .map((s) => s.split('\n').filter((l) => !l.trim().startsWith('--')).join('\n').trim())
     .filter(Boolean);
 
+  let appliquees = 0;
+  let deja = 0;
   for (const instruction of instructions) {
     const r = await appel(`/accounts/${COMPTE}/d1/database/${idBase}/query`, {
       method: 'POST', body: JSON.stringify({ sql: instruction }),
     });
-    if (!r.ok) throw new Error('D1, migration : ' + erreurs(r.donnees) + ' | ' + instruction.slice(0, 60));
+    if (r.ok) { appliquees += 1; continue; }
+    const message = erreurs(r.donnees);
+    // Un ajout de colonne déjà présente n'est pas une erreur : c'est ce qui
+    // rend la migration rejouable à chaque déploiement.
+    const toleree = /^ALTER TABLE/i.test(instruction) && /duplicate column/i.test(message);
+    if (toleree) { deja += 1; continue; }
+    throw new Error('D1, migration : ' + message + ' | ' + instruction.slice(0, 70));
   }
-  console.log(`   ⚙ schéma D1 appliqué (${instructions.length} instructions)`);
+  console.log(`   ⚙ schéma D1 appliqué (${appliquees} instruction(s)` + (deja ? `, ${deja} déjà en place)` : ')'));
 }
 
 /* ---------- R2 ------------------------------------------------------------- */
