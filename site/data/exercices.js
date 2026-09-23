@@ -3705,4 +3705,145 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'histoire-geo/G2': {
+    titre: 'Des villes inégalement connectées',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce que la mondialisation ?',
+        choix: ['L\'unification politique du monde', 'La mise en relation croissante des parties du monde par des flux', 'La disparition des frontières'],
+        reponse: 1,
+        explication: "La mise en relation croissante des différentes parties du monde par la circulation des marchandises, des capitaux, des informations et des personnes. Elle ne supprime ni les États ni les frontières."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qu\'un hub ?',
+        choix: ['Un point isolé du réseau', 'Un nœud majeur, plateforme de correspondance', 'Un câble sous-marin'],
+        reponse: 1,
+        explication: "Un nœud majeur qui concentre l'essentiel du trafic. Pour aller de Brest à Hô Chi Minh-Ville, il faut passer par Paris puis Dubaï : le réseau relie les nœuds puissants, pas les lieux proches."
+      },
+      {
+        type: 'qcm',
+        q: 'Par où passe l\'essentiel du trafic internet mondial ?',
+        choix: ['Par les satellites', 'Par des câbles sous-marins en fibre optique', 'Par les ondes radio'],
+        reponse: 1,
+        explication: "Par des câbles sous-marins : plus de 99 % des données intercontinentales. Environ 550 câbles totalisent plus de 1,4 million de kilomètres. Les satellites servent surtout à la télévision et à la géolocalisation."
+      },
+      {
+        type: 'saisie',
+        q: 'Quelle part du commerce mondial en volume passe par la mer ? (en pourcentage)',
+        reponses: ['80', '80%', '80 %', '80 pour cent', 'environ 80'],
+        explication: "Environ 80 %. Le transport maritime reste de très loin le principal support des échanges de marchandises, grâce au conteneur qui en a divisé le coût par vingt."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi le conteneur a-t-il changé le commerce mondial ?',
+        choix: ['C\'est une prouesse technologique', 'C\'est une norme partagée qui permet le passage direct du navire au train et au camion', 'Il est incassable'],
+        reponse: 1,
+        explication: "C'est une simple boîte métallique, mais aux dimensions normalisées partout. Décharger un navire est passé de plusieurs jours à quelques heures : le coût du transport maritime a été divisé par vingt."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qu\'une firme transnationale ?',
+        choix: ['Une entreprise qui exporte', 'Une entreprise qui possède des filiales dans plusieurs pays et organise sa production à l\'échelle mondiale', 'Une entreprise d\'État'],
+        reponse: 1,
+        explication: "Elle conçoit dans un pays, fabrique dans un autre, assemble dans un troisième et vend partout. Ce découpage s'appelle la division internationale du travail."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qui définit une ville mondiale ?',
+        choix: ['Sa population', 'Sa superficie', 'Sa capacité à commander d\'autres territoires et son niveau de connexion'],
+        reponse: 2,
+        explication: "Ni la population ni la superficie. Lagos compte plus d'habitants que Londres, mais commande infiniment moins : son influence reste régionale, celle de Londres est mondiale."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelles sont les trois grandes aires de puissance ?',
+        choix: ['Amérique du Nord, Europe occidentale, Asie orientale', 'Europe, Afrique, Amérique', 'Chine, Inde, États-Unis'],
+        reponse: 0,
+        explication: "Elles concentrent l'essentiel des sièges de firmes, des échanges financiers et du trafic de conteneurs. Les flux les plus intenses de la planète circulent entre ces trois pôles."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Une mégapole et une mégalopole, c\'est la même chose.',
+        reponse: false,
+        explication: "Faux. Une mégapole est UNE agglomération de plus de 10 millions d'habitants, comme Le Caire ou Lagos. Une mégalopole est un chapelet de grandes villes presque continues, comme Boston-Washington."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle mégalopole rassemble environ 105 millions d\'habitants ?',
+        choix: ['La mégalopolis américaine', 'La mégalopole japonaise', 'La dorsale européenne'],
+        reponse: 1,
+        explication: "La mégalopole japonaise, de Tokyo à Fukuoka sur plus de mille kilomètres. Elle rassemble environ 80 % de la population du pays, car le reste du Japon est montagneux et peu habitable."
+      },
+      {
+        type: 'qcm',
+        q: 'Deux classements de villes mondiales donnent des podiums différents. Pourquoi ?',
+        choix: ['L\'un des deux est faux', 'Ils n\'ont pas retenu les mêmes critères', 'Les données sont fausses'],
+        reponse: 1,
+        explication: "Aucun n'est faux : ils ne mesurent pas la même chose. Pondérer la finance met Londres et New York en tête ; pondérer le fret met Shanghai et Singapour devant. La question à se poser : quels critères ?"
+      },
+      {
+        type: 'qcm',
+        q: 'Sur une carte de flux aériens, que signifie une zone presque vide ?',
+        choix: ['Il n\'y a personne', 'Il n\'y a pas de connexion', 'Les données manquent'],
+        reponse: 1,
+        explication: "Une absence de connexion, pas de population. L'Afrique compte 1,5 milliard d'habitants mais peu de liaisons internationales : la carte des flux mesure la puissance, pas le peuplement."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien coûte en moyenne le transport dans un pays enclavé, par rapport à un pays côtier comparable ?',
+        choix: ['Autant', 'Environ deux fois plus', 'Environ dix fois plus'],
+        reponse: 1,
+        explication: "Environ deux fois plus. Toute marchandise doit traverser un pays tiers pour atteindre un port, avec transport terrestre, ruptures de charge, douanes et délais. Une frontière fermée coupe l'accès au monde."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qu\'une métropole relais ?',
+        choix: ['Une ville mondiale de premier rang', 'Une grande ville qui redistribue à l\'échelle régionale ce qui vient des villes mondiales', 'Une ville sans aéroport'],
+        reponse: 1,
+        explication: "Nairobi joue ce rôle pour l'Afrique de l'Est, Dakar pour l'Afrique de l'Ouest. Elles n'ont pas d'influence mondiale directe, mais structurent les échanges d'une région entière."
+      },
+      {
+        type: 'qcm',
+        q: 'Quels sont les trois niveaux de la fracture numérique ?',
+        choix: ['Accès, usage, compétences', 'Ville, campagne, montagne', 'Jeunes, adultes, seniors'],
+        reponse: 0,
+        explication: "L'accès, y a-t-il un réseau ; l'usage, peut-on se l'offrir ; les compétences, sait-on s'en servir. Résorber la première ne suffit pas : on peut avoir la fibre et ne pas savoir remplir un formulaire en ligne."
+      },
+      {
+        type: 'saisie',
+        q: 'Comment appelle-t-on le fait qu\'un droit existe mais ne soit pas exercé, faute de pouvoir accomplir la démarche ? (deux mots)',
+        reponses: ['non-recours', 'le non-recours', 'non recours'],
+        explication: "Le non-recours. Quand une démarche devient exclusivement numérique, une personne sans connexion fiable ou sans aisance informatique renonce à un droit qu'elle possède pourtant."
+      },
+      {
+        type: 'vraifaux',
+        q: 'La mondialisation supprime les distances.',
+        reponse: false,
+        explication: "Faux. Elle les rend INÉGALES. Deux villes très éloignées peuvent être reliées par un vol direct quotidien, alors que deux villes voisines ne le sont par aucun. Ce qui compte est le temps et le coût, pas les kilomètres."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Avec la mondialisation, les frontières ont disparu.',
+        reponse: false,
+        explication: "Faux. Elles sont devenues SÉLECTIVES : très ouvertes aux capitaux et aux marchandises, beaucoup moins aux personnes. Certaines se sont même renforcées, avec des murs et des dispositifs de surveillance."
+      },
+      {
+        type: 'qcm',
+        q: 'L\'arrivée d\'un câble sous-marin dans un pays produit :',
+        choix: ['uniquement des effets positifs', 'uniquement des effets négatifs', 'des capacités nouvelles et des dépendances nouvelles'],
+        reponse: 2,
+        explication: "Les deux à la fois : baisse du prix de l'accès et essor de services nouveaux, mais dépendance à une infrastructure étrangère et exposition à la concurrence mondiale. Une bonne réponse tient les deux."
+      },
+      {
+        type: 'qcm',
+        q: 'Que désigne la souveraineté numérique ?',
+        choix: ['Le droit de vote en ligne', 'La capacité d\'un territoire à contrôler les infrastructures qui le connectent', 'La vitesse de connexion'],
+        reponse: 1,
+        explication: "Un territoire peut être parfaitement connecté sans contrôler ni les câbles, ni les centres de données, ni les plateformes qui le relient au monde. C'est aujourd'hui l'un des grands enjeux politiques de la mondialisation."
+      }
+    ]
+  }
 };
