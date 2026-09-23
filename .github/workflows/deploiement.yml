@@ -68,12 +68,21 @@ jobs:
           test -f public/data/programme.js || { echo "::error::les données du programme sont absentes"; exit 1; }
           echo "Poids du site : $(du -sh public | cut -f1)"
 
+      - name: Provisionner les ressources Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CODE_ELEVE: ${{ secrets.CODE_ELEVE }}
+          CODE_PROF: ${{ secrets.CODE_PROF }}
+        run: node build/provisionner.mjs
+
       - name: Créer le projet Pages s'il n'existe pas
         uses: cloudflare/wrangler-action@v3
         continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4'
           command: pages project create ${{ env.PROJET_PAGES }} --production-branch=${{ env.BRANCHE_PAGES }}
 
       - name: Déployer sur Cloudflare Pages
@@ -82,7 +91,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy public --project-name=${{ env.PROJET_PAGES }} --branch=${{ env.BRANCHE_PAGES }} --commit-dirty=true
+          wranglerVersion: '4'
+          command: pages deploy --project-name=${{ env.PROJET_PAGES }} --branch=${{ env.BRANCHE_PAGES }} --commit-dirty=true
 
       - name: Résumé
         run: |
@@ -92,4 +102,5 @@ jobs:
             echo "- Projet Pages : \`${{ env.PROJET_PAGES }}\`"
             echo "- Branche Pages : \`${{ env.BRANCHE_PAGES }}\`"
             echo "- URL : ${{ steps.deploiement.outputs.deployment-url }}"
+            echo "- Ressources : KV (sessions), D1 (suivi, messages, fichiers), R2 (contenu des fichiers)"
           } >> "$GITHUB_STEP_SUMMARY"

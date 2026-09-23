@@ -3,3 +3,4 @@ public/
 *.log
 .DS_Store
 .tmp/
+wrangler.toml

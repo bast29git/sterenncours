@@ -13,18 +13,20 @@ Après `npm run build`, il est **la racine de `public/`** : on l'ouvre depuis
 sans avoir à ouvrir un PDF, et chaque matière propose en plus son dossier
 complet en téléchargement.
 
-| Code | Espace ouvert |
-|---|---|
-| `sanka29` | Espace de Sterenn : ses matières, ses leçons, les exercices interactifs, ses progrès et ses badges |
-| `babas29` | Espace professeur : le même contenu, plus les attendus officiels, le suivi des 69 leçons et les ressources de pilotage |
+Deux espaces, deux philosophies :
 
-Le portail est une **porte d'entrée, pas une protection** : les codes sont dans le
-code de la page et restent lisibles par qui ouvre le source. Il sépare deux usages,
-il ne protège pas des données sensibles.
+| Code | Espace | Ce qu'on y fait |
+|---|---|---|
+| `babas29` | **Back-office professeur** | Le quotidien d'abord : la séance du jour, le planning de la semaine, ce que Sterenn a déposé, les échanges, le suivi des acquis. Le programme et les cours sont des **ressources**, pas le centre de l'écran. |
+| `sanka29` | **Espace de Sterenn** | Une action principale par écran : ce qu'on fait aujourd'hui, ce qu'il y a à faire ensuite, mes matières, mon travail à envoyer, mes messages, mes progrès. |
 
-Le suivi des acquis est enregistré **dans le navigateur** qui l'a saisi. Il ne part
-sur aucun serveur. Les boutons **Exporter** et **Importer** servent à le sauvegarder
-et à le transférer d'un appareil à l'autre.
+**La vérification des codes se fait côté serveur** (Worker Cloudflare) : ils ne sont
+pas dans le code envoyé au navigateur. La session tient dans un cookie HttpOnly,
+les tentatives sont limitées par adresse, et tout le contenu pédagogique est protégé.
+
+**L'état est partagé** : suivi, résultats, séances, messages et fichiers vivent dans
+une base D1. Ce que tu enregistres apparaît immédiatement dans l'espace de Sterenn,
+sur n'importe quel appareil.
 
 ## Démarrage
 
