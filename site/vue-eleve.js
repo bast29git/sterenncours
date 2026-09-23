@@ -19,8 +19,15 @@
     { route: 'hub', ico: 'ic-accueil', texte: 'Aujourd\'hui' },
     { route: 'matieres', ico: 'ic-planete', texte: 'Mes matières' },
     { route: 'calendrier', ico: 'ic-calendrier', texte: 'Ma semaine' },
+    { route: 'jeux', ico: 'ic-etincelle', texte: 'Jeux' },
     { route: 'messages', ico: 'ic-message', texte: 'Messages' },
   ];
+
+  /** Les jeux 2D et 3D rattachés à une leçon, ou à une matière entière. */
+  const jeuxDe = (mid, ref) => (window.JEUX || []).filter((j) => j.lecons.some((c) => c === mid + ':' + ref));
+  const jeuxMatiere = (mid) => (window.JEUX || []).filter((j) => j.lecons.some((c) => c.split(':')[0] === mid));
+  const jeuGagne = (j) => { const r = N.etat.resultats['jeu/' + j.id]; return !!(r && r.meilleur >= 70); };
+  const lienJeu = (j, classe) => `<a class="${classe || ''}" href="${j.url}" title="${N.ech(j.type === '3d' ? 'Monde 3D' : 'Jeu')} : ${N.ech(j.titre)}">${j.ico} ${N.ech(j.titre)}${jeuGagne(j) ? ' ✓' : ''}</a>`;
 
   function nav() {
     const courant = (location.hash || '#/hub').replace(/^#\/?/, '').split('/')[0] || 'hub';
@@ -154,6 +161,8 @@
            <b>Ma semaine</b><span>Ce qui est prévu</span></a></li>
          <li><a href="#/matieres"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-planete"/></svg></span>
            <b>Mes matières</b><span>Ouvrir un parcours</span></a></li>
+         <li><a href="#/jeux"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-etincelle"/></svg></span>
+           <b>Jeux</b><span>${(window.JEUX || []).length} jeux et mondes 3D</span></a></li>
        </ul>`,
     );
     brancherChoix(vueHub);
@@ -219,6 +228,7 @@
           + N.TYPES_DOC.filter((t) => t.id !== 'cours' && docsVisibles(l).indexOf(t.id) !== -1)
             .map((t) => `<a href="#/lecon/${mid}/${l.ref}/${t.id}">${N.ic(t.ico)} ${t.libelle}</a>`).join('')
           + (N.banque(mid, l.ref) ? `<a href="#/exos/${mid}/${l.ref}">${N.ic('ic-cible')} M'entraîner</a>` : '')
+          + jeuxDe(mid, l.ref).map((j) => lienJeu(j)).join('')
         : `<span class="e-cadenas">${N.ic('ic-verrou')} ${dispo ? N.ech(N.raisonVerrou(mid, l.ref)) : 'Cette leçon est en préparation.'}</span>`;
       return `<li class="e-etape ${classe}">
         <span class="e-pastille" aria-hidden="true">${faite ? N.ic('ic-coche') : (ouverte && dispo ? i + 1 : N.ic('ic-verrou'))}</span>
@@ -273,7 +283,7 @@
             <nav class="e-onglets">${ouverts.map((t) => {
           const info = N.TYPES_DOC.find((x) => x.id === t);
           return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${N.ic(info.ico)} ${info.libelle}</a>`;
-        }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} M'entraîner</a>` : ''}</nav>
+        }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} M'entraîner</a>` : ''}${jeuxDe(mid, ref).map((j) => lienJeu(j)).join('')}</nav>
           </header>
           <article class="e-fiche">${doc.html}</article>
           <div class="e-actions">
@@ -563,12 +573,12 @@
 
   /* ---------- Mes réussites -------------------------------------------------- */
   const PALIERS = [
-    { s: 1, i: '🌱', n: 'La première étoile', d: 'Une fiche lue jusqu\'au bout.' },
-    { s: 5, i: '🔆', n: 'Cinq étoiles', d: 'Le pli est pris.' },
-    { s: 12, i: '🎯', n: 'Douze étoiles', d: 'Une série sans faute vaut son étoile.' },
-    { s: 25, i: '🚀', n: 'Vingt-cinq étoiles', d: 'Plusieurs matières avancent en même temps.' },
-    { s: 50, i: '🏅', n: 'Cinquante étoiles', d: 'La moitié de l\'année est derrière toi.' },
-    { s: 100, i: '👑', n: 'Cent étoiles', d: 'L\'année complète.' },
+    { s: 1, i: '✨', n: 'Première lueur', d: 'Une fiche lue jusqu\'au bout : l\'aurore commence.' },
+    { s: 5, i: '🌿', n: 'Apprentie apothicaire', d: 'Cinq étoiles. Comme Maomao, tu observes avant de conclure.' },
+    { s: 12, i: '📗', n: 'Faiseuse de livres', d: 'Douze étoiles. Une série sans faute vaut son étoile, comme Myne fabrique sa première page.' },
+    { s: 25, i: '🎨', n: 'Palette complète', d: 'Vingt-cinq étoiles. Turquoise, bleu indien, violet pastel : plusieurs matières avancent ensemble.' },
+    { s: 50, i: '🌌', n: 'Aurore boréale', d: 'Cinquante étoiles. La moitié de l\'année est derrière toi.' },
+    { s: 100, i: '👑', n: 'Couronne d\'Opaline', d: 'Cent étoiles. L\'année complète.' },
   ];
 
   function vueReussites() {
@@ -911,6 +921,33 @@
     });
   }
 
+  /* ---------- Jeux : l'arcade rattachée au programme ------------------------- */
+  function vueJeux(mid) {
+    const jeux = window.JEUX || [];
+    const gagnes = jeux.filter(jeuGagne).length;
+    const matieres = PROGRAMME.matieres.filter((m) => jeuxMatiere(m.id).length);
+    const selection = mid && N.matiere(mid) ? [N.matiere(mid)] : matieres;
+    const blocs = selection.map((m) => {
+      const liste = jeuxMatiere(m.id).sort((a, b) => (a.type === b.type ? 0 : a.type === '3d' ? -1 : 1));
+      return `<h2 class="e-titre-section">${m.icone} ${N.ech(m.nom)}</h2>
+        <ul class="e-tuiles e-tuiles-jeux">${liste.map((j) => {
+          const lecons = j.lecons.filter((c) => c.split(':')[0] === m.id).map((c) => {
+            const l = N.lecon(m, c.split(':')[1]); return l ? l.titre : c.split(':')[1];
+          });
+          return `<li class="${jeuGagne(j) ? 'gagne' : ''}"><a href="${j.url}">
+            <span class="ico" aria-hidden="true">${j.ico}</span>
+            <b>${N.ech(j.titre)}${jeuGagne(j) ? ' ✓' : ''}</b>
+            <span>${j.type === '3d' ? 'Monde 3D · ' : ''}${N.ech(lecons.join(' · '))}</span></a></li>`;
+        }).join('')}</ul>`;
+    }).join('');
+    afficher(
+      `<h1>Jeux</h1>
+       <p class="e-intro">${jeux.length} jeux et mondes 3D, chacun rattaché à une leçon du programme. Une partie terminée vaut une étoile, comme une série réussie.${gagnes ? ` Déjà ${gagnes} gagné(s).` : ''}</p>
+       <p class="e-filtre-jeux"><a href="#/jeux" class="${mid ? '' : 'actif'}">Tout</a>${matieres.map((m) => `<a href="#/jeux/${m.id}" class="${mid === m.id ? 'actif' : ''}">${m.icone} ${N.ech(N.nomCourt(m.id))}</a>`).join('')}</p>
+       ${blocs || '<p class="e-vide">Aucun jeu pour le moment.</p>'}`,
+    );
+  }
+
   function vueIntrouvable() {
     afficher('<div class="e-vide"><p>Cette page n\'existe pas.</p><p><a class="e-bouton e-bouton-doux" href="#/hub">Revenir à l\'accueil</a></p></div>');
   }
@@ -924,6 +961,7 @@
       case 'lecon': return vueLecon(p[1], p[2], p[3]);
       case 'exos': return vueExos(p[1], p[2]);
       case 'calendrier': return vueCalendrier(p[1]);
+      case 'jeux': return vueJeux(p[1]);
       case 'progres': case 'reussites': return vueReussites();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);
       case 'travail': return vueMessages(null);

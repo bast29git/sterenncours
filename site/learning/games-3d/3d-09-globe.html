@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Globe géographique</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .gl-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 86%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(14px); }
+  .gl-search { top:14px; left:50%; transform:translateX(-50%); width:min(320px,74vw); padding:0; }
+  .gl-search input { width:100%; font-family:var(--font-body); font-size:14px; height:42px; padding:0 16px 0 38px; border:none; background:transparent; color:var(--fg); outline:none; border-radius:14px; }
+  .gl-search .mag { position:absolute; left:13px; top:12px; opacity:.6; }
+  .gl-sugg { position:absolute; top:46px; left:0; right:0; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-lg); overflow:hidden; max-height:300px; overflow-y:auto; display:none; }
+  .gl-sugg.show { display:block; }
+  .gl-sugg button { width:100%; text-align:left; border:none; background:none; padding:9px 14px; font-size:14px; color:var(--fg); cursor:pointer; display:flex; gap:10px; align-items:center; }
+  .gl-sugg button:hover,.gl-sugg button.active { background:var(--accent-weak); }
+  .gl-sugg .k { font-family:var(--font-mono); font-size:10px; color:var(--fg-muted); margin-left:auto; }
+  .gl-modes { top:64px; left:14px; width:200px; padding:13px; display:flex; flex-direction:column; gap:10px; }
+  .gl-modes h3 { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0; }
+  .gl-tg { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:8px 10px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; text-align:left; }
+  .gl-tg[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .gl-info { right:14px; top:14px; width:300px; padding:0; overflow:hidden; transform:translateX(125%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; }
+  .gl-info.show { transform:none; }
+  .gl-info-hd { padding:16px 18px; color:#fff; position:relative; }
+  .gl-info-hd h2 { font-family:var(--font-title); font-weight:800; font-size:23px; margin:0; }
+  .gl-info-hd .sub { font-family:var(--font-mono); font-size:11px; opacity:.9; text-transform:uppercase; }
+  .gl-flag { display:inline-flex; border-radius:4px; overflow:hidden; margin-top:8px; box-shadow:0 2px 8px rgba(0,0,0,.3); }
+  .gl-flag span { width:18px; height:24px; }
+  .gl-x { position:absolute; top:12px; right:12px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; }
+  .gl-body { padding:14px 18px 18px; overflow:auto; }
+  .gl-sec { font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:13px 0 7px; } .gl-sec:first-child{margin-top:0}
+  .gl-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px 14px; } .gl-st .k{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--fg-muted)} .gl-st .v{font-family:var(--font-data);font-weight:700;font-size:14px}
+  .gl-body p { font-size:13.5px; line-height:1.6; margin:0 0 9px; }
+  .gl-fun { background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:13px; color:var(--accent-text); line-height:1.5; }
+  .gl-hint { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; }
+  .gl-chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .gl-chip { font-family:var(--font-mono); font-size:10.5px; background:rgba(255,255,255,.18); color:#fff; border-radius:999px; padding:3px 10px; }
+  /* ====== MISSION GUIDÉE (mode Cours) ====== */
+  .gl-mission { position:absolute; inset:0; z-index:26; pointer-events:none; display:none; font-family:var(--font-body); }
+  .gl-mission.on { display:block; }
+  .gl-m-top { position:absolute; top:18px; left:50%; transform:translateX(-50%); text-align:center; max-width:min(600px,94vw); }
+  .gl-m-phase { font-family:var(--font-mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#9fd0ff; text-shadow:0 1px 6px rgba(0,0,0,.6); }
+  .gl-m-title { font-family:var(--font-title,var(--font-body)); font-weight:800; font-size:22px; color:#fff; text-shadow:0 2px 14px rgba(0,0,0,.75); margin:2px 0 4px; }
+  .gl-m-cap { font-size:13.5px; color:#dfe9ff; text-shadow:0 1px 8px rgba(0,0,0,.75); line-height:1.4; }
+  .gl-m-steps { display:flex; gap:5px; justify-content:center; margin-top:8px; }
+  .gl-m-steps i { width:8px; height:8px; border-radius:999px; background:rgba(255,255,255,.25); transition:.2s; }
+  .gl-m-steps i.done { background:#7ef5b0; }
+  .gl-m-steps i.now { background:#fff; box-shadow:0 0 0 3px rgba(126,200,255,.4); }
+  .gl-m-ask { display:inline-flex; align-items:center; gap:10px; margin-top:10px; background:var(--accent); color:#fff; border-radius:14px; padding:10px 16px; box-shadow:var(--shadow-lg); font-weight:700; font-size:15px; pointer-events:auto; max-width:100%; }
+  .gl-m-ask .qn { font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 10px; font-size:12px; flex:none; }
+  .gl-m-act { position:absolute; bottom:86px; left:50%; transform:translateX(-50%); pointer-events:auto; display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .gl-m-btn { font-family:var(--font-body); font-weight:800; font-size:16.5px; padding:14px 28px; border-radius:14px; border:none; background:linear-gradient(135deg,#29B6E0,#1B82E0); color:#fff; cursor:pointer; box-shadow:0 8px 26px rgba(27,130,224,.5); transition:transform .12s; }
+  .gl-m-btn:hover { transform:translateY(-2px); }
+  .gl-m-btn:focus-visible { outline:2px solid #7ec8ff; outline-offset:2px; }
+  .gl-m-quit { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); pointer-events:auto; font-family:var(--font-body); font-weight:700; font-size:13px; padding:8px 16px; border-radius:11px; border:1px solid rgba(255,255,255,.32); background:rgba(8,12,26,.55); color:#dfe9ff; cursor:pointer; }
+  /* ====== ÉCRAN DE FIN — Tour du monde ====== */
+  .gl-end { position:absolute; inset:0; z-index:60; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:24px 16px; background:radial-gradient(120% 80% at 50% -10%,#0a1a36,#04060f 60%,#010208); font-family:var(--font-body); }
+  .gl-end-card { position:relative; width:min(640px,96vw); border-radius:22px; border:1px solid rgba(120,170,255,.22); background:linear-gradient(180deg,rgba(12,20,42,.94),rgba(7,10,24,.97)); box-shadow:0 30px 90px rgba(0,0,0,.6); overflow:hidden; color:#eaf1ff; animation:glEndIn .5s cubic-bezier(.22,1,.36,1); }
+  @keyframes glEndIn { from{opacity:0; transform:translateY(22px) scale(.98)} to{opacity:1; transform:none} }
+  .gl-hero { position:relative; height:170px; overflow:hidden; background:linear-gradient(180deg,#04060f,#0a1330); }
+  .gl-hero .stars { position:absolute; inset:0; background-image:radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 70% 20%,#cfe0ff,transparent),radial-gradient(1px 1px at 45% 60%,#fff,transparent),radial-gradient(1.5px 1.5px at 85% 44%,#fff,transparent),radial-gradient(1px 1px at 12% 70%,#dfe9ff,transparent),radial-gradient(1px 1px at 60% 78%,#fff,transparent); opacity:.85; }
+  .gl-hero-globe { position:absolute; left:50%; top:26px; transform:translateX(-50%); width:118px; height:118px; border-radius:999px; background:radial-gradient(circle at 34% 30%,#bfe0ff 0%,#3f8fe0 30%,#1b5fae 55%,#0c356e 78%,#06203f 100%); box-shadow:0 0 40px 10px rgba(90,160,255,.35), inset -16px -14px 30px rgba(0,0,0,.5); animation:glFloat 9s ease-in-out infinite alternate; }
+  .gl-hero-globe::before { content:""; position:absolute; inset:0; border-radius:999px; background:radial-gradient(ellipse 26% 18% at 32% 38%,rgba(70,190,110,.85),transparent 70%),radial-gradient(ellipse 20% 26% at 46% 66%,rgba(60,175,95,.8),transparent 70%),radial-gradient(ellipse 30% 22% at 68% 34%,rgba(90,180,100,.8),transparent 70%),radial-gradient(ellipse 14% 10% at 74% 72%,rgba(200,170,90,.75),transparent 70%); filter:blur(1px); }
+  .gl-hero-globe::after { content:""; position:absolute; inset:0; border-radius:999px; background:radial-gradient(circle at 60% 68%,rgba(255,255,255,.25),transparent 42%),radial-gradient(circle at 26% 30%,rgba(255,255,255,.3),transparent 34%); mix-blend-mode:screen; }
+  @keyframes glFloat { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(-7px)} }
+  .gl-end-badge { position:absolute; right:16px; top:14px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .gl-end-badge svg { filter:drop-shadow(0 4px 12px rgba(245,166,35,.5)); }
+  .gl-end-body { padding:20px 22px 22px; }
+  .gl-end-flag { font-family:var(--font-mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#9fd0ff; }
+  .gl-end-h { font-family:var(--font-title,var(--font-body)); font-weight:800; font-size:26px; margin:5px 0 4px; color:#fff; }
+  .gl-end-sub { font-size:13.5px; color:#c6d2ea; margin:0 0 14px; line-height:1.5; }
+  .gl-meds { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin:0 0 14px; }
+  .gl-med { background:rgba(255,255,255,.05); border:1px solid rgba(120,170,255,.18); border-radius:12px; padding:10px 8px; text-align:center; }
+  .gl-med .n { font-family:var(--font-data,var(--font-mono)); font-weight:800; font-size:20px; color:#7ec8ff; }
+  .gl-med .l { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:#8fa2c8; margin-top:2px; }
+  .gl-quote { border-left:3px solid #F5A623; padding:2px 0 2px 13px; margin:0 0 14px; }
+  .gl-quote .o { font-size:14.5px; font-style:italic; color:#fff; line-height:1.45; }
+  .gl-quote .by { display:block; font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; color:#7f8bab; margin-top:5px; text-transform:uppercase; }
+  .gl-reward { display:flex; align-items:center; gap:12px; background:rgba(245,166,35,.08); border:1px solid rgba(245,166,35,.28); border-radius:12px; padding:11px 13px; margin:0 0 16px; }
+  .gl-reward .xp { font-family:var(--font-data,var(--font-mono)); font-weight:800; font-size:22px; color:#F5A623; }
+  .gl-reward .lbl { font-size:12px; color:#e7d2a8; line-height:1.4; }
+  .gl-end-row { display:flex; flex-wrap:wrap; gap:10px; }
+  .gl-b { flex:1; min-width:138px; font-family:var(--font-body); font-weight:800; font-size:14.5px; padding:13px 16px; border-radius:12px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#eaf1ff; cursor:pointer; transition:transform .12s; }
+  .gl-b:hover { transform:translateY(-2px); }
+  .gl-b:focus-visible { outline:2px solid #7ec8ff; outline-offset:2px; }
+  .gl-b.primary { border:none; background:linear-gradient(135deg,#F5A623,#E63329); color:#fff; box-shadow:0 8px 24px rgba(230,51,41,.4); }
+  .gl-b.next { border:none; background:linear-gradient(135deg,#29B6E0,#6E6BFF); color:#fff; }
+  @media (prefers-reduced-motion: reduce){ .gl-end-card,.gl-hero-globe{animation:none} .gl-info{transition:none} }
+  @media (max-width:720px){ .gl-modes{width:150px} .gl-info{width:min(300px,84vw)} .gl-m-title{font-size:18px} .gl-end-h{font-size:21px} .gl-hero{height:140px} .gl-hero-globe{width:92px;height:92px} .gl-meds{grid-template-columns:repeat(3,1fr)} }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+const REDUCED=window.Konstrio.REDUCED;
+const COUNTRIES=[
+  { id:"afghanistan", name:"Afghanistan", cap:"Kabul", lat:33.93, lon:67.68, cont:"Asie", flag:"🇦🇫" },
+  { id:"albania", name:"Albanie", cap:"Tirana", lat:41.16, lon:20.18, cont:"Europe", flag:"🇦🇱" },
+  { id:"algeria", name:"Algérie", cap:"Alger", lat:28.03, lon:1.65, cont:"Afrique", flag:"🇩🇿" },
+  { id:"american-samoa", name:"American Samoa", cap:"Fagatogo", lat:-12.72, lon:-170.25, cont:"Océanie", flag:"🇦🇸" },
+  { id:"andorra", name:"Andorra", cap:"Andorra la Vella", lat:42.54, lon:1.6, cont:"Europe", flag:"🇦🇩" },
+  { id:"angola", name:"Angola", cap:"Luanda", lat:-11.21, lon:17.88, cont:"Afrique", flag:"🇦🇴" },
+  { id:"anguilla", name:"Anguilla", cap:"The Valley", lat:18.23, lon:-63.07, cont:"Amérique du Nord", flag:"🇦🇮" },
+  { id:"antigua-and-barbuda", name:"Antigua and Barbuda", cap:"Saint John's", lat:17.36, lon:-61.79, cont:"Amérique du Nord", flag:"🇦🇬" },
+  { id:"argentina", name:"Argentine", cap:"Buenos Aires", lat:-38.42, lon:-63.59, cont:"Amérique du Sud", flag:"🇦🇷", fact:"S'étire le long de la cordillère des Andes." },
+  { id:"armenia", name:"Arménie", cap:"Yerevan", lat:40.07, lon:45.11, cont:"Asie", flag:"🇦🇲" },
+  { id:"aruba", name:"Aruba", cap:"Oranjestad", lat:12.52, lon:-69.97, cont:"Amérique du Nord", flag:"🇦🇼" },
+  { id:"australia", name:"Australie", cap:"Canberra", lat:-26.85, lon:133.28, cont:"Océanie", flag:"🇦🇺", fact:"À la fois pays, continent et île, à la faune unique." },
+  { id:"austria", name:"Autriche", cap:"Wien", lat:47.7, lon:13.35, cont:"Europe", flag:"🇦🇹" },
+  { id:"azerbaijan", name:"Azerbaïdjan", cap:"Baku", lat:40.15, lon:47.57, cont:"Asie", flag:"🇦🇿" },
+  { id:"bahamas", name:"Bahamas", cap:"Nassau", lat:24.89, lon:-76.71, cont:"Amérique du Nord", flag:"🇧🇸" },
+  { id:"bahrain", name:"Bahrain", cap:"al-Manama", lat:26.04, lon:50.56, cont:"Asie", flag:"🇧🇭" },
+  { id:"bangladesh", name:"Bangladesh", cap:"Dhaka", lat:23.69, lon:90.35, cont:"Asie", flag:"🇧🇩" },
+  { id:"barbados", name:"Barbados", cap:"Bridgetown", lat:13.18, lon:-59.53, cont:"Amérique du Nord", flag:"🇧🇧" },
+  { id:"belarus", name:"Biélorussie", cap:"Minsk", lat:53.71, lon:27.97, cont:"Europe", flag:"🇧🇾" },
+  { id:"belgium", name:"Belgique", cap:"Bruxelles [Brussel]", lat:50.5, lon:4.48, cont:"Europe", flag:"🇧🇪" },
+  { id:"belize", name:"Belize", cap:"Belmopan", lat:17.19, lon:-88.5, cont:"Amérique du Nord", flag:"🇧🇿" },
+  { id:"benin", name:"Bénin", cap:"Porto-Novo", lat:9.32, lon:2.31, cont:"Afrique", flag:"🇧🇯" },
+  { id:"bermuda", name:"Bermuda", cap:"Hamilton", lat:32.32, lon:-64.77, cont:"Amérique du Nord", flag:"🇧🇲" },
+  { id:"bhutan", name:"Bhutan", cap:"Thimphu", lat:27.52, lon:90.44, cont:"Asie", flag:"🇧🇹" },
+  { id:"bolivia", name:"Bolivie", cap:"La Paz", lat:-16.29, lon:-63.55, cont:"Amérique du Sud", flag:"🇧🇴" },
+  { id:"bosnia-and-herzegovina", name:"Bosnia and Herzegovina", cap:"Sarajevo", lat:43.89, lon:17.67, cont:"Europe", flag:"🇧🇦" },
+  { id:"botswana", name:"Botswana", cap:"Gaborone", lat:-22.34, lon:24.68, cont:"Afrique", flag:"🇧🇼" },
+  { id:"brazil", name:"Brésil", cap:"Brasília", lat:-14.24, lon:-53.19, cont:"Amérique du Sud", flag:"🇧🇷", fact:"Plus grand pays d'Amérique du Sud ; il abrite l'essentiel de la forêt amazonienne." },
+  { id:"brunei", name:"Brunei", cap:"Bandar Seri Begawan", lat:4.53, lon:114.72, cont:"Asie", flag:"🇧🇳" },
+  { id:"bulgaria", name:"Bulgarie", cap:"Sofia", lat:42.73, lon:25.49, cont:"Europe", flag:"🇧🇬" },
+  { id:"burkina-faso", name:"Burkina Faso", cap:"Ouagadougou", lat:12.24, lon:-1.56, cont:"Afrique", flag:"🇧🇫" },
+  { id:"burundi", name:"Burundi", cap:"Bujumbura", lat:-3.39, lon:29.92, cont:"Afrique", flag:"🇧🇮" },
+  { id:"cambodia", name:"Cambodge", cap:"Phnom Penh", lat:12.55, lon:104.98, cont:"Asie", flag:"🇰🇭" },
+  { id:"cameroon", name:"Cameroun", cap:"Yaounde", lat:7.37, lon:12.34, cont:"Afrique", flag:"🇨🇲" },
+  { id:"canada", name:"Canada", cap:"Ottawa", lat:62.39, lon:-96.82, cont:"Amérique du Nord", flag:"🇨🇦", fact:"2ᵉ plus grand pays du monde, riche de lacs et forêts boréales." },
+  { id:"cape-verde", name:"Cape Verde", cap:"Praia", lat:16.0, lon:-24.01, cont:"Afrique", flag:"🇨🇻" },
+  { id:"cayman-islands", name:"Cayman Islands", cap:"George Town", lat:19.51, lon:-80.58, cont:"Amérique du Nord", flag:"🇰🇾" },
+  { id:"central-african-republic", name:"Central African Republic", cap:"Bangui", lat:6.61, lon:20.94, cont:"Afrique", flag:"🇨🇫" },
+  { id:"chad", name:"Tchad", cap:"N'Djamena", lat:15.45, lon:18.74, cont:"Afrique", flag:"🇹🇩" },
+  { id:"chile", name:"Chili", cap:"Santiago de Chile", lat:-36.72, lon:-73.6, cont:"Amérique du Sud", flag:"🇨🇱" },
+  { id:"china", name:"Chine", cap:"Peking", lat:34.67, lon:104.17, cont:"Asie", flag:"🇨🇳", fact:"L'un des pays les plus peuplés ; la Grande Muraille s'étire sur des milliers de km." },
+  { id:"christmas-island", name:"Christmas Island", cap:"Flying Fish Cove", lat:-10.49, lon:105.62, cont:"Océanie", flag:"🇨🇽" },
+  { id:"colombia", name:"Colombie", cap:"Bogotá", lat:4.58, lon:-74.3, cont:"Amérique du Sud", flag:"🇨🇴" },
+  { id:"comoros", name:"Comoros", cap:"Moroni", lat:-11.88, lon:43.88, cont:"Afrique", flag:"🇰🇲" },
+  { id:"cook-islands", name:"Cook Islands", cap:"Avarua", lat:-15.98, lon:-159.2, cont:"Océanie", flag:"🇨🇰" },
+  { id:"costa-rica", name:"Costa Rica", cap:"San José", lat:9.62, lon:-84.25, cont:"Amérique du Nord", flag:"🇨🇷" },
+  { id:"croatia", name:"Croatie", cap:"Zagreb", lat:44.49, lon:16.46, cont:"Europe", flag:"🇭🇷" },
+  { id:"cuba", name:"Cuba", cap:"La Habana", lat:21.53, lon:-79.54, cont:"Amérique du Nord", flag:"🇨🇺" },
+  { id:"cyprus", name:"Chypre", cap:"Nicosia", lat:35.17, lon:33.44, cont:"Asie", flag:"🇨🇾" },
+  { id:"czech-republic", name:"Tchéquie", cap:"Praha", lat:49.8, lon:15.48, cont:"Europe", flag:"🇨🇿" },
+  { id:"denmark", name:"Danemark", cap:"Copenhague", lat:56.16, lon:11.62, cont:"Europe", flag:"🇩🇰" },
+  { id:"djibouti", name:"Djibouti", cap:"Djibouti", lat:11.81, lon:42.6, cont:"Afrique", flag:"🇩🇯" },
+  { id:"dominica", name:"Dominica", cap:"Roseau", lat:15.42, lon:-61.36, cont:"Amérique du Nord", flag:"🇩🇲" },
+  { id:"dominican-republic", name:"République dominicaine", cap:"Santo Domingo de Guzm", lat:18.74, lon:-70.16, cont:"Amérique du Nord", flag:"🇩🇴" },
+  { id:"east-timor", name:"East Timor", cap:"Dili", lat:-8.8, lon:125.68, cont:"Asie", flag:"🇹🇵" },
+  { id:"ecuador", name:"Équateur", cap:"Quito", lat:-1.78, lon:-78.13, cont:"Amérique du Sud", flag:"🇪🇨" },
+  { id:"egypt", name:"Égypte", cap:"Le Caire", lat:26.7, lon:30.8, cont:"Afrique", flag:"🇪🇬", fact:"Berceau d'une civilisation millénaire ; les pyramides de Gizeh ont 4 500 ans." },
+  { id:"el-salvador", name:"El Salvador", cap:"San Salvador", lat:13.8, lon:-88.91, cont:"Amérique du Nord", flag:"🇸🇻" },
+  { id:"equatorial-guinea", name:"Equatorial Guinea", cap:"Malabo", lat:1.63, lon:10.34, cont:"Afrique", flag:"🇬🇶" },
+  { id:"eritrea", name:"Eritrea", cap:"Asmara", lat:15.18, lon:39.79, cont:"Afrique", flag:"🇪🇷" },
+  { id:"estonia", name:"Estonie", cap:"Tallinn", lat:58.6, lon:25.02, cont:"Europe", flag:"🇪🇪" },
+  { id:"eswatini", name:"Eswatini", cap:"Mbabane", lat:-26.52, lon:31.47, cont:"Afrique", flag:"🇸🇿" },
+  { id:"ethiopia", name:"Éthiopie", cap:"Addis Abeba", lat:9.15, lon:40.49, cont:"Afrique", flag:"🇪🇹" },
+  { id:"falkland-islands", name:"Falkland Islands", cap:"Stanley", lat:-51.8, lon:-59.53, cont:"Amérique du Sud", flag:"🇫🇰" },
+  { id:"faroe-islands", name:"Faroe Islands", cap:"Tórshavn", lat:61.9, lon:-6.93, cont:"Europe", flag:"🇫🇴" },
+  { id:"finland", name:"Finlande", cap:"Helsinki [Helsingfors]", lat:64.95, lon:26.07, cont:"Europe", flag:"🇫🇮" },
+  { id:"france", name:"France", cap:"Paris", lat:46.23, lon:2.21, cont:"Europe", flag:"🇫🇷", fact:"Pays le plus visité au monde ; sa capitale Paris est traversée par la Seine." },
+  { id:"french-guiana", name:"French Guiana", cap:"Cayenne", lat:3.95, lon:-53.08, cont:"Amérique du Sud", flag:"🇬🇫" },
+  { id:"french-polynesia", name:"French Polynesia", cap:"Papeete", lat:-17.78, lon:-143.9, cont:"Océanie", flag:"🇵🇫" },
+  { id:"gabon", name:"Gabon", cap:"Libreville", lat:-0.83, lon:11.6, cont:"Afrique", flag:"🇬🇦" },
+  { id:"gambia", name:"Gambia", cap:"Banjul", lat:13.45, lon:-15.31, cont:"Afrique", flag:"🇬🇲" },
+  { id:"georgia", name:"Géorgie", cap:"Tbilisi", lat:42.32, lon:43.37, cont:"Asie", flag:"🇬🇪" },
+  { id:"germany", name:"Allemagne", cap:"Berlin", lat:51.17, lon:10.45, cont:"Europe", flag:"🇩🇪", fact:"Pays le plus peuplé de l'UE et première économie d'Europe." },
+  { id:"ghana", name:"Ghana", cap:"Accra", lat:7.96, lon:-1.03, cont:"Afrique", flag:"🇬🇭" },
+  { id:"gibraltar", name:"Gibraltar", cap:"Gibraltar", lat:36.13, lon:-5.35, cont:"Europe", flag:"🇬🇮" },
+  { id:"greece", name:"Grèce", cap:"Athenai", lat:38.28, lon:23.81, cont:"Europe", flag:"🇬🇷", fact:"Berceau de la démocratie ; plus de 6 000 îles." },
+  { id:"greenland", name:"Greenland", cap:"Nuuk", lat:71.7, lon:-42.18, cont:"Amérique du Nord", flag:"🇬🇱" },
+  { id:"grenada", name:"Grenada", cap:"Saint George's", lat:12.15, lon:-61.69, cont:"Amérique du Nord", flag:"🇬🇩" },
+  { id:"guadeloupe", name:"Guadeloupe", cap:"Basse-Terre", lat:16.19, lon:-61.27, cont:"Amérique du Nord", flag:"🇬🇵" },
+  { id:"guam", name:"Guam", cap:"Aga", lat:13.44, lon:144.79, cont:"Océanie", flag:"🇬🇺" },
+  { id:"guatemala", name:"Guatemala", cap:"Ciudad de Guatemala", lat:15.78, lon:-90.23, cont:"Amérique du Nord", flag:"🇬🇹" },
+  { id:"guinea", name:"Guinée", cap:"Conakry", lat:9.93, lon:-11.28, cont:"Afrique", flag:"🇬🇳" },
+  { id:"guinea-bissau", name:"Guinea-Bissau", cap:"Bissau", lat:11.8, lon:-15.18, cont:"Afrique", flag:"🇬🇼" },
+  { id:"guyana", name:"Guyana", cap:"Georgetown", lat:4.87, lon:-58.93, cont:"Amérique du Sud", flag:"🇬🇾" },
+  { id:"haiti", name:"Haïti", cap:"Port-au-Prince", lat:19.05, lon:-73.05, cont:"Amérique du Nord", flag:"🇭🇹" },
+  { id:"honduras", name:"Honduras", cap:"Tegucigalpa", lat:14.75, lon:-86.25, cont:"Amérique du Nord", flag:"🇭🇳" },
+  { id:"hong-kong", name:"Hong Kong", cap:"Victoria", lat:22.36, lon:114.14, cont:"Asie", flag:"🇭🇰" },
+  { id:"hungary", name:"Hongrie", cap:"Budapest", lat:47.16, lon:19.51, cont:"Europe", flag:"🇭🇺" },
+  { id:"iceland", name:"Islande", cap:"Reykjavík", lat:64.96, lon:-19.02, cont:"Europe", flag:"🇮🇸", fact:"Île de feu et de glace : volcans, geysers, glaciers." },
+  { id:"india", name:"Inde", cap:"New Delhi", lat:21.13, lon:82.8, cont:"Asie", flag:"🇮🇳", fact:"Pays le plus peuplé du monde et la plus grande démocratie." },
+  { id:"indonesia", name:"Indonésie", cap:"Jakarta", lat:-2.52, lon:118.02, cont:"Asie", flag:"🇮🇩" },
+  { id:"iran", name:"Iran", cap:"Téhéran", lat:32.42, lon:53.68, cont:"Asie", flag:"🇮🇷" },
+  { id:"iraq", name:"Irak", cap:"Bagdad", lat:33.22, lon:43.69, cont:"Asie", flag:"🇮🇶" },
+  { id:"ireland", name:"Irlande", cap:"Dublin", lat:53.42, lon:-8.24, cont:"Europe", flag:"🇮🇪" },
+  { id:"israel", name:"Israël", cap:"Jerusalem", lat:31.42, lon:35.07, cont:"Asie", flag:"🇮🇱" },
+  { id:"italy", name:"Italie", cap:"Roma", lat:41.87, lon:12.56, cont:"Europe", flag:"🇮🇹", fact:"Péninsule en forme de botte ; Rome abrite le Vatican." },
+  { id:"ivory-coast", name:"Côte d'Ivoire", cap:"Yamoussoukro", lat:7.55, lon:-5.55, cont:"Afrique", flag:"🇨🇮" },
+  { id:"jamaica", name:"Jamaïque", cap:"Kingston", lat:18.12, lon:-77.27, cont:"Amérique du Nord", flag:"🇯🇲" },
+  { id:"japan", name:"Japon", cap:"Tokyo", lat:34.89, lon:134.38, cont:"Asie", flag:"🇯🇵", fact:"Archipel de plus de 6 800 îles sur la « ceinture de feu »." },
+  { id:"jordan", name:"Jordanie", cap:"Amman", lat:31.28, lon:37.13, cont:"Asie", flag:"🇯🇴" },
+  { id:"kenya", name:"Kenya", cap:"Nairobi", lat:0.17, lon:37.9, cont:"Afrique", flag:"🇰🇪", fact:"Célèbre pour ses safaris et la grande migration." },
+  { id:"kiribati", name:"Kiribati", cap:"Bairiki", lat:-3.36, lon:9.67, cont:"Océanie", flag:"🇰🇮" },
+  { id:"kuwait", name:"Koweït", cap:"Kuwait", lat:29.31, lon:47.49, cont:"Asie", flag:"🇰🇼" },
+  { id:"kyrgyzstan", name:"Kyrgyzstan", cap:"Bishkek", lat:41.21, lon:74.78, cont:"Asie", flag:"🇰🇬" },
+  { id:"laos", name:"Laos", cap:"Vientiane", lat:18.21, lon:103.9, cont:"Asie", flag:"🇱🇦" },
+  { id:"latvia", name:"Lettonie", cap:"Riga", lat:56.88, lon:24.61, cont:"Europe", flag:"🇱🇻" },
+  { id:"lebanon", name:"Liban", cap:"Beirut", lat:33.87, lon:35.88, cont:"Asie", flag:"🇱🇧" },
+  { id:"lesotho", name:"Lesotho", cap:"Maseru", lat:-29.62, lon:28.25, cont:"Afrique", flag:"🇱🇸" },
+  { id:"liberia", name:"Liberia", cap:"Monrovia", lat:6.45, lon:-9.43, cont:"Afrique", flag:"🇱🇷" },
+  { id:"liechtenstein", name:"Liechtenstein", cap:"Vaduz", lat:47.16, lon:9.55, cont:"Europe", flag:"🇱🇮" },
+  { id:"lithuania", name:"Lituanie", cap:"Vilnius", lat:55.17, lon:23.91, cont:"Europe", flag:"🇱🇹" },
+  { id:"luxembourg", name:"Luxembourg", cap:"Luxembourg [Luxemburg/L", lat:49.82, lon:6.13, cont:"Europe", flag:"🇱🇺" },
+  { id:"macao", name:"Macao", cap:"Macao", lat:22.2, lon:113.55, cont:"Asie", flag:"🇲🇴" },
+  { id:"madagascar", name:"Madagascar", cap:"Antananarivo", lat:-18.78, lon:46.85, cont:"Afrique", flag:"🇲🇬" },
+  { id:"malawi", name:"Malawi", cap:"Lilongwe", lat:-13.25, lon:34.3, cont:"Afrique", flag:"🇲🇼" },
+  { id:"malaysia", name:"Malaisie", cap:"Kuala Lumpur", lat:4.11, lon:109.46, cont:"Asie", flag:"🇲🇾" },
+  { id:"maldives", name:"Maldives", cap:"Male", lat:3.2, lon:73.17, cont:"Asie", flag:"🇲🇻" },
+  { id:"mali", name:"Mali", cap:"Bamako", lat:17.58, lon:-4.0, cont:"Afrique", flag:"🇲🇱" },
+  { id:"malta", name:"Malte", cap:"Valletta", lat:35.94, lon:14.38, cont:"Europe", flag:"🇲🇹" },
+  { id:"marshall-islands", name:"Marshall Islands", cap:"Dalap-Uliga-Darrit", lat:10.1, lon:168.73, cont:"Océanie", flag:"🇲🇭" },
+  { id:"martinique", name:"Martinique", cap:"Fort-de-France", lat:14.64, lon:-61.02, cont:"Amérique du Nord", flag:"🇲🇶" },
+  { id:"mauritania", name:"Mauritanie", cap:"Nouakchott", lat:21.01, lon:-10.95, cont:"Afrique", flag:"🇲🇷" },
+  { id:"mauritius", name:"Mauritius", cap:"Port-Louis", lat:-15.42, lon:60.01, cont:"Afrique", flag:"🇲🇺" },
+  { id:"mayotte", name:"Mayotte", cap:"Mamoutzou", lat:-12.82, lon:45.17, cont:"Afrique", flag:"🇾🇹" },
+  { id:"mexico", name:"Mexique", cap:"Ciudad de M", lat:23.62, lon:-102.58, cont:"Amérique du Nord", flag:"🇲🇽", fact:"Héritier des civilisations maya et aztèque." },
+  { id:"moldova", name:"Moldova", cap:"Chisinau", lat:46.98, lon:28.38, cont:"Europe", flag:"🇲🇩" },
+  { id:"monaco", name:"Monaco", cap:"Monaco-Ville", lat:43.74, lon:7.42, cont:"Europe", flag:"🇲🇨" },
+  { id:"mongolia", name:"Mongolie", cap:"Ulan Bator", lat:46.86, lon:103.84, cont:"Asie", flag:"🇲🇳" },
+  { id:"montserrat", name:"Montserrat", cap:"Plymouth", lat:16.75, lon:-62.19, cont:"Amérique du Nord", flag:"🇲🇸" },
+  { id:"morocco", name:"Maroc", cap:"Rabat", lat:31.79, lon:-7.08, cont:"Afrique", flag:"🇲🇦" },
+  { id:"mozambique", name:"Mozambique", cap:"Maputo", lat:-18.67, lon:35.53, cont:"Afrique", flag:"🇲🇿" },
+  { id:"namibia", name:"Namibia", cap:"Windhoek", lat:-22.97, lon:18.49, cont:"Afrique", flag:"🇳🇦" },
+  { id:"nauru", name:"Nauru", cap:"Yaren", lat:-0.53, lon:166.92, cont:"Océanie", flag:"🇳🇷" },
+  { id:"nepal", name:"Népal", cap:"Kathmandu", lat:28.4, lon:84.13, cont:"Asie", flag:"🇳🇵" },
+  { id:"netherlands", name:"Pays-Bas", cap:"Amsterdam", lat:52.13, lon:5.3, cont:"Europe", flag:"🇳🇱", fact:"Un quart du pays est sous le niveau de la mer." },
+  { id:"new-caledonia", name:"New Caledonia", cap:"Noum", lat:-21.12, lon:165.85, cont:"Océanie", flag:"🇳🇨" },
+  { id:"new-zealand", name:"Nouvelle-Zélande", cap:"Wellington", lat:-40.84, lon:-6.64, cont:"Océanie", flag:"🇳🇿" },
+  { id:"nicaragua", name:"Nicaragua", cap:"Managua", lat:12.87, lon:-85.21, cont:"Amérique du Nord", flag:"🇳🇮" },
+  { id:"niger", name:"Niger", cap:"Niamey", lat:17.61, lon:8.08, cont:"Afrique", flag:"🇳🇪" },
+  { id:"nigeria", name:"Nigéria", cap:"Abuja", lat:9.08, lon:8.67, cont:"Afrique", flag:"🇳🇬", fact:"Pays le plus peuplé d'Afrique." },
+  { id:"niue", name:"Niue", cap:"Alofi", lat:-19.05, lon:-169.86, cont:"Océanie", flag:"🇳🇺" },
+  { id:"norfolk-island", name:"Norfolk Island", cap:"Kingston", lat:-29.03, lon:167.96, cont:"Océanie", flag:"🇳🇫" },
+  { id:"north-korea", name:"Corée du Nord", cap:"Pyongyang", lat:40.34, lon:127.5, cont:"Asie", flag:"🇰🇵" },
+  { id:"north-macedonia", name:"North Macedonia", cap:"Skopje", lat:41.61, lon:21.75, cont:"Europe", flag:"🇲🇰" },
+  { id:"northern-mariana-islands", name:"Northern Mariana Islands", cap:"Garapan", lat:17.33, lon:145.48, cont:"Océanie", flag:"🇲🇵" },
+  { id:"norway", name:"Norvège", cap:"Oslo", lat:64.58, lon:17.86, cont:"Europe", flag:"🇳🇴", fact:"Côte découpée par des milliers de fjords." },
+  { id:"oman", name:"Oman", cap:"Masqat", lat:21.52, lon:55.86, cont:"Asie", flag:"🇴🇲" },
+  { id:"pakistan", name:"Pakistan", cap:"Islamabad", lat:30.44, lon:69.36, cont:"Asie", flag:"🇵🇰" },
+  { id:"palau", name:"Palau", cap:"Koror", lat:5.64, lon:132.92, cont:"Océanie", flag:"🇵🇼" },
+  { id:"palestine", name:"Palestine", cap:"Gaza", lat:31.88, lon:34.9, cont:"Asie", flag:"🇵🇸" },
+  { id:"panama", name:"Panama", cap:"Ciudad de Panamá", lat:8.42, lon:-80.11, cont:"Amérique du Nord", flag:"🇵🇦" },
+  { id:"papua-new-guinea", name:"Papua New Guinea", cap:"Port Moresby", lat:-6.49, lon:148.4, cont:"Océanie", flag:"🇵🇬" },
+  { id:"paraguay", name:"Paraguay", cap:"Asunción", lat:-23.45, lon:-58.45, cont:"Amérique du Sud", flag:"🇵🇾" },
+  { id:"peru", name:"Pérou", cap:"Lima", lat:-9.18, lon:-75.0, cont:"Amérique du Sud", flag:"🇵🇪", fact:"Cœur de l'ancien empire inca ; le Machu Picchu." },
+  { id:"philippines", name:"Philippines", cap:"Manila", lat:12.88, lon:121.77, cont:"Asie", flag:"🇵🇭" },
+  { id:"poland", name:"Pologne", cap:"Warszawa", lat:51.92, lon:19.14, cont:"Europe", flag:"🇵🇱" },
+  { id:"portugal", name:"Portugal", cap:"Lisboa", lat:39.56, lon:-7.84, cont:"Europe", flag:"🇵🇹" },
+  { id:"puerto-rico", name:"Puerto Rico", cap:"San Juan", lat:18.22, lon:-66.59, cont:"Amérique du Nord", flag:"🇵🇷" },
+  { id:"qatar", name:"Qatar", cap:"Doha", lat:25.32, lon:51.2, cont:"Asie", flag:"🇶🇦" },
+  { id:"reunion", name:"Reunion", cap:"Saint-Denis", lat:-21.13, lon:55.53, cont:"Afrique", flag:"🇷🇪" },
+  { id:"romania", name:"Roumanie", cap:"Bucuresti", lat:45.95, lon:24.98, cont:"Europe", flag:"🇷🇴" },
+  { id:"russia", name:"Russie", cap:"Moscou", lat:61.52, lon:99.0, cont:"Asie", flag:"🇷🇺", fact:"Le plus grand pays du monde : il s'étend sur 11 fuseaux horaires, de l'Europe au Pacifique." },
+  { id:"rwanda", name:"Rwanda", cap:"Kigali", lat:-1.95, lon:29.88, cont:"Afrique", flag:"🇷🇼" },
+  { id:"saint-helena", name:"Saint Helena", cap:"Jamestown", lat:-11.95, lon:-10.03, cont:"Afrique", flag:"🇸🇭" },
+  { id:"saint-kitts-and-nevis", name:"Saint Kitts and Nevis", cap:"Basseterre", lat:17.26, lon:-62.71, cont:"Amérique du Nord", flag:"🇰🇳" },
+  { id:"saint-lucia", name:"Saint Lucia", cap:"Castries", lat:13.9, lon:-60.97, cont:"Amérique du Nord", flag:"🇱🇨" },
+  { id:"saint-pierre-and-miquelon", name:"Saint Pierre and Miquelon", cap:"Saint-Pierre", lat:46.97, lon:-56.34, cont:"Amérique du Nord", flag:"🇵🇲" },
+  { id:"saint-vincent-and-the-grenad", name:"Saint Vincent and the Grenadines", cap:"Kingstown", lat:12.98, lon:-61.29, cont:"Amérique du Nord", flag:"🇻🇨" },
+  { id:"samoa", name:"Samoa", cap:"Apia", lat:-13.74, lon:-172.11, cont:"Océanie", flag:"🇼🇸" },
+  { id:"san-marino", name:"San Marino", cap:"San Marino", lat:43.94, lon:12.46, cont:"Europe", flag:"🇸🇲" },
+  { id:"sao-tome-and-principe", name:"Sao Tome and Principe", cap:"São Tomé", lat:0.86, lon:6.97, cont:"Afrique", flag:"🇸🇹" },
+  { id:"saudi-arabia", name:"Arabie saoudite", cap:"Riyad", lat:23.89, lon:45.08, cont:"Asie", flag:"🇸🇦" },
+  { id:"senegal", name:"Sénégal", cap:"Dakar", lat:14.5, lon:-14.45, cont:"Afrique", flag:"🇸🇳" },
+  { id:"seychelles", name:"Seychelles", cap:"Victoria", lat:-7.02, lon:51.25, cont:"Afrique", flag:"🇸🇨" },
+  { id:"sierra-leone", name:"Sierra Leone", cap:"Freetown", lat:8.46, lon:-11.8, cont:"Afrique", flag:"🇸🇱" },
+  { id:"singapore", name:"Singapour", cap:"Singapour", lat:1.36, lon:103.82, cont:"Asie", flag:"🇸🇬" },
+  { id:"slovakia", name:"Slovaquie", cap:"Bratislava", lat:48.67, lon:19.71, cont:"Europe", flag:"🇸🇰" },
+  { id:"slovenia", name:"Slovénie", cap:"Ljubljana", lat:46.15, lon:14.99, cont:"Europe", flag:"🇸🇮" },
+  { id:"solomon-islands", name:"Solomon Islands", cap:"Honiara", lat:-9.22, lon:161.25, cont:"Océanie", flag:"🇸🇧" },
+  { id:"somalia", name:"Somalie", cap:"Mogadishu", lat:5.15, lon:46.2, cont:"Afrique", flag:"🇸🇴" },
+  { id:"south-africa", name:"Afrique du Sud", cap:"Pretoria", lat:-28.48, lon:24.68, cont:"Afrique", flag:"🇿🇦", fact:"« Nation arc-en-ciel » aux trois capitales." },
+  { id:"south-korea", name:"Corée du Sud", cap:"Séoul", lat:35.9, lon:127.74, cont:"Asie", flag:"🇰🇷" },
+  { id:"south-sudan", name:"South Sudan", cap:"Juba", lat:7.86, lon:30.04, cont:"Afrique", flag:"🇸🇸" },
+  { id:"spain", name:"Espagne", cap:"Madrid", lat:39.9, lon:-2.49, cont:"Europe", flag:"🇪🇸", fact:"Berceau de l'espagnol, parlé par près de 500 millions de personnes." },
+  { id:"sudan", name:"Soudan", cap:"Khartum", lat:15.46, lon:30.22, cont:"Afrique", flag:"🇸🇩" },
+  { id:"suriname", name:"Suriname", cap:"Paramaribo", lat:3.92, lon:-56.03, cont:"Amérique du Sud", flag:"🇸🇷" },
+  { id:"svalbard-and-jan-mayen", name:"Svalbard and Jan Mayen", cap:"Longyearbyen", lat:79.99, lon:25.49, cont:"Europe", flag:"🇸🇯" },
+  { id:"sweden", name:"Suède", cap:"Stockholm", lat:62.2, lon:17.64, cont:"Europe", flag:"🇸🇪" },
+  { id:"switzerland", name:"Suisse", cap:"Berne", lat:46.82, lon:8.22, cont:"Europe", flag:"🇨🇭", fact:"Pays alpin neutre (montagnes, banques, horlogerie)." },
+  { id:"syria", name:"Syrie", cap:"Damas", lat:34.81, lon:39.06, cont:"Asie", flag:"🇸🇾" },
+  { id:"tajikistan", name:"Tajikistan", cap:"Dushanbe", lat:38.86, lon:71.26, cont:"Asie", flag:"🇹🇯" },
+  { id:"tanzania", name:"Tanzanie", cap:"Dodoma", lat:-6.37, lon:34.89, cont:"Afrique", flag:"🇹🇿" },
+  { id:"thailand", name:"Thaïlande", cap:"Bangkok", lat:13.04, lon:101.49, cont:"Asie", flag:"🇹🇭" },
+  { id:"togo", name:"Togo", cap:"Lomé", lat:8.62, lon:0.83, cont:"Afrique", flag:"🇹🇬" },
+  { id:"tokelau", name:"Tokelau", cap:"Fakaofo", lat:-8.97, lon:-171.86, cont:"Océanie", flag:"🇹🇰" },
+  { id:"tonga", name:"Tonga", cap:"Nuku'alofa", lat:-18.51, lon:-174.79, cont:"Océanie", flag:"🇹🇴" },
+  { id:"trinidad-and-tobago", name:"Trinidad and Tobago", cap:"Port-of-Spain", lat:10.69, lon:-61.22, cont:"Amérique du Nord", flag:"🇹🇹" },
+  { id:"tunisia", name:"Tunisie", cap:"Tunis", lat:33.89, lon:9.56, cont:"Afrique", flag:"🇹🇳" },
+  { id:"turkey", name:"Turquie", cap:"Ankara", lat:38.96, lon:35.25, cont:"Asie", flag:"🇹🇷" },
+  { id:"turkmenistan", name:"Turkmenistan", cap:"Ashgabat", lat:38.97, lon:59.56, cont:"Asie", flag:"🇹🇲" },
+  { id:"turks-and-caicos-islands", name:"Turks and Caicos Islands", cap:"Cockburn Town", lat:21.69, lon:-71.8, cont:"Amérique du Nord", flag:"🇹🇨" },
+  { id:"tuvalu", name:"Tuvalu", cap:"Funafuti", lat:-8.22, lon:177.96, cont:"Océanie", flag:"🇹🇻" },
+  { id:"uganda", name:"Ouganda", cap:"Kampala", lat:1.37, lon:32.3, cont:"Afrique", flag:"🇺🇬" },
+  { id:"ukraine", name:"Ukraine", cap:"Kiev", lat:48.38, lon:31.17, cont:"Europe", flag:"🇺🇦" },
+  { id:"united-arab-emirates", name:"Émirats arabes unis", cap:"Abu Dhabi", lat:24.36, lon:53.98, cont:"Asie", flag:"🇦🇪" },
+  { id:"united-kingdom", name:"Royaume-Uni", cap:"Londres", lat:54.63, lon:-3.43, cont:"Europe", flag:"🇺🇰", fact:"Île séparée du continent par la Manche." },
+  { id:"united-states", name:"États-Unis", cap:"Washington", lat:36.97, lon:-95.84, cont:"Amérique du Nord", flag:"🇺🇸", fact:"3ᵉ plus grand pays du monde, traversé par 6 fuseaux horaires." },
+  { id:"uruguay", name:"Uruguay", cap:"Montevideo", lat:-32.53, lon:-55.76, cont:"Amérique du Sud", flag:"🇺🇾" },
+  { id:"uzbekistan", name:"Ouzbékistan", cap:"Toskent", lat:41.38, lon:64.56, cont:"Asie", flag:"🇺🇿" },
+  { id:"vanuatu", name:"Vanuatu", cap:"Port-Vila", lat:-16.66, lon:168.22, cont:"Océanie", flag:"🇻🇺" },
+  { id:"venezuela", name:"Venezuela", cap:"Caracas", lat:6.41, lon:-66.58, cont:"Amérique du Sud", flag:"🇻🇪" },
+  { id:"vietnam", name:"Viêt Nam", cap:"Hanoï", lat:15.97, lon:105.81, cont:"Asie", flag:"🇻🇳" },
+  { id:"wallis-and-futuna", name:"Wallis and Futuna", cap:"Mata-Utu", lat:-13.77, lon:-177.17, cont:"Océanie", flag:"🇼🇫" },
+  { id:"western-sahara", name:"Western Sahara", cap:"El-Aai", lat:24.22, lon:-12.89, cont:"Afrique", flag:"🇪🇭" },
+  { id:"yemen", name:"Yémen", cap:"Sanaa", lat:15.56, lon:48.53, cont:"Asie", flag:"🇾🇪" },
+  { id:"zambia", name:"Zambie", cap:"Lusaka", lat:-13.15, lon:27.85, cont:"Afrique", flag:"🇿🇲" },
+  { id:"zimbabwe", name:"Zimbabwe", cap:"Harare", lat:-19.01, lon:29.15, cont:"Afrique", flag:"🇿🇼" }
+];
+/* ====== CONTINENTS — fiches pédagogiques (cliquables sur le globe) ====== */
+const CONTINENTS={
+  'Europe':{ lat:54, lon:15, emoji:'🏰', area:'10,5 M km²', pop:'≈ 745 millions', nb:'≈ 44 pays', record:'Plus petit continent (hors Océanie)',
+    desc:"L'Europe est un petit continent très peuplé, bordé par l'Atlantique et la Méditerranée. Ses pays sont proches les uns des autres : on peut traverser plusieurs pays en une journée de train !",
+    fun:"Le point culminant de l'Europe occidentale est le Mont Blanc (4 806 m), entre la France et l'Italie." },
+  'Asie':{ lat:34, lon:90, emoji:'🏯', area:'44,6 M km²', pop:'≈ 4,7 milliards', nb:'≈ 47 pays', record:'Le plus grand et le plus peuplé',
+    desc:"L'Asie est un continent géant : plus de la moitié de l'humanité y vit ! On y trouve les plus hautes montagnes du monde (l'Himalaya) et d'immenses déserts et forêts.",
+    fun:"L'Everest, dans l'Himalaya, culmine à 8 849 m : c'est la plus haute montagne du monde." },
+  'Afrique':{ lat:2, lon:22, emoji:'🦁', area:'30,4 M km²', pop:'≈ 1,4 milliard', nb:'54 pays', record:'Le plus grand désert chaud (Sahara)',
+    desc:"L'Afrique est traversée par l'équateur : on y trouve le Sahara au nord, la savane et ses grands animaux, et d'immenses forêts tropicales au centre.",
+    fun:"Le Nil, long d'environ 6 650 km, est l'un des deux plus longs fleuves du monde avec l'Amazone." },
+  'Amérique du Nord':{ lat:45, lon:-100, emoji:'🗽', area:'24,7 M km²', pop:'≈ 600 millions', nb:'23 pays', record:'Les Grands Lacs (plus grande réserve d\'eau douce)',
+    desc:"De l'Arctique canadien aux plages des Caraïbes, l'Amérique du Nord offre tous les climats. Elle est reliée à l'Amérique du Sud par un mince pont de terre : l'Amérique centrale.",
+    fun:"Le Grand Canyon, creusé par le fleuve Colorado, est profond de plus de 1 800 m." },
+  'Amérique du Sud':{ lat:-15, lon:-60, emoji:'🦜', area:'17,8 M km²', pop:'≈ 440 millions', nb:'12 pays', record:'La plus grande forêt tropicale (Amazonie)',
+    desc:"L'Amérique du Sud abrite la forêt amazonienne, « poumon vert » de la planète, et la cordillère des Andes, la plus longue chaîne de montagnes du monde (7 000 km).",
+    fun:"L'Amazone déverse à elle seule près d'un cinquième de toute l'eau douce qui arrive aux océans." },
+  'Océanie':{ lat:-25, lon:140, emoji:'🦘', area:'8,5 M km²', pop:'≈ 45 millions', nb:'16 pays', record:'La Grande Barrière de corail',
+    desc:"L'Océanie, c'est l'Australie et des milliers d'îles éparpillées dans le Pacifique. Sa faune est unique : kangourous, koalas et ornithorynques ne vivent que là.",
+    fun:"La Grande Barrière de corail (2 300 km) est si grande qu'on la voit depuis l'espace." },
+  'Antarctique':{ lat:-82, lon:0, emoji:'🐧', area:'14,2 M km²', pop:'0 habitant permanent', nb:'0 pays (traité international)', record:'Le plus froid : -89 °C mesurés !',
+    desc:"L'Antarctique est un continent de glace autour du pôle Sud. Personne n'y habite en permanence : seuls des scientifiques s'y relaient dans des stations de recherche.",
+    fun:"La glace de l'Antarctique contient environ 70 % de l'eau douce de la planète." },
+};
+const OCEANS=[ {name:'Océan Pacifique', test:(la,lo)=>(lo>120||lo<-70)}, {name:'Océan Atlantique', test:(la,lo)=>(lo>=-70&&lo<20)}, {name:'Océan Indien', test:(la,lo)=>(lo>=20&&lo<=120)} ];
+function oceanName(la,lo){ if(la>66)return 'Océan Arctique'; if(la<-55)return 'Océan Austral'; const o=OCEANS.find(o=>o.test(la,lo)); return o?o.name:'Océan Pacifique'; }
+/* pays vedettes : enrichis (population, superficie, à savoir) — repères du tour du monde */
+const FEATURED={
+  france:{ pop:'68 M hab.', area:'552 000 km²', more:"On la surnomme « l'Hexagone » pour sa forme à six côtés. Grâce à ses territoires d'outre-mer, le soleil ne s'y couche jamais !" },
+  spain:{ pop:'48 M hab.', area:'506 000 km²', more:"La Sagrada Família de Barcelone est en chantier depuis 1882." },
+  italy:{ pop:'59 M hab.', area:'302 000 km²', more:"Le Vésuve et l'Etna sont des volcans actifs célèbres d'Italie." },
+  germany:{ pop:'84 M hab.', area:'358 000 km²', more:"Le Rhin, grand fleuve d'Europe, longe ses châteaux et ses vignobles." },
+  'united-kingdom':{ pop:'68 M hab.', area:'244 000 km²', more:"Big Ben est le surnom de la grande cloche du palais de Westminster, à Londres." },
+  russia:{ pop:'144 M hab.', area:'17,1 M km²', more:"Le Transsibérien relie Moscou à Vladivostok : 9 289 km de rails, une semaine de voyage !" },
+  china:{ pop:'1 410 M hab.', area:'9,6 M km²', more:"La Grande Muraille, construite sur plus de 2 000 ans, dépasse 20 000 km de long." },
+  india:{ pop:'1 430 M hab.', area:'3,3 M km²', more:"Le Taj Mahal, en marbre blanc, est l'un des monuments les plus célèbres du monde." },
+  japan:{ pop:'124 M hab.', area:'378 000 km²', more:"Le mont Fuji (3 776 m), volcan sacré, est le symbole du Japon." },
+  egypt:{ pop:'113 M hab.', area:'1 M km²', more:"Presque toute la population vit le long du Nil, au milieu du désert." },
+  nigeria:{ pop:'224 M hab.', area:'924 000 km²', more:"Lagos, sa plus grande ville, compte plus d'habitants que la Belgique entière." },
+  'south-africa':{ pop:'60 M hab.', area:'1,2 M km²', more:"Au cap de Bonne-Espérance, on peut voir l'Atlantique et l'océan Indien se rencontrer." },
+  kenya:{ pop:'55 M hab.', area:'580 000 km²', more:"Le Kilimandjaro, tout proche, est visible depuis ses savanes." },
+  'united-states':{ pop:'335 M hab.', area:'9,8 M km²', more:"Du désert de la Vallée de la Mort aux glaciers de l'Alaska : presque tous les paysages du monde." },
+  canada:{ pop:'40 M hab.', area:'10 M km²', more:"Le Canada possède plus de lacs que tous les autres pays réunis." },
+  mexico:{ pop:'128 M hab.', area:'2 M km²', more:"Les pyramides de Teotihuacán existaient déjà il y a 2 000 ans." },
+  brazil:{ pop:'216 M hab.', area:'8,5 M km²', more:"L'Amazonie brésilienne abrite une espèce animale ou végétale sur dix connue sur Terre." },
+  argentina:{ pop:'46 M hab.', area:'2,8 M km²', more:"En Patagonie, le glacier Perito Moreno avance et craque comme un géant de glace." },
+  australia:{ pop:'26 M hab.', area:'7,7 M km²', more:"Uluru, énorme rocher rouge sacré, change de couleur au coucher du soleil." },
+};
+Object.keys(FEATURED).forEach(id=>{ const c=COUNTRIES.find(x=>x.id===id); if(c)Object.assign(c,FEATURED[id],{star:true}); });
+const FEATURED_IDS=Object.keys(FEATURED).filter(id=>COUNTRIES.some(c=>c.id===id));
+let showClouds=true, night=false, showMarkers=true, atmosphere=true;
+const CONTCOL={'Europe':'#1B82E0','Asie':'#E0892B','Afrique':'#23A06E','Amérique du Nord':'#9B2BB0','Amérique du Sud':'#E63329','Océanie':'#29B6E0'};
+let hoveredMarker=null, selectedId=null;
+let scene,camera,renderer,composer,controls,clock,globeGroup,earth,clouds,sunLight,raycaster,pointer,markers=[],hovered=null,targetRotY=null,labelEls={};
+let earthU=null, realSun=false, baseSunDir=new THREE.Vector3(1,.25,.6).normalize(), targetCamDist=null, targetPhi=null, mission=null;
+
+const shell=window.Konstrio.createGame({
+  id:'3d-09-globe', code:'3D·09', title:'Globe géographique interactif', type:'3D',
+  domain:{ label:'Histoire & Géo', color:'#E0892B' },
+  intro:{
+    greet:"Bienvenue à bord ! Fais tourner la Terre, clique un continent ou une épingle pour sa fiche… ou pars en Tour du monde guidé (mode Cours).",
+    rule:"Un globe photoréaliste et vivant : jour/nuit avec les lumières des villes, nuages, atmosphère. En Détente, explore librement : continents, océans et plus de 200 pays sont cliquables. En Cours, un Tour du monde guidé en 3 escales : continents → grands pays → capitales.",
+    how:["Glisse pour tourner le globe · molette (ou boutons +/−) pour zoomer.","Clique un continent, un océan ou une épingle 📍 : une fiche s'ouvre (capitale, population, heure locale, distance depuis Paris…).","Mode Cours : on te nomme une cible, clique-la sur le globe. Tu es guidé·e, jamais pénalisé·e — des indices arrivent si besoin.","Calques : 🌙 face nuit (villes illuminées), 🕐 Soleil réel (le vrai jour/nuit de maintenant), ☁️ nuages, 🌐 grille."],
+    keys:"Flèches = tourner le globe · + / − = zoom · Échap = pause.",
+    objectif:"Situer les 7 continents, une quinzaine de grands pays et leurs capitales.",
+    hint:"Repère-toi avec les continents : l'Europe en haut au centre, les Amériques à gauche, l'Asie à droite.",
+    why:"La Terre tourne sur elle-même en 24 h : c'est ce qui crée le jour et la nuit, visibles sur la ligne du terminateur du globe."
+  },
+  learned:["Les 7 continents, leurs records et leurs habitants.","Une quinzaine de grands pays et leurs capitales.","La Terre tourne sur elle-même → alternance jour/nuit (terminateur).","La nuit, les grandes villes brillent, visibles depuis l'espace."],
+  onReady:init, onStart:startMode, onTheme:()=>applyTheme(),
+});
+function latlon(lat,lon,r){ const phi=(90-lat)*Math.PI/180, th=(lon+180)*Math.PI/180; return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(th), r*Math.cos(phi), r*Math.sin(phi)*Math.sin(th)); }
+function init(){ const stage=shell.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(50, stage.clientWidth/stage.clientHeight, .01, 1000); camera.position.set(0,1.2,5.2);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.1; stage.appendChild(renderer.domElement);
+  // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produirait du noir → chaîne robuste sans GTAO
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer); composer.addPass(new RenderPass(scene,camera));
+  // GPU réel uniquement : occlusion ambiante en espace-écran (creuse le contact atmosphère/relief)
+  if(!software && !REDUCED){ const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=0.7; try{ gtao.updateGtaoMaterial({ radius:0.35, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){} composer.addPass(gtao); composer.gtao=gtao; }
+  // bloom subtil : villes de nuit, halo atmosphérique, pays vedettes
+  if(!REDUCED){ const bloom=new UnrealBloomPass(new THREE.Vector2(W,H),0.35,0.6,0.92); composer.addPass(bloom); composer.bloom=bloom; }
+  // anti-aliasing SMAA + OutputPass (tone mapping ACES + sRGB en fin de chaîne)
+  composer.addPass(new SMAAPass(W,H));
+  composer.addPass(new OutputPass());
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.minDistance=2.6; controls.maxDistance=12; controls.autoRotate=true; controls.autoRotateSpeed=REDUCED?0.12:0.4;
+  scene.add(new THREE.AmbientLight(0x2a3b58,0.35)); sunLight=new THREE.DirectionalLight(0xfff2dc,2.4); scene.add(sunLight);
+  scene.add(makeSky());
+  globeGroup=new THREE.Object3D(); scene.add(globeGroup);
+  // ---- Terre photoréaliste : shader jour/nuit (terminateur, spéculaire océans, fresnel) ----
+  const proc=buildProceduralEarth();
+  earthU={ dayMap:{value:proc.day}, nightMap:{value:proc.night}, sunDir:{value:new THREE.Vector3(1,.25,.6).normalize()}, nightBoost:{value:1.0} };
+  earth=new THREE.Mesh(new THREE.SphereGeometry(2,128,96), earthShaderMat(earthU)); globeGroup.add(earth);
+  clouds=new THREE.Mesh(new THREE.SphereGeometry(2.035,64,48), new THREE.MeshLambertMaterial({ map:proc.clouds, alphaMap:proc.clouds, transparent:true, opacity:.85, depthWrite:false })); globeGroup.add(clouds);
+  const atmo=new THREE.Mesh(new THREE.SphereGeometry(2.22,64,48), atmoMat()); globeGroup.add(atmo); globeGroup.userData.atmo=atmo;
+  const grat=makeGraticule(); grat.visible=false; globeGroup.add(grat); globeGroup.userData.grat=grat;
+  // ---- Marqueurs : épingles colorées par continent, pays vedettes en or avec halo pulsant ----
+  const geoBig=new THREE.SphereGeometry(0.052,14,14), geoSmall=new THREE.SphereGeometry(0.028,10,10), hTex=haloTex();
+  COUNTRIES.forEach(c=>{ const pos=latlon(c.lat,c.lon,2.045); const col=c.star?0xffcf4a:new THREE.Color(CONTCOL[c.cont]||'#8fb8ff').getHex();
+    const pin=new THREE.Mesh(c.star?geoBig:geoSmall, new THREE.MeshBasicMaterial({ color:col })); pin.position.copy(pos); pin.userData={c}; globeGroup.add(pin);
+    let halo=null; if(c.star){ halo=new THREE.Sprite(new THREE.SpriteMaterial({ map:hTex, color:0xffcf4a, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending })); halo.scale.setScalar(0.24); halo.position.copy(pos); globeGroup.add(halo); }
+    markers.push({pin,halo,c}); });
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  loadTextures(); buildUI(); applyTheme();
+  renderer.domElement.addEventListener('pointermove',onMove); renderer.domElement.addEventListener('pointerdown',onDown);
+  controls.addEventListener('start',()=>{ targetRotY=null; targetPhi=null; targetCamDist=null; }); // le geste de l'enfant garde la main
+  // accessibilité clavier : flèches = rotation, +/- = zoom
+  window.addEventListener('keydown',e=>{ if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return; const k=e.key;
+    if(k==='ArrowLeft'||k==='ArrowRight'){ targetRotY=null; globeGroup.rotation.y+=(k==='ArrowLeft'?1:-1)*0.12; }
+    else if(k==='ArrowUp'||k==='ArrowDown'){ orbitBy((k==='ArrowUp'?-1:1)*0.08); }
+    else if(k==='+'||k==='='){ zoomBy(0.9); } else if(k==='-'||k==='_'){ zoomBy(1.1); } else return; e.preventDefault(); });
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage); animate();
+}
+function orbitBy(dPhi){ const off=camera.position.clone().sub(controls.target); const s=new THREE.Spherical().setFromVector3(off); s.phi=Math.max(0.2,Math.min(Math.PI-0.2,s.phi+dPhi)); camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(s)); targetPhi=null; }
+function zoomBy(f){ const off=camera.position.clone().sub(controls.target).multiplyScalar(f); const len=Math.max(controls.minDistance,Math.min(controls.maxDistance,off.length())); camera.position.copy(controls.target).add(off.setLength(len)); targetCamDist=null; }
+let showGrat=false;
+function makeGraticule(){ const g=new THREE.Group(); const mat=new THREE.LineBasicMaterial({ color:0x66c2ff, transparent:true, opacity:0.32 }); const R=2.012;
+  for(let lat=-60;lat<=60;lat+=30){ const pts=[]; for(let lon=0;lon<=360;lon+=4)pts.push(latlon(lat,lon-180,R)); g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat)); }
+  for(let lon=-180;lon<180;lon+=30){ const pts=[]; for(let lat=-90;lat<=90;lat+=4)pts.push(latlon(lat,lon,R)); g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat)); }
+  const eq=[]; for(let lon=0;lon<=360;lon+=3)eq.push(latlon(0,lon-180,R+0.004)); g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(eq), new THREE.LineBasicMaterial({ color:0xffd24a, transparent:true, opacity:0.6 })));
+  return g; }
+/* ====== Matériau Terre : jour/nuit + terminateur chaud + spéculaire océans + fresnel ====== */
+function earthShaderMat(u){ return new THREE.ShaderMaterial({ uniforms:u,
+  vertexShader:`varying vec2 vUv; varying vec3 vN; varying vec3 vWp;
+    void main(){ vUv=uv; vN=normalize(mat3(modelMatrix)*normal); vec4 wp=modelMatrix*vec4(position,1.); vWp=wp.xyz; gl_Position=projectionMatrix*viewMatrix*wp; }`,
+  fragmentShader:`uniform sampler2D dayMap; uniform sampler2D nightMap; uniform vec3 sunDir; uniform float nightBoost;
+    varying vec2 vUv; varying vec3 vN; varying vec3 vWp;
+    void main(){
+      vec3 N=normalize(vN); vec3 S=normalize(sunDir); vec3 V=normalize(cameraPosition-vWp);
+      vec3 day=texture2D(dayMap,vUv).rgb; vec3 night=texture2D(nightMap,vUv).rgb;
+      float d=dot(N,S);
+      float dayAmt=smoothstep(-0.12,0.25,d);
+      float water=smoothstep(0.02,0.12,day.b-max(day.r,day.g)*0.92);           /* masque océan depuis la carte */
+      vec3 H=normalize(S+V);
+      float spec=pow(max(dot(N,H),0.0),48.0)*water*dayAmt;                     /* reflet du Soleil sur l'eau */
+      float tw=smoothstep(-0.22,0.02,d)*(1.0-smoothstep(0.02,0.30,d));         /* bande crépusculaire */
+      vec3 col=day*(0.16+1.02*dayAmt);
+      col+=vec3(1.0,0.85,0.6)*spec*0.6;
+      col+=night*vec3(1.0,0.82,0.55)*(1.0-dayAmt)*1.7*nightBoost;              /* villes lumineuses côté nuit */
+      col+=vec3(0.95,0.45,0.2)*tw*0.18;
+      float fr=pow(1.0-max(dot(N,V),0.0),2.8);                                 /* voile atmosphérique en bord */
+      col+=vec3(0.28,0.52,1.0)*fr*(0.22+0.4*dayAmt);
+      col=pow(col,vec3(1.0/2.2));
+      gl_FragColor=vec4(col,1.0);
+    }`}); }
+function atmoMat(){ return new THREE.ShaderMaterial({ side:THREE.BackSide, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false,
+  uniforms:{ c:{value:new THREE.Color(0x4a9cff)}, sunDir:{value:earthU?earthU.sunDir.value:baseSunDir} },
+  vertexShader:'varying vec3 vN; varying vec3 vWp; void main(){ vN=normalize(mat3(modelMatrix)*normal); vec4 wp=modelMatrix*vec4(position,1.); vWp=wp.xyz; gl_Position=projectionMatrix*viewMatrix*wp; }',
+  fragmentShader:`varying vec3 vN; varying vec3 vWp; uniform vec3 c; uniform vec3 sunDir;
+    void main(){ vec3 V=normalize(cameraPosition-vWp); float i=pow(clamp(0.66-dot(normalize(vN),V),0.,1.),3.2);
+      float sun=clamp(dot(normalize(vWp),normalize(sunDir))*0.5+0.5,0.,1.);
+      vec3 col=mix(c*0.35,c*1.25,sun); col=mix(col,vec3(1.0,0.55,0.3),(1.0-sun)*0.22);
+      gl_FragColor=vec4(col,1.0)*clamp(i,0.,1.)*1.35; }` }); }
+function haloTex(){ const cv=document.createElement('canvas'); cv.width=cv.height=64; const g=cv.getContext('2d').createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(255,220,120,.9)'); g.addColorStop(1,'rgba(255,200,80,0)'); const x=cv.getContext('2d'); x.fillStyle=g; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(cv); }
+function makeSky(){ const cv=document.createElement('canvas'); cv.width=1024; cv.height=512; const ctx=cv.getContext('2d'); ctx.fillStyle='#04050e'; ctx.fillRect(0,0,1024,512);
+  for(let i=0;i<900;i++){ const y=256+ (Math.random()-.5)*90; ctx.globalAlpha=.04+Math.random()*.07; ctx.fillStyle='#aebfe8'; ctx.beginPath(); ctx.arc(Math.random()*1024,y,2+Math.random()*5,0,7); ctx.fill(); } // voie lactée diffuse
+  for(let i=0;i<1500;i++){ ctx.globalAlpha=.3+Math.random()*.6; ctx.fillStyle=Math.random()<.08?'#ffd9b0':'#fff'; ctx.beginPath(); ctx.arc(Math.random()*1024,Math.random()*512,Math.random()<.9?Math.random()*0.9:1.4,0,7); ctx.fill(); }
+  const t=new THREE.CanvasTexture(cv); const mat=new THREE.MeshBasicMaterial({ map:t, side:THREE.BackSide });
+  new THREE.TextureLoader().load('../assets/3d/planets/2k_stars_milky_way.jpg', r=>{ r.colorSpace=THREE.SRGBColorSpace; mat.map=r; mat.needsUpdate=true; }, undefined, ()=>{});
+  return new THREE.Mesh(new THREE.SphereGeometry(400,32,16), mat); }
+/* ====== Cartes procédurales 2048px (affichage immédiat / secours hors-ligne) ====== */
+function mulberry(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const LAND_RAD={ russia:150, canada:125, 'united-states':105, china:105, brazil:105, australia:100, greenland:62, india:70, argentina:68, mexico:52, indonesia:46, 'saudi-arabia':56, algeria:56, sudan:48, mali:46, niger:44, chad:42, mongolia:52, iran:48, egypt:40, ethiopia:40, mauritania:38, angola:38, 'south-africa':44, tanzania:34, nigeria:36, colombia:40, peru:42, bolivia:40, venezuela:36, chile:34, france:30, spain:30, sweden:36, norway:34, finland:32, germany:27, turkey:36, ukraine:34, poland:27, afghanistan:32, pakistan:34, iraq:26, kazakhstan:60, japan:24, philippines:20, 'new-zealand':22, madagascar:26, morocco:28, somalia:28, kenya:28, mozambique:30, zambia:28, botswana:26, namibia:28, myanmar:30, thailand:26, vietnam:24, 'papua-new-guinea':26, iceland:18, ireland:14, 'united-kingdom':22, italy:22, greece:16, romania:20, belarus:22, uzbekistan:28, turkmenistan:26, yemen:24, oman:22, libya:48 };
+function landColor(lat,lon,rnd){ const a=Math.abs(lat+ (rnd()-.5)*6);
+  const desert=(lat>10&&lat<34&&((lon>-17&&lon<60)||(lon>60&&lon<75)))||(lat<-18&&lat>-32&&lon>112&&lon<145)||(lat<-16&&lat>-28&&lon>12&&lon<26);
+  if(a>68)return '#e9eef4'; if(a>58)return '#5c6f52'; if(desert)return rnd()<.5?'#c8a862':'#bd9a55';
+  if(a>44)return rnd()<.5?'#44693c':'#3d6136'; if(a>26)return rnd()<.5?'#57793e':'#4e7040'; if(a>9)return rnd()<.5?'#7a8f4a':'#8a9a52'; return rnd()<.5?'#2e6e35':'#2a6531'; }
+function buildProceduralEarth(){ const W=2048,H=1024; const rnd=mulberry(90210);
+  const px=lon=>(lon+180)/360*W, py=lat=>(90-lat)/180*H;
+  // --- océan ---
+  const day=document.createElement('canvas'); day.width=W; day.height=H; const d=day.getContext('2d');
+  const og=d.createLinearGradient(0,0,0,H); og.addColorStop(0,'#0b3260'); og.addColorStop(.28,'#0d3f79'); og.addColorStop(.5,'#0e4784'); og.addColorStop(.72,'#0d3f79'); og.addColorStop(1,'#0b3260'); d.fillStyle=og; d.fillRect(0,0,W,H);
+  for(let i=0;i<420;i++){ d.globalAlpha=.05; d.fillStyle=rnd()<.5?'#0a2c56':'#155091'; d.beginPath(); d.ellipse(rnd()*W,rnd()*H,30+rnd()*130,8+rnd()*26,rnd()*3,0,7); d.fill(); } d.globalAlpha=1;
+  // --- continents : masses de terre esquissées depuis les centroïdes des pays ---
+  const land=document.createElement('canvas'); land.width=W; land.height=H; const l=land.getContext('2d');
+  COUNTRIES.forEach(c=>{ const r=(LAND_RAD[c.id]||11)*(W/2048); const cx=px(c.lon), cy=py(c.lat); const n=10+Math.floor(r/6);
+    for(let i=0;i<n;i++){ const ang=rnd()*6.28, dist=rnd()*r*.62; const bx=cx+Math.cos(ang)*dist*1.35, by=cy+Math.sin(ang)*dist*.8; const br=r*(.3+rnd()*.42);
+      l.fillStyle=landColor(c.lat-(by-cy)/H*180,c.lon,rnd); l.globalAlpha=.9; l.beginPath(); l.ellipse(bx,by,br*1.25,br*.85,rnd()*3,0,7); l.fill(); } });
+  l.globalAlpha=1;
+  // relief : grain clair/sombre confiné aux terres
+  l.globalCompositeOperation='source-atop';
+  for(let i=0;i<5200;i++){ l.globalAlpha=.05+rnd()*.08; l.fillStyle=rnd()<.5?'#1c2e18':'#cfd8b8'; l.beginPath(); l.arc(rnd()*W,rnd()*H,1+rnd()*5,0,7); l.fill(); }
+  // chaînes de montagnes principales (Andes, Rocheuses, Himalaya, Alpes, Atlas)
+  const ranges=[[[-72,-8],[-70,-45]],[[-118,52],[-105,34]],[[70,36],[95,28]],[[6,46],[14,47]],[[-8,31],[8,34]]];
+  ranges.forEach(([[lo1,la1],[lo2,la2]])=>{ const steps=42; for(let i=0;i<steps;i++){ const t=i/steps; const x=px(lo1+(lo2-lo1)*t)+(rnd()-.5)*14, y=py(la1+(la2-la1)*t)+(rnd()-.5)*14; l.globalAlpha=.5; l.fillStyle='#8a7f6a'; l.beginPath(); l.arc(x,y,2.5+rnd()*4,0,7); l.fill(); l.globalAlpha=.35; l.fillStyle='#e8e4d8'; l.beginPath(); l.arc(x+1,y-1,1.2+rnd()*2,0,7); l.fill(); } });
+  l.globalAlpha=1; l.globalCompositeOperation='source-over';
+  d.drawImage(land,0,0);
+  // --- calottes polaires (Antarctique + Arctique) à bord irrégulier ---
+  d.fillStyle='#f2f6fa'; d.beginPath(); d.moveTo(0,H); for(let x=0;x<=W;x+=16)d.lineTo(x,H*.925+Math.sin(x*.013)*8+rnd()*10); d.lineTo(W,H); d.closePath(); d.fill();
+  d.globalAlpha=.85; d.fillStyle='#eef3f8'; d.beginPath(); d.moveTo(0,0); for(let x=0;x<=W;x+=16)d.lineTo(x,H*.045+Math.sin(x*.02)*5+rnd()*8); d.lineTo(W,0); d.closePath(); d.fill(); d.globalAlpha=1;
+  // --- nuit : lumières des villes ---
+  const night=document.createElement('canvas'); night.width=W; night.height=H; const n2=night.getContext('2d'); n2.fillStyle='#010204'; n2.fillRect(0,0,W,H);
+  COUNTRIES.forEach(c=>{ const cx=px(c.lon), cy=py(c.lat); const big=!!c.star; const spread=(LAND_RAD[c.id]||11)*.5*(W/2048);
+    const gl=n2.createRadialGradient(cx,cy,0,cx,cy,big?15:7); gl.addColorStop(0,'rgba(255,214,150,.95)'); gl.addColorStop(1,'rgba(255,180,90,0)'); n2.fillStyle=gl; n2.beginPath(); n2.arc(cx,cy,big?15:7,0,7); n2.fill();
+    const specks=big?36:7; for(let i=0;i<specks;i++){ const ang=rnd()*6.28, ds=rnd()*spread; n2.globalAlpha=.25+rnd()*.5; n2.fillStyle='#ffd9a0'; n2.beginPath(); n2.arc(cx+Math.cos(ang)*ds*1.3,cy+Math.sin(ang)*ds*.8,.6+rnd()*1.2,0,7); n2.fill(); } n2.globalAlpha=1; });
+  // --- nuages ---
+  const cl=document.createElement('canvas'); cl.width=W/2; cl.height=H/2; const c2=cl.getContext('2d'); c2.fillStyle='#000'; c2.fillRect(0,0,W/2,H/2);
+  for(let k=0;k<110;k++){ const cx=rnd()*W/2, cy=(rnd()*.9+.05)*H/2, len=30+rnd()*120, n3=14+Math.floor(rnd()*22);
+    for(let i=0;i<n3;i++){ c2.globalAlpha=.05+rnd()*.1; c2.fillStyle='#fff'; c2.beginPath(); c2.ellipse(cx+(rnd()-.5)*len*2,cy+(rnd()-.5)*len*.5,8+rnd()*26,4+rnd()*12,rnd()*3,0,7); c2.fill(); } }
+  for(let x=0;x<W/2;x+=8){ c2.globalAlpha=.1+rnd()*.12; c2.fillStyle='#fff'; c2.beginPath(); c2.ellipse(x,H/4+Math.sin(x*.05)*10,14+rnd()*16,6+rnd()*8,0,0,7); c2.fill(); } // bande intertropicale
+  c2.globalAlpha=1;
+  const tex=cv=>{ const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t; };
+  return { day:tex(day), night:tex(night), clouds:tex(cl) };
+}
+function loadTextures(){ const L=new THREE.TextureLoader(); const B='../assets/3d/planets/'; const srgb=t=>{ t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t; };
+  // textures NASA auto-hébergées (CC) : remplacent la carte procédurale dès qu'elles arrivent
+  L.load(B+'2k_earth_daymap.jpg', t=>{ earthU.dayMap.value=srgb(t);
+    L.load(B+'hires_terre.jpg', h=>{ earthU.dayMap.value=srgb(h); }, undefined, ()=>{}); }, undefined, ()=>{});
+  L.load(B+'2k_earth_nightmap.jpg', t=>{ earthU.nightMap.value=srgb(t); }, undefined, ()=>{});
+  L.load(B+'2k_earth_clouds.jpg', t=>{ srgb(t); clouds.material.map=t; clouds.material.alphaMap=t; clouds.material.opacity=.92; clouds.material.needsUpdate=true; }, undefined, ()=>{});
+}
+function buildUI(){ const stage=shell.stage;
+  const search=document.createElement('div'); search.className='gl-panel gl-search'; search.innerHTML=`<svg class="mag" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="glSearch" placeholder="Rechercher un pays…" autocomplete="off"><div class="gl-sugg" id="glSugg"></div>`; stage.appendChild(search);
+  const inp=search.querySelector('#glSearch'), sugg=search.querySelector('#glSugg'); let active=-1;
+  function rs(q){ active=-1; const list=q?COUNTRIES.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())||c.cap.toLowerCase().includes(q.toLowerCase())).slice(0,8):COUNTRIES.slice(0,8); if(!list.length){ sugg.classList.remove('show'); return; } sugg.innerHTML=list.map(c=>`<button data-id="${c.id}">${c.name}<span class="k">${c.cont}</span></button>`).join(''); sugg.classList.add('show'); sugg.querySelectorAll('button').forEach(b=> b.onclick=()=>{ const c=COUNTRIES.find(x=>x.id===b.dataset.id); focusCountry(c); inp.value=''; sugg.classList.remove('show'); }); }
+  inp.addEventListener('input',()=>rs(inp.value)); inp.addEventListener('focus',()=>rs(inp.value)); inp.addEventListener('blur',()=>setTimeout(()=>sugg.classList.remove('show'),200));
+  inp.addEventListener('keydown',e=>{ const bs=[...sugg.querySelectorAll('button')]; if(e.key==='ArrowDown')active=Math.min(bs.length-1,active+1); else if(e.key==='ArrowUp')active=Math.max(0,active-1); else if(e.key==='Enter'){ if(bs[active])bs[active].click(); else if(bs[0])bs[0].click(); return;} else return; bs.forEach((b,i)=>b.classList.toggle('active',i===active)); e.preventDefault(); });
+  const m=document.createElement('div'); m.className='gl-panel gl-modes'; m.innerHTML=`<h3>Calques</h3>
+    <button class="gl-tg" data-k="night" aria-pressed="false">🌙 Face nuit (villes)</button>
+    <button class="gl-tg" data-k="sun" aria-pressed="false">🕐 Soleil réel</button>
+    <button class="gl-tg" data-k="clouds" aria-pressed="true">☁️ Nuages</button>
+    <button class="gl-tg" data-k="atmo" aria-pressed="true">🌍 Atmosphère</button>
+    <button class="gl-tg" data-k="markers" aria-pressed="true">📍 Capitales</button>
+    <button class="gl-tg" data-k="grat" aria-pressed="false">🌐 Grille (équateur)</button>
+    <button class="gl-tg" data-k="spin" aria-pressed="true">↻ Rotation auto</button>`; stage.appendChild(m);
+  m.querySelectorAll('.gl-tg').forEach(b=> b.onclick=()=>{ const k=b.dataset.k; const on=b.getAttribute('aria-pressed')!=='true'; b.setAttribute('aria-pressed',on); shell.sound('click');
+    if(k==='night'){ night=on; shell.say(on?"Côté nuit : le Soleil passe derrière la Terre — regarde les lumières des grandes villes briller depuis l'espace !":"Retour au jour.",'enthousiaste'); }
+    if(k==='sun'){ realSun=on; if(on&&night){ night=false; m.querySelector('[data-k="night"]').setAttribute('aria-pressed',false); } shell.say(on?"Soleil réel : le globe montre le vrai jour et la vraie nuit de maintenant, comme les satellites les voient.":"Soleil libre.",'curieux'); }
+    if(k==='clouds'){ showClouds=on; clouds.visible=on; }
+    if(k==='atmo'){ atmosphere=on; globeGroup.userData.atmo.visible=on; }
+    if(k==='markers'){ showMarkers=on; markers.forEach(mk=>{ mk.pin.visible=on; if(mk.halo)mk.halo.visible=on; }); }
+    if(k==='grat'){ showGrat=on; globeGroup.userData.grat.visible=on; shell.say(on?"Grille géographique : l'équateur (en jaune) sépare hémisphères Nord et Sud ; les méridiens donnent la longitude.":'Grille masquée.','curieux'); }
+    if(k==='spin'){ controls.autoRotate=on; }
+  });
+  const info=document.createElement('div'); info.className='gl-panel gl-info'; info.id='glInfo'; stage.appendChild(info);
+  const hint=document.createElement('div'); hint.className='gl-hint'; hint.id='glHint'; hint.textContent='Tourne le globe · clique un continent, un océan ou une épingle 📍'; stage.appendChild(hint);
+}
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x03040a:0x05060f,1); }
+function onResize(){ const s=shell.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
+function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer,camera); const hits=raycaster.intersectObjects(markers.map(m=>m.pin),false); return hits.length?markers.find(m=>m.pin===hits[0].object):null; }
+function onMove(e){ setP(e); const m=pick(); hoveredMarker=m; renderer.domElement.style.cursor=m?'pointer':'grab'; }
+/* ---- picking sur la sphère : lat/lon depuis le point d'impact ---- */
+function pickEarth(){ raycaster.setFromCamera(pointer,camera); const hit=raycaster.intersectObject(earth,false)[0]; if(!hit)return null;
+  const p=globeGroup.worldToLocal(hit.point.clone()); const r=p.length();
+  const lat=90-Math.acos(Math.max(-1,Math.min(1,p.y/r)))*180/Math.PI;
+  let lon=Math.atan2(p.z,-p.x)*180/Math.PI-180; while(lon<-180)lon+=360; while(lon>180)lon-=360;
+  return {lat,lon}; }
+const PARIS={lat:48.85,lon:2.35};
+function distKm(a,b){ const R=6371,rad=x=>x*Math.PI/180; const h=Math.sin(rad(b.lat-a.lat)/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(rad(b.lon-a.lon)/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+function nearestCountry(lat,lon){ let best=null,bd=1e9; COUNTRIES.forEach(c=>{ const d=distKm({lat,lon},c); if(d<bd){ bd=d; best=c; } }); return {c:best,km:bd}; }
+function continentAt(lat,lon){ if(lat<-60)return 'Antarctique'; const n=nearestCountry(lat,lon); return n.km<2300?n.c.cont:null; }
+function localTime(lon){ const off=Math.round(lon/15); const d=new Date(); const h=(d.getUTCHours()+off+24)%24; return h+' h '+String(d.getUTCMinutes()).padStart(2,'0')+' (UTC'+(off>=0?'+':'')+off+')'; }
+function fmtKm(k){ return k<100?Math.round(k)+' km':(k<9500?(Math.round(k/50)*50).toLocaleString('fr-FR'):(Math.round(k/100)*100).toLocaleString('fr-FR'))+' km'; }
+function onDown(e){ setP(e); const m=pick();
+  if(mission&&mission.active){ missionClick(m?{lat:m.c.lat,lon:m.c.lon,c:m.c}:pickEarth()); return; }
+  if(m){ focusCountry(m.c); return; }
+  const g=pickEarth(); if(!g)return;
+  if(g.lat<-62){ openContinent('Antarctique'); return; }
+  const n=nearestCountry(g.lat,g.lon);
+  if(n.km<650){ focusCountry(n.c); return; }
+  if(n.km<2300){ openContinent(n.c.cont); return; }
+  shell.toast('🌊 Ici, c\'est l\''+oceanName(g.lat,g.lon).replace('Océan','océan')+' — 71 % de la planète est recouverte d\'eau !',2600); shell.sound('pop');
+}
+function aimAt(lat,lon,dist){ // zoom doux : le globe pivote vers la cible, la caméra s'incline et se rapproche
+  const local=latlon(lat,lon,1); const camAz=Math.atan2(camera.position.x,camera.position.z); const ptAz=Math.atan2(local.x,local.z);
+  targetRotY=camAz-ptAz; targetPhi=Math.max(0.5,Math.min(Math.PI-0.5,(90-lat*0.85)*Math.PI/180)); if(dist)targetCamDist=dist;
+  controls.autoRotate=false; const sp=document.querySelector('[data-k="spin"]'); if(sp)sp.setAttribute('aria-pressed',false);
+}
+function focusCountry(c,quiet){ selectedId=c.id; if(!quiet)openFiche(c); aimAt(c.lat,c.lon,4.1); shell.sound('pop'); if(!quiet&&c.fact)shell.say(c.fact,'concentre'); }
+function openFiche(c){ const el=document.getElementById('glInfo'); const col=CONTCOL[c.cont]||'#1B82E0';
+  el.innerHTML=`<div class="gl-info-hd" style="background:linear-gradient(135deg,${col},${shade(col,-35)})"><div class="sub">${c.cont}${c.star?' · pays repère ⭐':''}</div><h2 style="display:flex;align-items:center;gap:8px"><span style="font-size:25px">${c.flag||'🏳️'}</span>${c.name}</h2>
+    <div class="gl-chips"><span class="gl-chip">🕐 ${localTime(c.lon)}</span><span class="gl-chip">✈️ ${fmtKm(distKm(PARIS,c))} de Paris</span></div><button class="gl-x" aria-label="Fermer la fiche">×</button></div>
+    <div class="gl-body"><div class="gl-sec">Chiffres clés</div><div class="gl-grid"><div class="gl-st"><div class="k">Capitale</div><div class="v">${c.cap}</div></div><div class="gl-st"><div class="k">Continent</div><div class="v">${c.cont}</div></div>${c.pop?`<div class="gl-st"><div class="k">Population</div><div class="v">${c.pop}</div></div>`:''}${c.area?`<div class="gl-st"><div class="k">Superficie</div><div class="v">${c.area}</div></div>`:''}<div class="gl-st"><div class="k">Coordonnées</div><div class="v">${c.lat.toFixed(0)}°, ${c.lon.toFixed(0)}°</div></div></div>
+    <div class="gl-sec">À savoir</div><p>${c.fact||(c.name+' a pour capitale '+c.cap+', en '+c.cont+'.')}</p>${c.more?`<div class="gl-fun">💡 ${c.more}</div>`:''}</div>`;
+  el.classList.add('show'); el.querySelector('.gl-x').onclick=()=>{ el.classList.remove('show'); selectedId=null; };
+}
+function openContinent(name){ const k=CONTINENTS[name]; if(!k)return; const el=document.getElementById('glInfo'); const col=CONTCOL[name]||'#7ba7c9';
+  aimAt(k.lat,k.lon,5.0); shell.sound('pop');
+  el.innerHTML=`<div class="gl-info-hd" style="background:linear-gradient(135deg,${col},${shade(col,-35)})"><div class="sub">Continent</div><h2 style="display:flex;align-items:center;gap:8px"><span style="font-size:25px">${k.emoji}</span>${name}</h2>
+    <div class="gl-chips"><span class="gl-chip">📏 ${k.area}</span><span class="gl-chip">👥 ${k.pop}</span></div><button class="gl-x" aria-label="Fermer la fiche">×</button></div>
+    <div class="gl-body"><div class="gl-sec">Chiffres clés</div><div class="gl-grid"><div class="gl-st"><div class="k">Superficie</div><div class="v">${k.area}</div></div><div class="gl-st"><div class="k">Population</div><div class="v">${k.pop}</div></div><div class="gl-st"><div class="k">Pays</div><div class="v">${k.nb}</div></div><div class="gl-st"><div class="k">Record</div><div class="v" style="font-size:12px">${k.record}</div></div></div>
+    <div class="gl-sec">À savoir</div><p>${k.desc}</p><div class="gl-fun">💡 ${k.fun}</div></div>`;
+  el.classList.add('show'); el.querySelector('.gl-x').onclick=()=>el.classList.remove('show');
+  shell.say(k.fun,'curieux');
+}
+function shade(hex,p){ const n=parseInt(hex.replace('#',''),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; const f=v=>Math.max(0,Math.min(255,Math.round(v+v*p/100))); return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+/* ====== MODE COURS — Tour du monde guidé en 3 escales (sans chrono, jamais punitif) ====== */
+const GPHASES=[
+  { id:'brief', phase:'Embarquement', title:'Le tour du monde en 18 étapes', cap:"Trois escales t'attendent : les 7 continents, 6 grands pays, puis 5 capitales. On te nomme une cible → clique-la sur le globe. Aucun chrono, aucune pénalité : des indices arrivent si tu hésites.", gate:'▶ Embarquer pour le tour du monde' },
+  { id:'continents', phase:'Escale 1 / 3', title:'Les 7 continents', n:7 },
+  { id:'pays', phase:'Escale 2 / 3', title:'Trouve le pays', n:6 },
+  { id:'capitales', phase:'Escale 3 / 3', title:'Le quiz des capitales', n:5 },
+];
+const TOTAL_STEPS=18;
+function shuffle(a){ return a.slice().sort(()=>Math.random()-.5); }
+function startMode(m){ const hint=document.getElementById('glHint'); if(hint)hint.style.display=m==='cours'?'none':'';
+  if(m==='cours')missionStart(); else missionEnd(); }
+function setPanels(v){ document.querySelectorAll('.gl-search,.gl-modes').forEach(p=>p.style.display=v?'':'none'); }
+function missionStart(){ missionEnd(); shell.setScore(0); shell.setStars(0); shell.setProgress(0); shell.setLevel('1/3');
+  document.getElementById('glInfo').classList.remove('show'); setPanels(false);
+  mission={ active:true, pi:0, idx:0, step:0, tries:0, score:0, firstOk:0, done:{continents:0,pays:0,capitales:0}, order:null, usedPays:[], helpPin:null };
+  buildMissionHUD(); setGPhase(0);
+  shell.say("Tour du monde ! Trois escales : les continents, les grands pays, les capitales. Je te guide — impossible de perdre, promis.",'enthousiaste'); }
+function buildMissionHUD(){ let h=document.getElementById('glMission'); if(h)h.remove();
+  h=document.createElement('div'); h.className='gl-mission on'; h.id='glMission';
+  h.innerHTML=`<div class="gl-m-top"><div class="gl-m-phase" id="gmPhase"></div><h2 class="gl-m-title" id="gmTitle"></h2><div class="gl-m-cap" id="gmCap"></div><div class="gl-m-steps" id="gmSteps"></div><div class="gl-m-ask" id="gmAsk" role="status" style="display:none"></div></div>
+   <div class="gl-m-act" id="gmAct"></div>
+   <button class="gl-m-quit" id="gmQuit">Quitter le tour du monde</button>`;
+  shell.stage.appendChild(h);
+  document.getElementById('gmQuit').onclick=()=>{ missionEnd(); shell.say("Retour à l'exploration libre. Reviens finir ton tour du monde quand tu veux !",'joyeux'); }; }
+function setGPhase(i){ if(!mission)return; mission.pi=i; mission.idx=0; mission.tries=0; const ph=GPHASES[i]; if(!ph){ showEndScreen(); return; }
+  document.getElementById('gmPhase').textContent=ph.phase; document.getElementById('gmTitle').textContent=ph.title; document.getElementById('gmCap').textContent=ph.cap||'';
+  document.getElementById('gmSteps').innerHTML=ph.n?Array.from({length:ph.n},()=>'<i></i>').join(''):'';
+  const act=document.getElementById('gmAct'); act.innerHTML=''; shell.setLevel(Math.max(1,i)+'/3');
+  if(ph.gate){ const b=document.createElement('button'); b.className='gl-m-btn'; b.textContent=ph.gate; b.onclick=()=>{ shell.sound('pop'); setGPhase(i+1); }; act.appendChild(b); setTimeout(()=>b.focus(),50); return; }
+  if(ph.id==='continents')mission.order=shuffle(Object.keys(CONTINENTS));
+  if(ph.id==='pays'){ mission.order=shuffle(FEATURED_IDS).slice(0,6); mission.usedPays=mission.order.slice(); }
+  if(ph.id==='capitales')mission.order=shuffle(FEATURED_IDS.filter(id=>!mission.usedPays.includes(id))).slice(0,5);
+  askStep(); }
+function curTarget(){ const ph=GPHASES[mission.pi]; if(ph.id==='continents')return { cont:mission.order[mission.idx] }; return COUNTRIES.find(c=>c.id===mission.order[mission.idx]); }
+function askStep(){ if(!mission||!mission.active)return; const ph=GPHASES[mission.pi]; mission.tries=0; clearHelp();
+  if(mission.idx>=ph.n){ shell.say(ph.id==='continents'?"Escale 1 réussie ! Direction les grands pays.":ph.id==='pays'?"Escale 2 dans la poche ! Dernière ligne droite : les capitales.":"Dernière escale bouclée !",'celebration'); setGPhase(mission.pi+1); return; }
+  [...document.getElementById('gmSteps').children].forEach((d,k)=>d.className=k<mission.idx?'done':k===mission.idx?'now':'');
+  const ask=document.getElementById('gmAsk'); ask.style.display=''; const t=curTarget();
+  if(ph.id==='continents'){ ask.innerHTML=`<span class="qn">${mission.idx+1}/7</span><span>Clique le continent : <b>${t.cont} ${CONTINENTS[t.cont].emoji}</b></span>`; shell.say('Trouve '+t.cont+' et clique dessus. Fais tourner le globe si besoin !','curieux'); }
+  else if(ph.id==='pays'){ ask.innerHTML=`<span class="qn">${mission.idx+1}/6</span><span>Trouve le pays : <b>${t.name} ${t.flag||''}</b></span>`; shell.say('Cherche '+t.name+' — indice : c\'est en '+t.cont+'.','curieux'); }
+  else { ask.innerHTML=`<span class="qn">${mission.idx+1}/5</span><span>Quel pays a pour capitale <b>${t.cap}</b> ?</span>`; shell.say(t.cap+'… à toi de retrouver le pays !','curieux'); } }
+function tolKm(t){ return Math.max(650,(LAND_RAD[t.id]||11)/2048*360*111*0.62); }
+function missionClick(g){ if(!g||!mission||!mission.active)return; const ph=GPHASES[mission.pi]; if(!ph||!ph.n)return; const t=curTarget();
+  if(ph.id==='continents'){ const cont=continentAt(g.lat,g.lon);
+    if(!cont){ shell.sound('pop'); shell.toast("🌊 Ici c'est l'océan — vise une terre !",2000); return; }
+    if(cont===t.cont)good(t.cont+' ✔ — '+CONTINENTS[t.cont].record+'.');
+    else bad(g,CONTINENTS[t.cont],'Ça, c\'est '+cont+'.');
+    return; }
+  const hit=(g.c&&g.c.id===t.id)||distKm(g,t)<=tolKm(t);
+  if(hit){ good(ph.id==='pays'?(t.name+' '+(t.flag||'')+' — capitale : '+t.cap+'.'):(t.cap+' est bien la capitale de '+t.name+' '+(t.flag||'')+'.')); }
+  else { const n=g.c?{c:g.c,km:0}:nearestCountry(g.lat,g.lon); bad(g,t,n.km<650?('Ça, c\'est '+n.c.name+' '+(n.c.flag||'')+'.'):''); } }
+function good(msg){ const pts=mission.tries===0?120:mission.tries===1?80:50; if(mission.tries===0)mission.firstOk++;
+  mission.score+=pts; shell.addScore(pts); shell.sound('good'); clearHelp();
+  const ph=GPHASES[mission.pi]; mission.done[ph.id]++; const t=curTarget();
+  if(t.id)focusCountry(t,true); else aimAt(CONTINENTS[t.cont].lat,CONTINENTS[t.cont].lon,5.0);
+  mission.step++; shell.setProgress(mission.step/TOTAL_STEPS);
+  shell.say('Bravo ! '+msg+' +'+pts+' points.','celebration');
+  mission.idx++; setTimeout(()=>{ if(mission&&mission.active)askStep(); },1500); }
+function bad(g,t,extra){ mission.tries++; shell.sound('pop');
+  if(mission.tries>=3){ showHelp(); shell.say((extra?extra+' ':'')+'Regarde, je te montre la zone : elle clignote en vert. Clique dessus !','rassurant'); return; }
+  shell.say((extra?extra+' ':'')+'Pas grave — cherche '+dirHint(g,t)+'.','rassurant'); }
+function dirHint(g,t){ let dLon=t.lon-g.lon; while(dLon>180)dLon-=360; while(dLon<-180)dLon+=360; const dLat=t.lat-g.lat;
+  const ns=Math.abs(dLat)>6?(dLat>0?'nord':'sud'):''; const ew=Math.abs(dLon)>6?(dLon>0?'est':'ouest'):'';
+  return ns&&ew?'plus au '+ns+'-'+ew:ns?'plus au '+ns:ew?'plus à l\''+ew:'tout près, regarde bien autour'; }
+function showHelp(){ clearHelp(); const t=curTarget(); const p=t.id?t:CONTINENTS[t.cont]; aimAt(p.lat,p.lon,t.id?4.2:5.2);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({ map:haloTex(), color:0x7ef5b0, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending }));
+  s.position.copy(latlon(p.lat,p.lon,2.07)); s.scale.setScalar(0.5); globeGroup.add(s); mission.helpPin=s; }
+function clearHelp(){ if(mission&&mission.helpPin){ globeGroup.remove(mission.helpPin); mission.helpPin=null; } }
+function missionEnd(){ if(mission)clearHelp(); const h=document.getElementById('glMission'); if(h)h.remove(); const e=document.getElementById('glEnd'); if(e)e.remove();
+  mission=null; setPanels(true); const hint=document.getElementById('glHint'); if(hint&&shell.mode!=='cours')hint.style.display=''; }
+function badgeSVG(w){ return `<svg width="${w}" height="${w}" viewBox="0 0 58 58" aria-hidden="true"><defs><linearGradient id="gb${w}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD87A"/><stop offset="1" stop-color="#E68A1E"/></linearGradient></defs><circle cx="29" cy="26" r="20" fill="url(#gb${w})" stroke="#fff3d6" stroke-width="2"/><circle cx="29" cy="26" r="13" fill="#1B5FAE"/><path d="M22 20c3 2 5-1 8 1s5 0 6 2-1 5-4 5-4 3-7 2-5-4-4-6 0-3 1-4z" fill="#2f9e4f"/><path d="M20 44l-3 11 12-5 12 5-3-11" fill="#c8102e"/></svg>`; }
+/* ====== ÉCRAN DE FIN — débrief du tour du monde ====== */
+function showEndScreen(){ if(!mission)return; mission.active=false; clearHelp();
+  const h=document.getElementById('glMission'); if(h)h.remove();
+  const prec=Math.round(mission.firstOk/TOTAL_STEPS*100); const stars=prec>=80?3:prec>=55?2:1;
+  shell.setStars(stars); shell.setProgress(1);
+  const score=mission.score, gained=Math.round(score/10)+stars*50+30; let lvl=null;
+  try{ if(window.KonstrioAch){ window.KonstrioAch.recordWin(shell.cfg.id,{stars,score,mode:shell.mode}); lvl=window.KonstrioAch.get().level; } }catch(e){}
+  try{ if(window.Konstrio&&window.Konstrio.unlock)window.Konstrio.unlock('play3d'); }catch(e){}
+  try{ fetch('/api/learning/game-score',{ method:'POST', headers:{'content-type':'application/json'}, credentials:'same-origin', body:JSON.stringify({ gameId:shell.cfg.id, title:shell.cfg.title, score:Math.round(score) }) }).catch(()=>{}); }catch(e){}
+  shell.sound('win'); if(!REDUCED&&shell.buddy&&shell.buddy.celebrate)try{shell.buddy.celebrate();}catch(e){}
+  const el=document.createElement('div'); el.className='gl-end'; el.id='glEnd'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Débrief du tour du monde');
+  el.innerHTML=`<div class="gl-end-card">
+    <div class="gl-hero"><div class="stars"></div><div class="gl-hero-globe"></div><div class="gl-end-badge">${badgeSVG(58)}<span style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:.1em;color:#ffd87a">GLOBE-TROTTEUR</span></div></div>
+    <div class="gl-end-body">
+      <span class="gl-end-flag">Tour du monde · 3 escales · ${TOTAL_STEPS} étapes</span>
+      <h2 class="gl-end-h">${stars===3?'Géographe hors pair !':stars===2?'Beau voyage, globe-trotteur !':'Tour du monde bouclé !'}</h2>
+      <p class="gl-end-sub">Continents, grands pays, capitales : tu viens de faire le tour de la planète. ${prec>=80?'Quelle précision !':'Chaque nouveau voyage te rendra encore plus précis·e.'}</p>
+      <div class="gl-meds">
+        <div class="gl-med"><div class="n">${mission.done.continents}/7</div><div class="l">Continents</div></div>
+        <div class="gl-med"><div class="n">${mission.done.pays}/6</div><div class="l">Pays</div></div>
+        <div class="gl-med"><div class="n">${mission.done.capitales}/5</div><div class="l">Capitales</div></div>
+        <div class="gl-med"><div class="n">${prec}%</div><div class="l">Du 1ᵉʳ coup</div></div>
+        <div class="gl-med"><div class="n">${score}</div><div class="l">Points</div></div>
+        <div class="gl-med"><div class="n">${'★'.repeat(stars)||'★'}</div><div class="l">Étoiles</div></div>
+      </div>
+      <div class="gl-quote"><div class="o">« Le voyage est un retour vers l'essentiel. »</div><span class="by">Proverbe tibétain</span></div>
+      <div class="gl-reward">${badgeSVG(40)}<div><div class="xp" id="glXp">+0 XP</div><div class="lbl">Badge « Globe-trotteur » débloqué${lvl?` · niveau ${lvl}`:''} · ${stars} ★</div></div></div>
+      <div class="gl-end-row">
+        <button class="gl-b primary" id="glAgain">↺ Refaire le tour</button>
+        <button class="gl-b next" id="glWorlds">Autres mondes ▸</button>
+        <button class="gl-b" id="glFree">🌍 Explorer librement</button>
+      </div>
+    </div></div>`;
+  shell.stage.appendChild(el);
+  const xpEl=el.querySelector('#glXp');
+  if(REDUCED){ xpEl.textContent='+'+gained+' XP'; } else { let cur=0; const st=Math.max(1,Math.round(gained/28)); const iv=setInterval(()=>{ cur=Math.min(gained,cur+st); xpEl.textContent='+'+cur+' XP'; if(cur>=gained)clearInterval(iv); },28); }
+  el.querySelector('#glAgain').onclick=()=>missionStart();
+  el.querySelector('#glWorlds').onclick=()=>{ window.location.href='/learning/hub'; };
+  el.querySelector('#glFree').onclick=()=>{ missionEnd(); shell.say('Explore ! Clique un continent, un océan ou une épingle 📍.','joyeux'); };
+  el.addEventListener('keydown',e=>{ if(e.key==='Escape')missionEnd(); });
+  setTimeout(()=>{ const b=el.querySelector('#glAgain'); if(b)b.focus(); },40); }
+function subsolarDir(){ const now=new Date(); const start=Date.UTC(now.getUTCFullYear(),0,0); const doy=(Date.now()-start)/864e5;
+  const dec=23.44*Math.sin((doy-81)/365.25*2*Math.PI); const subLon=(12-(now.getUTCHours()+now.getUTCMinutes()/60))*15;
+  return latlon(dec,subLon,1).applyEuler(globeGroup.rotation).normalize(); }
+function animate(){ requestAnimationFrame(animate); const dt=clock.getDelta();
+  if(clouds.visible) clouds.rotation.y+=dt*(REDUCED?0.008:0.02);
+  // Soleil : libre / « face nuit » (le Soleil passe derrière la Terre) / « Soleil réel » (terminateur du moment)
+  const sd=earthU.sunDir.value; const want=night?camera.position.clone().normalize().negate():(realSun?subsolarDir():baseSunDir);
+  sd.lerp(want,REDUCED?0.14:0.05).normalize(); sunLight.position.copy(sd).multiplyScalar(8);
+  if(targetRotY!=null){ let d=targetRotY-globeGroup.rotation.y; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI; globeGroup.rotation.y+=d*(REDUCED?0.22:0.06); if(Math.abs(d)<0.01)targetRotY=null; }
+  if(targetCamDist!=null||targetPhi!=null){ const off=camera.position.clone().sub(controls.target); const s=new THREE.Spherical().setFromVector3(off);
+    if(targetCamDist!=null){ s.radius+=(targetCamDist-s.radius)*(REDUCED?0.22:0.06); if(Math.abs(s.radius-targetCamDist)<0.02)targetCamDist=null; }
+    if(targetPhi!=null){ s.phi+=(targetPhi-s.phi)*(REDUCED?0.22:0.06); if(Math.abs(s.phi-targetPhi)<0.01)targetPhi=null; }
+    camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(s)); }
+  const tt=clock.elapsedTime;
+  markers.forEach(m=>{ if(!m.halo)return; const s=REDUCED?0.24:0.2+Math.sin(tt*3+m.c.lat)*0.05; m.halo.scale.setScalar(showMarkers?s:0); });
+  if(mission&&mission.helpPin)mission.helpPin.scale.setScalar(REDUCED?0.55:0.45+Math.sin(tt*4)*0.15);
+  controls.update(); updateLabels(); composer.render();
+}
+function updateLabels(){ const stage=shell.stage; markers.forEach(m=>{ let el=labelEls[m.c.id]; const want = showMarkers && (m===hoveredMarker || m.c.id===selectedId); if(!want){ if(el)el.style.display='none'; return; } const wp=new THREE.Vector3(); m.pin.getWorldPosition(wp); const cam=camera.position.clone().normalize(); const facing=wp.clone().normalize().dot(cam); const v=wp.clone().project(camera); if(facing<0.1||v.z>1){ if(el)el.style.display='none'; return; } if(!el){ el=document.createElement('div'); el.className='gl-mk'; el.style.cssText='position:absolute;bottom:auto;font-family:var(--font-mono);font-size:11px;font-weight:700;white-space:nowrap;color:var(--fg);background:color-mix(in srgb,var(--surface) 88%,transparent);padding:2px 8px;border-radius:6px;border:1px solid var(--border);pointer-events:none;z-index:14;transform:translate(-50%,-150%)'; el.textContent=(m.c.flag?m.c.flag+' ':'')+m.c.cap; stage.appendChild(el); labelEls[m.c.id]=el; } el.style.display='block'; el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight)+'px'; }); }
+/* hook e2e (audit auto) — n'expose que de la lecture + actions de jeu */
+window.__g09={ get mission(){ return mission; }, missionClick, focusCountry, openContinent, aimAt, COUNTRIES, CONTINENTS, get shell(){ return shell; } };
+</script>
+</body>
+</html>

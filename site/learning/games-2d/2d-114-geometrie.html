@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Géométrie</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Combien de côtés a un hexagone ?', options:['6','5','7','8'], answer:'6', explain:'Penta = 5, hexa = 6, hepta = 7, octo = 8.'},
+ {lvl:1, prompt:'La somme des angles d\'un triangle vaut…', options:['180°','90°','360°','100°'], answer:'180°', explain:'Toujours, quel que soit le triangle.'},
+ {lvl:1, prompt:'Le périmètre d\'un carré de côté 5 est…', options:['20','25','10','15'], answer:'20', explain:'4 × côté = 4 × 5 = 20.'},
+ {lvl:2, prompt:'L\'aire d\'un rectangle de 4 × 6 est…', options:['24','20','10','12'], answer:'24', explain:'Aire = longueur × largeur.'},
+ {lvl:2, prompt:'Théorème de Pythagore : dans un triangle rectangle, a² + b² = …', options:['c² (hypoténuse²)','a + b','2c','c'], answer:'c² (hypoténuse²)', explain:'Le carré de l\'hypoténuse égale la somme des carrés des côtés.'},
+ {lvl:2, prompt:'L\'aire d\'un triangle de base 6 et hauteur 4 est…', options:['12','24','10','20'], answer:'12', explain:'(base × hauteur) / 2 = (6 × 4)/2 = 12.'},
+ {lvl:3, prompt:'L\'aire d\'un disque de rayon 3 vaut (π ≈ 3,14)…', options:['≈ 28,3','≈ 18,8','≈ 9','≈ 6'], answer:'≈ 28,3', explain:'Aire = π × r² = 3,14 × 9 ≈ 28,3.'},
+ {lvl:3, prompt:'Le théorème de Thalès concerne…', options:['des longueurs proportionnelles (droites parallèles)','les angles droits','les cercles','les volumes'], answer:'des longueurs proportionnelles (droites parallèles)', explain:'Utile pour calculer des distances inaccessibles.'},
+ {lvl:3, prompt:'Le volume d\'un cube d\'arête 3 vaut…', options:['27','9','12','6'], answer:'27', explain:'arête³ = 3 × 3 × 3 = 27.'},
+];
+QuizGame({ id:'2d-114-geometrie', code:'2D·114', title:'Géométrie', domain:{label:'Maths',color:'#9B2BB0'},
+ intro:{ greet:"Figures, angles, aires, Pythagore : la géométrie en jeu.", rule:"Calcule périmètres, aires, volumes et applique Pythagore et Thalès. Trois niveaux, du collège au lycée.", how:["Lis la question.","Calcule et choisis la bonne réponse.","Niveau Expert : aire du disque, Thalès, volumes."], objectif:"Maîtriser les calculs géométriques essentiels.", hint:"Aire rectangle = L × l ; triangle = (b × h)/2 ; disque = π r².", why:"La géométrie est partout : architecture, design, ingénierie." },
+ learned:["Polygones, angles d'un triangle (180°).","Périmètres, aires, volumes.","Pythagore et Thalès."],
+ rounds });
+</script></body></html>

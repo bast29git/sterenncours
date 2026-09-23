@@ -436,3 +436,11 @@ Partie C : 6 points (1,5 pour les trois différences, 1 par calcul, 1,5 pour la 
 Partie D : 5 points (1 pour la condition, 1,5 pour le parachutiste justifié, 1,5 pour l'explication rédigée, 1 pour le principe d'inertie).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

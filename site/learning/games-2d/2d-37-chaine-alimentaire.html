@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Chaîne alimentaire</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .ca-wrap { position:absolute; inset:0; display:flex; flex-direction:column; gap:14px; padding:18px; overflow:auto; touch-action:none; user-select:none; }
+  .ca-top { text-align:center; }
+  .ca-theme { font-family:var(--font-mono); font-size:12px; color:var(--accent-text); text-transform:uppercase; letter-spacing:.06em; }
+  .ca-instr { font-size:13px; color:var(--fg-muted); margin-top:4px; }
+  .ca-tray { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; min-height:80px; padding:10px; border-radius:14px; border:1.5px dashed var(--border); background:var(--surface-2); }
+  .ca-card { display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 14px; border-radius:12px; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-sm); font-weight:700; font-size:13px; cursor:grab; touch-action:none; min-width:88px; }
+  .ca-card .em { font-size:26px; }
+  .ca-card.drag { position:fixed; z-index:60; pointer-events:none; transform:scale(1.06); }
+  .ca-chain { display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:auto; }
+  .ca-slot { width:108px; min-height:96px; border-radius:12px; border:2px dashed var(--border); display:flex; align-items:center; justify-content:center; position:relative; }
+  .ca-slot.hover { border-color:var(--accent); background:var(--accent-weak); }
+  .ca-slot.ok { border-style:solid; border-color:var(--brand-teal); background:var(--ok); } .ca-slot.no { border-style:solid; border-color:var(--brand-red); background:var(--err); }
+  .ca-slot .role { position:absolute; bottom:-20px; left:0; right:0; font-family:var(--font-mono); font-size:9.5px; color:var(--fg-muted); text-align:center; }
+  .ca-arrow { font-size:24px; color:var(--accent); }
+  .ca-bar { display:flex; gap:10px; justify-content:center; padding-top:24px; }
+  .ca-b { font-family:var(--font-body); font-weight:700; min-height:46px; padding:0 22px; border-radius:999px; border:none; background:var(--accent); color:#fff; cursor:pointer; }
+  .ca-b:disabled { opacity:.4; }
+</style>
+</head>
+<body>
+<script>
+const ROLES=['Producteur','Herbivore','Carnivore 1','Carnivore 2','Super-prédateur'];
+const CHAINS=[
+  { theme:'La prairie', org:[{n:'Herbe',e:'🌿'},{n:'Sauterelle',e:'🦗'},{n:'Grenouille',e:'🐸'},{n:'Serpent',e:'🐍'},{n:'Aigle',e:'🦅'}] },
+  { theme:'L\'océan', org:[{n:'Plancton',e:'🦠'},{n:'Petit poisson',e:'🐟'},{n:'Maquereau',e:'🐠'},{n:'Phoque',e:'🦭'},{n:'Orque',e:'🐋'}] },
+  { theme:'La forêt', org:[{n:'Feuilles',e:'🍃'},{n:'Chenille',e:'🐛'},{n:'Mésange',e:'🐦'},{n:'Renard',e:'🦊'}] },
+];
+let mode='detente', cIdx=0, placed=[], selected=null;
+const shell=window.Konstrio.createGame({
+  id:'2d-37-chaine-alimentaire', code:'2D·37', title:'Chaîne alimentaire', type:'2D',
+  domain:{ label:'Écologie', color:'#23A06E' },
+  intro:{
+    greet:"Qui mange qui ? Reconstitue la chaîne alimentaire, du producteur au super-prédateur !",
+    rule:"Dans un écosystème, l'énergie passe d'un être vivant à l'autre. Range les organismes dans l'ordre : <b>producteur → herbivore → carnivores → super-prédateur</b>.",
+    how:["Fais glisser chaque organisme dans une case de la chaîne (ou clique-le puis clique une case).","À gauche, ce qui produit (plantes) ; à droite, le prédateur au sommet.","La flèche → signifie « est mangé par ». Valide quand la chaîne est complète."],
+    keys:"Clique un organisme, puis une case pour l'y placer.",
+    objectif:"Comprendre les niveaux trophiques et le sens du flux d'énergie.",
+    hint:"Commence par le producteur (une plante : il fabrique sa matière grâce au Soleil), puis remonte.",
+    why:"À chaque maillon, une partie de l'énergie est perdue : c'est pourquoi il y a peu de super-prédateurs et beaucoup de plantes."
+  },
+  learned:["Une chaîne alimentaire va du producteur (plante) au super-prédateur.","Chaque flèche signifie « est mangé par » et transfère de l'énergie.","L'énergie diminue à chaque maillon : d'où peu de grands prédateurs."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; cIdx=0; reset(api); },
+  onRestart:(api)=>{ cIdx=0; reset(api); },
+});
+let wrap,tray,chain,valBtn;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='ca-wrap';
+  wrap.innerHTML=`<div class="ca-top"><div class="ca-theme" id="caTheme"></div><div class="ca-instr">Range du producteur (gauche) au super-prédateur (droite)</div></div>
+    <div class="ca-tray" id="caTray"></div><div class="ca-chain" id="caChain"></div>
+    <div class="ca-bar"><button class="ca-b" id="caVal" disabled>Vérifier la chaîne</button></div>`;
+  api.stage.appendChild(wrap); tray=wrap.querySelector('#caTray'); chain=wrap.querySelector('#caChain'); valBtn=wrap.querySelector('#caVal'); valBtn.onclick=validate; reset(api); }
+function reset(api){ shell.api=api; const c=CHAINS[cIdx%CHAINS.length]; const n=c.org.length;
+  document.getElementById('caTheme').textContent='Écosystème : '+c.theme;
+  api.setLevel((cIdx%CHAINS.length+1)+'/'+CHAINS.length); api.setProgress(0); placed=new Array(n).fill(null); selected=null;
+  tray.innerHTML=''; chain.innerHTML='';
+  c.org.map((_,i)=>i).sort(()=>Math.random()-.5).forEach(i=>{ const o=c.org[i]; const el=document.createElement('div'); el.className='ca-card'; el.dataset.i=i; el.innerHTML=`<span class="em">${o.e}</span>${o.n}`; el.addEventListener('pointerdown',startDrag); el.onclick=()=>sel(el); tray.appendChild(el); });
+  for(let s=0;s<n;s++){ if(s>0){ const ar=document.createElement('div'); ar.className='ca-arrow'; ar.textContent='→'; chain.appendChild(ar); } const sl=document.createElement('div'); sl.className='ca-slot'; sl.dataset.s=s; sl.innerHTML=`<span class="role">${ROLES[s]||'Prédateur'}</span>`; sl.onclick=()=>{ if(selected) place(selected,sl); }; chain.appendChild(sl); }
+  valBtn.disabled=true; api.say("Quel est le producteur ? Commence par lui, à gauche.",'concentre'); }
+function sel(el){ if(el.classList.contains('ok'))return; document.querySelectorAll('.ca-card').forEach(x=>x.style.outline=''); selected=el; el.style.outline='3px solid var(--accent)'; shell.sound('tick'); }
+let dragEl,ox,oy;
+function startDrag(e){ const el=e.currentTarget; if(el.classList.contains('ok'))return; dragEl=el; const r=el.getBoundingClientRect(); ox=e.clientX-r.left; oy=e.clientY-r.top; el.classList.add('drag'); el.style.left=r.left+'px'; el.style.top=r.top+'px'; el.style.width=r.width+'px'; document.addEventListener('pointermove',onDrag); document.addEventListener('pointerup',endDrag); }
+function onDrag(e){ if(!dragEl)return; dragEl.style.left=(e.clientX-ox)+'px'; dragEl.style.top=(e.clientY-oy)+'px'; const t=document.elementFromPoint(e.clientX,e.clientY); const sl=t&&t.closest&&t.closest('.ca-slot'); document.querySelectorAll('.ca-slot').forEach(x=>x.classList.toggle('hover',x===sl)); }
+function endDrag(e){ document.removeEventListener('pointermove',onDrag); document.removeEventListener('pointerup',endDrag); const t=document.elementFromPoint(e.clientX,e.clientY); const sl=t&&t.closest&&t.closest('.ca-slot'); dragEl.classList.remove('drag'); dragEl.style.cssText=''; document.querySelectorAll('.ca-slot').forEach(x=>x.classList.remove('hover')); if(sl) place(dragEl,sl); dragEl=null; }
+function place(card,slot){ const ex=slot.querySelector('.ca-card'); if(ex)tray.appendChild(ex); slot.appendChild(card); card.style.outline=''; selected=null; shell.sound('pop');
+  chain.querySelectorAll('.ca-slot').forEach((sl,i)=>{ const c=sl.querySelector('.ca-card'); placed[i]=c?+c.dataset.i:null; }); valBtn.disabled=placed.some(p=>p===null); }
+function validate(){ let ok=true,good=0; chain.querySelectorAll('.ca-slot').forEach((sl,i)=>{ const isOk=placed[i]===i; sl.classList.toggle('ok',isOk); sl.classList.toggle('no',!isOk); if(isOk)good++; else ok=false; });
+  if(ok){ shell.sound('win'); shell.api.addScore(250); shell.api.say('Parfait ! Chaîne correcte. L\'énergie passe du producteur au super-prédateur.','celebration'); cIdx++; if(cIdx<CHAINS.length){ shell.api.toast('Chaîne réussie !'); setTimeout(()=>reset(shell.api),1800); } else finish(); }
+  else { shell.sound('bad'); shell.api.addScore(good*30); shell.api.say(`${good}/${placed.length} bien placés. Le producteur (une plante) est toujours en premier !`,'rassurant'); valBtn.disabled=false; setTimeout(()=>chain.querySelectorAll('.ca-slot.no').forEach(s=>s.classList.remove('no')),2200); } }
+function finish(){ shell.api.win({ score:parseInt(document.querySelector('.ksh-score').textContent,10), stars:3, title:'Toutes les chaînes reconstituées !',
+  buddy:"Tu as compris le flux d'énergie dans les écosystèmes. Bravo, écologiste !", learned:shell.cfg.learned,
+  onNext:()=>{ cIdx=0; reset(shell.api); }, nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

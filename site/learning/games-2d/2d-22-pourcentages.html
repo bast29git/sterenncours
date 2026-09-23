@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Pourcentages</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .pc-wrap { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; padding:20px; text-align:center; }
+  .pc-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-md); padding:24px 28px; max-width:440px; }
+  .pc-scn { font-size:17px; line-height:1.5; }
+  .pc-scn b { color:var(--accent-text); }
+  .pc-line { display:flex; align-items:center; gap:12px; font-family:var(--font-data); font-weight:700; font-size:30px; }
+  .pc-ans { min-width:90px; text-align:center; border-bottom:4px solid var(--accent); color:var(--accent-text); }
+  .pc-ans.ok{color:var(--ok-fg);border-color:var(--brand-teal)} .pc-ans.no{color:var(--err-fg);border-color:var(--brand-red);animation:pcS .35s}
+  @keyframes pcS{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  .pc-pad { display:grid; grid-template-columns:repeat(3,66px); gap:9px; }
+  .pc-key { height:58px; border-radius:13px; border:1px solid var(--border); background:var(--surface); color:var(--fg); font-family:var(--font-data); font-weight:700; font-size:23px; cursor:pointer; }
+  .pc-key:active{transform:scale(.94)} .pc-key.ok{background:var(--accent);border-color:var(--accent);color:#fff}
+</style>
+</head>
+<body>
+<script>
+let mode='detente', asked=0, right=0, cur=null, answer='', unit='';
+const shell=window.Konstrio.createGame({
+  id:'2d-22-pourcentages', code:'2D·22', title:'Pourcentages & proportions', type:'2D',
+  domain:{ label:'Mathématiques', color:'#9B2BB0' },
+  intro:{
+    greet:"Soldes, pourboires, statistiques… les pourcentages sont partout ! Calcule-les dans des situations concrètes.",
+    rule:"Résous des problèmes de pourcentages de la vie courante : réductions, augmentations, proportions. Tape ta réponse.",
+    how:["Lis la situation et calcule la valeur demandée.","Tape ta réponse (en euros ou en %) puis OK.","Konstrio te rappelle la méthode si tu cliques « Indice »."],
+    keys:"Chiffres 0–9, OK ou Entrée pour valider.",
+    objectif:"Maîtriser le calcul de pourcentages : « X% de Y », réductions, et proportions.",
+    hint:"« X% de Y » = X ÷ 100 × Y. Pour une réduction de 30%, on paie 70% du prix.",
+    why:"Un pourcentage est une proportion sur 100. 25%, c'est 25 pour 100, soit un quart."
+  },
+  learned:["X% de Y = (X/100) × Y.","Réduction de R% → on paie (100−R)% ; augmentation → (100+R)%.","Une proportion A sur B en % = (A/B) × 100."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; start(api); },
+  onRestart:(api)=>start(api),
+  onHint:(api)=>{ api.say(cur.hint,'idee'); },
+});
+let wrap;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='pc-wrap';
+  wrap.innerHTML=`<div class="pc-card"><div class="pc-scn" id="pcScn"></div></div>
+    <div class="pc-line"><span class="pc-ans" id="pcA">?</span><span id="pcUnit"></span></div>
+    <div class="pc-pad" id="pcPad"></div>`;
+  api.stage.appendChild(wrap);
+  const pad=wrap.querySelector('#pcPad');
+  ['1','2','3','4','5','6','7','8','9','.','0','⌫'].forEach(t=>{ const b=document.createElement('button'); b.className='pc-key'; b.textContent=t; b.onclick=()=>press(t); pad.appendChild(b); });
+  const ok=document.createElement('button'); ok.className='pc-key ok'; ok.textContent='OK'; ok.style.gridColumn='span 3'; ok.onclick=submit; pad.appendChild(ok);
+  document.addEventListener('keydown',e=>{ if(/[0-9]/.test(e.key))press(e.key); else if(e.key==='.'||e.key===',')press('.'); else if(e.key==='Backspace')press('⌫'); else if(e.key==='Enter')submit(); });
+  start(api);
+}
+function start(api){ shell.api=api; asked=0; right=0; api.setScore(0); api.setProgress(0); api.setLevel('1/10'); next(); }
+function rnd(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function next(){
+  if(asked>=10){ finish(); return; }
+  const type=asked%4; answer=''; let scn,ans;
+  if(type===0){ const X=[10,20,25,50,5,15,75][rnd(0,6)]; const Y=20*rnd(2,12); scn=`Combien font <b>${X}%</b> de <b>${Y}</b> ?`; ans=X*Y/100; unit=''; cur={hint:`${X}% de ${Y} = ${X}/100 × ${Y} = ${ans}.`}; }
+  else if(type===1){ const P=10*rnd(3,15); const R=[10,20,25,30,50][rnd(0,4)]; scn=`Un article coûte <b>${P} €</b>. Avec une réduction de <b>${R}%</b>, quel est le prix final ?`; ans=P*(100-R)/100; unit='€'; cur={hint:`On paie ${100-R}% : ${P} × ${(100-R)/100} = ${ans} €.`}; }
+  else if(type===2){ const B=[20,25,50,10,40][rnd(0,4)]; const A=rnd(1,B-1); const pct=A/B*100; if(pct%1!==0){ return next(); } scn=`Sur <b>${B}</b> élèves, <b>${A}</b> ont réussi. Quel <b>pourcentage</b> de réussite ?`; ans=pct; unit='%'; cur={hint:`${A} ÷ ${B} × 100 = ${pct} %.`}; }
+  else { const P=10*rnd(2,12); const R=[10,20,50,25,5][rnd(0,4)]; scn=`Un loyer de <b>${P} €</b> augmente de <b>${R}%</b>. Quel est le nouveau montant ?`; ans=P*(100+R)/100; unit='€'; cur={hint:`On ajoute ${R}% : ${P} × ${(100+R)/100} = ${ans} €.`}; }
+  cur.ans=ans;
+  document.getElementById('pcScn').innerHTML=scn; document.getElementById('pcUnit').textContent=unit;
+  const A=document.getElementById('pcA'); A.textContent='?'; A.className='pc-ans';
+  shell.api.say(asked===0?"Lis bien la situation, puis calcule !":"Problème suivant.",'concentre');
+}
+function press(t){ const A=document.getElementById('pcA'); if(A.classList.contains('ok')||A.classList.contains('no'))return; if(t==='⌫')answer=answer.slice(0,-1); else if(t==='.'){ if(!answer.includes('.')&&answer)answer+='.'; } else if(answer.replace('.','').length<6)answer+=t; A.textContent=answer||'?'; shell.sound('tick'); }
+function submit(){ if(!answer)return; const A=document.getElementById('pcA'); const ok=Math.abs(parseFloat(answer)-cur.ans)<0.01; asked++;
+  if(ok){ right++; shell.api.addScore(50); shell.sound('good'); A.classList.add('ok'); shell.api.say('Exact ! '+cur.hint,'fier'); }
+  else { shell.sound('bad'); A.classList.add('no'); shell.api.say('La réponse est '+cur.ans+unit+'. '+cur.hint,'rassurant'); }
+  shell.api.setLevel(Math.min(asked+1,10)+'/10'); shell.api.setProgress(asked/10);
+  setTimeout(next, ok?900:2000);
+}
+function finish(){ const sc=parseInt(document.querySelector('.ksh-score').textContent,10); const stars=right>=9?3:right>=6?2:1;
+  shell.api.win({ score:sc, stars, title:`${right}/10 problèmes résolus`,
+    buddy: stars===3?"Les pourcentages n'ont plus de secret pour toi !":"Bien — souviens-toi : X% de Y = X/100 × Y.",
+    learned:shell.cfg.learned, onNext:()=>start(shell.api), nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Quiz drapeaux</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .dr-wrap { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:20px; text-align:center; }
+  .dr-flag { width:240px; height:160px; border-radius:10px; box-shadow:var(--shadow-lg); overflow:hidden; border:1px solid var(--border); }
+  .dr-flag svg { display:block; width:100%; height:100%; }
+  .dr-q { font-size:15px; color:var(--fg-muted); }
+  .dr-opts { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:min(440px,100%); }
+  .dr-opt { font-family:var(--font-body); font-weight:700; font-size:15px; min-height:54px; border-radius:13px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; transition:.14s; }
+  .dr-opt:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .dr-opt.ok { background:var(--ok); color:var(--ok-fg); border-color:var(--ok-fg); }
+  .dr-opt.no { background:var(--err); color:var(--err-fg); border-color:var(--err-fg); }
+</style>
+</head>
+<body>
+<script>
+const FLAGS=[
+  {c:'France', cap:'Paris', t:'v', cols:['#0055A4','#fff','#EF4135']},
+  {c:'Italie', cap:'Rome', t:'v', cols:['#009246','#fff','#CE2B37']},
+  {c:'Belgique', cap:'Bruxelles', t:'v', cols:['#000','#FAE042','#ED2939']},
+  {c:'Irlande', cap:'Dublin', t:'v', cols:['#169B62','#fff','#FF883E']},
+  {c:'Roumanie', cap:'Bucarest', t:'v', cols:['#002B7F','#FCD116','#CE1126']},
+  {c:'Allemagne', cap:'Berlin', t:'h', cols:['#000','#DD0000','#FFCE00']},
+  {c:'Pays-Bas', cap:'Amsterdam', t:'h', cols:['#AE1C28','#fff','#21468B']},
+  {c:'Autriche', cap:'Vienne', t:'h', cols:['#ED2939','#fff','#ED2939']},
+  {c:'Pologne', cap:'Varsovie', t:'h', cols:['#fff','#DC143C']},
+  {c:'Ukraine', cap:'Kiev', t:'h', cols:['#0057B7','#FFD700']},
+  {c:'Espagne', cap:'Madrid', t:'h3', cols:['#AA151B','#F1BF00','#AA151B']},
+  {c:'Japon', cap:'Tokyo', t:'circle', cols:['#fff','#BC002D']},
+  {c:'Suisse', cap:'Berne', t:'crossC', cols:['#D52B1E','#fff']},
+  {c:'Danemark', cap:'Copenhague', t:'cross', cols:['#C8102E','#fff']},
+  {c:'Finlande', cap:'Helsinki', t:'cross', cols:['#fff','#003580']},
+  {c:'Suède', cap:'Stockholm', t:'cross', cols:['#006AA7','#FECC00']},
+];
+function flagSVG(f){
+  const W=300,H=200;
+  if(f.t==='v'){ const n=f.cols.length, w=W/n; return `<svg viewBox="0 0 ${W} ${H}">${f.cols.map((c,i)=>`<rect x="${i*w}" y="0" width="${w}" height="${H}" fill="${c}"/>`).join('')}</svg>`; }
+  if(f.t==='h'||f.t==='h3'){ const n=f.cols.length, h=H/n; return `<svg viewBox="0 0 ${W} ${H}">${f.cols.map((c,i)=>`<rect x="0" y="${i*h}" width="${W}" height="${h}" fill="${c}"/>`).join('')}</svg>`; }
+  if(f.t==='circle'){ return `<svg viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${f.cols[0]}"/><circle cx="${W/2}" cy="${H/2}" r="55" fill="${f.cols[1]}"/></svg>`; }
+  if(f.t==='crossC'){ return `<svg viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${f.cols[0]}"/><rect x="${W/2-18}" y="55" width="36" height="90" fill="${f.cols[1]}"/><rect x="${W/2-55}" y="${H/2-18}" width="110" height="36" fill="${f.cols[1]}"/></svg>`; }
+  if(f.t==='cross'){ const cx=W*0.38; return `<svg viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${f.cols[0]}"/><rect x="0" y="${H/2-20}" width="${W}" height="40" fill="${f.cols[1]}"/><rect x="${cx-20}" y="0" width="40" height="${H}" fill="${f.cols[1]}"/></svg>`; }
+  return '';
+}
+let mode='detente', queue=[], idx=0, right=0;
+const shell=window.Konstrio.createGame({
+  id:'2d-34-quiz-drapeaux', code:'2D·34', title:'Quiz drapeaux', type:'2D',
+  domain:{ label:'Histoire & Géo', color:'#E0892B' },
+  intro:{
+    greet:"Tour du monde en drapeaux ! Reconnais le pays à son drapeau, contre la montre.",
+    rule:"Un drapeau s'affiche : retrouve le <b>pays</b> qui lui correspond parmi les quatre propositions. À chaque bonne réponse, Konstrio te donne la capitale.",
+    how:["Observe le drapeau : couleurs, sens des bandes, symboles.","Choisis le bon pays parmi les 4 propositions.","Apprends au passage la capitale de chaque pays."],
+    keys:"Touches 1 à 4 pour répondre.",
+    objectif:"Reconnaître les drapeaux européens et mondiaux et leurs capitales.",
+    hint:"Bandes verticales : France, Italie, Belgique, Irlande. Horizontales : Allemagne, Pays-Bas. Croix : pays nordiques.",
+    why:"Les drapeaux racontent l'histoire et les valeurs des nations : couleurs, symboles et dispositions ont un sens."
+  },
+  learned:["Bandes verticales vs horizontales distinguent de nombreux pays.","Les croix décentrées sont typiques des pays nordiques.","Chaque pays a une capitale à connaître."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; idx=0; right=0; api.setScore(0); show(); },
+  onRestart:(api)=>{ idx=0; right=0; api.setScore(0); show(); },
+});
+let wrap;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='dr-wrap';
+  wrap.innerHTML=`<div class="dr-flag" id="drFlag"></div><div class="dr-q">Quel est ce pays ?</div><div class="dr-opts" id="drOpts"></div>`;
+  api.stage.appendChild(wrap);
+  document.addEventListener('keydown',e=>{ const n=+e.key; if(n>=1&&n<=4){ const b=document.querySelectorAll('.dr-opt')[n-1]; if(b&&b.style.pointerEvents!=='none')b.click(); } });
+  queue=FLAGS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,10); show(); }
+function show(){ if(idx>=queue.length){ finish(); return; } const f=FLAGS[queue[idx]];
+  shell.api.setLevel((idx+1)+'/'+queue.length); shell.api.setProgress(idx/queue.length);
+  document.getElementById('drFlag').innerHTML=flagSVG(f);
+  const wrong=FLAGS.filter(x=>x.c!==f.c).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.c);
+  const opts=[f.c,...wrong].sort(()=>Math.random()-.5);
+  const oc=document.getElementById('drOpts'); oc.innerHTML='';
+  opts.forEach(o=>{ const b=document.createElement('button'); b.className='dr-opt'; b.textContent=o; b.onclick=()=>pick(o,b,f); oc.appendChild(b); });
+  shell.api.say(idx===0?"Observe bien les couleurs et le sens des bandes !":"Drapeau suivant !",'concentre'); }
+function pick(o,btn,f){ document.querySelectorAll('.dr-opt').forEach(b=>b.style.pointerEvents='none');
+  const ok=o===f.c; if(ok){ right++; shell.api.addScore(100); shell.sound('good'); btn.classList.add('ok'); }
+  else { shell.sound('bad'); btn.classList.add('no'); [...document.querySelectorAll('.dr-opt')].find(b=>b.textContent===f.c).classList.add('ok'); }
+  shell.api.say(ok?`Bravo ! ${f.c}, capitale : ${f.cap}.`:`C'était ${f.c} (capitale : ${f.cap}).`, ok?'fier':'rassurant');
+  idx++; shell.api.setProgress(idx/queue.length); setTimeout(show, ok?900:1500); }
+function finish(){ const acc=right/queue.length, stars=acc>=.9?3:acc>=.6?2:1;
+  shell.api.win({ score:right*100, stars, title:`${right}/${queue.length} drapeaux reconnus`,
+    buddy: acc>=.9?"Géographe hors pair ! Tu connais tes drapeaux.":"Bien — retiens : croix décentrée = pays nordique.",
+    learned:shell.cfg.learned, onNext:()=>{ idx=0; right=0; shell.api.setScore(0); queue=FLAGS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,10); show(); }, nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

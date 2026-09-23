@@ -423,3 +423,11 @@ Partie C : 5 points (1 par vitesse, 2 pour la qualification justifiée, 1 pour l
 Partie D : 5 points (1 pour la décomposition, 1,5 pour le calcul, 1,5 pour le quadruplement justifié, 1 pour la consigne rédigée).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

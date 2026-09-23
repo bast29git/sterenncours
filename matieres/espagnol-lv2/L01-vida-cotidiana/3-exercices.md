@@ -453,3 +453,11 @@ Partie C : 5 points (1 pour l'âge et le lieu, 1,5 pour la distinction réveil e
 Partie D : 5 points (2 pour les contraintes respectées, 2 pour la correction de la langue, 1 pour la question finale correctement écrite avec les signes ouvrants).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

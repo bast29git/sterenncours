@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Sécurité des comptes</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Un bon mot de passe est…', options:['long et unique','court','ton prénom','123456'], answer:'long et unique', explain:'Plus il est long et varié, plus il est solide.'},
+ {lvl:1, prompt:'Faut-il réutiliser le même mot de passe partout ?', options:['non, jamais','oui','seulement le week-end','si facile à retenir'], answer:'non, jamais', explain:'Une fuite sur un site compromettrait tous tes comptes.'},
+ {lvl:1, prompt:'La double authentification (2FA) ajoute…', options:['une 2ᵉ preuve d\'identité','de la pub','un mot de passe plus court','rien'], answer:'une 2ᵉ preuve d\'identité', explain:'Code SMS ou appli : même un mot de passe volé ne suffit plus.'},
+ {lvl:2, prompt:'Un « gestionnaire de mots de passe » sert à…', options:['stocker des mots de passe forts et uniques','les afficher en public','les supprimer','les partager'], answer:'stocker des mots de passe forts et uniques', explain:'Tu ne retiens qu\'un seul mot de passe maître.'},
+ {lvl:2, prompt:'Quel mot de passe est le plus solide ?', options:['Tr0n-Cyan!2026#kx','azerty','password1','jean1990'], answer:'Tr0n-Cyan!2026#kx', explain:'Long, varié, sans info personnelle ni mot du dictionnaire.'},
+ {lvl:2, prompt:'Une attaque « par dictionnaire » teste…', options:['des mots de passe courants','tous les chiffres seulement','des images','des cookies'], answer:'des mots de passe courants', explain:'D\'où l\'intérêt d\'éviter les mots évidents.'},
+ {lvl:3, prompt:'Pourquoi une « phrase de passe » (4 mots aléatoires) est-elle forte ?', options:['longue et facile à retenir','courte','prévisible','inutile'], answer:'longue et facile à retenir', explain:'Ex. : « cactus-vélo-orage-piano » : très difficile à craquer.'},
+ {lvl:3, prompt:'Le « credential stuffing » consiste à…', options:['tester des identifiants volés sur d\'autres sites','deviner au hasard','pirater le wifi','envoyer des spams'], answer:'tester des identifiants volés sur d\'autres sites', explain:'D\'où l\'importance de mots de passe uniques.'},
+ {lvl:3, prompt:'Si un service signale une fuite de données, il faut…', options:['changer le mot de passe concerné (et les comptes similaires)','ne rien faire','attendre un an','tout supprimer'], answer:'changer le mot de passe concerné (et les comptes similaires)', explain:'Rapidement, surtout si réutilisé ailleurs.'},
+];
+QuizGame({ id:'2d-120-securite-comptes', code:'2D·120', title:'Sécurité des comptes', domain:{label:'Cybersécurité',color:'#E63329'},
+ intro:{ greet:"Protège tes comptes : mots de passe, 2FA, gestionnaires.", rule:"Apprends à créer et protéger des mots de passe solides et à sécuriser tes comptes. Trois niveaux.", how:["Lis la question.","Choisis la bonne pratique.","Niveau Expert : phrase de passe, credential stuffing, réaction aux fuites."], objectif:"Adopter de bonnes pratiques de sécurité des comptes.", hint:"Mots de passe longs + uniques + 2FA + gestionnaire = la base.", why:"La majorité des piratages exploitent des mots de passe faibles ou réutilisés." },
+ learned:["Mots de passe longs, uniques, 2FA.","Gestionnaires et phrases de passe.","Attaques par dictionnaire et credential stuffing."],
+ rounds });
+</script></body></html>

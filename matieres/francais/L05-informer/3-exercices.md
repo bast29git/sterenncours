@@ -482,3 +482,11 @@ Partie C : 4 points (1 pour les conditions, 1,5 pour les transformations illustr
 Partie D : 5 points (2 pour la vérification, 1 pour les indices, 2 pour la réponse rédigée).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Probabilités & stats</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'En lançant une pièce, quelle est la probabilité de « pile » ?', options:['1/2','1/3','1','0'], answer:'1/2', explain:'Deux issues également probables.'},
+ {lvl:1, prompt:'Avec un dé à 6 faces, la probabilité d\'obtenir un 4 est…', options:['1/6','1/4','1/2','1/3'], answer:'1/6', explain:'Une face favorable sur six.'},
+ {lvl:1, prompt:'La « moyenne » de 4, 6 et 8 est…', options:['6','5','7','9'], answer:'6', explain:'(4+6+8)/3 = 18/3 = 6.'},
+ {lvl:2, prompt:'Une probabilité est toujours comprise entre…', options:['0 et 1','1 et 10','0 et 100','-1 et 1'], answer:'0 et 1', explain:'0 = impossible, 1 = certain.'},
+ {lvl:2, prompt:'La « médiane » de 3, 5, 9 est…', options:['5','9','3','17'], answer:'5', explain:'La valeur du milieu une fois les données triées.'},
+ {lvl:2, prompt:'Avec un dé, la probabilité d\'un nombre pair est…', options:['1/2','1/6','1/3','2/3'], answer:'1/2', explain:'3 faces paires (2,4,6) sur 6.'},
+ {lvl:3, prompt:'L\'« étendue » d\'une série 2, 7, 5, 10 est…', options:['8','10','2','17'], answer:'8', explain:'Étendue = max − min = 10 − 2 = 8.'},
+ {lvl:3, prompt:'Tirer deux fois pile de suite (pièce) a une probabilité de…', options:['1/4','1/2','1','1/3'], answer:'1/4', explain:'1/2 × 1/2 (événements indépendants).'},
+ {lvl:3, prompt:'La probabilité de NE PAS obtenir un 6 (un dé) est…', options:['5/6','1/6','1/2','0'], answer:'5/6', explain:'P(non A) = 1 − P(A) = 1 − 1/6.'},
+];
+QuizGame({ id:'2d-115-probabilites-stats', code:'2D·115', title:'Probabilités & statistiques', domain:{label:'Maths',color:'#9B2BB0'},
+ intro:{ greet:"Hasard, moyenne, médiane : maîtrise les maths du quotidien et des données.", rule:"Calcule des probabilités et des statistiques (moyenne, médiane, étendue). Trois niveaux, du collège au lycée.", how:["Lis la question.","Calcule et choisis la bonne réponse.","Niveau Expert : événements indépendants, probabilité complémentaire."], objectif:"Comprendre probabilités et statistiques de base.", hint:"Probabilité = cas favorables / cas possibles, toujours entre 0 et 1.", why:"Les stats et probas sont la base de la data science et de la décision." },
+ learned:["Probabilités simples (pièce, dé).","Moyenne, médiane, étendue.","Événements indépendants et complémentaires."],
+ rounds });
+</script></body></html>

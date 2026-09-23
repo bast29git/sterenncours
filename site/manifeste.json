@@ -1,11 +1,11 @@
 {
-  "name": "Nova",
-  "short_name": "Nova",
-  "description": "L'espace de cours de Sterenn : leçons, exercices, calendrier et messages.",
+  "name": "Opaline",
+  "short_name": "Opaline",
+  "description": "L'espace de cours de Sterenn : leçons, exercices, jeux, calendrier et messages.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#12141a",
-  "theme_color": "#E8608E",
+  "background_color": "#0b1a3a",
+  "theme_color": "#2BB5A0",
   "lang": "fr",
   "icons": [
     { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }

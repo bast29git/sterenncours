@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Circuits & électronique</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .el-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  .el-left { top:14px; left:14px; width:224px; padding:14px; display:flex; flex-direction:column; gap:13px; max-height:calc(100% - 28px); overflow:auto; }
+  .el-left h3 { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 7px; }
+  .el-modes { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .el-m { font-family:var(--font-body); font-weight:700; font-size:11.5px; padding:8px 5px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; min-height:36px; transition:.15s; text-align:center; }
+  .el-m[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .el-m:focus-visible { outline:none; box-shadow:var(--ring); }
+  .el-slider { display:flex; flex-direction:column; gap:5px; }
+  .el-slider label { font-size:12.5px; display:flex; justify-content:space-between; align-items:center; }
+  .el-slider b { font-family:var(--font-data); color:var(--accent-text); }
+  .el-slider input { accent-color:var(--accent); width:100%; }
+  .el-tools { display:flex; gap:6px; }
+  .el-readout { right:14px; top:14px; padding:15px; width:172px; text-align:center; }
+  .el-ohm { font-family:var(--font-data); font-weight:700; font-size:13px; color:var(--fg-muted); margin-bottom:8px; }
+  .el-i { font-family:var(--font-data); font-weight:800; font-size:32px; line-height:1; transition:color .2s; }
+  .el-i small { font-size:14px; color:var(--fg-muted); }
+  .el-p { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); margin-top:8px; }
+  .el-bar { height:8px; border-radius:6px; background:var(--surface-2); overflow:hidden; margin-top:10px; }
+  .el-bar i { display:block; height:100%; width:0; border-radius:6px; background:linear-gradient(90deg,#F5A623,#FFD24A); transition:width .18s; }
+  .el-warn { margin-top:10px; font-size:12px; color:var(--err-fg); background:var(--err); border-radius:8px; padding:6px 8px; display:none; }
+  .el-warn.show { display:block; }
+  .el-hint { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; max-width:88vw; text-align:center; }
+  .el-quiz { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:22; background:var(--accent); color:#fff; padding:12px 18px; border-radius:14px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:9px; align-items:center; max-width:92%; text-align:center; }
+  .el-quiz .qn { font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 11px; font-size:12px; }
+  .el-qrow { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
+  .el-qo { font-family:var(--font-data); font-weight:700; font-size:14px; min-height:40px; padding:0 15px; border-radius:10px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.18); color:#fff; cursor:pointer; }
+  .el-qo:hover { background:rgba(255,255,255,.3); }
+  /* fiche composant (glisse à droite) */
+  .el-fiche { right:14px; top:14px; width:308px; z-index:30; overflow:hidden; transform:translateX(125%); transition:transform .42s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; }
+  .el-fiche.show { transform:none; }
+  .el-fiche-hd { padding:16px; color:#fff; position:relative; flex:none; }
+  .el-fiche-hd .sub { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em; opacity:.92; }
+  .el-fiche-hd h2 { font-family:var(--font-title); font-weight:800; font-size:22px; margin:2px 0 0; display:flex; align-items:center; gap:9px; }
+  .el-fiche-x { position:absolute; top:12px; right:12px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.24); color:#fff; cursor:pointer; font-size:16px; }
+  .el-fiche-bd { padding:14px 16px 18px; overflow:auto; }
+  .el-fiche-bd p { font-size:13.5px; line-height:1.55; margin:0 0 10px; color:var(--fg); }
+  .el-fiche-facts { display:flex; flex-direction:column; gap:6px; margin:0 0 12px; }
+  .el-fiche-facts div { display:flex; justify-content:space-between; gap:12px; font-size:12.5px; border-bottom:1px dashed var(--border); padding-bottom:4px; }
+  .el-fiche-facts .k { color:var(--fg-muted); font-family:var(--font-mono); font-size:11px; }
+  .el-fiche-facts .v { font-family:var(--font-data); font-weight:700; }
+  .el-fun { background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:12.5px; line-height:1.5; color:var(--accent-text); }
+  .el-label { position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 74%,transparent); padding:2px 8px; border-radius:6px; pointer-events:none; z-index:15; border:1px solid var(--border); white-space:nowrap; }
+  /* navigation : boutons de vue + aide */
+  .el-views { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .el-m.elv { min-height:44px; font-size:11px; padding:6px 3px; }
+  #elFit, #elHelp, #elLabels, #elSwitch, #elNot { min-height:44px; }
+  .el-navhelp { left:50%; transform:translateX(-50%); bottom:64px; z-index:34; width:min(360px,92vw); padding:15px 16px 14px; }
+  .el-navhelp h4 { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 9px; }
+  .el-navhelp ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .el-navhelp li { font-size:13px; display:flex; align-items:center; gap:9px; color:var(--fg); line-height:1.3; }
+  .el-navhelp li .ic { flex:none; width:26px; text-align:center; font-size:15px; }
+  .el-navhelp kbd { font-family:var(--font-mono); font-size:11px; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:2px 6px; min-width:20px; text-align:center; display:inline-block; }
+  .el-navhelp .elnh-x { position:absolute; top:10px; right:10px; width:30px; height:30px; border:none; border-radius:8px; background:var(--surface-2); color:var(--fg); cursor:pointer; font-size:16px; }
+  @media (max-width:720px){ .el-left{width:170px;padding:10px;gap:9px} .el-fiche{width:min(300px,86vw)} .el-readout{width:140px;padding:11px} .el-i{font-size:26px} }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+const REDUCED = window.Konstrio.REDUCED;
+let scene, camera, renderer, controls, composer, clock;
+let maxAniso = 8, softwareGL = false;
+let U = 6, R = 4, closed = false, emode = 'explore';
+let bulbGlass, bulbFilament, bulbLight, bulbGlow;
+let switchLever, switchClosedRot = 0, switchOpenRot = -Math.PI/3.1;
+let motorProp, buzzerArcs = [];
+let electrons = [], pathCurve;
+const parts = {};              // key -> { group, anchor, label }
+let focusPoint = null, flying = false;
+
+/* ============ FICHES COMPOSANTS ============ */
+const PARTS = {
+  pile:{ icon:'🔋', name:'La pile', sub:'Générateur · source d\'énergie', color:'#F5A623',
+    role:"La pile fournit l'énergie du circuit : elle « pousse » les électrons grâce à sa tension, mesurée en volts (V). Sa borne + et sa borne − mettent le courant en mouvement.",
+    facts:[['Rôle','Source de tension'],['Grandeur','Tension U'],['Unité','Volt (V)'],['Repères','borne + / −']],
+    fun:"Une pile plate de 4,5 V cache trois piles de 1,5 V mises bout à bout à l'intérieur !" },
+  ampoule:{ icon:'💡', name:"L'ampoule", sub:'Récepteur · fait de la lumière', color:'#FFC64A',
+    role:"L'ampoule est un récepteur : elle transforme l'énergie électrique en lumière (et un peu en chaleur). Plus le courant qui la traverse est fort, plus elle brille.",
+    facts:[['Rôle','Éclairer'],['Transforme','Électricité → lumière'],['Brille si','le courant passe'],['Symbole','⊗']],
+    fun:"Le filament d'une ampoule chauffe jusqu'à 2 500 °C sans fondre : il est en tungstène !" },
+  interrupteur:{ icon:'🔘', name:"L'interrupteur", sub:'Commande · ouvre ou ferme', color:'#29B6E0',
+    role:"L'interrupteur commande le circuit. Fermé, il relie les fils et laisse passer le courant ; ouvert, il coupe le chemin et le courant s'arrête. Clique-le pour l'essayer !",
+    facts:[['Rôle','Commander'],['Fermé','courant qui passe'],['Ouvert','courant coupé'],['Astuce','clique dessus']],
+    fun:"Chaque interrupteur de ta maison ouvre ou ferme un circuit, exactement comme celui-ci." },
+  resistance:{ icon:'🟫', name:'La résistance', sub:'Freine le courant', color:'#C0784A',
+    role:"La résistance freine le courant : elle limite l'intensité pour protéger les autres composants. Ses anneaux colorés forment un code qui indique sa valeur en ohms (Ω).",
+    facts:[['Rôle','Limiter le courant'],['Grandeur','Résistance R'],['Unité','Ohm (Ω)'],['Code','anneaux colorés']],
+    fun:"Chaque couleur d'anneau vaut un chiffre : les électroniciens lisent la valeur d'un coup d'œil." },
+  moteur:{ icon:'⚙️', name:'Le moteur', sub:'Récepteur · fait du mouvement', color:'#94A0B4',
+    role:"Le moteur transforme l'électricité en mouvement : il tourne quand le courant passe. On en trouve dans les jouets, les ventilateurs, les robots et les voitures électriques.",
+    facts:[['Rôle','Faire tourner'],['Transforme','Électricité → mouvement'],['Tourne si','le courant passe'],['Symbole','Ⓜ']],
+    fun:"Un moteur et un générateur, c'est presque la même machine — l'une à l'envers de l'autre !" },
+  buzzer:{ icon:'🔔', name:'Le buzzer', sub:'Récepteur · fait du son', color:'#8A7BFF',
+    role:"Le buzzer transforme l'électricité en son : une pastille vibre très vite pour produire un « bip ». On l'utilise dans les alarmes, les minuteurs et les jouets.",
+    facts:[['Rôle','Faire du son'],['Transforme','Électricité → son'],['Sonne si','le courant passe'],['Symbole','♪']],
+    fun:"Le buzzer vibre des milliers de fois par seconde — bien trop vite pour que l'œil le voie bouger !" },
+  fil:{ icon:'➰', name:'Les fils', sub:'Conducteurs · le chemin', color:'#D98A3A',
+    role:"Les fils conduisent le courant d'un composant à l'autre et forment la boucle du circuit. Ils sont en cuivre, un métal qui laisse très bien passer les électrons.",
+    facts:[['Rôle','Relier les composants'],['Matériau','Cuivre'],['Propriété','Conducteur'],['Contraire','Isolant']],
+    fun:"Sous le plastique coloré d'un fil se cache un fin brin de cuivre brillant." },
+  carte:{ icon:'🟩', name:'La carte (PCB)', sub:'Circuit imprimé', color:'#1E8C7A',
+    role:"La carte électronique (PCB) porte tous les composants et les relie par des pistes de cuivre gravées. C'est le squelette de presque tous les appareils électroniques.",
+    facts:[['Rôle','Porter & relier'],['Pistes','Cuivre gravé'],['Vernis','Vert protecteur'],['Sigle','PCB']],
+    fun:"Le vert des cartes vient du vernis (« solder mask ») qui protège le cuivre de l'oxydation." },
+};
+
+/* ============ NOTIONS (encyclopédie) ============ */
+const NOTIONS = [
+  ['Le circuit électrique',"Un circuit est une boucle fermée : un générateur (pile), des fils conducteurs et des récepteurs (ampoule, moteur…). S'il est ouvert, rien ne circule."],
+  ['Tension, courant, résistance',"La tension U (volts) « pousse » les électrons ; le courant I (ampères) est leur débit ; la résistance R (ohms) freine ce débit."],
+  ["Loi d'Ohm","U = R × I, donc I = U / R : plus la tension est grande, plus le courant l'est ; plus la résistance est grande, moins il l'est."],
+  ['Série & parallèle',"En série, un seul chemin : le même courant traverse tout. En parallèle, plusieurs chemins : chaque branche reçoit toute la tension."],
+  ['Conducteurs & isolants',"Les métaux (cuivre, fer) laissent passer le courant ; le plastique, le verre et l'air sec l'arrêtent (isolants). C'est la base de la sécurité."],
+  ['Puissance & énergie',"La puissance P = U × I (watts) mesure l'énergie consommée chaque seconde. Une ampoule de 60 W consomme 60 joules par seconde."],
+  ['Court-circuit & sécurité',"Une résistance quasi nulle laisse passer un courant énorme : surchauffe, danger. Fusibles et disjoncteurs coupent alors le circuit."],
+];
+
+/* ============ SHELL ============ */
+const shell = window.Konstrio.createGame({
+  id:'3d-05-circuits', code:'3D·05', title:'Circuits & électronique', type:'3D',
+  domain:{ label:'Physique', color:'#F5A623' },
+  intro:{
+    greet:"Bienvenue à l'atelier électronique ! Ferme l'interrupteur, regarde les électrons filer dans les fils de cuivre et l'ampoule s'allumer. Clique chaque composant pour découvrir son rôle.",
+    rule:"Un circuit doit être <b>fermé</b> pour que le courant passe. Ferme l'interrupteur, observe les électrons, joue avec la tension et la résistance, et découvre la loi d'Ohm : <b>U = R × I</b>.",
+    how:["Clique l'interrupteur (dans la scène ou le panneau) pour ouvrir/fermer le circuit.","Clique un composant pour lire sa fiche (rôle).","Règle U et R : l'intensité I = U / R et l'éclat de l'ampoule changent en direct."],
+    keys:"Glisser = tourner · molette/pincer = zoom · 2 doigts (ou clic droit) = déplacer · R = recentrer · clic composant = fiche · clic interrupteur = ouvrir/fermer.",
+    objectif:"Comprendre le circuit fermé, le rôle de chaque composant et la loi d'Ohm (U = R × I).",
+    hint:"Si l'ampoule reste éteinte, vérifie que l'interrupteur est FERMÉ : un circuit ouvert ne laisse pas passer le courant.",
+    why:"Les électrons ne circulent que dans une boucle fermée. Plus la tension est forte ou la résistance faible, plus l'intensité (le débit d'électrons) est grande."
+  },
+  learned:["Le courant ne circule que dans un circuit fermé.","Chaque composant a un rôle : pile (source), fils (chemin), ampoule/moteur/buzzer (récepteurs), interrupteur (commande).","Loi d'Ohm : I = U / R — trop de courant provoque une surcharge."],
+  onReady:(api)=>init(api),
+  onStart:(m,api)=>{ if(m==='cours'){ api.setScore(0); chooseCourse(); } else { setMode('explore'); api.setLevel('libre'); } },
+  onRestart:(api)=>{ if(shell.api && shell.api.mode==='cours'){ api.setScore(0); chooseCourse(); } },
+  onTheme:()=>applyTheme(),
+  onHint:(api)=>api.hint(shell.cfg.intro.hint),
+  onWhy:(api)=>api.say("Les électrons ont besoin d'un chemin continu. L'interrupteur ouvert coupe la boucle : pas de chemin, pas de courant !",'idee'),
+});
+function I(){ return closed ? U/Math.max(0.5,R) : 0; }
+
+/* ============ INIT ============ */
+function init(api){
+  shell.api = api; const stage = api.stage;
+  scene = new THREE.Scene(); clock = new THREE.Clock();
+  camera = new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight, .1, 200); camera.position.set(0.5,9,13.5);
+  renderer = new THREE.WebGLRenderer({antialias:true, alpha:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.02;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; stage.appendChild(renderer.domElement);
+  maxAniso=Math.min(8, renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
+  // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y échoue → chaîne robuste, AO bakées seulement
+  try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; softwareGL=/swiftshader|llvmpipe|software|basic render|mesa/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer = new EffectComposer(renderer);
+  if(softwareGL){
+    // rendu logiciel : pas d'AO écran (produirait du noir) — l'occlusion vient des cartes AO bakées + ombre de contact
+    composer.addPass(new RenderPass(scene,camera));
+  } else {
+    // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu produit (creux des pistes, sous les composants)
+    const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=0.9;
+    try{ gtao.updateGtaoMaterial({ radius:0.35, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao=gtao;
+  }
+  // bloom léger : filament, électrons, arcs sonores (pas de blanc cramé)
+  const bp = new UnrealBloomPass(new THREE.Vector2(W,H), 0.42, 0.6, 0.85); composer.addPass(bp); composer.bloom=bp;
+  // anti-aliasing SMAA (le composer court-circuite le MSAA du canvas)
+  composer.addPass(new SMAAPass(W,H));
+  // OutputPass : tone mapping ACES + conversion sRGB en fin de chaîne
+  composer.addPass(new OutputPass());
+  controls = new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08;
+  controls.maxDistance=24; controls.minDistance=6.5; controls.minPolarAngle=0.14; controls.maxPolarAngle=Math.PI*0.49; controls.target.set(0,0.4,0);
+  controls.rotateSpeed=0.82; controls.zoomSpeed=0.9; controls.panSpeed=0.7; controls.screenSpacePanning=true;
+  controls.mouseButtons={ LEFT:THREE.MOUSE.ROTATE, MIDDLE:THREE.MOUSE.DOLLY, RIGHT:THREE.MOUSE.PAN };
+  controls.touches={ ONE:THREE.TOUCH.ROTATE, TWO:THREE.TOUCH.DOLLY_PAN };
+  controls.autoRotate=REDUCED; controls.autoRotateSpeed=.5;
+
+  // lumières : studio IBL + clé + remplissage
+  scene.add(new THREE.HemisphereLight(0xdfeaff, 0x25304a, 0.7));
+  const key = new THREE.DirectionalLight(0xffffff, 1.35); key.position.set(6,12,7); key.castShadow=true;
+  key.shadow.mapSize.set(1024,1024); key.shadow.camera.near=1; key.shadow.camera.far=45;
+  key.shadow.camera.left=-12; key.shadow.camera.right=12; key.shadow.camera.top=12; key.shadow.camera.bottom=-12; key.shadow.bias=-0.0004; scene.add(key);
+  const fill = new THREE.DirectionalLight(0x9fb8ff, 0.35); fill.position.set(-7,5,-6); scene.add(fill);
+  bulbLight = new THREE.PointLight(0xffcf8a, 0, 14, 2); bulbLight.position.set(0,3.4,0); scene.add(bulbLight);
+
+  const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  // HDRI studio propre réel (Poly Haven CC0) → reflets crédibles sur métaux, cuivre et vernis du PCB (fond sobre conservé)
+  const rgbe = new RGBELoader();
+  rgbe.load('../assets/3d/hdri/studio_small_09_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); },
+    undefined,
+    ()=>{ rgbe.load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); }, undefined, ()=>{}); });
+
+  buildWorkbench(); buildBoard(); buildWires(); buildComponents(); buildElectrons(); buildUI(); applyTheme();
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('resize', onResize); new ResizeObserver(onResize).observe(stage);
+  document.addEventListener('keydown', onKey);
+  animate();
+}
+
+/* ============ MATÉRIAUX ============ */
+const mat = (c,metal,rough,o={}) => new THREE.MeshStandardMaterial(Object.assign({color:c, metalness:metal, roughness:rough, envMapIntensity:1.1}, o));
+function copperMat(){ return mat(0xC57B3A, 0.98, 0.22, {envMapIntensity:1.6}); }
+// or/laiton des connecteurs, pastilles, culots (métal doré qui capte l'IBL)
+function goldMat(){ return new THREE.MeshStandardMaterial({color:0xE7B24A, metalness:1.0, roughness:0.24, envMapIntensity:1.7}); }
+
+/* ============ TEXTURES PBR CC0 (Poly Haven) ============ */
+const texLoader = new THREE.TextureLoader();
+const PBR_BASE = '../assets/3d/pbr2k/';
+function loadTex(url,srgb,rep){ const t=texLoader.load(url,undefined,undefined,()=>{}); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep,rep); t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=maxAniso; return t; }
+// applique diffuse/normal/roughness(+metal,+ao bakée) réels sur un matériau existant
+function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE+slug+'/'+slug+'_';
+  material.map=loadTex(b+'diff_'+res+'.jpg',true,rep);
+  material.normalMap=loadTex(b+'nor_gl_'+res+'.jpg',false,rep); material.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  material.roughnessMap=loadTex(b+'rough_'+res+'.jpg',false,rep);
+  if(opt.metal){ material.metalnessMap=loadTex(b+'metal_'+res+'.jpg',false,rep); }
+  if(opt.ao){ material.aoMap=loadTex(b+'ao_'+res+'.jpg',false,rep); material.aoMapIntensity=opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color);
+  material.needsUpdate=true; return material; }
+// duplique le canal UV pour permettre l'aoMap (utilise uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+// tache d'ombre de contact douce (occlusion visible même en rendu logiciel)
+function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,10,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.24)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
+
+/* ============ ÉTABLI / PLAN DE TRAVAIL ============ */
+function buildWorkbench(){
+  // établi métallique brossé réel (Poly Haven CC0), tuilé + AO bakée — ancre la scène et reçoit l'ombre
+  const benchMat=new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.7, metalness:0.6, envMapIntensity:0.55});
+  applyPBR(benchMat,'metal_plate','1k',{repeat:6,normal:0.8,metal:true,ao:true});
+  const geo=new THREE.PlaneGeometry(80,52); enableAO(geo);
+  const bench=new THREE.Mesh(geo, benchMat);
+  bench.rotation.x=-Math.PI/2; bench.position.y=-0.62; bench.receiveShadow=true; scene.add(bench);
+  // ombre de contact douce sous la carte (occlusion lisible même en rendu logiciel)
+  const cs=new THREE.Mesh(new THREE.PlaneGeometry(19,12), new THREE.MeshBasicMaterial({map:makeContactShadow(),transparent:true,depthWrite:false,opacity:0.85}));
+  cs.rotation.x=-Math.PI/2; cs.position.y=-0.6; scene.add(cs);
+}
+
+/* ============ PCB ============ */
+function pcbTexture(){
+  const c=document.createElement('canvas'); c.width=c.height=1024; const x=c.getContext('2d');
+  x.fillStyle='#0e5f4a'; x.fillRect(0,0,1024,1024);
+  // léger grain
+  for(let i=0;i<2600;i++){ x.fillStyle=`rgba(255,255,255,${Math.random()*0.03})`; x.fillRect(Math.random()*1024,Math.random()*1024,2,2); }
+  // pistes cuivre
+  x.strokeStyle='#d9a15a'; x.lineWidth=9; x.lineCap='round';
+  const trace=(pts)=>{ x.beginPath(); x.moveTo(pts[0][0],pts[0][1]); for(let i=1;i<pts.length;i++)x.lineTo(pts[i][0],pts[i][1]); x.stroke(); };
+  for(let k=0;k<10;k++){ const y=90+k*90; trace([[70,y],[300+Math.random()*80,y],[360,y+50],[940,y+50]]); }
+  for(let k=0;k<6;k++){ const xx=140+k*150; trace([[xx,60],[xx,400+Math.random()*120],[xx+70,480],[xx+70,960]]); }
+  x.strokeStyle='#c98f4c'; x.lineWidth=5;
+  for(let k=0;k<7;k++){ const y=140+k*120; trace([[500,y],[820,y],[880,y-40],[970,y-40]]); }
+  // pastilles / vias dorées
+  for(let i=0;i<130;i++){ const px=Math.random()*1024, py=Math.random()*1024; x.beginPath(); x.arc(px,py,7,0,7); x.fillStyle='#e6b45f'; x.fill(); x.beginPath(); x.arc(px,py,3,0,7); x.fillStyle='#0e5f4a'; x.fill(); }
+  // sérigraphie blanche
+  x.fillStyle='rgba(232,244,238,.82)'; x.font='bold 26px monospace';
+  ['R1','C2','LED','D3','SW1','U1','+ 4.5V','GND','K7'].forEach((t,i)=>{ x.fillText(t, 80+((i*137)%860), 120+((i*97)%840)); });
+  x.strokeStyle='rgba(232,244,238,.5)'; x.lineWidth=3; x.strokeRect(24,24,976,976);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
+function buildBoard(){
+  const g=new THREE.Group();
+  // solder mask vert : couleur procédurale conservée + vernis clearcoat crédible qui capte l'IBL
+  const board=new THREE.Mesh(new THREE.BoxGeometry(15,0.42,9), new THREE.MeshPhysicalMaterial({map:pcbTexture(), color:0x9fe0cc, roughness:0.42, metalness:0.18, clearcoat:0.85, clearcoatRoughness:0.18, reflectivity:0.4, envMapIntensity:1.15}));
+  board.position.y=-0.21; board.castShadow=true; board.receiveShadow=true; g.add(board);
+  // tranche stratifiée
+  const edge=new THREE.Mesh(new THREE.BoxGeometry(15.02,0.16,9.02), mat(0x1b7a60,0.1,0.7)); edge.position.y=-0.42; g.add(edge);
+  // trous de fixation
+  [[-6.6,-3.6],[6.6,-3.6],[-6.6,3.6],[6.6,3.6]].forEach(p=>{ const h=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.28,0.5,20), mat(0xcccccc,0.9,0.3)); h.position.set(p[0],-0.2,p[1]); g.add(h); const hole=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.6,16), mat(0x111318,0.2,0.9)); hole.position.set(p[0],-0.2,p[1]); g.add(hole); });
+  scene.add(g);
+  parts.carte={ group:g, anchor:new THREE.Vector3(-6.4,0.2,3.4) };
+  registerClick(board,'carte'); registerClick(edge,'carte');
+}
+
+/* ============ FILS (boucle) ============ */
+const WY=0.16; // hauteur des fils
+const LOOP=[ new THREE.Vector3(-6,WY,3.2), new THREE.Vector3(-6,WY,-3.2), new THREE.Vector3(6,WY,-3.2), new THREE.Vector3(6,WY,3.2) ];
+function buildWires(){
+  pathCurve=new THREE.CatmullRomCurve3(LOOP.map(v=>v.clone()), true, 'catmullrom', 0);
+  const tubeMat=copperMat();
+  const tube=new THREE.Mesh(new THREE.TubeGeometry(pathCurve,220,0.11,10,true), tubeMat);
+  tube.castShadow=true; scene.add(tube);
+  // gaine plastique translucide (isolant coloré) par segments
+  const g=new THREE.Group();
+  const segs=[[LOOP[0],LOOP[1],0xE63329],[LOOP[2],LOOP[3],0x2f57ff]]; // rouge (+) / bleu (−) sur les côtés
+  segs.forEach(([a,b,col])=>{ const v=new THREE.Vector3().subVectors(b,a); const m=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,v.length()*0.86,14), new THREE.MeshStandardMaterial({color:col,roughness:0.35,metalness:0.05,transparent:true,opacity:0.5})); m.position.copy(a).add(b).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), v.clone().normalize()); g.add(m); });
+  scene.add(g);
+  registerClick(tube,'fil');
+  parts.fil={ group:tube, anchor:new THREE.Vector3(-6,WY,0) };
+}
+
+/* ============ COMPOSANTS ============ */
+function pin(x,z,h=0.35){ const p=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,h,10), mat(0xC9CDD6,0.9,0.25)); p.position.set(x,h/2,z); p.castShadow=true; return p; }
+
+function buildBattery(){ // pile cylindrique couchée le long du bord bas
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.72,0.72,3.0,32), mat(0xF5A623,0.35,0.4,{envMapIntensity:1.0})); body.rotation.z=Math.PI/2; body.castShadow=true; g.add(body);
+  // bande étiquette
+  const band=new THREE.Mesh(new THREE.CylinderGeometry(0.74,0.74,1.1,32), mat(0x2a3350,0.2,0.6)); band.rotation.z=Math.PI/2; band.position.x=-0.15; g.add(band);
+  const capP=new THREE.Mesh(new THREE.CylinderGeometry(0.74,0.74,0.12,32), mat(0xC9CDD6,0.95,0.25)); capP.rotation.z=Math.PI/2; capP.position.x=1.5; g.add(capP);
+  const nub=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.22,24), mat(0xD8DBE2,0.95,0.22)); nub.rotation.z=Math.PI/2; nub.position.x=1.66; g.add(nub);
+  const capM=new THREE.Mesh(new THREE.CylinderGeometry(0.74,0.74,0.12,32), mat(0x9aa0ad,0.9,0.3)); capM.rotation.z=Math.PI/2; capM.position.x=-1.5; g.add(capM);
+  g.add(textSprite('+', new THREE.Vector3(1.66,0.95,0), 0x0e5f4a));
+  g.add(textSprite('−', new THREE.Vector3(-1.55,0.95,0), 0xE63329));
+  g.add(pin(-1.2,0.9), pin(1.2,0.9));
+  g.position.set(-2.4,0.72,3.2);
+  return g;
+}
+function buildBulb(){ // ampoule : verre + filament + culot laiton
+  const g=new THREE.Group();
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.34,0.55,20), goldMat()); base.position.y=0.55; base.castShadow=true; g.add(base);
+  for(let i=0;i<4;i++){ const th=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.045,8,24), mat(0xB89238,0.95,0.35)); th.rotation.x=Math.PI/2; th.position.y=0.4+i*0.1; g.add(th); }
+  bulbGlass=new THREE.Mesh(new THREE.SphereGeometry(0.72,32,24), new THREE.MeshStandardMaterial({color:0xfff6dc, roughness:0.08, metalness:0.0, transparent:true, opacity:0.34, envMapIntensity:1.4})); bulbGlass.position.y=1.55; bulbGlass.scale.y=1.12; g.add(bulbGlass);
+  // filament (coil)
+  const fg=new THREE.Group();
+  const coil=new THREE.Mesh(new THREE.TorusKnotGeometry(0.12,0.03,48,6,3,2), new THREE.MeshStandardMaterial({color:0x8a6a2a, emissive:0x000000, roughness:0.4, metalness:0.7})); coil.position.y=1.5; fg.add(coil);
+  [-0.12,0.12].forEach(dx=>{ const wire=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,8), mat(0x999,0.8,0.3)); wire.position.set(dx,1.15,0); fg.add(wire); });
+  bulbFilament=coil; g.add(fg);
+  g.add(pin(-0.2,0), pin(0.2,0));
+  g.position.set(2.2,0,-3.2);
+  return g;
+}
+function buildSwitch(){ // interrupteur à levier (couteau)
+  const g=new THREE.Group();
+  const base=new THREE.Mesh(new THREE.BoxGeometry(1.9,0.28,0.9), mat(0x232a3d,0.2,0.7)); base.position.y=0.14; base.castShadow=true; base.receiveShadow=true; g.add(base);
+  const postA=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.14,0.5,16), goldMat()); postA.position.set(-0.7,0.4,0); postA.castShadow=true; g.add(postA);
+  const postB=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.14,0.5,16), goldMat()); postB.position.set(0.7,0.4,0); postB.castShadow=true; g.add(postB);
+  const pivot=new THREE.Group(); pivot.position.set(-0.7,0.5,0);
+  const lever=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,1.5,14), mat(0xE0E3EA,0.9,0.22)); lever.rotation.z=-Math.PI/2; lever.position.x=0.72; lever.castShadow=true; pivot.add(lever);
+  const knob=new THREE.Mesh(new THREE.SphereGeometry(0.15,20,16), mat(0xE63329,0.3,0.4)); knob.position.x=1.5; pivot.add(knob);
+  pivot.rotation.z=switchOpenRot; switchLever=pivot; g.add(pivot);
+  g.add(pin(-0.7,0.44,0.44), pin(0.7,0.44,0.44));
+  g.position.set(-2.6,0,-3.2);
+  return g;
+}
+function buildResistor(){ // résistance couchée le long du bord droit (axe Z)
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,1.5,24), mat(0xD9B98A,0.1,0.7)); body.rotation.x=Math.PI/2; body.position.y=0.4; body.castShadow=true; g.add(body);
+  const bands=[0x8B4513,0x000000,0xE63329,0xF5A623];
+  bands.forEach((col,i)=>{ const b=new THREE.Mesh(new THREE.CylinderGeometry(0.375,0.375,0.13,24), mat(col,0.15,0.6)); b.rotation.x=Math.PI/2; b.position.set(0,0.4,-0.5+i*0.32); g.add(b); });
+  // pattes métalliques
+  [-1,1].forEach(s=>{ const lead=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,0.9,10), mat(0xC9CDD6,0.9,0.25)); lead.rotation.x=Math.PI/2; lead.position.set(0,0.4,s*1.15); g.add(lead); g.add(pin(0,s*1.55)); });
+  g.position.set(6,0,0);
+  return g;
+}
+function buildMotor(){ // petit moteur : boîtier + arbre + hélice
+  const g=new THREE.Group();
+  // boîtier moteur : métal brossé réel (Poly Haven CC0)
+  const canMat=mat(0xc8ccd4,0.95,0.4,{envMapIntensity:1.25}); applyPBR(canMat,'metal_plate_02','1k',{repeat:2,metal:true,normal:0.8}); canMat.color.setHex(0xc4c9d2);
+  const can=new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.62,1.3,28), canMat); can.position.y=0.75; can.castShadow=true; g.add(can);
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.62,0.18,28), mat(0x6b7382,0.85,0.4)); cap.position.y=1.42; g.add(cap);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.5,12), mat(0xD8DBE2,0.95,0.2)); shaft.position.y=1.7; g.add(shaft);
+  motorProp=new THREE.Group(); motorProp.position.y=1.95;
+  for(let i=0;i<3;i++){ const bl=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.05,0.22), mat(0x29B6E0,0.3,0.5)); bl.rotation.y=i*Math.PI*2/3; bl.position.x=0.0; const holder=new THREE.Group(); holder.rotation.y=i*Math.PI*2/3; const bld=new THREE.Mesh(new THREE.BoxGeometry(0.85,0.05,0.2), mat(0x29B6E0,0.3,0.5)); bld.position.x=0.42; holder.add(bld); motorProp.add(holder); }
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.14,12), mat(0x1E8C7A,0.4,0.4)); motorProp.add(hub);
+  g.add(motorProp);
+  g.add(pin(-0.25,0.55), pin(0.25,0.55));
+  g.position.set(6,0,1.7);
+  return g;
+}
+function buildBuzzer(){ // buzzer : pastille noire + trou
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,0.6,28), mat(0x1a1d24,0.3,0.55)); body.position.y=0.35; body.castShadow=true; g.add(body);
+  const top=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,0.06,28), mat(0x2a2e38,0.3,0.5)); top.position.y=0.65; g.add(top);
+  const hole=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.1,16), mat(0x000000,0.1,0.9)); hole.position.y=0.68; g.add(hole);
+  // arcs sonores (animés)
+  buzzerArcs=[];
+  for(let i=0;i<3;i++){ const arc=new THREE.Mesh(new THREE.TorusGeometry(0.35+i*0.28,0.03,8,20,Math.PI*0.7), new THREE.MeshBasicMaterial({color:0x8A7BFF,transparent:true,opacity:0})); arc.position.y=0.9+i*0.12; arc.rotation.x=-Math.PI/2.3; arc.rotation.z=-Math.PI*0.35; g.add(arc); buzzerArcs.push(arc); }
+  g.add(pin(-0.3,0.35), pin(0.3,0.35));
+  g.position.set(-6,0,0.6);
+  return g;
+}
+
+function buildComponents(){
+  const defs={ pile:buildBattery, ampoule:buildBulb, interrupteur:buildSwitch, resistance:buildResistor, moteur:buildMotor, buzzer:buildBuzzer };
+  Object.keys(defs).forEach(key=>{
+    const g=defs[key](); scene.add(g);
+    g.traverse(o=>{ if(o.isMesh){ o.userData.part=key; o.castShadow=o.castShadow||true; } });
+    const box=new THREE.Box3().setFromObject(g); const top=new THREE.Vector3(); box.getCenter(top); top.y=box.max.y+0.5;
+    parts[key]={ group:g, anchor:top };
+  });
+  // culot de l'ampoule → point de lumière
+  bulbLight.position.copy(parts.ampoule.group.position).add(new THREE.Vector3(0,1.6,0));
+  // halo additif
+  bulbGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(), color:0xffd98a, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0}));
+  bulbGlow.scale.setScalar(4.2); bulbGlow.position.copy(bulbLight.position); scene.add(bulbGlow);
+}
+
+/* ============ ÉLECTRONS ============ */
+function buildElectrons(){
+  const geo=new THREE.SphereGeometry(0.1,10,10); const m=new THREE.MeshBasicMaterial({color:0x5fe8ff});
+  for(let i=0;i<48;i++){ const e=new THREE.Mesh(geo,m); e.userData.t=i/48; e.visible=false; scene.add(e); electrons.push(e); }
+}
+
+/* ============ TEXTURES CANVAS ============ */
+function glowTex(){ const c=document.createElement('canvas'); c.width=c.height=128; const ctx=c.getContext('2d'); const g=ctx.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.4,'rgba(255,221,130,.7)'); g.addColorStop(1,'rgba(255,200,60,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+function textSprite(t, pos, col=0x111111){ const c=document.createElement('canvas'); c.width=c.height=64; const ctx=c.getContext('2d'); ctx.fillStyle='#'+col.toString(16).padStart(6,'0'); ctx.font='bold 52px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(t,32,36); const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true})); s.scale.setScalar(0.55); s.position.copy(pos); return s; }
+
+const clickMeshes=[];
+function registerClick(mesh,part){ mesh.userData.part=part; clickMeshes.push(mesh); }
+
+/* ============ UI ============ */
+let labelsOn=true;
+function buildUI(){
+  const stage=shell.api.stage;
+  const left=document.createElement('div'); left.className='el-panel el-left';
+  left.innerHTML=`
+    <div><h3>Mode</h3>
+      <div class="el-modes">
+        <button class="el-m" data-mode="explore" aria-pressed="true">🔎 Explorer</button>
+        <button class="el-m" data-mode="defi">💡 Défis</button>
+        <button class="el-m" data-mode="trouve">🎯 Trouve</button>
+        <button class="el-m" data-mode="sandbox">🔧 Bac à sable</button>
+      </div>
+    </div>
+    <div><h3>Loi d'Ohm</h3>
+      <div class="el-slider"><label>Tension U <b id="elU">6 V</b></label><input id="elUs" type="range" min="1.5" max="12" step="0.5" value="6"></div>
+      <div class="el-slider"><label>Résistance R <b id="elR">4 Ω</b></label><input id="elRs" type="range" min="1" max="20" step="1" value="4"></div>
+    </div>
+    <div><h3>Circuit</h3>
+      <div class="el-tools">
+        <button class="el-m" id="elSwitch" style="flex:1" aria-pressed="false">Interrupteur</button>
+        <button class="el-m" id="elNot" style="flex:1">📚 Notions</button>
+      </div>
+      <div class="el-tools" style="margin-top:6px">
+        <button class="el-m" id="elLabels" style="flex:1" aria-pressed="true">🏷️ Étiquettes</button>
+        <button class="el-m" id="elFit" style="flex:1">🎯 Recentrer</button>
+      </div>
+    </div>
+    <div><h3>Vue &amp; navigation</h3>
+      <div class="el-views">
+        <button class="el-m elv" id="elV34" aria-pressed="true">🧊 3/4</button>
+        <button class="el-m elv" id="elVtop">⬆️ Dessus</button>
+        <button class="el-m elv" id="elVfront">▭ Face</button>
+      </div>
+      <button class="el-m" id="elHelp" style="width:100%;margin-top:6px" aria-pressed="false">❓ Aide déplacement</button>
+    </div>`;
+  stage.appendChild(left);
+
+  const ro=document.createElement('div'); ro.className='el-panel el-readout';
+  ro.innerHTML=`<div class="el-ohm">I = U / R</div><div class="el-i" id="elI">0 <small>A</small></div>
+    <div class="el-bar"><i id="elBar"></i></div>
+    <div class="el-p" id="elP">P = 0 W</div>
+    <div class="el-warn" id="elWarn">⚠ Surcharge ! Trop de courant.</div>`;
+  stage.appendChild(ro);
+
+  const hint=document.createElement('div'); hint.className='el-hint'; hint.id='elHint'; hint.textContent="Clique l'interrupteur pour fermer le circuit et allumer l'ampoule"; stage.appendChild(hint);
+
+  const fiche=document.createElement('div'); fiche.className='el-panel el-fiche'; fiche.id='elFiche'; stage.appendChild(fiche);
+
+  left.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+  left.querySelector('#elUs').oninput=e=>{ U=+e.target.value; left.querySelector('#elU').textContent=U+' V'; updateReadout(); evalDefi(); };
+  left.querySelector('#elRs').oninput=e=>{ R=+e.target.value; left.querySelector('#elR').textContent=R+' Ω'; updateReadout(); evalDefi(); };
+  left.querySelector('#elSwitch').onclick=toggleSwitch;
+  left.querySelector('#elNot').onclick=openNotions;
+  left.querySelector('#elLabels').onclick=()=>{ labelsOn=!labelsOn; left.querySelector('#elLabels').setAttribute('aria-pressed',labelsOn); if(!labelsOn) Object.values(parts).forEach(p=>{ if(p.label)p.label.style.display='none'; }); shell.sound('click'); };
+  left.querySelector('#elFit').onclick=()=>setView('34');
+  left.querySelector('#elV34').onclick=()=>setView('34');
+  left.querySelector('#elVtop').onclick=()=>setView('top');
+  left.querySelector('#elVfront').onclick=()=>setView('front');
+  left.querySelector('#elHelp').onclick=()=>toggleNavHelp();
+  updateReadout();
+}
+
+/* ============ VUES CAMÉRA & AIDE NAVIGATION ============ */
+const VIEWS={
+  '34':   { pos:new THREE.Vector3(0.5,9,13.5), tgt:new THREE.Vector3(0,0.4,0) },
+  'top':  { pos:new THREE.Vector3(0.02,19,0.05), tgt:new THREE.Vector3(0,0,0) },
+  'front':{ pos:new THREE.Vector3(0,3.4,17.5),  tgt:new THREE.Vector3(0,0.7,0) },
+};
+let viewGoal=null;
+function setView(name){ if(sandboxOn)return; const v=VIEWS[name]||VIEWS['34']; viewGoal={ pos:v.pos.clone(), tgt:v.tgt.clone() }; focusPoint=null; flying=false; shell.sound('click');
+  const ids={'34':'elV34','top':'elVtop','front':'elVfront'}; document.querySelectorAll('.elv').forEach(b=>b.setAttribute('aria-pressed', b.id===ids[name])); }
+function toggleNavHelp(){ const btn=document.getElementById('elHelp'); let el=document.getElementById('elNavHelp');
+  if(el){ el.remove(); if(btn)btn.setAttribute('aria-pressed','false'); return; }
+  el=document.createElement('div'); el.className='el-panel el-navhelp'; el.id='elNavHelp';
+  el.innerHTML=`<button class="elnh-x" aria-label="Fermer">×</button>
+    <h4>Se déplacer dans la scène</h4>
+    <ul>
+      <li><span class="ic">🖱️</span><span>Glisser (ou un doigt) = <b>tourner</b> autour du circuit</span></li>
+      <li><span class="ic">🔍</span><span>Molette ou <b>pincer</b> à deux doigts = <b>zoom</b></span></li>
+      <li><span class="ic">✋</span><span>Deux doigts (ou clic droit) = <b>déplacer</b> la vue</span></li>
+      <li><span class="ic">👆</span><span>Clique un composant = fiche + <b>gros plan</b> dessus</span></li>
+      <li><span class="ic">⌨️</span><span><kbd>1</kbd> 3/4 · <kbd>2</kbd> dessus · <kbd>3</kbd> face · <kbd>R</kbd> recentrer</span></li>
+    </ul>`;
+  shell.api.stage.appendChild(el); if(btn)btn.setAttribute('aria-pressed','true');
+  el.querySelector('.elnh-x').onclick=()=>toggleNavHelp(); shell.sound('click');
+}
+
+function setMode(m){
+  const fx=document.getElementById('elFiche'); if(fx)fx.classList.remove('show');
+  if(m==='sandbox'){ enterSandbox(); return; }
+  if(sandboxOn) exitSandbox();
+  emode=m;
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode===m));
+  clearQuiz();
+  const hint=document.getElementById('elHint');
+  if(m==='explore'){ hint.style.display=''; hint.textContent="Clique un composant pour sa fiche · clique l'interrupteur pour fermer le circuit"; shell.api.say("Mode Explorer : clique chaque composant pour découvrir son rôle, et l'interrupteur pour allumer l'ampoule.",'joyeux'); }
+  else if(m==='defi'){ hint.style.display='none'; startDefis(); }
+  else if(m==='trouve'){ hint.style.display='none'; startTrouve(); }
+}
+
+/* ============ INTERACTION 3D ============ */
+function onPointerDown(e){
+  const r=renderer.domElement.getBoundingClientRect();
+  const v=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  const rc=new THREE.Raycaster(); rc.setFromCamera(v,camera);
+  const hits=rc.intersectObjects(scene.children,true);
+  for(const h of hits){ let o=h.object; while(o && !o.userData.part) o=o.parent; if(o && o.userData.part){ onPart(o.userData.part); return; } }
+}
+function onPart(part){
+  if(emode==='trouve'){ checkTrouve(part); return; }
+  if(part==='interrupteur'){ toggleSwitch(); }
+  openFiche(part); focusOn(part); shell.sound('pop');
+}
+function focusOn(part){ const p=parts[part]; if(!p)return; viewGoal=null; focusPoint=p.anchor.clone(); flying=true; }
+
+function openFiche(part){
+  const d=PARTS[part]; if(!d)return; const el=document.getElementById('elFiche');
+  el.innerHTML=`<div class="el-fiche-hd" style="background:linear-gradient(135deg,${d.color},${shade(d.color,-42)})">
+      <div class="sub">Composant · rôle</div><h2>${d.icon} ${d.name}</h2>
+      <button class="el-fiche-x" aria-label="Fermer">×</button></div>
+    <div class="el-fiche-bd">
+      <p>${d.role}</p>
+      <div class="el-fiche-facts">${d.facts.map(f=>`<div><span class="k">${f[0]}</span><span class="v">${f[1]}</span></div>`).join('')}</div>
+      <div class="el-fun">💡 Le savais-tu ? ${d.fun}</div>
+    </div>`;
+  el.classList.add('show'); el.querySelector('.el-fiche-x').onclick=()=>el.classList.remove('show');
+}
+function shade(hex,p){ const n=parseInt(hex.replace('#',''),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; const f=v=>Math.max(0,Math.min(255,Math.round(v+v*p/100))); return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+
+function toggleSwitch(){
+  closed=!closed; const sb=document.getElementById('elSwitch'); if(sb)sb.setAttribute('aria-pressed',closed);
+  shell.sound(closed?'good':'click');
+  shell.api.say(closed?"Circuit fermé ! Les électrons circulent : l'ampoule s'allume, le moteur tourne, le buzzer bipe.":"Circuit ouvert : plus de chemin pour les électrons — tout s'éteint.", closed?'enthousiaste':'concentre');
+  updateReadout(); evalDefi();
+}
+function updateReadout(){
+  const i=I(); const ov=closed && i>4;
+  const iEl=document.getElementById('elI'); if(!iEl)return;
+  iEl.innerHTML=i.toFixed(2)+' <small>A</small>'; iEl.style.color= ov?'var(--err-fg)': (i>0.1?'var(--accent-text)':'var(--fg-muted)');
+  document.getElementById('elBar').style.width=Math.min(100,(i/6)*100)+'%';
+  document.getElementById('elP').textContent='P = '+(closed?(U*i).toFixed(1):'0')+' W';
+  document.getElementById('elWarn').classList.toggle('show',ov);
+  const hint=document.getElementById('elHint'); if(emode==='explore'&&hint){ hint.style.display=closed?'none':''; }
+  if(ov) shell.api.say("Intensité trop forte ! Une résistance trop faible laisse passer trop de courant : risque de surchauffe. C'est un court-circuit.",'surpris');
+}
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; if(renderer) renderer.setClearColor(dark?0x0a0e18:0x121a2e,1); if(composer&&composer.bloom) composer.bloom.strength=dark?0.62:0.5; }
+function onResize(){ const s=shell.api.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); if(composer)composer.setSize(s.clientWidth,s.clientHeight); }
+function onKey(e){ if(e.target&&e.target.tagName==='INPUT')return; const k=e.key;
+  if(k===' '||k==='Enter'){ if(emode!=='trouve'&&!sandboxOn){ toggleSwitch(); e.preventDefault(); } }
+  else if(k==='r'||k==='R'){ setView('34'); }
+  else if(k==='1'){ setView('34'); }
+  else if(k==='2'){ setView('top'); }
+  else if(k==='3'){ setView('front'); }
+  else if(k==='?'||k==='h'||k==='H'){ toggleNavHelp(); }
+}
+
+/* ============ NOTIONS ============ */
+function openNotions(){ let el=document.getElementById('elInfo'); if(!el){ el=document.createElement('div'); el.id='elInfo'; el.style.cssText='position:absolute;right:14px;top:14px;z-index:32;width:308px;max-height:calc(100% - 28px);overflow:auto;background:color-mix(in srgb,var(--surface) 93%,transparent);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);padding:0'; shell.api.stage.appendChild(el); }
+  el.innerHTML='<div style="background:linear-gradient(135deg,#F5A623,#7a4a10);color:#fff;padding:14px 16px;border-radius:14px 14px 0 0;position:relative"><div style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;opacity:.9">Cours · encyclopédie</div><h2 style="margin:2px 0 0;font-family:var(--font-title);font-size:19px">📚 Électricité & électronique</h2><button id="elInfoX" style="position:absolute;top:11px;right:11px;width:26px;height:26px;border:none;border-radius:7px;background:rgba(255,255,255,.25);color:#fff;cursor:pointer">×</button></div><div style="padding:12px 16px">'+NOTIONS.map(n=>`<div style="margin-bottom:11px"><b style="font-size:14px">${n[0]}</b><p style="font-size:13px;line-height:1.5;margin:4px 0 0;color:var(--fg-muted)">${n[1]}</p></div>`).join('')+'</div>';
+  el.querySelector('#elInfoX').onclick=()=>el.remove(); shell.sound('click');
+}
+
+/* ============ MODE COURS : chooser ============ */
+function chooseCourse(){ let b=document.getElementById('elQuiz'); if(!b){ b=document.createElement('div'); b.className='el-quiz'; b.id='elQuiz'; shell.api.stage.appendChild(b); }
+  b.innerHTML='<div>🎓 Choisis ton défi</div><div class="el-qrow"><button class="el-qo" data-c="defi">💡 Allume l\'ampoule</button><button class="el-qo" data-c="trouve">🎯 Trouve le composant</button></div>';
+  b.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>{ shell.sound('click'); setMode(x.dataset.c); });
+  shell.api.say("Deux parcours : « Allume l'ampoule » (défis progressifs) ou « Trouve le composant ». Choisis !",'curieux');
+}
+
+/* ============ DÉFIS « Allume l'ampoule » ============ */
+const sandboxTried={ ser:false, par:false };
+const DEFIS=[
+  { title:'Défi 1 · Ferme le circuit', ask:"Clique l'interrupteur pour fermer le circuit et allumer l'ampoule.", ok:()=>closed&&I()>0.1, done:"Bravo ! Circuit fermé : le courant passe et l'ampoule brille." },
+  { title:'Défi 2 · Donne du courant', ask:"Règle U et R (loi d'Ohm) pour obtenir une intensité I ≥ 2 A.", ok:()=>closed&&I()>=2, done:"Parfait ! Tu as monté U ou baissé R : I = U/R augmente." },
+  { title:'Défi 3 · Sans surcharge', ask:"Obtiens une belle lumière SANS surcharge : garde I entre 2 A et 4 A.", ok:()=>closed&&I()>=2&&I()<=4, done:"Excellent dosage ! Assez de courant pour éclairer, pas trop pour surchauffer." },
+  { title:'Défi 4 · Série & parallèle', ask:"Ouvre le Bac à sable et essaie les deux montages : série PUIS parallèle.", ok:()=>sandboxTried.ser&&sandboxTried.par, done:"Tu as comparé les deux montages : en parallèle, chaque ampoule reçoit toute la tension !" },
+];
+let defiIdx=0, defiDone=false;
+function startDefis(){ emode='defi'; defiIdx=0; defiDone=false; sandboxTried.ser=false; sandboxTried.par=false; shell.api.setScore(0); shell.api.setProgress(0); shell.api.setLevel('1/'+DEFIS.length); showDefi(); }
+function showDefi(){ const d=DEFIS[defiIdx]; let b=document.getElementById('elQuiz'); if(!b){ b=document.createElement('div'); b.className='el-quiz'; b.id='elQuiz'; shell.api.stage.appendChild(b); }
+  b.innerHTML=`<span class="qn">${defiIdx+1}/${DEFIS.length}</span><div><b>${d.title}</b></div><div style="font-size:13px">${d.ask}</div>`;
+  shell.api.setLevel((defiIdx+1)+'/'+DEFIS.length); shell.api.setProgress(defiIdx/DEFIS.length);
+  shell.api.say(d.ask,'concentre'); defiDone=false;
+}
+function evalDefi(){ if(emode!=='defi'||defiDone)return; const d=DEFIS[defiIdx]; if(d.ok()){ defiDone=true; shell.sound('good'); shell.api.addScore(150); shell.api.say(d.done,'fier'); shell.api.toast('✅ '+d.title); setTimeout(()=>{ defiIdx++; if(defiIdx>=DEFIS.length){ winDefis(); } else { shell.api.setProgress(defiIdx/DEFIS.length); showDefi(); } },1400); } }
+function winDefis(){ clearQuiz(); const sc=parseInt(document.querySelector('.ksh-score').textContent||'0',10); shell.api.setProgress(1);
+  shell.api.win({ score:sc, stars:3, title:"Circuit maîtrisé — défis réussis !", learned:shell.cfg.learned, buddy:"Tu sais fermer un circuit, doser le courant et comparer série et parallèle. Bravo, petit·e électronicien·ne !", onNext:()=>{ shell.api.setScore(0); startDefis(); }, nextLabel:'Rejouer' }); }
+
+/* ============ MODE « Trouve le composant » ============ */
+const FIND_LIST=[
+  ['pile',"la pile (la source d'énergie)"],['ampoule',"l'ampoule (qui éclaire)"],['interrupteur',"l'interrupteur (qui ouvre/ferme)"],
+  ['resistance',"la résistance (qui freine le courant)"],['moteur',"le moteur (qui tourne)"],['buzzer',"le buzzer (qui fait du son)"],['fil',"un fil conducteur"],['carte',"la carte électronique (PCB)"],
+];
+let trouve=null;
+function startTrouve(){ emode='trouve'; const order=FIND_LIST.slice().sort(()=>Math.random()-.5).slice(0,6); trouve={order,idx:0,score:0,total:order.length}; shell.api.setScore(0); shell.api.setProgress(0); askTrouve(); }
+function askTrouve(){ if(!trouve)return; if(trouve.idx>=trouve.total){ winTrouve(); return; } const t=trouve.order[trouve.idx]; let b=document.getElementById('elQuiz'); if(!b){ b=document.createElement('div'); b.className='el-quiz'; b.id='elQuiz'; shell.api.stage.appendChild(b); }
+  b.innerHTML=`<span class="qn">${trouve.idx+1}/${trouve.total}</span><div>Dans la scène, clique <b>${t[1]}</b>.</div>`;
+  shell.api.setLevel((trouve.idx+1)+'/'+trouve.total); shell.api.setProgress(trouve.idx/trouve.total);
+  shell.api.say('Repère le bon composant en 3D et clique dessus.','curieux');
+}
+function checkTrouve(part){ if(!trouve)return; const want=trouve.order[trouve.idx]; openFiche(part); if(part===want[0]){ trouve.score++; trouve.idx++; shell.sound('good'); shell.api.addScore(160); shell.api.setProgress(trouve.idx/trouve.total); shell.api.say('Exact ! '+PARTS[part].name+'.','fier'); focusOn(part); setTimeout(askTrouve,1050); } else { shell.sound('bad'); shell.api.say("Pas celui-ci — c'est "+PARTS[part].name.toLowerCase()+". Relis la consigne et réessaie.",'rassurant'); } }
+function winTrouve(){ clearQuiz(); const st=trouve.score>=6?3:trouve.score>=4?2:1; shell.api.win({ score:trouve.score*160, stars:st, title:trouve.score+'/'+trouve.total+' — composants identifiés !', learned:shell.cfg.learned, buddy: st===3?"Sans faute ! Tu reconnais tous les composants d'un circuit.":"Bien joué — révise les fiches et retente pour la perfection.", onNext:()=>{ shell.api.setScore(0); startTrouve(); }, nextLabel:'Rejouer' }); trouve=null; }
+
+function clearQuiz(){ const b=document.getElementById('elQuiz'); if(b)b.remove(); }
+
+/* ============ BAC À SABLE : série / parallèle ============ */
+let sandboxOn=false, sandboxGroup=null, hiddenBase=[], sbBulbs=[], sbElectrons=[], sbPath=[], sbN=2, sbParallel=true, sbU=6;
+function enterSandbox(){ if(sandboxOn)return; sandboxOn=true; emode='sandbox'; const fx=document.getElementById('elFiche'); if(fx)fx.classList.remove('show'); document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode==='sandbox')); clearQuiz();
+  sandboxGroup=new THREE.Group(); scene.add(sandboxGroup);
+  hiddenBase=[]; scene.children.forEach(c=>{ if(c!==sandboxGroup && (c.isMesh||c.isGroup||c.isSprite||c.isPoints) && c.visible && !c.isLight){ hiddenBase.push(c); c.visible=false; } });
+  bulbLight.intensity=0; if(bulbGlow)bulbGlow.visible=false;
+  const hint=document.getElementById('elHint'); if(hint)hint.style.display='none';
+  let panel=document.getElementById('elSb'); if(!panel){ panel=document.createElement('div'); panel.className='el-panel'; panel.id='elSb'; panel.style.cssText='position:absolute;right:14px;top:14px;z-index:26;width:232px;padding:14px;display:flex;flex-direction:column;gap:10px'; shell.api.stage.appendChild(panel); }
+  panel.innerHTML='<div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-muted)">Bac à sable · montages</div>'
+    +'<div style="display:flex;gap:6px"><button id="sbSer" class="el-m" style="flex:1">Série</button><button id="sbPar" class="el-m" style="flex:1">Parallèle</button></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;font-size:12px">Ampoules <button id="sbMinus" class="el-m" style="width:34px">−</button><b id="sbN" style="font-family:var(--font-data);font-size:16px">2</b><button id="sbPlus" class="el-m" style="width:34px">+</button></div>'
+    +'<div style="font-size:12px">Tension <input id="sbU" type="range" min="1.5" max="12" step="0.5" value="6" style="width:100%"> <b id="sbUv" style="font-family:var(--font-data)">6 V</b></div>'
+    +'<div id="sbRead" style="background:var(--surface-2);border-radius:10px;padding:10px;font-size:12px;line-height:1.6"></div>'
+    +'<div id="sbChal" style="font-size:11.5px;color:var(--accent-text);line-height:1.4"></div>'
+    +'<button id="sbQuit" class="el-m" style="width:100%">↩ Retour Explorer</button>';
+  panel.querySelector('#sbSer').onclick=()=>{ sbParallel=false; sandboxTried.ser=true; rebuildSandbox(); evalDefi(); };
+  panel.querySelector('#sbPar').onclick=()=>{ sbParallel=true; sandboxTried.par=true; rebuildSandbox(); evalDefi(); };
+  panel.querySelector('#sbMinus').onclick=()=>{ sbN=Math.max(1,sbN-1); rebuildSandbox(); };
+  panel.querySelector('#sbPlus').onclick=()=>{ sbN=Math.min(4,sbN+1); rebuildSandbox(); };
+  panel.querySelector('#sbU').oninput=e=>{ sbU=+e.target.value; rebuildSandbox(); };
+  panel.querySelector('#sbQuit').onclick=()=>{ exitSandbox(); setMode('explore'); };
+  focusPoint=null; flying=false; camera.position.set(0,2,19); controls.target.set(0,0,0);
+  if(sandboxTried.par) sbParallel=true; else { sandboxTried.par=true; }
+  shell.api.say("Bac à sable : ajoute des ampoules, choisis série ou parallèle, change la tension — compare la luminosité et le courant !",'enthousiaste');
+  rebuildSandbox();
+}
+function exitSandbox(){ if(!sandboxOn)return; sandboxOn=false; const pn=document.getElementById('elSb'); if(pn)pn.remove();
+  if(sandboxGroup) scene.remove(sandboxGroup); sandboxGroup=null; sbBulbs=[]; sbElectrons=[]; sbPath=[];
+  hiddenBase.forEach(c=>c.visible=true); hiddenBase=[]; if(bulbGlow)bulbGlow.visible=true;
+  camera.position.set(0.5,9,13.5); controls.target.set(0,0.4,0); shell.sound('click');
+}
+function sbWire(p1,p2){ const v=new THREE.Vector3().subVectors(p2,p1); const m=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,v.length(),10), copperMat()); m.position.copy(p1).add(p2).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.clone().normalize()); m.castShadow=true; return m; }
+function rebuildSandbox(){ if(!sandboxGroup)return; while(sandboxGroup.children.length)sandboxGroup.remove(sandboxGroup.children[0]); sbBulbs=[]; sbElectrons=[];
+  const Rr=4, Uu=sbU, n=sbN; const g=(id)=>document.getElementById(id); if(g('sbN'))g('sbN').textContent=n; if(g('sbUv'))g('sbUv').textContent=Uu+' V';
+  if(g('sbSer'))g('sbSer').setAttribute('aria-pressed',!sbParallel); if(g('sbPar'))g('sbPar').setAttribute('aria-pressed',sbParallel);
+  const batt=new THREE.Group(); const b1=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,2.6,28), mat(0xF5A623,0.35,0.4)); b1.rotation.x=Math.PI/2; const nub=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.2,20),mat(0xD8DBE2,0.9,0.25)); nub.rotation.x=Math.PI/2; nub.position.z=1.4; batt.add(b1,nub); batt.position.set(-7.5,0,0); sandboxGroup.add(batt);
+  const TY=3.5, BY=-3.5;
+  function makeBulb(x,y){ const s=new THREE.Mesh(new THREE.SphereGeometry(0.6,24,20), new THREE.MeshStandardMaterial({color:0xfff3c0,emissive:0x000000,transparent:true,opacity:0.4,envMapIntensity:1.3})); s.position.set(x,y,0); sandboxGroup.add(s); const soc=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.26,0.4,16),mat(0xC8A24A,0.9,0.3)); soc.position.set(x,y-0.7,0); sandboxGroup.add(soc); sbBulbs.push(s); return s; }
+  let totalI, perBulb;
+  if(sbParallel){ totalI=n*Uu/Rr; perBulb=Uu/Rr;
+    sandboxGroup.add(sbWire(new THREE.Vector3(-7.5,0.9,0),new THREE.Vector3(-7.5,TY,0)));
+    sandboxGroup.add(sbWire(new THREE.Vector3(-7.5,TY,0),new THREE.Vector3(5,TY,0)));
+    sandboxGroup.add(sbWire(new THREE.Vector3(-7.5,-1.3,0),new THREE.Vector3(-7.5,BY,0)));
+    sandboxGroup.add(sbWire(new THREE.Vector3(-7.5,BY,0),new THREE.Vector3(5,BY,0)));
+    for(let i=0;i<n;i++){ const x=-4+i*(8/Math.max(1,n)); makeBulb(x,0); sandboxGroup.add(sbWire(new THREE.Vector3(x,TY,0),new THREE.Vector3(x,0.6,0))); sandboxGroup.add(sbWire(new THREE.Vector3(x,-0.6,0),new THREE.Vector3(x,BY,0))); }
+    sbPath=[new THREE.Vector3(-7.5,0.9,0),new THREE.Vector3(-7.5,TY,0),new THREE.Vector3(5,TY,0),new THREE.Vector3(5,BY,0),new THREE.Vector3(-7.5,BY,0),new THREE.Vector3(-7.5,-1.3,0)];
+  } else { totalI=Uu/(n*Rr); perBulb=totalI;
+    sandboxGroup.add(sbWire(new THREE.Vector3(-7.5,0.9,0),new THREE.Vector3(-7.5,TY,0)));
+    const pts=[new THREE.Vector3(-7.5,0.9,0),new THREE.Vector3(-7.5,TY,0)];
+    for(let i=0;i<n;i++){ const bx=-5+i*(10/Math.max(1,n)); makeBulb(bx,TY); pts.push(new THREE.Vector3(bx,TY,0)); }
+    pts.push(new THREE.Vector3(5,TY,0)); pts.push(new THREE.Vector3(5,BY,0)); pts.push(new THREE.Vector3(-7.5,BY,0)); pts.push(new THREE.Vector3(-7.5,-1.3,0));
+    for(let i=1;i<pts.length;i++) sandboxGroup.add(sbWire(pts[i-1],pts[i]));
+    sbPath=pts;
+  }
+  for(let i=0;i<20;i++){ const e=new THREE.Mesh(new THREE.SphereGeometry(0.12,10,10),new THREE.MeshBasicMaterial({color:0x5fe8ff})); e.userData.t=i/20; sandboxGroup.add(e); sbElectrons.push(e); }
+  const bright=Math.min(1, perBulb/(Uu/Rr)); sbBulbs.forEach(s=>{ s.material.emissive.setHex(0xffdd66); s.material.emissiveIntensity=0.12+bright*1.9; s.material.opacity=0.4+bright*0.5; });
+  sandboxGroup.userData.speed=Math.min(2.4, totalI*0.25+0.2);
+  if(g('sbRead'))g('sbRead').innerHTML=`<b>${sbParallel?'Parallèle':'Série'}</b><br>Courant total : <b style="color:#29B6E0">${totalI.toFixed(2)} A</b><br>Par ampoule : <b>${perBulb.toFixed(2)} A</b><br>Luminosité : <b>${Math.round(bright*100)} %</b>`;
+  if(g('sbChal'))g('sbChal').textContent = sbParallel ? '💡 En parallèle : chaque ampoule reçoit toute la tension → pleine lumière, mais le courant total augmente.' : '💡 En série : la tension se partage → plus tu ajoutes d\'ampoules, plus elles faiblissent.';
+}
+function updateSandbox(dt){ if(!sandboxOn||!sbPath.length)return; const sp=sandboxGroup.userData.speed||0.5; const total=sbPath.length;
+  sbElectrons.forEach(e=>{ e.userData.t=(e.userData.t+dt*sp*0.15)%1; const f=e.userData.t*total; const i=Math.floor(f)%total; const a=sbPath[i], b=sbPath[(i+1)%total]; e.position.lerpVectors(a,b,f-Math.floor(f)); }); }
+
+/* ============ ÉTIQUETTES 3D ============ */
+function updateLabels(){ if(sandboxOn){ Object.values(parts).forEach(p=>{ if(p.label)p.label.style.display='none'; }); return; }
+  const stage=shell.api.stage; const show=labelsOn;
+  const NAMES={ pile:'🔋 Pile', ampoule:'💡 Ampoule', interrupteur:'🔘 Interrupteur', resistance:'🟫 Résistance', moteur:'⚙️ Moteur', buzzer:'🔔 Buzzer' };
+  Object.keys(NAMES).forEach(key=>{ const p=parts[key]; if(!p)return; let el=p.label; if(!show){ if(el)el.style.display='none'; return; }
+    if(!el){ el=document.createElement('div'); el.className='el-label'; el.textContent=NAMES[key]; stage.appendChild(el); p.label=el; }
+    const v=p.anchor.clone().project(camera); if(v.z>1){ el.style.display='none'; return; } el.style.display='block';
+    el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight)+'px';
+  });
+}
+
+/* ============ ANIMATION ============ */
+function animate(){ requestAnimationFrame(animate); const dt=Math.min(0.05,clock.getDelta());
+  if(viewGoal){ camera.position.lerp(viewGoal.pos,0.12); controls.target.lerp(viewGoal.tgt,0.12); if(camera.position.distanceTo(viewGoal.pos)<0.25){ camera.position.copy(viewGoal.pos); controls.target.copy(viewGoal.tgt); viewGoal=null; } }
+  if(flying && focusPoint){ controls.target.lerp(focusPoint,0.08); const dir=camera.position.clone().sub(controls.target); const want=focusPoint.clone().add(dir.normalize().multiplyScalar(8.5)); camera.position.lerp(want,0.06); if(camera.position.distanceTo(want)<0.4) flying=false; }
+  if(sandboxOn){ updateSandbox(dt); controls.update(); composer.render(); return; }
+
+  const i=I(); const speed=closed?Math.min(1.4,0.14+i*0.07):0;
+  electrons.forEach(e=>{ e.visible=closed; if(closed){ e.userData.t=(e.userData.t+dt*speed*0.13)%1; e.position.copy(pathCurve.getPointAt(e.userData.t)); } });
+  // ampoule
+  const bright=Math.min(1, i/3); const overload=closed&&i>4;
+  if(bulbFilament){ if(closed&&i>0.1){ bulbFilament.material.emissive.setHex(overload?0xff3300:0xffcf6a); bulbFilament.material.emissiveIntensity=overload?(Math.abs(Math.sin(clock.elapsedTime*18))*3):(0.6+bright*3); } else { bulbFilament.material.emissive.setHex(0x000000); bulbFilament.material.emissiveIntensity=0; } }
+  if(bulbGlass){ bulbGlass.material.emissive=new THREE.Color(overload?0xff5522:0xffe6a0); bulbGlass.material.emissiveIntensity=closed?bright*0.5:0; }
+  bulbLight.intensity=closed?(overload?Math.abs(Math.sin(clock.elapsedTime*18))*6:bright*5+0.4):0; bulbLight.color.setHex(overload?0xff5522:0xffcf8a);
+  if(bulbGlow){ bulbGlow.material.opacity=closed?bright*0.85:0; bulbGlow.material.color.setHex(overload?0xff6633:0xffd98a); }
+  // interrupteur
+  if(switchLever){ const target=closed?switchClosedRot:switchOpenRot; switchLever.rotation.z+=(target-switchLever.rotation.z)*0.2; }
+  // moteur
+  if(motorProp&&closed) motorProp.rotation.y+=dt*(4+i*3);
+  // buzzer
+  if(buzzerArcs.length){ buzzerArcs.forEach((a,k)=>{ a.material.opacity= closed? Math.max(0,Math.sin(clock.elapsedTime*7 - k*0.9))*0.7 : 0; }); }
+
+  controls.update();
+  // garde-fou : cible confinée à la scène pour ne jamais « se perdre »
+  const t=controls.target; t.x=Math.max(-9,Math.min(9,t.x)); t.y=Math.max(-1.5,Math.min(6,t.y)); t.z=Math.max(-7,Math.min(7,t.z));
+  updateLabels(); composer.render();
+}
+</script>
+</body>
+</html>

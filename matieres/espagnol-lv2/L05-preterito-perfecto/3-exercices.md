@@ -425,3 +425,11 @@ Parte C : 5 points (0,5 par correction, 0,5 par erreur nommée).
 Parte D : 6 points (2,5 pour les éléments imposés, 2 pour la correction de la langue, 1,5 pour la cohérence et la longueur).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

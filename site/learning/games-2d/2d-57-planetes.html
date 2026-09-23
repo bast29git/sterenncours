@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Les 8 planètes</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Quelle est la planète la plus proche du Soleil ?', options:['Mercure','Vénus','Mars','Terre'], answer:'Mercure', explain:'Mercure orbite à 58 M km du Soleil, en seulement 88 jours.'},
+ {lvl:1, prompt:'Quelle est la plus grande planète du système solaire ?', options:['Jupiter','Saturne','la Terre','Neptune'], answer:'Jupiter', explain:'Jupiter est si massive qu\'elle pèse plus que toutes les autres réunies.'},
+ {lvl:1, prompt:'Quelle planète est surnommée « la planète rouge » ?', options:['Mars','Vénus','Jupiter','Mercure'], answer:'Mars', explain:'L\'oxyde de fer (rouille) à sa surface lui donne sa couleur.'},
+ {lvl:1, prompt:'Quelle planète possède de magnifiques anneaux ?', options:['Saturne','la Terre','Mars','Mercure'], answer:'Saturne', explain:'Ses anneaux sont faits de milliards de morceaux de glace et de roche.'},
+ {lvl:2, prompt:'Quelle planète est la plus chaude (effet de serre) ?', options:['Vénus','Mercure','Mars','Jupiter'], answer:'Vénus', explain:'Son atmosphère épaisse de CO₂ atteint 464 °C, plus chaud que Mercure.'},
+ {lvl:2, prompt:'Quelle planète « roule » sur le côté (axe à 98°) ?', options:['Uranus','Neptune','Saturne','la Terre'], answer:'Uranus', explain:'Sans doute après une collision géante dans sa jeunesse.'},
+ {lvl:2, prompt:'Combien de planètes compte le système solaire ?', options:['8','9','7','10'], answer:'8', explain:'Pluton a été reclassée « planète naine » en 2006.'},
+ {lvl:3, prompt:'Quelle planète a le jour le plus court (rotation rapide) ?', options:['Jupiter','la Terre','Mercure','Mars'], answer:'Jupiter', explain:'Jupiter tourne en moins de 10 h, ce qui l\'aplatit aux pôles.'},
+ {lvl:3, prompt:'Quelle planète, découverte en 1846, le fut « par le calcul » ?', options:['Neptune','Uranus','Saturne','Pluton'], answer:'Neptune', explain:'Sa position fut prédite mathématiquement avant d\'être observée.'},
+ {lvl:3, prompt:'Sur quelle planète une année dure 165 années terrestres ?', options:['Neptune','Uranus','Saturne','Jupiter'], answer:'Neptune', explain:'La plus lointaine met 165 ans à faire le tour du Soleil.'},
+];
+QuizGame({ id:'2d-57-planetes', code:'2D·57', title:'Les 8 planètes', domain:{label:'Espace & Astro',color:'#1B82E0'},
+ intro:{ greet:"Petit tour du système solaire : connais-tu bien les 8 planètes ?", rule:"Réponds à des questions sur les planètes : tailles, températures, particularités. Trois niveaux, du débutant au passionné.", how:["Lis la question.","Choisis la bonne planète parmi 4.","Monte en niveau pour des faits plus pointus."], objectif:"Connaître les 8 planètes et leurs caractéristiques.", hint:"Du Soleil vers l'extérieur : Mercure, Vénus, Terre, Mars, Jupiter, Saturne, Uranus, Neptune.", why:"Comprendre les planètes, c'est comprendre notre place dans l'Univers." },
+ learned:["L'ordre et les particularités des 8 planètes.","Vénus est la plus chaude, Jupiter la plus grande.","Pluton est une planète naine depuis 2006."],
+ rounds });
+</script></body></html>

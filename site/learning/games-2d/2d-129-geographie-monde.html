@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Géographie du monde</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Quel est le plus grand océan du monde ?', options:['le Pacifique','l\'Atlantique','l\'Indien','l\'Arctique'], answer:'le Pacifique', explain:'Il couvre un tiers de la surface du globe.'},
+ {lvl:1, prompt:'Quel est le plus haut sommet du monde ?', options:['l\'Everest','le Mont Blanc','le Kilimandjaro','les Andes'], answer:'l\'Everest', explain:'8 849 m, dans l\'Himalaya.'},
+ {lvl:1, prompt:'Sur quel continent se trouve le Sahara ?', options:['l\'Afrique','l\'Asie','l\'Amérique','l\'Europe'], answer:'l\'Afrique', explain:'Le plus grand désert chaud du monde.'},
+ {lvl:2, prompt:'Quel est le plus long fleuve du monde ?', options:['le Nil (ou l\'Amazone)','la Seine','le Rhin','la Loire'], answer:'le Nil (ou l\'Amazone)', explain:'Le débat Nil/Amazone dépend de la méthode de mesure.'},
+ {lvl:2, prompt:'Combien y a-t-il de continents ?', options:['6 ou 7 selon les conventions','3','10','1'], answer:'6 ou 7 selon les conventions', explain:'On sépare parfois Amérique du Nord et du Sud.'},
+ {lvl:2, prompt:'Quel pays est le plus peuplé du monde ?', options:['l\'Inde','les États-Unis','la France','le Brésil'], answer:'l\'Inde', explain:'L\'Inde a dépassé la Chine en 2023.'},
+ {lvl:3, prompt:'Quelle ligne imaginaire partage la Terre en deux hémisphères ?', options:['l\'équateur','le méridien de Greenwich','le tropique','la latitude'], answer:'l\'équateur', explain:'À latitude 0°.'},
+ {lvl:3, prompt:'Le plus grand pays du monde par superficie est…', options:['la Russie','le Canada','la Chine','les États-Unis'], answer:'la Russie', explain:'Sur deux continents (Europe + Asie).'},
+ {lvl:3, prompt:'La fosse la plus profonde des océans est la fosse…', options:['des Mariannes','de l\'Atlantique','de la Méditerranée','du Pacifique sud'], answer:'des Mariannes', explain:'Près de 11 000 m de profondeur.'},
+];
+QuizGame({ id:'2d-129-geographie-monde', code:'2D·129', title:'Géographie du monde', domain:{label:'Histoire & Géo',color:'#E0892B'},
+ intro:{ greet:"Océans, montagnes, fleuves, pays : explore la planète !", rule:"Découvre les grands repères géographiques : océans, sommets, fleuves, continents, pays. Trois niveaux.", how:["Lis la question.","Choisis la bonne réponse.","Niveau Expert : équateur, plus grand pays, fosse des Mariannes."], objectif:"Connaître les grands repères géographiques du monde.", hint:"Pacifique = plus grand océan ; Everest = plus haut sommet ; Russie = plus grand pays.", why:"La géographie aide à comprendre le monde et l'actualité." },
+ learned:["Océans, sommets, déserts, fleuves.","Continents et pays les plus peuplés/vastes.","Équateur, méridien, fosse des Mariannes."],
+ rounds });
+</script></body></html>

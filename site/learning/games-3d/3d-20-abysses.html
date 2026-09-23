@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Abysses</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  /* ---- panneaux verre ---- */
+  .ab-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 86%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  /* jauge principale (profondeur + stats) */
+  .ab-gauge { top:14px; left:70px; width:210px; padding:15px 16px; }
+  .ab-depth { font-family:var(--font-data); font-weight:700; font-size:38px; line-height:1; }
+  .ab-depth small { font-size:16px; color:var(--fg-muted); }
+  .ab-zone { font-family:var(--font-title); font-weight:800; font-size:14.5px; margin:4px 0 12px; line-height:1.2; }
+  .ab-stat { display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:12.5px; margin-bottom:7px; }
+  .ab-stat .k { color:var(--fg-muted); font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; display:flex; align-items:center; gap:5px; }
+  .ab-stat .v { font-family:var(--font-data); font-weight:700; white-space:nowrap; }
+  .ab-bar { height:5px; border-radius:4px; background:color-mix(in srgb,var(--fg) 12%,transparent); overflow:hidden; margin-top:3px; }
+  .ab-bar i { display:block; height:100%; border-radius:4px; transition:width .25s; }
+  /* colonne d'eau verticale (zones) */
+  .ab-col { top:14px; left:14px; width:46px; height:min(64%,420px); padding:0; overflow:hidden; display:flex; flex-direction:column; }
+  .ab-cz { flex:1; position:relative; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:8px; font-weight:700; letter-spacing:.03em; color:rgba(255,255,255,.72); text-align:center; line-height:1.05; transition:box-shadow .3s; }
+  .ab-cz.act { box-shadow:inset 0 0 0 2px var(--brand-amber); color:#fff; }
+  .ab-sub-icon { position:absolute; left:-3px; z-index:3; font-size:15px; transform:translateY(-50%); transition:top .2s linear; filter:drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+  /* contrôles bas */
+  .ab-ctrl { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:20; display:flex; align-items:center; gap:8px; background:color-mix(in srgb,var(--surface) 86%,transparent); border:1px solid var(--border); border-radius:999px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); padding:8px 12px; max-width:94vw; flex-wrap:wrap; justify-content:center; }
+  .ab-cb { width:46px; height:46px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; font-size:18px; display:grid; place-items:center; transition:transform .12s, background .2s; touch-action:none; }
+  .ab-cb:hover { transform:translateY(-1px); background:var(--accent-weak); }
+  .ab-cb[aria-pressed="true"] { background:var(--brand-amber); border-color:var(--brand-amber); color:#13142B; }
+  .ab-cb:focus-visible { outline:none; box-shadow:var(--ring); }
+  .ab-slider { width:130px; accent-color:var(--accent); }
+  /* fiche latérale espèce */
+  .ab-info { right:14px; top:14px; width:312px; z-index:22; background:color-mix(in srgb,var(--surface) 93%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-lg); backdrop-filter:blur(12px); overflow:hidden; transform:translateX(125%); transition:transform .42s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; }
+  .ab-info.show { transform:none; }
+  .ab-info .hd { padding:15px 16px; color:#fff; position:relative; flex:none; }
+  .ab-info .hd h2 { font-family:var(--font-title); font-weight:800; font-size:20px; margin:0; }
+  .ab-info .hd .s { font-family:var(--font-mono); font-size:11px; opacity:.9; text-transform:uppercase; letter-spacing:.04em; }
+  .ab-info .x { position:absolute; top:11px; right:11px; width:27px; height:27px; border:none; border-radius:8px; background:rgba(255,255,255,.24); color:#fff; cursor:pointer; font-size:15px; }
+  .ab-info .bd { padding:13px 16px 16px; overflow:auto; font-size:13.5px; line-height:1.55; }
+  .ab-badge { display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:4px 10px; border-radius:999px; background:linear-gradient(135deg,#1de9b6,#00b8d4); color:#04202a; margin-bottom:10px; }
+  .ab-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; margin-bottom:4px; }
+  .ab-grid .k { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.03em; text-transform:uppercase; color:var(--fg-muted); display:block; }
+  .ab-grid .v { font-family:var(--font-data); font-weight:700; font-size:13px; }
+  .ab-sec { font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:13px 0 6px; }
+  .ab-info .bd p { margin:0 0 8px; }
+  .ab-fun { background:var(--accent-weak); border-radius:10px; padding:10px 12px; font-size:12.5px; color:var(--accent-text); line-height:1.5; margin-top:6px; }
+  .ab-notchips { display:flex; flex-wrap:wrap; gap:6px; }
+  .ab-notchips button { font-family:var(--font-body); font-weight:600; font-size:12px; padding:7px 11px; min-height:36px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; }
+  .ab-notchips button:hover { background:var(--accent-weak); border-color:var(--accent); }
+  /* marqueur de sélection 3D */
+  .ab-marker { position:absolute; z-index:16; transform:translate(-50%,-50%); pointer-events:none; width:56px; height:56px; border-radius:999px; border:2.5px solid var(--brand-amber); box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-amber) 22%,transparent); opacity:0; transition:opacity .2s; }
+  .ab-marker.show { opacity:1; animation:abPulse 1.7s ease-out infinite; }
+  @keyframes abPulse { 0%{ box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-amber) 45%,transparent);} 70%{ box-shadow:0 0 0 16px transparent;} 100%{ box-shadow:0 0 0 3px transparent;} }
+  /* hint / bannière cours */
+  .ab-hint { position:absolute; bottom:78px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 82%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; max-width:min(560px,90vw); text-align:center; }
+  .ab-cbn { position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:23; font-size:12.5px; color:var(--fg); background:color-mix(in srgb,var(--surface) 92%,transparent); border:1px solid var(--border); padding:9px 16px; border-radius:14px; box-shadow:var(--shadow-md); max-width:min(560px,86vw); text-align:center; line-height:1.4; display:none; }
+  .ab-cbn.show { display:block; }
+  .ab-cbn .tag { font-family:var(--font-mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent-text); }
+  /* quiz */
+  .ab-quiz { position:absolute; top:70px; left:50%; transform:translateX(-50%); z-index:24; background:var(--accent); color:#fff; padding:13px 18px; border-radius:14px; box-shadow:var(--shadow-lg); font-weight:700; font-size:14px; display:flex; flex-direction:column; gap:9px; align-items:center; max-width:min(520px,92%); text-align:center; }
+  .ab-qopts { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .ab-qo { font-family:var(--font-body); font-weight:700; font-size:13px; min-height:42px; padding:0 14px; border-radius:11px; border:none; background:rgba(255,255,255,.2); color:#fff; cursor:pointer; transition:background .15s; }
+  .ab-qo:hover { background:rgba(255,255,255,.34); }
+  /* panneau expédition */
+  .ab-exp { position:absolute; left:14px; bottom:78px; width:300px; max-width:84vw; z-index:21; background:color-mix(in srgb,var(--surface) 93%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-lg); backdrop-filter:blur(12px); overflow:hidden; transform:translateX(-130%); transition:transform .5s cubic-bezier(.22,1,.36,1); }
+  .ab-exp.show { transform:none; }
+  .ab-exp .thd { padding:12px 16px 10px; color:#fff; background:linear-gradient(135deg,#1457A8,#041a30); }
+  .ab-exp .tph { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; opacity:.9; }
+  .ab-exp .tti { font-family:var(--font-title); font-weight:800; font-size:17px; margin:2px 0 0; }
+  .ab-exp .tbody { padding:11px 16px 13px; } .ab-exp .tbody p { font-size:12.5px; line-height:1.55; margin:0 0 10px; color:var(--fg); }
+  .ab-exp .trow { display:flex; gap:8px; } .ab-exp .tn { flex:1; min-height:40px; border:none; border-radius:11px; background:var(--accent); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; }
+  .ab-exp .tq { min-height:40px; padding:0 12px; border:1px solid var(--border); border-radius:11px; background:transparent; color:var(--fg-muted); font-size:12px; cursor:pointer; }
+  /* porthole vignette (immersion bathyscaphe) */
+  .ab-porthole { position:absolute; inset:0; z-index:12; pointer-events:none; box-shadow:inset 0 0 160px 46px rgba(2,10,20,.72), inset 0 0 60px 8px rgba(2,10,20,.5); }
+  @media (prefers-reduced-motion: reduce){ .ab-marker.show{ animation:none; } }
+  @media (max-width:720px){ .ab-gauge{width:150px;padding:12px;left:66px} .ab-depth{font-size:30px} .ab-info{width:min(300px,84vw)} .ab-col{height:56%} .ab-slider{width:96px} }
+  @media (max-width:520px){ .ab-col{display:none} .ab-gauge{left:14px} }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+let composer, bloom;
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ===== Zones océaniques ===== */
+const ZONES=[
+  { name:'Épipélagique', from:0,    to:200,   fog:0x2a7fb8, label:'Zone éclairée' },
+  { name:'Mésopélagique', from:200,  to:1000,  fog:0x0d3a5c, label:'Pénombre' },
+  { name:'Bathypélagique', from:1000, to:4000,  fog:0x051d2e, label:'Nuit permanente' },
+  { name:'Abyssale', from:4000, to:6000,  fog:0x020c14, label:'Obscurité totale' },
+  { name:'Hadale', from:6000, to:11000, fog:0x01070c, label:'Les fosses' },
+];
+const ZCOL=['#2f86c2','#12587f','#0a2e4a','#061826','#020a12'];
+
+/* ===== Faune : fiches pédagogiques riches ===== */
+const SPECIES={
+  thon:{ n:'Banc de poissons', sub:'Poissons pélagiques', col:'#9fb4c8', glow:0, biolum:false,
+    zone:'Épipélagique', depthTxt:'0 – 200 m', pressTxt:'1 – 20 bar', size:'0,3 – 2 m', diet:'Plancton, petits poissons',
+    adapt:"Près de la surface, la lumière permet la photosynthèse du plancton : c'est la zone la plus riche en vie de tout l'océan. Ces poissons se déplacent en bancs serrés pour se protéger des prédateurs.",
+    info:"90 % de la vie marine tient dans les 200 premiers mètres, là où le Soleil pénètre encore l'eau.",
+    fun:"Un banc peut compter des millions d'individus qui bougent comme un seul organisme." },
+  meduse:{ n:'Méduse abyssale', sub:'Cnidaire gélatineux', col:'#7fd6e0', glow:0x9fe8ff, biolum:true,
+    zone:'Toutes zones', depthTxt:'0 – 4000 m', pressTxt:'jusqu\'à 400 bar', size:'2 – 40 cm', diet:'Plancton',
+    adapt:"Son corps est à 95 % d'eau : elle a donc la même « pression interne » que l'eau autour, et ne peut pas être écrasée. Un corps mou est l'adaptation reine des profondeurs.",
+    info:"Beaucoup de méduses profondes émettent des éclairs de lumière bleue pour surprendre un prédateur ou attirer une proie.",
+    fun:"Certaines méduses des abysses tournoient leur lumière comme une roue de feu d'artifice." },
+  lanterne:{ n:'Poisson-lanterne', sub:'Myctophidé', col:'#3a4a5a', glow:0x66ffcc, biolum:true,
+    zone:'Mésopélagique', depthTxt:'200 – 1000 m', pressTxt:'20 – 100 bar', size:'2 – 15 cm', diet:'Zooplancton',
+    adapt:"Il porte des rangées d'organes lumineux (photophores) sous le ventre. En imitant la faible lueur venue d'en haut, il efface sa silhouette : c'est le contre-éclairage (camouflage).",
+    info:"C'est peut-être le vertébré le plus abondant de la planète. Chaque nuit, il remonte se nourrir près de la surface puis redescend : la plus grande migration animale de la Terre.",
+    fun:"Ses photophores servent aussi à se reconnaître entre membres de la même espèce, comme un code lumineux." },
+  hache:{ n:'Poisson-hache', sub:'Sternoptychidé', col:'#c8d0d8', glow:0x88ddff, biolum:true,
+    zone:'Mésopélagique', depthTxt:'200 – 1500 m', pressTxt:'20 – 150 bar', size:'2 – 12 cm', diet:'Petits crustacés',
+    adapt:"Ses yeux tubulaires pointent vers le HAUT pour repérer les silhouettes des proies à contre-jour. Son corps aplati et argenté renvoie le peu de lumière et le rend invisible de côté.",
+    info:"Il ajuste l'intensité de ses photophores ventraux pour coller exactement à la lumière du ciel : impossible à repérer d'en bas.",
+    fun:"Vu de face, son corps mince comme une lame de hache lui a donné son nom." },
+  calmar:{ n:'Calmar des profondeurs', sub:'Céphalopode', col:'#b0455a', glow:0xff88aa, biolum:true,
+    zone:'Mésopélagique', depthTxt:'400 – 1200 m', pressTxt:'40 – 120 bar', size:'0,5 – 12 m', diet:'Poissons',
+    adapt:"Ses yeux, parmi les plus grands du règne animal (jusqu'à 27 cm), captent la moindre lueur. Il propulse aussi un nuage de bioluminescence à la place de l'encre pour aveugler ses ennemis.",
+    info:"Le calmar géant peut dépasser 12 m. On ne l'a filmé vivant dans son milieu qu'en 2012.",
+    fun:"Son grand ennemi est le cachalot : les ventouses laissent des cicatrices en forme d'anneaux sur sa peau." },
+  vipere:{ n:'Poisson-vipère', sub:'Chauliodus', col:'#1a2630', glow:0x77ffd0, biolum:true,
+    zone:'Bathypélagique', depthTxt:'1000 – 4000 m', pressTxt:'100 – 400 bar', size:'20 – 35 cm', diet:'Poissons, crevettes',
+    adapt:"De longues dents transparentes en aiguilles empêchent toute proie de s'échapper. Un photophore au bout d'un long rayon dorsal sert d'appât devant sa gueule.",
+    info:"Il économise l'énergie : capable de rester immobile des heures, il frappe d'un coup dès qu'une proie s'approche de son leurre.",
+    fun:"Ses dents sont si grandes qu'elles ne rentrent pas dans sa bouche : elles encadrent ses yeux !" },
+  baudroie:{ n:'Baudroie abyssale', sub:'Poisson-pêcheur (anglerfish)', col:'#2a2230', glow:0xffe08a, biolum:true,
+    zone:'Bathypélagique', depthTxt:'1000 – 4000 m', pressTxt:'100 – 400 bar', size:'femelle jusqu\'à 1 m', diet:'Poissons, calmars',
+    adapt:"La femelle agite devant sa gueule un leurre lumineux (une « canne à pêche ») dont la lumière vient de bactéries bioluminescentes qu'elle héberge. Les proies curieuses sont happées dans le noir total.",
+    info:"Le mâle, minuscule, mord la femelle et fusionne avec elle : il devient un simple organe reproducteur. Trouver un partenaire dans le noir des abysses est trop rare pour le lâcher.",
+    fun:"Sa bouche extensible et son estomac élastique lui permettent d'avaler une proie plus grande que lui." },
+  ogre:{ n:'Poisson-ogre', sub:'Anoplogaster', col:'#231412', glow:0, biolum:false,
+    zone:'Bathypélagique', depthTxt:'2000 – 5000 m', pressTxt:'200 – 500 bar', size:'jusqu\'à 18 cm', diet:'Tout ce qu\'il trouve',
+    adapt:"Il possède, proportionnellement, les plus grandes dents de tout l'océan. Dans un milieu où la nourriture est rarissime, il ne peut se permettre de rater aucune proie.",
+    info:"Son métabolisme très lent lui permet de survivre longtemps entre deux repas : l'énergie est la ressource la plus précieuse des abysses.",
+    fun:"Jeune, il ne ressemble en rien à l'adulte : les scientifiques les ont longtemps pris pour deux espèces différentes." },
+  vers:{ n:'Vers de Riftia', sub:'Vers tubicoles', col:'#e0584f', glow:0, biolum:false,
+    zone:'Abyssale (sources)', depthTxt:'2000 – 4000 m', pressTxt:'200 – 400 bar', size:'jusqu\'à 2 m', diet:'Bactéries symbiotiques',
+    adapt:"Il vit SANS lumière ni bouche : des bactéries logées en lui transforment les composés soufrés des sources chaudes en nourriture. C'est la chimiosynthèse — la vie sans Soleil.",
+    info:"Il colonise les fumeurs noirs par colonies denses. Son panache rouge est plein de sang qui transporte le soufre jusqu'aux bactéries.",
+    fun:"Il pousse parmi les plus vite du règne animal, mais peut aussi vivre plus de 250 ans." },
+  baleine:{ n:'Cachalot', sub:'Mammifère plongeur', col:'#3a3f4a', glow:0, biolum:false,
+    zone:'0 – 2000 m', depthTxt:'0 – 2000 m', pressTxt:'1 – 200 bar', size:'jusqu\'à 20 m', diet:'Calmars géants',
+    adapt:"Il plonge en apnée jusqu'à 2000 m pour chasser le calmar. Ses poumons se vident, son rythme cardiaque ralentit, et il « voit » avec le son : l'écholocation.",
+    info:"Il émet des clics parmi les sons les plus puissants du monde animal et écoute leur écho pour cartographier le noir et repérer ses proies.",
+    fun:"Une seule plongée peut durer plus d'une heure sans respirer." },
+  vent:{ n:'Source hydrothermale', sub:'Fumeur noir', col:'#c0451e', glow:0, biolum:false,
+    zone:'Fond abyssal', depthTxt:'2000 – 4000 m', pressTxt:'200 – 400 bar', size:'cheminée jusqu\'à 60 m', diet:'—',
+    adapt:"L'eau de mer s'infiltre dans la roche chaude du plancher, ressort à plus de 350 °C chargée de minéraux et de soufre, et noircit en refroidissant. Autour, la vie prospère sans aucune lumière.",
+    info:"Des bactéries y font la chimiosynthèse (elles tirent leur énergie du soufre) ; vers, crabes et crevettes vivent grâce à elles. Une oasis de vie dans le désert noir.",
+    fun:"Ces sources ont été découvertes seulement en 1977 — et ont bouleversé notre idée de ce dont la vie a besoin." },
+};
+const ZONE_FAUNA=[ ['thon','meduse','baleine'], ['lanterne','hache','calmar','meduse'], ['vipere','baudroie','ogre','meduse'], ['baudroie','ogre','vers'], ['ogre','vers'] ];
+
+/* ===== Notions ===== */
+const NOTIONS=[
+  { id:'zones', n:'Les zones océaniques', p:["L'océan se découpe en couches selon la lumière : épipélagique (0–200 m, éclairée), mésopélagique (200–1000 m, pénombre), bathypélagique (1000–4000 m, nuit), abyssale (4000–6000 m) et hadale (les fosses, jusqu'à 11 000 m).","Plus on descend, moins il y a de lumière, de nourriture et de chaleur — mais toujours de la vie."] },
+  { id:'lumiere', n:'La lumière disparaît', p:["La lumière du Soleil est absorbée par l'eau : le rouge disparaît dès 15 m, puis le orange, le jaune… À 200 m il ne reste qu'un bleu sombre, et vers 1000 m, c'est le noir total.","Sans lumière, la photosynthèse est impossible : la vie profonde dépend de ce qui tombe d'en haut ou de la chimiosynthèse."] },
+  { id:'pression', n:'La pression écrasante', p:["La pression augmente d'environ 1 bar tous les 10 mètres. À 1000 m elle vaut 100 fois celle de la surface ; au fond de la fosse des Mariannes (11 000 m), plus de 1000 bars — une tonne par cm² !","Les animaux résistent car ils n'ont pas de poche d'air à écraser : leur corps est mou et rempli d'eau, à la même pression que le milieu."] },
+  { id:'biolum', n:'La bioluminescence', p:["Dans le noir, de nombreux animaux fabriquent leur propre lumière grâce à une réaction chimique (ou à des bactéries symbiotiques).","Elle sert à attirer des proies (leurre de la baudroie), à se camoufler par contre-éclairage, à communiquer, ou à aveugler un prédateur. On estime que 3 animaux marins sur 4 en profondeur sont bioluminescents."] },
+  { id:'neige', n:'La neige marine', p:["Faute de lumière, les abysses se nourrissent de la « neige marine » : une pluie continue de débris (plancton mort, déjections) qui tombe de la surface.","Cette manne lente est la principale source de nourriture des grands fonds — d'où des animaux au métabolisme économe."] },
+  { id:'chimio', n:'La chimiosynthèse', p:["Près des sources hydrothermales, des bactéries tirent leur énergie non pas du Soleil mais des composés soufrés de l'eau chaude : c'est la chimiosynthèse.","Elles nourrissent tout un écosystème (vers de Riftia, crabes, crevettes) : la preuve qu'une vie riche peut exister totalement sans lumière."] },
+  { id:'adapt', n:'S\'adapter à l\'extrême', p:["Grands yeux ou au contraire yeux atrophiés, corps mou, dents démesurées, estomac élastique, métabolisme lent, bioluminescence : chaque trait répond au froid, au noir, à la pression et à la rareté de nourriture.","Les abysses sont le plus grand habitat de la planète — et l'un des moins explorés."] },
+];
+
+let depth=0, targetVel=0, depthTarget=null, lights=true, mode='detente';
+let scene,camera,renderer,controls,headlight,beam,ambient,topLight,snow,surface,godrays,seabed=null;
+let creatureGroup=[], vents=[];
+let raycaster,pointer,marker,curZoneIdx=-1,selected=null,targetTween=null;
+let ac=null, ambGain=null, expedition=null, bubbleT=0, sceneReady=false;
+let cours=null;
+
+const shell=window.Konstrio.createGame({
+  id:'3d-20-abysses', code:'3D·20', title:'Abysses : plongée océan profond', type:'3D',
+  domain:{ label:'Bio & SVT', color:'#1457A8' },
+  intro:{
+    greet:"Embarque dans le bathyscaphe ! On descend vers les abysses. À chaque palier, la lumière baisse, la pression monte, et des créatures incroyables apparaissent.",
+    rule:"Descends de la surface jusqu'aux fosses les plus profondes. Observe comment la <b>pression</b> grimpe, la <b>lumière</b> disparaît et la <b>faune</b> change. Braque tes phares pour révéler la vie, et clique chaque créature pour sa fiche.",
+    how:["Descends / remonte avec ▼ ▲ ou le curseur ; regarde la colonne d'eau à gauche.","Braque tes phares 🔦 en tournant la vue : dans le noir, seules les créatures bioluminescentes brillent !","Clique une créature ou une source pour découvrir comment elle survit ici."],
+    keys:"Glisser = braquer le phare · molette = zoom · ▼▲ ou ↓↑ = descendre/remonter · L = phares · Échap = pause.",
+    objectif:"Traverser les 5 zones et comprendre les adaptations à la pression, à l'obscurité et à la rareté de nourriture.",
+    hint:"La pression augmente d'environ 1 bar tous les 10 mètres. À 1000 m, elle écraserait un sous-marin ordinaire ! Descends lentement et éteins les phares pour voir la vraie bioluminescence.",
+    why:"Sans lumière, la photosynthèse est impossible. Les abysses vivent de la « neige marine » qui tombe d'en haut, ou de la chimiosynthèse près des sources chaudes."
+  },
+  learned:[
+    "L'océan se divise en zones : la lumière disparaît totalement vers 1000 m.",
+    "La pression augmente d'environ 1 bar tous les 10 m (100 bar à 1000 m, 1000+ bar dans les fosses).",
+    "Dans le noir, la bioluminescence sert d'appât, de camouflage ou de communication.",
+    "Près des sources hydrothermales, la chimiosynthèse remplace la lumière du Soleil."
+  ],
+  onReady:(api)=>init(api),
+  onStart:(m,api)=>{ mode=m; startMode(m,api); },
+  onRestart:(api)=>{ startMode(mode,api); },
+  onTheme:()=>{},
+});
+
+/* ============================================================ INIT ============ */
+function init(api){
+  shell.api=api; const stage=api.stage;
+  scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0x2a7fb8, 0.02);
+  camera=new THREE.PerspectiveCamera(60, stage.clientWidth/stage.clientHeight, .1, 240);
+  camera.position.set(0,0,0.1);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(stage.clientWidth,stage.clientHeight); stage.appendChild(renderer.domElement);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1;
+  // garde-fou CRUCIAL : scène sombre PAR DESIGN → rendu logiciel (SwiftShader/llvmpipe) ou mode réduit = pas de GTAO (l'AO écran casserait le rendu). La pénombre voulue reste, jamais un rendu cassé.
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  // pipeline post : rendu → (AO écran si GPU réel : relief du fond/fumeurs) → bloom (bioluminescence + phare) → SMAA → sortie ACES/sRGB
+  composer=new EffectComposer(renderer); composer.addPass(new RenderPass(scene,camera));
+  if(!software && !REDUCED){
+    const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=0.7;
+    try{ gtao.updateGtaoMaterial({ radius:0.6, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao=gtao;
+  }
+  bloom=new UnrealBloomPass(new THREE.Vector2(W,H),0.9,0.7,0.5); composer.addPass(bloom);
+  composer.addPass(new SMAAPass(W,H));
+  composer.addPass(new OutputPass());
+
+  controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableZoom=true; controls.enablePan=false; controls.rotateSpeed=-0.4;
+  controls.minDistance=0.1; controls.enableDamping=true; controls.dampingFactor=0.08;
+  controls.target.set(0,0,-5); controls.update();
+
+  ambient=new THREE.AmbientLight(0xcfeaff,0.95); scene.add(ambient);
+  topLight=new THREE.DirectionalLight(0xddf4ff,0.7); topLight.position.set(0,10,2); scene.add(topLight);
+  // phare du bathyscaphe (suit la vue)
+  headlight=new THREE.SpotLight(0xfff0d0, 0, 80, Math.PI/5, 0.55, 1.1);
+  headlight.position.set(0,0,0); headlight.target.position.set(0,0,-10);
+  scene.add(headlight); scene.add(headlight.target);
+  beam=makeBeam(); scene.add(beam);
+
+  surface=makeSurface(); scene.add(surface);
+  godrays=makeGodrays(); scene.add(godrays);
+  snow=makeSnow(); scene.add(snow);
+  buildSeabed();
+
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  marker=document.createElement('div'); marker.className='ab-marker'; stage.appendChild(marker);
+
+  buildUI(); applyDepth(); spawnZone(0,true);
+  renderer.domElement.addEventListener('pointermove',onMove);
+  renderer.domElement.addEventListener('pointerdown',onDown);
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
+  document.addEventListener('keydown',onKey);
+  sceneReady=true; animate();
+}
+
+/* ---------- neige marine ---------- */
+function makeSnow(){ const n=REDUCED?280:900, pos=new Float32Array(n*3);
+  for(let i=0;i<n;i++){ pos[i*3]=(Math.random()-.5)*70; pos[i*3+1]=(Math.random()-.5)*44; pos[i*3+2]=-Math.random()*70; }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const tex=softDisc(0xdaf0ff);
+  return new THREE.Points(g,new THREE.PointsMaterial({map:tex,color:0xcfe8ff,size:.28,transparent:true,opacity:.55,depthWrite:false,blending:THREE.AdditiveBlending})); }
+function softDisc(color){ const c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d');
+  const col=new THREE.Color(color); const g=x.createRadialGradient(16,16,0,16,16,16);
+  g.addColorStop(0,`rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},1)`); g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g; x.beginPath(); x.arc(16,16,16,0,6.28); x.fill(); return new THREE.CanvasTexture(c); }
+
+/* ---------- surface de la mer (vue de dessous) + god-rays ---------- */
+function makeSurface(){ const c=document.createElement('canvas'); c.width=c.height=256; const x=c.getContext('2d');
+  x.fillStyle='#0a4f7a'; x.fillRect(0,0,256,256);
+  for(let i=0;i<120;i++){ const r=20+Math.random()*90; const gx=Math.random()*256, gy=Math.random()*256;
+    const g=x.createRadialGradient(gx,gy,0,gx,gy,r); g.addColorStop(0,'rgba(180,235,255,'+(0.1+Math.random()*0.25)+')'); g.addColorStop(1,'rgba(180,235,255,0)');
+    x.fillStyle=g; x.beginPath(); x.arc(gx,gy,r,0,6.28); x.fill(); }
+  const tex=new THREE.CanvasTexture(c); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(3,3);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(200,200), new THREE.MeshBasicMaterial({map:tex,color:0x9fe0ff,transparent:true,opacity:0.5,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));
+  m.rotation.x=-Math.PI/2; m.position.y=17; m.userData.tex=tex; return m; }
+function makeGodrays(){ const grp=new THREE.Group();
+  const c=document.createElement('canvas'); c.width=16; c.height=128; const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,128); g.addColorStop(0,'rgba(180,225,255,.5)'); g.addColorStop(1,'rgba(180,225,255,0)');
+  x.fillStyle=g; x.fillRect(0,0,16,128); const tex=new THREE.CanvasTexture(c);
+  const n=REDUCED?5:9;
+  for(let i=0;i<n;i++){ const w=2+Math.random()*4; const pl=new THREE.Mesh(new THREE.PlaneGeometry(w,40),
+      new THREE.MeshBasicMaterial({map:tex,color:0xbfe6ff,transparent:true,opacity:0.14,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+    pl.position.set((Math.random()-.5)*44, 2, -6-Math.random()*34); pl.rotation.z=(Math.random()-.5)*0.5; pl.userData.rz=pl.rotation.z; grp.add(pl); }
+  return grp; }
+function makeBeam(){ const geo=new THREE.ConeGeometry(6.5,26,28,1,true); geo.translate(0,-13,0); geo.rotateX(-Math.PI/2);
+  const m=new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color:0xffe9b8,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  return m; }
+
+/* ---------- fonds marins + sources hydrothermales ---------- */
+function buildSeabed(){ seabed=new THREE.Object3D(); seabed.position.y=-12; seabed.visible=false; scene.add(seabed);
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(140,140,36,36), new THREE.MeshStandardMaterial({color:0x0e151d,roughness:1,flatShading:true}));
+  const pa=floor.geometry.attributes.position; for(let i=0;i<pa.count;i++){ pa.setZ(i, Math.random()*1.6); }
+  floor.geometry.computeVertexNormals(); floor.rotation.x=-Math.PI/2; seabed.add(floor);
+  for(let i=0;i<24;i++){ const r=new THREE.Mesh(new THREE.DodecahedronGeometry(0.4+Math.random()*1.2,0), new THREE.MeshStandardMaterial({color:0x151d26,roughness:1,flatShading:true}));
+    r.position.set((Math.random()-.5)*80,Math.random()*0.6,-6-Math.random()*52); r.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3); seabed.add(r); }
+  [[-10,-18],[6,-27],[16,-12]].forEach(([x,z])=>{ const ch=new THREE.Object3D(); ch.position.set(x,0,z);
+    const chim=new THREE.Mesh(new THREE.CylinderGeometry(0.5,1.2,3.6,9), new THREE.MeshStandardMaterial({color:0x1a1410,roughness:1,emissive:0x551505,emissiveIntensity:.3,flatShading:true})); chim.position.y=1.8; ch.add(chim);
+    const mouth=new THREE.Mesh(new THREE.SphereGeometry(0.42,12,10), new THREE.MeshBasicMaterial({color:0xff5a1e})); mouth.position.y=3.6; ch.add(mouth);
+    const plume=glowSprite(0xff7a30,3.6); plume.position.y=5; ch.add(plume);
+    const pl=new THREE.PointLight(0xff6a2a,0,14,2); pl.position.y=4; ch.add(pl);
+    ch.userData.plume=plume; ch.userData.mouth=mouth; ch.userData.pl=pl; ch.userData.key='vent';
+    for(let k=0;k<6;k++){ const tube=new THREE.Mesh(new THREE.CylinderGeometry(.06,.09,.5+Math.random()*.6,6), new THREE.MeshStandardMaterial({color:0xeae3d5,roughness:1})); tube.position.set((Math.random()-.5)*2.2,0.4,(Math.random()-.5)*2.2); tube.userData.key='vent'; ch.add(tube);
+      const tip=new THREE.Mesh(new THREE.SphereGeometry(.1,8,8),new THREE.MeshStandardMaterial({color:0xe0584f,emissive:0x551510,emissiveIntensity:.5})); tip.position.set(tube.position.x,tube.position.y+0.42,tube.position.z); tip.userData.key='vent'; ch.add(tip); }
+    seabed.add(ch); vents.push(ch);
+  });
+}
+
+/* ---------- créatures procédurales ---------- */
+function glowSprite(color,scale){ const c=document.createElement('canvas'); c.width=c.height=64; const ctx=c.getContext('2d');
+  const g=ctx.createRadialGradient(32,32,0,32,32,32); const col=new THREE.Color(color);
+  g.addColorStop(0,`rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},.95)`); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,64,64);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));
+  s.scale.setScalar(scale); return s; }
+function fishMesh(bodyMat,glowMat,sp){ const f=new THREE.Object3D();
+  const b=new THREE.Mesh(new THREE.SphereGeometry(.6,16,12),bodyMat); b.scale.set(1.5,.8,.7); f.add(b);
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(.4,.7,4),bodyMat); tail.position.x=-1; tail.rotation.z=Math.PI/2; tail.scale.set(.6,1,1.2); f.add(tail);
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.1,10,10),new THREE.MeshStandardMaterial({color:0x0a0a0a,emissive:0x113344,emissiveIntensity:.5,roughness:.2})); eye.position.set(.55,.14,.24); f.add(eye);
+  if(glowMat){ for(let i=0;i<5;i++){ const ph=new THREE.Mesh(new THREE.SphereGeometry(.07,8,8),glowMat); ph.position.set(.3-i*.25,-.35,.2); f.add(ph);} const s=glowSprite(sp.glow,.9); s.position.set(0,-.35,.2); f.add(s); f.userData.pulse=s; }
+  return f; }
+function makeCreature(key){
+  const sp=SPECIES[key]; const g=new THREE.Object3D(); g.userData={key,sp};
+  const bodyMat=new THREE.MeshStandardMaterial({color:new THREE.Color(sp.col), roughness:.62, metalness:.12});
+  const glowMat=sp.glow?new THREE.MeshBasicMaterial({color:sp.glow}):null;
+  if(key==='meduse'){ const dome=new THREE.Mesh(new THREE.SphereGeometry(1,22,16,0,Math.PI*2,0,Math.PI/2), new THREE.MeshStandardMaterial({color:new THREE.Color(sp.col),transparent:true,opacity:.5,emissive:new THREE.Color(sp.glow),emissiveIntensity:.7})); g.add(dome);
+    for(let i=0;i<9;i++){ const t=new THREE.Mesh(new THREE.CylinderGeometry(.03,.01,1.5,5),new THREE.MeshBasicMaterial({color:sp.glow,transparent:true,opacity:.55})); const a=i/9*Math.PI*2; t.position.set(Math.cos(a)*.6,-.75,Math.sin(a)*.6); g.add(t); }
+    const s=glowSprite(sp.glow,2.2); s.position.y=0.1; g.add(s); g.userData.pulse=s; }
+  else if(key==='baudroie'){ const b=new THREE.Mesh(new THREE.SphereGeometry(1,18,15),bodyMat); b.scale.set(1.1,.9,1.3); g.add(b);
+    const jaw=new THREE.Mesh(new THREE.SphereGeometry(.55,12,10),bodyMat); jaw.scale.set(1,.5,1); jaw.position.set(.55,-.35,0); g.add(jaw);
+    for(let i=0;i<6;i++){ const th=new THREE.Mesh(new THREE.ConeGeometry(.04,.28,4),new THREE.MeshStandardMaterial({color:0xdfe6ee})); th.position.set(.7+Math.random()*.2,-.1,-.35+i*.14); th.rotation.z=Math.PI; g.add(th); }
+    const stalk=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1.1,5),bodyMat); stalk.position.set(.15,1,.5); stalk.rotation.z=.35; g.add(stalk);
+    const lure=new THREE.Mesh(new THREE.SphereGeometry(.18,12,12),new THREE.MeshBasicMaterial({color:sp.glow})); lure.position.set(.45,1.5,.55); g.add(lure); g.userData.lure=lure;
+    const s=glowSprite(sp.glow,1.5); s.position.copy(lure.position); g.add(s); g.userData.pulse=s; }
+  else if(key==='calmar'){ const b=new THREE.Mesh(new THREE.CapsuleGeometry(.4,1.6,8,14),bodyMat); b.rotation.x=Math.PI/2; g.add(b);
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.22,12,12),new THREE.MeshStandardMaterial({color:0x081018,emissive:0x224466,emissiveIntensity:.6,roughness:.15})); eye.position.set(.3,0,.6); g.add(eye);
+    for(let i=0;i<8;i++){ const t=new THREE.Mesh(new THREE.CylinderGeometry(.05,.01,1.8,5),bodyMat); const a=i/8*Math.PI*2; t.position.set(Math.cos(a)*.25,0,1.6); t.rotation.x=-.4; t.rotation.z=a; g.add(t);}
+    if(glowMat){ const s=glowSprite(sp.glow,1.2); s.position.set(0,0,-1); g.add(s); g.userData.pulse=s; } }
+  else if(key==='baleine'){ const b=new THREE.Mesh(new THREE.CapsuleGeometry(1.1,4.6,10,18),bodyMat); b.rotation.z=Math.PI/2; g.add(b);
+    const head=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.8,1.9),bodyMat); head.position.x=2.6; head.scale.set(1,.9,.9); g.add(head);
+    const tail=new THREE.Mesh(new THREE.BoxGeometry(.2,1.7,.6),bodyMat); tail.position.x=-3.1; g.add(tail); g.scale.setScalar(1.5); }
+  else if(key==='vipere'){ const b=new THREE.Mesh(new THREE.CapsuleGeometry(.28,1.5,8,12),bodyMat); b.rotation.z=Math.PI/2; g.add(b);
+    const head=new THREE.Mesh(new THREE.ConeGeometry(.3,.6,7),bodyMat); head.rotation.z=-Math.PI/2; head.position.x=1; g.add(head);
+    for(let i=0;i<8;i++){ const th=new THREE.Mesh(new THREE.ConeGeometry(.025,.32,4),new THREE.MeshBasicMaterial({color:0xdff})); th.position.set(.85+Math.random()*.2,(i%2?.18:-.18),-.2+i*.05); th.rotation.z=(i%2?1:-1)*0.4; g.add(th); }
+    const rod=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,1.2,4),bodyMat); rod.position.set(.2,.9,0); rod.rotation.z=.3; g.add(rod);
+    const s=glowSprite(sp.glow,1); s.position.set(.5,1.4,0); g.add(s); g.userData.pulse=s; }
+  else if(key==='vers'){ for(let i=0;i<8;i++){ const tube=new THREE.Mesh(new THREE.CylinderGeometry(.08,.1,.6+Math.random()*.9,7),new THREE.MeshStandardMaterial({color:0xeae3d5,roughness:1})); tube.position.set((Math.random()-.5)*1.6,0,(Math.random()-.5)*1.6); tube.position.y=tube.geometry.parameters.height/2-.6;
+      const tip=new THREE.Mesh(new THREE.SphereGeometry(.1,8,8),new THREE.MeshStandardMaterial({color:sp.col,emissive:0x551510,emissiveIntensity:.5})); tip.position.set(tube.position.x,tube.position.y+tube.geometry.parameters.height/2,tube.position.z); g.add(tube); g.add(tip);} }
+  else if(key==='thon'){ for(let i=0;i<6;i++){ const f=fishMesh(bodyMat,glowMat,sp); f.position.set((Math.random()-.5)*4,(Math.random()-.5)*3,(Math.random()-.5)*3); f.scale.setScalar(.6); g.add(f);} }
+  else if(key==='ogre'){ const f=fishMesh(bodyMat,glowMat,sp); const mouth=new THREE.Mesh(new THREE.SphereGeometry(.5,10,8),bodyMat); mouth.scale.set(1,.7,1); mouth.position.set(.6,-.2,0); f.add(mouth);
+    for(let i=0;i<7;i++){ const th=new THREE.Mesh(new THREE.ConeGeometry(.05,.3,4),new THREE.MeshStandardMaterial({color:0xe8eef4})); th.position.set(.7+Math.random()*.2,-.05,-.3+i*.1); th.rotation.z=Math.PI; f.add(th); } g.add(f); }
+  else { g.add(fishMesh(bodyMat,glowMat,sp)); }
+  return g;
+}
+
+function spawnZone(zi, instant){
+  creatureGroup.forEach(c=>scene.remove(c)); creatureGroup=[];
+  if(selected){ selected=null; marker.classList.remove('show'); }
+  const fauna=ZONE_FAUNA[zi]; const count=zi===0?5:zi>=3?3:4;
+  const picked=[];
+  for(let i=0;i<count;i++){ const key=fauna[Math.floor(Math.random()*fauna.length)]; picked.push(key); const c=makeCreature(key);
+    c.position.set((Math.random()-.5)*18,(Math.random()-.5)*11,-8-Math.random()*24);
+    c.userData.vx=(Math.random()-.5)*.6; c.userData.vy=(Math.random()-.5)*.2; c.userData.phase=Math.random()*Math.PI*2;
+    c.userData.tScale=(instant?1:0.01)*(0.7+Math.random()*0.7); const target=0.7+Math.random()*0.7; c.userData.tScale=target;
+    c.scale.setScalar(instant?target:0.01);
+    scene.add(c); creatureGroup.push(c);
+  }
+  // garantit la présence de l'espèce recherchée par le mode Cours
+  if(cours && cours.phase && cours.phase.type==='find' && cours.phase.key!=='vent'){
+    const need=cours.phase.key;
+    if(fauna.includes(need) && !picked.includes(need)){ const c=makeCreature(need);
+      c.position.set((Math.random()-.5)*10,(Math.random()-.5)*8,-9-Math.random()*14);
+      c.userData.vx=(Math.random()-.5)*.5; c.userData.vy=0; c.userData.phase=Math.random()*Math.PI*2;
+      const target=0.9; c.userData.tScale=target; c.scale.setScalar(0.01); scene.add(c); creatureGroup.push(c); }
+  }
+}
+function zoneOf(d){ for(let i=0;i<ZONES.length;i++) if(d<=ZONES[i].to) return i; return ZONES.length-1; }
+
+function applyDepth(){
+  const zi=zoneOf(depth), Z=ZONES[zi];
+  const t=Math.min(1, depth/4500);
+  const c0=new THREE.Color(0x2a7fb8), c1=new THREE.Color(0x01070c);
+  scene.fog.color.copy(c0).lerp(c1, Math.pow(t,.7));
+  renderer.setClearColor(scene.fog.color, 1);
+  scene.fog.density = 0.02 + t*0.05;
+  const lightFrac=Math.max(0, Math.exp(-depth/170));
+  ambient.intensity = Math.max(0.03, 0.95*lightFrac);
+  topLight.intensity = 0.7*lightFrac;
+  headlight.intensity = lights ? (depth>150?2.8:0.5) : 0;
+  beam.material.opacity = (lights && depth>150 && !REDUCED) ? 0.10 : 0;
+  bloom.strength = 0.55 + 0.7*(1-lightFrac);
+  // surface & god-rays s'estompent en profondeur
+  const surfF=Math.max(0,1-depth/600);
+  surface.material.opacity=0.5*surfF; surface.visible=surfF>0.01;
+  godrays.visible=surfF>0.02; godrays.children.forEach(pl=>pl.material.opacity=0.16*surfF);
+  // HUD
+  document.getElementById('abDepth').innerHTML = Math.round(depth).toLocaleString('fr-FR')+' <small>m</small>';
+  document.getElementById('abZone').textContent = Z.name+' · '+Z.label;
+  const press=1+depth/10, temp=Math.max(1.8,(22-depth/320)), lum=Math.round(100*lightFrac);
+  document.getElementById('abPress').textContent = press.toLocaleString('fr-FR',{maximumFractionDigits:0})+' bar';
+  document.getElementById('abTemp').textContent = temp.toFixed(1)+' °C';
+  document.getElementById('abLum').textContent = lum+' %';
+  const pb=document.getElementById('abPressBar'); if(pb){ pb.style.width=Math.min(100,press/1100*100)+'%'; pb.style.background=press>500?'#ff6a4d':press>100?'#ffab4d':'#4dd0e1'; }
+  const lb=document.getElementById('abLumBar'); if(lb){ lb.style.width=lum+'%'; lb.style.background='#ffe08a'; }
+  // colonne d'eau
+  const frac=(depth-Z.from)/Math.max(1,(Z.to-Z.from)); const overall=(zi+Math.min(1,Math.max(0,frac)))/ZONES.length;
+  const subIcon=document.getElementById('abSubIcon'); if(subIcon) subIcon.style.top=(overall*100)+'%';
+  document.querySelectorAll('.ab-cz').forEach((el,i)=>el.classList.toggle('act',i===zi));
+  // fonds marins
+  if(seabed){ seabed.visible = depth>1500; if(seabed.visible){ seabed.position.y = THREE.MathUtils.lerp(-11, -5.5, Math.min(1,(depth-1500)/4500)); } }
+  if(zi!==curZoneIdx){ curZoneIdx=zi; spawnZone(zi); if(shell.api){ shell.api.say(zoneMsg(zi),'concentre'); } coursOnZone(zi); }
+  coursOnDepth();
+}
+function zoneMsg(zi){ const m=[
+  "Zone éclairée : la vie foisonne grâce au Soleil.",
+  "Pénombre : la lumière faiblit, les premiers poissons lumineux apparaissent.",
+  "Nuit permanente : plus aucune lumière du Soleil. Braque tes phares !",
+  "Obscurité totale et pression énorme. La bioluminescence règne.",
+  "Les fosses hadales : le point le plus profond de la planète."]; return m[zi]; }
+
+/* ============================================================ UI ============ */
+function buildUI(){
+  const stage=shell.api.stage;
+  // colonne d'eau verticale
+  const col=document.createElement('div'); col.className='ab-panel ab-col'; col.id='abCol';
+  col.innerHTML=ZONES.map((z,i)=>`<div class="ab-cz" style="background:${ZCOL[i]}">${z.name.slice(0,4).toUpperCase()}</div>`).join('')+`<div class="ab-sub-icon" id="abSubIcon" style="top:0%">🔻</div>`;
+  stage.appendChild(col);
+  // jauge principale
+  const g=document.createElement('div'); g.className='ab-panel ab-gauge';
+  g.innerHTML=`<div class="ab-depth" id="abDepth">0 <small>m</small></div><div class="ab-zone" id="abZone"></div>
+    <div class="ab-stat"><span class="k">🌡️ Température</span><span class="v" id="abTemp"></span></div>
+    <div class="ab-stat"><span class="k">🧭 Pression</span><span class="v" id="abPress"></span></div>
+    <div class="ab-bar"><i id="abPressBar" style="width:0"></i></div>
+    <div class="ab-stat" style="margin-top:8px"><span class="k">💡 Lumière</span><span class="v" id="abLum"></span></div>
+    <div class="ab-bar"><i id="abLumBar" style="width:0"></i></div>`;
+  stage.appendChild(g);
+  // contrôles
+  const ctrl=document.createElement('div'); ctrl.className='ab-ctrl';
+  ctrl.innerHTML=`<button class="ab-cb" id="abUp" title="Remonter" aria-label="Remonter">▲</button>
+    <input class="ab-slider" id="abSlider" type="range" min="0" max="11000" step="10" value="0" aria-label="Profondeur">
+    <button class="ab-cb" id="abDown" title="Descendre" aria-label="Descendre">▼</button>
+    <button class="ab-cb" id="abLight" aria-pressed="true" title="Phares (L)" aria-label="Phares">🔦</button>
+    <button class="ab-cb" id="abSonar" title="Sonar (écholocation)" aria-label="Sonar">📡</button>
+    <button class="ab-cb" id="abNot" title="Notions" aria-label="Notions">📚</button>
+    <button class="ab-cb" id="abExp" title="Expédition guidée" aria-label="Expédition guidée">🎬</button>`;
+  stage.appendChild(ctrl);
+  // fiche, expédition, hint, bannière cours
+  const info=document.createElement('div'); info.className='ab-info'; info.id='abInfo'; stage.appendChild(info);
+  const ep=document.createElement('div'); ep.className='ab-exp'; ep.id='abExpP'; stage.appendChild(ep);
+  const hint=document.createElement('div'); hint.className='ab-hint'; hint.id='abHint'; hint.textContent='Descends ▼, sonde 📡 et clique les créatures'; stage.appendChild(hint);
+  const cbn=document.createElement('div'); cbn.className='ab-cbn'; cbn.id='abCbn'; stage.appendChild(cbn);
+  const porthole=document.createElement('div'); porthole.className='ab-porthole'; stage.appendChild(porthole);
+
+  const dn=ctrl.querySelector('#abDown'), up=ctrl.querySelector('#abUp');
+  dn.onpointerdown=()=>{ targetVel=400; startAmbient(); }; dn.onpointerup=()=>targetVel=0; dn.onpointerleave=()=>targetVel=0;
+  up.onpointerdown=()=>{ targetVel=-400; startAmbient(); }; up.onpointerup=()=>targetVel=0; up.onpointerleave=()=>targetVel=0;
+  ctrl.querySelector('#abSlider').oninput=e=>{ depth=+e.target.value; applyDepth(); setAmbientDepth(); };
+  ctrl.querySelector('#abLight').onclick=()=>toggleLights();
+  ctrl.querySelector('#abSonar').onclick=()=>{ startAmbient(); sonarPing(); shell.sound('click'); shell.api.say("Sonar ! Comme le cachalot, on « voit » avec le son : l'écho révèle ce qui nous entoure dans le noir.",'concentre'); };
+  ctrl.querySelector('#abNot').onclick=openNotions;
+  ctrl.querySelector('#abExp').onclick=startExpedition;
+}
+function toggleLights(){ lights=!lights; const b=document.getElementById('abLight'); if(b)b.setAttribute('aria-pressed',lights); shell.sound('click'); applyDepth();
+  if(!lights&&depth>1000) shell.api.say("Phares éteints : observe l'obscurité réelle des abysses. Seules les créatures bioluminescentes brillent !",'surpris'); }
+
+/* ---------- fiche espèce / notion ---------- */
+function openInfo(key){ const sp=SPECIES[key]; if(!sp)return; const el=document.getElementById('abInfo');
+  el.innerHTML=`<div class="hd" style="background:linear-gradient(135deg,${sp.col},#04121f)"><div class="s">${sp.sub}</div><h2>${sp.n}</h2><button class="x" aria-label="Fermer">×</button></div>
+    <div class="bd">${sp.biolum?'<span class="ab-badge">✨ Bioluminescente</span>':''}
+      <div class="ab-grid">
+        <div><span class="k">Zone</span><span class="v">${sp.zone}</span></div>
+        <div><span class="k">Profondeur</span><span class="v">${sp.depthTxt}</span></div>
+        <div><span class="k">Pression</span><span class="v">${sp.pressTxt}</span></div>
+        <div><span class="k">Taille</span><span class="v">${sp.size}</span></div>
+        ${sp.diet!=='—'?`<div style="grid-column:1/3"><span class="k">Régime</span><span class="v">${sp.diet}</span></div>`:''}
+      </div>
+      <div class="ab-sec">Adaptation</div><p>${sp.adapt}</p>
+      <div class="ab-sec">À savoir</div><p>${sp.info}</p>
+      <div class="ab-fun">💡 ${sp.fun}</div></div>`;
+  el.classList.add('show'); el.querySelector('.x').onclick=()=>{ el.classList.remove('show'); selected=null; marker.classList.remove('show'); };
+  startAmbient(); shell.sound('pop'); }
+function openNotions(){ const el=document.getElementById('abInfo');
+  el.innerHTML=`<div class="hd" style="background:linear-gradient(135deg,#1457A8,#04121f)"><div class="s">Encyclopédie</div><h2>📚 Notions des abysses</h2><button class="x" aria-label="Fermer">×</button></div>
+    <div class="bd"><div class="ab-notchips">${NOTIONS.map(n=>`<button data-id="${n.id}">${n.n}</button>`).join('')}</div></div>`;
+  el.classList.add('show'); el.querySelector('.x').onclick=()=>el.classList.remove('show');
+  el.querySelectorAll('.ab-notchips button').forEach(b=>b.onclick=()=>{ const n=NOTIONS.find(x=>x.id===b.dataset.id); openNotion(n); shell.sound('pop'); });
+  shell.sound('click'); }
+function openNotion(n){ const el=document.getElementById('abInfo');
+  el.innerHTML=`<div class="hd" style="background:linear-gradient(135deg,#1457A8,#04121f)"><div class="s">Notion</div><h2>${n.n}</h2><button class="x" aria-label="Fermer">×</button></div>
+    <div class="bd">${n.p.map(p=>`<p>${p}</p>`).join('')}<button class="ab-qo" style="background:var(--accent);margin-top:6px" id="abBackNot">← Toutes les notions</button></div>`;
+  el.classList.add('show'); el.querySelector('.x').onclick=()=>el.classList.remove('show');
+  el.querySelector('#abBackNot').onclick=openNotions; }
+
+/* ---------- interaction 3D ---------- */
+function onResize(){ const s=shell.api.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); if(composer)composer.setSize(s.clientWidth,s.clientHeight); }
+function setPointer(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pickList(){ let list=creatureGroup.slice(); if(seabed&&seabed.visible) list=list.concat(vents); return list; }
+function pick(){ raycaster.setFromCamera(pointer,camera); const hits=raycaster.intersectObjects(pickList(),true); if(!hits.length) return null;
+  let o=hits[0].object; while(o && !(o.userData&&(o.userData.key))) o=o.parent; return (o&&o.userData&&o.userData.key)?o:null; }
+function onMove(e){ if(!sceneReady)return; setPointer(e); renderer.domElement.style.cursor=pick()?'pointer':'grab'; }
+function onDown(e){ if(!sceneReady)return; setPointer(e); const o=pick(); if(o){ selectCreature(o); } }
+function selectCreature(o){ const key=o.userData.key; openInfo(key); selected=o; marker.classList.add('show'); updateMarker();
+  aimAt(o); shell.api.say(SPECIES[key].adapt.replace(/<[^>]+>/g,''),'enthousiaste'); coursOnPick(key); }
+function aimAt(o){ if(REDUCED)return; const p=new THREE.Vector3(); o.getWorldPosition(p); targetTween={ t:0, dur:0.7, from:controls.target.clone(), to:p.clone() }; }
+function updateMarker(){ if(!selected){ marker.classList.remove('show'); return; } const p=new THREE.Vector3(); selected.getWorldPosition(p); p.project(camera);
+  const r=renderer.domElement.getBoundingClientRect(); if(p.z>1){ marker.style.display='none'; return; } marker.style.display='';
+  marker.style.left=(p.x*0.5+0.5)*r.width+'px'; marker.style.top=(-p.y*0.5+0.5)*r.height+'px'; }
+function onKey(e){ if(e.key==='ArrowDown'){ depth=Math.min(11000,depth+300); syncSlider(); applyDepth(); setAmbientDepth(); }
+  else if(e.key==='ArrowUp'){ depth=Math.max(0,depth-300); syncSlider(); applyDepth(); setAmbientDepth(); }
+  else if(e.key==='l'||e.key==='L'){ toggleLights(); } }
+function syncSlider(){ const s=document.getElementById('abSlider'); if(s)s.value=depth; }
+
+/* ============================================================ MODES ============ */
+function startMode(m,api){ startAmbient();
+  const hint=document.getElementById('abHint'); const cbn=document.getElementById('abCbn');
+  document.getElementById('abInfo').classList.remove('show'); selected=null; marker.classList.remove('show');
+  if(m==='cours'){ if(cbn)cbn.classList.add('show'); if(hint)hint.style.display='none'; startCours(); }
+  else { cours=null; if(cbn)cbn.classList.remove('show'); if(hint){ hint.style.display=''; hint.textContent='Descends ▼, braque le phare 🔦 et clique les créatures'; }
+    api.setLevel('Exploration'); api.say("Explore la colonne d'eau à ton rythme. Descends, braque tes phares, clique les créatures et ouvre les Notions 📚.",'joyeux'); }
+}
+
+/* --- Mode Cours : parcours de 7 défis --- */
+const COURS=[
+  { id:'d_meso', type:'dive', zone:1, title:'Cap sur la pénombre',
+    instr:'Descends jusqu\'à la zone <b>mésopélagique</b> (200 – 1000 m).', say:"Objectif : atteins la pénombre, entre 200 et 1000 m. Utilise ▼." },
+  { id:'q_light', type:'mcq', title:'La lumière en profondeur',
+    q:'Que devient la lumière du Soleil quand on descend ?',
+    opts:['Elle reste constante','Elle disparaît totalement vers 1000 m','Elle augmente avec la pression'],
+    correct:1, explain:"L'eau absorbe la lumière : dès ~1000 m, c'est le noir total." },
+  { id:'d_abyss', type:'dive', zone:3, title:'Vers les abysses',
+    instr:'Continue jusqu\'à la zone <b>abyssale</b> (4000 – 6000 m). Braque tes phares !', say:"Descends encore : direction la zone abyssale, sous 4000 m." },
+  { id:'f_angler', type:'find', key:'baudroie', title:'Trouve le poisson-pêcheur',
+    instr:'Éclaire les profondeurs et <b>clique la baudroie abyssale</b> (son leurre lumineux la trahit).', say:"Cherche la baudroie : la femelle agite un petit leurre brillant devant sa gueule. Clique-la !" },
+  { id:'q_biolum', type:'mcq', title:'À quoi sert la bioluminescence ?',
+    q:'Dans le noir, à quoi sert surtout la bioluminescence ?',
+    opts:['À chauffer l\'eau','À attirer des proies, se camoufler ou communiquer','À remonter vers la surface'],
+    correct:1, explain:"Elle sert d'appât, de camouflage (contre-éclairage) ou de signal." },
+  { id:'f_vent', type:'find', key:'vent', title:'Les sources hydrothermales',
+    instr:'Descends au <b>fond</b> (> 2500 m) et <b>clique une source hydrothermale</b> (fumeur noir).', say:"Va tout au fond : trouve les cheminées qui crachent une eau brûlante, et clique l'une d'elles." },
+  { id:'q_chemo', type:'mcq', title:'La vie sans Soleil',
+    q:'Comment les vers de Riftia vivent-ils près des fumeurs, sans lumière ?',
+    opts:['Grâce à la photosynthèse','Grâce à des bactéries (chimiosynthèse)','Ils ne mangent jamais'],
+    correct:1, explain:"Des bactéries transforment le soufre en nourriture : la chimiosynthèse." },
+];
+function startCours(){ cours={ idx:-1, phase:null, score:0, quizTotal:0, quizOk:0 }; shell.api.setLevel('Plongée'); shell.api.setScore(0); shell.api.setProgress(0);
+  depth=0; syncSlider(); applyDepth(); nextPhase(); }
+function nextPhase(){ if(!cours)return; cours.idx++; if(cours.idx>=COURS.length){ finishCours(); return; }
+  const step=COURS[cours.idx]; cours.phase=step; shell.api.setProgress(cours.idx/COURS.length);
+  const cbn=document.getElementById('abCbn'); if(cbn){ cbn.classList.add('show'); cbn.innerHTML=`<span class="tag">Défi ${cours.idx+1}/${COURS.length} · ${step.title}</span><br>${step.instr||step.q||''}`; }
+  if(step.type==='mcq'){ cours.quizTotal++; setTimeout(()=>askMcq(step),450); }
+  else { shell.api.say(step.say,'curieux'); if(step.type==='dive'&&depth>=ZONES[step.zone].from){ /* déjà atteint : petit délai */ } }
+}
+function coursOnZone(zi){ /* réservé */ }
+function coursOnDepth(){ if(!cours||!cours.phase)return; const step=cours.phase;
+  if(step.type==='dive'){ const zi=zoneOf(depth); if(zi>=step.zone){ passPhase(120,`Zone ${ZONES[step.zone].name} atteinte !`); } }
+  if(step.type==='find'&&step.key==='vent'){ /* validé au clic d'une source */ } }
+function coursOnPick(key){ if(!cours||!cours.phase)return; const step=cours.phase; if(step.type!=='find')return;
+  if(key===step.key){ passPhase(160,'Trouvé et identifié !'); }
+  else { shell.sound('bad'); shell.api.say("Pas encore la bonne cible — continue de chercher dans cette zone.",'rassurant'); } }
+function passPhase(pts,msg){ if(!cours||!cours.phase)return; const wasType=cours.phase.type; cours.phase=null;
+  shell.sound('good'); shell.api.addScore(pts); cours.score+=pts; shell.api.say('Bravo ! '+msg,'fier');
+  setTimeout(()=>{ if(cours) nextPhase(); }, 900); }
+function askMcq(step){ let bar=document.getElementById('abQuiz'); if(!bar){ bar=document.createElement('div'); bar.className='ab-quiz'; bar.id='abQuiz'; shell.api.stage.appendChild(bar); }
+  const order=step.opts.map((o,i)=>[o,i]).sort(()=>Math.random()-.5);
+  bar.innerHTML=`<div>${step.q}</div><div class="ab-qopts">${order.map(([o,i])=>`<button class="ab-qo" data-i="${i}">${o}</button>`).join('')}</div>`;
+  shell.api.say(step.q,'curieux');
+  bar.querySelectorAll('.ab-qo').forEach(b=> b.onclick=()=>{ const ok=(+b.dataset.i)===step.correct;
+    if(ok){ shell.sound('good'); shell.api.addScore(160); cours.score+=160; cours.quizOk++; shell.api.say('Exact ! '+step.explain,'fier'); bar.remove(); setTimeout(()=>{ if(cours) nextPhase(); },900); }
+    else { shell.sound('bad'); shell.api.say('Presque — '+step.explain,'rassurant'); b.style.background='rgba(255,120,90,.5)'; } }); }
+function finishCours(){ const bar=document.getElementById('abQuiz'); if(bar)bar.remove(); const cbn=document.getElementById('abCbn'); if(cbn)cbn.classList.remove('show');
+  const st=cours.quizOk>=3?3:cours.quizOk>=2?2:1; const score=Math.max(700,cours.score);
+  shell.api.win({ score, stars:st, title:'Plongée jusqu\'aux abysses !', learned:shell.cfg.learned,
+    buddy: st===3?"Océanographe émérite ! Tu maîtrises zones, pression, lumière, bioluminescence et chimiosynthèse.":"Belle plongée — retiens : +1 bar tous les 10 m, noir total dès 1000 m, et la vie sans Soleil près des fumeurs noirs.",
+    onNext:()=>{ shell.api.setScore(0); startCours(); }, nextLabel:'Replonger' });
+  cours=null; }
+
+/* ============================================================ AUDIO ============ */
+function initAudio(){ if(ac||shell.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+function startAmbient(){ initAudio(); if(!ac||ac._amb||shell.muted)return; const g=ac.createGain(); g.gain.value=0; g.connect(ac.destination); g.gain.setTargetAtTime(0.05,ac.currentTime,2.5); ambGain=g;
+  const o=ac.createOscillator(); o.type='sine'; o.frequency.value=44; const og=ac.createGain(); og.gain.value=0.7; o.connect(og); og.connect(g); o.start();
+  const buf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate); const d=buf.getChannelData(0); for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1); const src=ac.createBufferSource(); src.buffer=buf; src.loop=true; const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=220; const ng=ac.createGain(); ng.gain.value=0.3; src.connect(lp); lp.connect(ng); ng.connect(g); src.start(); ac._amb=true; ac._ambLP=lp; }
+function setAmbientDepth(){ if(ac&&ac._ambLP){ ac._ambLP.frequency.setTargetAtTime(220-Math.min(160,depth/70), ac.currentTime, 1); } }
+function sonarPing(){ initAudio(); if(!ac||shell.muted)return; const now=ac.currentTime; [0,0.42].forEach((delay,k)=>{ const t=now+delay; const g=ac.createGain(); g.connect(ac.destination); const amp=k?0.12:0.3; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(amp,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
+  const o=ac.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(k?900:1250,t); o.frequency.exponentialRampToValueAtTime(k?620:850,t+0.45); o.connect(g); o.start(t); o.stop(t+0.55); }); }
+function bubble(){ if(!ac||shell.muted)return; const now=ac.currentTime; const g=ac.createGain(); g.connect(ac.destination); g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(0.06,now+0.02); g.gain.exponentialRampToValueAtTime(0.0001,now+0.18);
+  const o=ac.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(300+Math.random()*200,now); o.frequency.exponentialRampToValueAtTime(700+Math.random()*400,now+0.15); o.connect(g); o.start(now); o.stop(now+0.2); }
+
+/* ============================================================ EXPÉDITION ============ */
+const EXPED=[
+  { ph:'0 – 200 m', ti:'Zone éclairée', d:120, cam:[0,0,-5], txt:"On largue les amarres ! Ici, le <b>Soleil</b> pénètre l'eau : photosynthèse, plancton et bancs de poissons. C'est la zone la plus riche en vie de tout l'océan.", say:"Début de la plongée : la zone éclairée grouille de vie." },
+  { ph:'200 – 1000 m', ti:'La pénombre', d:600, cam:[0,0,-5], txt:"La lumière s'éteint vite. Apparaissent les premiers poissons à <b>photophores</b> (poisson-lanterne, poisson-hache). La <b>pression</b> atteint déjà 60 bars : 60 fois celle de la surface.", say:"Pénombre : braque tes phares, les premiers poissons lumineux arrivent." },
+  { ph:'1000 – 4000 m', ti:'La nuit permanente', d:2200, cam:[0,-1,-6], txt:"Plus aucune lumière du Soleil. Règne de la <b>bioluminescence</b> : la baudroie agite son leurre, le poisson-vipère ses photophores. Éteins les phares pour voir l'obscurité réelle !", say:"Nuit totale : seules les créatures bioluminescentes brillent dans le noir." },
+  { ph:'≈ 3000 m', ti:'Sources hydrothermales', d:3200, cam:[0,-3,-10], txt:"Au fond, des <b>fumeurs noirs</b> crachent une eau brûlante chargée de minéraux. Ici, sans Soleil, des bactéries font de la <b>chimiosynthèse</b> ; les vers de Riftia en vivent. Une oasis de vie dans le désert noir.", say:"Regarde le fond : les cheminées hydrothermales, une oasis de vie sans Soleil !" },
+  { ph:'6000 – 11000 m', ti:'Les fosses hadales', d:8000, cam:[0,-2,-7], txt:"Les <b>fosses</b> les plus profondes (jusqu'à 11 000 m, fosse des Mariannes). Plus de 1000 bars de pression — une tonne par cm² ! Et pourtant, la vie résiste encore. Fin de l'expédition.", say:"Les fosses hadales : 1000 bars de pression, le point le plus profond de la planète." },
+];
+function startExpedition(){ if(expedition)return; startAmbient(); expedition={i:-1}; document.getElementById('abHint').style.display='none'; document.getElementById('abInfo').classList.remove('show'); document.getElementById('abExpP').classList.add('show'); setExpStep(0); }
+function setExpStep(i){ if(!expedition)return; expedition.i=i; const s=EXPED[i]; const dots=EXPED.map((_,k)=>k<=i?'●':'○').join(' ');
+  depthTarget=s.d; if(i>=2){ lights=(i===2); const lb=document.getElementById('abLight'); if(lb)lb.setAttribute('aria-pressed',lights); }
+  controls.target.set(s.cam[0],s.cam[1],s.cam[2]); sonarPing();
+  document.getElementById('abExpP').innerHTML=`<div class="thd"><div class="tph">${s.ph} · ${dots}</div><div class="tti">${s.ti}</div></div><div class="tbody"><p>${s.txt}</p><div class="trow"><button class="tn" id="aeNext">${i>=EXPED.length-1?'Terminer ✓':'Descendre ▸'}</button><button class="tq" id="aeQuit">Quitter</button></div></div>`;
+  document.getElementById('aeNext').onclick=()=>{ if(expedition.i>=EXPED.length-1) endExpedition(); else setExpStep(expedition.i+1); };
+  document.getElementById('aeQuit').onclick=endExpedition;
+  shell.api.say(s.say, i>=EXPED.length-1?'idee':'concentre'); shell.sound('pop'); }
+function endExpedition(){ if(!expedition)return; expedition=null; depthTarget=null; document.getElementById('abExpP').classList.remove('show'); document.getElementById('abHint').style.display=mode==='cours'?'none':''; shell.api.say("Expédition terminée ! Pilote toi-même le bathyscaphe avec ▼ ▲ et le sonar 📡.",'fier'); }
+
+/* ============================================================ ANIMATE ============ */
+let lastT=0;
+function animate(t){ requestAnimationFrame(animate); const dt=lastT?Math.min(.05,(t-lastT)/1000):0.016; lastT=t;
+  if(depthTarget!=null){ const nd=depth+(depthTarget-depth)*Math.min(1,dt*0.7); depth=Math.max(0,Math.min(11000,nd)); syncSlider(); applyDepth(); setAmbientDepth(); if(Math.abs(depthTarget-depth)<5){ depth=depthTarget; depthTarget=null; } }
+  if(targetVel){ depth=Math.max(0,Math.min(11000,depth+targetVel*dt)); syncSlider(); applyDepth(); }
+  // créatures
+  creatureGroup.forEach(c=>{ const s=c.userData.tScale; c.scale.lerp(new THREE.Vector3(s,s,s),0.05);
+    c.position.x+=c.userData.vx*dt; c.position.y+=Math.sin(t/1000+c.userData.phase)*0.004;
+    if(c.position.x>15)c.position.x=-15; if(c.position.x<-15)c.position.x=15;
+    c.rotation.y=Math.sin(t/1400+c.userData.phase)*0.3+(c.userData.vx>0?0.4:-0.4);
+    if(c.userData.lure) c.userData.lure.material.color.setHSL(.13,1,.5+0.2*Math.sin(t/200));
+    if(c.userData.pulse) c.userData.pulse.material.opacity=0.7+0.3*Math.sin(t/300+c.userData.phase); });
+  // neige marine (monte quand on descend)
+  const p=snow.geometry.attributes.position; for(let i=1;i<p.count*3;i+=3){ p.array[i]+= (0.3+targetVel*0.002)*dt*6; if(p.array[i]>22) p.array[i]=-22; } p.needsUpdate=true;
+  // surface & god-rays
+  if(surface.visible&&!REDUCED){ surface.userData.tex.offset.x=t/26000; surface.userData.tex.offset.y=t/32000; }
+  if(godrays.visible&&!REDUCED){ godrays.children.forEach((pl,i)=>{ pl.rotation.z=pl.userData.rz+Math.sin(t/2400+i)*0.06; }); }
+  // fumeurs
+  if(seabed&&seabed.visible){ vents.forEach((v,i)=>{ const pu=1+Math.sin(t/300+i)*0.25;
+    if(v.userData.plume){ v.userData.plume.scale.setScalar(3.6*pu); v.userData.plume.material.opacity=0.6+0.3*Math.sin(t/250+i); }
+    if(v.userData.mouth) v.userData.mouth.material.color.setHSL(0.04,1,0.45+0.1*Math.sin(t/180+i));
+    if(v.userData.pl) v.userData.pl.intensity=1.6+0.6*Math.sin(t/220+i); });
+    bubbleT-=dt; if(bubbleT<=0){ bubbleT=0.5+Math.random()*1.2; bubble(); } }
+  // phare + faisceau suivent la vue
+  headlight.position.copy(camera.position); const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
+  headlight.target.position.copy(camera.position).add(dir.clone().multiplyScalar(14));
+  beam.position.copy(camera.position).add(dir.clone().multiplyScalar(0.4)); beam.quaternion.copy(camera.quaternion);
+  // tween d'orientation vers une créature
+  if(targetTween){ targetTween.t+=dt; const k=Math.min(1,targetTween.t/targetTween.dur); const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; controls.target.lerpVectors(targetTween.from,targetTween.to,e); if(k>=1)targetTween=null; }
+  updateMarker(); controls.update(); composer.render();
+}
+</script>
+</body>
+</html>

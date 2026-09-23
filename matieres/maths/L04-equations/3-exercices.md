@@ -470,3 +470,11 @@ Partie C : 4 points (2 par équation).
 Partie D : 6 points (1 pour l'inconnue, 1,5 pour l'équation, 1,5 pour la résolution, 1 pour la vérification, 1 pour l'aire).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

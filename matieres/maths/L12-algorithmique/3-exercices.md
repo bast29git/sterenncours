@@ -654,3 +654,11 @@ Partie C : 6 points (2 pour le déroulement, 0,5 pour l'identification, 2 pour l
 Partie D : 4 points (0,5 pour l'angle, 1 pour l'octogone, 1,5 pour le programme paramétré, 1 pour l'explication).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

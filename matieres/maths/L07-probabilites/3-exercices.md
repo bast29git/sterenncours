@@ -480,3 +480,11 @@ Partie C : 5 points (1 pour le comptage, 1,5 pour l'arbre, 1 pour le point c, 1,
 Partie D : 4 points (1,5 pour la réfutation, 1,5 pour la lecture de la fréquence, 1 pour l'énoncé et sa limite).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

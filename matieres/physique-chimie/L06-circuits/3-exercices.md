@@ -451,3 +451,11 @@ Partie C : 5 points (1 pour l'énoncé de la loi, 1,5 pour le calcul avec conver
 Partie D : 4 points (1,5 pour le court-circuit chiffré, 1 pour la différence de rôle, 1 pour la multiprise, 0,5 pour les règles).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

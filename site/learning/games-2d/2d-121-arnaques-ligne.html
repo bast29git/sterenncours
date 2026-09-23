@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Arnaques en ligne</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Un mail « Votre compte sera fermé dans 24h, cliquez ! » est typiquement…', options:['une arnaque (urgence)','un vrai message','une pub utile','un jeu'], answer:'une arnaque (urgence)', explain:'L\'urgence est une technique de manipulation.'},
+ {lvl:1, prompt:'On te demande ton code de carte bancaire par e-mail. Tu…', options:['ne réponds jamais','réponds vite','appelles ta banque avec le numéro du mail','cliques'], answer:'ne réponds jamais', explain:'Aucune banque ne demande ça par e-mail.'},
+ {lvl:1, prompt:'Un lien suspect, on vérifie d\'abord…', options:['l\'adresse réelle (URL)','la couleur','la police','rien'], answer:'l\'adresse réelle (URL)', explain:'Survole le lien pour voir où il mène vraiment.'},
+ {lvl:2, prompt:'« amaz0n-secure.com » est probablement…', options:['un faux site (domaine trafiqué)','le vrai Amazon','une boutique locale','sans risque'], answer:'un faux site (domaine trafiqué)', explain:'Le « 0 » et le suffixe trahissent l\'arnaque.'},
+ {lvl:2, prompt:'Un faux SMS « colis bloqué, payez 1,99 € » est du…', options:['smishing (phishing par SMS)','spam utile','jeu','sondage'], answer:'smishing (phishing par SMS)', explain:'La petite somme sert à capter ta carte.'},
+ {lvl:2, prompt:'L\'« arnaque au président » consiste à…', options:['se faire passer pour un dirigeant pour ordonner un virement','vendre un produit','pirater le wifi','envoyer un virus'], answer:'se faire passer pour un dirigeant pour ordonner un virement', explain:'Une fraude ciblée fréquente en entreprise.'},
+ {lvl:3, prompt:'Le « spear phishing » est un hameçonnage…', options:['ciblé et personnalisé','de masse','par téléphone seulement','inoffensif'], answer:'ciblé et personnalisé', explain:'Le pirate se renseigne pour être crédible.'},
+ {lvl:3, prompt:'Que vérifier sur un site avant de payer ?', options:['HTTPS, l\'orthographe du domaine, les avis','seulement le prix','la couleur','rien'], answer:'HTTPS, l\'orthographe du domaine, les avis', explain:'Plusieurs indices à recouper.'},
+ {lvl:3, prompt:'Face à une arnaque, en France on peut signaler sur…', options:['cybermalveillance.gouv.fr','un réseau social','rien','sa boîte mail'], answer:'cybermalveillance.gouv.fr', explain:'Le dispositif officiel d\'assistance aux victimes.'},
+];
+QuizGame({ id:'2d-121-arnaques-ligne', code:'2D·121', title:'Arnaques en ligne', domain:{label:'Cybersécurité',color:'#E63329'},
+ intro:{ greet:"Phishing, smishing, faux sites : déjoue les arnaques numériques.", rule:"Apprends à repérer les arnaques (e-mail, SMS, faux sites) et les bons réflexes. Trois niveaux.", how:["Lis la situation.","Choisis la bonne réaction.","Niveau Expert : spear phishing, vérifications, signalement."], objectif:"Reconnaître et déjouer les arnaques en ligne.", hint:"Urgence + demande de données + lien douteux = arnaque. Vérifie toujours l'URL.", why:"Les arnaques en ligne font des millions de victimes : la vigilance protège." },
+ learned:["Repérer urgence, faux domaines, smishing.","Spear phishing et arnaque au président.","Vérifications et signalement (cybermalveillance.gouv.fr)."],
+ rounds });
+</script></body></html>

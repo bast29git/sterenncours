@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Grandes dates</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'En quelle année a eu lieu la Révolution française ?', options:['1789','1492','1914','1945'], answer:'1789', explain:'Prise de la Bastille le 14 juillet 1789.'},
+ {lvl:1, prompt:'En quelle année Christophe Colomb atteint-il l\'Amérique ?', options:['1492','1789','1066','1610'], answer:'1492', explain:'« En 1492, Colomb prit la mer. »'},
+ {lvl:1, prompt:'La Seconde Guerre mondiale s\'est terminée en…', options:['1945','1918','1939','1960'], answer:'1945', explain:'La Première s\'est terminée en 1918.'},
+ {lvl:2, prompt:'En quelle année est tombé le mur de Berlin ?', options:['1989','1945','1968','2001'], answer:'1989', explain:'Symbole de la fin de la Guerre froide.'},
+ {lvl:2, prompt:'La Première Guerre mondiale a commencé en…', options:['1914','1939','1900','1918'], answer:'1914', explain:'Et s\'est achevée en 1918.'},
+ {lvl:2, prompt:'À quelle période appartient le Moyen Âge (Europe) ?', options:['du Vᵉ au XVᵉ siècle','avant J.-C.','XIXᵉ siècle','XXᵉ siècle'], answer:'du Vᵉ au XVᵉ siècle', explain:'De la chute de Rome (476) à 1492.'},
+ {lvl:3, prompt:'En quelle année les premiers pas de l\'Homme sur la Lune ?', options:['1969','1957','1981','1961'], answer:'1969', explain:'Apollo 11.'},
+ {lvl:3, prompt:'La chute de l\'Empire romain d\'Occident date de…', options:['476','1492','800','1789'], answer:'476', explain:'Marque la fin de l\'Antiquité.'},
+ {lvl:3, prompt:'La Déclaration des droits de l\'homme et du citoyen date de…', options:['1789','1848','1914','1958'], answer:'1789', explain:'Adoptée en août 1789, en pleine Révolution.'},
+];
+QuizGame({ id:'2d-128-grandes-dates', code:'2D·128', title:'Grandes dates de l\'Histoire', domain:{label:'Histoire & Géo',color:'#E0892B'},
+ intro:{ greet:"1789, 1492, 1945… repère les grandes dates qui ont changé le monde.", rule:"Situe les événements majeurs de l'Histoire et les grandes périodes. Trois niveaux.", how:["Lis la question.","Choisis la bonne date ou période.","Niveau Expert : chute de Rome, déclarations, dates précises."], objectif:"Connaître les repères chronologiques essentiels.", hint:"Antiquité (jusqu'à 476) → Moyen Âge (jusqu'à 1492) → Temps modernes → époque contemporaine (depuis 1789).", why:"Les repères chronologiques structurent la compréhension de l'Histoire." },
+ learned:["Grandes dates : 1492, 1789, 1914, 1945, 1989.","Les grandes périodes historiques.","Repères de l'Antiquité à aujourd'hui."],
+ rounds });
+</script></body></html>

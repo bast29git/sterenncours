@@ -15,7 +15,7 @@ const PUBLIC_EXACT = new Set([
   '/lecture.css', '/app.js', '/favicon.svg', '/favicon.ico', '/manifeste.json',
   '/robots.txt', '/api/connexion', '/api/moi',
 ]);
-const PUBLIC_PREFIXES = ['/theme/', '/moteurs/'];
+const PUBLIC_PREFIXES = ['/theme/', '/moteurs/', '/fond/'];
 
 const estPublic = (chemin) =>
   PUBLIC_EXACT.has(chemin) || PUBLIC_PREFIXES.some((p) => chemin.startsWith(p));

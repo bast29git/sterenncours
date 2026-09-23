@@ -415,3 +415,11 @@ Partie C : 5 points (1 pour la carotte, 1 pour l'amplitude, 1,5 pour les deux é
 Partie D : 5 points (1,5 pour les trois étapes, 0,5 pour la température, 1,5 pour la correction, 1,5 pour atténuation et adaptation).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

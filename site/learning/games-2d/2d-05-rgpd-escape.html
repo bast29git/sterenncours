@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Escape RGPD</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .rg-wrap { position:absolute; inset:0; overflow:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:22px; }
+  .rg-locks { display:flex; gap:8px; }
+  .rg-lock { font-size:26px; opacity:.4; transition:.3s; } .rg-lock.open { opacity:1; transform:scale(1.15); }
+  .rg-card { width:min(540px,100%); background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); padding:22px; }
+  .rg-riddle { font-size:16px; line-height:1.55; margin-bottom:16px; } .rg-riddle b{ color:var(--accent-text); }
+  .rg-opts { display:flex; flex-direction:column; gap:9px; }
+  .rg-opt { text-align:left; font-family:var(--font-body); font-weight:600; font-size:14px; padding:13px 15px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.14s; }
+  .rg-opt:hover { border-color:var(--accent); } .rg-opt.ok{background:var(--ok);color:var(--ok-fg);border-color:var(--ok-fg)} .rg-opt.no{background:var(--err);color:var(--err-fg);border-color:var(--err-fg)}
+  .rg-why { margin-top:14px; font-size:13px; color:var(--info-fg); background:var(--info); border-radius:10px; padding:11px 14px; }
+</style>
+</head>
+<body>
+<script>
+const RIDDLES=[
+  { q:"Salle 1 — Parmi ces informations, laquelle est une <b>donnée personnelle</b> au sens du RGPD ?", opts:[["L'adresse e-mail nominative d'une personne",true],["La météo d'aujourd'hui",false],["Le chiffre d'affaires d'une entreprise",false]], why:"Une donnée personnelle identifie (même indirectement) une personne physique : nom, e-mail, adresse IP, etc." },
+  { q:"Salle 2 — En cas de <b>fuite de données</b> grave, sous quel délai faut-il notifier la CNIL ?", opts:[["Dans les 72 heures",true],["Dans l'année",false],["Jamais, ce n'est pas obligatoire",false]], why:"Le RGPD impose de notifier une violation à l'autorité (la CNIL) dans les 72 heures." },
+  { q:"Salle 3 — Un utilisateur demande l'<b>effacement</b> de ses données. Que dois-tu faire ?", opts:[["Respecter son droit à l'effacement (« droit à l'oubli »)",true],["Ignorer la demande",false],["Lui facturer la suppression",false]], why:"Le RGPD garantit un droit d'accès, de rectification et d'effacement des données personnelles." },
+  { q:"Salle 4 — Avant de collecter des données, sur quoi doit reposer le traitement ?", opts:[["Une base légale, souvent le consentement libre et éclairé",true],["Rien, on collecte tout par défaut",false],["L'accord d'un seul collègue",false]], why:"Tout traitement doit avoir une base légale (consentement, contrat, obligation légale…) et respecter la finalité." },
+  { q:"Salle 5 — Quel principe limite les données collectées au strict nécessaire ?", opts:[["La minimisation des données",true],["La maximisation des données",false],["La conservation illimitée",false]], why:"La minimisation : ne collecter que les données nécessaires à la finalité, et ne pas les garder indéfiniment." },
+];
+let mode='detente', idx=0, opened=0;
+const shell=window.Konstrio.createGame({
+  id:'2d-05-rgpd-escape', code:'2D·05', title:'Escape « fuite RGPD »', type:'2D',
+  domain:{ label:'Cybersécurité', color:'#E63329' },
+  intro:{
+    greet:"Une fuite de données menace l'entreprise ! Résous les énigmes RGPD pour ouvrir les 5 cadenas et sécuriser le système, contre la montre.",
+    rule:"Le <b>RGPD</b> protège les données personnelles. Résous chaque énigme de conformité pour ouvrir un cadenas. Ouvre les 5 cadenas avant la fin du temps (mode Cours) !",
+    how:["Lis l'énigme de chaque salle et choisis la bonne réponse.","Chaque bonne réponse ouvre un cadenas 🔓.","En mode Cours, un chronomètre tourne : sois rapide et juste !"],
+    keys:"Clique une réponse.",
+    objectif:"Connaître les principes clés du RGPD : donnée personnelle, délais, droits, base légale, minimisation.",
+    hint:"Souviens-toi : notification d'une fuite en 72 h, et on ne collecte que le strict nécessaire (minimisation).",
+    why:"Le RGPD donne aux citoyens le contrôle de leurs données et impose aux organisations des règles strictes."
+  },
+  learned:["Une donnée personnelle identifie une personne (nom, e-mail, IP…).","Une violation de données se notifie à la CNIL sous 72 heures.","Principes clés : consentement, droit à l'effacement, minimisation des données."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; idx=0; opened=0; api.setScore(0); if(m==='cours'){ api.timer.reset(90); api.timer.show(false); api.timer.start(); } show(); },
+  onRestart:(api)=>{ idx=0; opened=0; api.setScore(0); if(mode==='cours'){ api.timer.reset(90); api.timer.show(false); api.timer.start(); } show(); },
+});
+shell.onTimeout=()=>{ shell.api.lose({title:'Temps écoulé !', stars:Math.max(1,opened>=3?2:1), score:opened*100, buddy:"La fuite n'a pas été totalement contenue… réessaie, tu connais les réponses maintenant !", learned:shell.cfg.learned, onNext:()=>shell.restart(), nextLabel:'Réessayer'}); };
+let wrap;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='rg-wrap'; api.stage.appendChild(wrap); show(); }
+function show(){ if(idx>=RIDDLES.length){ finish(); return; } const r=RIDDLES[idx];
+  shell.api.setLevel('Salle '+(idx+1)+'/'+RIDDLES.length); shell.api.setProgress(idx/RIDDLES.length);
+  const order=r.opts.map((_,i)=>i).sort(()=>Math.random()-.5);
+  wrap.innerHTML=`<div class="rg-locks">${RIDDLES.map((_,i)=>`<span class="rg-lock ${i<opened?'open':''}">${i<opened?'🔓':'🔒'}</span>`).join('')}</div>
+    <div class="rg-card"><div class="rg-riddle">${r.q}</div><div class="rg-opts" id="rgOpts"></div></div>`;
+  const oc=wrap.querySelector('#rgOpts');
+  order.forEach(oi=>{ const [txt,ok]=r.opts[oi]; const b=document.createElement('button'); b.className='rg-opt'; b.textContent=txt; b.onclick=()=>pick(ok,b,r); oc.appendChild(b); });
+  shell.api.say(idx===0?"Première salle : trouve la bonne réponse pour ouvrir le cadenas !":"Cadenas suivant !",'concentre'); }
+function pick(ok,btn,r){ wrap.querySelectorAll('.rg-opt').forEach(b=>b.style.pointerEvents='none');
+  if(ok){ opened++; shell.api.addScore(120); shell.sound('good'); btn.classList.add('ok'); }
+  else { shell.sound('bad'); btn.classList.add('no'); wrap.querySelectorAll('.rg-opt').forEach((b,i)=>{}); [...wrap.querySelectorAll('.rg-opt')].forEach(b=>{ const opt=r.opts.find(o=>o[0]===b.textContent); if(opt&&opt[1])b.classList.add('ok'); }); }
+  const why=document.createElement('div'); why.className='rg-why'; why.textContent='💡 '+r.why; wrap.querySelector('.rg-card').appendChild(why);
+  shell.api.say((ok?'Cadenas ouvert ! ':'Raté. ')+r.why, ok?'fier':'rassurant');
+  idx++; shell.api.setProgress(idx/RIDDLES.length); setTimeout(show, ok?1500:2500); }
+function finish(){ shell.api.timer.stop(); const stars=opened>=5?3:opened>=3?2:1;
+  shell.api.win({ score:opened*120, stars, title:`${opened}/5 cadenas ouverts`,
+    buddy: opened>=5?"Fuite contenue ! Tu maîtrises les principes du RGPD.":"Bien — retiens : 72 h pour notifier, et minimisation des données.",
+    learned:shell.cfg.learned, onNext:()=>shell.restart(), nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

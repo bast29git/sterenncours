@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Vie privée & données</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Tes « données personnelles » incluent…', options:['nom, adresse, photos, localisation','la météo','les prix','les news'], answer:'nom, adresse, photos, localisation', explain:'Toute information qui t\'identifie.'},
+ {lvl:1, prompt:'Avant de publier une photo d\'un ami, il faut…', options:['son accord','rien','un filtre','un hashtag'], answer:'son accord', explain:'Le droit à l\'image protège chacun.'},
+ {lvl:1, prompt:'Sur les réseaux sociaux, mieux vaut un compte…', options:['avec des paramètres de confidentialité réglés','public et ouvert','sans mot de passe','partagé'], answer:'avec des paramètres de confidentialité réglés', explain:'Tu contrôles qui voit quoi.'},
+ {lvl:2, prompt:'Le RGPD te donne le droit…', options:['d\'accéder à tes données et de les faire effacer','de pirater','de tout copier','de revendre'], answer:'d\'accéder à tes données et de les faire effacer', explain:'Le « droit à l\'oubli ».'},
+ {lvl:2, prompt:'Pourquoi les services « gratuits » collectent-ils tes données ?', options:['« si c\'est gratuit, tu es le produit » (publicité ciblée)','par gentillesse','par erreur','sans raison'], answer:'« si c\'est gratuit, tu es le produit » (publicité ciblée)', explain:'Tes données ont de la valeur.'},
+ {lvl:2, prompt:'L\'« empreinte numérique » est…', options:['l\'ensemble des traces que tu laisses en ligne','ton doigt','un mot de passe','un virus'], answer:'l\'ensemble des traces que tu laisses en ligne','explain':'Publications, recherches, achats… souvent durables.'},
+ {lvl:3, prompt:'Un « VPN » sert principalement à…', options:['chiffrer ta connexion et masquer ton IP','accélérer le wifi','supprimer les pubs','sauvegarder'], answer:'chiffrer ta connexion et masquer ton IP', explain:'Utile sur les wifi publics.'},
+ {lvl:3, prompt:'Sur un wifi public non sécurisé, il vaut mieux éviter…', options:['les opérations sensibles (banque)','de lire les news','d\'écouter de la musique','de regarder la météo'], answer:'les opérations sensibles (banque)', explain:'Tes données pourraient être interceptées.'},
+ {lvl:3, prompt:'La « minimisation des données » (RGPD) signifie…', options:['ne collecter que le strict nécessaire','tout collecter','tout supprimer','tout chiffrer'], answer:'ne collecter que le strict nécessaire', explain:'Un principe clé de protection de la vie privée.'},
+];
+QuizGame({ id:'2d-122-vie-privee', code:'2D·122', title:'Vie privée & données', domain:{label:'Cybersécurité',color:'#E63329'},
+ intro:{ greet:"Tes données valent de l'or. Apprends à protéger ta vie privée.", rule:"Comprends les données personnelles, le RGPD, l'empreinte numérique, le VPN et les bons réflexes. Trois niveaux.", how:["Lis la question.","Choisis la bonne pratique.","Niveau Expert : VPN, wifi public, minimisation."], objectif:"Protéger sa vie privée et ses données en ligne.", hint:"« Si c'est gratuit, tu es le produit. » Règle tes paramètres de confidentialité.", why:"La protection des données est un droit et une compétence essentielle aujourd'hui." },
+ learned:["Données personnelles et droit à l'image.","RGPD, empreinte numérique.","VPN, wifi public, minimisation des données."],
+ rounds });
+</script></body></html>

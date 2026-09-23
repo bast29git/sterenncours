@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · English Irregular Verbs</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../lang-engine.js"></script></head>
+<body><script>
+const V=[
+ [1,'go','went','aller'],[1,'eat','ate','manger'],[1,'see','saw','voir'],[1,'make','made','faire'],[1,'come','came','venir'],[1,'give','gave','donner'],[1,'take','took','prendre'],[1,'know','knew','savoir'],
+ [2,'buy','bought','acheter'],[2,'think','thought','penser'],[2,'bring','brought','apporter'],[2,'teach','taught','enseigner'],[2,'write','wrote','écrire'],[2,'drive','drove','conduire'],[2,'speak','spoke','parler'],[2,'choose','chose','choisir'],
+ [3,'understand','understood','comprendre'],[3,'seek','sought','chercher'],[3,'arise','arose','survenir'],[3,'withdraw','withdrew','retirer'],[3,'undergo','underwent','subir'],[3,'foresee','foresaw','prévoir'],[3,'forbid','forbade','interdire'],[3,'bear','bore','supporter']
+];
+const rounds=V.map(v=>({lvl:v[0], prompt:`<span class="big">${v[1]}</span> → <b>past simple</b> ? <span style="font-size:13px;color:var(--fg-muted)">(${v[3]})</span>`, audio:v[1]+', '+v[2], answer:v[2], explain:`${v[1]} – ${v[2]} (prétérit) – « ${v[3]} ».`}));
+LangGame({ id:'2d-42-en-verbs', code:'2D·42', title:'English — Irregular Verbs', lang:'en', mode:'type',
+ domain:{label:'Langues',color:'#0E7C86'},
+ intro:{ greet:"Type the past simple of each irregular verb. Hard at first, then automatic!", rule:"Écris le <b>prétérit</b> (past simple) de chaque verbe irrégulier anglais. Le sens français est donné en indice.", how:["Lis le verbe et son sens, tape sa forme au passé.","Valide avec Entrée.","Monte en niveau pour des verbes rares (sought, underwent…)."], keys:"Entrée = valider", objectif:"Maîtriser les verbes irréguliers anglais, base et avancés.", hint:"Beaucoup suivent des familles : think/thought, bring/brought, teach/taught.", why:"Les verbes irréguliers se mémorisent par la répétition active : se tester bat la relecture." },
+ learned:["Le prétérit des verbes irréguliers anglais.","Des familles de formes (–ought, –ew…).","Du vocabulaire courant et soutenu."],
+ rounds });
+</script></body></html>

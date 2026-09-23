@@ -432,3 +432,11 @@ Partie C : 5 points (1 pour la règle, 1,5 pour la justification chiffrée, 2,5 
 Partie D : 5 points (2 pour les six changements, 1 pour la masse justifiée, 1 pour le volume, 1 pour la conclusion).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

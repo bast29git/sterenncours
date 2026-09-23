@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Vocabulaire</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Un synonyme de « content » est…', options:['heureux','triste','fatigué','rapide'], answer:'heureux', explain:'Les synonymes ont un sens proche.'},
+ {lvl:1, prompt:'Le contraire de « grand » est…', options:['petit','gros','long','haut'], answer:'petit', explain:'Un antonyme exprime le contraire.'},
+ {lvl:1, prompt:'« une maison, un logis, une demeure » sont des…', options:['synonymes','antonymes','homonymes','verbes'], answer:'synonymes', explain:'Des mots de sens voisin.'},
+ {lvl:2, prompt:'« ver », « vers », « verre », « vert » sont des…', options:['homonymes','synonymes','antonymes','adverbes'], answer:'homonymes', explain:'Même son, sens et orthographe différents.'},
+ {lvl:2, prompt:'Que signifie « éphémère » ?', options:['qui dure peu','éternel','immense','rapide'], answer:'qui dure peu', explain:'Comme une fleur d\'un jour.'},
+ {lvl:2, prompt:'Le préfixe « anti- » signifie…', options:['contre','avant','après','sous'], answer:'contre', explain:'Antidote, antivirus, antigel.'},
+ {lvl:3, prompt:'Que signifie « obsolète » ?', options:['dépassé, périmé','récent','utile','solide'], answer:'dépassé, périmé', explain:'Un objet ou une idée qui n\'est plus d\'actualité.'},
+ {lvl:3, prompt:'Un « pléonasme » est…', options:['une répétition inutile (« monter en haut »)','un beau mot','une métaphore','un synonyme'], answer:'une répétition inutile (« monter en haut »)', explain:'Le sens est déjà contenu dans le verbe.'},
+ {lvl:3, prompt:'Le registre « soutenu » se caractérise par…', options:['un vocabulaire recherché et une syntaxe soignée','des abréviations','du langage familier','des fautes'], answer:'un vocabulaire recherché et une syntaxe soignée', explain:'À adapter selon le contexte (familier / courant / soutenu).'},
+];
+QuizGame({ id:'2d-107-vocabulaire', code:'2D·107', title:'Vocabulaire & sens des mots', domain:{label:'Français',color:'#1457A8'},
+ intro:{ greet:"Enrichis ton vocabulaire : synonymes, contraires, sens cachés.", rule:"Joue avec les synonymes, antonymes, homonymes, préfixes et le sens précis des mots. Trois niveaux.", how:["Lis la question.","Choisis la bonne réponse.","Niveau Expert : obsolète, pléonasme, registres de langue."], objectif:"Enrichir et préciser son vocabulaire français.", hint:"Synonyme = sens proche ; antonyme = contraire ; homonyme = même son.", why:"Un vocabulaire riche permet de penser et de s'exprimer avec finesse." },
+ learned:["Synonymes, antonymes, homonymes.","Préfixes et sens des mots.","Pléonasme, mots rares, registres de langue."],
+ rounds });
+</script></body></html>

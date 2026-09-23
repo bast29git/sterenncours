@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Cellule & ADN</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .ce-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  .ce-modes { top:14px; left:14px; width:212px; padding:13px; display:flex; flex-direction:column; gap:8px; max-height:calc(100% - 28px); overflow:auto; }
+  .ce-modes h3 { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:2px 0 0; }
+  .ce-modes h3.mt { margin-top:6px; }
+  .ce-tg { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:8px 10px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; text-align:left; transition:.14s; min-height:36px; }
+  .ce-tg:hover { border-color:color-mix(in srgb,var(--accent) 50%,var(--border)); }
+  .ce-tg[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ce-tg:focus-visible { outline:none; box-shadow:var(--ring); }
+  .ce-info { right:14px; top:14px; width:308px; padding:0; overflow:hidden; transform:translateX(125%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; }
+  .ce-info.show { transform:none; }
+  .ce-hd { padding:16px 18px; color:#fff; position:relative; }
+  .ce-hd h2 { font-family:var(--font-title); font-weight:800; font-size:22px; margin:0; }
+  .ce-hd .sub { font-family:var(--font-mono); font-size:11px; opacity:.9; text-transform:uppercase; letter-spacing:.04em; }
+  .ce-x { position:absolute; top:12px; right:12px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:16px; }
+  .ce-body { padding:14px 18px 18px; overflow:auto; }
+  .ce-body p { font-size:13.5px; line-height:1.6; margin:0 0 9px; }
+  .ce-sec { font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:0 0 7px; }
+  .ce-fun { background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:13px; color:var(--accent-text); line-height:1.5; }
+  .ce-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .ce-chips button { font-family:var(--font-mono); font-size:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); border-radius:999px; padding:5px 11px; cursor:pointer; }
+  .ce-chips button:hover { border-color:var(--accent); }
+  .ce-hint { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; text-align:center; max-width:88vw; }
+  /* étiquettes 3D flottantes */
+  .ce-label { position:absolute; z-index:16; transform:translate(-50%,-140%); font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 78%,transparent); border:1px solid var(--border); padding:3px 9px; border-radius:8px; pointer-events:none; white-space:nowrap; display:none; box-shadow:var(--shadow-sm,0 2px 8px rgba(0,0,0,.2)); }
+  .ce-label::after { content:""; position:absolute; left:50%; bottom:-5px; transform:translateX(-50%); border:5px solid transparent; border-top-color:var(--border); }
+  .ce-label .dot { display:inline-block; width:9px; height:9px; border-radius:999px; margin-right:5px; vertical-align:-1px; }
+  /* bandeau défi (quiz / trouve l'organite) */
+  .ce-quiz { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:22; background:var(--accent); color:#fff; padding:13px 18px; border-radius:14px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:9px; align-items:center; max-width:92%; text-align:center; }
+  .ce-quiz .qtxt { font-weight:700; font-size:14.5px; line-height:1.35; }
+  .ce-quiz .qmeta { font-family:var(--font-mono); font-size:11px; opacity:.85; }
+  .ce-quiz .qrow { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .ce-qo { font-family:var(--font-data); font-weight:700; font-size:18px; min-height:44px; min-width:52px; padding:0 16px; border-radius:10px; border:none; background:rgba(255,255,255,.2); color:#fff; cursor:pointer; transition:transform .1s; }
+  .ce-qo:hover { transform:translateY(-2px); }
+  .ce-qo:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+  .ce-hud{ position:absolute; inset:0; z-index:30; pointer-events:none; display:none; } .ce-hud.on{ display:block; }
+  .ce-htop{ position:absolute; top:16px; left:50%; transform:translateX(-50%); text-align:center; max-width:min(620px,92vw); }
+  .ce-hph{ font-family:var(--font-mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-text); margin-bottom:6px; }
+  .ce-htitle{ font-family:var(--font-title); font-weight:800; font-size:23px; color:var(--fg); margin:0 0 6px; }
+  .ce-hcap{ font-size:14px; color:var(--fg-muted); line-height:1.45; }
+  .ce-hsteps{ display:flex; gap:5px; justify-content:center; margin-top:9px; }
+  .ce-hsteps i{ width:8px; height:8px; border-radius:999px; background:color-mix(in srgb,var(--fg) 20%,transparent); transition:.2s; }
+  .ce-hsteps i.done{ background:var(--brand-teal,#2AA98C); } .ce-hsteps i.now{ background:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent); }
+  .ce-hact{ position:absolute; bottom:74px; left:50%; transform:translateX(-50%); pointer-events:auto; }
+  .ce-hbtn{ font-family:var(--font-body); font-weight:800; font-size:16px; padding:14px 26px; border-radius:13px; border:none; background:linear-gradient(135deg,var(--accent),#29B6E0); color:#fff; cursor:pointer; box-shadow:var(--shadow-lg); }
+  .ce-hquit{ position:absolute; bottom:18px; left:50%; transform:translateX(-50%); pointer-events:auto; font-weight:700; font-size:13px; padding:9px 18px; border-radius:11px; border:1px solid var(--border); background:color-mix(in srgb,var(--surface) 80%,transparent); color:var(--fg); cursor:pointer; }
+  @media (max-width:720px){ .ce-modes{width:166px;padding:10px} .ce-info{width:min(300px,84vw)} .ce-htitle{font-size:19px} }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const REDUCED=window.Konstrio.REDUCED;
+
+/* ====== DONNÉES PÉDAGOGIQUES ====== */
+const ORG = {
+  noyau:{ name:'Noyau', color:'#6E6BFF', sub:'Centre de commande', desc:["Le noyau est le « cerveau » de la cellule : il abrite l'ADN, le plan de fabrication de tout l'organisme.","Entouré d'une double membrane percée de <b>pores</b>, il contrôle quels gènes sont lus et quand."], fun:"Si on déroulait l'ADN d'une seule cellule, il mesurerait environ 2 mètres — rangé dans un noyau de quelques millièmes de millimètre !" },
+  mito:{ name:'Mitochondrie', color:'#E63329', sub:'Centrale énergétique', desc:["La mitochondrie produit l'énergie de la cellule (l'ATP) en « brûlant » les nutriments avec l'oxygène : c'est la respiration cellulaire.","Ses replis internes, les <b>crêtes</b>, augmentent la surface de production d'énergie."], fun:"Les mitochondries possèdent leur propre ADN : elles seraient d'anciennes bactéries « avalées » il y a 1,5 milliard d'années." },
+  re:{ name:'Réticulum endoplasmique', color:'#29B6E0', sub:'Usine & autoroute', desc:["Réseau de replis connecté au noyau, il fabrique et transporte protéines et lipides à travers la cellule.","Le réticulum « granuleux » est couvert de <b>ribosomes</b> qui assemblent les protéines."], fun:"Déplié, le réticulum d'une cellule couvrirait une surface bien plus grande que la cellule elle-même." },
+  golgi:{ name:'Appareil de Golgi', color:'#F5A623', sub:'Centre de tri & d\'expédition', desc:["Fait de sacs aplatis empilés (les citernes), il reçoit les protéines, les modifie, les emballe dans des <b>vésicules</b> et les expédie au bon endroit.","C'est le « bureau de poste » de la cellule."], fun:"Il a été découvert en 1898 par Camillo Golgi, qui a reçu le prix Nobel pour ses travaux." },
+  ribo:{ name:'Ribosomes', color:'#9B2BB0', sub:'Ateliers de protéines', desc:["Minuscules machines qui lisent l'ARN messager et assemblent les acides aminés en protéines.","Une seule cellule en contient des millions, libres ou fixés sur le réticulum."], fun:"Un ribosome peut assembler une protéine en ajoutant jusqu'à 20 acides aminés par seconde." },
+  lyso:{ name:'Lysosome', color:'#E0559B', sub:'Recyclerie', desc:["Petite poche remplie d'enzymes qui digèrent les déchets et les éléments usés de la cellule.","C'est le « service de recyclage » qui garde la cellule propre."], fun:"Le mot lysosome vient du grec « lysis » (dissoudre) et « soma » (corps)." },
+  vacuole:{ name:'Vacuole', color:'#1E8C7A', sub:'Réserve & stockage', desc:["Poche remplie d'eau et de substances : elle stocke nutriments et déchets, et maintient la pression interne.","Chez les végétaux, une grande vacuole occupe l'essentiel de la cellule."], fun:"La pression de la vacuole (la turgescence) fait tenir les plantes bien droites — sans eau, elles se fanent." },
+  membrane:{ name:'Membrane plasmique', color:'#7fd0ff', sub:'Frontière sélective', desc:["La membrane entoure la cellule et contrôle ce qui entre et sort : c'est une barrière intelligente.","Faite d'une double couche de lipides, elle laisse passer certaines molécules et en bloque d'autres."], fun:"La membrane est si fine qu'il en faudrait 10 000 empilées pour atteindre l'épaisseur d'une feuille de papier." },
+  chloro:{ name:'Chloroplaste', color:'#2faa5a', sub:'Capteur de lumière (végétal)', desc:["Présent uniquement chez les plantes, il capte la lumière du Soleil pour fabriquer du sucre : c'est la photosynthèse.","Sa couleur verte vient de la <b>chlorophylle</b>, rangée dans des piles appelées grana."], fun:"La photosynthèse des plantes et des algues produit l'oxygène que nous respirons." },
+  paroi:{ name:'Paroi cellulaire', color:'#b0c47a', sub:'Squelette rigide (végétal)', desc:["Couche rigide qui entoure la membrane des cellules végétales : elle donne sa forme et sa solidité à la plante.","C'est elle qui fait « tenir debout » les arbres."], fun:"La paroi est faite de cellulose, la molécule la plus abondante sur Terre." },
+};
+const BASES = { A:{c:'#E63329',pair:'T'}, T:{c:'#1B82E0',pair:'A'}, G:{c:'#1E8C7A',pair:'C'}, C:{c:'#F5A623',pair:'G'} };
+const DNA_INFO = { name:'ADN', sub:'La molécule du vivant', color:'#6E6BFF', desc:["L'ADN est une longue échelle torsadée (double hélice) qui porte le « code » de la vie, écrit avec 4 lettres : A, T, G, C.","Les bases s'apparient toujours de la même façon : <b>A avec T</b>, et <b>G avec C</b>. C'est cette règle qui permet à l'ADN de se copier fidèlement.","La suite des lettres forme des gènes, les recettes pour fabriquer les protéines qui nous constituent."], fun:"Tous les êtres vivants — bactéries, plantes, animaux, humains — utilisent le même alphabet ADN à 4 lettres." };
+
+let mode='detente', vegetal=false, dnaView=false, quiz=null, find=null;
+let synth=null, synthGroup=null;
+let mito=null, mitoGroup=null;
+let scene,camera,renderer,composer,bloom,controls,clock,raycaster,pointer,hovered=null,selected=null;
+let cellGroup, dnaGroup, organelles=[], dnaBases=[], camTarget=null, focusDist=14, flying=false;
+let labelWrap, labelEls={};
+
+const shell=window.Konstrio.createGame({
+  id:'3d-04-cellule-adn', code:'3D·04', title:'Cellule & ADN', type:'3D',
+  domain:{ label:'Bio & SVT', color:'#2AA98C' },
+  intro:{
+    greet:"Plongée dans l'infiniment petit ! Explore une vraie cellule vivante, clique ses organites, puis zoome dans le noyau pour découvrir l'ADN, le code du vivant.",
+    rule:"Explore une cellule en 3D façon microscope : clique chaque organite pour découvrir sa fonction. Puis entre dans le noyau pour voir la <b>double hélice d'ADN</b> et comprendre comment les bases A-T / G-C s'apparient.",
+    how:["Glisse pour tourner · molette pour zoomer · clique un organite pour sa fiche.","Utilise ← → au clavier pour passer d'un organite à l'autre.","Bascule entre cellule animale et végétale, ou lance « Voir l'ADN ».","En mode Cours : joue à « Trouve l'organite » ou « Assemble l'ADN »."],
+    keys:"Glisser = tourner · molette = zoom · ← → = organite précédent/suivant · Échap = pause.",
+    objectif:"Reconnaître les organites et leur rôle, et comprendre l'appariement des bases de l'ADN (A-T, G-C).",
+    hint:"Règle d'or de l'ADN : A va toujours avec T, et G toujours avec C.",
+    why:"Chaque organite a une fonction précise, comme les services d'une usine. L'ADN, lui, contient le plan de toute cette usine."
+  },
+  learned:["Les organites et leur rôle (noyau, mitochondrie, ribosomes, Golgi, lysosome…).","Cellule animale vs végétale (chloroplaste, paroi, grande vacuole).","L'ADN est une double hélice ; les bases s'apparient A-T et G-C."],
+  onReady:init, onStart:startMode, onTheme:()=>applyTheme(),
+});
+
+/* ====== matériaux & aides ====== */
+function physMat(o){ o=o||{}; const m=new THREE.MeshPhysicalMaterial({
+  color:o.color==null?0xffffff:o.color, roughness:o.rough==null?.35:o.rough, metalness:o.metal||0,
+  clearcoat:o.clear==null?.4:o.clear, clearcoatRoughness:o.ccr==null?.35:o.ccr,
+  transmission:o.trans||0, thickness:o.thick==null?1:o.thick, ior:o.ior||1.4,
+  transparent:(o.opacity!=null||o.trans)?true:false, opacity:o.opacity==null?1:o.opacity,
+  emissive:new THREE.Color(o.emissive==null?0x000000:o.emissive), emissiveIntensity:o.emi||0,
+  envMapIntensity:o.env==null?1:o.env, side:o.side||THREE.FrontSide, iridescence:o.irid||0, iridescenceIOR:1.3 });
+  return m; }
+function fresnelShell(radius,colorHex,power,strength){ // halo de verre (fresnel)
+  const mat=new THREE.ShaderMaterial({ uniforms:{ c:{value:new THREE.Color(colorHex)}, p:{value:power||2.4}, s:{value:strength||.9} },
+    vertexShader:`varying float vI; uniform float p; void main(){ vec3 vn=normalize(normalMatrix*normal); vec3 vp=normalize(-(modelViewMatrix*vec4(position,1.0)).xyz); vI=pow(1.0-abs(dot(vn,vp)),p); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader:`varying float vI; uniform vec3 c; uniform float s; void main(){ gl_FragColor=vec4(c, clamp(vI*s,0.0,1.0)); }`,
+    transparent:true, blending:THREE.AdditiveBlending, side:THREE.FrontSide, depthWrite:false });
+  return new THREE.Mesh(new THREE.SphereGeometry(radius,48,32),mat); }
+function letterTex(ch){ const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d'); x.fillStyle='#fff'; x.font='900 42px Arial'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(ch,32,34); return new THREE.CanvasTexture(c); }
+
+function init(){ const stage=shell.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight, .1, 600); camera.position.set(0,4,19);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; stage.appendChild(renderer.domElement);
+  // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produirait du noir → chaîne robuste sans GTAO
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer); composer.addPass(new RenderPass(scene,camera));
+  // GPU réel uniquement : occlusion ambiante en espace-écran (creuse le contact entre organites)
+  if(!software && !REDUCED){ const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=0.6; try{ gtao.updateGtaoMaterial({ radius:0.5, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){} composer.addPass(gtao); composer.gtao=gtao; }
+  // bloom subtil : organites émissifs, hélice d'ADN lumineuse
+  if(!REDUCED){ bloom=new UnrealBloomPass(new THREE.Vector2(W,H),0.42,0.7,0.86); composer.addPass(bloom); }
+  // anti-aliasing SMAA + OutputPass (tone mapping ACES + sRGB en fin de chaîne)
+  composer.addPass(new SMAAPass(W,H));
+  composer.addPass(new OutputPass());
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08; controls.minDistance=4; controls.maxDistance=44; controls.autoRotate=REDUCED; controls.autoRotateSpeed=.35;
+  // éclairage doux type microscope
+  scene.add(new THREE.HemisphereLight(0xdfeaff,0x101a2e,1.05));
+  const key=new THREE.DirectionalLight(0xffffff,1.15); key.position.set(7,9,7); scene.add(key);
+  const rim=new THREE.PointLight(0x6e6bff,1.3,60); rim.position.set(-8,-4,5); scene.add(rim);
+  const warm=new THREE.PointLight(0xffb066,0.7,50); warm.position.set(6,-6,-4); scene.add(warm);
+  const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  new RGBELoader().load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; }, undefined, ()=>{});
+  scene.add(makeBackdrop());
+  buildCell(); buildDNA(); raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  buildUI(); applyTheme();
+  renderer.domElement.addEventListener('pointermove',onMove); renderer.domElement.addEventListener('pointerdown',onDown);
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
+  document.addEventListener('keydown',onKey);
+  animate();
+}
+function makeBackdrop(){ const c=document.createElement('canvas'); c.width=c.height=1024; const ctx=c.getContext('2d'); const g=ctx.createRadialGradient(512,512,60,512,512,660); g.addColorStop(0,'#16233f'); g.addColorStop(.6,'#0b1220'); g.addColorStop(1,'#05070f'); ctx.fillStyle=g; ctx.fillRect(0,0,1024,1024);
+  // bokeh doux (ambiance microscope)
+  for(let i=0;i<70;i++){ const r=30+Math.random()*90; ctx.globalAlpha=.04+Math.random()*.07; const col=['#6e6bff','#29b6e0','#2faa5a','#E0559B'][i%4]; const rg=ctx.createRadialGradient(0,0,0,0,0,r); rg.addColorStop(0,col); rg.addColorStop(1,'transparent'); ctx.save(); ctx.translate(Math.random()*1024,Math.random()*1024); ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(0,0,r,0,7); ctx.fill(); ctx.restore(); }
+  ctx.globalAlpha=1; const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return new THREE.Mesh(new THREE.SphereGeometry(260,32,16), new THREE.MeshBasicMaterial({ map:t, side:THREE.BackSide })); }
+
+function addOrg(key, obj, pos){ if(pos)obj.position.copy(pos); obj.userData.key=key; obj.userData.home=obj.position.clone(); obj.userData.phase=Math.random()*7; cellGroup.add(obj); organelles.push(obj); return obj; }
+
+function buildCell(){
+  cellGroup=new THREE.Object3D(); scene.add(cellGroup);
+  // ---- cytoplasme (milieu translucide qui donne la profondeur / occlusion douce) ----
+  const cyto=new THREE.Mesh(new THREE.SphereGeometry(7.7,48,48), new THREE.MeshPhysicalMaterial({ color:0x9fd8ff, transparent:true, opacity:.05, roughness:.6, depthWrite:false, side:THREE.BackSide })); cyto.renderOrder=-1; cellGroup.add(cyto);
+  const core=new THREE.Mesh(new THREE.SphereGeometry(7.2,32,32), new THREE.MeshBasicMaterial({ color:0x0a1830, transparent:true, opacity:.14, side:THREE.BackSide, depthWrite:false })); cellGroup.add(core); // ombrage interne doux (pseudo-AO)
+  // ---- membrane translucide (verre) + halo fresnel ----
+  const membrane=new THREE.Mesh(new THREE.SphereGeometry(8,64,48), new THREE.MeshPhysicalMaterial({ color:0x8fd6ff, transparent:true, opacity:REDUCED?.14:.10, roughness:.12, metalness:0, transmission:REDUCED?0:.9, thickness:2.2, ior:1.34, clearcoat:1, clearcoatRoughness:.15, envMapIntensity:1.4, iridescence:.35, iridescenceIOR:1.3 }));
+  membrane.userData.key='membrane'; membrane.userData.home=new THREE.Vector3(); cellGroup.add(membrane); organelles.push(membrane); cellGroup.userData.membrane=membrane;
+  cellGroup.add(fresnelShell(8.06,0x9fe0ff,2.6,.85));
+  // ---- noyau ----
+  const noyau=buildNucleus(); addOrg('noyau',noyau,new THREE.Vector3(0,0,0)); cellGroup.userData.noyau=noyau;
+  // ---- mitochondries ----
+  [[4.3,1.4,1],[-3.6,-2,2],[2,-3.6,-2],[-1.5,3.1,-3]].forEach((p,i)=>{ const m=buildMito(); m.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3); addOrg('mito',m,new THREE.Vector3(...p)); });
+  // ---- réticulum endoplasmique (près du noyau) ----
+  const re=buildER(); addOrg('re',re,new THREE.Vector3(-2.9,1.5,-.6));
+  // ---- appareil de Golgi ----
+  const golgi=buildGolgi(); addOrg('golgi',golgi,new THREE.Vector3(3.3,-1.3,1.6));
+  // ---- ribosomes libres (instanciés, perf) ----
+  const ribo=buildRibosomes(REDUCED?70:150); ribo.userData.key='ribo'; ribo.userData.home=new THREE.Vector3(); cellGroup.add(ribo); organelles.push(ribo);
+  // ---- lysosomes ----
+  [[4.2,-2.5,-1.2],[-4.2,-1,-2.2],[1.1,3.9,2.4]].forEach(p=>{ const l=buildLysosome(); addOrg('lyso',l,new THREE.Vector3(...p)); });
+  // ---- vacuole ----
+  const vac=new THREE.Mesh(new THREE.SphereGeometry(1.5,36,36), new THREE.MeshPhysicalMaterial({ color:0x1E8C7A, transparent:true, opacity:.34, roughness:.08, transmission:REDUCED?0:.6, thickness:1.2, ior:1.33, clearcoat:.8, envMapIntensity:1.2 })); addOrg('vacuole',vac,new THREE.Vector3(-4,2.6,2)); cellGroup.userData.vac=vac;
+  // ---- extras végétaux ----
+  const chloro=new THREE.Object3D(); [[3,3,-1],[-1,4,1],[4,-2.8,2]].forEach(p=>{ const ch=buildChloroplast(); ch.position.set(...p); ch.rotation.set(Math.random()*3,Math.random()*3,0); chloro.add(ch); }); chloro.userData.key='chloro'; chloro.userData.home=new THREE.Vector3(); chloro.visible=false; cellGroup.add(chloro); organelles.push(chloro); cellGroup.userData.chloro=chloro;
+  const paroi=new THREE.Mesh(new THREE.SphereGeometry(8.5,48,40), new THREE.MeshPhysicalMaterial({ color:0xb0c47a, transparent:true, opacity:.2, roughness:.85, side:THREE.BackSide })); paroi.userData.key='paroi'; paroi.userData.home=new THREE.Vector3(); paroi.visible=false; cellGroup.add(paroi); organelles.push(paroi); cellGroup.userData.paroi=paroi;
+}
+function buildNucleus(){ const g=new THREE.Object3D();
+  const shell1=new THREE.Mesh(new THREE.SphereGeometry(2.4,48,48), physMat({color:0x6E6BFF,rough:.5,clear:.5,opacity:.7,emissive:0x241d66,emi:.35,trans:REDUCED?0:.25,thick:1.5})); g.add(shell1);
+  const env=new THREE.Mesh(new THREE.SphereGeometry(2.52,40,32), physMat({color:0x8f8dff,rough:.4,opacity:.16,side:THREE.DoubleSide})); g.add(env); // enveloppe nucléaire
+  // pores nucléaires (répartis façon Fibonacci)
+  const poreMat=physMat({color:0xb9b7ff,rough:.4,emissive:0x3a35aa,emi:.4}); const NP=REDUCED?14:26;
+  for(let i=0;i<NP;i++){ const y=1-(i/(NP-1))*2; const rr=Math.sqrt(1-y*y); const ph=i*2.399963; const pore=new THREE.Mesh(new THREE.TorusGeometry(.16,.06,6,12),poreMat); pore.position.set(Math.cos(ph)*rr*2.48,y*2.48,Math.sin(ph)*rr*2.48); pore.lookAt(0,0,0); g.add(pore); }
+  // nucléole (dense)
+  const nuc=new THREE.Mesh(new THREE.SphereGeometry(.85,24,24), physMat({color:0x352f8f,rough:.5,emissive:0x120e40,emi:.3})); nuc.position.set(.55,.25,.4); g.add(nuc);
+  // chromatine (filaments)
+  const chMat=physMat({color:0x9a97ff,rough:.5,emissive:0x2a2680,emi:.25}); for(let i=0;i<5;i++){ const kn=new THREE.Mesh(new THREE.TorusKnotGeometry(.55+Math.random()*.5,.05,50,6,2,3),chMat); kn.position.set((Math.random()-.5)*1.4,(Math.random()-.5)*1.4,(Math.random()-.5)*1.4); kn.rotation.set(Math.random()*3,Math.random()*3,0); g.add(kn); }
+  return g; }
+function buildMito(){ const g=new THREE.Object3D();
+  const outer=new THREE.Mesh(new THREE.CapsuleGeometry(.72,1.7,10,20), physMat({color:0xE63329,rough:.35,clear:.5,opacity:.55,emissive:0x5a0d08,emi:.25,trans:REDOUT()?0:.3,thick:.8})); g.add(outer);
+  const inner=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.6,8,16), physMat({color:0xff6a4d,rough:.45,emissive:0x3a0a04,emi:.3})); g.add(inner);
+  // crêtes : replis internes (arcs de tore le long de l'axe)
+  const crMat=physMat({color:0xffb199,rough:.5,emissive:0x5a1a0a,emi:.35}); const NC=REDUCED?4:7;
+  for(let i=0;i<NC;i++){ const cr=new THREE.Mesh(new THREE.TorusGeometry(.5,.07,6,14,Math.PI*1.25),crMat); cr.position.y=(i/(NC-1)-.5)*1.5; cr.rotation.x=Math.PI/2; cr.rotation.z=i*.9; g.add(cr); }
+  return g; }
+function REDOUT(){ return REDUCED; }
+function buildER(){ const g=new THREE.Object3D();
+  const sheetMat=physMat({color:0x29B6E0,rough:.35,clear:.5,opacity:.8,emissive:0x073444,emi:.2,side:THREE.DoubleSide});
+  for(let s=0;s<3;s++){ const pts=[]; for(let i=0;i<=10;i++){ const a=i/10*Math.PI*1.6; pts.push(new THREE.Vector3(Math.cos(a)*(1.3+s*.35), (i-5)*.16 + s*.1, Math.sin(a)*(1.3+s*.35))); } const curve=new THREE.CatmullRomCurve3(pts); const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,40,.13,8,false),sheetMat); g.add(tube);
+    // ribosomes granuleux sur le RE
+    for(let i=0;i<=10;i+=1){ const t=i/10; const p=curve.getPoint(t); const r=new THREE.Mesh(new THREE.SphereGeometry(.09,6,6),physMat({color:0x9B2BB0,rough:.5,emissive:0x2a0730,emi:.2})); r.position.copy(p).add(new THREE.Vector3((Math.random()-.5)*.2,(Math.random()-.5)*.2,(Math.random()-.5)*.2)); g.add(r); } }
+  return g; }
+function buildGolgi(){ const g=new THREE.Object3D();
+  const cisMat=col=>physMat({color:col,rough:.35,clear:.5,opacity:.92,emissive:0x4a2f04,emi:.12,side:THREE.DoubleSide});
+  const cols=[0xF5A623,0xffbe52,0xF5A623,0xe89616,0xF5A623];
+  for(let i=0;i<5;i++){ const cis=new THREE.Mesh(new THREE.TorusGeometry(.85-i*.11,.11,10,28,Math.PI*1.3),cisMat(cols[i])); cis.position.y=i*.26; cis.rotation.x=Math.PI/2; cis.rotation.z=-i*.12; cis.scale.y=.6; g.add(cis); }
+  // vésicules bourgeonnantes
+  const vMat=physMat({color:0xffd27a,rough:.3,clear:.6,emissive:0x4a2f04,emi:.15}); for(let i=0;i<7;i++){ const v=new THREE.Mesh(new THREE.SphereGeometry(.12+Math.random()*.06,10,10),vMat); const a=Math.random()*7; v.position.set(Math.cos(a)*1.15,-.3-Math.random()*.6,Math.sin(a)*1.15); g.add(v); }
+  return g; }
+function buildRibosomes(n){ const geo=new THREE.IcosahedronGeometry(.12,0); const mat=physMat({color:0x9B2BB0,rough:.5,emissive:0x2a0730,emi:.18}); const inst=new THREE.InstancedMesh(geo,mat,n); const d=new THREE.Object3D(); let c=0; while(c<n){ const v=new THREE.Vector3((Math.random()-.5)*13,(Math.random()-.5)*13,(Math.random()-.5)*13); if(v.length()>3.2&&v.length()<7){ d.position.copy(v); d.rotation.set(Math.random()*3,Math.random()*3,0); const s=.7+Math.random()*.7; d.scale.setScalar(s); d.updateMatrix(); inst.setMatrixAt(c,d.matrix); c++; } } inst.instanceMatrix.needsUpdate=true; return inst; }
+function buildLysosome(){ const g=new THREE.Object3D(); const body=new THREE.Mesh(new THREE.SphereGeometry(.5,24,24),physMat({color:0xE0559B,rough:.3,clear:.6,opacity:.85,emissive:0x4a0a2e,emi:.25,trans:REDUCED?0:.3,thick:.6})); g.add(body);
+  const eMat=physMat({color:0xffa8d6,rough:.5,emissive:0x5a1a3a,emi:.3}); for(let i=0;i<8;i++){ const e=new THREE.Mesh(new THREE.SphereGeometry(.07+Math.random()*.05,6,6),eMat); e.position.set((Math.random()-.5)*.55,(Math.random()-.5)*.55,(Math.random()-.5)*.55); g.add(e); } return g; }
+function buildChloroplast(){ const g=new THREE.Object3D(); const outer=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.1,8,16),physMat({color:0x2faa5a,rough:.4,clear:.4,opacity:.7,emissive:0x0a3a1a,emi:.22,trans:REDUCED?0:.3,thick:.7})); g.add(outer);
+  // grana (piles de thylakoïdes)
+  const gMat=physMat({color:0x1e7a3f,rough:.5,emissive:0x0a3a1a,emi:.3}); for(let s=0;s<4;s++){ const gr=new THREE.Object3D(); for(let i=0;i<4;i++){ const d=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.05,14),gMat); d.position.y=i*.08; gr.add(d); } gr.position.set((Math.random()-.5)*.4,(Math.random()-.5)*.8,(Math.random()-.5)*.4); g.add(gr); } return g; }
+
+function buildDNA(){ dnaGroup=new THREE.Object3D(); dnaGroup.visible=false; scene.add(dnaGroup);
+  const seq=['A','T','G','C','A','T','C','G','T','A','G','C','A','T','G','C']; const N=seq.length, step=1.0, turn=0.55, r=1.9;
+  const pts1=[],pts2=[]; for(let i=0;i<N;i++){ const y=(i-(N-1)/2)*step, a=i*turn; pts1.push(new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r)); pts2.push(new THREE.Vector3(Math.cos(a+Math.PI)*r,y,Math.sin(a+Math.PI)*r)); }
+  const c1=new THREE.CatmullRomCurve3(pts1), c2=new THREE.CatmullRomCurve3(pts2); const seg=REDUCED?90:220;
+  dnaGroup.add(new THREE.Mesh(new THREE.TubeGeometry(c1,seg,.2,12,false),physMat({color:0x6E6BFF,rough:.28,clear:.7,emissive:0x1a1866,emi:.3,env:1.3})));
+  dnaGroup.add(new THREE.Mesh(new THREE.TubeGeometry(c2,seg,.2,12,false),physMat({color:0x29B6E0,rough:.28,clear:.7,emissive:0x073444,emi:.3,env:1.3})));
+  seq.forEach((b,i)=>{ const y=(i-(N-1)/2)*step, a=i*turn; const p1=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r), p2=new THREE.Vector3(Math.cos(a+Math.PI)*r,y,Math.sin(a+Math.PI)*r);
+    const pb=BASES[b].pair;
+    // barreau (liaison hydrogène) en deux moitiés colorées
+    const mid=p1.clone().add(p2).multiplyScalar(.5);
+    [[p1,mid,b],[p2,mid,pb]].forEach(([from,to,base])=>{ const len=from.distanceTo(to); const rod=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,len,10),physMat({color:new THREE.Color(BASES[base].c),rough:.3,clear:.5,emissive:new THREE.Color(BASES[base].c).multiplyScalar(.15),emi:.5})); rod.position.copy(from.clone().add(to).multiplyScalar(.5)); rod.lookAt(to); rod.rotateX(Math.PI/2); dnaGroup.add(rod); });
+    // billes de base avec lettre
+    const mk=(pos,base)=>{ const s=new THREE.Mesh(new THREE.SphereGeometry(.4,20,20),physMat({color:new THREE.Color(BASES[base].c),rough:.25,clear:.7,emissive:new THREE.Color(BASES[base].c).multiplyScalar(.2),emi:.4})); s.position.copy(pos); s.userData.base=base; const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:letterTex(base),transparent:true,depthTest:false})); sp.scale.setScalar(.55); sp.position.z=.42; s.add(sp); dnaGroup.add(s); dnaBases.push(s); };
+    mk(p1,b); mk(p2,pb);
+  });
+}
+
+function buildUI(){ const stage=shell.stage;
+  labelWrap=document.createElement('div'); labelWrap.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:16'; stage.appendChild(labelWrap);
+  const m=document.createElement('div'); m.className='ce-panel ce-modes'; m.innerHTML=`<h3>Vues</h3>
+    <button class="ce-tg" data-k="dna" aria-pressed="false">🧬 Voir l'ADN (noyau)</button>
+    <button class="ce-tg" data-k="vegetal" aria-pressed="false">🌱 Cellule végétale</button>
+    <button class="ce-tg" data-k="peel" aria-pressed="true">🫧 Membrane visible</button>
+    <h3 class="mt">Expériences</h3>
+    <button class="ce-tg" data-k="synth" aria-pressed="false">🧬 Synthèse d'une protéine</button>
+    <button class="ce-tg" data-k="mitose" aria-pressed="false">🔬 Mitose (division)</button>
+    <button class="ce-tg" id="ceNot" style="background:var(--surface-2);color:var(--fg)">📚 Notions de bio</button>`; stage.appendChild(m);
+  m.querySelector('#ceNot').onclick=()=>openNotions();
+  m.querySelectorAll('.ce-tg[data-k]').forEach(b=> b.onclick=()=>{ const k=b.dataset.k; const on=b.getAttribute('aria-pressed')!=='true'; b.setAttribute('aria-pressed',on); shell.sound('click');
+    if(k==='dna'){ on?enterDNA():exitDNA(); }
+    if(k==='vegetal'){ vegetal=on; cellGroup.userData.chloro.visible=on; cellGroup.userData.paroi.visible=on; cellGroup.userData.vac.scale.setScalar(on?1.9:1); shell.say(on?"Cellule végétale : paroi rigide, grande vacuole et chloroplastes pour la photosynthèse.":"Retour à la cellule animale.",'concentre'); }
+    if(k==='peel'){ cellGroup.userData.membrane.material.opacity=on?(REDUCED?.14:.10):0; }
+    if(k==='synth'){ on?startSynthesis():endSynthesis(); }
+    if(k==='mitose'){ on?startMitosis():endMitosis(); }
+  });
+  const info=document.createElement('div'); info.className='ce-panel ce-info'; info.id='ceInfo'; stage.appendChild(info);
+  const hint=document.createElement('div'); hint.className='ce-hint'; hint.id='ceHint'; hint.textContent="Clique un organite pour sa fiche · ou « Voir l'ADN »"; stage.appendChild(hint);
+  // étiquettes 3D (une par organite nommé)
+  const seen=new Set(); organelles.forEach(o=>{ const k=o.userData.key; if(!k||seen.has(k)||!ORG[k])return; seen.add(k); const el=document.createElement('div'); el.className='ce-label'; el.innerHTML=`<span class="dot" style="background:${ORG[k].color}"></span>${ORG[k].name}`; labelWrap.appendChild(el); labelEls[k]=el; });
+}
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x05070f:0x0a0e1a,1); }
+function onResize(){ const s=shell.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
+function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer,camera); const arr= dnaView? dnaBases : organelles.filter(o=>o.visible!==false); const hits=raycaster.intersectObjects(arr,true); let mem=null; for(const h of hits){ let o=h.object; while(o&&!o.userData.key&&o.userData.base===undefined)o=o.parent; if(!o)continue; if(o.userData.key==='membrane'||o.userData.key==='paroi'){ if(!mem)mem=o; continue;} return o; } return mem; }
+function onMove(e){ setP(e); const o=pick(); hovered=o; renderer.domElement.style.cursor=o?'pointer':'grab'; }
+function onDown(e){ setP(e); const o=pick(); if(!o)return; shell.sound('pop');
+  if(dnaView&&o.userData.base!==undefined){ const b=o.userData.base; openFiche({ name:'Base '+b, sub:'Nucléotide', color:BASES[b].c, desc:["La base « "+b+" » s'apparie toujours avec « "+BASES[b].pair+" ». C'est la règle de complémentarité de l'ADN."], fun:'' }); return; }
+  if(o.userData.key){ if(find){ answerFind(o.userData.key); return; }
+    if(o.userData.key==='noyau'&&!dnaView){ enterDNA(); document.querySelector('[data-k="dna"]').setAttribute('aria-pressed',true); return; }
+    const d=ORG[o.userData.key]; if(d){ selected=o; openFiche(d); focusOn(o,o.userData.key==='membrane'||o.userData.key==='paroi'?22:7.5); shell.say(d.desc[0].replace(/<[^>]+>/g,''),'concentre'); } }
+}
+function onKey(e){ if(dnaView||find||synth||mito)return; if(e.key==='ArrowRight'||e.key==='ArrowLeft'){ cycleOrg(e.key==='ArrowRight'?1:-1); e.preventDefault(); } }
+function cycleOrg(dir){ const list=organelles.filter(o=>o.visible!==false&&o.userData.key&&ORG[o.userData.key]&&o.userData.key!=='membrane'&&o.userData.key!=='paroi'); if(!list.length)return; let idx=list.indexOf(selected); idx=(idx+dir+list.length)%list.length; if(idx<0)idx=0; const o=list[idx]; selected=o; if(o.userData.key==='noyau'){ /* montre fiche noyau sans entrer ADN au clavier */ } openFiche(ORG[o.userData.key]); focusOn(o,7.5); shell.sound('click'); shell.say(ORG[o.userData.key].desc[0].replace(/<[^>]+>/g,''),'concentre'); }
+function focusOn(o,dist){ camTarget=o; focusDist=dist; flying=true; }
+function openFiche(d){ const el=document.getElementById('ceInfo'); el.innerHTML=`<div class="ce-hd" style="background:linear-gradient(135deg,${d.color},${shade(d.color,-38)})"><div class="sub">${d.sub||''}</div><h2>${d.name}</h2><button class="ce-x" aria-label="Fermer">×</button></div><div class="ce-body"><div class="ce-sec">Rôle</div>${d.desc.map(p=>`<p>${p}</p>`).join('')}${d.fun?`<div class="ce-fun">💡 ${d.fun}</div>`:''}</div>`; el.classList.add('show'); el.querySelector('.ce-x').onclick=()=>{ el.classList.remove('show'); camTarget=null; selected=null; }; }
+function shade(hex,p){ const n=parseInt(hex.replace('#',''),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; const f=v=>Math.max(0,Math.min(255,Math.round(v+v*p/100))); return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+function enterDNA(){ dnaView=true; dnaGroup.visible=true; cellGroup.visible=false; controls.minDistance=3; controls.maxDistance=32; camTarget=null; flying=false; camera.position.set(0,2,13); controls.target.set(0,0,0); selected=null; openFiche(DNA_INFO); shell.say("L'ADN : une double hélice ! Les bases A-T et G-C s'apparient toujours par deux.",'enthousiaste'); document.getElementById('ceHint').textContent="Clique une base · A-T et G-C s'apparient"; }
+function exitDNA(){ dnaView=false; dnaGroup.visible=false; cellGroup.visible=true; controls.minDistance=4; controls.maxDistance=44; camera.position.set(0,4,19); controls.target.set(0,0,0); const b=document.querySelector('[data-k="dna"]'); if(b)b.setAttribute('aria-pressed',false); document.getElementById('ceHint').textContent="Clique un organite pour sa fiche · ou « Voir l'ADN »"; }
+
+const NOTIONS=[
+  {id:'theorie',name:'Théorie cellulaire',desc:["Tout être vivant est fait d'une ou plusieurs cellules ; la cellule est la plus petite unité de vie et provient toujours d'une autre cellule.","Une bactérie = 1 cellule ; un humain ≈ 37 000 milliards."]},
+  {id:'proca',name:'Procaryote vs eucaryote',desc:["Eucaryote (animal, végétal) : ADN enfermé dans un <b>noyau</b>, organites variés. Procaryote (bactérie) : pas de noyau, ADN libre.","Les eucaryotes sont plus grands et plus complexes."]},
+  {id:'noyau',name:'Noyau & ADN',desc:["Le noyau abrite l'ADN, le plan de la cellule, organisé en chromosomes.","Il commande la fabrication des protéines."]},
+  {id:'mito',name:'Mitochondrie (respiration)',desc:["La mitochondrie produit l'énergie (ATP) en « brûlant » les nutriments avec l'oxygène : c'est la respiration cellulaire.","On parle de « centrale énergétique » de la cellule."]},
+  {id:'chloro',name:'Chloroplaste (photosynthèse)',desc:["Présent chez les végétaux, il capte la lumière pour fabriquer du sucre à partir de CO₂ et d'eau, en libérant de l'O₂.","Sa couleur verte vient de la chlorophylle."]},
+  {id:'ribo',name:'Ribosomes & protéines',desc:["Les ribosomes lisent l'ARN messager et assemblent les acides aminés en protéines.","Les protéines font presque tout le travail de la cellule."]},
+  {id:'dogme',name:'ADN → ARN → protéine',desc:["Le dogme central : l'ADN est <b>transcrit</b> en ARN, puis l'ARN est <b>traduit</b> en protéine.","C'est ainsi que l'information génétique devient action."]},
+  {id:'adn',name:'Structure de l\'ADN',desc:["L'ADN est une double hélice ; les bases s'apparient A-T (2 liaisons H) et G-C (3 liaisons H).","La séquence des bases est le code génétique."]},
+  {id:'mitose',name:'Mitose (division)',desc:["Pour se multiplier, la cellule copie son ADN puis se divise en deux cellules identiques.","C'est la base de la croissance et de la réparation."]},
+  {id:'membrane',name:'Membrane & échanges',desc:["La membrane plasmique, faite de lipides, contrôle ce qui entre et sort de la cellule.","Elle est semi-perméable et parsemée de protéines."]},
+];
+function openNotions(){ const el=document.getElementById('ceInfo'); el.innerHTML=`<div class="ce-hd" style="background:linear-gradient(135deg,#2AA98C,#0e2a24)"><div class="sub">Cours · encyclopédie</div><h2>📚 Notions de biologie</h2><button class="ce-x" aria-label="Fermer">×</button></div><div class="ce-body"><div class="ce-chips">${NOTIONS.map(n=>`<button data-id="${n.id}">${n.name}</button>`).join('')}</div></div>`; el.classList.add('show'); el.querySelector('.ce-x').onclick=()=>el.classList.remove('show'); el.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{ const n=NOTIONS.find(x=>x.id===b.dataset.id); openFiche({name:n.name,sub:'Notion de biologie',color:'#2AA98C',desc:n.desc}); shell.sound('pop'); }); shell.sound('click'); }
+
+/* ====== MODE COURS : menu de défis ====== */
+function closeInfo(){ const el=document.getElementById('ceInfo'); if(el)el.classList.remove('show'); camTarget=null; selected=null; }
+function startMode(m){ mode=m; clearQuiz(); clearFind(); document.getElementById('ceHint').style.display=(m==='cours')?'none':''; if(m==='cours'){ shell.setScore(0); shell.setProgress(0); shell.setStars(0); chooseChallenge(); } }
+function chooseChallenge(){ clearQuiz(); clearFind(); if(dnaView)exitDNA(); closeInfo(); let b=ensureBanner(); b.innerHTML=`<div class="qtxt">🎓 Choisis ton défi</div><div class="qrow"><button class="ce-qo" style="min-width:auto;font-size:14px;padding:0 14px" data-c="find">🔎 Trouve l'organite</button><button class="ce-qo" style="min-width:auto;font-size:14px;padding:0 14px" data-c="dna">🧬 Assemble l'ADN</button></div>`; b.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>{ shell.sound('click'); if(x.dataset.c==='find')startFind(); else chooseDifficulty(); }); shell.say("Deux défis t'attendent : reconnaître les organites, ou apparier les bases de l'ADN. Choisis !",'curieux'); }
+function ensureBanner(){ let b=document.getElementById('ceQuiz'); if(!b){ b=document.createElement('div'); b.className='ce-quiz'; b.id='ceQuiz'; shell.stage.appendChild(b); } return b; }
+
+/* ---- Défi « Trouve l'organite » (jamais punitif) ---- */
+const FIND_Q=[
+  {key:'mito', q:"Qui fabrique l'énergie de la cellule ?"},
+  {key:'noyau', q:"Où est rangé l'ADN, le plan de la cellule ?"},
+  {key:'ribo', q:"Qui assemble les protéines ?"},
+  {key:'golgi', q:"Qui trie et expédie les protéines ?"},
+  {key:'lyso', q:"Qui recycle et digère les déchets ?"},
+  {key:'vacuole', q:"Qui stocke l'eau et les réserves ?"},
+  {key:'re', q:"Le réseau de tubes qui transporte dans la cellule ?"},
+  {key:'membrane', q:"La frontière qui entoure toute la cellule ?"},
+];
+function startFind(){ clearQuiz(); if(dnaView)exitDNA(); closeInfo(); const list=shuffle(FIND_Q.slice()).slice(0,6); find={list,idx:0,score:0,total:list.length,tries:0}; shell.setProgress(0); document.getElementById('ceHint').style.display='none'; askFind(); }
+function askFind(){ if(!find)return; if(find.idx>=find.total){ winFind(); return; } find.tries=0; const it=find.list[find.idx]; let b=ensureBanner(); b.innerHTML=`<div class="qmeta">Trouve l'organite · ${find.idx+1}/${find.total}</div><div class="qtxt">${it.q}</div><div class="qmeta">👆 Clique le bon organite dans la cellule</div>`; shell.say("Cherche dans la cellule et clique l'organite qui répond à la question. Prends ton temps !",'curieux'); }
+function answerFind(key){ if(!find)return; const want=find.list[find.idx].key; if(key===want){ find.score++; shell.addScore(200); shell.sound('good'); const d=ORG[want]; shell.say("Bravo ! "+d.name+" — "+(d.sub||'')+".",'celebration'); selected=organelles.find(o=>o.userData.key===want)||null; if(selected)focusOn(selected,7.5); find.idx++; shell.setProgress(find.idx/find.total); setTimeout(askFind,1300); }
+  else { find.tries++; shell.sound('bad'); const dn=ORG[key]; if(find.tries>=2){ // indice bienveillant après 2 essais
+      const target=organelles.find(o=>o.userData.key===want); if(target){ target.userData.pulse=1.2; } shell.say("Presque ! Indice : "+ORG[want].sub+". Regarde bien, il brille un peu.",'rassurant'); }
+    else { shell.say("Ce n'est pas "+(dn?dn.name:'ça')+", mais continue — tu vas trouver !",'rassurant'); } }
+}
+function winFind(){ const s=find.score, t=find.total; const stars=s>=t?3:s>=t-1?2:1; clearFind(); shell.win({ score:s*200, stars, title:s+"/"+t+" organites trouvés", learned:shell.cfg.learned, buddy: stars===3?"Parfait ! Tu reconnais tous les organites.":"Bien joué — révise les fiches et retente pour 3 étoiles.", onNext:()=>{ shell.setScore(0); startFind(); }, nextLabel:'Rejouer' }); }
+
+/* ---- Défi « Assemble l'ADN » (appariement des bases) ---- */
+const QUIZ_TIERS={debutant:'Débutant',inter:'Intermédiaire',expert:'Expert'};
+let quizTier='debutant';
+function chooseDifficulty(){ clearQuiz(); if(!dnaView)enterDNA(); let b=ensureBanner(); b.innerHTML='<div class="qtxt">🎯 Choisis ta difficulté</div><div class="qrow">'+Object.keys(QUIZ_TIERS).map(k=>`<button class="ce-qo" style="min-width:auto;font-size:14px;padding:0 14px" data-t="${k}">${QUIZ_TIERS[k]}</button>`).join('')+'</div>'; b.querySelectorAll('[data-t]').forEach(x=>x.onclick=()=>{ shell.sound('click'); quizTier=x.dataset.t; startQuiz(); }); shell.say('Débutant : 4 bases. Intermédiaire : 6. Expert : 8 bases enchaînées. À toi de jouer !','curieux'); }
+function startQuiz(){ if(!dnaView) enterDNA(); const bases=['A','T','G','C']; const len=quizTier==='expert'?8:quizTier==='inter'?6:4; const seq=Array.from({length:len},()=>bases[Math.floor(Math.random()*4)]); quiz={seq,idx:0,score:0,total:len}; shell.setProgress(0); askQuiz(); }
+function askQuiz(){ if(!quiz)return; if(quiz.idx>=quiz.total){ winQuiz(); return; } const b=quiz.seq[quiz.idx]; qbar(`Quelle base s'apparie avec <b style="font-size:22px">${b}</b> ?`, quiz.idx+1, quiz.total, ['A','T','G','C']); shell.say(`La base ${b} cherche sa partenaire. Souviens-toi : A-T, G-C.`,'curieux'); }
+function qbar(html,n,t,opts){ let b=ensureBanner(); b.innerHTML=`<div class="qmeta">Assemble l'ADN · ${n}/${t}</div><div class="qtxt">${html}</div><div class="qrow">${opts.map(o=>`<button class="ce-qo" style="background:${BASES[o].c}">${o}</button>`).join('')}</div>`; b.querySelectorAll('.ce-qo').forEach(btn=> btn.onclick=()=>answer(btn.textContent)); }
+function answer(b){ if(!quiz)return; const want=BASES[quiz.seq[quiz.idx]].pair; if(b===want){ quiz.score++; shell.addScore(150); shell.sound('good'); shell.say(`Exact ! ${quiz.seq[quiz.idx]} s'apparie avec ${want}.`,'celebration'); } else { shell.sound('bad'); shell.say(`Pas tout à fait : ${quiz.seq[quiz.idx]} va avec ${want}. (A-T, G-C) Continue !`,'rassurant'); } quiz.idx++; shell.setProgress(quiz.idx/quiz.total); setTimeout(askQuiz,1200); }
+function clearQuiz(){ const b=document.getElementById('ceQuiz'); if(b)b.remove(); quiz=null; }
+function clearFind(){ const b=document.getElementById('ceQuiz'); if(find){b&&b.remove();} find=null; }
+function winQuiz(){ const sc=quiz.score, tot=quiz.total; const b=document.getElementById('ceQuiz'); if(b)b.remove(); const st=sc>=tot?3:sc>=tot-1?2:1; shell.win({ score:sc*150, stars:st, title:`${sc}/${tot} appariements`, learned:shell.cfg.learned, buddy: st===3?"Parfait ! Tu connais le code de l'ADN.":"Bien — souviens-toi : A-T et G-C.", onNext:()=>{ shell.setScore(0); startQuiz(); }, nextLabel:'Rejouer' }); quiz=null; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/* ====== EXPÉRIENCE : Synthèse des protéines (dogme central ADN→ARN→protéine) ====== */
+const CODON_AA={ AUG:['Met','#F5A623'], UUU:['Phe','#E63329'], CCU:['Pro','#6E6BFF'], AAG:['Lys','#1B82E0'], GGA:['Gly','#1E8C7A'], UCA:['Ser','#29B6E0'], GCU:['Ala','#9B2BB0'], GAA:['Glu','#E0892B'], UAA:['STOP','#888'] };
+const RNA_COL={ A:'#E63329', U:'#F5A623', G:'#1E8C7A', C:'#1B82E0' };
+function baseBall(letter,colorHex,r){ r=r||0.34; const m=new THREE.Mesh(new THREE.SphereGeometry(r,20,20), new THREE.MeshPhysicalMaterial({color:colorHex,roughness:.3,clearcoat:.6,envMapIntensity:1,emissive:new THREE.Color(colorHex),emissiveIntensity:.12})); const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:letterTex(letter),transparent:true,depthTest:false})); sp.scale.setScalar(r*1.7); sp.position.z=r+0.05; m.add(sp); return m; }
+function startSynthesis(){ if(synth&&synth.active)return; shell.sound('pop'); if(dnaView)exitDNA(); clearQuiz(); clearFind(); closeInfo(); cellGroup.visible=false; if(dnaGroup)dnaGroup.visible=false;
+  const tb=document.querySelector('[data-k="synth"]'); if(tb)tb.setAttribute('aria-pressed',true);
+  const mids=['CCU','AAG','GGA','UCA','GCU','GAA','UUU']; const body=Array.from({length:4},()=>mids[Math.floor(Math.random()*mids.length)]);
+  const codons=['AUG',...body,'UAA']; const mrna=codons.join('').split('');
+  const dnaCoding=mrna.map(b=> b==='U'?'T':b);
+  synth={ active:true, step:0, t:0, codons, mrna, mLen:0, ribo:0, prot:[], anim:null };
+  synthGroup=new THREE.Group(); scene.add(synthGroup);
+  dnaCoding.forEach((b,i)=>{ const col=b==='A'?'#E63329':b==='T'?'#1B82E0':b==='G'?'#1E8C7A':'#F5A623'; const ball=baseBall(b,col); ball.position.set((i-mrna.length/2)*0.8, 4.2, 0); synthGroup.add(ball); });
+  const poly=new THREE.Mesh(new THREE.SphereGeometry(0.9,20,20), new THREE.MeshPhysicalMaterial({color:0x9B2BB0,transparent:true,opacity:.5,roughness:.2,transmission:.4,thickness:1})); poly.position.set((-mrna.length/2)*0.8-1, 4.2, 0); synthGroup.add(poly); synthGroup.userData.poly=poly;
+  synthGroup.userData.mrna=[]; synthGroup.userData.prot=[];
+  const r1=new THREE.Mesh(new THREE.SphereGeometry(1.0,24,16,0,Math.PI*2,0,Math.PI/2), new THREE.MeshPhysicalMaterial({color:0xc7a0d8,roughness:.4,clearcoat:.4})); r1.rotation.x=Math.PI; r1.position.set((-mrna.length/2)*0.8, -2.3, 0); r1.visible=false; synthGroup.add(r1);
+  const r2=new THREE.Mesh(new THREE.SphereGeometry(0.7,24,16,0,Math.PI*2,Math.PI/2,Math.PI/2), new THREE.MeshPhysicalMaterial({color:0xb084c8,roughness:.4,clearcoat:.4})); r2.rotation.x=Math.PI; r2.position.set((-mrna.length/2)*0.8, -1.5, 0); r2.visible=false; synthGroup.add(r2);
+  synthGroup.userData.ribo=[r1,r2];
+  camera.position.set(0,1,17); controls.target.set(0,1,0); controls.minDistance=8; controls.maxDistance=30;
+  buildSynthHUD(); setSynthStep(0);
+}
+function buildSynthHUD(){ let h=document.getElementById('ceHud'); if(h)h.remove(); h=document.createElement('div'); h.className='ce-hud on'; h.id='ceHud';
+  h.innerHTML='<div class="ce-htop"><div class="ce-hph" id="ceHph">Étape</div><h2 class="ce-htitle" id="ceHt">—</h2><div class="ce-hcap" id="ceHc">—</div><div class="ce-hsteps" id="ceHs"></div></div><div class="ce-hact" id="ceHa"></div><button class="ce-hquit" id="ceHq">Quitter l\'expérience</button>';
+  shell.stage.appendChild(h); document.getElementById('ceHq').onclick=endSynthesis; renderSteps('ceHs',SYNTH_STEPS.length,0); }
+function renderSteps(id,total,now){ const el=document.getElementById(id); if(!el)return; let s=''; for(let i=0;i<total;i++){ s+=`<i class="${i<now?'done':i===now?'now':''}"></i>`; } el.innerHTML=s; }
+const SYNTH_STEPS=[
+  {ph:'Le gène', t:'Voici un gène', c:"Une portion d'ADN (brin codant). Sa séquence A-T-G-C est la recette d'une protéine. Lançons sa lecture.", btn:'▶ Transcription'},
+  {ph:'1 · Transcription', t:'ADN → ARN messager', c:"Dans le noyau, l'ARN polymérase lit l'ADN et copie le gène en ARN messager. Le T de l'ADN devient un U dans l'ARN.", anim:'transcription', btn:'▶ Sortie du noyau'},
+  {ph:'Transport', t:"L'ARNm sort du noyau", c:"L'ARN messager quitte le noyau et rejoint un ribosome dans le cytoplasme.", anim:'move', btn:'▶ Traduction'},
+  {ph:'2 · Traduction', t:'ARN → protéine', c:"Le ribosome lit l'ARNm par groupes de 3 lettres (codons). Chaque codon code un acide aminé. La chaîne protéique s'allonge.", anim:'translation', btn:'✓ Repliement'},
+  {ph:'Terminé', t:'La protéine est née', c:"La chaîne d'acides aminés se replie en protéine 3D fonctionnelle : le code de l'ADN devient action !", anim:'fold', btn:'↺ Recommencer'},
+];
+function setSynthStep(i){ if(!synth)return; synth.step=i; synth.t=0; const st=SYNTH_STEPS[i]; if(!st)return;
+  document.getElementById('ceHph').textContent=st.ph; document.getElementById('ceHt').textContent=st.t; document.getElementById('ceHc').textContent=st.c; renderSteps('ceHs',SYNTH_STEPS.length,i);
+  synth.anim=st.anim||null; shell.sound(i===0?'click':'pop');
+  const act=document.getElementById('ceHa'); act.innerHTML=''; const b=document.createElement('button'); b.className='ce-hbtn'; b.textContent=st.btn; b.onclick=()=>{ if(i>=SYNTH_STEPS.length-1){ endSynthesis(); startSynthesis(); return; } if(synth.anim){ finishAnim(); } setSynthStep(i+1); }; act.appendChild(b);
+  if(st.anim==='move'){ synthGroup.userData.ribo.forEach(r=>r.visible=true); }
+}
+function finishAnim(){ if(synth.anim==='transcription'){ while(synth.mLen<synth.mrna.length) addMrnaBase(); } if(synth.anim==='translation'){ while(synth.ribo<synth.codons.length) addAmino(); } }
+function addMrnaBase(){ const i=synth.mLen; if(i>=synth.mrna.length)return; const b=synth.mrna[i]; const ball=baseBall(b, RNA_COL[b]); ball.position.set((i-synth.mrna.length/2)*0.8, 2.6, 0); synthGroup.add(ball); synthGroup.userData.mrna.push(ball); synth.mLen++; synthGroup.userData.poly.position.x=((i-synth.mrna.length/2)*0.8); }
+function addAmino(){ const ci=synth.ribo; if(ci>=synth.codons.length)return; const cod=synth.codons[ci]; const aa=CODON_AA[cod]||['?','#888']; if(aa[0]!=='STOP'){ const bead=new THREE.Mesh(new THREE.IcosahedronGeometry(0.42,1), new THREE.MeshPhysicalMaterial({color:aa[1],roughness:.35,clearcoat:.5,emissive:new THREE.Color(aa[1]),emissiveIntensity:.1})); const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:letterTex(aa[0][0]),transparent:true,depthTest:false})); sp.scale.setScalar(0.7); sp.position.z=0.5; bead.add(sp); const n=synth.prot.length; bead.position.set(-3+n*0.9, -4.2+Math.sin(n*0.9)*0.3, 0); synthGroup.add(bead); synth.prot.push(bead); synthGroup.userData.prot.push(bead); }
+  synth.ribo++; const rx=((ci*3+1)-synth.mrna.length/2)*0.8; synthGroup.userData.ribo.forEach(r=>r.position.x=rx); }
+function updateSynth(dt){ if(!synth||!synth.active)return; synth.t+=dt;
+  if(synth.anim==='transcription'){ if(synth.t>0.5 && synth.mLen<synth.mrna.length){ synth.t=0; addMrnaBase(); } }
+  else if(synth.anim==='move'){ synthGroup.userData.mrna.forEach(b=>{ b.position.y += (-0.9 - b.position.y)*Math.min(1,dt*2); }); }
+  else if(synth.anim==='translation'){ if(synth.t>0.7 && synth.ribo<synth.codons.length){ synth.t=0; addAmino(); } }
+  else if(synth.anim==='fold'){ synthGroup.userData.prot.forEach((b,i)=>{ const a=i*0.9, r=1.6; b.position.lerp(new THREE.Vector3(Math.cos(a)*r,-3.5+Math.sin(a)*r*0.5,Math.sin(a*0.5)*0.8),Math.min(1,dt*1.5)); }); }
+  if(synthGroup&&synthGroup.userData.poly)synthGroup.userData.poly.rotation.y+=dt;
+}
+function endSynthesis(){ if(!synth)return; synth.active=false; const h=document.getElementById('ceHud'); if(h)h.remove();
+  if(synthGroup){ scene.remove(synthGroup); synthGroup.traverse(x=>{ x.geometry&&x.geometry.dispose&&x.geometry.dispose(); }); } synthGroup=null; synth=null;
+  cellGroup.visible=true; camera.position.set(0,4,19); controls.target.set(0,0,0); controls.minDistance=4; controls.maxDistance=44;
+  const tb=document.querySelector('[data-k="synth"]'); if(tb)tb.setAttribute('aria-pressed',false); shell.sound('click'); }
+
+/* ====== EXPÉRIENCE : Mitose (division cellulaire) ====== */
+const CHROM_COL=[0x6E6BFF,0xE63329,0x1E8C7A,0xF5A623];
+function chromatid(col){ const g=new THREE.Group(); const m=new THREE.MeshPhysicalMaterial({color:col,roughness:.4,clearcoat:.4,emissive:new THREE.Color(col),emissiveIntensity:.1}); const a=new THREE.Mesh(new THREE.CapsuleGeometry(0.28,1.4,6,12),m); a.position.y=0.4; const b=new THREE.Mesh(new THREE.CapsuleGeometry(0.28,1.0,6,12),m); b.position.y=-0.5; b.rotation.z=0.3; g.add(a,b); return g; }
+function startMitosis(){ if(mito&&mito.active)return; shell.sound('pop'); if(dnaView)exitDNA(); if(synth&&synth.active)endSynthesis(); clearQuiz(); clearFind(); closeInfo(); cellGroup.visible=false; if(dnaGroup)dnaGroup.visible=false;
+  const tb=document.querySelector('[data-k="mitose"]'); if(tb)tb.setAttribute('aria-pressed',true);
+  mitoGroup=new THREE.Group(); scene.add(mitoGroup);
+  const memb=new THREE.Mesh(new THREE.SphereGeometry(6.2,48,40), new THREE.MeshPhysicalMaterial({color:0x7fd0ff,transparent:true,opacity:.12,roughness:.2,transmission:REDUCED?0:.5,thickness:1,side:THREE.DoubleSide})); mitoGroup.add(memb); mitoGroup.userData.memb=memb;
+  const memb2=memb.clone(); memb2.scale.setScalar(0.001); mitoGroup.add(memb2); mitoGroup.userData.memb2=memb2;
+  const nuc=new THREE.Mesh(new THREE.SphereGeometry(3.0,36,30), new THREE.MeshStandardMaterial({color:0x6E6BFF,transparent:true,opacity:.16,emissive:0x221b66,emissiveIntensity:.4})); mitoGroup.add(nuc); mitoGroup.userData.nuc=nuc;
+  mitoGroup.userData.ca=[]; mitoGroup.userData.cb=[];
+  for(let i=0;i<3;i++){ const col=CHROM_COL[i]; const A=chromatid(col), B=chromatid(col); A.rotation.z=0.35; B.rotation.z=-0.35; A.position.set((i-1)*0.4,0,0); B.position.set((i-1)*0.4,0,0); mitoGroup.add(A,B); mitoGroup.userData.ca.push(A); mitoGroup.userData.cb.push(B); }
+  const p1=new THREE.Mesh(new THREE.SphereGeometry(0.4,12,12),new THREE.MeshStandardMaterial({color:0xffe08a,emissive:0xffd24a,emissiveIntensity:.6})); p1.position.set(0,6,0); p1.visible=false; mitoGroup.add(p1);
+  const p2=p1.clone(); p2.position.set(0,-6,0); mitoGroup.add(p2); mitoGroup.userData.poles=[p1,p2];
+  camera.position.set(0,0,20); controls.target.set(0,0,0); controls.minDistance=10; controls.maxDistance=36;
+  buildMitoHUD(); setMitoStep(0);
+}
+function buildMitoHUD(){ let h=document.getElementById('ceHud'); if(h)h.remove(); h=document.createElement('div'); h.className='ce-hud on'; h.id='ceHud';
+  h.innerHTML='<div class="ce-htop"><div class="ce-hph" id="ceHph">Phase</div><h2 class="ce-htitle" id="ceHt">—</h2><div class="ce-hcap" id="ceHc">—</div><div class="ce-hsteps" id="ceHs"></div></div><div class="ce-hact" id="ceHa"></div><button class="ce-hquit" id="ceHq">Quitter l\'expérience</button>';
+  shell.stage.appendChild(h); document.getElementById('ceHq').onclick=endMitosis; renderSteps('ceHs',MITO_STEPS.length,0); }
+const MITO_STEPS=[
+  {ph:'1 · Interphase', t:'La cellule se prépare', c:"La cellule grandit et copie tout son ADN : chaque chromosome devient une paire de chromatides sœurs identiques.", btn:'▶ Prophase'},
+  {ph:'2 · Prophase', t:'Les chromosomes se condensent', c:"L'ADN s'enroule en chromosomes visibles (en X). La membrane du noyau disparaît et le fuseau de division se forme entre deux pôles.", btn:'▶ Métaphase'},
+  {ph:'3 · Métaphase', t:"Alignement à l'équateur", c:"Les chromosomes s'alignent au milieu de la cellule, sur la « plaque équatoriale », accrochés au fuseau.", btn:'▶ Anaphase'},
+  {ph:'4 · Anaphase', t:'Séparation', c:"Les chromatides sœurs se séparent et sont tirées vers les deux pôles opposés : chaque futur noyau reçoit une copie complète.", btn:'▶ Télophase'},
+  {ph:'5 · Télophase', t:'Deux noyaux', c:"Les chromosomes arrivent aux pôles ; une nouvelle membrane nucléaire se reforme autour de chaque lot.", btn:'▶ Cytokinèse'},
+  {ph:'6 · Cytokinèse', t:'Deux cellules filles', c:"La cellule se pince en son milieu et se divise en deux cellules filles identiques. La division est terminée !", btn:'↺ Recommencer'},
+];
+function setMitoStep(i){ mito={active:true,step:i,t:0}; const st=MITO_STEPS[i]; if(!st)return;
+  document.getElementById('ceHph').textContent=st.ph; document.getElementById('ceHt').textContent=st.t; document.getElementById('ceHc').textContent=st.c; renderSteps('ceHs',MITO_STEPS.length,i); shell.sound(i===0?'click':'pop');
+  const act=document.getElementById('ceHa'); act.innerHTML=''; const b=document.createElement('button'); b.className='ce-hbtn'; b.textContent=st.btn; b.onclick=()=>{ if(i>=MITO_STEPS.length-1){ endMitosis(); startMitosis(); return; } setMitoStep(i+1); }; act.appendChild(b);
+  const u=mitoGroup.userData; if(i>=1){ u.nuc.visible=false; u.poles.forEach(p=>p.visible=true); } else { u.nuc.visible=true; u.poles.forEach(p=>p.visible=false); }
+}
+function updateMitosis(dt){ if(!mito||!mito.active||!mitoGroup)return; const k=Math.min(1,dt*2.2); const u=mitoGroup.userData; const st=mito.step;
+  u.ca.forEach((A,i)=>{ const B=u.cb[i]; let ta,tb;
+    if(st<=1){ ta=new THREE.Vector3((i-1)*1.2,0,0); tb=ta.clone(); }
+    else if(st===2){ ta=new THREE.Vector3((i-1)*2.0,0,0); tb=ta.clone(); }
+    else if(st===3){ ta=new THREE.Vector3((i-1)*1.8,3.5,0); tb=new THREE.Vector3((i-1)*1.8,-3.5,0); }
+    else { ta=new THREE.Vector3((i-1)*1.6,4.6,0); tb=new THREE.Vector3((i-1)*1.6,-4.6,0); }
+    A.position.lerp(ta,k); B.position.lerp(tb,k);
+    const cs=st>=1?1.2:0.7; A.scale.lerp(new THREE.Vector3(cs,cs,cs),k); B.scale.lerp(new THREE.Vector3(cs,cs,cs),k);
+  });
+  if(st>=5){ u.memb.scale.lerp(new THREE.Vector3(1,0.5,1),k); u.memb.position.lerp(new THREE.Vector3(0,3.2,0),k); u.memb2.scale.lerp(new THREE.Vector3(1,0.5,1),k); u.memb2.position.lerp(new THREE.Vector3(0,-3.2,0),k); }
+}
+function endMitosis(){ if(!mito)return; mito.active=false; const h=document.getElementById('ceHud'); if(h)h.remove();
+  if(mitoGroup){ scene.remove(mitoGroup); mitoGroup.traverse(x=>{ x.geometry&&x.geometry.dispose&&x.geometry.dispose(); }); } mitoGroup=null; mito=null;
+  cellGroup.visible=true; camera.position.set(0,4,19); controls.target.set(0,0,0); controls.minDistance=4; controls.maxDistance=44;
+  const tb=document.querySelector('[data-k="mitose"]'); if(tb)tb.setAttribute('aria-pressed',false); shell.sound('click'); }
+
+/* ====== ÉTIQUETTES 3D + boucle ====== */
+function updateLabels(){ for(const k in labelEls)labelEls[k].style.display='none'; if(!cellGroup.visible)return; const cur=hovered||selected; if(!cur||!cur.userData.key||!labelEls[cur.userData.key])return; const el=labelEls[cur.userData.key]; const v=new THREE.Vector3(); cur.getWorldPosition(v); v.project(camera); if(v.z>1)return; const s=shell.stage; el.style.left=((v.x*.5+.5)*s.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*s.clientHeight)+'px'; el.style.display='block'; }
+function animate(){ requestAnimationFrame(animate); const dt=Math.min(clock.getDelta(),.05);
+  if(synth&&synth.active){ updateSynth(dt); controls.update(); composer.render(); return; }
+  if(mito&&mito.active){ updateMitosis(dt); controls.update(); composer.render(); return; }
+  if(cellGroup.visible){ if(!REDUCED)cellGroup.rotation.y+=dt*0.05;
+    organelles.forEach(o=>{ if(!o.userData.home)return; // léger flottement + surbrillance au survol
+      const bob=REDUCED?0:Math.sin(clock.elapsedTime*0.7+(o.userData.phase||0))*0.04; o.position.y=o.userData.home.y+bob;
+      let ts=(o===hovered||o===selected)?1.08:1; if(o.userData.pulse){ o.userData.pulse-=dt; ts=1.12+Math.sin(clock.elapsedTime*8)*0.06; if(o.userData.pulse<=0){o.userData.pulse=0;} } o.scale.lerp(new THREE.Vector3(ts,ts,ts),0.15); });
+  }
+  if(dnaGroup.visible&&!REDUCED) dnaGroup.rotation.y+=dt*0.22;
+  if(flying&&camTarget){ const tp=new THREE.Vector3(); camTarget.getWorldPosition(tp); controls.target.lerp(tp,0.08); const dir=camera.position.clone().sub(tp).normalize(); const want=tp.clone().add(dir.multiplyScalar(focusDist)); camera.position.lerp(want,0.06); if(camera.position.distanceTo(want)<1.2)flying=false; }
+  updateLabels(); controls.update(); composer.render();
+}
+</script>
+</body>
+</html>

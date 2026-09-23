@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Corrige la phrase</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .cp-wrap { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:24px; text-align:center; }
+  .cp-instr { font-size:14px; color:var(--fg-muted); }
+  .cp-sent { font-size:clamp(20px,4vw,30px); line-height:1.7; max-width:46ch; }
+  .cp-word { cursor:pointer; border-radius:6px; padding:1px 4px; transition:.12s; }
+  .cp-word:hover { background:var(--surface-2); }
+  .cp-word.marked { background:var(--warn); color:var(--warn-fg); box-shadow:inset 0 -3px 0 var(--brand-amber); }
+  .cp-word.ok { background:var(--ok); color:var(--ok-fg); } .cp-word.miss { background:var(--err); color:var(--err-fg); }
+  .cp-word .corr { font-size:13px; display:block; color:var(--ok-fg); font-weight:700; }
+  .cp-b { font-family:var(--font-body); font-weight:700; min-height:48px; padding:0 24px; border-radius:999px; border:none; background:var(--accent); color:#fff; cursor:pointer; font-size:15px; }
+  .cp-count { font-family:var(--font-mono); font-size:12px; color:var(--fg-muted); }
+</style>
+</head>
+<body>
+<script>
+// chaque phrase : mots + indices fautifs avec correction
+const SENT=[
+  { words:['Les','enfant','jouent','dans','le','jardin','.'], errs:{1:'enfants'} },
+  { words:['Elle','mange','une','pomme','rouge','et','un','poire','.'], errs:{7:'une'} },
+  { words:['Nous','allons','o','cinéma','ce','soir','.'], errs:{2:'au'} },
+  { words:['Le','chat','dorme','sur','le','canapé','.'], errs:{2:'dort'} },
+  { words:['Ils','on','gagné','le','match','hier','.'], errs:{1:'ont'} },
+  { words:['Ma','sœur','et','moi','somme','contents','.'], errs:{4:'sommes'} },
+  { words:['Je','prend','le','bus','tout','les','matins','.'], errs:{1:'prends',5:'tous'} },
+  { words:['Cette','histoire','est','très','interressante','.'], errs:{4:'intéressante'} },
+  { words:['Les','fleur','du','jardin','sentent','bon','.'], errs:{1:'fleurs'} },
+  { words:['Vous','avez','fais','vos','devoirs','?'], errs:{2:'fait'} },
+];
+let mode='detente', queue=[], idx=0, right=0, marked=new Set();
+const shell=window.Konstrio.createGame({
+  id:'2d-29-corrige-phrase', code:'2D·29', title:'Corrige la phrase', type:'2D',
+  domain:{ label:'Français & Langues', color:'#1457A8' },
+  intro:{
+    greet:"Des fautes se cachent dans les phrases ! Clique les mots mal écrits pour les repérer.",
+    rule:"Chaque phrase contient une ou plusieurs <b>fautes</b> (orthographe, accord, mot oublié). Clique tous les mots fautifs, puis valide pour voir les corrections.",
+    how:["Lis la phrase attentivement.","Clique chaque mot qui te semble incorrect (il se surligne).","Valide : les bons repérages passent au vert, et la correction s'affiche."],
+    keys:"Clique les mots ; reclique pour désélectionner.",
+    objectif:"Repérer les fautes d'accord, de conjugaison et d'orthographe courantes.",
+    hint:"Vérifie les accords (sujet-verbe, nom-pluriel) et les homophones (on/ont, a/à, ou/où).",
+    why:"Relire en cherchant activement les fautes est la meilleure méthode pour progresser en orthographe."
+  },
+  learned:["Accord sujet-verbe et accord en nombre sont des sources fréquentes de fautes.","Attention aux homophones : on/ont, a/à, ou/où, et/est.","Relire en traquant les fautes améliore durablement l'orthographe."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; idx=0; right=0; api.setScore(0); show(); },
+  onRestart:(api)=>{ idx=0; right=0; api.setScore(0); show(); },
+});
+let wrap;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='cp-wrap';
+  wrap.innerHTML=`<div class="cp-instr">Clique les mots mal écrits, puis valide</div><div class="cp-sent" id="cpSent"></div><div class="cp-count" id="cpCount"></div><button class="cp-b" id="cpVal">Vérifier</button>`;
+  api.stage.appendChild(wrap); queue=SENT.map((_,i)=>i).sort(()=>Math.random()-.5); wrap.querySelector('#cpVal').onclick=validate; show(); }
+function show(){ if(idx>=queue.length){ finish(); return; } const s=SENT[queue[idx]]; marked=new Set();
+  shell.api.setLevel((idx+1)+'/'+queue.length); shell.api.setProgress(idx/queue.length);
+  const sent=document.getElementById('cpSent'); sent.innerHTML='';
+  s.words.forEach((w,i)=>{ if(/^[.,?!]$/.test(w)){ sent.insertAdjacentText('beforeend', w+' '); return; } const sp=document.createElement('span'); sp.className='cp-word'; sp.dataset.i=i; sp.textContent=w; sp.onclick=()=>{ if(sp.classList.contains('ok')||sp.classList.contains('miss'))return; if(marked.has(i)){marked.delete(i);sp.classList.remove('marked');} else {marked.add(i);sp.classList.add('marked');} shell.sound('tick'); updateCount(); }; sent.appendChild(sp); sent.insertAdjacentText('beforeend',' '); });
+  document.getElementById('cpVal').disabled=false; updateCount();
+  shell.api.say(idx===0?"Repère les fautes en cliquant les mots.":"Phrase suivante !",'concentre'); }
+function updateCount(){ const s=SENT[queue[idx]]; const n=Object.keys(s.errs).length; document.getElementById('cpCount').textContent=`${marked.size} mot(s) sélectionné(s) · ${n} faute(s) à trouver`; }
+function validate(){
+  const s=SENT[queue[idx]]; const errs=new Set(Object.keys(s.errs).map(Number)); let allOk=true;
+  wrap.querySelectorAll('.cp-word').forEach(sp=>{ const i=+sp.dataset.i; sp.style.pointerEvents='none';
+    if(errs.has(i)){ if(marked.has(i)){ sp.classList.remove('marked'); sp.classList.add('ok'); } else { sp.classList.add('miss'); allOk=false; } sp.innerHTML=sp.textContent+`<span class="corr">→ ${s.errs[i]}</span>`; }
+    else if(marked.has(i)){ sp.classList.add('miss'); allOk=false; } });
+  if(allOk){ right++; shell.api.addScore(120); shell.sound('good'); shell.api.say('Parfait ! Toutes les fautes repérées et corrigées.','fier'); }
+  else { shell.sound('bad'); shell.api.say("Pas tout à fait — regarde les corrections en vert sous les mots.",'rassurant'); }
+  document.getElementById('cpVal').disabled=true;
+  idx++; shell.api.setProgress(idx/queue.length); setTimeout(show, allOk?1400:2400);
+}
+function finish(){ const acc=right/queue.length, stars=acc>=.9?3:acc>=.6?2:1;
+  shell.api.win({ score:right*120, stars, title:`${right}/${queue.length} phrases corrigées`,
+    buddy: acc>=.9?"Œil de correcteur ! Aucune faute ne t'échappe.":"Bien — surveille les accords et les homophones (on/ont, a/à).",
+    learned:shell.cfg.learned, onNext:()=>{ idx=0; right=0; shell.api.setScore(0); queue=SENT.map((_,i)=>i).sort(()=>Math.random()-.5); show(); }, nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

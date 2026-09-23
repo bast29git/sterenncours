@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Chasse au phishing</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .ph-wrap { position:absolute; inset:0; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:24px 16px 40px; }
+  .ph-col { width:min(600px,100%); display:flex; flex-direction:column; gap:16px; }
+  .ph-meta { display:flex; align-items:center; justify-content:space-between; font-family:var(--font-mono); font-size:12px; color:var(--fg-muted); }
+  .ph-mail { background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); overflow:hidden; animation:fadeUp .4s both; }
+  .ph-mhead { padding:16px 18px; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:8px; }
+  .ph-from { display:flex; align-items:center; gap:11px; }
+  .ph-ava { width:40px; height:40px; border-radius:999px; flex:none; display:grid; place-items:center; font-family:var(--font-title); font-weight:800; color:#fff; font-size:17px; }
+  .ph-fname { font-weight:700; font-size:15px; }
+  .ph-fmail { font-family:var(--font-mono); font-size:12.5px; color:var(--fg-muted); word-break:break-all; }
+  .ph-subj { font-family:var(--font-title); font-weight:800; font-size:18px; line-height:1.2; }
+  .ph-body { padding:18px; font-size:14.5px; line-height:1.6; color:var(--fg); }
+  .ph-body p { margin:0 0 12px; }
+  .ph-link { color:var(--accent-text); text-decoration:underline; font-family:var(--font-mono); font-size:13px; word-break:break-all; }
+  .ph-btnbar { padding:0 18px 18px; display:flex; gap:10px; }
+  .ph-vb { flex:1; min-height:52px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); font-family:var(--font-body); font-weight:700; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform .12s, box-shadow .2s, background .2s; }
+  .ph-vb:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+  .ph-vb:focus-visible { outline:none; box-shadow:var(--ring); }
+  .ph-vb.safe:hover { background:var(--ok); color:var(--ok-fg); }
+  .ph-vb.phish:hover { background:var(--err); color:var(--err-fg); }
+  .flag { background:var(--warn); color:var(--warn-fg); border-radius:4px; padding:0 3px; box-shadow:inset 0 -2px 0 var(--brand-amber); }
+  .ph-reveal { margin:0 18px 18px; padding:14px 16px; border-radius:12px; border:1px solid var(--border); animation:fadeUp .3s both; }
+  .ph-reveal.good { background:var(--ok); border-color:color-mix(in srgb,var(--brand-teal) 35%,transparent); }
+  .ph-reveal.bad { background:var(--err); border-color:color-mix(in srgb,var(--brand-red) 35%,transparent); }
+  .ph-reveal h4 { margin:0 0 8px; font-family:var(--font-title); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .ph-reveal ul { margin:0; padding-left:18px; display:flex; flex-direction:column; gap:5px; font-size:13.5px; }
+  .ph-next { margin:2px 18px 18px; }
+  .ph-nb { width:100%; min-height:48px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-family:var(--font-body); font-weight:700; font-size:15px; cursor:pointer; }
+  .ph-nb:hover { box-shadow:0 8px 24px rgba(110,107,255,.4); }
+</style>
+</head>
+<body>
+<script>
+const EMAILS = [
+  { name:'La Banque Postale', mail:'service-client@labanquepostale.fr', color:'#1B82E0', subj:'Votre relevé de compte de mars est disponible',
+    body:`<p>Bonjour,</p><p>Votre relevé de compte du mois de mars est désormais consultable depuis votre espace client habituel.</p><p>Connectez-vous comme d'habitude sur notre site officiel pour le consulter. Aucune action n'est requise par e-mail.</p><p>Cordialement,<br/>Votre conseiller.</p>`,
+    phish:false, flags:[], why:"Expéditeur cohérent, pas de lien piégé, pas d'urgence ni de demande de données : ce message est légitime." },
+  { name:'Sécurité Netfllix', mail:'support@netfllix-secure.com', color:'#E63329', subj:'⚠ Votre compte sera SUSPENDU sous 24h !',
+    body:`<p>Cher client,</p><p>Nous avons détecté un problème de paiement. Votre compte sera <span class="flag" data-f>définitivement suspendu sous 24 heures</span> si vous ne mettez pas à jour vos informations bancaires immédiatement.</p><p>Cliquez ici : <a class="ph-link" data-f>http://netfllix-secure.com/verifier-compte</a></p>`,
+    phish:true, flags:["Le domaine « netf<b>ll</b>ix-secure.com » est mal orthographié et n'est pas le vrai site.","Urgence artificielle (« 24 heures », « suspendu ») pour te faire paniquer.","On te demande tes informations bancaires par e-mail — jamais légitime."],
+    why:"Faux domaine + urgence + demande de données bancaires : les trois marques classiques d'un hameçonnage." },
+  { name:'Amazon', mail:'no-reply@amazon-livraison-fr.net', color:'#F5A623', subj:'Votre colis est bloqué - réglez 1,99 € de frais',
+    body:`<p>Bonjour,</p><p>Votre colis n'a pas pu être livré. Pour le débloquer, réglez les <span class="flag" data-f>frais de redistribution de 1,99 €</span> via le lien sécurisé :</p><p><a class="ph-link" data-f>https://amazon-livraison-fr.net/paiement</a></p>`,
+    phish:true, flags:["Le domaine « amazon-livraison-fr.net » n'appartient pas à Amazon (qui utilise amazon.fr).","Petite somme demandée (1,99 €) pour capter ta carte bancaire — arnaque fréquente.","Prétexte du colis bloqué pour créer un sentiment d'urgence."],
+    why:"Le faux domaine et la demande de paiement pour un « colis bloqué » sont des pièges très répandus." },
+  { name:'Marie Dupont', mail:'marie.dupont@mon-entreprise.fr', color:'#1E8C7A', subj:'Compte-rendu réunion de lundi',
+    body:`<p>Salut,</p><p>Comme convenu, voici le compte-rendu de notre réunion. On se cale jeudi pour la suite ?</p><p>Bonne journée,<br/>Marie</p>`,
+    phish:false, flags:[], why:"Échange interne normal, ton naturel, aucun lien ni demande sensible : message légitime." },
+  { name:'Impots.gouv', mail:'remboursement@impots-gouv-remboursement.com', color:'#9B2BB0', subj:'Remboursement de 384,29 € en attente',
+    body:`<p>Madame, Monsieur,</p><p>Suite à un trop-perçu, un <span class="flag" data-f>remboursement de 384,29 €</span> vous est dû. Renseignez vos coordonnées bancaires sous 48h :</p><p><a class="ph-link" data-f>https://impots-gouv-remboursement.com/form</a></p>`,
+    phish:true, flags:["L'administration française utilise le domaine « impots.gouv.fr », pas un .com inconnu.","Promesse d'argent (384,29 €) pour t'inciter à donner ton RIB.","Délai de 48h pour presser la décision."],
+    why:"L'État ne réclame jamais ton RIB par e-mail. Un montant précis + un faux domaine = hameçonnage." },
+  { name:'GitHub', mail:'noreply@github.com', color:'#13142B', subj:'[GitHub] A new SSH key was added to your account',
+    body:`<p>Hi,</p><p>A new SSH key was added to your account. If this was you, no action is needed. If you didn't do this, review your security settings from the site directly.</p>`,
+    phish:false, flags:[], why:"Domaine officiel github.com, notification standard, pas de lien d'urgence : légitime." },
+  { name:'Service RH', mail:'rh@societe-interne.com', color:'#29B6E0', subj:'Mise à jour de votre fiche de paie',
+    body:`<p>Bonjour,</p><p>Merci de vérifier vos informations pour la prochaine paie en téléchargeant le document joint et en <span class="flag" data-f>renvoyant votre numéro de sécurité sociale et un RIB</span>.</p><p><a class="ph-link" data-f>https://societe-interne.com/fiche?id=8830</a></p>`,
+    phish:true, flags:["On te demande des données très sensibles (numéro de sécu + RIB) par e-mail.","Le domaine « societe-interne.com » est générique et invérifiable.","Un vrai service RH passe par un outil interne sécurisé, pas par e-mail."],
+    why:"La collecte de données sensibles par e-mail est le cœur de l'ingénierie sociale en entreprise." },
+  { name:'Apple', mail:'appleid@apple-id-verify.support', color:'#565B75', subj:'Votre identifiant Apple a été verrouillé',
+    body:`<p>Bonjour,</p><p>Pour des raisons de sécurité, votre identifiant a été <span class="flag" data-f>verrouillé</span>. Déverrouillez-le en confirmant votre mot de passe ici :</p><p><a class="ph-link" data-f>https://apple-id-verify.support/unlock</a></p>`,
+    phish:true, flags:["Le vrai domaine est apple.com, pas « apple-id-verify.support ».","On te demande de saisir ton mot de passe via un lien — à ne jamais faire.","Menace de verrouillage pour créer la peur."],
+    why:"Aucun service sérieux ne te demande ton mot de passe par lien e-mail." },
+  { name:'Médiathèque', mail:'contact@mediatheque-ville.fr', color:'#23A06E', subj:'Rappel : votre livre est à rendre',
+    body:`<p>Bonjour,</p><p>Petit rappel amical : « Le Petit Prince » est à rapporter avant samedi. Bonne lecture !</p><p>L'équipe de la médiathèque.</p>`,
+    phish:false, flags:[], why:"Rappel courant, sans lien ni demande de données : message légitime." },
+];
+
+let order=[], idx=0, correct=0, mode='detente';
+
+const shell = window.Konstrio.createGame({
+  id:'2d-01-phishing', code:'2D·01', title:'Chasse au phishing', type:'2D',
+  domain:{ label:'Cybersécurité', color:'#E63329' },
+  intro:{
+    greet:"Inspecteur anti-arnaque, à toi de jouer ! Pour chaque e-mail, dis-moi s'il est sûr ou s'il s'agit d'une tentative d'hameçonnage.",
+    rule:"On reçoit un faux mail sur deux. Apprends à les repérer : analyse l'expéditeur, le lien, le ton, et décide si le message est <b>sûr</b> ou s'il s'agit d'un <b>hameçonnage</b> (phishing).",
+    how:["Lis bien l'adresse de l'expéditeur et survole les liens : c'est là que se cachent les pièges.","Méfie-toi de l'urgence, des menaces et des demandes de mot de passe ou de RIB.","Choisis « Sûr » ou « Hameçonnage », puis découvre les indices révélés."],
+    keys:"Touches : S = Sûr · H = Hameçonnage · Entrée = suivant.",
+    objectif:"Classer correctement 9 e-mails et reconnaître les 3 signaux d'alerte : faux domaine, urgence, demande de données.",
+    hint:"Le détail qui trahit presque toujours une arnaque : l'adresse du domaine après le @. Compare-la au vrai site.",
+    why:"Le phishing exploite tes émotions (peur, appât du gain, urgence). Vérifier calmement l'expéditeur et le lien déjoue la majorité des attaques."
+  },
+  learned:[
+    "Un faux domaine (orthographe modifiée, extension douteuse) est le signal n°1 d'hameçonnage.",
+    "L'urgence et la peur sont des manipulations pour t'empêcher de réfléchir.",
+    "Aucun organisme sérieux ne demande mot de passe ou RIB par e-mail."
+  ],
+  onReady:(api)=> build(api),
+  onStart:(m,api)=>{ mode=m; reset(api); },
+  onRestart:(api)=> reset(api),
+});
+
+let root;
+function build(api){
+  root = document.createElement('div'); root.className='ph-wrap';
+  api.stage.appendChild(root);
+  document.addEventListener('keydown',(e)=>{
+    if (document.querySelector('.ph-vb')){ if(e.key==='s'||e.key==='S') verdict(false); if(e.key==='h'||e.key==='H') verdict(true); }
+    if (e.key==='Enter'){ const n=document.querySelector('.ph-nb'); if(n) n.click(); }
+  });
+  reset(api);
+}
+function reset(api){
+  shell.api=api; order = EMAILS.map((_,i)=>i).sort(()=>Math.random()-0.5);
+  idx=0; correct=0; api.setScore(0); api.setProgress(0); render();
+}
+function render(){
+  const api=shell.api; const e=EMAILS[order[idx]];
+  api.setLevel((idx+1)+'/'+order.length); api.setProgress(idx/order.length);
+  const initials=e.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  root.innerHTML = `
+    <div class="ph-col">
+      <div class="ph-meta"><span>📬 E-mail ${idx+1} sur ${order.length}</span><span>Bonnes réponses : ${correct}</span></div>
+      <div class="ph-mail">
+        <div class="ph-mhead">
+          <div class="ph-from">
+            <div class="ph-ava" style="background:${e.color}">${initials}</div>
+            <div><div class="ph-fname">${e.name}</div><div class="ph-fmail">&lt;${e.mail}&gt;</div></div>
+          </div>
+          <div class="ph-subj">${e.subj}</div>
+        </div>
+        <div class="ph-body">${e.body}</div>
+        <div class="ph-btnbar">
+          <button class="ph-vb safe">✅ Message sûr</button>
+          <button class="ph-vb phish">🎣 Hameçonnage</button>
+        </div>
+      </div>
+    </div>`;
+  root.querySelector('.ph-vb.safe').onclick=()=>verdict(false);
+  root.querySelector('.ph-vb.phish').onclick=()=>verdict(true);
+  shell.api.say(idx===0?"Premier e-mail. Inspecte l'expéditeur et le lien avant de trancher !":"Au suivant — reste vigilant.", 'concentre');
+}
+function verdict(saidPhish){
+  const api=shell.api; const e=EMAILS[order[idx]];
+  root.querySelectorAll('.ph-vb').forEach(b=>b.disabled=true);
+  const ok = saidPhish===e.phish;
+  if (ok){ correct++; api.addScore(100); api.sound('good'); }
+  else { api.sound('bad'); }
+  // révéler les flags
+  if (e.phish) root.querySelectorAll('[data-f]').forEach(s=>s.classList.add('flag'));
+  const mail=root.querySelector('.ph-mail');
+  const rev=document.createElement('div'); rev.className='ph-reveal '+(ok?'good':'bad');
+  rev.innerHTML = `<h4>${ok?'✅ Bien vu !':'❌ Raté…'} ${e.phish?'C\'était un hameçonnage.':'C\'était un message sûr.'}</h4>`
+    + (e.flags.length?`<ul>${e.flags.map(f=>`<li>${f}</li>`).join('')}</ul>`:`<div style="font-size:13.5px">${e.why}</div>`);
+  mail.appendChild(rev);
+  const nb=document.createElement('div'); nb.className='ph-next';
+  nb.innerHTML = `<button class="ph-nb">${idx+1<order.length?'E-mail suivant ▸':'Voir mon résultat ▸'}</button>`;
+  mail.appendChild(nb);
+  nb.querySelector('.ph-nb').onclick=()=>{ idx++; if(idx<order.length) render(); else finish(); };
+  api.setProgress((idx+1)/order.length);
+  if (ok) shell.api.say(e.why, 'fier'); else shell.api.say("Pas grave ! "+e.why, 'rassurant');
+}
+function finish(){
+  const api=shell.api; const acc=correct/order.length;
+  const stars = acc>=0.9?3:acc>=0.7?2:1;
+  api.win({ score: correct*100, stars, title:`${correct}/${order.length} e-mails bien analysés`,
+    buddy: acc>=0.9?"Impressionnant ! Tu as l'œil d'un expert en cybersécurité.":acc>=0.7?"Bon réflexe global — encore un peu d'attention sur les domaines.":"Tu progresses ! Concentre-toi sur l'adresse de l'expéditeur.",
+    learned: shell.cfg.learned, onNext: ()=>{ reset(api); }, nextLabel:'Rejouer (mélangé)' });
+}
+</script>
+</body>
+</html>

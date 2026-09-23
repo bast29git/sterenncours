@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Frases español</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../lang-engine.js"></script></head>
+<body><script>
+const S=[
+ [1,'Me gustaría un café','Je voudrais un café'],
+ [1,'No hablo español muy bien','Je ne parle pas très bien espagnol'],
+ [1,'¿Dónde está la estación','Où est la gare'],
+ [1,'Ellos juegan en el jardín','Ils jouent dans le jardin'],
+ [2,'Estoy esperando desde hace una hora','J\'attends depuis une heure'],
+ [2,'¿Podría ayudarme por favor','Pourriez-vous m\'aider s\'il vous plaît'],
+ [2,'Deberíamos salir antes de que llueva','Nous devrions partir avant qu\'il pleuve'],
+ [3,'Le escribo para hacer seguimiento de mi solicitud','Je vous écris pour relancer ma demande'],
+ [3,'No dude en contactarme si tiene preguntas','N\'hésitez pas à me contacter si vous avez des questions'],
+ [3,'Esperamos colaborar con su equipo','Nous espérons collaborer avec votre équipe']
+];
+const rounds=S.map(s=>({lvl:s[0], prompt:`Remets les mots dans l'ordre — sens : <i>« ${s[2]} »</i>`, audio:s[1], answer:s[1], words:s[1].split(' '), explain:`✓ « ${s[1]} » = ${s[2]}.`}));
+LangGame({ id:'2d-50-es-frases', code:'2D·50', title:'Español — Construye la frase', lang:'es', mode:'order',
+ domain:{label:'Langues',color:'#0E7C86'},
+ intro:{ greet:"Ordena las palabras para traducir la frase francesa al español.", rule:"On te donne la phrase en français et les mots espagnols mélangés : reconstruis la phrase espagnole correcte.", how:["Lis la phrase française cible.","Clique les mots espagnols dans le bon ordre (re-clique pour retirer).","Valide. Niveau Expert : phrases professionnelles."], objectif:"Maîtriser la syntaxe et l'ordre des mots en espagnol.", hint:"En espagnol, le pronom sujet est souvent omis (« juegan » = « ils jouent »). L'adjectif se place souvent APRÈS le nom.", why:"Construire des phrases entières fait passer du mot isolé à la communication réelle." },
+ learned:["L'ordre des mots en espagnol.","L'omission du pronom sujet.","Des tournures professionnelles (hacer seguimiento, colaborar…)."],
+ rounds });
+</script></body></html>

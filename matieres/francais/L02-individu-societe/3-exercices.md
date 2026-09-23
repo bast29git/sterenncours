@@ -524,3 +524,11 @@ Partie C : 4 points (2 pour la répétition relevée et commentée, 2 pour la di
 Partie D : 5 points, 1 par temps du paragraphe, plus 1 pour la correction de la langue.
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -417,3 +417,11 @@ Partie C : 5 points (3 pour le tableau, 2 pour l'explication des bidonvilles).
 Partie D : 5 points (1 pour l'introduction et la conclusion, 2 pour la partie sur les formes de l'urbanisation, 2 pour la partie sur les problèmes).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

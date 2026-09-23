@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Labo de chimie</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .ch-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  .ch-tabs { top:14px; left:50%; transform:translateX(-50%); display:flex; gap:6px; padding:4px; }
+  .ch-tab { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:8px 15px; border-radius:999px; border:none; background:transparent; color:var(--fg-muted); cursor:pointer; transition:.15s; }
+  .ch-tab[aria-pressed="true"] { background:var(--accent); color:#fff; }
+  .ch-tab:focus-visible { outline:none; box-shadow:var(--ring); }
+  .ch-legend { top:64px; left:14px; padding:11px 13px; display:flex; flex-direction:column; gap:5px; max-width:170px; }
+  .ch-legend h3 { font-family:var(--font-mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 3px; }
+  .ch-leg { display:flex; align-items:center; gap:7px; font-size:11px; } .ch-leg i { width:11px; height:11px; border-radius:3px; flex:none; }
+  /* Barre du bas : molécules OU paillasse (réactifs) */
+  .ch-mols { bottom:16px; left:50%; transform:translateX(-50%); display:flex; gap:6px; padding:8px 10px; flex-wrap:wrap; justify-content:center; max-width:92%; }
+  .ch-mol { font-family:var(--font-mono); font-weight:700; font-size:13px; padding:7px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; }
+  .ch-mol[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ch-mol:focus-visible { outline:none; box-shadow:var(--ring); }
+  .ch-tray { bottom:16px; left:50%; transform:translateX(-50%); display:flex; gap:14px; padding:10px 12px; align-items:flex-end; max-width:96vw; }
+  .ch-tgrp { display:flex; flex-direction:column; gap:5px; }
+  .ch-tgrp h4 { font-family:var(--font-mono); font-size:8.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 1px; text-align:center; }
+  .ch-tgrp .row { display:flex; gap:5px; flex-wrap:wrap; justify-content:center; max-width:min(430px,64vw); }
+  .ch-reag { font-family:var(--font-body); font-weight:700; font-size:11.5px; padding:6px 9px 6px 8px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; display:flex; align-items:center; gap:6px; transition:.13s; }
+  .ch-reag:hover { transform:translateY(-1px); background:var(--surface); }
+  .ch-reag[aria-pressed="true"] { box-shadow:0 0 0 2px var(--accent) inset; }
+  .ch-reag:focus-visible { outline:none; box-shadow:var(--ring); }
+  .ch-reag .dot { width:12px; height:12px; border-radius:4px; flex:none; box-shadow:inset 0 0 0 1px rgba(0,0,0,.18); }
+  .ch-reag .dot.pw { border-radius:50%; }
+  .ch-rinse { font-family:var(--font-body); font-weight:700; font-size:11.5px; padding:0 12px; height:34px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg-muted); cursor:pointer; align-self:flex-end; }
+  .ch-rinse:hover { color:var(--fg); }
+  .ch-eq { position:absolute; bottom:88px; left:50%; transform:translateX(-50%) translateY(8px); z-index:19; opacity:0; transition:.35s; pointer-events:none; font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 92%,transparent); border:1px solid var(--border); padding:8px 15px; border-radius:12px; box-shadow:var(--shadow-md); max-width:92vw; text-align:center; }
+  .ch-eq.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .ch-info { right:14px; top:14px; width:308px; padding:0; overflow:hidden; transform:translateX(125%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; }
+  .ch-info.show { transform:none; }
+  .ch-hd { padding:15px 18px; color:#fff; position:relative; display:flex; align-items:center; gap:14px; }
+  .ch-hd .sym { font-family:var(--font-title); font-weight:800; font-size:32px; line-height:1; }
+  .ch-hd h2 { font-family:var(--font-title); font-weight:800; font-size:20px; margin:0; line-height:1.15; }
+  .ch-hd .sub { font-family:var(--font-mono); font-size:10.5px; opacity:.92; text-transform:uppercase; letter-spacing:.03em; }
+  .ch-x { position:absolute; top:11px; right:11px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:15px; }
+  .ch-body { padding:14px 18px 18px; overflow:auto; }
+  .ch-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px 14px; margin-bottom:12px; }
+  .ch-st .k { font-family:var(--font-mono); font-size:9.5px; text-transform:uppercase; color:var(--fg-muted); } .ch-st .v { font-family:var(--font-data); font-weight:700; font-size:14px; }
+  .ch-eqbox { font-family:var(--font-mono); font-weight:700; font-size:13px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin:0 0 11px; text-align:center; color:var(--fg); overflow-x:auto; }
+  .ch-body p { font-size:13.5px; line-height:1.6; margin:0 0 9px; }
+  .ch-fun { background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:13px; color:var(--accent-text); line-height:1.5; }
+  .ch-hint { position:absolute; bottom:64px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; }
+  .ch-quiz { position:absolute; top:64px; left:50%; transform:translateX(-50%); z-index:22; background:var(--accent); color:#fff; padding:11px 18px; border-radius:14px; box-shadow:var(--shadow-lg); font-weight:700; font-size:14.5px; display:flex; gap:12px; align-items:center; max-width:90%; }
+  .ch-qn { font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 10px; font-size:12px; flex:none; }
+  @media (max-width:760px){ .ch-info{width:min(300px,84vw)} .ch-legend{display:none} .ch-tray{gap:8px;padding:8px} .ch-tgrp .row{max-width:44vw} }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ============================================================
+   DONNÉES — table périodique (118 éléments), familles, molécules
+   ============================================================ */
+const FAM = { alcalin:{c:'#E63329',n:'Métal alcalin'}, alcalino:{c:'#F5A623',n:'Alcalino-terreux'}, trans:{c:'#29B6E0',n:'Métal de transition'}, post:{c:'#1E8C7A',n:'Métal pauvre'}, metalloide:{c:'#9B2BB0',n:'Métalloïde'}, nonmetal:{c:'#6E6BFF',n:'Non-métal'}, halogene:{c:'#1B82E0',n:'Halogène'}, noble:{c:'#8B5BE0',n:'Gaz noble'}, lanthanide:{c:'#C44B8A',n:'Lanthanide'}, actinide:{c:'#D98A3A',n:'Actinide'} };
+const E = {
+  H:[1,'Hydrogène',1.008,'nonmetal'], He:[2,'Hélium',4.003,'noble'],
+  Li:[3,'Lithium',6.94,'alcalin'], Be:[4,'Béryllium',9.012,'alcalino'], B:[5,'Bore',10.81,'metalloide'], C:[6,'Carbone',12.011,'nonmetal'], N:[7,'Azote',14.007,'nonmetal'], O:[8,'Oxygène',15.999,'nonmetal'], F:[9,'Fluor',18.998,'halogene'], Ne:[10,'Néon',20.18,'noble'],
+  Na:[11,'Sodium',22.99,'alcalin'], Mg:[12,'Magnésium',24.305,'alcalino'], Al:[13,'Aluminium',26.982,'post'], Si:[14,'Silicium',28.085,'metalloide'], P:[15,'Phosphore',30.974,'nonmetal'], S:[16,'Soufre',32.06,'nonmetal'], Cl:[17,'Chlore',35.45,'halogene'], Ar:[18,'Argon',39.948,'noble'],
+  K:[19,'Potassium',39.098,'alcalin'], Ca:[20,'Calcium',40.078,'alcalino'], Sc:[21,'Scandium',44.956,'trans'], Ti:[22,'Titane',47.867,'trans'], V:[23,'Vanadium',50.942,'trans'], Cr:[24,'Chrome',51.996,'trans'], Mn:[25,'Manganèse',54.938,'trans'], Fe:[26,'Fer',55.845,'trans'], Co:[27,'Cobalt',58.933,'trans'], Ni:[28,'Nickel',58.693,'trans'], Cu:[29,'Cuivre',63.546,'trans'], Zn:[30,'Zinc',65.38,'trans'], Ga:[31,'Gallium',69.723,'post'], Ge:[32,'Germanium',72.63,'metalloide'], As:[33,'Arsenic',74.922,'metalloide'], Se:[34,'Sélénium',78.971,'nonmetal'], Br:[35,'Brome',79.904,'halogene'], Kr:[36,'Krypton',83.798,'noble'],
+  Rb:[37,'Rubidium',85.468,'alcalin'], Sr:[38,'Strontium',87.62,'alcalino'], Y:[39,'Yttrium',88.906,'trans'], Zr:[40,'Zirconium',91.224,'trans'], Nb:[41,'Niobium',92.906,'trans'], Mo:[42,'Molybdène',95.95,'trans'], Tc:[43,'Technétium',98,'trans'], Ru:[44,'Ruthénium',101.07,'trans'], Rh:[45,'Rhodium',102.906,'trans'], Pd:[46,'Palladium',106.42,'trans'], Ag:[47,'Argent',107.868,'trans'], Cd:[48,'Cadmium',112.414,'trans'], In:[49,'Indium',114.818,'post'], Sn:[50,'Étain',118.71,'post'], Sb:[51,'Antimoine',121.76,'metalloide'], Te:[52,'Tellure',127.6,'metalloide'], I:[53,'Iode',126.904,'halogene'], Xe:[54,'Xénon',131.293,'noble'],
+  Cs:[55,'Césium',132.905,'alcalin'], Ba:[56,'Baryum',137.327,'alcalino'], La:[57,'Lanthane',138.905,'lanthanide'], Hf:[72,'Hafnium',178.49,'trans'], Ta:[73,'Tantale',180.948,'trans'], W:[74,'Tungstène',183.84,'trans'], Re:[75,'Rhénium',186.207,'trans'], Os:[76,'Osmium',190.23,'trans'], Ir:[77,'Iridium',192.217,'trans'], Pt:[78,'Platine',195.084,'trans'], Au:[79,'Or',196.967,'trans'], Hg:[80,'Mercure',200.592,'trans'], Tl:[81,'Thallium',204.38,'post'], Pb:[82,'Plomb',207.2,'post'], Bi:[83,'Bismuth',208.98,'post'], Po:[84,'Polonium',209,'post'], At:[85,'Astate',210,'halogene'], Rn:[86,'Radon',222,'noble'],
+  Fr:[87,'Francium',223,'alcalin'], Ra:[88,'Radium',226,'alcalino'], Ac:[89,'Actinium',227,'actinide'], Rf:[104,'Rutherfordium',267,'trans'], Db:[105,'Dubnium',268,'trans'], Sg:[106,'Seaborgium',269,'trans'], Bh:[107,'Bohrium',270,'trans'], Hs:[108,'Hassium',269,'trans'], Mt:[109,'Meitnérium',278,'trans'], Ds:[110,'Darmstadtium',281,'trans'], Rg:[111,'Rœntgenium',282,'trans'], Cn:[112,'Copernicium',285,'trans'], Nh:[113,'Nihonium',286,'post'], Fl:[114,'Flérovium',289,'post'], Mc:[115,'Moscovium',290,'post'], Lv:[116,'Livermorium',293,'post'], Ts:[117,'Tennesse',294,'halogene'], Og:[118,'Oganesson',294,'noble'],
+  Ce:[58,'Cérium',140.116,'lanthanide'], Pr:[59,'Praséodyme',140.908,'lanthanide'], Nd:[60,'Néodyme',144.242,'lanthanide'], Pm:[61,'Prométhium',145,'lanthanide'], Sm:[62,'Samarium',150.36,'lanthanide'], Eu:[63,'Europium',151.964,'lanthanide'], Gd:[64,'Gadolinium',157.25,'lanthanide'], Tb:[65,'Terbium',158.925,'lanthanide'], Dy:[66,'Dysprosium',162.5,'lanthanide'], Ho:[67,'Holmium',164.93,'lanthanide'], Er:[68,'Erbium',167.259,'lanthanide'], Tm:[69,'Thulium',168.934,'lanthanide'], Yb:[70,'Ytterbium',173.045,'lanthanide'], Lu:[71,'Lutécium',174.967,'lanthanide'],
+  Th:[90,'Thorium',232.038,'actinide'], Pa:[91,'Protactinium',231.036,'actinide'], U:[92,'Uranium',238.029,'actinide'], Np:[93,'Neptunium',237,'actinide'], Pu:[94,'Plutonium',244,'actinide'], Am:[95,'Américium',243,'actinide'], Cm:[96,'Curium',247,'actinide'], Bk:[97,'Berkélium',247,'actinide'], Cf:[98,'Californium',251,'actinide'], Es:[99,'Einsteinium',252,'actinide'], Fm:[100,'Fermium',257,'actinide'], Md:[101,'Mendélévium',258,'actinide'], No:[102,'Nobélium',259,'actinide'], Lr:[103,'Lawrencium',266,'actinide'],
+};
+const LAYOUT = [
+  ['H',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'He'],
+  ['Li','Be',0,0,0,0,0,0,0,0,0,0,'B','C','N','O','F','Ne'],
+  ['Na','Mg',0,0,0,0,0,0,0,0,0,0,'Al','Si','P','S','Cl','Ar'],
+  ['K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr'],
+  ['Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe'],
+  ['Cs','Ba','La','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn'],
+  ['Fr','Ra','Ac','Rf','Db','Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts','Og'],
+];
+const FBLOCK = [ ['Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu'], ['Th','Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr'] ];
+const GAS = new Set(['H','He','N','O','F','Ne','Cl','Ar','Kr','Xe','Rn','Og']); const LIQ = new Set(['Br','Hg']);
+const FACTS = { H:"L'élément le plus abondant de l'Univers : il compose les étoiles et, avec l'oxygène, l'eau.", He:"Gaz très léger et inerte, pour les ballons et le refroidissement des IRM.", Li:"Le métal le plus léger, au cœur des batteries de nos appareils. Sa flamme est rouge carmin.", C:"La base de toute la vie : ADN, bois, diamant, graphite.", N:"78 % de l'air que nous respirons ; essentiel aux protéines.", O:"Indispensable à la respiration et à la combustion (21 % de l'air).", Ne:"Brille en rouge-orangé : le gaz des enseignes « néon ».", Na:"Avec le chlore, forme le sel de table (NaCl). Sa flamme est jaune-orangé.", Al:"Léger et résistant : canettes, avions ; le métal le plus abondant de la croûte.", Si:"Le cœur de l'électronique : les puces sont gravées dans le silicium.", Cl:"Désinfecte l'eau des piscines ; inoffensif dans le sel.", Fe:"Le métal de la Terre et de notre sang (hémoglobine) ; rouille à l'air humide.", Cu:"Excellent conducteur (fils électriques) ; verdit en vieillissant. Sa flamme est verte.", Au:"L'or : inaltérable, rare et précieux depuis l'Antiquité.", Hg:"Le mercure : seul métal liquide à température ambiante. Toxique.", Br:"L'un des deux seuls éléments liquides à température ambiante.", U:"L'uranium : combustible des centrales nucléaires.", Ca:"Bâtit les os, les dents et la coquille des œufs.", Ag:"L'argent : le meilleur conducteur électrique de tous.", K:"Le potassium : essentiel aux plantes et aux muscles. Sa flamme est violette." };
+const EL = [];
+LAYOUT.forEach((row,p)=> row.forEach((sym,g)=>{ if(sym && E[sym]){ EL.push({sym, g:g+1, p:p+1, ...spread(sym)}); } }));
+FBLOCK.forEach((row,fi)=> row.forEach((sym,i)=>{ if(E[sym]) EL.push({sym, g:i+4, p:8.4+fi, ...spread(sym)}); }));
+function spread(sym){ const [z,nom,mass,fam]=E[sym]; return {z,nom,mass,fam,etat:GAS.has(sym)?'gaz':LIQ.has(sym)?'liquide':'solide'}; }
+
+const CPK = { H:0xffffff, O:0xE63329, C:0x303040, N:0x1B82E0, Cl:0x1E8C7A, S:0xF5A623, Na:0x9d5be0, Cu:0xc06a3a, default:0xaa66cc };
+const MOL = {
+  'H₂O':{ name:'Eau', formula:'H₂O', sub:'Molécule polaire', atoms:[['O',0,0,0],['H',0.76,0.59,0],['H',-0.76,0.59,0]], bonds:[[0,1],[0,2]], desc:["L'eau est indispensable à la vie. Sa forme « coudée » (104,5°) la rend polaire : un côté positif, un côté négatif.","Cette polarité explique qu'elle dissolve tant de substances et forme des liaisons entre molécules."], fun:"L'eau est moins dense à l'état solide : c'est pourquoi la glace flotte." },
+  'CO₂':{ name:'Dioxyde de carbone', formula:'CO₂', sub:'Molécule linéaire', atoms:[['C',0,0,0],['O',1.16,0,0],['O',-1.16,0,0]], bonds:[[0,1],[0,2]], desc:["Produit par la respiration et la combustion ; les plantes l'absorbent pour la photosynthèse.","Sa molécule est parfaitement linéaire. C'est un gaz à effet de serre."], fun:"Solidifié, le CO₂ devient la « glace carbonique » à -78 °C, qui fume sans fondre." },
+  'CH₄':{ name:'Méthane', formula:'CH₄', sub:'Géométrie tétraédrique', atoms:[['C',0,0,0],['H',0.63,0.63,0.63],['H',-0.63,-0.63,0.63],['H',-0.63,0.63,-0.63],['H',0.63,-0.63,-0.63]], bonds:[[0,1],[0,2],[0,3],[0,4]], desc:["Principal composant du gaz naturel ; ses 4 liaisons forment un tétraèdre parfait.","Puissant gaz à effet de serre, émis par les animaux et les marais."], fun:"" },
+  'NH₃':{ name:'Ammoniac', formula:'NH₃', sub:'Géométrie pyramidale', atoms:[['N',0,0,0],['H',0.94,0,0.33],['H',-0.47,0.81,0.33],['H',-0.47,-0.81,0.33]], bonds:[[0,1],[0,2],[0,3]], desc:["Sert à fabriquer les engrais qui nourrissent l'humanité.","Sa forme pyramidale lui donne une odeur piquante."], fun:"" },
+  'O₂':{ name:'Dioxygène', formula:'O₂', sub:'Liaison double', atoms:[['O',0.6,0,0],['O',-0.6,0,0]], bonds:[[0,1]], desc:["Le gaz que nous respirons, produit par les plantes et les algues.","Deux atomes d'oxygène reliés par une double liaison."], fun:"" },
+  'NaCl':{ name:'Chlorure de sodium', formula:'NaCl', sub:'Sel de table (ionique)', atoms:[['Na',-0.8,0,0],['Cl',0.8,0,0]], bonds:[[0,1]], desc:["Le sel de cuisine ! Un atome de sodium cède un électron au chlore : ils deviennent des ions qui s'attirent.","Dans la vraie vie, ils forment un cristal cubique géant."], fun:"" },
+};
+
+/* ============================================================
+   DONNÉES — paillasse : verrerie, réactifs, réactions (illustratives)
+   ============================================================ */
+const GLASS_INFO = {
+  becher:{ color:'#1E8C7A', sym:'⌱', name:'Bécher', sub:'Verrerie · mélange', stats:[['Usage','mélanger, chauffer'],['Précision','faible'],['Matériau','verre borosilicate']], desc:["Le récipient cylindrique le plus courant du labo : on y mélange, dissout et chauffe des liquides.","Son bec verseur permet de transvaser sans éclabousser."], fun:"Le bécher n'est pas précis : pour mesurer un volume exact, on utilise une éprouvette graduée ou une pipette." },
+  erlen:{ color:'#29B6E0', sym:'△', name:"Fiole d'Erlenmeyer", sub:'Verrerie · titrage', stats:[['Usage','agiter, titrer'],['Forme','conique'],['Col','étroit']], desc:["Sa base large et son col étroit permettent d'agiter vigoureusement sans rien renverser.","Idéale pour les dosages (titrages) où l'on observe un changement de couleur."], fun:"Elle porte le nom du chimiste allemand Emil Erlenmeyer, qui l'a imaginée en 1860." },
+  tube:{ color:'#6E6BFF', sym:'│', name:'Tube à essai', sub:'Verrerie · petits essais', stats:[['Usage','petits tests'],['Volume','quelques mL'],['Rangement','portoir']], desc:["Le petit tube en verre pour tester une réaction avec très peu de produit.","On le chauffe en l'inclinant, jamais dirigé vers quelqu'un."], fun:"Un portoir (le rack) permet d'aligner plusieurs essais côte à côte pour les comparer." },
+  ballon:{ color:'#F5A623', sym:'◯', name:'Ballon à fond rond', sub:'Verrerie · chauffage', stats:[['Usage','chauffer, distiller'],['Forme','sphérique'],['Support','pince + potence']], desc:["Sa forme sphérique répartit la chaleur uniformément : parfait pour chauffer ou distiller.","Il se fixe à une potence avec une pince car il ne tient pas debout seul."], fun:"En distillation, on chauffe le ballon puis on récupère la vapeur qui se recondense plus loin." },
+  bunsen:{ color:'#E63329', sym:'🔥', name:'Bec Bunsen', sub:'Instrument · flamme', stats:[['Usage','chauffer'],['Combustible','gaz'],['Flamme','~1 500 °C']], desc:["Le brûleur à gaz du labo. En ouvrant l'arrivée d'air, la flamme devient bleue et très chaude.","Chaque métal colore la flamme différemment : c'est le « test de flamme »."], fun:"Robert Bunsen a inventé ce brûleur vers 1855 — et découvert deux éléments grâce à la couleur de leur flamme !" },
+};
+/* réactifs : target 'becher' (versés) ou 'flamme' (test de flamme). Pédagogie illustrative, aucune manipulation réelle. */
+const REAG = {
+  eau:{ name:'Eau distillée', formula:'H₂O', color:'#cfe6ff', kind:'liquide', target:'becher', desc:"De l'eau pure, sans sel ni minéraux. Le solvant de base du chimiste." },
+  vinaigre:{ name:'Vinaigre', formula:'CH₃COOH', color:'#efe6b8', kind:'liquide', target:'becher', desc:"Une solution acide (acide acétique) que l'on trouve dans toutes les cuisines." },
+  bicarbonate:{ name:'Bicarbonate', formula:'NaHCO₃', color:'#ffffff', kind:'poudre', target:'becher', desc:"Une poudre blanche basique, utilisée en cuisine et pour nettoyer." },
+  cuivre:{ name:'Sulfate de cuivre', formula:'CuSO₄', color:'#2f8fe0', kind:'liquide', target:'becher', desc:"Une solution bleue caractéristique des ions cuivre (Cu²⁺)." },
+  soude:{ name:'Soude (base)', formula:'NaOH', color:'#e4f1ff', kind:'liquide', target:'becher', desc:"Une base très courante au labo. On la manipule diluée et avec des gants." },
+  indicateur:{ name:'Indicateur', formula:'chou rouge', color:'#8d47c0', kind:'liquide', target:'becher', desc:"Un jus de chou rouge : il change de couleur selon que le milieu est acide (rouge) ou basique (vert)." },
+  selNa:{ name:'Sel de sodium', formula:'Na⁺', color:'#ffe08a', kind:'poudre', target:'flamme', el:'Na', flame:'#ffcf3a', desc:"Approché de la flamme, le sodium la colore en jaune-orangé vif." },
+  selCu:{ name:'Sel de cuivre', formula:'Cu²⁺', color:'#8fe6cf', kind:'poudre', target:'flamme', el:'Cu', flame:'#57e79a', desc:"Le cuivre donne à la flamme une superbe couleur verte." },
+  selLi:{ name:'Sel de lithium', formula:'Li⁺', color:'#ff9d9d', kind:'poudre', target:'flamme', el:'Li', flame:'#ff5555', desc:"Le lithium colore la flamme en rouge carmin profond." },
+  selK:{ name:'Sel de potassium', formula:'K⁺', color:'#d6b0ff', kind:'poudre', target:'flamme', el:'K', flame:'#b877ff', desc:"Le potassium teinte la flamme d'un violet délicat (mieux vu à travers un verre bleu)." },
+};
+const BECHER_ORDER = ['eau','vinaigre','bicarbonate','cuivre','soude','indicateur'];
+const FLAME_ORDER = ['selNa','selCu','selLi','selK'];
+/* réactions par paire (clé triée) — visuel + équation. Illustratif et sûr. */
+function rkey(a,b){ return [a,b].sort().join('+'); }
+const REACTIONS = {
+  [rkey('bicarbonate','vinaigre')]:{ id:'fizz', kind:'fizz', color:'#eaf3ff', name:'Effervescence', sub:'Réaction acide-base',
+    eq:'NaHCO₃ + CH₃COOH → CH₃COONa + H₂O + CO₂↑',
+    say:"Ça mousse ! Les bulles sont du dioxyde de carbone (CO₂), le même gaz que dans les sodas.",
+    desc:["Le bicarbonate (basique) et le vinaigre (acide) réagissent et libèrent un gaz : le dioxyde de carbone.","C'est cette effervescence qui fait gonfler les gâteaux et pétiller les boissons."], fun:"Avec beaucoup de gaz, on peut gonfler un ballon posé sur la bouteille — sans souffler !" },
+  [rkey('cuivre','soude')]:{ id:'precip', kind:'precip', color:'#2f7fe0', precip:'#255fd0', name:'Précipité bleu', sub:'Formation d\'un solide',
+    eq:'CuSO₄ + 2 NaOH → Cu(OH)₂↓ + Na₂SO₄',
+    say:"Un précipité bleu apparaît : de l'hydroxyde de cuivre, un solide qui trouble le liquide.",
+    desc:["Les ions cuivre rencontrent la soude et forment un solide bleu qui ne se dissout pas : un précipité.","La petite flèche ↓ dans l'équation signifie « un solide se dépose »."], fun:"En chauffant ce précipité, il noircit et se transforme en oxyde de cuivre (CuO)." },
+  [rkey('indicateur','vinaigre')]:{ id:'acid', kind:'color', color:'#e0396b', name:'Milieu acide', sub:'Test à l\'indicateur',
+    eq:'Indicateur + acide → rouge',
+    say:"L'indicateur vire au rouge : le mélange est acide !",
+    desc:["Un indicateur coloré change de teinte selon l'acidité. Ici, l'acide du vinaigre le fait virer au rouge.","Les acides ont un pH inférieur à 7."], fun:"Le jus de chou rouge est un indicateur naturel : rouge en milieu acide, vert-bleu en milieu basique." },
+  [rkey('indicateur','soude')]:{ id:'base', kind:'color', color:'#2fb85f', name:'Milieu basique', sub:'Test à l\'indicateur',
+    eq:'Indicateur + base → vert',
+    say:"L'indicateur vire au vert : le mélange est basique !",
+    desc:["La soude est une base : elle fait virer l'indicateur au vert (ou bleu).","Les bases ont un pH supérieur à 7."], fun:"Le savon, le bicarbonate et l'eau de mer sont légèrement basiques." },
+};
+
+let mode='detente', tab='bench', curMol='H₂O', quiz=null, ac=null, ambientGain=null;
+let scene,camera,renderer,composer,controls,clock,raycaster,pointer;
+let tableGroup,molGroup,benchGroup,tiles=[],molAtoms=[],benchClickable=[],hovered=null;
+const lab={ liquid:null, flame:null, flameCore:null, flameLight:null, contents:[], reacted:false,
+  bubbles:[], precip:[], fizz:0, flameTimer:0, flameBase:new THREE.Color(0xffa542), targetLiq:new THREE.Color(0xcfe6ff), liqLevel:0, liqTarget:0 };
+
+/* ============================================================
+   TEXTURES PBR CC0 (Poly Haven) — helpers du gabarit photoréaliste
+   ============================================================ */
+const texLoader=new THREE.TextureLoader();
+const PBR_BASE='../assets/3d/pbr2k/';
+let maxAniso=8;
+function loadTex(url,srgb,rep){ const t=texLoader.load(url,undefined,undefined,()=>{}); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep[0]!==undefined?rep[0]:rep, rep[1]!==undefined?rep[1]:rep); t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=maxAniso; return t; }
+// applique diffuse/normal/roughness(+metal,+ao bakée) réels sur un matériau existant
+function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE+slug+'/'+slug+'_';
+  material.map=loadTex(b+'diff_'+res+'.jpg',true,rep);
+  material.normalMap=loadTex(b+'nor_gl_'+res+'.jpg',false,rep); material.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  material.roughnessMap=loadTex(b+'rough_'+res+'.jpg',false,rep);
+  if(opt.metal){ material.metalnessMap=loadTex(b+'metal_'+res+'.jpg',false,rep); }
+  if(opt.ao){ material.aoMap=loadTex(b+'ao_'+res+'.jpg',false,rep); material.aoMapIntensity=opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color);
+  material.needsUpdate=true; return material; }
+// duplique le canal UV pour permettre l'aoMap (utilise uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+// tache d'ombre de contact douce (occlusion lisible même en rendu logiciel)
+function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,10,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.24)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
+
+/* ============================================================
+   COQUILLE
+   ============================================================ */
+const shell=window.Konstrio.createGame({
+  id:'3d-03-chimie-labo', code:'3D·03', title:'Labo de chimie & réactions', type:'3D',
+  domain:{ label:'Chimie', color:'#1E8C7A' },
+  intro:{
+    greet:"Bienvenue dans le labo ! Verse des réactifs dans le bécher pour déclencher de vraies réactions, allume le bec Bunsen pour les tests de flamme, assemble des molécules en 3D et explore les 118 éléments.",
+    rule:"Sur la <b>paillasse</b>, mélange deux réactifs dans le bécher : selon les produits, ça <b>mousse</b>, ça <b>change de couleur</b> ou un <b>précipité</b> se forme — l'équation s'affiche. Les <b>sels métalliques</b> colorent la flamme du bec Bunsen. Passe en mode <b>Molécules</b> et <b>Table</b> pour les atomes.",
+    how:["Paillasse : clique un réactif pour le verser dans le bécher ; deux réactifs compatibles déclenchent la réaction.","Clique un sel de métal (à droite) : il colore la flamme du bec Bunsen (test de flamme).","« Rincer » vide le bécher pour recommencer une expérience.","Molécules : choisis une molécule (boules-bâtons) ; Table : clique un élément pour sa fiche."],
+    keys:"Glisser = tourner · molette = zoom.",
+    objectif:"Réaliser les réactions demandées, reconnaître molécules et éléments.",
+    hint:"Une effervescence = un gaz qui s'échappe. Un précipité = un solide qui apparaît. Un indicateur change de couleur selon l'acidité.",
+    why:"La chimie explique tout ce qui nous entoure : la cuisine, les médicaments, les matériaux… à partir de 118 éléments seulement."
+  },
+  learned:["Mélanger deux réactifs peut produire un gaz (effervescence), un solide (précipité) ou un changement de couleur.","Un indicateur coloré révèle si un milieu est acide (rouge) ou basique (vert).","Chaque métal colore la flamme d'une couleur unique : c'est le test de flamme.","Une molécule est un assemblage d'atomes liés (ex. H₂O = 2 H + 1 O)."],
+  onReady:init, onStart:startMode, onTheme:()=>applyTheme(),
+});
+
+/* ============================================================
+   INIT SCÈNE
+   ============================================================ */
+function init(){ const stage=shell.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight,.1,500); camera.position.set(0.4,3.8,12);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; stage.appendChild(renderer.domElement);
+  maxAniso=Math.min(8, renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
+  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) — l'AO écran (GTAO) y produit du noir → chaîne robuste sans GTAO (l'occlusion vient des cartes AO bakées + ombre de contact)
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene,camera));
+  if(!software){
+    // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu produit
+    const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=1.0;
+    try{ gtao.updateGtaoMaterial({ radius:0.4, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao=gtao;
+  }
+  // bloom léger : flamme du bec Bunsen, tests de flamme
+  const bloom=new UnrealBloomPass(new THREE.Vector2(W,H),0.55,0.7,0.82); composer.addPass(bloom);
+  // anti-aliasing SMAA (le composer court-circuite le MSAA du canvas)
+  composer.addPass(new SMAAPass(W,H));
+  // OutputPass : tone mapping ACES + conversion sRGB en fin de chaîne
+  composer.addPass(new OutputPass());
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.minDistance=6; controls.maxDistance=60; controls.maxPolarAngle=Math.PI*0.52; controls.target.set(0,1.7,0); controls.autoRotate=false;
+
+  scene.add(new THREE.HemisphereLight(0xdfeaff,0x25201c,0.75));
+  const key=new THREE.DirectionalLight(0xffffff,1.35); key.position.set(5,11,7); key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048); key.shadow.camera.near=1; key.shadow.camera.far=40; key.shadow.camera.left=-12; key.shadow.camera.right=12; key.shadow.camera.top=12; key.shadow.camera.bottom=-12; key.shadow.bias=-0.0004; key.shadow.radius=4; key.shadow.blurSamples=16; scene.add(key);
+  const rim=new THREE.DirectionalLight(0x88bbff,0.5); rim.position.set(-7,5,-6); scene.add(rim);
+
+  // IBL HDRI studio propre (Poly Haven CC0) → reflets crédibles sur la verrerie & la paillasse ; fallback studio_1k puis env doux
+  const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  const rgbe=new RGBELoader();
+  rgbe.load('../assets/3d/hdri/studio_small_09_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); },
+    undefined,
+    ()=>{ rgbe.load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); }, undefined, ()=>{}); });
+
+  scene.add(makeBackdrop());
+  buildBench(); buildTable(); buildMolGroup();
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  buildUI(); applyTheme(); setTab('bench');
+  renderer.domElement.addEventListener('pointermove',onMove); renderer.domElement.addEventListener('pointerdown',onDown);
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage); animate();
+}
+
+/* ---------- ambiance sonore douce ---------- */
+function startAmbient(){ if(ac||shell.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); ambientGain=ac.createGain(); ambientGain.gain.value=0.0; ambientGain.connect(ac.destination); ambientGain.gain.setTargetAtTime(0.4,ac.currentTime,1.2);
+  const buf=ac.createBuffer(1,ac.sampleRate*3,ac.sampleRate); const dt=buf.getChannelData(0); for(let i=0;i<dt.length;i++)dt[i]=(Math.random()*2-1)*0.04; const src=ac.createBufferSource(); src.buffer=buf; src.loop=true; const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=380; const g=ac.createGain(); g.gain.value=0.5; src.connect(lp); lp.connect(g); g.connect(ambientGain); src.start();
+  const o=ac.createOscillator(); o.type='sine'; o.frequency.value=54; const og=ac.createGain(); og.gain.value=0.05; o.connect(og); og.connect(ambientGain); o.start();
+}catch(e){} }
+function fizzSound(){ if(!ac||shell.muted)return; try{ const buf=ac.createBuffer(1,ac.sampleRate*1.4,ac.sampleRate); const d=buf.getChannelData(0); for(let i=0;i<d.length;i++){ const f=1-i/d.length; d[i]=(Math.random()*2-1)*0.5*f*f; } const s=ac.createBufferSource(); s.buffer=buf; const hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1800; const g=ac.createGain(); g.gain.value=0.25; s.connect(hp); hp.connect(g); g.connect(ac.destination); s.start(); }catch(e){} }
+
+function makeBackdrop(){ const c=document.createElement('canvas'); c.width=c.height=1024; const ctx=c.getContext('2d'); const g=ctx.createRadialGradient(512,360,80,512,512,760); g.addColorStop(0,'#123a35'); g.addColorStop(.55,'#0c2622'); g.addColorStop(1,'#05100d'); ctx.fillStyle=g; ctx.fillRect(0,0,1024,1024); const t=new THREE.CanvasTexture(c); return new THREE.Mesh(new THREE.SphereGeometry(160,32,16), new THREE.MeshBasicMaterial({ map:t, side:THREE.BackSide })); }
+
+/* ============================================================
+   PAILLASSE — verrerie PBR, bec Bunsen, réactions
+   ============================================================ */
+function glassMat(tint){ return new THREE.MeshPhysicalMaterial({ color:tint||0xffffff, metalness:0, roughness:0.06, transmission:1.0, ior:1.5, thickness:0.55, envMapIntensity:1.5, transparent:true, clearcoat:1, clearcoatRoughness:0.05, side:THREE.DoubleSide }); }
+function liquidMat(hex){ return new THREE.MeshPhysicalMaterial({ color:hex, metalness:0, roughness:0.14, transmission:0.5, ior:1.34, thickness:1.4, envMapIntensity:0.9, transparent:true, opacity:0.9, clearcoat:0.35 }); }
+function benchTex(){ const c=document.createElement('canvas'); c.width=c.height=512; const ctx=c.getContext('2d'); ctx.fillStyle='#15181d'; ctx.fillRect(0,0,512,512); for(let i=0;i<9000;i++){ const v=Math.random()*22|0; ctx.fillStyle='rgba('+(30+v)+','+(33+v)+','+(40+v)+',.5)'; ctx.fillRect(Math.random()*512,Math.random()*512,1.4,1.4); } const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,1.4); return t; }
+
+function buildBench(){ benchGroup=new THREE.Object3D(); scene.add(benchGroup); benchClickable=[];
+  // sol de labo — carrelage béton réel (Poly Haven CC0), tuilé + AO bakée
+  const floorMat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.9, metalness:0.02, envMapIntensity:0.5 });
+  applyPBR(floorMat,'concrete_tiles','1k',{repeat:14,normal:1.0,ao:true});
+  const fgeo=new THREE.PlaneGeometry(80,80); enableAO(fgeo);
+  const floor=new THREE.Mesh(fgeo, floorMat); floor.rotation.x=-Math.PI/2; floor.position.y=-0.02; floor.receiveShadow=true; benchGroup.add(floor);
+  // plan de travail (paillasse époxy) — béton résiné réel + AO bakée, teinté sombre pour garder l'identité labo
+  const topMat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.55, metalness:0.08, envMapIntensity:0.8 });
+  applyPBR(topMat,'concrete_floor_02','1k',{repeat:[4,2],normal:0.9,ao:true,color:0x6f757c});
+  const tgeo=new THREE.BoxGeometry(15,0.5,6.6); enableAO(tgeo);
+  const top=new THREE.Mesh(tgeo, topMat); top.position.y=-0.25; top.receiveShadow=true; top.castShadow=true; benchGroup.add(top);
+  // liseré inox de la paillasse (reflets IBL)
+  const trim=new THREE.Mesh(new THREE.BoxGeometry(15.1,0.12,6.7), new THREE.MeshStandardMaterial({ color:0x9aa0a8, roughness:0.3, metalness:0.85, envMapIntensity:1.2 })); trim.position.y=0.02; benchGroup.add(trim);
+  // ombre de contact douce sous l'ensemble bec Bunsen + bécher (occlusion lisible même en rendu logiciel)
+  const cs=new THREE.Mesh(new THREE.PlaneGeometry(3.4,3.0), new THREE.MeshBasicMaterial({map:makeContactShadow(),transparent:true,depthWrite:false,opacity:0.85})); cs.rotation.x=-Math.PI/2; cs.position.set(-0.6,0.012,0.1); benchGroup.add(cs);
+
+  // ---- bec Bunsen + trépied + bécher (héros, centre-gauche) ----
+  const burner=new THREE.Object3D(); burner.position.set(-0.6,0,0.1); benchGroup.add(burner);
+  const metal=new THREE.MeshStandardMaterial({ color:0x8a8f98, roughness:0.32, metalness:0.9, envMapIntensity:1.2 });
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.62,0.12,36), metal); base.position.y=0.06; base.castShadow=true; base.userData.glass='bunsen'; burner.add(base); benchClickable.push(base);
+  const barrel=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.14,0.7,24), metal); barrel.position.y=0.42; barrel.castShadow=true; barrel.userData.glass='bunsen'; burner.add(barrel); benchClickable.push(barrel);
+  // flamme
+  lab.flame=makeFlame(); lab.flame.position.set(-0.6,0.78,0.1); benchGroup.add(lab.flame);
+  lab.flameLight=new THREE.PointLight(0xffa542,1.2,7,2); lab.flameLight.position.set(-0.6,1.3,0.1); benchGroup.add(lab.flameLight);
+  // trépied
+  const tri=new THREE.Object3D(); tri.position.set(-0.6,0,0.1); benchGroup.add(tri);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(0.78,0.045,10,32), metal); ring.rotation.x=Math.PI/2; ring.position.y=1.85; ring.castShadow=true; tri.add(ring);
+  for(let i=0;i<3;i++){ const a=i/3*Math.PI*2; const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,1.85,10), metal); leg.position.set(Math.cos(a)*0.66,0.92,Math.sin(a)*0.66); leg.castShadow=true; tri.add(leg); }
+  const gauze=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.04,1.5), new THREE.MeshStandardMaterial({ color:0x3a3f46, roughness:0.7, metalness:0.5 })); gauze.position.set(-0.6,1.88,0.1); gauze.receiveShadow=true; benchGroup.add(gauze);
+  // bécher
+  const beaker=new THREE.Object3D(); beaker.position.set(-0.6,1.9,0.1); benchGroup.add(beaker);
+  const walls=new THREE.Mesh(new THREE.CylinderGeometry(0.85,0.83,1.6,44,1,true), glassMat()); walls.position.y=0.8; walls.castShadow=true; walls.userData.glass='becher'; beaker.add(walls); benchClickable.push(walls);
+  const bottom=new THREE.Mesh(new THREE.CylinderGeometry(0.83,0.83,0.06,44), glassMat()); bottom.position.y=0.03; bottom.userData.glass='becher'; beaker.add(bottom); benchClickable.push(bottom);
+  const rimb=new THREE.Mesh(new THREE.TorusGeometry(0.85,0.03,8,44), glassMat()); rimb.rotation.x=Math.PI/2; rimb.position.y=1.6; beaker.add(rimb);
+  lab.liquid=new THREE.Mesh(new THREE.CylinderGeometry(0.78,0.78,1,40), liquidMat(0xcfe6ff)); lab.liquid.position.y=0.08; lab.liquid.scale.y=0.001; lab.liquid.visible=false; beaker.add(lab.liquid);
+  lab.beakerNode=beaker;
+  // bulles (pool) + précipité (pool) dans le bécher
+  const bubGeo=new THREE.SphereGeometry(0.05,8,8); const bubMat=new THREE.MeshPhysicalMaterial({ color:0xffffff, roughness:0, transmission:0.9, transparent:true, opacity:0.6, thickness:0.1 });
+  for(let i=0;i<38;i++){ const b=new THREE.Mesh(bubGeo,bubMat); b.visible=false; beaker.add(b); lab.bubbles.push({m:b,active:false,vy:0}); }
+  const prGeo=new THREE.SphereGeometry(0.045,7,7); const prMat=new THREE.MeshStandardMaterial({ color:0x255fd0, roughness:0.6 });
+  for(let i=0;i<26;i++){ const p=new THREE.Mesh(prGeo,prMat.clone()); p.visible=false; beaker.add(p); lab.precip.push({m:p,active:false,vy:0,ry:0}); }
+
+  // ---- erlenmeyer (droite) ----
+  const erlen=makeErlen(); erlen.position.set(2.3,0,0.4); benchGroup.add(erlen);
+  // ---- ballon à fond rond sur potence (droite) ----
+  const flask=makeFlaskStand(); flask.position.set(4.7,0,-0.1); benchGroup.add(flask);
+  // ---- portoir de tubes à essai (gauche) ----
+  const rack=makeTestTubes(); rack.position.set(-3.7,0,0.5); benchGroup.add(rack);
+  // ---- étagère de réactifs (fond, décoratif) ----
+  benchGroup.add(makeShelf());
+}
+
+function makeFlame(){ const g=new THREE.Object3D();
+  const outerTex=flameTex(); const outer=new THREE.Mesh(new THREE.ConeGeometry(0.22,1.15,20,1,true), new THREE.MeshBasicMaterial({ map:outerTex, color:0xffb055, transparent:true, opacity:0.72, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide })); outer.position.y=0.5; g.add(outer);
+  const core=new THREE.Mesh(new THREE.ConeGeometry(0.11,0.62,16,1,true), new THREE.MeshBasicMaterial({ color:0x66aaff, transparent:true, opacity:0.85, blending:THREE.AdditiveBlending, depthWrite:false })); core.position.y=0.32; g.add(core);
+  lab.flameCore=outer; lab.flameCore2=core; return g;
+}
+function flameTex(){ const c=document.createElement('canvas'); c.width=64; c.height=128; const ctx=c.getContext('2d'); const grd=ctx.createLinearGradient(0,128,0,0); grd.addColorStop(0,'rgba(255,255,255,1)'); grd.addColorStop(.4,'rgba(255,200,120,.9)'); grd.addColorStop(1,'rgba(255,120,40,0)'); ctx.fillStyle=grd; ctx.fillRect(0,0,64,128); return new THREE.CanvasTexture(c); }
+
+function makeErlen(){ const g=new THREE.Object3D(); const pts=[]; pts.push(new THREE.Vector2(0.0,0)); pts.push(new THREE.Vector2(0.72,0)); pts.push(new THREE.Vector2(0.7,0.1)); pts.push(new THREE.Vector2(0.24,1.05)); pts.push(new THREE.Vector2(0.22,1.5)); pts.push(new THREE.Vector2(0.24,1.55));
+  const body=new THREE.Mesh(new THREE.LatheGeometry(pts,44), glassMat()); body.castShadow=true; body.userData.glass='erlen'; g.add(body); benchClickable.push(body);
+  const liq=new THREE.Mesh(new THREE.ConeGeometry(0.58,0.72,40,1,true), liquidMat(0x39c46e)); liq.position.y=0.38; liq.rotation.x=Math.PI; g.add(liq);
+  const liqTop=new THREE.Mesh(new THREE.CircleGeometry(0.44,40), new THREE.MeshPhysicalMaterial({ color:0x39c46e, transmission:0.4, transparent:true, opacity:0.85, roughness:0.15 })); liqTop.rotation.x=-Math.PI/2; liqTop.position.y=0.74; g.add(liqTop);
+  return g;
+}
+function makeFlaskStand(){ const g=new THREE.Object3D(); const metal=new THREE.MeshStandardMaterial({ color:0x8a8f98, roughness:0.35, metalness:0.9 });
+  const base=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.12,1.0), metal); base.position.set(0.35,0.06,0); base.castShadow=true; base.receiveShadow=true; g.add(base);
+  const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,3.4,12), metal); rod.position.set(-0.28,1.7,0); rod.castShadow=true; g.add(rod);
+  const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,0.9,10), metal); arm.rotation.z=Math.PI/2; arm.position.set(0.1,2.1,0); g.add(arm);
+  const flask=new THREE.Object3D(); flask.position.set(0.42,1.75,0); g.add(flask);
+  const bulb=new THREE.Mesh(new THREE.SphereGeometry(0.6,36,28), glassMat()); bulb.castShadow=true; bulb.userData.glass='ballon'; flask.add(bulb); benchClickable.push(bulb);
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.18,0.8,24,1,true), glassMat()); neck.position.y=0.72; neck.userData.glass='ballon'; flask.add(neck); benchClickable.push(neck);
+  const liq=new THREE.Mesh(new THREE.SphereGeometry(0.52,32,20,0,Math.PI*2,Math.PI*0.5,Math.PI*0.5), liquidMat(0xF5A623)); liq.position.y=-0.02; flask.add(liq);
+  const clampM=new THREE.Mesh(new THREE.TorusGeometry(0.2,0.04,8,20), new THREE.MeshStandardMaterial({ color:0x33373d, roughness:0.5, metalness:0.6 })); clampM.position.set(0.42,2.47,0); clampM.rotation.x=Math.PI/2; g.add(clampM);
+  return g;
+}
+function makeTestTubes(){ const g=new THREE.Object3D();
+  // portoir bois réel (worn_planks CC0), teinté chêne + AO bakée
+  const wood=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.75, metalness:0.0, envMapIntensity:0.5 });
+  applyPBR(wood,'worn_planks','1k',{repeat:[2,1],normal:1.0,ao:true,color:0x6b4a2f});
+  const rgeo=new THREE.BoxGeometry(2.0,0.14,0.7); enableAO(rgeo);
+  const rack=new THREE.Mesh(rgeo, wood); rack.position.y=0.5; rack.castShadow=true; g.add(rack);
+  const foot1=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.5,0.7), wood); foot1.position.set(-0.9,0.25,0); g.add(foot1);
+  const foot2=foot1.clone(); foot2.position.x=0.9; g.add(foot2);
+  const cols=['#e0396b','#39c46e','#f0c02a']; const backbar=new THREE.Mesh(new THREE.BoxGeometry(2.0,0.5,0.08), wood); backbar.position.set(0,0.8,-0.3); g.add(backbar);
+  for(let i=0;i<3;i++){ const x=(i-1)*0.55; const tube=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,1.3,24,1,true), glassMat()); tube.position.set(x,1.1,0); tube.castShadow=true; tube.userData.glass='tube'; g.add(tube); benchClickable.push(tube);
+    const rnd=new THREE.Mesh(new THREE.SphereGeometry(0.16,20,12,0,Math.PI*2,Math.PI*0.5,Math.PI*0.5), glassMat()); rnd.position.set(x,0.45,0); rnd.rotation.x=Math.PI; rnd.userData.glass='tube'; g.add(rnd); benchClickable.push(rnd);
+    const liq=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.6,20), liquidMat(new THREE.Color(cols[i]).getHex())); liq.position.set(x,0.72,0); g.add(liq); }
+  return g;
+}
+function makeShelf(){ const g=new THREE.Object3D(); g.position.set(0,0,-2.7);
+  // étagère bois réel (worn_planks CC0) + AO bakée
+  const wood=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.75, metalness:0.0, envMapIntensity:0.6 });
+  applyPBR(wood,'worn_planks','1k',{repeat:[5,1],normal:1.0,ao:true,color:0x8a7358});
+  const sgeo=new THREE.BoxGeometry(11,0.16,0.8); enableAO(sgeo);
+  const shelf=new THREE.Mesh(sgeo, wood); shelf.position.set(0,2.4,0); shelf.castShadow=true; shelf.receiveShadow=true; g.add(shelf);
+  const cols=['#2f8fe0','#8d47c0','#efe6b8','#e4f1ff','#ff9d9d','#8fe6cf','#ffe08a','#d6b0ff'];
+  cols.forEach((c,i)=>{ const x=(i-(cols.length-1)/2)*1.25; const bottle=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.26,0.9,20), glassMat()); bottle.position.set(x,2.95,0); bottle.castShadow=true; g.add(bottle);
+    const liq=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.6,18), liquidMat(new THREE.Color(c).getHex())); liq.position.set(x,2.85,0); g.add(liq);
+    const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.28,14), new THREE.MeshStandardMaterial({ color:0x22262c, roughness:0.5 })); cap.position.set(x,3.5,0); g.add(cap); });
+  return g;
+}
+
+/* ---------- réactions & effets ---------- */
+function setLiquid(hex){ lab.targetLiq.set(hex); if(lab.liqLevel<0.05){ lab.liquid.material.color.set(hex); } lab.liquid.visible=true; }
+function fillTo(level){ lab.liqTarget=level; lab.liquid.visible=true; }
+function addReagent(id){ if(lab.reacted){ shell.say("Rince d'abord le bécher pour une nouvelle expérience.",'curieux'); flashRinse(); return; }
+  const r=REAG[id]; if(!r||r.target!=='becher')return; startAmbient();
+  if(lab.contents.includes(id)){ shell.say("Tu as déjà versé "+r.name.toLowerCase()+".",'curieux'); return; }
+  lab.contents.push(id); shell.sound('pop'); syncReag();
+  if(lab.contents.length===1){ setLiquid(r.color); fillTo(0.7); shell.say("Tu verses "+r.name+" ("+r.formula+") dans le bécher.",'concentre'); }
+  else if(lab.contents.length===2){ fillTo(1.0);
+    const key=rkey(lab.contents[0],lab.contents[1]); const reac=REACTIONS[key];
+    if(reac){ playReaction(reac); }
+    else { setLiquid(mixColor(lab.contents)); shell.say("Ces deux produits ne réagissent pas de façon visible. « Rince » et essaie une autre paire !",'rassurant'); }
+  }
+}
+function mixColor(ids){ const c=new THREE.Color(0,0,0); ids.forEach(i=>c.add(new THREE.Color(REAG[i].color))); c.multiplyScalar(1/ids.length); return '#'+c.getHexString(); }
+function playReaction(reac){ lab.reacted=true; setLiquid(reac.color); shell.sound('good');
+  if(reac.kind==='fizz'){ lab.fizz=2.6; fizzSound(); }
+  else if(reac.kind==='precip'){ startPrecip(reac.precip||reac.color); }
+  shell.say(reac.say,'celebration');
+  showEq(reac.eq);
+  openFiche({ sym:reac.id==='fizz'?'CO₂':reac.id==='precip'?'↓':'pH', color:'#1E8C7A', name:reac.name, sub:reac.sub, eq:reac.eq, stats:[['Type',reac.sub],['Observe',reac.name]], desc:reac.desc, fun:reac.fun });
+  if(quiz) checkChallenge({goal:'react', key:rkey(lab.contents[0],lab.contents[1])});
+}
+function startPrecip(hex){ const col=new THREE.Color(hex); lab.precip.forEach(p=>{ p.active=true; p.m.visible=true; p.m.material.color.copy(col); const a=Math.random()*Math.PI*2, rr=Math.random()*0.68; p.m.position.set(Math.cos(a)*rr,0.2+Math.random()*0.9,Math.sin(a)*rr); p.vy=-(0.1+Math.random()*0.15); p.ry=0.09+Math.random()*0.08; }); }
+function flameTest(id){ const r=REAG[id]; if(!r||r.target!=='flamme')return; startAmbient(); shell.sound('good');
+  lab.flameTimer=5; const col=new THREE.Color(r.flame); lab.flameCore.material.color.copy(col); lab.flameCore.material.opacity=0.95; lab.flameCore.scale.set(1.35,1.5,1.35); lab.flameLight.color.copy(col); lab.flameLight.intensity=2.6;
+  const el=EL.find(x=>x.sym===r.el); const fam=el?FAM[el.fam].n:'';
+  shell.say("Test de flamme : "+r.name+" colore la flamme. "+r.desc,'celebration');
+  openFiche({ sym:r.el, color:'#E63329', name:'Test de flamme · '+(el?el.nom:r.name), sub:'Spectre du '+(el?el.nom.toLowerCase():''), stats:[['Élément',r.el],['Couleur de flamme',flameName(r.flame)],['Famille',fam],['Principe','électrons excités']], desc:[r.desc,"En chauffant, les électrons du métal absorbent de l'énergie puis la relâchent sous forme de lumière colorée, propre à chaque élément."], fun:"Les feux d'artifice utilisent ce principe : sodium=jaune, cuivre=vert, strontium=rouge, potassium=violet." });
+  if(quiz) checkChallenge({goal:'flame', el:r.el});
+}
+function resetFlame(){ lab.flameTimer=0; if(lab.flameCore){ lab.flameCore.material.color.set(0xffb055); lab.flameCore.material.opacity=0.72; lab.flameCore.scale.set(1,1,1); } if(lab.flameLight){ lab.flameLight.color.copy(lab.flameBase); lab.flameLight.intensity=1.2; } }
+function flameName(hex){ const m={ '#ffcf3a':'jaune-orangé','#57e79a':'verte','#ff5555':'rouge carmin','#b877ff':'violette' }; return m[hex]||'colorée'; }
+function rinseBeaker(){ lab.contents=[]; lab.reacted=false; lab.fizz=0; lab.liqTarget=0; lab.liqLevel=0; lab.liquid.scale.y=0.001; lab.liquid.visible=false; lab.liquid.material.color.set(0xcfe6ff); lab.targetLiq.set(0xcfe6ff);
+  lab.bubbles.forEach(b=>{ b.active=false; b.m.visible=false; }); lab.precip.forEach(p=>{ p.active=false; p.m.visible=false; });
+  hideEq(); syncReag(); shell.sound('click'); shell.say('Bécher rincé. À toi de tester une nouvelle réaction !','joyeux');
+}
+function flashRinse(){ const b=document.querySelector('.ch-rinse'); if(b){ b.style.boxShadow='0 0 0 2px var(--accent)'; setTimeout(()=>b.style.boxShadow='',700); } }
+
+/* ============================================================
+   TABLE PÉRIODIQUE
+   ============================================================ */
+function tileTex(sym,z,col){ const c=document.createElement('canvas'); c.width=c.height=128; const ctx=c.getContext('2d'); ctx.fillStyle=col; ctx.fillRect(0,0,128,128); ctx.fillStyle='rgba(255,255,255,.12)'; ctx.fillRect(0,0,128,40); ctx.fillStyle='#fff'; ctx.font='bold '+(sym.length>2?44:58)+'px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(sym,64,74); ctx.font='bold 20px Arial'; ctx.textAlign='left'; ctx.fillText(z,9,24); const tx=new THREE.CanvasTexture(c); tx.colorSpace=THREE.SRGBColorSpace; return tx; }
+function buildTable(){ tableGroup=new THREE.Object3D(); tableGroup.visible=false; scene.add(tableGroup); const sx=1.42, sy=1.55;
+  EL.forEach(el=>{ const col=FAM[el.fam].c; const tile=new THREE.Mesh(new THREE.BoxGeometry(1.25,1.25,0.22), new THREE.MeshStandardMaterial({ map:tileTex(el.sym,el.z,col), roughness:.5, metalness:.1, emissive:new THREE.Color(col), emissiveIntensity:.12 }));
+    tile.position.set((el.g-9.5)*sx, (4-el.p)*sy, 0); tile.userData.el=el; tableGroup.add(tile); tiles.push(tile); });
+}
+
+/* ============================================================
+   MOLÉCULES (boules-bâtons)
+   ============================================================ */
+function buildMolGroup(){ molGroup=new THREE.Object3D(); molGroup.visible=false; molGroup.position.set(0,1.9,0); scene.add(molGroup); }
+function buildMol(key){ molGroup.clear(); molAtoms=[]; const m=MOL[key]; const atoms=[];
+  m.atoms.forEach(a=>{ const [el,x,y,z]=a; const r= el==='H'?0.34:0.58; const sph=new THREE.Mesh(new THREE.SphereGeometry(r,32,32), new THREE.MeshPhysicalMaterial({ color:CPK[el]||CPK.default, roughness:.16, metalness:.0, clearcoat:0.9, clearcoatRoughness:0.12, envMapIntensity:1.3, emissive:new THREE.Color(CPK[el]||CPK.default), emissiveIntensity:.05 })); sph.position.set(x*2.4,y*2.4,z*2.4); sph.userData.el=el; molGroup.add(sph); atoms.push(sph.position); molAtoms.push(sph); });
+  m.bonds.forEach(([a,b])=>{ const p1=atoms[a],p2=atoms[b]; const cyl=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,p1.distanceTo(p2),14), new THREE.MeshStandardMaterial({ color:0xd6dbe4, roughness:.3, metalness:.5, envMapIntensity:1.0 })); cyl.position.copy(p1.clone().add(p2).multiplyScalar(.5)); cyl.lookAt(p2); cyl.rotateX(Math.PI/2); molGroup.add(cyl); });
+}
+
+/* ============================================================
+   UI (DOM)
+   ============================================================ */
+function buildUI(){ const stage=shell.stage;
+  const tabs=document.createElement('div'); tabs.className='ch-panel ch-tabs'; tabs.innerHTML=`<button class="ch-tab" data-t="bench" aria-pressed="true">🧪 Paillasse</button><button class="ch-tab" data-t="mol" aria-pressed="false">⬡ Molécules</button><button class="ch-tab" data-t="table" aria-pressed="false">⊞ Table</button>`; stage.appendChild(tabs);
+  tabs.querySelectorAll('.ch-tab').forEach(b=> b.onclick=()=>{ tab=b.dataset.t; tabs.querySelectorAll('.ch-tab').forEach(x=>x.setAttribute('aria-pressed',x.dataset.t===tab)); setTab(tab); shell.sound('click'); });
+
+  const leg=document.createElement('div'); leg.className='ch-panel ch-legend'; leg.id='chLeg'; leg.innerHTML='<h3>Familles</h3>'+Object.keys(FAM).map(k=>`<div class="ch-leg"><i style="background:${FAM[k].c}"></i>${FAM[k].n}</div>`).join(''); stage.appendChild(leg);
+
+  // barre paillasse (réactifs)
+  const tray=document.createElement('div'); tray.className='ch-panel ch-tray'; tray.id='chTray';
+  const g1=document.createElement('div'); g1.className='ch-tgrp'; g1.innerHTML='<h4>Verser dans le bécher</h4>'; const r1=document.createElement('div'); r1.className='row';
+  BECHER_ORDER.forEach(id=>{ const r=REAG[id]; const b=document.createElement('button'); b.className='ch-reag'; b.dataset.id=id; b.innerHTML=`<span class="dot ${r.kind==='poudre'?'pw':''}" style="background:${r.color}"></span>${r.name}`; b.onclick=()=>addReagent(id); r1.appendChild(b); }); g1.appendChild(r1);
+  const g2=document.createElement('div'); g2.className='ch-tgrp'; g2.innerHTML='<h4>Test de flamme (Bunsen)</h4>'; const r2=document.createElement('div'); r2.className='row';
+  FLAME_ORDER.forEach(id=>{ const r=REAG[id]; const b=document.createElement('button'); b.className='ch-reag'; b.dataset.id=id; b.innerHTML=`<span class="dot pw" style="background:${r.color}"></span>${r.name}`; b.onclick=()=>flameTest(id); r2.appendChild(b); }); g2.appendChild(r2);
+  const rinse=document.createElement('button'); rinse.className='ch-rinse'; rinse.textContent='↺ Rincer'; rinse.onclick=rinseBeaker;
+  tray.appendChild(g1); tray.appendChild(g2); tray.appendChild(rinse); stage.appendChild(tray);
+
+  // barre molécules
+  const mols=document.createElement('div'); mols.className='ch-panel ch-mols'; mols.id='chMols'; mols.style.display='none'; Object.keys(MOL).forEach(k=>{ const b=document.createElement('button'); b.className='ch-mol'; b.textContent=k; b.dataset.k=k; b.setAttribute('aria-pressed',k===curMol); b.onclick=()=>selectMol(k); mols.appendChild(b); }); stage.appendChild(mols);
+
+  const eq=document.createElement('div'); eq.className='ch-eq'; eq.id='chEq'; stage.appendChild(eq);
+  const info=document.createElement('div'); info.className='ch-panel ch-info'; info.id='chInfo'; stage.appendChild(info);
+  const hint=document.createElement('div'); hint.className='ch-hint'; hint.id='chHint'; hint.textContent='Clique un réactif pour le verser'; stage.appendChild(hint);
+}
+function syncReag(){ document.querySelectorAll('.ch-tray .ch-reag').forEach(b=> b.setAttribute('aria-pressed', lab.contents.includes(b.dataset.id))); }
+function showEq(txt){ const e=document.getElementById('chEq'); e.textContent=txt; e.classList.add('show'); }
+function hideEq(){ document.getElementById('chEq').classList.remove('show'); }
+
+function setTab(t){ tab=t; document.querySelectorAll('.ch-tab').forEach(x=>x.setAttribute('aria-pressed',x.dataset.t===t));
+  benchGroup.visible=(t==='bench'); molGroup.visible=(t==='mol'); tableGroup.visible=(t==='table');
+  if(t!=='bench'){ hideEq(); resetFlame(); }
+  document.getElementById('chTray').style.display=(t==='bench')?'flex':'none';
+  document.getElementById('chMols').style.display=(t==='mol')?'flex':'none';
+  document.getElementById('chLeg').style.display=(t==='table')?'':'none';
+  const hint=document.getElementById('chHint'); hint.style.display=(quiz&&mode==='cours')?'none':'';
+  if(t==='bench'){ hint.textContent='Clique un réactif pour le verser'; controls.minDistance=6; controls.maxDistance=30; camera.position.set(0.4,3.8,12); controls.target.set(0,1.7,0); }
+  else if(t==='mol'){ hint.textContent='Choisis une molécule'; selectMol(curMol); controls.minDistance=6; controls.maxDistance=30; camera.position.set(0,2,10); controls.target.set(0,1.9,0); }
+  else { hint.textContent='Clique un élément'; controls.minDistance=8; controls.maxDistance=60; camera.position.set(0,-1,32); controls.target.set(0,0,0); }
+  if(!quiz){ shell.say(t==='bench'?"Paillasse : verse deux réactifs pour déclencher une réaction, ou teste un sel à la flamme !":t==='mol'?"Mode Molécules : regarde les atomes s'assembler en 3D.":"Table périodique des 118 éléments : clique pour tout savoir !",'enthousiaste'); }
+}
+function selectMol(k){ curMol=k; document.querySelectorAll('.ch-mol').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k)); buildMol(k); const m=MOL[k]; openFiche({ sym:m.formula, name:m.name, sub:m.sub, color:'#1E8C7A', stats:[['Formule',m.formula],['Atomes',m.atoms.length]], desc:m.desc, fun:m.fun }); if(!quiz) shell.say(m.desc[0],'concentre'); shell.sound('pop'); if(quiz) checkChallenge({goal:'mol', mol:k}); }
+
+/* ---------- fiche ---------- */
+function openFiche(d){ const el=document.getElementById('chInfo'); el.innerHTML=`<div class="ch-hd" style="background:linear-gradient(135deg,${d.color},${shade(d.color,-38)})"><div class="sym">${d.sym||''}</div><div><div class="sub">${d.sub||''}</div><h2>${d.name}</h2></div><button class="ch-x" aria-label="Fermer">×</button></div><div class="ch-body">${d.eq?`<div class="ch-eqbox">${d.eq}</div>`:''}<div class="ch-grid">${(d.stats||[]).map(s=>`<div class="ch-st"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('')}</div>${(d.desc||[]).map(p=>`<p>${p}</p>`).join('')}${d.fun?`<div class="ch-fun">💡 ${d.fun}</div>`:''}</div>`; el.classList.add('show'); el.querySelector('.ch-x').onclick=()=>el.classList.remove('show'); }
+function shade(hex,p){ const n=parseInt(hex.replace('#',''),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; const f=v=>Math.max(0,Math.min(255,Math.round(v+v*p/100))); return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+
+function clickTile(el){ const fact=FACTS[el.sym]; openFiche({ sym:el.sym, name:el.nom, color:FAM[el.fam].c, sub:FAM[el.fam].n, stats:[['Numéro (Z)',el.z],['Masse','~'+el.mass+' u'],['Famille',FAM[el.fam].n],['État (ambiant)',el.etat]], desc:[fact || (el.nom+" ("+el.sym+"), élément n°"+el.z+", de la famille « "+FAM[el.fam].n.toLowerCase()+" ».")], fun:'' }); shell.say(el.nom+' ('+el.sym+'), numéro '+el.z+'. '+(fact||''),'concentre'); shell.sound('pop'); if(quiz) checkChallenge({goal:'elem', sym:el.sym}); }
+function clickElement(sym){ const el=EL.find(x=>x.sym===sym); if(el) clickTile(el); }
+function clickGlass(key){ const d=GLASS_INFO[key]; if(!d)return; openFiche(d); shell.say(d.name+' — '+d.desc[0],'concentre'); shell.sound('pop'); }
+
+/* ============================================================
+   MODES (Détente / Cours) & DÉFIS
+   ============================================================ */
+function startMode(m){ mode=m; startAmbient(); const hint=document.getElementById('chHint');
+  if(m==='cours'){ shell.setScore(0); startChallenges(); }
+  else { clearQuiz(); hint.style.display=''; shell.say("Mode Détente : explore librement le labo — mélange, teste des flammes, assemble des molécules !",'joyeux'); }
+}
+const CHALL=[
+  { tab:'bench', goal:'react', key:rkey('bicarbonate','vinaigre'), prompt:'Provoque une <b>effervescence</b> (un gaz qui mousse).', hint:'Verse le bicarbonate, puis le vinaigre.' },
+  { tab:'bench', goal:'flame', el:'Na', prompt:'Réalise un <b>test de flamme jaune</b> (sodium).', hint:'Clique le sel de sodium sous « Test de flamme ».' },
+  { tab:'bench', goal:'react', key:rkey('cuivre','soude'), prompt:'Fais apparaître un <b>précipité bleu</b>.', hint:'Sulfate de cuivre + soude. Pense à rincer avant.' },
+  { tab:'bench', goal:'flame', el:'Cu', prompt:'Réalise un <b>test de flamme verte</b> (cuivre).', hint:'Clique le sel de cuivre.' },
+  { tab:'bench', goal:'react', key:rkey('indicateur','soude'), prompt:"Rends l'<b>indicateur vert</b> (milieu basique).", hint:'Indicateur + soude. Rince d\'abord !' },
+  { tab:'mol', goal:'mol', mol:'H₂O', prompt:"Sélectionne la molécule d'<b>eau</b>.", hint:'Le bouton H₂O en bas.' },
+];
+function startChallenges(){ quiz={ idx:0, score:0, total:CHALL.length, miss:0 }; shell.setProgress(0); shell.setLevel(1); gotoChallenge(); }
+function gotoChallenge(){ if(!quiz)return; if(quiz.idx>=quiz.total){ winChallenges(); return; } const c=CHALL[quiz.idx];
+  if(c.tab==='bench'&&(lab.reacted||lab.contents.length)) rinseBeaker();
+  if(tab!==c.tab) setTab(c.tab);
+  shell.setLevel(quiz.idx+1);
+  bar(c.prompt, quiz.idx+1, quiz.total); document.getElementById('chHint').style.display='none';
+  shell.say('Défi '+(quiz.idx+1)+'/'+quiz.total+' : '+stripB(c.prompt)+' '+c.hint,'curieux');
+}
+function stripB(h){ return h.replace(/<[^>]+>/g,''); }
+function bar(html,n,t){ let b=document.getElementById('chQuiz'); if(!b){ b=document.createElement('div'); b.className='ch-quiz'; b.id='chQuiz'; shell.stage.appendChild(b); } b.innerHTML=`<span class="ch-qn">${n}/${t}</span><span>${html}</span>`; }
+function checkChallenge(ev){ if(!quiz)return; const c=CHALL[quiz.idx]; if(!c||ev.goal!==c.goal){ return; }
+  let ok=false;
+  if(c.goal==='react') ok=(ev.key===c.key);
+  else if(c.goal==='flame') ok=(ev.el===c.el);
+  else if(c.goal==='mol') ok=(ev.mol===c.mol);
+  else if(c.goal==='elem') ok=(ev.sym===c.sym);
+  if(ok){ quiz.score++; quiz.idx++; shell.addScore(180); shell.sound('good'); shell.setProgress(quiz.idx/quiz.total); shell.say('Bravo, défi réussi ! On continue.','celebration'); setTimeout(gotoChallenge,1400); }
+  else { quiz.miss++; shell.sound('bad'); shell.say("Presque ! "+c.hint,'rassurant'); }
+}
+function winChallenges(){ const b=document.getElementById('chQuiz'); if(b)b.remove(); const st=quiz.miss===0?3:quiz.miss<=2?2:1; const sc=quiz.score*180;
+  shell.win({ score:sc, stars:st, title:`${quiz.score}/${quiz.total} défis réussis`, learned:shell.cfg.learned, buddy: st===3?"Chimiste hors pair ! Tu maîtrises réactions et tests de flamme.":"Beau travail — recommence pour viser les 3 étoiles !", onNext:()=>{ shell.setScore(0); startChallenges(); }, nextLabel:'Rejouer' }); quiz=null; }
+function clearQuiz(){ const b=document.getElementById('chQuiz'); if(b)b.remove(); quiz=null; }
+
+/* ============================================================
+   ENTRÉES / RENDU
+   ============================================================ */
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x05100d:0x081712,1); }
+function onResize(){ const s=shell.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
+function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pickList(){ if(tab==='table')return tiles; if(tab==='mol')return molAtoms; if(tab==='bench')return benchClickable; return []; }
+function pick(){ raycaster.setFromCamera(pointer,camera); const h=raycaster.intersectObjects(pickList(),false); return h.length?h[0].object:null; }
+function onMove(e){ setP(e); const o=pick(); renderer.domElement.style.cursor=o?'pointer':'grab'; hovered=(tab==='table')?o:null; }
+function onDown(e){ setP(e); const o=pick(); if(!o)return;
+  if(tab==='table'&&o.userData.el) clickTile(o.userData.el);
+  else if(tab==='mol'&&o.userData.el) clickElement(o.userData.el);
+  else if(tab==='bench'&&o.userData.glass) clickGlass(o.userData.glass);
+}
+
+function animate(){ requestAnimationFrame(animate); const dt=Math.min(clock.getDelta(),0.05); const t=clock.elapsedTime;
+  // molécule tourne
+  if(molGroup.visible && !REDUCED) molGroup.rotation.y+=dt*0.35;
+  // tuiles hover
+  if(tableGroup.visible) tiles.forEach(tl=>{ tl.scale.lerp(new THREE.Vector3(tl===hovered?1.22:1,tl===hovered?1.22:1,1),0.2); tl.material.emissiveIntensity=tl===hovered?0.5:0.12; });
+  // paillasse : flamme, liquide, bulles, précipité
+  if(benchGroup.visible){
+    // flicker flamme
+    const fl=REDUCED?1:(1+Math.sin(t*13)*0.06+Math.sin(t*29)*0.03);
+    if(lab.flame){ lab.flame.scale.set(1,fl,1); lab.flame.rotation.y=Math.sin(t*2)*0.05; }
+    if(lab.flameTimer>0){ lab.flameTimer-=dt; if(lab.flameTimer<=0){ lab.flameCore.material.color.set(0xffb055); lab.flameCore.material.opacity=0.72; lab.flameCore.scale.set(1,1,1); lab.flameLight.color.copy(lab.flameBase); lab.flameLight.intensity=1.2; } }
+    if(lab.flameLight) lab.flameLight.intensity*= (0.98+ (REDUCED?0.02:Math.random()*0.06));
+    // niveau + couleur du liquide
+    lab.liqLevel+=(lab.liqTarget-lab.liqLevel)*Math.min(1,dt*4);
+    if(lab.liquid){ lab.liquid.scale.y=Math.max(0.001,lab.liqLevel); lab.liquid.position.y=0.08+ (lab.liqLevel*1.0)*0.5; lab.liquid.visible=lab.liqLevel>0.01; lab.liquid.material.color.lerp(lab.targetLiq,Math.min(1,dt*3)); }
+    // bulles (effervescence)
+    if(lab.fizz>0){ lab.fizz-=dt; for(let k=0;k<(REDUCED?1:2);k++){ const b=lab.bubbles.find(x=>!x.active); if(b){ b.active=true; b.m.visible=true; const a=Math.random()*Math.PI*2, rr=Math.random()*0.6; b.m.position.set(Math.cos(a)*rr,0.1,Math.sin(a)*rr); const s=0.4+Math.random()*0.8; b.m.scale.setScalar(s); b.vy=0.6+Math.random()*0.7; } } }
+    lab.bubbles.forEach(b=>{ if(!b.active)return; b.m.position.y+=b.vy*dt; if(b.m.position.y> (lab.liqLevel*1.4)+0.15){ b.active=false; b.m.visible=false; } });
+    lab.precip.forEach(p=>{ if(!p.active)return; if(p.m.position.y>0.12){ p.m.position.y+=p.vy*dt; } p.m.rotation.y+=p.ry*dt; });
+  }
+  controls.update(); composer.render();
+}
+</script>
+</body>
+</html>

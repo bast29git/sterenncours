@@ -460,3 +460,11 @@ Partie C : 5 points (2 pour le cône, 2 pour la pyramide, 1 pour l'explication).
 Partie D : 5 points (1 pour le cylindre, 1 pour le cône, 1 pour le total, 1 pour la conversion, 1 pour la masse).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

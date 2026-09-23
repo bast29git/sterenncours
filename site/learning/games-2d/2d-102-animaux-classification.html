@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Animaux & classification</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Un animal qui allaite ses petits est un…', options:['mammifère','reptile','poisson','oiseau'], answer:'mammifère', explain:'Comme le chien, la baleine ou l\'humain.'},
+ {lvl:1, prompt:'Lequel est un amphibien ?', options:['la grenouille','le serpent','l\'aigle','le requin'], answer:'la grenouille', explain:'Ils vivent entre l\'eau et la terre.'},
+ {lvl:1, prompt:'Combien de pattes a un insecte ?', options:['6','8','4','2'], answer:'6', explain:'Les araignées (8 pattes) ne sont pas des insectes !'},
+ {lvl:2, prompt:'Les animaux à sang froid dont la température dépend du milieu sont les…', options:['reptiles','mammifères','oiseaux','primates'], answer:'reptiles', explain:'Ils se chauffent au soleil pour être actifs.'},
+ {lvl:2, prompt:'Un herbivore mange…', options:['des végétaux','de la viande','les deux','des cailloux'], answer:'des végétaux', explain:'Carnivore = viande ; omnivore = les deux.'},
+ {lvl:2, prompt:'La « métamorphose » de la chenille en papillon est un exemple de…', options:['transformation complète','croissance simple','reproduction','migration'], answer:'transformation complète', explain:'Œuf → chenille → chrysalide → papillon.'},
+ {lvl:3, prompt:'Les animaux sans colonne vertébrale sont des…', options:['invertébrés','vertébrés','mammifères','poissons'], answer:'invertébrés', explain:'Insectes, mollusques, vers… 95 % des espèces animales.'},
+ {lvl:3, prompt:'Selon l\'évolution, les oiseaux descendent des…', options:['dinosaures','poissons','reptiles marins','mammifères'], answer:'dinosaures', explain:'Ce sont les derniers dinosaures vivants !'},
+ {lvl:3, prompt:'La classification scientifique nomme les espèces avec…', options:['deux mots latins (genre + espèce)','un chiffre','une couleur','un seul mot'], answer:'deux mots latins (genre + espèce)', explain:'Ex. : Homo sapiens (nomenclature de Linné).'},
+];
+QuizGame({ id:'2d-102-animaux-classification', code:'2D·102', title:'Animaux & classification', domain:{label:'Bio & SVT',color:'#2AA98C'},
+ intro:{ greet:"Mammifères, reptiles, insectes… mets de l'ordre dans le règne animal.", rule:"Découvre la classification des animaux, leurs régimes et l'évolution. Trois niveaux.", how:["Lis la question.","Choisis la bonne réponse.","Niveau Expert : invertébrés, évolution, nomenclature."], objectif:"Comprendre la classification du vivant.", hint:"Mammifères = allaitent ; insectes = 6 pattes ; oiseaux = descendent des dinosaures.", why:"Classer le vivant aide à comprendre la biodiversité et l'évolution." },
+ learned:["Grands groupes : mammifères, reptiles, insectes…","Régimes alimentaires et métamorphose.","Vertébrés/invertébrés, évolution, nomenclature de Linné."],
+ rounds });
+</script></body></html>

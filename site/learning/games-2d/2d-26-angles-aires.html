@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Angles & aires</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .aa-wrap { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:22px; text-align:center; }
+  .aa-q { font-size:17px; max-width:42ch; } .aa-q b{ color:var(--accent-text); }
+  .aa-fig svg { width:240px; height:200px; }
+  .aa-opts { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:min(420px,100%); }
+  .aa-opt { font-family:var(--font-data); font-weight:700; font-size:16px; min-height:52px; border-radius:13px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; transition:.14s; }
+  .aa-opt:hover { border-color:var(--accent); } .aa-opt.ok{background:var(--ok);color:var(--ok-fg);border-color:var(--ok-fg)} .aa-opt.no{background:var(--err);color:var(--err-fg);border-color:var(--err-fg)}
+</style>
+</head>
+<body>
+<script>
+let mode='detente', asked=0, right=0, cur=null;
+const shell=window.Konstrio.createGame({
+  id:'2d-26-angles-aires', code:'2D·26', title:'Angles & aires', type:'2D',
+  domain:{ label:'Mathématiques', color:'#9B2BB0' },
+  intro:{
+    greet:"Mesure des angles et calcule des aires ! Observe la figure et choisis la bonne réponse.",
+    rule:"Deux notions de géométrie : la <b>nature d'un angle</b> (aigu, droit, obtus) et l'<b>aire d'une figure</b> (rectangle, carré, triangle). Observe et réponds.",
+    how:["Pour un angle : compare-le à l'angle droit (90°) — plus petit = aigu, plus grand = obtus.","Pour une aire : applique la formule (rectangle = L×l, triangle = base×hauteur÷2).","Choisis la bonne réponse parmi les propositions."],
+    keys:"Clique une réponse.",
+    objectif:"Reconnaître les angles et calculer les aires de figures simples.",
+    hint:"Aire du rectangle = Longueur × largeur. Aire du triangle = (base × hauteur) ÷ 2. Angle droit = 90°.",
+    why:"Les aires servent partout : carrelage, peinture, terrains. Les angles structurent toute la géométrie."
+  },
+  learned:["Angle aigu < 90° < angle obtus ; l'angle droit fait exactement 90°.","Aire d'un rectangle = L × l ; d'un carré = côté² ; d'un triangle = base × hauteur ÷ 2.","On exprime les aires en unités carrées (cm², m²…)."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; asked=0; right=0; api.setScore(0); next(); },
+  onRestart:(api)=>{ asked=0; right=0; api.setScore(0); next(); },
+});
+let wrap;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='aa-wrap';
+  wrap.innerHTML=`<div class="aa-q" id="aaQ"></div><div class="aa-fig" id="aaFig"></div><div class="aa-opts" id="aaOpts"></div>`;
+  api.stage.appendChild(wrap); next(); }
+function r(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function next(){ if(asked>=10){ finish(); return; }
+  shell.api.setLevel((asked+1)+'/10'); shell.api.setProgress(asked/10);
+  const acc='var(--accent)', mut='var(--fg-muted)';
+  const type=asked%3;
+  let q,fig,correct,opts;
+  if(type===0){ const kinds=[['aigu',r(20,75)],['droit',90],['obtus',r(105,160)]]; const [k,deg]=kinds[r(0,2)];
+    q='Quelle est la <b>nature</b> de cet angle ?'; correct=k; opts=['aigu','droit','obtus'];
+    const cx=120,cy=150,len=90,a=-deg*Math.PI/180; const x2=cx+len*Math.cos(a), y2=cy+len*Math.sin(a);
+    fig=`<svg viewBox="0 0 240 200"><line x1="${cx}" y1="${cy}" x2="${cx+len}" y2="${cy}" stroke="${acc}" stroke-width="3"/><line x1="${cx}" y1="${cy}" x2="${x2.toFixed(0)}" y2="${y2.toFixed(0)}" stroke="${acc}" stroke-width="3"/><path d="M${cx+30} ${cy} A30 30 0 0 0 ${(cx+30*Math.cos(a)).toFixed(0)} ${(cy+30*Math.sin(a)).toFixed(0)}" fill="none" stroke="${mut}" stroke-width="2"/><text x="${cx+40}" y="${cy-20}" font-size="13" fill="${mut}" font-family="monospace">?</text></svg>`;
+    cur={hint:`Un angle ${k} ${k==='droit'?'fait pile 90°':k==='aigu'?'est plus petit que 90°':'est plus grand que 90°'}.`};
+  } else if(type===1){ const L=r(3,9), l=r(2,7); q=`Quelle est l'<b>aire</b> de ce rectangle (en cm²) ?`; correct=L*l;
+    fig=`<svg viewBox="0 0 240 200"><rect x="50" y="50" width="140" height="100" fill="var(--accent-weak)" stroke="${acc}" stroke-width="2"/><text x="120" y="170" font-size="14" text-anchor="middle" fill="${mut}" font-family="monospace">${L} cm</text><text x="32" y="105" font-size="14" text-anchor="middle" fill="${mut}" font-family="monospace" transform="rotate(-90 32 105)">${l} cm</text></svg>`;
+    const set=new Set([correct]); while(set.size<3){ set.add(r(6,63)); } opts=[...set].sort((a,b)=>a-b); cur={hint:`Aire = L × l = ${L} × ${l} = ${correct} cm².`};
+  } else { const b=r(3,9), h=r(2,8); q=`Quelle est l'<b>aire</b> de ce triangle (en cm²) ?`; correct=b*h/2;
+    fig=`<svg viewBox="0 0 240 200"><polygon points="50,150 190,150 90,50" fill="var(--accent-weak)" stroke="${acc}" stroke-width="2"/><line x1="90" y1="50" x2="90" y2="150" stroke="${mut}" stroke-width="1.5" stroke-dasharray="4"/><text x="120" y="170" font-size="14" text-anchor="middle" fill="${mut}" font-family="monospace">${b} cm</text><text x="100" y="100" font-size="13" fill="${mut}" font-family="monospace">${h} cm</text></svg>`;
+    const set=new Set([correct]); while(set.size<3){ set.add(r(3,40)+ (Math.random()<.5?0:0.5)); } opts=[...set].sort((a,b)=>a-b); cur={hint:`Aire = base × hauteur ÷ 2 = ${b} × ${h} ÷ 2 = ${correct} cm².`};
+  }
+  cur.correct=correct;
+  document.getElementById('aaQ').innerHTML=q; document.getElementById('aaFig').innerHTML=fig;
+  const oc=document.getElementById('aaOpts'); oc.innerHTML='';
+  opts.forEach(o=>{ const bt=document.createElement('button'); bt.className='aa-opt'; bt.textContent=typeof o==='number'?o+(type>0?' cm²':''):o; bt.dataset.v=o; bt.onclick=()=>pick(o,bt); oc.appendChild(bt); });
+  shell.api.say(asked===0?"Observe la figure et choisis la bonne réponse !":"À toi !",'concentre'); }
+function pick(o,btn){ document.querySelectorAll('.aa-opt').forEach(b=>b.style.pointerEvents='none'); const ok=String(o)===String(cur.correct); asked++;
+  if(ok){ right++; shell.api.addScore(70); shell.sound('good'); btn.classList.add('ok'); shell.api.say('Exact ! '+cur.hint,'fier'); }
+  else { shell.sound('bad'); btn.classList.add('no'); [...document.querySelectorAll('.aa-opt')].find(b=>String(b.dataset.v)===String(cur.correct)).classList.add('ok'); shell.api.say(cur.hint,'rassurant'); }
+  shell.api.setProgress(asked/10); setTimeout(next, ok?1000:1800); }
+function finish(){ const stars=right>=9?3:right>=6?2:1;
+  shell.api.win({ score:right*70, stars, title:`${right}/10 bonnes réponses`,
+    buddy: stars===3?"Géométrie maîtrisée ! Angles et aires n'ont plus de secret.":"Bien — rectangle = L×l, triangle = base×hauteur÷2.",
+    learned:shell.cfg.learned, onNext:()=>{ asked=0; right=0; shell.api.setScore(0); next(); }, nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

@@ -438,3 +438,11 @@ Partie C : 4 points (1,5 pour les deux tiers, 1,5 pour le calcul inverse, 1 pour
 Partie D : 5 points (1 pour la médiatrice, 2,5 pour la démonstration de l'isocèle, 1,5 pour l'équilatéral).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Frise chronologique</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .fr-stage { position:absolute; inset:0; display:flex; flex-direction:column; gap:10px; padding:16px; overflow:auto; touch-action:none; user-select:none; }
+  .fr-top { text-align:center; }
+  .fr-theme { font-family:var(--font-mono); font-size:12px; color:var(--accent-text); text-transform:uppercase; letter-spacing:.06em; }
+  .fr-instr { font-size:13px; color:var(--fg-muted); margin-top:4px; }
+  .fr-tray { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; min-height:84px; padding:10px; border-radius:14px; border:1.5px dashed var(--border); background:var(--surface-2); }
+  .fr-card { padding:10px 14px; border-radius:12px; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-sm); font-weight:700; font-size:13.5px; cursor:grab; max-width:160px; text-align:center; line-height:1.25; touch-action:none; transition:transform .12s, box-shadow .2s; }
+  .fr-card.sel { border-color:var(--accent); box-shadow:var(--ring); }
+  .fr-card.drag { position:fixed; z-index:60; pointer-events:none; transform:scale(1.05) rotate(-2deg); }
+  .fr-card .yr { font-family:var(--font-data); font-size:12px; color:var(--accent-text); margin-top:3px; display:none; }
+  .fr-card.revealed .yr { display:block; }
+  .fr-line { position:relative; margin-top:auto; padding:30px 6px 10px; }
+  .fr-axis { position:absolute; left:0; right:0; top:46px; height:4px; background:linear-gradient(90deg,var(--accent),var(--brand-cyan)); border-radius:2px; }
+  .fr-slots { display:flex; gap:8px; }
+  .fr-slot { flex:1; min-height:78px; border-radius:12px; border:2px dashed var(--border); background:color-mix(in srgb,var(--surface) 70%,transparent); display:flex; align-items:center; justify-content:center; padding:6px; position:relative; }
+  .fr-slot::before { content:''; position:absolute; top:-14px; left:50%; transform:translateX(-50%); width:12px; height:12px; border-radius:999px; background:var(--surface); border:3px solid var(--accent); }
+  .fr-slot.hover { border-color:var(--accent); background:var(--accent-weak); }
+  .fr-slot.ok { border-style:solid; border-color:var(--brand-teal); background:var(--ok); }
+  .fr-slot.no { border-style:solid; border-color:var(--brand-red); background:var(--err); }
+  .fr-slot .pos { position:absolute; bottom:-22px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:10px; color:var(--fg-muted); }
+  .fr-bar { display:flex; gap:10px; justify-content:center; padding-top:18px; }
+  .fr-b { font-family:var(--font-body); font-weight:700; min-height:46px; padding:0 22px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; }
+  .fr-b.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .fr-b:disabled { opacity:.4; cursor:not-allowed; }
+</style>
+</head>
+<body>
+<script>
+const SETS=[
+  { theme:'Grandes inventions', events:[
+    {l:'La roue', y:-3500}, {l:'L\'imprimerie', y:1450}, {l:'La machine à vapeur', y:1769},
+    {l:'Le téléphone', y:1876}, {l:'Internet', y:1983}, {l:'Le smartphone', y:2007} ] },
+  { theme:'Histoire de France', events:[
+    {l:'Vercingétorix à Alésia', y:-52}, {l:'Sacre de Charlemagne', y:800}, {l:'Jeanne d\'Arc à Orléans', y:1429},
+    {l:'La Révolution française', y:1789}, {l:'Début de la 1ʳᵉ Guerre', y:1914}, {l:'Mai 68', y:1968} ] },
+  { theme:'Repères du monde', events:[
+    {l:'Pyramides de Gizeh', y:-2560}, {l:'Chute de Rome', y:476}, {l:'Découverte de l\'Amérique', y:1492},
+    {l:'Révolution industrielle', y:1800}, {l:'Premier homme sur la Lune', y:1969}, {l:'Chute du mur de Berlin', y:1989} ] },
+];
+let mode='detente', setIdx=0, placed=[], selected=null;
+
+const shell=window.Konstrio.createGame({
+  id:'2d-32-frise', code:'2D·32', title:'Frise chronologique', type:'2D',
+  domain:{ label:'Histoire & Géo', color:'#E0892B' },
+  intro:{
+    greet:"Voyageons dans le temps ! Replace chaque événement dans l'ordre, du plus ancien au plus récent.",
+    rule:"Place les événements sur la frise, du <b>plus ancien</b> (à gauche) au <b>plus récent</b> (à droite). Quand tout est rempli, vérifie ta chronologie !",
+    how:["Fais glisser chaque carte dans une case de la frise (ou clique une carte puis une case).","De gauche à droite = du passé vers le présent.","Clique « Vérifier » : les bonnes positions deviennent vertes et révèlent les dates."],
+    keys:"Clique une carte pour la sélectionner, puis clique une case pour l'y déposer.",
+    objectif:"Ordonner correctement 6 événements et mémoriser leurs dates clés.",
+    hint:"Cherche d'abord le plus ancien et le plus récent : ils encadrent la frise et facilitent le reste.",
+    why:"La chronologie aide à comprendre les causes et conséquences : un événement en explique souvent un autre qui suit."
+  },
+  learned:["Ordonner les événements aide à comprendre l'enchaînement de l'Histoire.","Les dates « repères » structurent le temps (Antiquité, Moyen Âge, époque moderne…).","Avant J.-C., les années « diminuent » en remontant le temps (−3500 est avant −52)."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; setIdx=0; reset(api); },
+  onRestart:(api)=>reset(api),
+});
+
+let stage,tray,slots,validateBtn;
+function build(api){
+  shell.api=api;
+  stage=document.createElement('div'); stage.className='fr-stage';
+  stage.innerHTML=`<div class="fr-top"><div class="fr-theme" id="frTheme"></div><div class="fr-instr">Glisse les cartes sur la frise · du plus ancien au plus récent</div></div>
+    <div class="fr-tray" id="frTray"></div>
+    <div class="fr-line"><div class="fr-axis"></div><div class="fr-slots" id="frSlots"></div></div>
+    <div class="fr-bar"><button class="fr-b primary" id="frVal" disabled>Vérifier la frise</button></div>`;
+  api.stage.appendChild(stage);
+  tray=stage.querySelector('#frTray'); slots=stage.querySelector('#frSlots'); validateBtn=stage.querySelector('#frVal');
+  validateBtn.onclick=validate;
+  reset(api);
+}
+function reset(api){
+  shell.api=api; const set=SETS[setIdx%SETS.length];
+  document.getElementById('frTheme').textContent='Thème : '+set.theme;
+  api.setLevel((setIdx%SETS.length+1)+'/'+SETS.length); api.setProgress(0);
+  placed=new Array(set.events.length).fill(null); selected=null;
+  // tray cards shuffled
+  tray.innerHTML=''; slots.innerHTML='';
+  const order=set.events.map((e,i)=>i).sort(()=>Math.random()-.5);
+  order.forEach(i=>{ const e=set.events[i]; const c=document.createElement('div'); c.className='fr-card'; c.dataset.i=i;
+    c.innerHTML=`<div>${e.l}</div><div class="yr">${fmtY(e.y)}</div>`;
+    c.addEventListener('pointerdown',startDrag); c.onclick=()=>selectCard(c);
+    tray.appendChild(c); });
+  for(let s=0;s<set.events.length;s++){ const sl=document.createElement('div'); sl.className='fr-slot'; sl.dataset.s=s; sl.innerHTML=`<span class="pos">${s+1}</span>`; sl.onclick=()=>{ if(selected) placeIn(selected,sl); }; slots.appendChild(sl); }
+  validateBtn.disabled=true;
+  api.say("Trouve le plus ancien et commence par la gauche !", 'concentre');
+}
+function fmtY(y){ return y<0?(-y+' av. J.-C.'):(y+''); }
+function selectCard(c){ if(c.parentElement.classList.contains('fr-slot')&&c.classList.contains('ok'))return; document.querySelectorAll('.fr-card').forEach(x=>x.classList.remove('sel')); selected=c; c.classList.add('sel'); shell.sound('tick'); }
+// drag
+let dragC=null,ox=0,oy=0;
+function startDrag(e){ const c=e.currentTarget; if(c.classList.contains('ok'))return; dragC=c; const r=c.getBoundingClientRect(); ox=e.clientX-r.left; oy=e.clientY-r.top; c.classList.add('drag'); c.style.left=r.left+'px'; c.style.top=r.top+'px'; c.style.width=r.width+'px'; document.addEventListener('pointermove',onDrag); document.addEventListener('pointerup',endDrag); }
+function onDrag(e){ if(!dragC)return; dragC.style.left=(e.clientX-ox)+'px'; dragC.style.top=(e.clientY-oy)+'px'; const el=document.elementFromPoint(e.clientX,e.clientY); const sl=el&&el.closest&&el.closest('.fr-slot'); document.querySelectorAll('.fr-slot').forEach(s=>s.classList.toggle('hover',s===sl)); }
+function endDrag(e){ document.removeEventListener('pointermove',onDrag); document.removeEventListener('pointerup',endDrag); const el=document.elementFromPoint(e.clientX,e.clientY); const sl=el&&el.closest&&el.closest('.fr-slot'); dragC.classList.remove('drag'); dragC.style.cssText=''; document.querySelectorAll('.fr-slot').forEach(s=>s.classList.remove('hover')); if(sl) placeIn(dragC,sl); dragC=null; }
+function placeIn(card,slot){
+  const s=+slot.dataset.s;
+  // si la case a déjà une carte, la renvoyer au tray
+  const ex=slot.querySelector('.fr-card'); if(ex){ tray.appendChild(ex); }
+  slot.appendChild(card); card.classList.remove('sel','drag'); card.style.cssText=''; placed[s]=+card.dataset.i; selected=null; shell.sound('pop');
+  slots.querySelectorAll('.fr-slot').forEach((sl,i)=> placed[i]= sl.querySelector('.fr-card')?+sl.querySelector('.fr-card').dataset.i:null);
+  validateBtn.disabled = placed.some(p=>p===null);
+}
+function validate(){
+  const set=SETS[setIdx%SETS.length];
+  const years=placed.map(i=>set.events[i].y);
+  let ok=true, good=0;
+  slots.querySelectorAll('.fr-slot').forEach((sl,i)=>{ const correctOrder=[...set.events].sort((a,b)=>a.y-b.y); const placedEvent=set.events[placed[i]]; const isOk=placedEvent.y===correctOrder[i].y;
+    sl.classList.toggle('ok',isOk); sl.classList.toggle('no',!isOk); sl.querySelector('.fr-card').classList.add('revealed'); if(isOk)good++; else ok=false; });
+  if(ok){ shell.sound('win'); shell.api.addScore(300); shell.api.say('Parfait ! Chronologie exacte. '+set.events.sort((a,b)=>a.y-b.y).map(e=>e.l+' ('+fmtY(e.y)+')')[0]+' ouvre la frise.', 'celebration');
+    setIdx++; if(setIdx<SETS.length){ shell.api.setProgress(1); setTimeout(()=>{ reset(shell.api); },2200); shell.api.toast('Frise réussie ! Thème suivant…'); }
+    else finish(true); }
+  else { shell.sound('bad'); shell.api.addScore(good*30); shell.api.say(`${good}/${set.events.length} bien placés. Les cases rouges sont à revoir — observe les dates révélées !`,'rassurant'); validateBtn.disabled=false;
+    // permit reordering of wrong ones
+    setTimeout(()=>{ slots.querySelectorAll('.fr-slot.no').forEach(sl=>{ sl.classList.remove('no'); const c=sl.querySelector('.fr-card'); if(c){ c.classList.remove('revealed'); } }); },2600); }
+}
+function finish(){
+  const stars=3;
+  shell.api.win({ score: parseInt(document.querySelector('.ksh-score').textContent,10), stars, title:'Toutes les frises reconstituées !',
+    buddy:"Excellent sens de la chronologie ! Tu sais ordonner l'Histoire.", learned:shell.cfg.learned,
+    onNext:()=>{ setIdx=0; reset(shell.api); }, nextLabel:'Rejouer' });
+}
+</script>
+</body>
+</html>

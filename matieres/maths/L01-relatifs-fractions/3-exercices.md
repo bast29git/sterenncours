@@ -494,3 +494,11 @@ Il reste **90 litres** dans le réservoir.
 Vérification : `90` litres sur `180`, c'est exactement la moitié. Or `2/3 × 3/4 = 6/12 = 1/2`. Les deux raisonnements concordent.
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

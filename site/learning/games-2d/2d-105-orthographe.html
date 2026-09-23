@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Orthographe</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Choisis la bonne orthographe :', options:['un événement','un évènement','un évenement','un évennement'], answer:'un événement', explain:'« Évènement » est toléré, mais « événement » reste la référence.'},
+ {lvl:1, prompt:'« Je vais ___ la maison. »', options:['à','a','as','at'], answer:'à', explain:'« à » (préposition) ≠ « a » (verbe avoir).'},
+ {lvl:1, prompt:'« Ils ___ contents. »', options:['sont','son','sons','c\'est'], answer:'sont', explain:'« sont » (verbe être) ≠ « son » (possessif).'},
+ {lvl:2, prompt:'« ___ tu veux, on y va. »', options:['Si','S\'y','Ci','Sy'], answer:'Si', explain:'« si » de condition.'},
+ {lvl:2, prompt:'Choisis : « Les enfants se sont ___. »', options:['lavés','lavé','laver','lavées'], answer:'lavés', explain:'Accord du participe avec le COD placé avant (« se »).'},
+ {lvl:2, prompt:'« Quel beau temps ! » — « quel » s\'accorde-t-il ?', options:['oui, en genre et nombre','non, jamais','seulement au pluriel','seulement au féminin'], answer:'oui, en genre et nombre', explain:'Quel / quelle / quels / quelles.'},
+ {lvl:3, prompt:'« Elle s\'est ___ les mains. » (laver)', options:['lavé','lavée','lavés','lavées'], answer:'lavé', explain:'Le COD (« les mains ») est placé APRÈS : pas d\'accord.'},
+ {lvl:3, prompt:'« Ces livres, je les ai ___. » (lire)', options:['lus','lu','lue','lues'], answer:'lus', explain:'COD « les » (= livres, masculin pluriel) placé avant : accord.'},
+ {lvl:3, prompt:'« Quel que soit » ou « quelque » ? « ___ ton avis, écoute. »', options:['Quel que soit','Quelque soit','Quelques soit','Quelque-soit'], answer:'Quel que soit', explain:'Devant un verbe (soit) : « quel que » en deux mots, accordé.'},
+];
+QuizGame({ id:'2d-105-orthographe', code:'2D·105', title:'Orthographe', domain:{label:'Français',color:'#1457A8'},
+ intro:{ greet:"Les pièges de l'orthographe française n'auront plus de prise sur toi !", rule:"Déjoue les homophones (à/a, sont/son), les accords du participe passé et les pièges classiques. Trois niveaux, jusqu'au niveau expert.", how:["Lis la phrase.","Choisis la bonne orthographe.","Niveau Expert : accords du participe pronominal, quel que / quelque."], objectif:"Maîtriser l'orthographe et les accords difficiles.", hint:"Participe passé avec « avoir » : accord avec le COD seulement s'il est placé avant.", why:"Une orthographe soignée renforce la clarté et la crédibilité de tes écrits." },
+ learned:["Homophones : à/a, sont/son, si/s'y.","Accords du participe passé (avoir, être, pronominal).","Quel que / quelque et autres pièges."],
+ rounds });
+</script></body></html>

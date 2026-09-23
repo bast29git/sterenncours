@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · pH, acides & bases</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+function scale(p){ const x=p/14*280; return `<svg viewBox="0 0 290 44" width="100%" style="max-width:330px"><defs><linearGradient id="ph" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E63329"/><stop offset="0.5" stop-color="#2faa4a"/><stop offset="1" stop-color="#6E6BFF"/></linearGradient></defs><rect x="5" y="6" width="280" height="16" rx="8" fill="url(#ph)"/><polygon points="${x+5},24 ${x},32 ${x+10},32" fill="var(--fg)"/><text x="${x+5}" y="42" font-size="11" font-family="monospace" fill="var(--fg)" text-anchor="middle">pH ${p}</text><text x="8" y="42" font-size="9" fill="var(--fg-muted)">0 acide</text><text x="252" y="42" font-size="9" fill="var(--fg-muted)">14 basique</text></svg>`; }
+const rounds=[
+ {lvl:1, visual:scale(2), prompt:'Une solution de pH 2 est…', options:['acide','basique','neutre','gazeuse'], answer:'acide', explain:'En dessous de 7, la solution est acide. pH 2 = très acide.'},
+ {lvl:1, visual:scale(7), prompt:'Une solution de pH 7 est…', options:['neutre','acide','basique','salée'], answer:'neutre', explain:'pH 7 = neutre, comme l\'eau pure.'},
+ {lvl:1, visual:scale(12), prompt:'Une solution de pH 12 est…', options:['basique','acide','neutre','explosive'], answer:'basique', explain:'Au-dessus de 7, la solution est basique (alcaline).'},
+ {lvl:1, prompt:'Le <b>jus de citron</b> est plutôt…', options:['acide','basique','neutre','sucré donc neutre'], answer:'acide', explain:'Le citron (acide citrique) a un pH d\'environ 2.'},
+ {lvl:2, prompt:'Le <b>savon</b> est plutôt…', options:['basique','acide','neutre','toxique'], answer:'basique', explain:'Les savons sont basiques (pH 9-10), d\'où leur toucher glissant.'},
+ {lvl:2, prompt:'Quand le pH passe de 5 à 4, l\'acidité…', options:['est multipliée par 10','double','diminue','ne change pas'], answer:'est multipliée par 10', explain:'L\'échelle de pH est logarithmique : chaque unité = ×10 en concentration d\'ions H⁺.'},
+ {lvl:2, prompt:'Que mesure le pH ?', options:['la concentration en ions H⁺','la température','la masse','la couleur'], answer:'la concentration en ions H⁺', explain:'pH = potentiel Hydrogène : plus il y a d\'ions H⁺, plus c\'est acide.'},
+ {lvl:3, prompt:'Mélanger un acide fort et une base forte produit (en proportions égales)…', options:['de l\'eau + un sel (neutralisation)','un gaz explosif','un métal','rien'], answer:'de l\'eau + un sel (neutralisation)', explain:'Réaction de neutralisation : acide + base → sel + eau.'},
+ {lvl:3, prompt:'Le sang humain a un pH d\'environ…', options:['7,4 (légèrement basique)','2 (acide)','12 (basique)','5 (acide)'], answer:'7,4 (légèrement basique)', explain:'Le corps régule strictement le pH sanguin autour de 7,4 : vital pour les cellules.'},
+ {lvl:3, prompt:'Les <b>pluies acides</b> ont un pH…', options:['inférieur à 5,6','de 7','supérieur à 9','de 14'], answer:'inférieur à 5,6', explain:'Le CO₂ et les oxydes de soufre/azote acidifient l\'eau de pluie sous 5,6.'},
+];
+QuizGame({ id:'2d-56-ph-acides', code:'2D·56', title:'pH, acides & bases', domain:{label:'Chimie',color:'#1E8C7A'},
+ intro:{ greet:"Citron, savon, sang… tout a un pH ! Apprends à le lire sur l'échelle.", rule:"Situe les solutions sur l'échelle de <b>pH</b> (0 acide → 7 neutre → 14 basique) et comprends la neutralisation. Niveau collège à expert.", how:["Observe l'échelle de pH colorée.","Classe la solution : acide, neutre ou basique.","Niveau Expert : échelle logarithmique, neutralisation, pH du sang."], objectif:"Comprendre l'échelle de pH et les réactions acide-base.", hint:"En dessous de 7 = acide ; 7 = neutre ; au-dessus = basique.", why:"Le pH gouverne la chimie du vivant, l'alimentation, l'environnement et l'industrie." },
+ learned:["L'échelle de pH (0-14) : acide, neutre, basique.","Le pH est logarithmique (1 unité = ×10).","Neutralisation : acide + base → sel + eau."],
+ rounds });
+</script></body></html>

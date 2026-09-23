@@ -457,3 +457,11 @@ Partie C : 5 points (1 par item, dont l'explication finale).
 Partie D : 5 points (3 pour le respect des contraintes, 2 pour la correction de la langue et les accords).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -540,3 +540,11 @@ Partie D : 3 points, dont 1 pour la remise en forme finale.
 Partie E : 3 points (1 pour la conversion, 2 pour le calcul détaillé).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -7,6 +7,15 @@
 /theme/*
   Cache-Control: public, max-age=3600
 
+/fond/*
+  Cache-Control: public, max-age=86400
+
+/learning/vendor/*
+  Cache-Control: private, max-age=86400
+
+/learning/assets/*
+  Cache-Control: private, max-age=86400
+
 /data/*
   Cache-Control: public, max-age=300
 

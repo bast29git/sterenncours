@@ -16,7 +16,17 @@
   --e-corail-1: #E96A43; --e-corail-2: #F7B199; --e-corail-3: #FDEEE8; --e-corail-4: #FBF7F4;
   --e-ocean-1: #2E7FC2; --e-ocean-2: #8FC4E8; --e-ocean-3: #E7F2FA; --e-ocean-4: #F4F8FC;
   --e-prune-1: #9046A8; --e-prune-2: #C79BD6; --e-prune-3: #F5EAF8; --e-prune-4: #FAF6FB;
+  /* Les couleurs de Sterenn : turquoise clair, bleu indien, violet pastel, et l'aurore qui les réunit. */
+  --e-aurore-1: #1F8F86; --e-aurore-2: #C79CE6; --e-aurore-3: #E6F6F3; --e-aurore-4: #F5F9FA;
+  --e-turquoise-1: #1E9488; --e-turquoise-2: #8FE3D5; --e-turquoise-3: #E3F7F3; --e-turquoise-4: #F3FAF8;
+  --e-indien-1: #1F6F8E; --e-indien-2: #8CC3DA; --e-indien-3: #E4F1F6; --e-indien-4: #F3F8FA;
+  --e-violet-1: #9A62C4; --e-violet-2: #EBC6EC; --e-violet-3: #F6ECF8; --e-violet-4: #FAF6FB;
 }
+
+[data-palette="aurore"]    { --e-vif: var(--e-aurore-1);    --e-doux: var(--e-aurore-2);    --e-voile: var(--e-aurore-3);    --e-fond: var(--e-aurore-4); }
+[data-palette="turquoise"] { --e-vif: var(--e-turquoise-1); --e-doux: var(--e-turquoise-2); --e-voile: var(--e-turquoise-3); --e-fond: var(--e-turquoise-4); }
+[data-palette="indien"]    { --e-vif: var(--e-indien-1);    --e-doux: var(--e-indien-2);    --e-voile: var(--e-indien-3);    --e-fond: var(--e-indien-4); }
+[data-palette="violet"]    { --e-vif: var(--e-violet-1);    --e-doux: var(--e-violet-2);    --e-voile: var(--e-violet-3);    --e-fond: var(--e-violet-4); }
 
 [data-palette="rose"]    { --e-vif: var(--e-rose-1);    --e-doux: var(--e-rose-2);    --e-voile: var(--e-rose-3);    --e-fond: var(--e-rose-4); }
 [data-palette="lavande"] { --e-vif: var(--e-lavande-1); --e-doux: var(--e-lavande-2); --e-voile: var(--e-lavande-3); --e-fond: var(--e-lavande-4); }
@@ -42,12 +52,15 @@ body.corps-eleve {
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
   font-size: 16.5px;
   line-height: 1.6;
+  /* Une aurore boréale en fond, pâle sur le thème clair : les cartes restent
+     opaques, aucun texte long n'est posé directement sur l'image. */
   background:
     radial-gradient(90rem 42rem at 82% -14%, var(--e-voile) 0%, transparent 58%),
-    radial-gradient(64rem 38rem at -8% 8%, var(--e-voile) 0%, transparent 52%),
+    url('fond/aurore-jour.jpg') center top / cover no-repeat,
     var(--e-fond);
   background-attachment: fixed;
 }
+@media (max-aspect-ratio: 3/4) { body.corps-eleve { background-image: radial-gradient(90rem 42rem at 82% -14%, var(--e-voile) 0%, transparent 58%), url('fond/aurore-jour.jpg'); background-size: auto, cover; } }
 
 [data-theme="dark"] body.corps-eleve {
   --e-encre: #F1ECF5;
@@ -59,7 +72,12 @@ body.corps-eleve {
   --e-voile: #1E1929;
   --e-ombre: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
   --e-ombre-forte: 0 2px 8px rgba(0,0,0,.5), 0 22px 50px rgba(0,0,0,.5);
+  background:
+    linear-gradient(180deg, rgba(11, 16, 32, .35) 0%, rgba(11, 16, 32, .78) 55%, rgba(11, 16, 32, .92) 100%),
+    url('fond/aurore-nuit.jpg') center top / cover no-repeat fixed,
+    var(--e-fond);
 }
+@media (max-aspect-ratio: 3/4) { [data-theme="dark"] body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .35) 0%, rgba(11, 16, 32, .78) 55%, rgba(11, 16, 32, .92) 100%), url('fond/aurore-mobile.jpg'); } }
 
 .eleve { display: flex; flex-direction: column; min-height: 100vh; }
 .eleve h1, .eleve h2, .eleve h3 {
@@ -711,3 +729,12 @@ body.corps-eleve {
   .e-bouton, .e-tuiles a { transition: none; }
   .e-bouton:hover, .e-tuiles a:hover { transform: none; }
 }
+
+/* ---------- Jeux ---------------------------------------------------------- */
+.e-filtre-jeux { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1.2rem; }
+.e-filtre-jeux a {
+  padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.88rem; font-weight: 600;
+  text-decoration: none; color: var(--e-encre-doux); background: var(--e-carte); border: 1px solid var(--e-trait);
+}
+.e-filtre-jeux a.actif { color: #fff; background: var(--e-vif); border-color: var(--e-vif); }
+.e-tuiles-jeux li.gagne a { border-color: var(--e-vif); box-shadow: 0 0 0 2px color-mix(in srgb, var(--e-vif) 30%, transparent), var(--e-ombre); }

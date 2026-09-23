@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · El o la</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../lang-engine.js"></script></head>
+<body><script>
+const N=[
+ [1,'casa','la','maison'],[1,'libro','el','livre'],[1,'mesa','la','table'],[1,'coche','el','voiture'],[1,'puerta','la','porte'],[1,'sol','el','soleil'],[1,'flor','la','fleur'],[1,'perro','el','chien'],
+ [2,'problema','el','problème (piège : finit par -a mais masculin !)'],[2,'mano','la','main (piège : finit par -o mais féminin !)'],[2,'día','el','jour'],[2,'foto','la','photo'],[2,'mapa','el','carte/plan'],[2,'leche','la','lait'],[2,'agua','el','eau (el agua, mais féminin : el agua fría)'],
+ [3,'tema','el','sujet/thème'],[3,'crisis','la','crise'],[3,'sistema','el','système'],[3,'moto','la','moto'],[3,'planeta','el','planète'],[3,'señal','la','signal/panneau'],[3,'idioma','el','langue']
+];
+const rounds=N.map(n=>({lvl:n[0], prompt:`<span class="big">___ ${n[1]}</span> <span style="font-size:13px;color:var(--fg-muted)">(${n[3]})</span>`, audio:n[2]+' '+n[1], answer:n[2]+' '+n[1], options:['el '+n[1],'la '+n[1]], explain:`${n[2]} ${n[1]} — ${n[3]}.`}));
+// On reconstruit des options propres : el / la
+rounds.forEach((r,i)=>{ r.options=['el','la']; r.answer=N[i][2]; r.audio=N[i][2]+' '+N[i][1]; r.explain=`${N[i][2]} ${N[i][1]} — ${N[i][3]}.`; r.prompt=`Quel article ? <span class="big">___ ${N[i][1]}</span> <span style="font-size:13px;color:var(--fg-muted)">(${N[i][3]})</span>`; });
+LangGame({ id:'2d-49-es-articulos', code:'2D·49', title:'Español — El o la (genre)', lang:'es', mode:'mcq',
+ domain:{label:'Langues',color:'#0E7C86'},
+ intro:{ greet:"¿El o la ? Choisis le bon article. Attention aux pièges !", rule:"En espagnol, chaque nom est masculin (<b>el</b>) ou féminin (<b>la</b>). Choisis le bon article — y compris pour les exceptions célèbres.", how:["Lis le nom et son sens.","Choisis « el » (masculin) ou « la » (féminin).","Niveau Expert : les pièges (el problema, la mano, el día…)."], objectif:"Maîtriser le genre des noms espagnols et ses exceptions.", hint:"Beaucoup de noms en -ma d'origine grecque sont MASCULINS : el problema, el tema, el sistema.", why:"Le genre conditionne tous les accords (articles, adjectifs) : le connaître évite des fautes en cascade." },
+ learned:["Le genre des noms espagnols (el / la).","Les exceptions : el problema, la mano, el día.","Les noms en -ma souvent masculins."],
+ rounds });
+</script></body></html>

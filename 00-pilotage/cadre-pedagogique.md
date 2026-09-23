@@ -225,7 +225,11 @@ Cette section prime sur tout ce qui précède. Ce qui est observé l'emporte sur
 
 ::: aide À renseigner et à mettre à jour
 **Centres d'intérêt à utiliser dans les énoncés**
-: *(à compléter : les problèmes de maths, les textes de français et les sujets de rédaction s'appuieront dessus en priorité)*
+: Renseignés en septembre 2026, à partir de ce que Sterenn lit, dessine et regarde.
+: **Les mangas**, en premier lieu. *Les Carnets de l'Apothicaire* (Maomao, apothicaire à la cour impériale : plantes médicinales, poisons, remèdes, enquêtes, dosages) ; *La Petite Faiseuse de Livres* (Myne, qui veut fabriquer des livres dans un monde sans papier : fabrication du papier, encre, ateliers, commerce, hiérarchie sociale) ; *The Ogre's Bride* (une jeune mariée et un ogre : contes, forêt, saisons, banquets). Ces univers fournissent des personnages, des objets et des situations pour les problèmes de maths, les expériences de physique-chimie et de SVT, les textes de français, les dialogues de langues.
+: **Le dessin aux feutres à alcool**, avec une palette qu'elle a choisie elle-même : turquoise clair, bleu indien, violet pastel. Mélanges de couleurs, dégradés, nuanciers : à réutiliser en physique (couleurs, lumière), en maths (proportions, pourcentages) et dans l'identité visuelle de l'application.
+: **Les aurores boréales.** Sujet d'accroche pour la lumière, le magnétisme terrestre, la latitude, les climats polaires, les pays nordiques en anglais.
+: Règle d'usage : un énoncé sur trois environ s'appuie sur l'un de ces univers ; les autres restent neutres, pour ne pas lasser. Les faits scientifiques ou historiques ne se plient jamais à la fiction : la fiction habille l'énoncé, elle ne change pas la réponse.
 
 **Durée d'attention observée avant pause**
 : *(à compléter : remplace la valeur de 30 min utilisée par défaut)*

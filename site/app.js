@@ -41,6 +41,10 @@
     'anglais-lv1': ['#3A45A8', '#9AA3E8'], 'espagnol-lv2': ['#A3154F', '#EB92B5'],
   };
   const PALETTES = [
+    { id: 'aurore', nom: 'Aurore', c1: '#2BB5A0', c2: '#C79CE6' },
+    { id: 'turquoise', nom: 'Turquoise', c1: '#22A395', c2: '#8FE3D5' },
+    { id: 'indien', nom: 'Bleu indien', c1: '#1F6F8E', c2: '#8CC3DA' },
+    { id: 'violet', nom: 'Violet pastel', c1: '#A97AD1', c2: '#EBC6EC' },
     { id: 'rose', nom: 'Rose', c1: '#E8608E', c2: '#F7A8C4' },
     { id: 'lavande', nom: 'Lavande', c1: '#7B6BE8', c2: '#B4A8F5' },
     { id: 'prune', nom: 'Prune', c1: '#9046A8', c2: '#C79BD6' },
@@ -250,7 +254,7 @@
     ecrire(CLE_PALETTE, id);
   }
   appliquerTheme(lire(CLE_THEME, 'light'));
-  appliquerPalette(lire(CLE_PALETTE, 'rose'));
+  appliquerPalette(lire(CLE_PALETTE, 'aurore'));
 
   /* ---------- Portail ------------------------------------------------------------ */
   function ouvrirPortail() {
@@ -287,6 +291,7 @@
       await chargerScript(role === 'prof' ? 'vue-prof.js' : 'vue-eleve.js');
       await chargerScript('data/programme.js');
       await chargerScript('data/exercices.js');
+      try { await chargerScript('data/jeux.js'); } catch (e) { window.JEUX = []; }
       await chargerScript('planificateur.js');
     } catch (e) {
       signaler('Le programme n\'a pas pu être chargé. Recharge la page.');

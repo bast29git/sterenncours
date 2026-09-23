@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Figures de style</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'« Cette femme est une lionne » est une…', options:['métaphore','comparaison','rime','question'], answer:'métaphore', explain:'On dit qu\'une chose EST une autre, sans « comme ».'},
+ {lvl:1, prompt:'« Fort comme un bœuf » est une…', options:['comparaison','métaphore','répétition','exagération'], answer:'comparaison', explain:'Reconnaissable au mot « comme ».'},
+ {lvl:1, prompt:'« J\'ai mille choses à faire » est une…', options:['exagération (hyperbole)','litote','métaphore','comparaison'], answer:'exagération (hyperbole)', explain:'On grossit pour marquer les esprits.'},
+ {lvl:2, prompt:'Répéter un mot en début de vers/phrase est une…', options:['anaphore','métaphore','litote','allitération'], answer:'anaphore', explain:'« Mon cœur… Mon cœur… » : effet d\'insistance.'},
+ {lvl:2, prompt:'« Le vent hurlait » donne au vent une qualité humaine : c\'est une…', options:['personnification','comparaison','hyperbole','métaphore'], answer:'personnification', explain:'On prête des traits humains à une chose.'},
+ {lvl:2, prompt:'Répéter un même son consonne (« les serpents qui sifflent ») est une…', options:['allitération','assonance','anaphore','rime'], answer:'allitération', explain:'L\'assonance répète des voyelles.'},
+ {lvl:3, prompt:'« Ce n\'est pas mauvais » pour dire « c\'est très bon » est une…', options:['litote','hyperbole','métaphore','antithèse'], answer:'litote', explain:'On dit moins pour suggérer plus.'},
+ {lvl:3, prompt:'Opposer deux idées (« la vie et la mort ») dans une phrase est une…', options:['antithèse','métaphore','litote','anaphore'], answer:'antithèse', explain:'Un contraste fort et frappant.'},
+ {lvl:3, prompt:'Une « métonymie » consiste à…', options:['désigner une chose par une autre liée (« boire un verre »)','exagérer','comparer','répéter'], answer:'désigner une chose par une autre liée (« boire un verre »)', explain:'On boit le contenu, pas le verre lui-même.'},
+];
+QuizGame({ id:'2d-109-figures-style', code:'2D·109', title:'Figures de style', domain:{label:'Français',color:'#1457A8'},
+ intro:{ greet:"Métaphore, hyperbole, litote… reconnais les figures de style !", rule:"Identifie les figures de style des textes et de la poésie. Trois niveaux, jusqu'au niveau bac.", how:["Lis l'exemple.","Choisis la bonne figure de style.","Niveau Expert : litote, antithèse, métonymie."], objectif:"Reconnaître et nommer les figures de style.", hint:"Métaphore = sans « comme » ; comparaison = avec « comme ».", why:"Les figures de style enrichissent l'expression et s'analysent au bac de français." },
+ learned:["Métaphore, comparaison, hyperbole.","Anaphore, personnification, allitération.","Litote, antithèse, métonymie."],
+ rounds });
+</script></body></html>

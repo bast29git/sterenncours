@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Cellule & génétique</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'La plus petite unité du vivant est…', options:['la cellule','l\'atome','l\'organe','la molécule'], answer:'la cellule', explain:'Tous les êtres vivants sont faits de cellules.'},
+ {lvl:1, prompt:'Que contient le noyau d\'une cellule ?', options:['l\'ADN','de l\'eau','de l\'air','du sucre'], answer:'l\'ADN', explain:'Le programme génétique de l\'être vivant.'},
+ {lvl:1, prompt:'L\'ADN a la forme d\'une…', options:['double hélice','sphère','ligne droite','étoile'], answer:'double hélice', explain:'Comme une échelle torsadée (Watson & Crick, 1953).'},
+ {lvl:2, prompt:'Un « gène » est…', options:['un morceau d\'ADN porteur d\'une information','une cellule','un organe','une protéine'], answer:'un morceau d\'ADN porteur d\'une information', explain:'Ex. : la couleur des yeux.'},
+ {lvl:2, prompt:'Les cellules se multiplient en…', options:['se divisant','grossissant à l\'infini','fusionnant toujours','disparaissant'], answer:'se divisant', explain:'Une cellule donne deux cellules identiques (mitose).'},
+ {lvl:2, prompt:'Quelle structure produit l\'énergie de la cellule ?', options:['la mitochondrie','le noyau','la membrane','le ribosome'], answer:'la mitochondrie', explain:'La « centrale électrique » de la cellule.'},
+ {lvl:3, prompt:'Les bases de l\'ADN s\'apparient : A avec T, et G avec…', options:['C','A','T','U'], answer:'C', explain:'A-T et G-C : un appariement complémentaire strict.'},
+ {lvl:3, prompt:'Les chromosomes humains sont au nombre de…', options:['46 (23 paires)','2','100','12'], answer:'46 (23 paires)', explain:'On hérite d\'une moitié de chaque parent.'},
+ {lvl:3, prompt:'Une « mutation » est…', options:['un changement dans l\'ADN','une maladie toujours','une cellule morte','un organe'], answer:'un changement dans l\'ADN', explain:'Moteur de l\'évolution ; parfois neutre, utile ou nuisible.'},
+];
+QuizGame({ id:'2d-101-cellule-genetique', code:'2D·101', title:'Cellule & génétique', domain:{label:'Bio & SVT',color:'#2AA98C'},
+ intro:{ greet:"Plonge dans l'infiniment petit : la cellule et le code de la vie.", rule:"Comprends la cellule, l'ADN, les gènes, les chromosomes et les mutations. Trois niveaux.", how:["Lis la question.","Choisis la bonne réponse.","Niveau Expert : appariement des bases, chromosomes, mutations."], objectif:"Comprendre la cellule et l'hérédité.", hint:"ADN (noyau) → gènes → caractères. Les bases s'apparient A-T et G-C.", why:"La génétique explique l'hérédité, l'évolution et la médecine moderne." },
+ learned:["La cellule, le noyau, l'ADN en double hélice.","Gènes, division cellulaire, mitochondries.","Appariement des bases, chromosomes, mutations."],
+ rounds });
+</script></body></html>

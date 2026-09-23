@@ -451,3 +451,11 @@ Partie C : 6 points (1 par transformation).
 Partie D : 5 points (3 pour la présence correcte des quatre formes, 2 pour la cohérence et la qualité du passage).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

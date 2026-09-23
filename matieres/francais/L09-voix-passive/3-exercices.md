@@ -511,3 +511,11 @@ Partie C : 6 points (2,5 pour les cinq accords, 1,5 pour les règles nommées, 2
 Partie D : 4 points (0,5 pour le relevé, 1 pour l'observation, 1,5 pour les questions, 1 pour la réécriture commentée).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · English Vocabulary</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../lang-engine.js"></script></head>
+<body><script>
+const W=[
+ [1,'house','maison'],[1,'water','eau'],[1,'dog','chien'],[1,'book','livre'],[1,'friend','ami'],[1,'food','nourriture'],[1,'school','école'],[1,'morning','matin'],
+ [2,'however','cependant'],[2,'weather','météo'],[2,'to improve','améliorer'],[2,'meeting','réunion'],[2,'skill','compétence'],[2,'although','bien que'],[2,'to borrow','emprunter'],[2,'mistake','erreur'],
+ [3,'stakeholder','partie prenante'],[3,'revenue','chiffre d\'affaires'],[3,'compliance','conformité'],[3,'to outsource','externaliser'],[3,'deadline','échéance'],[3,'accountability','responsabilité'],[3,'to leverage','tirer parti de'],[3,'insight','analyse']
+];
+const all=W.map(w=>w[2]);
+function pick3(ans){ const o=[]; const pool=all.filter(x=>x!==ans); while(o.length<3&&pool.length){ const i=Math.random()*pool.length|0; o.push(pool.splice(i,1)[0]); } return o; }
+const rounds=W.map(w=>({lvl:w[0], prompt:`<span class="big">${w[1]}</span> — en français ?`, audio:w[1].replace('to ',''), answer:w[2], options:[w[2],...pick3(w[2])], explain:`« ${w[1]} » = ${w[2]}.`}));
+LangGame({ id:'2d-41-en-vocabulary', code:'2D·41', title:'English — Vocabulary', lang:'en', mode:'mcq',
+ domain:{label:'Langues',color:'#0E7C86'},
+ intro:{ greet:"Welcome! Listen to each word and pick the right French meaning. Pick a level — up to business English.", rule:"Écoute le mot anglais (🔊) et choisis la bonne traduction française. Trois niveaux : du vocabulaire de base à l'anglais professionnel.", how:["Clique 🔊 pour entendre la prononciation.","Choisis la bonne traduction parmi les 4 propositions.","Monte en niveau (Facile → Expert) pour du vocabulaire d'entreprise."], objectif:"Enrichir son vocabulaire anglais, du quotidien au professionnel.", hint:"Si tu hésites, écoute le mot plusieurs fois : la prononciation aide souvent à reconnaître un mot proche du français.", why:"On retient mieux un mot en l'associant au son ET au sens." },
+ learned:["Vocabulaire anglais courant et professionnel.","La prononciation aide à mémoriser.","L'anglais des affaires : stakeholder, revenue, deadline…"],
+ rounds });
+</script></body></html>

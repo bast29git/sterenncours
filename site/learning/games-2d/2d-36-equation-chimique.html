@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Équilibre l'équation</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .ch-stage { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; padding:20px; overflow:auto; }
+  .ch-eq { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .ch-mol { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .ch-coef { display:flex; flex-direction:column; align-items:center; }
+  .ch-cbtn { width:34px; height:28px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; font-weight:700; font-size:16px; line-height:1; }
+  .ch-cbtn:first-child { border-radius:8px 8px 0 0; } .ch-cbtn:last-child { border-radius:0 0 8px 8px; }
+  .ch-cval { width:42px; height:40px; display:grid; place-items:center; font-family:var(--font-data); font-weight:700; font-size:24px; color:var(--accent-text); }
+  .ch-f { font-family:var(--font-data); font-weight:700; font-size:clamp(24px,4.5vw,36px); padding:8px 12px; border-radius:12px; background:var(--surface); border:1px solid var(--border); }
+  .ch-op { font-family:var(--font-title); font-weight:800; font-size:30px; color:var(--fg-muted); }
+  .ch-balance { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .ch-atom { display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:12px; border:1px solid var(--border); background:var(--surface); font-family:var(--font-data); font-weight:700; }
+  .ch-atom .el { font-size:16px; }
+  .ch-atom .cnt { font-size:14px; color:var(--fg-muted); }
+  .ch-atom.bal { background:var(--ok); border-color:var(--ok-fg); } .ch-atom.bal .cnt { color:var(--ok-fg); }
+  .ch-atom.unbal { background:var(--err); border-color:var(--err-fg); } .ch-atom.unbal .cnt { color:var(--err-fg); }
+  .ch-bar { display:flex; gap:10px; }
+  .ch-b { font-family:var(--font-body); font-weight:700; min-height:46px; padding:0 22px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; }
+  .ch-b.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ch-name { font-family:var(--font-mono); font-size:12px; color:var(--fg-muted); text-align:center; }
+</style>
+</head>
+<body>
+<script>
+const sub=s=>s.replace(/(\d)/g,d=>'₀₁₂₃₄₅₆₇₈₉'[d]);
+const EQ=[
+  { name:'Formation de l\'eau', r:[{f:'H2',el:{H:2}},{f:'O2',el:{O:2}}], p:[{f:'H2O',el:{H:2,O:1}}], sol:[2,1,2] },
+  { name:'Synthèse du chlorure d\'hydrogène', r:[{f:'H2',el:{H:2}},{f:'Cl2',el:{Cl:2}}], p:[{f:'HCl',el:{H:1,Cl:1}}], sol:[1,1,2] },
+  { name:'Combustion du méthane', r:[{f:'CH4',el:{C:1,H:4}},{f:'O2',el:{O:2}}], p:[{f:'CO2',el:{C:1,O:2}},{f:'H2O',el:{H:2,O:1}}], sol:[1,2,1,2] },
+  { name:'Synthèse de l\'ammoniac', r:[{f:'N2',el:{N:2}},{f:'H2',el:{H:2}}], p:[{f:'NH3',el:{N:1,H:3}}], sol:[1,3,2] },
+  { name:'Formation du sel', r:[{f:'Na',el:{Na:1}},{f:'Cl2',el:{Cl:2}}], p:[{f:'NaCl',el:{Na:1,Cl:1}}], sol:[2,1,2] },
+  { name:'Oxydation du fer (rouille)', r:[{f:'Fe',el:{Fe:1}},{f:'O2',el:{O:2}}], p:[{f:'Fe2O3',el:{Fe:2,O:3}}], sol:[4,3,2] },
+  { name:'Combustion du propane', r:[{f:'C3H8',el:{C:3,H:8}},{f:'O2',el:{O:2}}], p:[{f:'CO2',el:{C:1,O:2}},{f:'H2O',el:{H:2,O:1}}], sol:[1,5,3,4] },
+];
+let mode='detente', idx=0, coefs=[], cur=null;
+
+const shell=window.Konstrio.createGame({
+  id:'2d-36-equation-chimique', code:'2D·36', title:'Équilibre l\'équation chimique', type:'2D',
+  domain:{ label:'Chimie', color:'#1E8C7A' },
+  intro:{
+    greet:"En chimie, rien ne se perd ! Ajuste les coefficients pour qu'il y ait autant d'atomes de chaque côté de la flèche.",
+    rule:"Une réaction conserve les atomes : il doit y en avoir <b>autant à gauche qu'à droite</b>. Règle les coefficients (les grands nombres devant les molécules) jusqu'à équilibrer chaque élément.",
+    how:["Utilise les boutons + et − pour changer le coefficient devant chaque molécule.","Surveille le tableau des atomes : chaque élément doit être vert (autant à gauche qu'à droite).","Quand tout est équilibré, valide pour passer à la réaction suivante."],
+    keys:"Clique les boutons + / − sous chaque molécule.",
+    objectif:"Équilibrer 7 équations chimiques en respectant la conservation des atomes.",
+    hint:"Commence par l'élément qui n'apparaît que dans une molécule de chaque côté, puis ajuste les autres.",
+    why:"Équilibrer traduit la loi de Lavoisier : « rien ne se perd, rien ne se crée, tout se transforme ». Les atomes sont juste réarrangés."
+  },
+  learned:["Une équation équilibrée a le même nombre d'atomes de chaque élément des deux côtés.","Les coefficients multiplient toute la molécule ; on ne change jamais les formules.","C'est la loi de conservation de la masse (Lavoisier)."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; idx=0; api.setScore(0); reset(api); },
+  onRestart:(api)=>{ idx=0; api.setScore(0); reset(api); },
+});
+
+let stage;
+function build(api){
+  shell.api=api;
+  stage=document.createElement('div'); stage.className='ch-stage';
+  stage.innerHTML=`<div class="ch-name" id="chName"></div><div class="ch-eq" id="chEq"></div><div class="ch-balance" id="chBal"></div><div class="ch-bar"><button class="ch-b" id="chReset">↺ Réinitialiser</button><button class="ch-b primary" id="chCheck">Vérifier</button></div>`;
+  api.stage.appendChild(stage);
+  stage.querySelector('#chReset').onclick=()=>{ coefs=coefs.map(()=>1); renderEq(); updateBalance(); shell.sound('click'); };
+  stage.querySelector('#chCheck').onclick=check;
+  reset(api);
+}
+function reset(api){ shell.api=api; cur=EQ[idx%EQ.length]; const total=cur.r.length+cur.p.length; coefs=new Array(total).fill(1);
+  api.setLevel((idx%EQ.length+1)+'/'+EQ.length); api.setProgress(idx/EQ.length);
+  document.getElementById('chName').textContent=cur.name; renderEq(); updateBalance();
+  api.say("Équilibre les atomes : autant à gauche qu'à droite !",'concentre');
+}
+function molEls(){ return [...cur.r,...cur.p]; }
+function renderEq(){
+  const eq=document.getElementById('chEq'); eq.innerHTML=''; const mols=molEls();
+  mols.forEach((m,i)=>{
+    if(i===cur.r.length){ const a=document.createElement('div'); a.className='ch-op'; a.textContent='→'; eq.appendChild(a); }
+    else if(i>0){ const pl=document.createElement('div'); pl.className='ch-op'; pl.textContent='+'; eq.appendChild(pl); }
+    const wrap=document.createElement('div'); wrap.className='ch-mol';
+    wrap.innerHTML=`<div class="ch-coef"><button class="ch-cbtn" data-d="1">▲</button><div class="ch-cval" id="cf${i}">${coefs[i]}</div><button class="ch-cbtn" data-d="-1">▼</button></div><div class="ch-f">${sub(m.f)}</div>`;
+    wrap.querySelectorAll('.ch-cbtn').forEach(b=> b.onclick=()=>{ coefs[i]=Math.max(1,Math.min(12,coefs[i]+ (+b.dataset.d))); document.getElementById('cf'+i).textContent=coefs[i]; shell.sound('tick'); updateBalance(); });
+    eq.appendChild(wrap);
+  });
+}
+function counts(side){ const acc={}; const arr = side==='l'?cur.r:cur.p; const off= side==='l'?0:cur.r.length;
+  arr.forEach((m,j)=>{ const c=coefs[off+j]; for(const e in m.el){ acc[e]=(acc[e]||0)+c*m.el[e]; } }); return acc; }
+function updateBalance(){
+  const L=counts('l'), R=counts('r'); const els=[...new Set([...Object.keys(L),...Object.keys(R)])];
+  const bal=document.getElementById('chBal'); bal.innerHTML='';
+  els.forEach(e=>{ const l=L[e]||0,r=R[e]||0; const d=document.createElement('div'); d.className='ch-atom '+(l===r?'bal':'unbal');
+    d.innerHTML=`<span class="el">${e}</span><span class="cnt">${l} = ${r}</span>`; bal.appendChild(d); });
+  return els.every(e=>(L[e]||0)===(R[e]||0));
+}
+function check(){
+  const balanced=updateBalance();
+  if(balanced){ shell.sound('win'); shell.api.addScore(200);
+    const eqStr=molEls().map((m,i)=>(coefs[i]>1?coefs[i]:'')+sub(m.f)).join(' ');
+    shell.api.say('Équilibrée ! '+cur.name+'. Le même nombre d\'atomes de chaque côté : la matière est conservée.','celebration');
+    idx++; if(idx<EQ.length){ shell.api.setProgress(idx/EQ.length); shell.api.toast('Équation équilibrée ✔'); setTimeout(()=>reset(shell.api),1700); }
+    else finish();
+  } else { shell.sound('bad'); shell.api.say("Pas encore : regarde les éléments en rouge, il en manque d'un côté.",'rassurant'); }
+}
+function finish(){ const sc=parseInt(document.querySelector('.ksh-score').textContent,10); const stars=3;
+  shell.api.win({ score:sc, stars, title:'7 équations équilibrées !',
+    buddy:"Bravo, vrai chimiste ! Tu maîtrises la conservation des atomes.", learned:shell.cfg.learned,
+    onNext:()=>{ idx=0; shell.api.setScore(0); reset(shell.api); }, nextLabel:'Rejouer' });
+}
+</script>
+</body>
+</html>

@@ -450,3 +450,11 @@ Partie C : 5 points (1,5 pour le dispositif justifié, 1,5 pour les expressions,
 Partie D : 5 points (1 pour l'introduction et la conclusion, 2 pour la domination chiffrée, 2 pour le droit inégalitaire).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

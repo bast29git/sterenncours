@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Résous l'équation</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .eq-wrap { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; padding:20px; }
+  .eq-levels { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+  .eq-lv { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:7px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; min-height:36px; }
+  .eq-lv[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .eq-eq { font-family:var(--font-data); font-weight:700; font-size:clamp(34px,7vw,60px); letter-spacing:-.01em; }
+  .eq-eq .x { color:var(--accent-text); }
+  .eq-line { display:flex; align-items:center; gap:14px; font-family:var(--font-data); font-weight:700; font-size:clamp(24px,4vw,34px); }
+  .eq-ans { min-width:90px; text-align:center; border-bottom:4px solid var(--accent); color:var(--accent-text); }
+  .eq-ans.ok { color:var(--ok-fg); border-color:var(--brand-teal); }
+  .eq-ans.no { color:var(--err-fg); border-color:var(--brand-red); animation:eqShake .35s; }
+  @keyframes eqShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+  .eq-pad { display:grid; grid-template-columns:repeat(3,68px); gap:9px; }
+  .eq-key { height:60px; border-radius:13px; border:1px solid var(--border); background:var(--surface); color:var(--fg); font-family:var(--font-data); font-weight:700; font-size:24px; cursor:pointer; }
+  .eq-key:active { transform:scale(.94); } .eq-key.ok { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .eq-steps { font-size:13.5px; color:var(--fg-muted); max-width:40ch; text-align:center; line-height:1.6; min-height:20px; }
+</style>
+</head>
+<body>
+<script>
+let level=1, mode='detente', asked=0, right=0, cur=null, answer='';
+const shell=window.Konstrio.createGame({
+  id:'2d-23-equation', code:'2D·23', title:"Résous l'équation", type:'2D',
+  domain:{ label:'Mathématiques', color:'#9B2BB0' },
+  intro:{
+    greet:"Trouve la valeur de x ! Je te donne un coup de main avec la résolution détaillée si tu cliques « Indice ».",
+    rule:"Résous chaque équation pour trouver la valeur de <b>x</b>. Tape ta réponse. Besoin d'aide ? Le bouton Indice montre la résolution étape par étape.",
+    how:["Lis l'équation et calcule la valeur de x.","Tape ta réponse au clavier ou sur le pavé, puis OK.","Monte en difficulté : d'abord x seul, puis avec des coefficients des deux côtés."],
+    keys:"Chiffres 0–9, « − » pour négatif, Entrée pour valider.",
+    objectif:"Résoudre des équations du premier degré, des plus simples aux deux membres.",
+    hint:"Isole x : fais passer les nombres de l'autre côté (en changeant de signe), puis divise par le coefficient de x.",
+    why:"Résoudre une équation, c'est garder l'égalité vraie en faisant la même opération des deux côtés jusqu'à isoler x."
+  },
+  learned:["On isole x en effectuant la même opération des deux côtés de l'égalité.","Un terme qui « traverse » l'égalité change de signe (ou d'opération).","On termine en divisant par le coefficient devant x."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; start(api); },
+  onRestart:(api)=>start(api),
+  onHint:(api)=>{ document.getElementById('eqSteps').textContent=cur.steps; api.say("Voici la résolution détaillée — suis chaque ligne.",'idee'); },
+});
+let wrap;
+function build(api){
+  shell.api=api; wrap=document.createElement('div'); wrap.className='eq-wrap';
+  wrap.innerHTML=`<div class="eq-levels" id="eqLv"></div>
+    <div class="eq-eq" id="eqEq"></div>
+    <div class="eq-line">x = <span class="eq-ans" id="eqA">?</span></div>
+    <div class="eq-steps" id="eqSteps"></div>
+    <div class="eq-pad" id="eqPad"></div>`;
+  api.stage.appendChild(wrap);
+  const lv=wrap.querySelector('#eqLv');
+  [[1,'Simple'],[2,'Coefficient'],[3,'Complet'],[4,'Deux membres']].forEach(([k,t])=>{ const b=document.createElement('button'); b.className='eq-lv'; b.textContent=t; b.dataset.k=k; b.setAttribute('aria-pressed',k===level); b.onclick=()=>{ level=k; lv.querySelectorAll('.eq-lv').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.k===k)); shell.sound('click'); next(); }; lv.appendChild(b); });
+  const pad=wrap.querySelector('#eqPad');
+  ['1','2','3','4','5','6','7','8','9','-','0','⌫'].forEach(t=>{ const b=document.createElement('button'); b.className='eq-key'; b.textContent=t; b.onclick=()=>press(t); pad.appendChild(b); });
+  const ok=document.createElement('button'); ok.className='eq-key ok'; ok.textContent='OK'; ok.style.gridColumn='span 3'; ok.onclick=submit; pad.appendChild(ok);
+  document.addEventListener('keydown',e=>{ if(/[0-9]/.test(e.key))press(e.key); else if(e.key==='-')press('-'); else if(e.key==='Backspace')press('⌫'); else if(e.key==='Enter')submit(); });
+  start(api);
+}
+function start(api){ shell.api=api; asked=0; right=0; api.setScore(0); api.setProgress(0); api.setLevel('1/10'); next(); }
+function rnd(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function next(){
+  if(asked>=10){ finish(); return; }
+  const x=rnd(-6,9); answer=''; let eq,steps;
+  if(level===1){ const b=rnd(-9,9); const c=x+b; eq=`x ${b>=0?'+ '+b:'− '+(-b)} = ${c}`; steps=`x = ${c} ${b>=0?'− '+b:'+ '+(-b)} → x = ${x}`; }
+  else if(level===2){ let a=rnd(2,6); const c=a*x; eq=`${a}x = ${c}`; steps=`x = ${c} ÷ ${a} → x = ${x}`; }
+  else if(level===3){ let a=rnd(2,6); const b=rnd(-9,9); const c=a*x+b; eq=`${a}x ${b>=0?'+ '+b:'− '+(-b)} = ${c}`; steps=`${a}x = ${c} ${b>=0?'− '+b:'+ '+(-b)} = ${a*x} → x = ${a*x} ÷ ${a} = ${x}`; }
+  else { let a=rnd(3,7), d=rnd(1,a-1); const b=rnd(-6,6), e=(a-d)*x+b; eq=`${a}x ${b>=0?'+ '+b:'− '+(-b)} = ${d}x ${e>=0?'+ '+e:'− '+(-e)}`; steps=`${a}x − ${d}x = ${e} ${b>=0?'− '+b:'+ '+(-b)} → ${a-d}x = ${(a-d)*x} → x = ${x}`; }
+  cur={x,steps};
+  document.getElementById('eqEq').innerHTML=eq.replace(/x/g,'<span class="x">x</span>');
+  const A=document.getElementById('eqA'); A.textContent='?'; A.className='eq-ans';
+  document.getElementById('eqSteps').textContent='';
+  shell.api.say(asked===0?"Trouve la valeur de x. Clique « Indice » si tu bloques !":"Équation suivante.",'concentre');
+}
+function press(t){ const A=document.getElementById('eqA'); if(A.classList.contains('ok')||A.classList.contains('no'))return; if(t==='⌫')answer=answer.slice(0,-1); else if(t==='-')answer=answer.startsWith('-')?answer.slice(1):'-'+answer; else if(answer.replace('-','').length<4)answer+=t; A.textContent=answer||'?'; shell.sound('tick'); }
+function submit(){ if(answer===''||answer==='-')return; const A=document.getElementById('eqA'); const ok=parseInt(answer,10)===cur.x; asked++;
+  if(ok){ right++; shell.api.addScore(50); shell.sound('good'); A.classList.add('ok'); shell.api.say('Exact ! x = '+cur.x,'fier'); }
+  else { shell.sound('bad'); A.classList.add('no'); document.getElementById('eqSteps').textContent=cur.steps; shell.api.say('La solution est x = '+cur.x+'. Regarde la résolution.','rassurant'); }
+  shell.api.setLevel(Math.min(asked+1,10)+'/10'); shell.api.setProgress(asked/10);
+  setTimeout(next, ok?800:2000);
+}
+function finish(){ const sc=parseInt(document.querySelector('.ksh-score').textContent,10); const stars=right>=9?3:right>=6?2:1;
+  shell.api.win({ score:sc, stars, title:`${right}/10 équations résolues`,
+    buddy: stars===3?"Tu résous les équations comme un·e pro !":"Bien — pense à isoler x en faisant la même opération des deux côtés.",
+    learned:shell.cfg.learned, onNext:()=>start(shell.api), nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

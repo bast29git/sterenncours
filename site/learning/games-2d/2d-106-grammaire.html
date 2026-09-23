@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Grammaire</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Dans « Le chat dort », quel est le sujet ?', options:['Le chat','dort','Le','chat'], answer:'Le chat', explain:'Le sujet fait l\'action du verbe.'},
+ {lvl:1, prompt:'« rapidement » est un…', options:['adverbe','nom','adjectif','verbe'], answer:'adverbe', explain:'Il modifie le verbe (court rapidement).'},
+ {lvl:1, prompt:'« beau » est un…', options:['adjectif','nom','verbe','adverbe'], answer:'adjectif', explain:'Il qualifie un nom (un beau jardin).'},
+ {lvl:2, prompt:'Dans « Marie mange une pomme », « une pomme » est…', options:['le complément d\'objet direct (COD)','le sujet','un adverbe','le verbe'], answer:'le complément d\'objet direct (COD)', explain:'On mange QUOI ? Une pomme.'},
+ {lvl:2, prompt:'Quel est le temps de « je mangeais » ?', options:['imparfait','présent','futur','passé composé'], answer:'imparfait', explain:'Action passée en cours ou habituelle.'},
+ {lvl:2, prompt:'« parce que » introduit…', options:['une cause','un but','une conséquence','une condition'], answer:'une cause', explain:'« afin que » = but ; « si » = condition.'},
+ {lvl:3, prompt:'Dans « Le livre que je lis », « que » est un pronom…', options:['relatif','personnel','possessif','démonstratif'], answer:'relatif', explain:'Il relie une proposition subordonnée à un nom.'},
+ {lvl:3, prompt:'« Bien qu\'il pleuve, il sort. » exprime…', options:['une concession','une cause','une conséquence','un temps'], answer:'une concession', explain:'Une opposition logique ; le verbe est au subjonctif.'},
+ {lvl:3, prompt:'Le mode du verbe dans « il faut que tu viennes » est…', options:['le subjonctif','l\'indicatif','le conditionnel','l\'impératif'], answer:'le subjonctif', explain:'Après « il faut que », on emploie le subjonctif.'},
+];
+QuizGame({ id:'2d-106-grammaire', code:'2D·106', title:'Grammaire', domain:{label:'Français',color:'#1457A8'},
+ intro:{ greet:"Sujet, verbe, COD, subordonnées… deviens un as de la grammaire.", rule:"Identifie natures et fonctions, temps et modes, et les liens logiques. Trois niveaux.", how:["Lis la phrase.","Choisis la bonne analyse.","Niveau Expert : pronoms relatifs, concession, subjonctif."], objectif:"Maîtriser l'analyse grammaticale du français.", hint:"Nature = ce qu'est un mot (nom, verbe…) ; fonction = son rôle (sujet, COD…).", why:"La grammaire structure la pensée et l'expression claire." },
+ learned:["Natures et fonctions des mots.","Temps et modes verbaux.","Subordonnées, pronoms relatifs, subjonctif."],
+ rounds });
+</script></body></html>

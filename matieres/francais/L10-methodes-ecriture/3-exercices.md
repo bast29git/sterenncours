@@ -491,3 +491,11 @@ Partie C : 5 points (1 pour l'article, 1 pour le titre et l'attaque, 1 pour le c
 Partie D : 6 points (1 pour l'introduction, 2 pour les deux arguments avec exemples, 1,5 pour l'objection traitée, 1 pour la conclusion et l'ouverture, 0,5 pour la correction de la langue).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Centrale nucléaire</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .nu-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  /* Télémétrie (haut-gauche) */
+  .nu-tel { top:14px; left:14px; width:212px; padding:13px; display:flex; flex-direction:column; gap:10px; }
+  .nu-tel h3 { font-family:var(--font-mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:var(--fg-muted); margin:0; display:flex; align-items:center; gap:6px; }
+  .nu-tel h3 .dot { width:7px; height:7px; border-radius:999px; background:#1E8C7A; box-shadow:0 0 8px #1E8C7A; }
+  .nu-metric { display:flex; flex-direction:column; gap:4px; }
+  .nu-mrow { display:flex; justify-content:space-between; align-items:baseline; font-size:12px; }
+  .nu-mrow .k { color:var(--fg-muted); font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; }
+  .nu-mrow .v { font-family:var(--font-data); font-weight:800; font-size:15px; }
+  .nu-gauge { height:6px; border-radius:5px; background:var(--surface-2); overflow:hidden; }
+  .nu-gauge i { display:block; height:100%; width:0; border-radius:5px; transition:width .3s, background .3s; }
+  .nu-status { font-size:11px; color:var(--fg-muted); line-height:1.4; font-family:var(--font-mono); }
+  /* Contrôles (bas-centre) */
+  .nu-ctrl { bottom:16px; left:50%; transform:translateX(-50%); display:flex; gap:10px; align-items:center; padding:11px 15px; flex-wrap:wrap; justify-content:center; max-width:96%; }
+  .nu-b { font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:44px; padding:0 14px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:6px; }
+  .nu-b:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+  .nu-b:focus-visible { outline:none; box-shadow:var(--ring); }
+  .nu-b[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .nu-b.danger { background:linear-gradient(135deg,#E63329,#a01810); border-color:transparent; color:#fff; font-weight:800; letter-spacing:.02em; }
+  .nu-b.danger:hover { box-shadow:0 8px 22px rgba(230,51,41,.4); }
+  .nu-sl { display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--fg-muted); min-width:150px; }
+  .nu-sl label { display:flex; justify-content:space-between; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.04em; font-size:10px; }
+  .nu-sl label b { font-family:var(--font-data); color:var(--accent-text); font-size:12px; }
+  .nu-sl input { accent-color:var(--accent); width:100%; height:26px; }
+  .nu-sl .sub { font-size:9.5px; color:var(--fg-muted); text-transform:none; letter-spacing:0; }
+  /* Fiche (droite) */
+  .nu-info { right:14px; top:14px; width:326px; padding:0; overflow:hidden; transform:translateX(130%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; z-index:30; }
+  .nu-info.show { transform:none; }
+  .nu-hd { padding:16px 18px; color:#fff; position:relative; flex:none; display:flex; gap:12px; align-items:center; }
+  .nu-hd .ico { width:46px; height:46px; border-radius:12px; background:rgba(255,255,255,.2); display:grid; place-items:center; font-size:24px; flex:none; }
+  .nu-hd h2 { font-family:var(--font-title); font-weight:800; font-size:20px; margin:0; line-height:1.1; }
+  .nu-hd .sub { font-family:var(--font-mono); font-size:10.5px; opacity:.92; text-transform:uppercase; letter-spacing:.04em; }
+  .nu-x { position:absolute; top:12px; right:12px; width:30px; height:30px; border:none; border-radius:8px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:16px; }
+  .nu-body { padding:14px 18px 18px; overflow:auto; }
+  .nu-body p { font-size:13.5px; line-height:1.6; margin:0 0 9px; color:var(--fg); }
+  .nu-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; margin:0 0 12px; }
+  .nu-st .k { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.03em; text-transform:uppercase; color:var(--fg-muted); }
+  .nu-st .v { font-family:var(--font-data); font-weight:700; font-size:13.5px; }
+  .nu-sec { font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:2px 0 8px; }
+  .nu-fun { background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.5; color:var(--accent-text); }
+  /* Étiquettes projetées */
+  .nu-label { position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 78%,transparent); padding:3px 8px; border-radius:7px; pointer-events:none; z-index:15; border:1px solid var(--border); white-space:nowrap; display:flex; align-items:center; gap:5px; }
+  .nu-label .d { width:8px; height:8px; border-radius:999px; flex:none; }
+  /* Hint / warn / quiz */
+  .nu-hint { position:absolute; bottom:78px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; max-width:88vw; text-align:center; }
+  .nu-warn { position:absolute; top:60px; left:50%; transform:translateX(-50%); z-index:24; background:var(--brand-red); color:#fff; padding:9px 18px; border-radius:999px; font-weight:800; font-size:14px; display:none; box-shadow:0 8px 24px rgba(230,51,41,.45); animation:nuPulse 1s ease-in-out infinite; }
+  @keyframes nuPulse { 0%,100%{ transform:translateX(-50%) scale(1);} 50%{ transform:translateX(-50%) scale(1.04);} }
+  .nu-quiz { top:16px; left:50%; transform:translateX(-50%); z-index:22; background:var(--accent); color:#fff; padding:12px 18px; border-radius:14px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:8px; align-items:center; max-width:92%; text-align:center; }
+  .nu-quiz .qn { font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 11px; font-size:12px; }
+  .nu-quiz b { font-size:14.5px; }
+  .nu-quiz .ask { font-size:13px; opacity:.95; line-height:1.4; }
+  .nu-qrow { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
+  .nu-qo { font-family:var(--font-body); font-weight:700; font-size:13px; min-height:44px; padding:0 15px; border-radius:10px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.18); color:#fff; cursor:pointer; }
+  .nu-qo:hover { background:rgba(255,255,255,.32); }
+  /* Parcours guidé */
+  .nu-tour { left:14px; bottom:78px; width:322px; max-width:88vw; padding:0; overflow:hidden; transform:translateX(-130%); transition:transform .5s cubic-bezier(.22,1,.36,1); z-index:26; }
+  .nu-tour.show { transform:none; }
+  .nu-tour .thd { padding:13px 16px 11px; color:#fff; background:linear-gradient(135deg,#F5A623,#b56a00); }
+  .nu-tour .tph { font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; opacity:.92; }
+  .nu-tour .tti { font-family:var(--font-title); font-weight:800; font-size:17px; margin:2px 0 0; }
+  .nu-tour .tbody { padding:12px 16px 14px; } .nu-tour .tbody p { font-size:12.5px; line-height:1.55; margin:0 0 10px; color:var(--fg); }
+  .nu-tour .trow { display:flex; gap:8px; } .nu-tour .tn { flex:1; min-height:42px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; }
+  .nu-tour .tq { min-height:42px; padding:0 14px; border:1px solid var(--border); border-radius:10px; background:transparent; color:var(--fg-muted); font-size:12px; cursor:pointer; }
+  @media (max-width:720px){
+    .nu-tel { width:168px; padding:10px; gap:8px; }
+    .nu-mrow .v { font-size:13px; }
+    .nu-info { width:min(322px,90vw); }
+    .nu-sl { min-width:124px; }
+    .nu-hint { bottom:120px; }
+  }
+  @media (prefers-reduced-motion: reduce){ .nu-info,.nu-tour { transition:none; } .nu-warn { animation:none; } }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ====== COULEURS ====== */
+const COL = {
+  primary:0xff6a3a,   // circuit primaire (eau chaude, radioactif)
+  steam:0xbfe6ff,     // circuit secondaire (vapeur)
+  cool:0x2ea6ff,      // circuit tertiaire (refroidissement)
+  hot:0xff3b1e, amber:0xF5A623, ok:0x2ee08a, red:0xE63329, elec:0xffe070,
+};
+
+/* ====== FICHES PÉDAGOGIQUES ====== */
+const EQUIP = {
+  core:{ icon:'⚛️', name:'Cœur du réacteur', sub:'Fission · source de chaleur', color:'#E6633A',
+    stats:[['Combustible','uranium (pastilles)'],['Assemblages','~150 à 200'],['Réaction','fission en chaîne'],['Modérateur','l\'eau du circuit'],['Chaleur','~300 °C'],['Rôle','produire la chaleur']],
+    desc:["Au cœur, un neutron percute un noyau d'uranium 235 : il se casse en libérant beaucoup de <b>chaleur</b> et 2 à 3 nouveaux neutrons. Ceux-ci cassent d'autres noyaux : c'est la <b>réaction en chaîne</b>.","L'eau qui entoure le combustible joue le rôle de <b>modérateur</b> : elle ralentit les neutrons pour qu'ils entretiennent la réaction, et emporte la chaleur produite."],
+    fun:"Une seule pastille d'uranium, grosse comme un dé, libère autant d'énergie qu'environ une tonne de charbon." },
+  rods:{ icon:'🎚️', name:'Barres de contrôle', sub:'Le frein du réacteur', color:'#8b5be0',
+    stats:[['Matière','absorbe les neutrons'],['Enfoncées','réaction ralentit'],['Retirées','réaction accélère'],['Réglage','la puissance (MW)'],['Sécurité','chute = SCRAM'],['Rôle','piloter la réaction']],
+    desc:["Les barres de contrôle sont faites d'un matériau qui <b>absorbe les neutrons</b>. Plus on les enfonce dans le cœur, moins il reste de neutrons pour la réaction : la puissance baisse.","On les remonte pour accélérer, on les descend pour ralentir. En cas d'urgence, elles tombent d'un coup dans le cœur et arrêtent net la réaction : c'est le <b>SCRAM</b>."],
+    fun:"Le mot « SCRAM » vient des tout premiers réacteurs : c'était l'arrêt d'urgence par chute des barres." },
+  pressurizer:{ icon:'🫧', name:'Pressuriseur', sub:'Circuit primaire · pression', color:'#2E7FD6',
+    stats:[['Circuit','primaire'],['Pression','~155 bar'],['Rôle','garder l\'eau liquide'],['Effet','évite l\'ébullition'],['Contient','eau + vapeur'],['Régule','la pression']],
+    desc:["Le circuit primaire est sous très haute pression (~155 bar). À cette pression, l'eau reste <b>liquide</b> même à 320 °C au lieu de bouillir.","Le pressuriseur maintient cette pression stable : garder l'eau du cœur liquide est essentiel pour évacuer la chaleur efficacement."],
+    fun:"Sous 155 bar, l'eau ne bout qu'au-dessus de 340 °C — trois fois plus chaud que dans ta bouilloire." },
+  steamgen:{ icon:'♨️', name:'Générateur de vapeur', sub:'Échangeur primaire ↔ secondaire', color:'#1E8C7A',
+    stats:[['Rôle','fabriquer la vapeur'],['Côté chaud','circuit primaire'],['Côté vapeur','circuit secondaire'],['Séparation','les eaux ne se mélangent pas'],['Sortie','vapeur sous pression'],['Sûreté','confine la radioactivité']],
+    desc:["Le générateur de vapeur est un <b>échangeur de chaleur</b> : l'eau brûlante du circuit primaire circule dans des milliers de tubes et chauffe l'eau du circuit secondaire, qui se transforme en <b>vapeur</b>.","Les deux eaux ne se touchent jamais : la vapeur qui part vers la turbine n'est pas radioactive."],
+    fun:"Un seul générateur de vapeur contient plusieurs milliers de tubes fins, soit des dizaines de km de tuyau." },
+  turbine:{ icon:'🌀', name:'Turbine + alternateur', sub:'Vapeur → électricité', color:'#F5A623',
+    stats:[['Entrée','vapeur sous pression'],['Turbine','tourne très vite'],['Alternateur','sur le même axe'],['Principe','induction (aimant + bobine)'],['Sortie','électricité'],['Vers','le réseau à haute tension']],
+    desc:["La vapeur sous pression frappe les aubes de la <b>turbine</b> et la fait tourner à grande vitesse. Sur le même axe, l'<b>alternateur</b> transforme ce mouvement en <b>électricité</b> par induction.","Plus il y a de vapeur, plus la turbine tourne vite, plus on produit de mégawatts (MW)."],
+    fun:"L'axe turbine-alternateur d'une grande centrale tourne à 1 500 tours par minute, réglé pile sur la fréquence du réseau." },
+  condenser:{ icon:'💧', name:'Condenseur', sub:'Vapeur → eau (circuit secondaire)', color:'#29B6E0',
+    stats:[['Rôle','recondenser la vapeur'],['Refroidi par','circuit tertiaire'],['Sortie','eau liquide'],['Renvoie','l\'eau au générateur'],['Boucle','circuit fermé'],['Effet','crée un vide utile']],
+    desc:["Après la turbine, la vapeur a perdu sa force. Le condenseur la <b>refroidit</b> avec l'eau froide du circuit tertiaire : la vapeur redevient de l'eau liquide.","Cette eau est renvoyée vers le générateur de vapeur pour recommencer le cycle : le circuit secondaire tourne en boucle fermée."],
+    fun:"Recondenser la vapeur crée un léger vide qui « aspire » la turbine et augmente son rendement." },
+  tower:{ icon:'☁️', name:'Tour de refroidissement', sub:'Circuit tertiaire · évacue la chaleur', color:'#94A0B4',
+    stats:[['Forme','hyperboloïde'],['Circuit','tertiaire (ouvert)'],['Panache','vapeur d\'eau'],['Rôle','évacuer la chaleur'],['Source froide','air / rivière'],['Pollution','aucune (juste de l\'eau)']],
+    desc:["La tour de refroidissement évacue la chaleur restante du circuit tertiaire dans l'air. Sa forme hyperboloïde crée un tirage naturel qui aspire l'air.","Le grand panache blanc au sommet est de la simple <b>vapeur d'eau</b> qui se condense au contact de l'air froid — pas de la fumée polluante."],
+    fun:"Toute centrale thermique (nucléaire, gaz, charbon) a besoin d'une source froide : c'est une loi de la physique, pas un défaut." },
+  containment:{ icon:'🛡️', name:'Enceinte de confinement', sub:'Sûreté · défense en profondeur', color:'#5c6b82',
+    stats:[['Matière','béton armé épais'],['Épaisseur','~1 mètre'],['Rôle','confiner la radioactivité'],['Barrières','pastille · gaine · cuve · enceinte'],['Résiste à','pression, chocs'],['Principe','défense en profondeur']],
+    desc:["Le dôme de béton armé enferme tout le circuit primaire. C'est la dernière des barrières qui confinent la radioactivité : la <b>défense en profondeur</b>.","Plusieurs barrières empilées (la pastille, sa gaine, la cuve, puis l'enceinte) : si l'une cède, la suivante retient. La sûreté ne repose jamais sur un seul rempart."],
+    fun:"L'enceinte est conçue pour résister à des pressions internes énormes — et, dehors, à des chocs violents." },
+};
+
+const NOTIONS = [
+  ['Fission nucléaire',"Un neutron casse un noyau d'uranium 235. Le noyau se scinde en libérant beaucoup de chaleur et 2 à 3 neutrons, qui vont casser d'autres noyaux."],
+  ['Réaction en chaîne',"Chaque fission libère des neutrons qui provoquent d'autres fissions. Modérée et pilotée, cette chaîne produit une chaleur régulière et sûre."],
+  ['Modérateur',"L'eau ralentit les neutrons rapides pour qu'ils déclenchent efficacement de nouvelles fissions. Sans modérateur, la réaction s'éteint."],
+  ['Barres de contrôle',"Elles absorbent les neutrons. Enfoncées, elles ralentissent la réaction ; retirées, elles l'accélèrent. C'est le volant de puissance du réacteur."],
+  ['Criticité',"Sous-critique = la réaction s'éteint. Critique = stable (le régime normal). Sur-critique = elle s'emballe. Piloter, c'est rester juste critique."],
+  ['Les 3 circuits',"Primaire (eau du cœur, radioactive, fermé) → chauffe le secondaire (vapeur → turbine) → refroidi par le tertiaire (tour). Trois circuits séparés confinent la radioactivité."],
+  ['Générateur de vapeur',"Échangeur où l'eau chaude du primaire fait bouillir l'eau du secondaire sans jamais la toucher : la vapeur produite n'est pas radioactive."],
+  ['Turbine & alternateur',"La vapeur fait tourner la turbine ; l'alternateur, sur le même axe, transforme ce mouvement en électricité par induction."],
+  ['Condenseur',"Après la turbine, la vapeur est recondensée en eau par le circuit froid, puis renvoyée en boucle vers le générateur de vapeur."],
+  ['Tour de refroidissement',"Elle rejette la chaleur restante dans l'air. Le panache blanc est de la vapeur d'eau — toute centrale thermique a besoin d'une source froide."],
+  ['SCRAM (arrêt d\'urgence)',"En cas de problème, toutes les barres tombent d'un coup dans le cœur et arrêtent net la réaction. La sûreté est conçue pour être « passive »."],
+  ['Défense en profondeur',"Plusieurs barrières successives (pastille, gaine, cuve, enceinte de béton) confinent la radioactivité : si l'une cède, la suivante retient."],
+];
+
+/* ====== ÉTAT ====== */
+let scene, camera, renderer, composer, controls, clock, raycaster, pointer;
+let rods = 55, cooling = 65, power = 0, temp = 60, pressure = 130, safety = 100, neutronRate = 0, scram = false;
+let clickMeshes = [], parts = {}, labels = {}, hovered = null, labelsOn = true, cutaway = false;
+let core, coreGlow, rodGroup, turbine, alternatorRotor, condenserFan;
+let neutrons = [], flashes = [], flashPool = [], steam = [], flow = [], cityWindows = [], pylonGlow = [];
+let mode = 'detente', challenge = null, quizTier = 'debutant', tour = null, camAnim = null;
+let ac = null, humGain = null, telAcc = 0;
+let maxAniso = 8, software = false, skyDome = null;
+
+const shell = window.Konstrio.createGame({
+  id:'3d-17-centrale-nucleaire', code:'3D·17', title:'Centrale nucléaire', type:'3D',
+  domain:{ label:'Physique & Énergie', color:'#F5A623' },
+  intro:{
+    greet:"Bienvenue en salle de commande ! Pilote la réaction avec les barres de contrôle, regarde la vapeur faire tourner la turbine, la ville s'allumer — et garde tout sous contrôle.",
+    rule:"Comprends comment une centrale transforme la <b>fission</b> de l'uranium en électricité. Règle les <b>barres de contrôle</b> pour piloter la réaction, suis la chaleur qui devient <b>vapeur → turbine → électricité</b>, et surveille la <b>sûreté</b>.",
+    how:[
+      "Glisse pour explorer le site · molette pour zoomer · clique un composant pour sa fiche.",
+      "Règle les barres de contrôle : retirées = plus de puissance (MW), enfoncées = moins.",
+      "Ne surchauffe pas ! Augmente le refroidissement ou enfonce les barres si la jauge de sûreté baisse.",
+      "En cas de souci, appuie sur SCRAM : les barres tombent et arrêtent la réaction.",
+    ],
+    keys:"Glisser = tourner · molette = zoom · ↑/↓ = barres · Espace = SCRAM · clic composant = fiche.",
+    objectif:"Comprendre fission, barres de contrôle, 3 circuits d'eau, turbine et production d'électricité.",
+    hint:"Retire les barres → la réaction s'emballe (plus de neutrons, plus de MW). Enfonce-les → elle ralentit. Trouve l'équilibre sans surchauffer !",
+    why:"Les barres de contrôle absorbent les neutrons : c'est le frein qui maintient la réaction en chaîne stable et sûre.",
+  },
+  learned:[
+    "La fission de l'uranium 235 libère chaleur et neutrons : c'est la réaction en chaîne.",
+    "Les barres de contrôle absorbent les neutrons et pilotent la puissance ; le SCRAM les fait tomber.",
+    "Trois circuits d'eau séparés : chaleur → vapeur → turbine → alternateur → électricité.",
+    "La sûreté repose sur plusieurs barrières (défense en profondeur) et une source froide.",
+  ],
+  onReady: init, onStart: startMode, onTheme: ()=>applyTheme(),
+  onHint: ()=>shell.say(shell.cfg.intro.hint,'curieux'),
+  onWhy: ()=>shell.say(shell.cfg.intro.why,'idee'),
+});
+
+/* ====== INIT ====== */
+function init(){
+  const stage = shell.stage; clock = new THREE.Clock();
+  scene = new THREE.Scene(); scene.fog = new THREE.Fog(0x9fb4cf, 55, 130);
+  camera = new THREE.PerspectiveCamera(50, stage.clientWidth/stage.clientHeight, 0.1, 400);
+  camera.position.set(17, 11, 20);
+  renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(stage.clientWidth, stage.clientHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.98;
+  renderer.shadowMap.enabled = !REDUCED; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.appendChild(renderer.domElement);
+  maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 8);
+  // Détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y échoue → chaîne robuste, AO bakées, jamais noir.
+  try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : ''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+
+  const W = stage.clientWidth, H = stage.clientHeight;
+  composer = new EffectComposer(renderer);
+  if(software || REDUCED){
+    // Rendu logiciel : pas d'AO écran (produirait du noir) — l'occlusion vient des cartes AO bakées.
+    composer.addPass(new RenderPass(scene, camera));
+  } else {
+    // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu béton/métal réaliste.
+    const gtao = new GTAOPass(scene, camera, W, H); gtao.blendIntensity = 0.85;
+    try{ gtao.updateGtaoMaterial({ radius:0.6, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao = gtao;
+  }
+  const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.42, 0.5, 0.85);
+  composer.addPass(bloom); composer.bloom = bloom;
+  composer.addPass(new SMAAPass(W, H));
+  composer.addPass(new OutputPass());
+
+  controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = .07;
+  controls.minDistance = 8; controls.maxDistance = 70; controls.maxPolarAngle = Math.PI * 0.495;
+  controls.target.set(-1, 2.5, 0); controls.autoRotate = REDUCED; controls.autoRotateSpeed = .3;
+
+  // Lumières : soleil + hémisphère + IBL ciel
+  scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x38434f, 0.7));
+  const sun = new THREE.DirectionalLight(0xfff2df, 1.35); sun.position.set(16, 26, 12);
+  if(!REDUCED){ sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.camera.near = 2; sun.shadow.camera.far = 90;
+    sun.shadow.camera.left = -30; sun.shadow.camera.right = 30; sun.shadow.camera.top = 30; sun.shadow.camera.bottom = -30; sun.shadow.bias = -0.0004; }
+  scene.add(sun);
+
+  const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  // IBL : ciel HDRI réel (Poly Haven CC0) → reflets crédibles sur béton/métal + vrai ciel en fond.
+  new RGBELoader().load('../assets/3d/env/sky_day_1k.hdr', hdr=>{
+    hdr.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = pmrem.fromEquirectangular(hdr).texture;
+    scene.background = hdr; scene.backgroundBlurriness = 0.08; scene.backgroundIntensity = 1.0;
+    if(skyDome) skyDome.visible = false; // le vrai ciel HDRI remplace le dôme dégradé (gardé en secours)
+  }, undefined, ()=>{});
+
+  buildSky();
+  buildGround();
+  buildReactorBuilding();
+  buildSteamGenerator();
+  buildTurbineHall();
+  buildCoolingTowers();
+  buildCircuits();
+  buildFissionPool();
+  buildPylons();
+
+  raycaster = new THREE.Raycaster();
+  pointer = new THREE.Vector2(-2, -2);
+  buildUI(); applyTheme(); refreshTelemetry();
+
+  renderer.domElement.addEventListener('pointermove', onMove);
+  renderer.domElement.addEventListener('pointerdown', onDown);
+  window.addEventListener('resize', onResize); new ResizeObserver(onResize).observe(stage);
+  document.addEventListener('keydown', onKey);
+  animate();
+}
+
+/* ====== MATÉRIAUX ====== */
+const mat = (c, metal, rough, o={}) => new THREE.MeshStandardMaterial(Object.assign({ color:c, metalness:metal, roughness:rough, envMapIntensity:1.0 }, o));
+const emiss = c => new THREE.MeshBasicMaterial({ color:c });
+
+/* ====== TEXTURES PBR CC0 (Poly Haven) — béton / métal / voiries ====== */
+const texLoader = new THREE.TextureLoader();
+const PBR_BASE = '../assets/3d/pbr2k/';
+function loadTex(url, srgb, rep){ const t = texLoader.load(url, undefined, undefined, ()=>{}); t.wrapS = t.wrapT = THREE.RepeatWrapping; if(rep) t.repeat.set(rep, rep); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = maxAniso; return t; }
+// applique diffuse/normal/roughness(+metal,+ao bakée) réels sur un matériau existant
+function applyPBR(material, slug, res, opt={}){ const rep = opt.repeat||1, b = PBR_BASE+slug+'/'+slug+'_';
+  material.map = loadTex(b+'diff_'+res+'.jpg', true, rep);
+  material.normalMap = loadTex(b+'nor_gl_'+res+'.jpg', false, rep); material.normalScale = new THREE.Vector2(opt.normal||1, opt.normal||1);
+  material.roughnessMap = loadTex(b+'rough_'+res+'.jpg', false, rep);
+  if(opt.metal){ material.metalnessMap = loadTex(b+'metal_'+res+'.jpg', false, rep); }
+  if(opt.ao){ material.aoMap = loadTex(b+'ao_'+res+'.jpg', false, rep); material.aoMapIntensity = opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color); else material.color.setHex(0xffffff);
+  material.needsUpdate = true; return material; }
+// duplique le canal UV pour permettre l'aoMap (utilise uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); return geo; }
+// tache d'ombre de contact douce (occlusion visible même en rendu logiciel)
+function makeContactShadow(){ const s=256, c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,10,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.24)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
+
+function buildSky(){
+  const c = document.createElement('canvas'); c.width = 16; c.height = 256; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0,0,0,256); g.addColorStop(0,'#5b8fd0'); g.addColorStop(0.5,'#9fc0e6'); g.addColorStop(1,'#d8e6f4');
+  x.fillStyle = g; x.fillRect(0,0,16,256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  // Dôme dégradé : ciel de secours (jamais noir) — masqué dès que le ciel HDRI réel est chargé.
+  skyDome = new THREE.Mesh(new THREE.SphereGeometry(200, 24, 16), new THREE.MeshBasicMaterial({ map:t, side:THREE.BackSide, fog:false }));
+  scene.add(skyDome);
+}
+
+function buildGround(){
+  const tl = new THREE.TextureLoader();
+  const grass = tl.load('../assets/3d/pbr/grass_diff_1k.jpg', ()=>{}, undefined, ()=>{});
+  grass.colorSpace = THREE.SRGBColorSpace; grass.wrapS = grass.wrapT = THREE.RepeatWrapping; grass.repeat.set(24, 24); grass.anisotropy = 8;
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(160, 48), new THREE.MeshStandardMaterial({ map:grass, color:0x8fa06a, roughness:0.95, metalness:0 }));
+  floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+  // Dalle béton du site (texture béton CC0 + AO bakée)
+  const slabMat = new THREE.MeshStandardMaterial({ roughness:0.92, metalness:0.04, envMapIntensity:0.7 });
+  applyPBR(slabMat, 'concrete_floor_02', '1k', { repeat:9, normal:1.0, ao:true });
+  const slabGeo = enableAO(new THREE.CircleGeometry(20, 64));
+  const slab = new THREE.Mesh(slabGeo, slabMat);
+  slab.rotation.x = -Math.PI/2; slab.position.y = 0.02; slab.receiveShadow = true; scene.add(slab);
+  // Voirie / chaussée bitumée reliant le site à la ligne de pylônes (asphalte CC0)
+  const roadMat = new THREE.MeshStandardMaterial({ roughness:0.96, metalness:0.02, envMapIntensity:0.5 });
+  applyPBR(roadMat, 'asphalt_02', '1k', { repeat:6, normal:1.1, ao:true });
+  const roadGeo = enableAO(new THREE.PlaneGeometry(6, 26));
+  const road = new THREE.Mesh(roadGeo, roadMat);
+  road.rotation.x = -Math.PI/2; road.rotation.z = Math.PI/2; road.position.set(9, 0.03, 7); road.receiveShadow = true; scene.add(road);
+  // Ombres de contact douces sous les gros ouvrages (occlusion lisible même en rendu logiciel)
+  const csTex = makeContactShadow();
+  [[-9,3.6,0.9],[9.5,-4.5,3.4],[13,3,3.4],[1.6,0.4,4.6]].forEach(([x,z,r])=>{
+    const cs = new THREE.Mesh(new THREE.CircleGeometry(r, 24), new THREE.MeshBasicMaterial({ map:csTex, transparent:true, depthWrite:false, opacity:0.85 }));
+    cs.rotation.x = -Math.PI/2; cs.position.set(x, 0.05, z); scene.add(cs);
+  });
+  // Plan d'eau (rivière, source froide) devant le site
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(90, 34), mat(0x2c6f9e, 0.2, 0.12, { transparent:true, opacity:0.9, envMapIntensity:1.4 }));
+  water.rotation.x = -Math.PI/2; water.position.set(6, 0.03, 24); water.receiveShadow = true; scene.add(water); parts._water = water;
+}
+
+/* ====== BÂTIMENT RÉACTEUR (dôme + cuve + cœur + barres + pressuriseur) ====== */
+const P = {
+  core:[-9, 1.9, 0], rods:[-9, 4.4, 0], press:[-6.9, 3.4, 1.7],
+  steamgen:[-6, 2.6, -1.9], turbine:[-0.6, 1.6, 0], alt:[2.1, 1.6, 0],
+  condenser:[4.4, 1.2, 1.6], tower1:[9.5, 0, -4.5], tower2:[13, 0, 3],
+};
+let domeMat, hallMat;
+function reg(mesh, part){ mesh.userData.part = part; clickMeshes.push(mesh); }
+
+function buildReactorBuilding(){
+  const cx = -9;
+  // Base cylindrique en béton armé (texture béton CC0 + AO bakée)
+  const baseMat = new THREE.MeshStandardMaterial({ roughness:0.9, metalness:0.05, envMapIntensity:0.6 });
+  applyPBR(baseMat, 'concrete_tiles', '1k', { repeat:5, normal:1.0, ao:true, color:0xdfe3e8 });
+  const base = new THREE.Mesh(enableAO(new THREE.CylinderGeometry(3.3, 3.5, 3.2, 48)), baseMat);
+  base.position.set(cx, 1.6, 0); base.castShadow = base.receiveShadow = true; scene.add(base);
+  // Dôme (enceinte de confinement) translucide
+  domeMat = new THREE.MeshStandardMaterial({ color:0xcbd3dd, metalness:0.1, roughness:0.5, transparent:true, opacity:0.22, side:THREE.DoubleSide });
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(3.3, 36, 20, 0, Math.PI*2, 0, Math.PI/2), domeMat);
+  dome.position.set(cx, 3.2, 0); scene.add(dome); reg(dome, 'containment');
+  parts.dome = dome;
+  // Anneau de base du dôme
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(3.3, 0.14, 8, 40), mat(0x8a929c, 0.3, 0.6));
+  ring.position.set(cx, 3.2, 0); ring.rotation.x = Math.PI/2; scene.add(ring);
+
+  // Cuve du réacteur (pressure vessel)
+  const vessel = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 3.1, 24), mat(0x5a6474, 0.85, 0.35, { transparent:true, opacity:0.32, side:THREE.DoubleSide }));
+  vessel.position.set(cx, 1.9, 0); scene.add(vessel); parts.vessel = vessel;
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(1.15, 20, 12, 0, Math.PI*2, 0, Math.PI/2), mat(0x6b7482, 0.85, 0.35));
+  cap.position.set(cx, 3.45, 0); scene.add(cap);
+
+  // Cœur : assemblages de combustible
+  core = new THREE.Group(); core.position.set(cx, 1.7, 0); scene.add(core);
+  for(let i=0;i<16;i++){
+    const gx = (i%4 - 1.5)*0.42, gz = (Math.floor(i/4) - 1.5)*0.42;
+    if(Math.abs(gx)>0.9 && Math.abs(gz)>0.9) continue;
+    const fuel = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.4, 0.2), mat(0x2a6b48, 0.5, 0.5, { emissive:0x134a2c, emissiveIntensity:0.4 }));
+    fuel.position.set(gx, 0, gz); core.add(fuel);
+  }
+  // Glow central (chaleur de fission)
+  coreGlow = new THREE.Mesh(new THREE.SphereGeometry(0.95, 20, 20), new THREE.MeshBasicMaterial({ color:0xff6a2a, transparent:true, opacity:0.55 }));
+  core.add(coreGlow);
+  // Zone cliquable cœur
+  const coreHit = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 2.6, 16), new THREE.MeshBasicMaterial({ visible:false }));
+  coreHit.position.set(cx, 1.7, 0); scene.add(coreHit); reg(coreHit, 'core');
+
+  // Barres de contrôle : descendent depuis le haut de la cuve
+  rodGroup = new THREE.Group(); rodGroup.position.set(cx, 0, 0); scene.add(rodGroup);
+  for(let i=0;i<9;i++){
+    const rx = (i%3 - 1)*0.5, rz = (Math.floor(i/3) - 1)*0.5;
+    const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 3.2, 8), mat(0x20242f, 0.6, 0.4, { emissive:0x1a1e28, emissiveIntensity:0.2 }));
+    rod.position.set(rx, 3.4, rz); rodGroup.add(rod);
+  }
+  // Mécanisme de commande des barres (au sommet)
+  const drive = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.7, 16), mat(0x3a4152, 0.7, 0.4));
+  drive.position.set(cx, 5.0, 0); scene.add(drive); reg(drive, 'rods');
+  parts.rodsAnchor = new THREE.Vector3(cx, 5.4, 0);
+
+  // Pressuriseur (petite cuve à côté)
+  const press = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.7, 16), mat(0x7d8896, 0.8, 0.35));
+  press.position.set(P.press[0], P.press[1], P.press[2]); press.castShadow = true; scene.add(press); reg(press, 'pressurizer');
+  const pcap = new THREE.Mesh(new THREE.SphereGeometry(0.42, 14, 10, 0, Math.PI*2, 0, Math.PI/2), mat(0x8b95a3, 0.8, 0.35));
+  pcap.position.set(P.press[0], P.press[1]+0.85, P.press[2]); scene.add(pcap);
+  parts.pressAnchor = new THREE.Vector3(P.press[0], P.press[1]+1.4, P.press[2]);
+}
+
+/* ====== GÉNÉRATEUR DE VAPEUR ====== */
+function buildSteamGenerator(){
+  const sg = new THREE.Group(); sg.position.set(P.steamgen[0], 0, P.steamgen[2]); scene.add(sg);
+  const bodyMat = new THREE.MeshStandardMaterial({ metalness:0.85, roughness:0.35, envMapIntensity:1.2 });
+  applyPBR(bodyMat, 'metal_plate', '1k', { repeat:2, normal:0.7, metal:true, ao:true, color:0xb6bcc6 });
+  const body = new THREE.Mesh(enableAO(new THREE.CylinderGeometry(0.75, 0.95, 3.4, 32)), bodyMat);
+  body.position.y = 2.2; body.castShadow = true; sg.add(body);
+  const top = new THREE.Mesh(new THREE.SphereGeometry(0.75, 18, 12, 0, Math.PI*2, 0, Math.PI/2), mat(0xa6afbb, 0.8, 0.35));
+  top.position.y = 3.9; sg.add(top);
+  // témoin de chaleur (bandeau)
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.77, 0.77, 0.5, 20), emiss(COL.primary));
+  band.position.y = 1.5; sg.add(band); parts.sgBand = band;
+  reg(body, 'steamgen');
+  parts.sgAnchor = new THREE.Vector3(P.steamgen[0], 4.4, P.steamgen[2]);
+}
+
+/* ====== SALLE DES MACHINES (turbine + alternateur + condenseur) ====== */
+function buildTurbineHall(){
+  // Coque de la salle des machines (translucide, longue)
+  hallMat = new THREE.MeshStandardMaterial({ color:0xbcc4cf, metalness:0.2, roughness:0.55, transparent:true, opacity:0.14, side:THREE.DoubleSide });
+  const hall = new THREE.Mesh(new THREE.BoxGeometry(9, 4.2, 4.2), hallMat);
+  hall.position.set(1.6, 2.1, 0.4); scene.add(hall); parts.hall = hall;
+  // Toit léger
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(9.1, 0.12, 4.3), mat(0x6d7482, 0.5, 0.5, { transparent:true, opacity:0.5 }));
+  roof.position.set(1.6, 4.25, 0.4); scene.add(roof);
+  // Socle en béton (texture béton CC0 + AO bakée)
+  const plinthMat = new THREE.MeshStandardMaterial({ roughness:0.9, metalness:0.05, envMapIntensity:0.6 });
+  applyPBR(plinthMat, 'concrete_tiles', '1k', { repeat:4, normal:1.0, ao:true, color:0xd7dbe0 });
+  const plinth = new THREE.Mesh(enableAO(new THREE.BoxGeometry(9, 0.5, 4)), plinthMat);
+  plinth.position.set(1.6, 0.25, 0.4); plinth.receiveShadow = plinth.castShadow = true; scene.add(plinth);
+
+  // Turbine (rotor à aubes)
+  turbine = new THREE.Group(); turbine.position.set(P.turbine[0], P.turbine[1], P.turbine[2]); scene.add(turbine);
+  const casing = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.05, 2.6, 24), mat(0x8a93a1, 0.85, 0.3, { transparent:true, opacity:0.5 }));
+  casing.rotation.z = Math.PI/2; turbine.add(casing);
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 5.6, 16), mat(0xb7bec9, 0.9, 0.25));
+  shaft.rotation.z = Math.PI/2; shaft.position.x = 1.3; turbine.add(shaft);
+  for(let d=0; d<3; d++){
+    for(let i=0;i<12;i++){
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.62 - d*0.12, 0.22), mat(0xd0d6df, 0.9, 0.25));
+      blade.position.y = 0.42 - d*0.06;
+      const g = new THREE.Group(); g.add(blade); g.rotation.x = i/12*Math.PI*2; g.position.x = -0.8 + d*0.8;
+      turbine.add(g);
+    }
+  }
+  const turbHit = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.9, 1.9), new THREE.MeshBasicMaterial({ visible:false }));
+  turbHit.position.set(P.turbine[0]+0.3, P.turbine[1], P.turbine[2]); scene.add(turbHit); reg(turbHit, 'turbine');
+  parts.turbAnchor = new THREE.Vector3(P.turbine[0]+0.4, P.turbine[1]+1.5, P.turbine[2]);
+
+  // Alternateur (sur le même axe)
+  const altHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 1.9, 20), mat(0xF5A623, 0.6, 0.4));
+  altHousing.rotation.z = Math.PI/2; altHousing.position.set(P.alt[0], P.alt[1], P.alt[2]); altHousing.castShadow = true; scene.add(altHousing); reg(altHousing, 'turbine');
+  alternatorRotor = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 2.0, 12), emiss(0xffce6a));
+  alternatorRotor.rotation.z = Math.PI/2; alternatorRotor.position.set(P.alt[0], P.alt[1], P.alt[2]); scene.add(alternatorRotor);
+
+  // Condenseur (bloc bas, refroidi par le tertiaire)
+  const cond = new THREE.Group(); cond.position.set(P.condenser[0], 0, P.condenser[2]); scene.add(cond);
+  const cbodyMat = new THREE.MeshStandardMaterial({ metalness:0.7, roughness:0.4, envMapIntensity:1.0 });
+  applyPBR(cbodyMat, 'metal_plate', '1k', { repeat:2, normal:0.7, metal:true, ao:true, color:0x7f93a6 });
+  const cbody = new THREE.Mesh(enableAO(new THREE.BoxGeometry(1.8, 1.2, 1.6)), cbodyMat);
+  cbody.position.y = 1.0; cbody.castShadow = true; cond.add(cbody);
+  const cband = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.32, 1.62), emiss(COL.cool));
+  cband.position.y = 0.6; cond.add(cband); parts.condBand = cband;
+  reg(cbody, 'condenser');
+  parts.condAnchor = new THREE.Vector3(P.condenser[0], 2.1, P.condenser[2]);
+}
+
+/* ====== TOURS DE REFROIDISSEMENT (hyperboloïdes) ====== */
+function hyperboloidPoints(baseR, topR, waistR, h){
+  const pts = []; const waistY = h*0.62;
+  for(let i=0;i<=26;i++){
+    const y = i/26*h;
+    // interpolation lissée base→taille→sommet
+    let r;
+    if(y < waistY){ const t = y/waistY; r = baseR + (waistR-baseR)*(t*t*(3-2*t)); }
+    else { const t = (y-waistY)/(h-waistY); r = waistR + (topR-waistR)*(t*t); }
+    pts.push(new THREE.Vector2(r, y));
+  }
+  return pts;
+}
+function buildCoolingTowers(){
+  // Béton des tours (texture béton CC0 + AO bakée) — chaque tour a son matériau (tuilage vertical propre)
+  const makeTowerMat = ()=>{ const m = new THREE.MeshStandardMaterial({ roughness:0.9, metalness:0.04, envMapIntensity:0.55, side:THREE.DoubleSide });
+    applyPBR(m, 'concrete_floor_02', '1k', { repeat:4, normal:0.9, ao:true, color:0xe4e8ec }); if(m.map) m.map.repeat.set(8, 3); if(m.normalMap) m.normalMap.repeat.set(8, 3); if(m.roughnessMap) m.roughnessMap.repeat.set(8, 3); if(m.aoMap) m.aoMap.repeat.set(8, 3); return m; };
+  [P.tower1, P.tower2].forEach((pos, k)=>{
+    const g = new THREE.Group(); g.position.set(pos[0], 0, pos[2]); scene.add(g);
+    const shell3 = new THREE.Mesh(enableAO(new THREE.LatheGeometry(hyperboloidPoints(2.6, 1.9, 1.55, 8.2), 44)), makeTowerMat());
+    shell3.castShadow = shell3.receiveShadow = true; g.add(shell3);
+    // liseré sommet
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.08, 8, 40), mat(0x8f98a3, 0.4, 0.6));
+    rim.position.y = 8.2; rim.rotation.x = Math.PI/2; g.add(rim);
+    reg(shell3, 'tower');
+    parts['towerAnchor'+k] = new THREE.Vector3(pos[0], 8.6, pos[2]);
+  });
+  parts.towerAnchor = parts.towerAnchor0;
+  // Pool de vapeur partagé (panaches)
+  const geo = new THREE.SphereGeometry(0.55, 8, 8);
+  for(let i=0;i<80;i++){
+    const s = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:0xeef4ff, transparent:true, opacity:0, depthWrite:false, fog:false }));
+    s.visible = false; s.userData = { t:Math.random(), tower:i%2 }; scene.add(s); steam.push(s);
+  }
+}
+
+/* ====== LES 3 CIRCUITS (tuyaux + flux animés) ====== */
+function curve(pts){ return new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p[0],p[1],p[2])), true, 'catmullrom', 0.2); }
+function pipe(cv, color, radius, opacity){
+  const geo = new THREE.TubeGeometry(cv, 90, radius, 9, true);
+  const m = new THREE.Mesh(geo, mat(color, 0.4, 0.5, { transparent:true, opacity, emissive:color, emissiveIntensity:0.14 }));
+  scene.add(m); return m;
+}
+let flowCurves = [];
+function buildCircuits(){
+  // Circuit primaire (rouge) : cœur → générateur de vapeur → retour cœur (dans l'enceinte)
+  const primary = curve([ [-9,2.9,0], [-8.2,3.4,-1.0], [-6.6,3.6,-1.9], [-6,3.2,-1.9], [-6,1.4,-1.9], [-7.4,1.0,-1.2], [-9,1.0,0], [-9,1.4,0] ]);
+  // Circuit secondaire (vapeur) : générateur → turbine → condenseur → retour générateur
+  const secondary = curve([ [-6,3.6,-1.9], [-4,3.2,-1.2], [-1.6,2.4,0], [-0.6,2.0,0], [1.6,1.8,0.4], [4.4,1.6,1.6], [4.4,0.9,1.6], [1,0.7,-0.4], [-4,1.2,-1.9], [-6,1.7,-1.9] ]);
+  // Circuit tertiaire (bleu) : condenseur → tours de refroidissement → retour condenseur
+  const tertiary = curve([ [4.4,0.9,1.6], [6.5,0.6,0], [9.5,0.5,-2.4], [9.5,0.5,-4.5], [11.2,0.5,-1], [13,0.5,1], [13,0.5,3], [9,0.5,4], [5.5,0.7,2.6], [4.4,0.9,1.6] ]);
+
+  pipe(primary, COL.primary, 0.09, 0.85);
+  pipe(secondary, COL.steam, 0.085, 0.7);
+  pipe(tertiary, COL.cool, 0.1, 0.8);
+  flowCurves = [
+    { cv:primary, color:COL.primary, base:0.05, gain:0.28 },
+    { cv:secondary, color:COL.steam, base:0.04, gain:0.34 },
+    { cv:tertiary, color:COL.cool, base:0.04, gain:0.22 },
+  ];
+  // Pool de particules de flux (réparties sur les 3 circuits)
+  const geo = new THREE.SphereGeometry(0.14, 8, 8);
+  for(let ci=0; ci<3; ci++){
+    for(let i=0;i<26;i++){
+      const p = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:flowCurves[ci].color, transparent:true, opacity:0.95, fog:false }));
+      p.userData = { ci, u:i/26 }; scene.add(p); flow.push(p);
+    }
+  }
+}
+
+/* ====== FISSION : neutrons + éclats ====== */
+function buildFissionPool(){
+  const cpos = new THREE.Vector3(...P.core);
+  const geo = new THREE.SphereGeometry(0.05, 6, 6);
+  for(let i=0;i<52;i++){
+    const n = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:0xffe070, fog:false }));
+    n.userData = { v:new THREE.Vector3((Math.random()-.5),(Math.random()-.5),(Math.random()-.5)).multiplyScalar(2.2) };
+    n.position.copy(cpos).add(new THREE.Vector3((Math.random()-.5),(Math.random()-.5),(Math.random()-.5)).multiplyScalar(0.7));
+    n.visible = false; scene.add(n); neutrons.push(n);
+  }
+  const fgeo = new THREE.SphereGeometry(0.14, 8, 8);
+  for(let i=0;i<14;i++){
+    const f = new THREE.Mesh(fgeo, new THREE.MeshBasicMaterial({ color:0xfff2c0, transparent:true, opacity:0, fog:false }));
+    f.visible = false; f.userData = { life:0 }; scene.add(f); flashPool.push(f);
+  }
+}
+function spawnFlash(){
+  const f = flashPool.find(x=>!x.visible); if(!f) return;
+  const cpos = new THREE.Vector3(...P.core);
+  f.position.copy(cpos).add(new THREE.Vector3((Math.random()-.5),(Math.random()-.5),(Math.random()-.5)).multiplyScalar(0.8));
+  f.visible = true; f.userData.life = 1; f.scale.setScalar(0.4); flashes.push(f);
+}
+
+/* ====== PYLÔNES & VILLE ====== */
+function buildPylons(){
+  const pyMat = new THREE.MeshStandardMaterial({ metalness:0.85, roughness:0.5, envMapIntensity:1.1 });
+  applyPBR(pyMat, 'metal_plate_02', '1k', { repeat:1, normal:0.6, metal:true, color:0x7a828e });
+  const wireMat = new THREE.LineBasicMaterial({ color:0x3a4150, transparent:true, opacity:0.6 });
+  const xs = [4.5, 12, 20, 28], y = 5.2;
+  const tops = [];
+  xs.forEach((x,i)=>{
+    const py = new THREE.Group(); py.position.set(x, 0, 9); scene.add(py);
+    const h = 5.4;
+    // pylône en A
+    [[-0.7,0.9],[0.7,0.9]].forEach(([bx,tx])=>{
+      const legLen = h; const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.09,legLen,6), pyMat);
+      leg.position.set((bx+tx)/2*0.6, legLen/2, 0); leg.rotation.z = Math.atan2(bx-tx,legLen)*0.6; py.add(leg);
+    });
+    const legA = new THREE.Mesh(new THREE.BoxGeometry(0.12, h, 0.12), pyMat); legA.position.set(-0.5, h/2, 0); legA.rotation.z = 0.08; py.add(legA);
+    const legB = new THREE.Mesh(new THREE.BoxGeometry(0.12, h, 0.12), pyMat); legB.position.set(0.5, h/2, 0); legB.rotation.z = -0.08; py.add(legB);
+    const cross = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 0.12), pyMat); cross.position.set(0, h, 0); py.add(cross);
+    const cross2 = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.1, 0.1), pyMat); cross2.position.set(0, h-1.1, 0); py.add(cross2);
+    tops.push(new THREE.Vector3(x, y, 9));
+  });
+  // câbles caténaires entre pylônes
+  for(let i=0;i<tops.length-1;i++){
+    for(const off of [-1.0, 0, 1.0]){
+      const a = tops[i].clone().add(new THREE.Vector3(off,0,0)), b = tops[i+1].clone().add(new THREE.Vector3(off,0,0));
+      const pts = []; for(let s=0;s<=10;s++){ const t=s/10; const p=a.clone().lerp(b,t); p.y -= Math.sin(t*Math.PI)*0.9; pts.push(p); }
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), wireMat); scene.add(line);
+    }
+  }
+  // câble alternateur → premier pylône (fil électrique lumineux)
+  const eLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(P.alt[0]+1.2,P.alt[1],P.alt[2]), new THREE.Vector3(4.5,5.2,9)]),
+    new THREE.LineBasicMaterial({ color:COL.elec, transparent:true, opacity:0.5 }));
+  scene.add(eLine); pylonGlow.push(eLine);
+
+  // Petite ville au loin qui s'allume
+  const city = new THREE.Group(); city.position.set(30, 0, 12); scene.add(city);
+  for(let i=0;i<24;i++){
+    const h = 1.4 + Math.random()*4;
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.9, h, 0.9), mat(0x3a4356, 0.4, 0.7));
+    b.position.set((i%6-2.5)*1.5, h/2, (Math.floor(i/6)-1.5)*1.5); b.castShadow = true; city.add(b);
+    const win = new THREE.Mesh(new THREE.BoxGeometry(0.94, h, 0.94), new THREE.MeshStandardMaterial({ color:0xffe070, emissive:0xffe070, emissiveIntensity:0, transparent:true, opacity:0.55 }));
+    win.position.copy(b.position); city.add(win); cityWindows.push(win);
+  }
+}
+
+/* ====== UI ====== */
+function buildUI(){
+  const stage = shell.stage;
+  // Télémétrie
+  const tel = document.createElement('div'); tel.className = 'nu-panel nu-tel';
+  tel.innerHTML = `
+    <h3><span class="dot" id="nuDot"></span> Salle de commande</h3>
+    ${metricRow('pow','Puissance','MW')}
+    ${metricRow('temp','Température cœur','°C')}
+    ${metricRow('press','Pression primaire','bar')}
+    ${metricRow('safe','Sûreté','%')}
+    <div class="nu-status" id="nuStatus"></div>`;
+  stage.appendChild(tel);
+  // Contrôles
+  const c = document.createElement('div'); c.className = 'nu-panel nu-ctrl';
+  c.innerHTML = `
+    <div class="nu-sl"><label>Barres de contrôle <b id="nuRodsV">55%</b></label><input id="nuRods" type="range" min="0" max="100" value="55"><span class="sub">0% = retirées (puissance max) · 100% = enfoncées (arrêt)</span></div>
+    <div class="nu-sl"><label>Refroidissement <b id="nuCoolV">65%</b></label><input id="nuCool" type="range" min="20" max="100" value="65"></div>
+    <button class="nu-b danger" id="nuScram">⏬ SCRAM</button>
+    <button class="nu-b" id="nuTour">🎬 Parcours</button>
+    <button class="nu-b" id="nuCut" aria-pressed="false">🔬 Coupe</button>
+    <button class="nu-b" id="nuNot">📚 Notions</button>
+    <button class="nu-b" id="nuLabels" aria-pressed="true">🏷️ Étiquettes</button>
+    <button class="nu-b" id="nuView">↺ Vue</button>`;
+  stage.appendChild(c);
+  c.querySelector('#nuRods').oninput = e=>{ setRods(+e.target.value); };
+  c.querySelector('#nuCool').oninput = e=>{ cooling = +e.target.value; document.getElementById('nuCoolV').textContent = cooling+'%'; };
+  c.querySelector('#nuScram').onclick = doScram;
+  c.querySelector('#nuTour').onclick = startTour;
+  c.querySelector('#nuCut').onclick = e=>{ cutaway = !cutaway; e.currentTarget.setAttribute('aria-pressed', cutaway); labelsOn = cutaway ? true : labelsOn; applyCutaway(); shell.sound('click');
+    shell.say(cutaway ? "Vue en coupe : suis les 3 circuits d'eau colorés — rouge (primaire), blanc (vapeur), bleu (refroidissement)." : "Retour à la vue extérieure du site.", cutaway?'concentre':'joyeux'); };
+  c.querySelector('#nuNot').onclick = openNotions;
+  c.querySelector('#nuLabels').onclick = e=>{ labelsOn = !labelsOn; e.currentTarget.setAttribute('aria-pressed', labelsOn); shell.sound('click'); };
+  c.querySelector('#nuView').onclick = ()=>{ camAnim = null; camera.position.set(17,11,20); controls.target.set(-1,2.5,0); shell.sound('click'); };
+  // Fiche
+  const info = document.createElement('div'); info.className = 'nu-panel nu-info'; info.id = 'nuInfo'; stage.appendChild(info);
+  // Parcours guidé
+  const tr = document.createElement('div'); tr.className = 'nu-panel nu-tour'; tr.id = 'nuTourP'; stage.appendChild(tr);
+  // Warn
+  const warn = document.createElement('div'); warn.className = 'nu-warn'; warn.id = 'nuWarn'; warn.textContent = '⚠ SURCHAUFFE — enfonce les barres ou refroidis'; stage.appendChild(warn);
+  // Hint
+  const hint = document.createElement('div'); hint.className = 'nu-hint'; hint.id = 'nuHint';
+  hint.textContent = 'Règle les barres de contrôle · clique un composant · ne surchauffe pas';
+  stage.appendChild(hint);
+}
+function metricRow(id, label, unit){
+  return `<div class="nu-metric"><div class="nu-mrow"><span class="k">${label}</span><span class="v" id="num-${id}">–</span></div><div class="nu-gauge"><i id="nug-${id}"></i></div></div>`;
+}
+function setRods(v){ rods = v; scram = false; const el = document.getElementById('nuRods'); if(el) el.value = v; const lbl = document.getElementById('nuRodsV'); if(lbl) lbl.textContent = Math.round(v)+'%'; }
+
+function applyCutaway(){
+  if(domeMat) domeMat.opacity = cutaway ? 0.05 : 0.22;
+  if(hallMat) hallMat.opacity = cutaway ? 0.03 : 0.14;
+  if(parts.vessel) parts.vessel.material.opacity = cutaway ? 0.12 : 0.32;
+}
+
+/* ====== TÉLÉMÉTRIE ====== */
+function refreshTelemetry(){
+  const set = (id, v, gv, col)=>{ const m=document.getElementById('num-'+id), g=document.getElementById('nug-'+id); if(m)m.textContent=v; if(g){ g.style.width=Math.max(2,Math.min(100,gv))+'%'; g.style.background=col; } };
+  set('pow', Math.round(power)+' MW', power/1450*100, `linear-gradient(90deg,#F5A623,#E6633A)`);
+  const tcol = temp>360 ? '#E63329' : temp>330 ? '#F5A623' : '#2ee08a';
+  set('temp', Math.round(temp)+' °C', (temp-40)/360*100, tcol);
+  set('press', Math.round(pressure)+' bar', (pressure-100)/80*100, '#29B6E0');
+  const scol = safety>60 ? '#2ee08a' : safety>30 ? '#F5A623' : '#E63329';
+  set('safe', Math.round(safety)+' %', safety, scol);
+  const dot = document.getElementById('nuDot'); const status = document.getElementById('nuStatus');
+  let st = '● Réacteur stable', dc = '#2ee08a';
+  const diff = targetPower() - power;
+  if(scram){ st = '■ SCRAM — réacteur à l\'arrêt'; dc = '#29B6E0'; }
+  else if(temp>360){ st = '▲ Surchauffe — refroidis vite'; dc = '#E63329'; }
+  else if(safety<45){ st = '▲ Marge de sûreté faible'; dc = '#F5A623'; }
+  else if(diff>90){ st = '▲ Sur-critique (montée)'; dc = '#F5A623'; }
+  else if(diff<-90){ st = '▼ Sous-critique (baisse)'; dc = '#29B6E0'; }
+  else if(power>50){ st = '● Critique — régime stable'; dc = '#2ee08a'; }
+  else { st = '○ Réacteur au ralenti'; dc = '#94A0B4'; }
+  if(dot){ dot.style.background = dc; dot.style.boxShadow = '0 0 8px '+dc; }
+  if(status) status.textContent = st;
+}
+
+/* ====== FICHE ====== */
+function openFiche(id){
+  const d = EQUIP[id]; if(!d) return;
+  const el = document.getElementById('nuInfo');
+  el.innerHTML = `
+    <div class="nu-hd" style="background:linear-gradient(135deg,${d.color},#20140a)">
+      <div class="ico">${d.icon}</div>
+      <div><div class="sub">${d.sub}</div><h2>${d.name}</h2></div>
+      <button class="nu-x" aria-label="Fermer">×</button>
+    </div>
+    <div class="nu-body">
+      <div class="nu-sec">Caractéristiques</div>
+      <div class="nu-stats">${d.stats.map(s=>`<div class="nu-st"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('')}</div>
+      <div class="nu-sec">Son rôle</div>
+      ${d.desc.map(p=>`<p>${p}</p>`).join('')}
+      ${d.fun?`<div class="nu-fun">💡 ${d.fun}</div>`:''}
+    </div>`;
+  el.classList.add('show');
+  el.querySelector('.nu-x').onclick = ()=>el.classList.remove('show');
+}
+function openNotions(){
+  const el = document.getElementById('nuInfo');
+  el.innerHTML = `
+    <div class="nu-hd" style="background:linear-gradient(135deg,#F5A623,#8a3d0a)">
+      <div class="ico">📚</div><div><div class="sub">Cours · encyclopédie</div><h2>Le nucléaire</h2></div>
+      <button class="nu-x" aria-label="Fermer">×</button>
+    </div>
+    <div class="nu-body" style="max-height:64vh;overflow:auto">${NOTIONS.map(n=>`<div style="margin-bottom:11px"><b style="font-size:13.5px">${n[0]}</b><p style="margin:4px 0 0">${n[1]}</p></div>`).join('')}</div>`;
+  el.classList.add('show'); el.querySelector('.nu-x').onclick = ()=>el.classList.remove('show'); shell.sound('click');
+}
+
+/* ====== SCRAM ====== */
+function doScram(){
+  if(scram){ shell.say("Le réacteur est déjà à l'arrêt. Remonte les barres (curseur) pour le redémarrer doucement.",'rassurant'); return; }
+  setRods(100); scram = true;
+  shell.sound('bad'); shell.toast('⏬ SCRAM déclenché');
+  shell.say("SCRAM ! Toutes les barres tombent d'un coup dans le cœur et stoppent net la réaction. C'est la sécurité ultime, calme et maîtrisée.",'surpris');
+  if(mode==='cours') evalChallenge('scram');
+}
+
+/* ====== SON D'AMBIANCE ====== */
+function startHum(){ if(ac || shell.muted) return; try{
+  ac = new (window.AudioContext||window.webkitAudioContext)();
+  humGain = ac.createGain(); humGain.gain.value = 0; humGain.connect(ac.destination); humGain.gain.setTargetAtTime(0.05, ac.currentTime, 1);
+  const o = ac.createOscillator(); o.type='sine'; o.frequency.value=70; o.connect(humGain); o.start();
+  const o2 = ac.createOscillator(); o2.type='sine'; o2.frequency.value=140; const g2 = ac.createGain(); g2.gain.value=0.015; o2.connect(g2); g2.connect(ac.destination); o2.start();
+}catch(e){} }
+function updateHum(){ if(humGain && ac) humGain.gain.setTargetAtTime(shell.muted?0:0.02+power/1450*0.06, ac.currentTime, .4); }
+
+/* ====== POINTER / CLAVIER ====== */
+function setP(e){ const r = renderer.domElement.getBoundingClientRect(); pointer.x = ((e.clientX-r.left)/r.width)*2-1; pointer.y = -((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer, camera); return raycaster.intersectObjects(clickMeshes, false); }
+function onMove(e){ setP(e); const h = pick(); renderer.domElement.style.cursor = h.length ? 'pointer' : 'grab'; hovered = h.length ? h[0].object.userData.part : null; }
+function onDown(e){ setP(e); const h = pick(); if(!h.length) return;
+  const id = h[0].object.userData.part; if(!id) return;
+  openFiche(id); shell.sound('pop'); shell.say(EQUIP[id].desc[0].replace(/<[^>]+>/g,''),'concentre');
+  if(mode==='cours') checkClick(id);
+}
+function onKey(e){
+  if(document.querySelector('.ksh-accueil') && !document.querySelector('.ksh-accueil').hidden) return;
+  if(e.key==='ArrowUp'){ setRods(Math.max(0, rods-4)); e.preventDefault(); }
+  else if(e.key==='ArrowDown'){ setRods(Math.min(100, rods+4)); e.preventDefault(); }
+  else if(e.code==='Space'){ doScram(); e.preventDefault(); }
+}
+
+/* ====== PARCOURS GUIDÉ ====== */
+const TOUR = [
+  { ph:'Étape 1 / 5', ti:'La fission de l\'uranium', cam:[[-4,3.6,5.5],[-9,2,0]], rods:22,
+    txt:"Au <b>cœur</b>, un neutron percute un noyau d'<b>uranium 235</b> : il se casse en libérant de la <b>chaleur</b> et 2-3 nouveaux neutrons, qui cassent d'autres noyaux. C'est la <b>réaction en chaîne</b>.",
+    say:"Les barres remontent : regarde les neutrons (points jaunes) se multiplier dans le cœur !" },
+  { ph:'Étape 2 / 5', ti:'La criticité : le frein', cam:[[-4,4,6],[-9,2.2,0]], rods:52,
+    txt:"Les <b>barres de contrôle</b> absorbent les neutrons. Enfoncées → réaction <b>sous-critique</b> (s'éteint). Réglées juste → <b>critique</b> (stable). Retirées → <b>sur-critique</b> (s'emballe).",
+    say:"À l'équilibre, la réaction est « critique » : stable et sûre. Surveille la sûreté !" },
+  { ph:'Étape 3 / 5', ti:'Les 3 circuits d\'eau', cam:[[-2,5,8],[-4,2.5,0]], rods:44,
+    txt:"La chaleur passe au <b>générateur de vapeur</b> : l'eau du <b>circuit primaire</b> (rouge, fermé, radioactif) chauffe le <b>circuit secondaire</b> (blanc) qui se transforme en <b>vapeur</b>. Les eaux ne se mélangent jamais.",
+    say:"Active la « Coupe » pour voir les circuits colorés circuler. Trois circuits = radioactivité confinée." },
+  { ph:'Étape 4 / 5', ti:'Turbine & alternateur', cam:[[3,3.5,7],[1,1.8,0]], rods:42,
+    txt:"La vapeur sous pression fait tourner la <b>turbine</b>. Sur le même axe, l'<b>alternateur</b> transforme ce mouvement en <b>électricité</b> par induction. Plus de vapeur = plus de MW.",
+    say:"La turbine s'emballe : énergie mécanique → énergie électrique grâce à l'alternateur." },
+  { ph:'Étape 5 / 5', ti:'Refroidir & alimenter', cam:[[13,7,13],[10,2.5,0]], rods:42,
+    txt:"Le <b>condenseur</b> recondense la vapeur (circuit bleu), et les <b>tours de refroidissement</b> évacuent la chaleur restante : le panache blanc est de la <b>vapeur d'eau</b>. L'électricité file vers la <b>ville</b> qui s'allume.",
+    say:"Et voilà : la ville s'illumine. De l'atome à l'ampoule, tu as suivi tout le chemin !" },
+];
+function moveCam(p, l, dur=1.7){ camAnim = { t:0, dur, p0:camera.position.clone(), l0:controls.target.clone(), p1:new THREE.Vector3(...p), l1:new THREE.Vector3(...l) }; }
+function startTour(){ if(tour) return; startHum(); tour = { i:-1 }; controls.autoRotate = false; scram = false;
+  document.getElementById('nuHint').style.display = 'none'; document.getElementById('nuInfo').classList.remove('show');
+  if(!cutaway){ cutaway = true; document.getElementById('nuCut').setAttribute('aria-pressed','true'); applyCutaway(); }
+  document.getElementById('nuTourP').classList.add('show'); setTourStep(0);
+}
+function setTourStep(i){ if(!tour) return; tour.i = i; const s = TOUR[i]; const dots = TOUR.map((_,k)=>k<=i?'●':'○').join(' ');
+  setRods(s.rods); moveCam(s.cam[0], s.cam[1]);
+  document.getElementById('nuTourP').innerHTML = `<div class="thd"><div class="tph">${s.ph} · ${dots}</div><div class="tti">${s.ti}</div></div><div class="tbody"><p>${s.txt}</p><div class="trow"><button class="tn" id="tNext">${i>=TOUR.length-1?'Terminer ✓':'Suivante ▸'}</button><button class="tq" id="tQuit">Quitter</button></div></div>`;
+  document.getElementById('tNext').onclick = ()=>{ if(tour.i>=TOUR.length-1) endTour(); else setTourStep(tour.i+1); };
+  document.getElementById('tQuit').onclick = endTour;
+  shell.say(s.say, i>=TOUR.length-1?'celebration':'concentre'); shell.sound('pop');
+}
+function endTour(){ if(!tour) return; tour = null; document.getElementById('nuTourP').classList.remove('show');
+  document.getElementById('nuHint').style.display = (mode==='cours')?'none':''; controls.autoRotate = REDUCED;
+  shell.say("Parcours terminé ! Reprends les commandes pour piloter la centrale toi-même.",'fier'); }
+
+/* ====== MODE COURS ====== */
+const CHALLS = [
+  { type:'click', target:'core', tier:0, title:'Où a lieu la fission ?', ask:"Clique le COMPOSANT où l'uranium subit la fission.", done:"Oui ! Le cœur du réacteur : la fission de l'uranium y libère la chaleur." },
+  { type:'click', target:'turbine', tier:0, title:'Vapeur → électricité', ask:"Quel composant transforme la vapeur en électricité ? Clique-le.", done:"Exact — la turbine entraîne l'alternateur qui produit l'électricité." },
+  { type:'click', target:'rods', tier:0, title:'Le frein du réacteur', ask:"À quoi sert-on pour régler la puissance ? Clique les BARRES DE CONTRÔLE.", done:"Bien vu ! Les barres absorbent les neutrons et pilotent la réaction." },
+  { type:'click', target:'tower', tier:0, title:'Le panache blanc', ask:"Clique ce qui laisse échapper le panache de VAPEUR D'EAU.", done:"Oui — la tour de refroidissement évacue la chaleur : c'est de la vapeur d'eau, pas de la fumée." },
+  { type:'power', tier:1, title:'Pilotage fin', ask:"Règle la PUISSANCE à 900 MW (850–950) sans surchauffer, et tiens 10 s.", done:"Parfait — réaction critique, stable et sûre à 900 MW !" },
+  { type:'scram', tier:1, title:'Arrêt d\'urgence', ask:"Déclenche un SCRAM (bouton rouge ou barre Espace).", done:"Bravo ! Les barres tombent et la réaction s'arrête net : la sûreté d'abord." },
+  { type:'click', target:'steamgen', tier:1, title:'Fabriquer la vapeur', ask:"Clique le composant qui transforme l'eau en VAPEUR.", done:"Exact — le générateur de vapeur : un échangeur entre primaire et secondaire." },
+  { type:'click', target:'containment', tier:2, title:'Confiner la radioactivité', ask:"Clique la BARRIÈRE en béton qui confine la radioactivité.", done:"Oui ! L'enceinte de confinement : la dernière barrière de la défense en profondeur." },
+  { type:'click', target:'condenser', tier:2, title:'Vapeur → eau', ask:"Clique le composant qui recondense la vapeur en eau.", done:"Bien joué — le condenseur, refroidi par le circuit tertiaire." },
+  { type:'click', target:'pressurizer', tier:2, title:'Garder l\'eau liquide', ask:"Clique le composant qui maintient la pression du circuit primaire.", done:"Exact — le pressuriseur garde l'eau liquide malgré la chaleur." },
+];
+function startMode(m){
+  mode = m; startHum();
+  document.getElementById('nuHint').style.display = (m==='cours') ? 'none' : '';
+  const info = document.getElementById('nuInfo'); if(info) info.classList.remove('show');
+  if(m==='cours'){ shell.setScore(0); chooseDifficulty(); } else { clearQuiz(); shell.setLevel('libre'); }
+}
+function chooseDifficulty(){
+  clearQuiz(); let b = document.getElementById('nuQuiz');
+  if(!b){ b = document.createElement('div'); b.className = 'nu-panel nu-quiz'; b.id = 'nuQuiz'; shell.stage.appendChild(b); }
+  b.innerHTML = `<b>🎓 Choisis ta difficulté</b><div class="nu-qrow">
+    <button class="nu-qo" data-t="debutant">Débutant · 4</button>
+    <button class="nu-qo" data-t="inter">Confirmé · 6</button>
+    <button class="nu-qo" data-t="expert">Expert · 8</button></div>`;
+  b.querySelectorAll('[data-t]').forEach(x=>x.onclick = ()=>{ shell.sound('click'); quizTier = x.dataset.t; startQuiz(); });
+  shell.say("Des défis pour piloter et comprendre la centrale. Choisis ton niveau !", 'curieux');
+}
+function startQuiz(){
+  const len = quizTier==='expert' ? 8 : quizTier==='inter' ? 6 : 4;
+  const maxTier = quizTier==='expert' ? 2 : quizTier==='inter' ? 1 : 0;
+  const pool = CHALLS.filter(c=>c.tier <= maxTier).sort(()=>Math.random()-.5).slice(0, len);
+  challenge = { list:pool, idx:0, score:0, total:pool.length, done:false, hold:0 };
+  shell.setScore(0); shell.setProgress(0); askChallenge();
+}
+function askChallenge(){
+  if(!challenge) return;
+  if(challenge.idx >= challenge.total){ winQuiz(); return; }
+  const ch = challenge.list[challenge.idx]; challenge.done = false; challenge.hold = 0;
+  let b = document.getElementById('nuQuiz');
+  if(!b){ b = document.createElement('div'); b.className = 'nu-panel nu-quiz'; b.id = 'nuQuiz'; shell.stage.appendChild(b); }
+  b.innerHTML = `<span class="qn">${challenge.idx+1}/${challenge.total}</span><b>${ch.title}</b><div class="ask">${ch.ask}</div>`;
+  shell.setLevel((challenge.idx+1)+'/'+challenge.total); shell.setProgress(challenge.idx/challenge.total);
+  shell.say(ch.ask, 'concentre');
+}
+function passChallenge(){
+  const ch = challenge.list[challenge.idx]; if(challenge.done) return; challenge.done = true;
+  challenge.score++; shell.addScore(150); shell.sound('good'); shell.say(ch.done, 'celebration'); shell.toast('✅ '+ch.title);
+  setTimeout(()=>{ if(!challenge) return; challenge.idx++; shell.setProgress(challenge.idx/challenge.total); askChallenge(); }, 1300);
+}
+function checkClick(id){ if(!challenge || challenge.done) return; const ch = challenge.list[challenge.idx];
+  if(ch.type==='click'){ if(id===ch.target) passChallenge(); else { shell.sound('bad'); shell.say("Pas ce composant-ci. "+ch.ask, 'rassurant'); } } }
+function evalChallenge(kind){ if(!challenge || challenge.done) return; const ch = challenge.list[challenge.idx];
+  if(ch.type==='scram' && kind==='scram') passChallenge(); }
+function tickChallengePower(dt){
+  if(!challenge || challenge.done) return; const ch = challenge.list[challenge.idx];
+  if(ch.type!=='power') return;
+  const ok = power>=850 && power<=950 && temp<=360;
+  challenge.hold = ok ? challenge.hold+dt : 0;
+  const b = document.getElementById('nuQuiz');
+  if(b){ const a = b.querySelector('.ask'); if(a) a.textContent = ok ? `Maintiens… ${Math.max(0,Math.ceil(10-challenge.hold))} s` : ch.ask; }
+  if(challenge.hold >= 10) passChallenge();
+}
+function winQuiz(){
+  clearQuiz(); const sc = challenge ? challenge.score : 0, tot = challenge ? challenge.total : 1;
+  const st = sc>=tot ? 3 : sc>=Math.ceil(tot*0.6) ? 2 : 1;
+  shell.setProgress(1);
+  shell.win({
+    score: sc*150, stars: st, title: sc+'/'+tot+' défis réussis',
+    learned: shell.cfg.learned,
+    buddy: st===3 ? "Sans faute ! Tu comprends comment une centrale transforme la fission en électricité, en toute sûreté." : "Bien joué — relis les fiches des composants et retente pour le sans-faute.",
+    onNext: ()=>{ shell.setScore(0); chooseDifficulty(); }, nextLabel:'Rejouer',
+  });
+  challenge = null;
+}
+function clearQuiz(){ const b = document.getElementById('nuQuiz'); if(b) b.remove(); challenge = null; }
+
+/* ====== THÈME / RESIZE ====== */
+function applyTheme(){ const dark = document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x0a1424:0xbcd0e6, 1); if(scene.fog) scene.fog.color.setHex(dark?0x1a2740:0x9fb4cf); }
+function onResize(){ const s = shell.stage; if(!s.clientWidth) return; camera.aspect = s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth, s.clientHeight); composer.setSize(s.clientWidth, s.clientHeight); }
+
+/* ====== ÉTIQUETTES ====== */
+const LABEL_DEF = {
+  core:['Cœur','#E6633A'], rods:['Barres','#8b5be0'], pressurizer:['Pressuriseur','#2E7FD6'],
+  steamgen:['Gén. vapeur','#1E8C7A'], turbine:['Turbine+Alt.','#F5A623'], condenser:['Condenseur','#29B6E0'],
+  containment:['Enceinte','#5c6b82'], tower:['Tour refroidiss.','#94A0B4'],
+};
+const LABEL_ANCHOR = {
+  core:()=>new THREE.Vector3(...P.core).add(new THREE.Vector3(0,1.4,0)),
+  rods:()=>parts.rodsAnchor, pressurizer:()=>parts.pressAnchor, steamgen:()=>parts.sgAnchor,
+  turbine:()=>parts.turbAnchor, condenser:()=>parts.condAnchor,
+  containment:()=>new THREE.Vector3(-9,6.4,0), tower:()=>parts.towerAnchor,
+};
+function updateLabels(){
+  const stage = shell.stage;
+  Object.keys(LABEL_DEF).forEach(id=>{
+    let L = labels[id];
+    if(!labelsOn){ if(L && L.el) L.el.style.display='none'; return; }
+    if(!L){ const e = document.createElement('div'); e.className='nu-label'; e.innerHTML = `<span class="d" style="background:${LABEL_DEF[id][1]}"></span>${LABEL_DEF[id][0]}`; stage.appendChild(e); L = labels[id] = { el:e }; }
+    const anchor = LABEL_ANCHOR[id](); if(!anchor){ L.el.style.display='none'; return; }
+    const v = anchor.clone().project(camera);
+    if(v.z > 1){ L.el.style.display='none'; return; } L.el.style.display='flex';
+    L.el.style.left = ((v.x*.5+.5)*stage.clientWidth)+'px'; L.el.style.top = ((-v.y*.5+.5)*stage.clientHeight)+'px';
+  });
+}
+
+/* ====== PHYSIQUE ====== */
+function targetPower(){ const reactivity = (100-rods)/100; return Math.max(0, reactivity*1610 - 160); }
+function stepPhysics(dt){
+  const tp = targetPower();
+  if(scram){ power *= Math.pow(0.04, dt); }
+  else { power += (tp - power) * Math.min(1, dt*0.7); }
+  if(power < 1) power = 0;
+  neutronRate = power * 1.4;
+  const tempTarget = 45 + power*0.235 - (cooling-50)*1.9;
+  temp += (tempTarget - temp) * Math.min(1, dt*0.35);
+  const presTarget = 118 + power*0.022 + Math.max(0,temp-300)*0.14;
+  pressure += (presTarget - pressure) * Math.min(1, dt*0.5);
+  // Sûreté : baisse en surchauffe, remonte sinon
+  const over = temp - 360;
+  if(over > 0) safety -= over*0.06*dt*10; else safety += (2.2)*dt*10;
+  safety = Math.max(0, Math.min(100, safety));
+  if(safety <= 0 && !scram){ doScram(); shell.say("Sûreté épuisée : le système déclenche un SCRAM automatique. Tout redevient sûr.",'surpris'); }
+}
+
+/* ====== ANIMATION ====== */
+function animate(){
+  requestAnimationFrame(animate); const dt = Math.min(0.05, clock.getDelta()); const t = clock.elapsedTime;
+  stepPhysics(dt);
+  const reactivity = (100-rods)/100;
+
+  // Caméra guidée
+  if(camAnim){ camAnim.t = Math.min(1, camAnim.t + dt/camAnim.dur); const e = 1-Math.pow(1-camAnim.t,3);
+    camera.position.lerpVectors(camAnim.p0, camAnim.p1, e); controls.target.lerpVectors(camAnim.l0, camAnim.l1, e); if(camAnim.t>=1) camAnim = null; }
+
+  // Barres : enfoncées descendent dans le cœur
+  if(rodGroup) rodGroup.position.y = -rods/100*2.9;
+
+  // Cœur : glow + pulsation + couleur (surchauffe → rouge)
+  const overheat = temp > 360;
+  if(coreGlow){
+    coreGlow.material.opacity = 0.35 + reactivity*0.5;
+    const pulse = REDUCED ? 1 : 1 + Math.sin(t*6)*0.06*reactivity;
+    coreGlow.scale.setScalar(pulse);
+    coreGlow.material.color.setHex(overheat ? 0xff2020 : power>1200 ? 0xff8a2a : 0xff6a2a);
+  }
+  // Bandeaux thermiques
+  if(parts.sgBand) parts.sgBand.material.color.setHex(power>50 ? COL.primary : 0x556);
+  if(parts.condBand) parts.condBand.material.color.setHex(COL.cool);
+
+  // Neutrons (nombre ~ puissance)
+  const nActive = REDUCED ? Math.min(neutrons.length, Math.round(power/60)) : Math.min(neutrons.length, Math.round(power/28));
+  const cpos = new THREE.Vector3(...P.core);
+  neutrons.forEach((n,i)=>{ n.visible = i<nActive; if(!n.visible) return;
+    n.position.addScaledVector(n.userData.v, dt*(0.6+reactivity));
+    const off = n.position.clone().sub(cpos);
+    if(off.length() > 0.95){ off.normalize(); n.userData.v.reflect(off); n.position.copy(cpos).add(off.multiplyScalar(0.92)); }
+  });
+  // Éclats de fission
+  if(!REDUCED && power>60 && Math.random() < reactivity*dt*22) spawnFlash();
+  for(let i=flashes.length-1;i>=0;i--){ const f = flashes[i]; f.userData.life -= dt*3; f.material.opacity = Math.max(0,f.userData.life); f.scale.setScalar(0.4 + (1-f.userData.life)*1.2);
+    if(f.userData.life<=0){ f.visible=false; flashes.splice(i,1); } }
+
+  // Flux dans les 3 circuits (vitesse ~ puissance)
+  const pf = power/1450;
+  flow.forEach(p=>{ const fc = flowCurves[p.userData.ci]; const spd = fc.base + fc.gain*pf;
+    p.userData.u = (p.userData.u + spd*dt) % 1;
+    const pos = fc.cv.getPointAt(p.userData.u); p.position.copy(pos);
+    p.visible = cutaway || power>20 || p.userData.ci===2;
+    p.material.opacity = cutaway ? 0.98 : 0.62;
+  });
+
+  // Turbine + alternateur
+  if(turbine) turbine.rotation.x += pf*dt*16;
+  if(alternatorRotor){ alternatorRotor.rotation.x += pf*dt*16; alternatorRotor.material.color.setHex(power>100 ? 0xffe070 : 0x555); }
+
+  // Vapeur des tours (débit ~ chaleur rejetée)
+  const sActive = REDUCED ? Math.min(steam.length, Math.round(power/60)) : Math.min(steam.length, Math.round(power/22));
+  steam.forEach((s,i)=>{ s.visible = i<sActive; if(!s.visible) return;
+    s.userData.t += dt*0.18; if(s.userData.t>1){ s.userData.t = 0; }
+    const tt = s.userData.t; const base = s.userData.tower===0 ? P.tower1 : P.tower2;
+    const spread = 0.6 + tt*2.2;
+    s.position.set(base[0] + Math.sin(tt*7+i)*spread, 8.2 + tt*6.5, base[2] + Math.cos(tt*7+i)*spread);
+    s.material.opacity = 0.34*(1-tt); s.scale.setScalar(0.5 + tt*2.0);
+  });
+
+  // Ville : s'allume selon la production
+  const lit = Math.min(1, power/1000);
+  cityWindows.forEach((w,i)=> w.material.emissiveIntensity = (i/cityWindows.length < lit) ? 0.9 : 0);
+  // Fil électrique lumineux
+  pylonGlow.forEach(l=> l.material.opacity = 0.2 + lit*0.6);
+
+  // Hover : léger sursaut d'échelle du cœur (feedback)
+  if(coreGlow){ const hi = hovered==='core'; coreGlow.material.opacity += hi?0.06:0; }
+
+  // Eau : miroitement doux
+  if(parts._water && !REDUCED) parts._water.material.opacity = 0.86 + Math.sin(t*0.8)*0.04;
+
+  // Warn + mode cours
+  const warn = document.getElementById('nuWarn'); if(warn) warn.style.display = (overheat && !scram) ? 'block' : 'none';
+  if(mode==='cours'){ tickChallengePower(dt); }
+
+  updateHum();
+  telAcc += dt; if(telAcc > 0.15){ telAcc = 0; refreshTelemetry(); }
+  controls.update(); updateLabels(); composer.render();
+}
+</script>
+</body>
+</html>

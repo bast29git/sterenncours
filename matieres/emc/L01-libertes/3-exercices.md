@@ -404,3 +404,11 @@ Partie B : 7 points (1 pour la liberté identifiée, 3 pour le test détaillé, 
 Partie C : 7 points, environ 1,4 par temps de l'argument.
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

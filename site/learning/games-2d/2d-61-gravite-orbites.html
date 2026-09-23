@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Gravité & orbites</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Qu\'est-ce qui maintient les planètes en orbite autour du Soleil ?', options:['la gravité','le vent solaire','le magnétisme','rien'], answer:'la gravité', explain:'La gravité du Soleil courbe la trajectoire des planètes.'},
+ {lvl:1, prompt:'Sur la Lune, on pèse… qu\'on la Terre.', options:['moins','plus','pareil','rien'], answer:'moins', explain:'La gravité lunaire vaut 1/6 de celle de la Terre : on y saute 6× plus haut !'},
+ {lvl:1, prompt:'Pourquoi les astronautes « flottent »-ils dans l\'ISS ?', options:['ils sont en chute libre permanente','il n\'y a pas de gravité','ils sont trop légers','l\'air les porte'], answer:'ils sont en chute libre permanente', explain:'L\'ISS tombe sans cesse autour de la Terre : c\'est l\'impesanteur.'},
+ {lvl:2, prompt:'Qui a énoncé la loi de la gravitation universelle ?', options:['Isaac Newton','Galilée','Einstein','Kepler'], answer:'Isaac Newton', explain:'Newton (1687) : tous les corps s\'attirent proportionnellement à leur masse.'},
+ {lvl:2, prompt:'Plus une planète est proche du Soleil, plus son année est…', options:['courte','longue','identique','imprévisible'], answer:'courte', explain:'3ᵉ loi de Kepler : elle va plus vite et boucle son orbite plus vite.'},
+ {lvl:2, prompt:'Quelle est la forme des orbites des planètes ?', options:['des ellipses','des cercles parfaits','des carrés','des spirales'], answer:'des ellipses', explain:'1ʳᵉ loi de Kepler : des ellipses dont le Soleil occupe un foyer.'},
+ {lvl:3, prompt:'Selon Einstein, la gravité est…', options:['une courbure de l\'espace-temps','une force magnétique','une illusion','un champ électrique'], answer:'une courbure de l\'espace-temps', explain:'La relativité générale : la masse déforme l\'espace-temps, et les objets suivent ces courbes.'},
+ {lvl:3, prompt:'Qu\'est-ce que la vitesse de libération ?', options:['la vitesse pour échapper à la gravité d\'un astre','la vitesse de la lumière','la vitesse d\'une fusée au sol','la vitesse du son'], answer:'la vitesse pour échapper à la gravité d\'un astre', explain:'Sur Terre : ~11,2 km/s pour quitter définitivement son attraction.'},
+ {lvl:3, prompt:'Pourquoi une plume et un marteau tombent-ils à la même vitesse sur la Lune ?', options:['pas d\'air, donc pas de frottement','la Lune attire moins la plume','c\'est faux','le marteau est plus lourd'], answer:'pas d\'air, donc pas de frottement', explain:'Sans atmosphère, tous les objets chutent à la même accélération (vérifié par Apollo 15).'},
+ {lvl:3, prompt:'Un astre d\'où même la lumière ne peut s\'échapper est…', options:['un trou noir','une étoile','une nébuleuse','une comète'], answer:'un trou noir', explain:'Sa gravité est si forte que la vitesse de libération dépasse celle de la lumière.'},
+];
+QuizGame({ id:'2d-61-gravite-orbites', code:'2D·61', title:'Gravité & orbites', domain:{label:'Espace & Astro',color:'#1B82E0'},
+ intro:{ greet:"Pourquoi les planètes ne tombent-elles pas ? Perce les secrets de la gravité.", rule:"Comprends la gravité, les orbites et les lois de Newton, Kepler et Einstein. Trois niveaux, jusqu'à la relativité.", how:["Lis la question.","Choisis la bonne réponse.","Niveau Expert : espace-temps, vitesse de libération, trous noirs."], objectif:"Comprendre gravité, orbites et lois fondamentales.", hint:"L'ISS ne flotte pas : elle tombe sans arrêt autour de la Terre — c'est l'impesanteur.", why:"La gravité gouverne tout l'Univers, de la pomme aux galaxies." },
+ learned:["La gravité maintient les orbites (Newton).","Les lois de Kepler (ellipses, vitesses).","La gravité d'Einstein : courbure de l'espace-temps."],
+ rounds });
+</script></body></html>

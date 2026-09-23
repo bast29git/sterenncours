@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Fractions</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .fa-wrap { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:20px; text-align:center; }
+  .fa-q { font-size:18px; color:var(--fg-muted); }
+  .fa-q b { color:var(--fg); font-size:22px; }
+  .fa-frac { display:inline-flex; flex-direction:column; align-items:center; font-family:var(--font-data); font-weight:700; vertical-align:middle; margin:0 4px; }
+  .fa-frac .num { border-bottom:3px solid var(--fg); padding:0 6px; line-height:1.1; }
+  .fa-pie { display:flex; gap:30px; align-items:center; justify-content:center; flex-wrap:wrap; }
+  .fa-parts svg { width:200px; height:200px; cursor:pointer; }
+  .fa-seg { stroke:var(--surface); stroke-width:2; cursor:pointer; transition:fill .15s; }
+  .fa-opts { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .fa-opt { font-family:var(--font-data); font-weight:700; font-size:20px; min-height:56px; padding:0 22px; border-radius:14px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; transition:.14s; }
+  .fa-opt:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .fa-opt.ok { background:var(--ok); color:var(--ok-fg); border-color:var(--ok-fg); }
+  .fa-opt.no { background:var(--err); color:var(--err-fg); border-color:var(--err-fg); }
+  .fa-b { font-family:var(--font-body); font-weight:700; min-height:48px; padding:0 24px; border-radius:999px; border:none; background:var(--accent); color:#fff; cursor:pointer; font-size:15px; }
+</style>
+</head>
+<body>
+<script>
+let mode='detente', round=0, score=0, total=10, cur=null, shaded=new Set();
+const shell=window.Konstrio.createGame({
+  id:'2d-24-fractions', code:'2D·24', title:'Fractions', type:'2D',
+  domain:{ label:'Mathématiques', color:'#9B2BB0' },
+  intro:{
+    greet:"Une fraction, c'est une part d'un tout. On va colorier, lire et simplifier des fractions avec des camemberts !",
+    rule:"Une fraction comme 3/4 veut dire « 3 parts sur 4 ». Selon le défi, <b>colorie</b> la bonne fraction, <b>lis</b> celle qui est affichée, ou <b>simplifie</b>-la.",
+    how:["Pour colorier : clique les parts du camembert jusqu'à atteindre la fraction demandée.","Pour lire ou simplifier : choisis la bonne réponse parmi les propositions.","Le numérateur (haut) compte les parts coloriées ; le dénominateur (bas), le total de parts."],
+    keys:"Clique les parts ou les réponses.",
+    objectif:"Comprendre, lire et simplifier des fractions simples.",
+    hint:"Pour simplifier, divise le haut et le bas par le même nombre : 4/8 = 1/2 (on divise par 4).",
+    why:"Les fractions servent partout : partager une pizza, lire une recette, comprendre les pourcentages."
+  },
+  learned:["Une fraction a/b : a parts coloriées sur b parts égales.","On simplifie en divisant numérateur et dénominateur par leur diviseur commun.","2/4, 3/6 et 1/2 représentent la même quantité : ce sont des fractions équivalentes."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; round=0; score=0; api.setScore(0); next(); },
+  onRestart:(api)=>{ round=0; score=0; api.setScore(0); next(); },
+});
+let wrap;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='fa-wrap'; api.stage.appendChild(wrap); next(); }
+function gcd(a,b){ return b?gcd(b,a%b):a; }
+function pie(n,shadedSet,clickable,color){
+  const cx=100,cy=100,r=92; let s='';
+  for(let i=0;i<n;i++){ const a0=i/n*2*Math.PI-Math.PI/2, a1=(i+1)/n*2*Math.PI-Math.PI/2;
+    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    const fill=shadedSet.has(i)?color:'var(--surface-3)';
+    s+=`<path class="fa-seg" data-i="${i}" d="M${cx} ${cy} L${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z" fill="${fill}" ${clickable?'':'pointer-events="none"'}/>`; }
+  return `<div class="fa-parts"><svg viewBox="0 0 200 200">${s}</svg></div>`;
+}
+function frac(a,b){ return `<span class="fa-frac"><span class="num">${a}</span><span>${b}</span></span>`; }
+function next(){
+  if(round>=total){ finish(); return; }
+  shell.api.setLevel((round+1)+'/'+total); shell.api.setProgress(round/total);
+  const kind=['color','read','simplify'][round%3];
+  shaded=new Set();
+  if(kind==='color'){ const b=[3,4,5,6,8][Math.floor(Math.random()*5)]; const a=1+Math.floor(Math.random()*(b-1)); cur={kind,a,b};
+    wrap.innerHTML=`<div class="fa-q">Colorie <b>${frac(a,b)}</b> du camembert</div>${pie(b,shaded,true,'var(--brand-violet)')}<div class="fa-q" id="faNow" style="font-size:14px">0 / ${b} parts coloriées</div><button class="fa-b" id="faVal">Valider</button>`;
+    wrap.querySelectorAll('.fa-seg').forEach(p=> p.onclick=()=>{ const i=+p.dataset.i; if(shaded.has(i))shaded.delete(i); else shaded.add(i); p.setAttribute('fill', shaded.has(i)?'var(--brand-violet)':'var(--surface-3)'); document.getElementById('faNow').textContent=`${shaded.size} / ${b} parts coloriées`; shell.sound('tick'); });
+    document.getElementById('faVal').onclick=()=>{ const ok=shaded.size===a; finishRound(ok, `${a}/${b} = ${a} parts sur ${b}.`); };
+    shell.api.say(`Clique ${a} part${a>1?'s':''} sur les ${b}.`,'concentre');
+  } else if(kind==='read'){ const b=[3,4,5,6,8][Math.floor(Math.random()*5)]; const a=1+Math.floor(Math.random()*(b-1)); for(let i=0;i<a;i++)shaded.add(i); cur={kind,a,b};
+    const opts=new Set([`${a}/${b}`]); while(opts.size<3){ const bb=[3,4,5,6,8][Math.floor(Math.random()*5)]; const aa=1+Math.floor(Math.random()*(bb-1)); opts.add(`${aa}/${bb}`); }
+    const arr=[...opts].sort(()=>Math.random()-.5);
+    wrap.innerHTML=`<div class="fa-q">Quelle fraction est coloriée ?</div>${pie(b,shaded,false,'var(--brand-teal)')}<div class="fa-opts">${arr.map(o=>`<button class="fa-opt">${o.replace('/','⁄')}</button>`).join('')}</div>`;
+    wrap.querySelectorAll('.fa-opt').forEach((bt,k)=> bt.onclick=()=>{ const ok=arr[k]===`${a}/${b}`; bt.classList.add(ok?'ok':'no'); if(!ok)[...wrap.querySelectorAll('.fa-opt')].find(x=>x.textContent===`${a}⁄${b}`).classList.add('ok'); finishRound(ok,`Il y a ${a} parts coloriées sur ${b} : ${a}/${b}.`,true); });
+    shell.api.say("Compte les parts coloriées, puis le total.",'curieux');
+  } else { const f=Math.floor(Math.random()*4)+2; const sa=[1,2,3][Math.floor(Math.random()*3)], sb=sa+1+Math.floor(Math.random()*3); const a=sa*f, b=sb*f; cur={kind,a,b,sa,sb};
+    const opts=new Set([`${sa}/${sb}`]); while(opts.size<3){ const x=1+Math.floor(Math.random()*5),y=x+1+Math.floor(Math.random()*4); opts.add(`${x}/${y}`); }
+    const arr=[...opts].sort(()=>Math.random()-.5);
+    wrap.innerHTML=`<div class="fa-q">Simplifie la fraction <b>${frac(a,b)}</b></div><div class="fa-opts">${arr.map(o=>`<button class="fa-opt">${o.replace('/','⁄')}</button>`).join('')}</div>`;
+    const g=gcd(a,b); const truth=`${a/g}/${b/g}`;
+    wrap.querySelectorAll('.fa-opt').forEach((bt,k)=> bt.onclick=()=>{ const ok=arr[k].replace('⁄','/')===truth; bt.classList.add(ok?'ok':'no'); if(!ok)[...wrap.querySelectorAll('.fa-opt')].find(x=>x.textContent===truth.replace('/','⁄')).classList.add('ok'); finishRound(ok,`${a}/${b} : on divise par ${g} → ${truth}.`,true); });
+    shell.api.say("Trouve le plus grand nombre qui divise le haut ET le bas.",'concentre');
+  }
+}
+function finishRound(ok,explain,lock){
+  if(ok){ score++; shell.api.addScore(100); shell.sound('good'); shell.api.say('Bravo ! '+explain,'fier'); }
+  else { shell.sound('bad'); shell.api.say('Presque ! '+explain,'rassurant'); }
+  round++; shell.api.setProgress(round/total); setTimeout(next, ok?900:1600);
+}
+function finish(){ const stars=score>=9?3:score>=6?2:1;
+  shell.api.win({ score:score*100, stars, title:`${score}/${total} fractions réussies`,
+    buddy: stars===3?"Tu maîtrises les fractions ! Colorier, lire, simplifier : tout est clair.":"Bien joué — souviens-toi qu'on simplifie en divisant haut et bas par le même nombre.",
+    learned:shell.cfg.learned, onNext:()=>{ round=0; score=0; shell.api.setScore(0); next(); }, nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

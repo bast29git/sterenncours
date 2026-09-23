@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · English Sentences</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../lang-engine.js"></script></head>
+<body><script>
+const S=[
+ [1,'I would like a coffee','Je voudrais un café'],
+ [1,'She does not speak French','Elle ne parle pas français'],
+ [1,'Where is the train station','Où est la gare'],
+ [1,'They are playing in the garden','Ils jouent dans le jardin'],
+ [2,'I have been waiting for an hour','J\'attends depuis une heure'],
+ [2,'Could you help me please','Pourriez-vous m\'aider s\'il vous plaît'],
+ [2,'We should leave before it rains','Nous devrions partir avant qu\'il pleuve'],
+ [3,'I am writing to follow up on my application','Je vous écris pour relancer ma candidature'],
+ [3,'Please let me know if you have any questions','N\'hésitez pas si vous avez des questions'],
+ [3,'We look forward to working with your team','Nous avons hâte de travailler avec votre équipe']
+];
+const rounds=S.map(s=>({lvl:s[0], prompt:`Remets les mots dans l'ordre — sens : <i>« ${s[2]} »</i>`, audio:s[1], answer:s[1], words:s[1].split(' '), explain:`✓ « ${s[1]} » = ${s[2]}.`}));
+LangGame({ id:'2d-44-en-sentence', code:'2D·44', title:'English — Build the Sentence', lang:'en', mode:'order',
+ domain:{label:'Langues',color:'#0E7C86'},
+ intro:{ greet:"Put the scrambled words in the right order to translate the French sentence.", rule:"On te donne la phrase en français et les mots anglais mélangés : reconstruis la phrase correcte en cliquant les mots dans l'ordre.", how:["Lis la phrase française cible.","Clique les mots anglais dans le bon ordre (clique un mot placé pour le retirer).","Valide. Niveau Expert : phrases professionnelles."], objectif:"Maîtriser l'ordre des mots (syntaxe) en anglais.", hint:"En anglais : Sujet + Verbe + Complément. L'adjectif se place AVANT le nom (a red car).", why:"La syntaxe anglaise est assez rigide : bien ordonner, c'est déjà bien parler." },
+ learned:["L'ordre des mots en anglais (S-V-O).","La place de l'adjectif et des auxiliaires.","Des tournures professionnelles (follow up, look forward to…)."],
+ rounds });
+</script></body></html>

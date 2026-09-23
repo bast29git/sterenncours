@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Dictée interactive</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .di-wrap { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; padding:24px; text-align:center; }
+  .di-play { display:flex; gap:10px; align-items:center; }
+  .di-pb { width:72px; height:72px; border-radius:999px; border:none; background:var(--accent); color:#fff; font-size:30px; cursor:pointer; box-shadow:var(--shadow-md); transition:transform .12s; }
+  .di-pb:active { transform:scale(.94); }
+  .di-pb.small { width:48px; height:48px; font-size:18px; background:var(--surface); border:1px solid var(--border); color:var(--fg); }
+  .di-instr { font-size:14px; color:var(--fg-muted); }
+  .di-input { width:min(540px,100%); font-family:var(--font-body); font-size:18px; padding:14px 16px; border-radius:14px; border:2px solid var(--border); background:var(--surface); color:var(--fg); outline:none; }
+  .di-input:focus { border-color:var(--accent); box-shadow:var(--ring); }
+  .di-result { width:min(540px,100%); font-size:18px; line-height:1.7; min-height:24px; }
+  .di-result .ok { color:var(--ok-fg); } .di-result .no { color:var(--err-fg); text-decoration:line-through; } .di-result .corr { color:var(--ok-fg); font-weight:700; }
+  .di-b { font-family:var(--font-body); font-weight:700; min-height:48px; padding:0 24px; border-radius:999px; border:none; background:var(--accent); color:#fff; cursor:pointer; font-size:15px; }
+  .di-warn { font-size:12px; color:var(--warn-fg); background:var(--warn); padding:8px 12px; border-radius:8px; }
+</style>
+</head>
+<body>
+<script>
+const PHRASES=[
+  "Le chat dort sur le canapé.",
+  "Les oiseaux chantent dans le jardin.",
+  "Nous mangeons une tarte aux pommes.",
+  "Elle aime lire des livres le soir.",
+  "Le soleil brille au-dessus de la montagne.",
+  "Mes amis partent en voyage demain.",
+  "La pluie tombe doucement sur la ville.",
+  "Tu as fait de gros progrès cette année.",
+];
+let mode='detente', queue=[], idx=0, right=0;
+const synth=window.speechSynthesis; let frVoice=null;
+function pickVoice(){ const vs=synth?synth.getVoices():[]; frVoice=vs.find(v=>/fr/i.test(v.lang))||vs[0]||null; }
+if(synth){ pickVoice(); synth.onvoiceschanged=pickVoice; }
+const shell=window.Konstrio.createGame({
+  id:'2d-28-dictee', code:'2D·28', title:'Dictée interactive', type:'2D',
+  domain:{ label:'Français & Langues', color:'#1457A8' },
+  intro:{
+    greet:"Prépare tes oreilles ! J'énonce une phrase, tu l'écris. On corrige ensuite mot à mot.",
+    rule:"Écoute la phrase lue à voix haute, puis <b>écris-la</b> sans faute. La correction surligne chaque mot juste ou erroné.",
+    how:["Clique le gros bouton ▶ pour écouter la phrase (réécoute autant que tu veux).","Tape la phrase dans le champ, avec la ponctuation.","Valide : chaque mot correct passe au vert, les erreurs montrent la bonne orthographe."],
+    keys:"Entrée pour valider ; bouton ▶ pour réécouter.",
+    objectif:"Améliorer l'orthographe et l'écoute en transcrivant des phrases.",
+    hint:"N'oublie pas les majuscules en début de phrase et la ponctuation finale.",
+    why:"Écrire ce qu'on entend mobilise l'orthographe, la grammaire et l'attention en même temps."
+  },
+  learned:["Bien écouter aide à segmenter les mots et à les orthographier.","La ponctuation et les majuscules font partie de la phrase.","Se relire mot à mot révèle les fautes d'accord."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; idx=0; right=0; api.setScore(0); show(); },
+  onRestart:(api)=>{ idx=0; right=0; api.setScore(0); show(); },
+});
+let wrap;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='di-wrap';
+  wrap.innerHTML=`<div class="di-play"><button class="di-pb" id="diPlay" title="Écouter" aria-label="Écouter la phrase">▶</button><button class="di-pb small" id="diSlow" title="Plus lentement" aria-label="Lire lentement">🐢</button></div>
+    <div class="di-instr">Écoute, puis écris la phrase</div>
+    ${synth?'':'<div class="di-warn">La synthèse vocale n\'est pas disponible : la phrase s\'affichera brièvement à la place.</div>'}
+    <input class="di-input" id="diIn" placeholder="Écris ce que tu entends…" autocomplete="off" aria-label="Ta réponse">
+    <div class="di-result" id="diRes"></div>
+    <button class="di-b" id="diVal">Vérifier</button>`;
+  api.stage.appendChild(wrap); queue=PHRASES.map((_,i)=>i).sort(()=>Math.random()-.5);
+  wrap.querySelector('#diPlay').onclick=()=>speak(1); wrap.querySelector('#diSlow').onclick=()=>speak(.6);
+  wrap.querySelector('#diVal').onclick=validate;
+  wrap.querySelector('#diIn').addEventListener('keydown',e=>{ if(e.key==='Enter')validate(); });
+  show(); }
+function speak(rate){ const ph=PHRASES[queue[idx]]; if(synth&&frVoice!==undefined){ synth.cancel(); const u=new SpeechSynthesisUtterance(ph); if(frVoice)u.voice=frVoice; u.lang='fr-FR'; u.rate=rate; synth.speak(u); shell.api.say("J'énonce la phrase… écris ce que tu entends !",'concentre'); }
+  else { shell.api.say('Phrase : « '+ph+' »','concentre'); shell.api.toast(ph,3000); } }
+function show(){ if(idx>=queue.length){ finish(); return; }
+  shell.api.setLevel((idx+1)+'/'+queue.length); shell.api.setProgress(idx/queue.length);
+  document.getElementById('diIn').value=''; document.getElementById('diIn').disabled=false; document.getElementById('diRes').innerHTML='';
+  document.getElementById('diVal').disabled=false;
+  setTimeout(()=>speak(1),300);
+}
+function norm(s){ return s.trim().replace(/\s+/g,' '); }
+function validate(){
+  const ph=PHRASES[queue[idx]]; const ans=norm(document.getElementById('diIn').value); if(!ans)return;
+  const aw=ans.split(' '), pw=ph.split(' ');
+  let correctWords=0; const res=[];
+  for(let i=0;i<pw.length;i++){ const a=aw[i]||''; if(a.toLowerCase()===pw[i].toLowerCase()){ correctWords++; res.push(`<span class="ok">${pw[i]}</span>`); } else if(a===''){ res.push(`<span class="corr">${pw[i]}</span>`); } else { res.push(`<span class="no">${a}</span> <span class="corr">${pw[i]}</span>`); } }
+  const perfect = ans.toLowerCase()===ph.toLowerCase();
+  document.getElementById('diRes').innerHTML=res.join(' ');
+  document.getElementById('diIn').disabled=true; document.getElementById('diVal').disabled=true;
+  if(perfect){ right++; shell.api.addScore(150); shell.sound('good'); shell.api.say('Sans faute ! Bravo.','fier'); }
+  else { const pct=Math.round(correctWords/pw.length*100); shell.api.addScore(correctWords*15); shell.sound('bad'); shell.api.say(`${correctWords}/${pw.length} mots justes. Regarde les corrections en vert.`,'rassurant'); }
+  idx++; shell.api.setProgress(idx/queue.length); setTimeout(show, perfect?1300:2600);
+}
+function finish(){ if(synth)synth.cancel(); const acc=right/queue.length, stars=acc>=.8?3:acc>=.5?2:1;
+  shell.api.win({ score:parseInt(document.querySelector('.ksh-score').textContent,10), stars, title:`${right}/${queue.length} dictées parfaites`,
+    buddy: acc>=.8?"Quelle orthographe ! Tu écris sans faute.":"Bien — relis-toi mot à mot et surveille les accords.",
+    learned:shell.cfg.learned, onNext:()=>{ idx=0; right=0; shell.api.setScore(0); queue=PHRASES.map((_,i)=>i).sort(()=>Math.random()-.5); show(); }, nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

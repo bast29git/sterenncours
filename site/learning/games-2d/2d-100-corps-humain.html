@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Le corps humain</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Quel organe pompe le sang dans tout le corps ?', options:['le cœur','le foie','le cerveau','l\'estomac'], answer:'le cœur', explain:'Un muscle qui bat ~100 000 fois par jour.'},
+ {lvl:1, prompt:'Quel organe permet de respirer ?', options:['les poumons','le foie','les reins','la rate'], answer:'les poumons', explain:'Ils font entrer l\'oxygène et rejettent le CO₂.'},
+ {lvl:1, prompt:'Combien d\'os compte (environ) le squelette humain adulte ?', options:['206','100','50','500'], answer:'206', explain:'Le bébé en a plus de 270, certains fusionnent en grandissant.'},
+ {lvl:2, prompt:'Quel système commande les mouvements et les pensées ?', options:['le système nerveux','le système digestif','le système osseux','le système urinaire'], answer:'le système nerveux', explain:'Cerveau, moelle épinière et nerfs.'},
+ {lvl:2, prompt:'Le sang transporte l\'oxygène grâce aux…', options:['globules rouges','globules blancs','plaquettes','neurones'], answer:'globules rouges', explain:'Grâce à l\'hémoglobine qui leur donne leur couleur.'},
+ {lvl:2, prompt:'Quel organe filtre le sang et fabrique l\'urine ?', options:['les reins','le foie','le cœur','les poumons'], answer:'les reins', explain:'Ils éliminent les déchets dissous dans le sang.'},
+ {lvl:3, prompt:'Où commence la digestion ?', options:['dans la bouche','dans l\'estomac','dans l\'intestin','dans le foie'], answer:'dans la bouche', explain:'La salive et la mastication entament la digestion.'},
+ {lvl:3, prompt:'Quel organe produit la bile et filtre les toxines ?', options:['le foie','le pancréas','la rate','les reins'], answer:'le foie', explain:'La véritable « usine chimique » du corps.'},
+ {lvl:3, prompt:'Les « alvéoles » des poumons servent à…', options:['échanger O₂ et CO₂ avec le sang','digérer','filtrer','battre'], answer:'échanger O₂ et CO₂ avec le sang', explain:'Des millions de petits sacs : une surface immense pour respirer.'},
+];
+QuizGame({ id:'2d-100-corps-humain', code:'2D·100', title:'Le corps humain', domain:{label:'Bio & SVT',color:'#2AA98C'},
+ intro:{ greet:"Découvre la machine la plus extraordinaire : ton corps !", rule:"Explore les organes et les grands systèmes du corps humain : circulation, respiration, digestion, nerveux. Trois niveaux.", how:["Lis la question.","Choisis le bon organe ou système.","Niveau Expert : digestion, foie, alvéoles."], objectif:"Connaître les organes et systèmes du corps humain.", hint:"Cœur = circulation ; poumons = respiration ; reins = filtration ; cerveau = commande.", why:"Connaître son corps, c'est mieux comprendre sa santé." },
+ learned:["Les organes principaux et leur rôle.","Les grands systèmes (circulatoire, respiratoire…).","Squelette, sang, digestion, filtration."],
+ rounds });
+</script></body></html>

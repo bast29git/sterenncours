@@ -554,3 +554,11 @@ Donc, d'après la **réciproque du théorème de Pythagore**, le triangle est re
 ::: aide Après ce devoir
 Reporte tes résultats sur la **grille d'évaluation** (`4-evaluation`), puis compare ton positionnement avec celui de l'adulte. Les écarts entre les deux sont l'information la plus utile de tout le chapitre.
 :::
+
+::: cocher
+- J'ai fait tous les exercices d'application
+- J'ai fait tous les exercices d'entraînement
+- J'ai fait les exercices d'approfondissement à la main
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -483,3 +483,11 @@ Part C : 4 points (2 pour le désaccord poli en trois temps, 2 pour les connecte
 Part D : 6 points (2,5 pour les éléments imposés, 2 pour la correction de la langue, 1,5 pour la structure et la conclusion).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Littérature</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Qui a écrit « Les Misérables » ?', options:['Victor Hugo','Molière','Zola','Voltaire'], answer:'Victor Hugo', explain:'Roman majeur du XIXᵉ siècle.'},
+ {lvl:1, prompt:'« Le Petit Prince » a été écrit par…', options:['Antoine de Saint-Exupéry','Jules Verne','La Fontaine','Camus'], answer:'Antoine de Saint-Exupéry', explain:'Un conte philosophique mondialement connu.'},
+ {lvl:1, prompt:'Molière est célèbre pour ses…', options:['comédies de théâtre','romans policiers','poèmes d\'amour','BD'], answer:'comédies de théâtre', explain:'« L\'Avare », « Le Malade imaginaire »…'},
+ {lvl:2, prompt:'« Madame Bovary » est l\'œuvre de…', options:['Gustave Flaubert','Marcel Proust','Émile Zola','Honoré de Balzac'], answer:'Gustave Flaubert', explain:'Chef-d\'œuvre du réalisme (1857).'},
+ {lvl:2, prompt:'Quel auteur a écrit la série des « Rougon-Macquart » (naturalisme) ?', options:['Émile Zola','Victor Hugo','Stendhal','Rabelais'], answer:'Émile Zola', explain:'20 romans dont « Germinal » et « L\'Assommoir ».'},
+ {lvl:2, prompt:'Les fables (« Le Corbeau et le Renard ») sont de…', options:['Jean de La Fontaine','Charles Perrault','Molière','Ronsard'], answer:'Jean de La Fontaine', explain:'Des récits moraux mettant en scène des animaux.'},
+ {lvl:3, prompt:'« À la recherche du temps perdu » est l\'œuvre de…', options:['Marcel Proust','Albert Camus','Jean-Paul Sartre','Flaubert'], answer:'Marcel Proust', explain:'Un monument de la littérature du XXᵉ siècle.'},
+ {lvl:3, prompt:'« L\'Étranger » et « La Peste » sont de…', options:['Albert Camus','Sartre','Voltaire','Balzac'], answer:'Albert Camus', explain:'Figure de l\'absurde, prix Nobel 1957.'},
+ {lvl:3, prompt:'Le mouvement littéraire du XVIIᵉ siècle prônant ordre et raison est…', options:['le classicisme','le romantisme','le surréalisme','le naturalisme'], answer:'le classicisme', explain:'Le romantisme (XIXᵉ) privilégie au contraire les sentiments.'},
+];
+QuizGame({ id:'2d-108-litterature', code:'2D·108', title:'Littérature & auteurs', domain:{label:'Français',color:'#1457A8'},
+ intro:{ greet:"Hugo, Molière, Camus… voyage dans la grande littérature française.", rule:"Reconnais les grandes œuvres, leurs auteurs et les mouvements littéraires. Trois niveaux, jusqu'au niveau bac.", how:["Lis la question.","Choisis la bonne réponse.","Niveau Expert : Proust, Camus, mouvements littéraires."], objectif:"Connaître les classiques de la littérature française.", hint:"Hugo (romantisme), Zola (naturalisme), Camus (absurde) : associe auteurs et courants.", why:"La littérature est un patrimoine et une école de la pensée." },
+ learned:["Grandes œuvres et leurs auteurs.","Genres : roman, théâtre, fable.","Mouvements : classicisme, romantisme, naturalisme."],
+ rounds });
+</script></body></html>

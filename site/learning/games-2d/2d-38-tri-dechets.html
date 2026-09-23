@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Tri des déchets</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .tr-stage { position:absolute; inset:0; display:flex; flex-direction:column; user-select:none; touch-action:none; }
+  .tr-top { flex:1; min-height:0; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:16px; }
+  .tr-queue { font-family:var(--font-mono); font-size:12px; color:var(--fg-muted); }
+  .tr-item { width:150px; height:150px; border-radius:20px; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-lg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; cursor:grab; touch-action:none; transition:transform .12s; }
+  .tr-item.drag { cursor:grabbing; position:fixed; z-index:60; pointer-events:none; transform:scale(1.06) rotate(-3deg); }
+  .tr-item svg { width:58px; height:58px; }
+  .tr-item .nm { font-weight:700; font-size:14px; text-align:center; padding:0 10px; line-height:1.2; }
+  .tr-instr { font-size:13px; color:var(--fg-muted); }
+  .tr-bins { display:flex; gap:8px; padding:12px; }
+  .tr-bin { flex:1; min-height:128px; border-radius:16px 16px 14px 14px; border:2px dashed color-mix(in srgb, var(--c) 50%, var(--border)); background:color-mix(in srgb, var(--c) 12%, var(--surface)); display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; padding:12px 6px; cursor:pointer; transition:.15s; position:relative; overflow:hidden; }
+  .tr-bin .lid { position:absolute; top:0; left:0; right:0; height:14px; background:var(--c); }
+  .tr-bin.hover { transform:translateY(-4px); border-style:solid; box-shadow:var(--shadow-md); }
+  .tr-bin.flash-ok { background:var(--ok); }
+  .tr-bin.flash-no { background:var(--err); animation:trShake .4s; }
+  @keyframes trShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .tr-bin .bicon { width:34px; height:34px; color:var(--c); }
+  .tr-bin .blbl { font-weight:700; font-size:12px; text-align:center; line-height:1.15; }
+  .tr-bin .bkey { font-family:var(--font-mono); font-size:10px; color:var(--fg-muted); }
+  @media (max-width:640px){ .tr-bin .blbl{font-size:10.5px} .tr-item{width:120px;height:120px} }
+</style>
+</head>
+<body>
+<script>
+const ICONS = {
+  bottle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2h4v3l1 2v13a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V7l1-2z"/><path d="M9 12h6"/></svg>',
+  can:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M7 7h10M7 17h10"/></svg>',
+  paper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h11l3 3v15H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
+  glass:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3h8l-1 8a3 3 0 0 1-6 0z"/><path d="M12 14v6M9 21h6"/></svg>',
+  food:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 14c0-4 3-7 6-7s6 3 6 7a6 6 0 0 1-12 0z"/><path d="M12 7c0-2 1-4 3-4"/></svg>',
+  battery:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="8" width="15" height="9" rx="2"/><path d="M19 11h2v3h-2M8 10v5M11 10v5"/></svg>',
+  bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 0 0-4-10z"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
+  tissue:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8l16-3v14l-16-3z"/></svg>',
+};
+const BINS = {
+  jaune:  { lbl:'Bac jaune', sub:'Emballages', c:'#F5A623', icon:ICONS.can },
+  verre:  { lbl:'Verre', sub:'', c:'#1E8C7A', icon:ICONS.glass },
+  bio:    { lbl:'Compost', sub:'Bio-déchets', c:'#9c6b3f', icon:ICONS.food },
+  om:     { lbl:'Ordures', sub:'Non recyclable', c:'#5A6275', icon:ICONS.tissue },
+  special:{ lbl:'Déchèterie', sub:'Spéciaux', c:'#E63329', icon:ICONS.battery },
+};
+const BKEYS = Object.keys(BINS);
+const ITEMS = [
+  {nm:'Bouteille en plastique', icon:ICONS.bottle, bin:'jaune', tip:"Les bouteilles et flacons en plastique vont au bac jaune (recyclage des emballages)."},
+  {nm:'Canette en métal', icon:ICONS.can, bin:'jaune', tip:"L'aluminium et l'acier se recyclent à l'infini : bac jaune !"},
+  {nm:'Boîte de conserve', icon:ICONS.can, bin:'jaune', tip:"Emballage métallique → bac jaune. Inutile de la laver."},
+  {nm:'Journal & magazines', icon:ICONS.paper, bin:'jaune', tip:"Papiers et cartons propres : bac jaune (ou bac bleu selon ta commune)."},
+  {nm:'Brique de lait', icon:ICONS.paper, bin:'jaune', tip:"Les briques alimentaires sont des emballages : bac jaune."},
+  {nm:'Bouteille en verre', icon:ICONS.glass, bin:'verre', tip:"Le verre va dans le conteneur à verre, sans bouchon ni couvercle."},
+  {nm:'Pot de confiture', icon:ICONS.glass, bin:'verre', tip:"Bocaux et pots en verre → conteneur à verre."},
+  {nm:'Épluchures de légumes', icon:ICONS.food, bin:'bio', tip:"Les déchets alimentaires se compostent : ils deviennent de l'engrais."},
+  {nm:'Marc de café', icon:ICONS.food, bin:'bio', tip:"Marc de café et filtres : excellents pour le compost."},
+  {nm:"Coquille d'œuf", icon:ICONS.food, bin:'bio', tip:"Les coquilles d'œuf se compostent et enrichissent la terre."},
+  {nm:'Pile usagée', icon:ICONS.battery, bin:'special', tip:"Les piles contiennent des métaux toxiques : point de collecte dédié, jamais à la poubelle !"},
+  {nm:'Ampoule LED', icon:ICONS.bulb, bin:'special', tip:"Les ampoules et néons se rapportent en magasin ou en déchèterie."},
+  {nm:'Vieux téléphone', icon:ICONS.phone, bin:'special', tip:"Les appareils électroniques (DEEE) se recyclent en déchèterie ou en magasin."},
+  {nm:'Mouchoir usagé', icon:ICONS.tissue, bin:'om', tip:"Souillé et non recyclable : ordures ménagères."},
+  {nm:'Vaisselle cassée', icon:ICONS.glass, bin:'om', tip:"La vaisselle n'est pas du verre d'emballage : ordures ménagères (ou déchèterie)."},
+  {nm:'Polystyrène', icon:ICONS.paper, bin:'om', tip:"Le polystyrène n'est pas recyclé partout : souvent ordures ménagères."},
+];
+
+let queue=[], idx=0, correct=0, mode='detente';
+let stageEl, itemEl, current, dragging=false;
+
+const shell = window.Konstrio.createGame({
+  id:'2d-38-tri-dechets', code:'2D·38', title:'Tri des déchets', type:'2D',
+  domain:{ label:'Écologie', color:'#23A06E' },
+  intro:{
+    greet:"Devenons écolo-malins ! Attrape chaque déchet et dépose-le dans la bonne poubelle. Je t'explique à chaque fois pourquoi.",
+    rule:"Bien trier, c'est permettre le recyclage. Fais glisser chaque déchet dans la bonne poubelle : <b>emballages</b>, <b>verre</b>, <b>compost</b>, <b>ordures</b> ou <b>déchèterie</b>.",
+    how:["Attrape le déchet au centre et dépose-le sur la bonne poubelle.","Bonne poubelle = points et bravo ; mauvaise = Konstrio t'explique la règle.","Au clavier : touches 1 à 5 pour envoyer le déchet dans la poubelle correspondante."],
+    keys:"Touches 1–5 = les cinq poubelles, dans l'ordre affiché.",
+    objectif:"Trier correctement 12 déchets et connaître les 5 grandes familles de tri.",
+    hint:"Un emballage (plastique, métal, carton, brique) va au bac jaune. Le verre a son propre conteneur.",
+    why:"Trier économise des matières premières et de l'énergie : recycler une tonne d'aluminium évite d'extraire 4 tonnes de minerai !"
+  },
+  learned:[
+    "Bac jaune = emballages (plastique, métal, carton, briques).",
+    "Le verre, les piles, ampoules et appareils électroniques ont des filières dédiées.",
+    "Les déchets alimentaires se compostent ; le reste va aux ordures ménagères."
+  ],
+  onReady:(api)=> build(api),
+  onStart:(m,api)=>{ mode=m; reset(api); },
+  onRestart:(api)=> reset(api),
+});
+
+function build(api){
+  shell.api=api;
+  stageEl=document.createElement('div'); stageEl.className='tr-stage';
+  stageEl.innerHTML = `
+    <div class="tr-top">
+      <div class="tr-queue" id="trQueue"></div>
+      <div class="tr-item" id="trItem" tabindex="0" role="button" aria-label="Déchet à trier"></div>
+      <div class="tr-instr">Glisse-moi vers la bonne poubelle 👇 (ou tape 1–5)</div>
+    </div>
+    <div class="tr-bins" id="trBins"></div>`;
+  api.stage.appendChild(stageEl);
+  const bins=stageEl.querySelector('#trBins');
+  BKEYS.forEach((k,i)=>{ const b=BINS[k]; const el=document.createElement('div'); el.className='tr-bin'; el.dataset.bin=k; el.style.setProperty('--c',b.c);
+    el.innerHTML=`<div class="lid"></div><div class="bicon">${b.icon}</div><div class="blbl">${b.lbl}${b.sub?'<br><span style="font-weight:500;opacity:.7">'+b.sub+'</span>':''}</div><div class="bkey">touche ${i+1}</div>`;
+    el.onclick=()=>{ if(current) resolve(k,el); };
+    bins.appendChild(el);
+  });
+  itemEl=stageEl.querySelector('#trItem');
+  itemEl.addEventListener('pointerdown', startDrag);
+  itemEl.addEventListener('keydown',(e)=>{ const n=parseInt(e.key); if(n>=1&&n<=5){ resolve(BKEYS[n-1], stageEl.querySelectorAll('.tr-bin')[n-1]); } });
+  document.addEventListener('keydown',(e)=>{ const n=parseInt(e.key); if(current && n>=1&&n<=5 && document.activeElement!==itemEl){ resolve(BKEYS[n-1], stageEl.querySelectorAll('.tr-bin')[n-1]); } });
+  reset(api);
+}
+function reset(api){
+  shell.api=api; queue=ITEMS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,12);
+  idx=0; correct=0; api.setScore(0); api.setProgress(0); showItem();
+}
+function showItem(){
+  const api=shell.api;
+  if(idx>=queue.length){ finish(); return; }
+  current=ITEMS[queue[idx]];
+  api.setLevel((idx+1)+'/'+queue.length); api.setProgress(idx/queue.length);
+  document.getElementById('trQueue').textContent=`Déchet ${idx+1} sur ${queue.length} · bien triés : ${correct}`;
+  itemEl.style.opacity=0;
+  itemEl.innerHTML=`${current.icon}<div class="nm">${current.nm}</div>`;
+  requestAnimationFrame(()=>{ itemEl.style.transition='opacity .3s, transform .3s'; itemEl.style.opacity=1; });
+  itemEl.focus({preventScroll:true});
+  api.say(idx===0?"Premier déchet ! Réfléchis : de quoi est-il fait ?":"Au suivant !", 'concentre');
+}
+// --- drag ---
+let dragEl=null, offX=0, offY=0;
+function startDrag(e){
+  if(!current) return; dragging=true;
+  dragEl=itemEl; const r=itemEl.getBoundingClientRect(); offX=e.clientX-r.left; offY=e.clientY-r.top;
+  itemEl.classList.add('drag'); itemEl.style.left=r.left+'px'; itemEl.style.top=r.top+'px'; itemEl.style.width=r.width+'px'; itemEl.style.height=r.height+'px';
+  document.addEventListener('pointermove', onDrag); document.addEventListener('pointerup', endDrag);
+}
+function onDrag(e){
+  if(!dragging) return;
+  itemEl.style.left=(e.clientX-offX)+'px'; itemEl.style.top=(e.clientY-offY)+'px';
+  const el=document.elementFromPoint(e.clientX,e.clientY); const bin=el&&el.closest&&el.closest('.tr-bin');
+  stageEl.querySelectorAll('.tr-bin').forEach(b=>b.classList.toggle('hover', b===bin));
+}
+function endDrag(e){
+  dragging=false; document.removeEventListener('pointermove', onDrag); document.removeEventListener('pointerup', endDrag);
+  const el=document.elementFromPoint(e.clientX,e.clientY); const bin=el&&el.closest&&el.closest('.tr-bin');
+  itemEl.classList.remove('drag'); itemEl.style.cssText='';
+  stageEl.querySelectorAll('.tr-bin').forEach(b=>b.classList.remove('hover'));
+  if(bin) resolve(bin.dataset.bin, bin); else { itemEl.innerHTML=`${current.icon}<div class="nm">${current.nm}</div>`; }
+}
+function resolve(binKey, binEl){
+  const api=shell.api; if(!current) return;
+  const ok = binKey===current.bin;
+  if(ok){ correct++; api.addScore(100); api.sound('good'); binEl && binEl.classList.add('flash-ok'); api.say('Bravo ! '+current.tip,'fier'); }
+  else { api.sound('bad'); binEl && binEl.classList.add('flash-no'); api.say("Presque ! "+current.tip,'rassurant'); }
+  setTimeout(()=> binEl && binEl.classList.remove('flash-ok','flash-no'), 500);
+  current=null; idx++;
+  setTimeout(showItem, ok?650:1100);
+}
+function finish(){
+  const api=shell.api; const acc=correct/queue.length; const stars=acc>=0.9?3:acc>=0.7?2:1;
+  api.win({ score: correct*100, stars, title:`${correct}/${queue.length} déchets bien triés`,
+    buddy: acc>=0.9?"Champion du tri ! La planète te dit merci 🌍":acc>=0.7?"Bon tri d'ensemble — révise le verre et les déchets spéciaux.":"Tu progresses ! Souviens-toi : emballages = bac jaune.",
+    learned: shell.cfg.learned, onNext:()=> reset(api), nextLabel:'Rejouer' });
+}
+</script>
+</body>
+</html>

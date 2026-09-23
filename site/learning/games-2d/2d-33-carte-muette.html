@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Carte muette</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script>
+<style>
+ .cm{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; gap:12px; padding:14px 12px; overflow:auto; }
+ .cm-diff{ display:flex; gap:6px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:4px; }
+ .cm-diff button{ font-family:var(--font-body); font-weight:700; font-size:12px; padding:7px 15px; border-radius:999px; border:none; background:transparent; color:var(--fg-muted); cursor:pointer; }
+ .cm-diff button[aria-pressed="true"]{ background:var(--accent); color:#fff; }
+ .cm-task{ font-size:17px; font-weight:700; text-align:center; }
+ .cm-task b{ color:var(--accent-text); }
+ .cm-map{ width:min(560px,100%); aspect-ratio:1/0.92; background:linear-gradient(160deg,#bfe0f5,#9fcdeb); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-md); }
+ [data-theme="dark"] .cm-map{ background:linear-gradient(160deg,#0e2235,#0a1a2a); }
+ .cm-c{ cursor:pointer; transition:.15s; }
+ .cm-c:hover circle{ stroke:var(--accent); stroke-width:2; }
+ .cm-c.ok circle{ fill:#2faa4a; }
+ .cm-c.no circle{ fill:#E63329; }
+</style></head>
+<body><script>
+const CO=[
+ ['fr','France','Paris',42,53,11,1],['es','Espagne','Madrid',34,66,11,1],['de','Allemagne','Berlin',53,45,10,1],['it','Italie','Rome',52,64,9,1],['gb','Royaume-Uni','Londres',37,37,8,1],
+ ['pt','Portugal','Lisbonne',28,67,5,2],['ie','Irlande','Dublin',30,37,5,2],['be','Belgique','Bruxelles',46,46,4,2],['nl','Pays-Bas','Amsterdam',47,42,4,2],['ch','Suisse','Berne',49,54,4,2],['pl','Pologne','Varsovie',61,43,8,2],['se','Suède','Stockholm',55,22,7,2],['gr','Grèce','Athènes',63,72,6,2],
+ ['no','Norvège','Oslo',48,18,7,3],['fi','Finlande','Helsinki',64,17,6,3],['at','Autriche','Vienne',57,52,5,3],['ro','Roumanie','Bucarest',66,55,7,3],['ua','Ukraine','Kyiv',74,47,9,3],['hr','Croatie','Zagreb',56,58,4,3],['cz','Tchéquie','Prague',56,47,4,3]
+];
+let api, diff=2, mode='detente', queue=[], idx=0, correct=0, askCap=false;
+const shell=window.Konstrio.createGame({
+ id:'2d-33-carte-muette', code:'2D·33', title:'Carte muette', type:'2D', domain:{label:'Histoire & Géo',color:'#E0892B'},
+ intro:{ greet:"Géographe en herbe : clique le bon pays sur la carte d'Europe !", rule:"Une <b>carte muette</b> de l'Europe : on te demande un pays (ou, en Expert, un pays par sa capitale), à toi de cliquer au bon endroit.", how:["Lis le pays demandé en haut.","Clique sur le bon pays sur la carte.","Niveau Expert : pays plus petits et identification par la capitale."], objectif:"Situer les pays d'Europe et associer pays ↔ capitale.", hint:"Repère-toi : la France est au centre-ouest, l'Espagne au sud-ouest, l'Italie en botte au sud.", why:"Connaître la carte aide à comprendre l'Histoire, l'actualité et les échanges entre pays." },
+ learned:["Situer les pays d'Europe sur une carte.","Associer chaque pays à sa capitale.","Repères géographiques (nord/sud, est/ouest)."],
+ onReady:(a)=>{ api=a; build(); reset(); }, onStart:(m,a)=>{ api=a; mode=m; reset(); }, onRestart:(a)=>{ api=a; reset(); },
+});
+let root;
+function build(){ root=document.createElement('div'); root.className='cm'; api.stage.appendChild(root); }
+function reset(){ correct=0; idx=0; const pool=CO.filter(c=>c[6]<=diff); queue=pool.sort(()=>Math.random()-.5).slice(0,Math.min(10,pool.length)); api.setScore(0); api.setProgress(0); render(); }
+function render(){
+ if(idx>=queue.length) return finish();
+ const t=queue[idx]; askCap = diff===3 && Math.random()<0.5;
+ api.setLevel((idx+1)+'/'+queue.length); api.setProgress(idx/queue.length);
+ const active=CO.filter(c=>c[6]<=diff);
+ root.innerHTML=`<div class="cm-diff">${['Facile','Moyen','Expert'].map((d,i)=>`<button data-d="${i+1}" aria-pressed="${diff===i+1}">${d}</button>`).join('')}</div>
+   <div class="cm-task">Clique sur ${askCap?`le pays dont la capitale est <b>${t[2]}</b>`:`<b>${t[1]}</b>`}</div>
+   <svg class="cm-map" viewBox="0 0 100 92">${active.map(c=>`<g class="cm-c" data-id="${c[0]}"><circle cx="${c[3]}" cy="${c[4]}" r="${c[5]}" fill="#2a7a3a" fill-opacity="0.82" stroke="#1d5c2a" stroke-width="0.6"/></g>`).join('')}</svg>`;
+ root.querySelectorAll('.cm-diff button').forEach(b=>b.onclick=()=>{ diff=+b.dataset.d; reset(); });
+ root.querySelectorAll('.cm-c').forEach(g=> g.onclick=()=>answer(g,t));
+ api.say(idx===0?"Première cible : prends tes repères sur la carte.":"Au suivant !", 'concentre');
+}
+function answer(g,t){ root.querySelectorAll('.cm-c').forEach(x=>x.style.pointerEvents='none');
+ const ok=g.dataset.id===t[0];
+ if(ok){ g.classList.add('ok'); correct++; api.addScore(100); api.sound('good'); api.say(`Exact ! ${t[1]} — capitale ${t[2]}.`,'fier'); }
+ else { g.classList.add('no'); const good=root.querySelector(`.cm-c[data-id="${t[0]}"]`); if(good)good.classList.add('ok'); api.sound('bad'); api.say(`C'était ${t[1]} (en vert). ${t[2]} en est la capitale.`,'rassurant'); }
+ idx++; api.setProgress(idx/queue.length);
+ const nb=document.createElement('button'); nb.textContent=idx<queue.length?'▸ Suivant':'🏁 Résultat'; nb.style.cssText='min-height:44px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--font-body);font-weight:700;font-size:15px;cursor:pointer;padding:0 22px'; root.appendChild(nb); nb.focus(); nb.onclick=render;
+}
+function finish(){ const acc=correct/queue.length, st=acc>=0.9?3:acc>=0.7?2:1; api.win({ score:correct*100, stars:st, title:`${correct}/${queue.length} pays trouvés`, learned:shell.cfg.learned, buddy:acc>=0.9?"Tu connais l'Europe sur le bout des doigts !":"Bien — observe les positions pour progresser.", onNext:reset, nextLabel:'Rejouer' }); }
+</script></body></html>

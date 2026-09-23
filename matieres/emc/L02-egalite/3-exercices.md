@@ -455,3 +455,11 @@ Partie C : 5 points (1 point par cas correctement qualifié et justifié).
 Partie D : 4 points (1 pour les trois conditions rappelées, 1 pour la règle citée, 1 pour les exemples, 1 pour la distinction principe et efficacité).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

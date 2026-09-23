@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Capitales du monde</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const C=[
+ [1,'France','Paris',['Paris','Lyon','Marseille','Nice']],
+ [1,'Espagne','Madrid',['Madrid','Barcelone','Séville','Valence']],
+ [1,'Italie','Rome',['Rome','Milan','Venise','Naples']],
+ [1,'Allemagne','Berlin',['Berlin','Munich','Francfort','Hambourg']],
+ [1,'Japon','Tokyo',['Tokyo','Osaka','Kyoto','Nagoya']],
+ [1,'Égypte','Le Caire',['Le Caire','Alexandrie','Louxor','Gizeh']],
+ [2,'Australie','Canberra',['Canberra','Sydney','Melbourne','Perth']],
+ [2,'Canada','Ottawa',['Ottawa','Toronto','Montréal','Vancouver']],
+ [2,'Brésil','Brasília',['Brasília','Rio de Janeiro','São Paulo','Salvador']],
+ [2,'Turquie','Ankara',['Ankara','Istanbul','Izmir','Bursa']],
+ [2,'Afrique du Sud','Pretoria',['Pretoria','Le Cap','Johannesburg','Durban']],
+ [2,'Maroc','Rabat',['Rabat','Casablanca','Marrakech','Fès']],
+ [3,'Kazakhstan','Astana',['Astana','Almaty','Karaganda','Chymkent']],
+ [3,'Myanmar','Naypyidaw',['Naypyidaw','Rangoun','Mandalay','Bago']],
+ [3,'Nigeria','Abuja',['Abuja','Lagos','Kano','Ibadan']],
+ [3,'Suisse','Berne',['Berne','Zurich','Genève','Bâle']],
+ [3,'Bolivie','Sucre',['Sucre','La Paz','Santa Cruz','Cochabamba']],
+ [3,'Nouvelle-Zélande','Wellington',['Wellington','Auckland','Christchurch','Hamilton']],
+];
+const rounds=C.map(c=>({lvl:c[0], prompt:`Quelle est la capitale de <b>${c[1]}</b> ?`, options:c[3], answer:c[2], explain:c[2]+' est la capitale'+( ['Australie','Canada','Brésil','Turquie','Kazakhstan','Myanmar','Nigeria','Suisse','Bolivie','Nouvelle-Zélande'].includes(c[1])?' (souvent confondue avec la plus grande ville !).':'.')}));
+QuizGame({ id:'2d-54-capitales-monde', code:'2D·54', title:'Capitales du monde', domain:{label:'Histoire & Géo',color:'#E0892B'}, perRun:12,
+ intro:{ greet:"Tour du monde des capitales — y compris les pièges célèbres !", rule:"Trouve la capitale de chaque pays. Attention : la capitale n'est pas toujours la plus grande ville ! (Sydney ? Non, Canberra…)", how:["Lis le pays.","Choisis la bonne capitale parmi 4 villes.","Niveau Expert : capitales méconnues (Astana, Naypyidaw…)."], objectif:"Connaître les capitales du monde et déjouer les pièges classiques.", hint:"Méfie-toi : Australie→Canberra (pas Sydney), Canada→Ottawa, Turquie→Ankara, Suisse→Berne.", why:"La géographie politique aide à comprendre l'actualité internationale." },
+ learned:["Les capitales des grands pays du monde.","Capitale ≠ plus grande ville (Canberra, Ottawa, Abuja…).","Des capitales méconnues à connaître."],
+ rounds });
+</script></body></html>

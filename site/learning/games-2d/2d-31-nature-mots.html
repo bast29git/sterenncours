@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Nature des mots</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .nm-wrap { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:20px; text-align:center; }
+  .nm-sent { font-size:16px; color:var(--fg-muted); max-width:42ch; }
+  .nm-sent b { color:var(--accent-text); font-size:18px; }
+  .nm-word { font-family:var(--font-title); font-weight:800; font-size:clamp(34px,7vw,56px); }
+  .nm-cats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:min(460px,100%); }
+  .nm-cat { font-family:var(--font-body); font-weight:700; font-size:14px; min-height:58px; border-radius:14px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; transition:.14s; display:flex; flex-direction:column; gap:2px; align-items:center; justify-content:center; }
+  .nm-cat small { font-weight:500; font-size:10px; color:var(--fg-muted); }
+  .nm-cat:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .nm-cat.ok { background:var(--ok); color:var(--ok-fg); border-color:var(--ok-fg); }
+  .nm-cat.no { background:var(--err); color:var(--err-fg); border-color:var(--err-fg); }
+</style>
+</head>
+<body>
+<script>
+const CATS=[
+  {id:'nom', l:'Nom', s:'chat, idée'},
+  {id:'verbe', l:'Verbe', s:'manger, est'},
+  {id:'adjectif', l:'Adjectif', s:'grand, bleu'},
+  {id:'determinant', l:'Déterminant', s:'le, une, mon'},
+  {id:'adverbe', l:'Adverbe', s:'vite, très'},
+  {id:'pronom', l:'Pronom', s:'il, elle, je'},
+];
+const WORDS=[
+  {w:'chat', c:'nom', sent:'Le <b>chat</b> dort sur le canapé.'},
+  {w:'mange', c:'verbe', sent:'Elle <b>mange</b> une pomme.'},
+  {w:'rouge', c:'adjectif', sent:'Une voiture <b>rouge</b> passe.'},
+  {w:'le', c:'determinant', sent:'<b>Le</b> soleil brille fort.'},
+  {w:'rapidement', c:'adverbe', sent:'Il court <b>rapidement</b>.'},
+  {w:'elle', c:'pronom', sent:'<b>Elle</b> aime lire.'},
+  {w:'maison', c:'nom', sent:'La <b>maison</b> est ancienne.'},
+  {w:'grand', c:'adjectif', sent:'Un <b>grand</b> arbre nous abrite.'},
+  {w:'chante', c:'verbe', sent:'Le coq <b>chante</b> à l\'aube.'},
+  {w:'mes', c:'determinant', sent:'<b>Mes</b> amis sont là.'},
+  {w:'très', c:'adverbe', sent:'Il fait <b>très</b> chaud.'},
+  {w:'nous', c:'pronom', sent:'<b>Nous</b> partons demain.'},
+  {w:'idée', c:'nom', sent:'Quelle bonne <b>idée</b> !'},
+  {w:'finit', c:'verbe', sent:'Le film <b>finit</b> bien.'},
+];
+let mode='detente', queue=[], idx=0, right=0;
+const shell=window.Konstrio.createGame({
+  id:'2d-31-nature-mots', code:'2D·31', title:'Nature & fonction des mots', type:'2D',
+  domain:{ label:'Français & Langues', color:'#1457A8' },
+  intro:{
+    greet:"Chaque mot a une « nature » : nom, verbe, adjectif… Range le mot en gras dans la bonne catégorie !",
+    rule:"Pour chaque phrase, identifie la <b>nature</b> du mot en gras et clique la bonne catégorie : nom, verbe, adjectif, déterminant, adverbe ou pronom.",
+    how:["Lis la phrase et repère le mot en gras.","Demande-toi : qu'est-ce que ce mot ? Une chose (nom) ? Une action (verbe) ?","Clique la catégorie. Konstrio explique à chaque fois."],
+    keys:"Clique une catégorie.",
+    objectif:"Reconnaître les natures de mots essentielles de la grammaire française.",
+    hint:"Le déterminant accompagne le nom (le, la, mon). L'adjectif décrit le nom. L'adverbe modifie souvent un verbe.",
+    why:"Connaître la nature des mots aide à comprendre la phrase, bien accorder et mieux écrire."
+  },
+  learned:["Nom = une personne, un animal, une chose, une idée.","Verbe = une action ou un état ; adjectif = décrit le nom.","Déterminant précède le nom ; pronom le remplace ; adverbe modifie surtout le verbe."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; idx=0; right=0; api.setScore(0); show(); },
+  onRestart:(api)=>{ idx=0; right=0; api.setScore(0); show(); },
+});
+let wrap;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='nm-wrap';
+  wrap.innerHTML=`<div class="nm-sent" id="nmSent"></div><div class="nm-word" id="nmWord"></div><div class="nm-cats" id="nmCats"></div>`;
+  api.stage.appendChild(wrap);
+  const cc=wrap.querySelector('#nmCats');
+  CATS.forEach(c=>{ const b=document.createElement('button'); b.className='nm-cat'; b.dataset.c=c.id; b.innerHTML=`${c.l}<small>${c.s}</small>`; b.onclick=()=>pick(c.id,b); cc.appendChild(b); });
+  queue=WORDS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,10); show(); }
+function show(){ if(idx>=queue.length){ finish(); return; } const w=WORDS[queue[idx]];
+  shell.api.setLevel((idx+1)+'/'+queue.length); shell.api.setProgress(idx/queue.length);
+  document.getElementById('nmSent').innerHTML=w.sent; document.getElementById('nmWord').textContent=w.w;
+  wrap.querySelectorAll('.nm-cat').forEach(b=>{ b.classList.remove('ok','no'); b.style.pointerEvents='auto'; });
+  shell.api.say(idx===0?"Quelle est la nature du mot en gras ?":"Mot suivant !",'concentre');
+}
+function pick(cid,btn){ const w=WORDS[queue[idx]]; wrap.querySelectorAll('.nm-cat').forEach(b=>b.style.pointerEvents='none');
+  const ok=cid===w.c; if(ok){ right++; shell.api.addScore(100); shell.sound('good'); btn.classList.add('ok'); }
+  else { shell.sound('bad'); btn.classList.add('no'); wrap.querySelector(`[data-c="${w.c}"]`).classList.add('ok'); }
+  const catL=CATS.find(c=>c.id===w.c).l;
+  shell.api.say(ok?`Exact ! « ${w.w} » est un ${catL.toLowerCase()}.`:`« ${w.w} » est un ${catL.toLowerCase()}.`, ok?'fier':'rassurant');
+  idx++; shell.api.setProgress(idx/queue.length); setTimeout(show, ok?850:1500);
+}
+function finish(){ const acc=right/queue.length, stars=acc>=.9?3:acc>=.7?2:1;
+  shell.api.win({ score:right*100, stars, title:`${right}/${queue.length} mots bien classés`,
+    buddy: acc>=.9?"Grammaire au top ! Tu reconnais chaque nature de mot.":"Bien — le déterminant accompagne le nom, l'adjectif le décrit.",
+    learned:shell.cfg.learned, onNext:()=>{ idx=0; right=0; shell.api.setScore(0); queue=WORDS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,10); show(); }, nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

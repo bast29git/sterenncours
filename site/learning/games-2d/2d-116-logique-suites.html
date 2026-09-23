@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Logique & suites</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Quel nombre complète : 2, 4, 6, 8, … ?', options:['10','9','12','7'], answer:'10', explain:'Suite des nombres pairs (+2).'},
+ {lvl:1, prompt:'Quel nombre complète : 5, 10, 15, 20, … ?', options:['25','30','21','22'], answer:'25', explain:'On ajoute 5 (table de 5).'},
+ {lvl:1, prompt:'Quel nombre complète : 1, 2, 4, 8, … ?', options:['16','12','10','9'], answer:'16', explain:'On multiplie par 2 (suite géométrique).'},
+ {lvl:2, prompt:'Quel nombre complète : 1, 4, 9, 16, … ?', options:['25','20','24','18'], answer:'25', explain:'Les carrés : 1², 2², 3², 4², 5²=25.'},
+ {lvl:2, prompt:'Quel nombre complète : 1, 1, 2, 3, 5, 8, … ?', options:['13','11','10','16'], answer:'13', explain:'Suite de Fibonacci : chaque terme = somme des deux précédents.'},
+ {lvl:2, prompt:'Si tous les A sont B, et tous les B sont C, alors…', options:['tous les A sont C','aucun A n\'est C','certains C sont A seulement','rien'], answer:'tous les A sont C', explain:'Raisonnement par transitivité (syllogisme).'},
+ {lvl:3, prompt:'Quel nombre complète : 2, 6, 12, 20, 30, … ?', options:['42','40','36','45'], answer:'42', explain:'Différences +4, +6, +8, +10, +12 → 30+12 = 42.'},
+ {lvl:3, prompt:'La négation de « tous les chats sont noirs » est…', options:['au moins un chat n\'est pas noir','aucun chat n\'est noir','tous les chats sont blancs','rien'], answer:'au moins un chat n\'est pas noir', explain:'La négation d\'un « pour tout » est un « il existe… ne…pas ».'},
+ {lvl:3, prompt:'Quel nombre complète : 3, 9, 27, 81, … ?', options:['243','162','108','324'], answer:'243', explain:'On multiplie par 3 (puissances de 3).'},
+];
+QuizGame({ id:'2d-116-logique-suites', code:'2D·116', title:'Logique & suites', domain:{label:'Maths',color:'#9B2BB0'},
+ intro:{ greet:"Devine la règle cachée : suites de nombres et raisonnement logique.", rule:"Trouve les nombres manquants (suites arithmétiques, géométriques, Fibonacci) et raisonne en logique. Trois niveaux.", how:["Observe la suite ou l'énoncé.","Trouve la règle et la bonne réponse.","Niveau Expert : différences variables, négation logique."], objectif:"Développer le raisonnement et la logique mathématique.", hint:"Cherche la règle : on ajoute ? on multiplie ? on additionne les précédents ?", why:"La logique est la base des maths, de l'informatique et de la résolution de problèmes." },
+ learned:["Suites arithmétiques et géométriques.","Carrés et suite de Fibonacci.","Raisonnement logique et négation."],
+ rounds });
+</script></body></html>

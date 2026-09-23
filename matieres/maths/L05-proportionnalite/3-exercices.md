@@ -436,3 +436,11 @@ Partie C : 5 points (1 pour le coefficient, 1 pour la hausse, 1,5 pour le calcul
 Partie D : 5 points (1 pour la vitesse, 1,5 pour la durée en heures et minutes, 1 pour la conversion, 1,5 pour la vitesse moyenne expliquée).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

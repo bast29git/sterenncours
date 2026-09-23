@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Le Soleil & les étoiles</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Le Soleil est…', options:['une étoile','une planète','une lune','une comète'], answer:'une étoile', explain:'C\'est l\'étoile autour de laquelle tournent les planètes.'},
+ {lvl:1, prompt:'De quoi le Soleil est-il principalement composé ?', options:['hydrogène et hélium','roche','eau','fer'], answer:'hydrogène et hélium', explain:'74 % d\'hydrogène, 24 % d\'hélium — un gaz brûlant.'},
+ {lvl:1, prompt:'Combien de temps la lumière du Soleil met-elle à nous atteindre ?', options:['8 minutes','1 seconde','1 jour','1 an'], answer:'8 minutes', explain:'À 300 000 km/s, elle parcourt 150 M km en ~8 min.'},
+ {lvl:2, prompt:'Quelle réaction produit l\'énergie du Soleil ?', options:['la fusion nucléaire','la combustion','la fission','l\'électricité'], answer:'la fusion nucléaire', explain:'Au cœur, l\'hydrogène fusionne en hélium en libérant une énergie colossale.'},
+ {lvl:2, prompt:'Quelle est l\'étoile la plus brillante de notre ciel nocturne ?', options:['Sirius','l\'étoile Polaire','Bételgeuse','Véga'], answer:'Sirius', explain:'Sirius, dans le Grand Chien, à 8,6 années-lumière.'},
+ {lvl:2, prompt:'Qu\'est-ce qu\'une année-lumière ?', options:['une distance','une durée','une vitesse','une masse'], answer:'une distance', explain:'C\'est la distance parcourue par la lumière en un an (~9 460 milliards de km).'},
+ {lvl:3, prompt:'Que devient une étoile très massive en fin de vie ?', options:['une supernova','une planète','une comète','une lune'], answer:'une supernova', explain:'Elle explose en supernova, pouvant laisser un trou noir.'},
+ {lvl:3, prompt:'De quelle couleur est l\'étoile la plus chaude ?', options:['bleue','rouge','jaune','orange'], answer:'bleue', explain:'Plus une étoile est chaude, plus elle tend vers le bleu ; les rouges sont les plus froides.'},
+ {lvl:3, prompt:'Notre Soleil est une étoile de type…', options:['naine jaune','géante rouge','naine blanche','supergéante'], answer:'naine jaune', explain:'Une étoile moyenne (type G2V), à mi-vie (4,6 milliards d\'années).'},
+ {lvl:3, prompt:'Quel astre indique le nord et semble immobile ?', options:['l\'étoile Polaire','Sirius','Vénus','la Lune'], answer:'l\'étoile Polaire', explain:'Polaris est presque dans l\'axe de rotation de la Terre.'},
+];
+QuizGame({ id:'2d-58-soleil-etoiles', code:'2D·58', title:'Le Soleil & les étoiles', domain:{label:'Espace & Astro',color:'#1B82E0'},
+ intro:{ greet:"Notre étoile et toutes les autres : que sais-tu des étoiles ?", rule:"Questions sur le Soleil, la fusion, les étoiles, les années-lumière et leur cycle de vie. Trois niveaux.", how:["Lis la question.","Choisis la bonne réponse.","Niveau Expert : supernovas, types d'étoiles, couleurs."], objectif:"Comprendre ce qu'est une étoile et le cycle stellaire.", hint:"Plus une étoile est chaude, plus elle est bleue ; plus elle est froide, plus elle est rouge.", why:"Les étoiles fabriquent les éléments dont nous sommes faits." },
+ learned:["Le Soleil est une étoile de fusion (H → He).","L'année-lumière est une distance.","Les étoiles massives finissent en supernova."],
+ rounds });
+</script></body></html>

@@ -394,3 +394,11 @@ Partie B : 7 points (1 pour la nature, 2 pour le calcul, 2 pour le but, 2 pour l
 Partie C : 8 points (2 pour l'introduction et la conclusion, 4 pour les trois parties, 1 pour les exemples chiffrés, 1 pour la langue).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

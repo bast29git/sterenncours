@@ -429,3 +429,11 @@ Partie C : 5 points, environ 0,7 par espèce correctement classée.
 Partie D : 5 points (2 pour la masse justifiée, 2 pour ce qui change, 1 pour la phrase de conclusion).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · English Listening</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../lang-engine.js"></script></head>
+<body><script>
+const S=[
+ [1,'I have two brothers.','I have two sisters.','I have two brothers.','I have ten brothers.','You have two brothers.'],
+ [1,'She is reading a book.','She is writing a book.','He is reading a book.','She is reading a book.','She is reading a letter.'],
+ [1,'We go to school by bus.','We go to school by car.','We go to work by bus.','We go to school by bus.','They go to school by bus.'],
+ [2,'I would like to make an appointment.','I would like to cancel an appointment.','I would like to make an appointment.','I need to make an appointment.','I would like to make a reservation.'],
+ [2,'Could you please repeat that?','Could you please repeat that?','Could you please explain that?','Would you please repeat that?','Could you please spell that?'],
+ [2,'The meeting is scheduled for Monday.','The meeting is cancelled on Monday.','The meeting is scheduled for Monday.','The meeting is scheduled for Friday.','The meeting was scheduled for Monday.'],
+ [3,'We need to align on the quarterly objectives.','We need to align on the quarterly objectives.','We need to agree on the monthly objectives.','We need to align on the yearly objectives.','We need to report the quarterly results.'],
+ [3,'Please find the attached report for your review.','Please find the attached report for your review.','Please send the attached report for review.','Please find the attached invoice for your review.','Please review the report attached below.'],
+ [3,'Let us circle back on this next week.','Let us follow up on this next week.','Let us circle back on this next week.','Let us circle back on this next month.','We will circle back on this next week.']
+];
+const rounds=S.map(s=>({lvl:s[0], prompt:`🎧 ${'Qu\'as-tu entendu ?'}`, audio:s[1], answer:s[1], options:[s[2],s[3],s[4],s[5]], explain:`Phrase entendue : « ${s[1]} »`}));
+LangGame({ id:'2d-43-en-listening', code:'2D·43', title:'English — Listening', lang:'en', mode:'listen',
+ domain:{label:'Langues',color:'#0E7C86'},
+ intro:{ greet:"Listen carefully and pick the sentence you heard. Replay as many times as you need.", rule:"Écoute la phrase anglaise (🔊) et choisis exactement celle que tu as entendue. Attention aux petits mots qui changent tout !", how:["La phrase se joue automatiquement ; clique 🔊 pour réécouter.","Choisis la phrase exacte parmi les propositions.","Niveau Expert : anglais professionnel et expressions idiomatiques."], objectif:"Travailler la compréhension orale de l'anglais, du quotidien au pro.", hint:"Concentre-toi sur les différences : un seul mot (sisters/brothers, Monday/Friday) distingue souvent les options.", why:"La compréhension orale progresse en écoutant activement et en repérant les détails." },
+ learned:["Compréhension orale de l'anglais.","Repérer les mots discriminants.","Phrases professionnelles courantes (follow up, align…)."],
+ rounds });
+</script></body></html>

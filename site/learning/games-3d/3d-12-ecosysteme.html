@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Écosystème & biodiversité</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .ec-panel{ position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  .ec-ctrl{ top:14px; left:14px; width:224px; padding:14px; display:flex; flex-direction:column; gap:11px; max-height:calc(100% - 172px); overflow:auto; }
+  .ec-ctrl h3{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0; display:flex; align-items:center; gap:6px; }
+  .ec-sl{ display:flex; flex-direction:column; gap:3px; font-size:12px; } .ec-sl label{ display:flex; justify-content:space-between; align-items:center; } .ec-sl b{ font-family:var(--font-data); color:var(--accent-text); } .ec-sl input{ accent-color:var(--accent); width:100%; }
+  .ec-b{ font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:40px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:transform .12s, background .18s; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .ec-b:hover{ transform:translateY(-1px); background:var(--accent-weak); }
+  .ec-b:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .ec-brow{ display:flex; gap:6px; } .ec-brow .ec-b{ flex:1; padding:0 6px; }
+  .ec-counts{ bottom:172px; left:50%; transform:translateX(-50%); display:flex; gap:14px; padding:9px 16px; z-index:20; }
+  .ec-c{ text-align:center; } .ec-c .v{ font-family:var(--font-data); font-weight:700; font-size:18px; } .ec-c .k{ font-size:10px; color:var(--fg-muted); display:flex; align-items:center; gap:4px; } .ec-c .k i{ width:9px; height:9px; border-radius:999px; }
+  .ec-graph{ position:absolute; bottom:14px; left:50%; transform:translateX(-50%); width:min(460px,92%); height:142px; background:color-mix(in srgb,var(--surface) 90%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); z-index:20; overflow:hidden; }
+  .ec-graph canvas{ width:100%; height:100%; display:block; }
+  .ec-glegend{ position:absolute; top:7px; left:12px; display:flex; gap:11px; font-size:10px; color:var(--fg-muted); pointer-events:none; } .ec-glegend i{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:3px; vertical-align:middle; }
+  .ec-hint{ position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:24; font-size:12.5px; color:var(--fg); background:color-mix(in srgb,var(--surface) 90%,transparent); border:1px solid var(--border); padding:8px 15px; border-radius:999px; box-shadow:var(--shadow-sm); max-width:min(560px,90vw); text-align:center; }
+  .ec-hint b.tag{ font-family:var(--font-mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent-text); }
+  .ec-info{ right:14px; top:14px; width:294px; padding:0; overflow:hidden; transform:translateX(125%); transition:transform .42s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; z-index:26; }
+  .ec-info.show{ transform:none; }
+  .ec-hd{ padding:15px 18px; color:#fff; position:relative; flex:none; } .ec-hd h2{ font-family:var(--font-title); font-weight:800; font-size:20px; margin:0; } .ec-hd .sub{ font-family:var(--font-mono); font-size:11px; opacity:.92; text-transform:uppercase; letter-spacing:.04em; }
+  .ec-x{ position:absolute; top:11px; right:11px; width:27px; height:27px; border:none; border-radius:7px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:15px; }
+  .ec-bd{ padding:13px 18px 16px; overflow:auto; } .ec-bd p{ font-size:13.5px; line-height:1.55; margin:0 0 8px; }
+  .ec-sec{ font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:12px 0 6px; } .ec-sec:first-child{margin-top:0}
+  .ec-role{ display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:3px 9px; border-radius:999px; color:#fff; margin-bottom:6px; }
+  .ec-fun{ background:var(--accent-weak); border-radius:10px; padding:10px 12px; font-size:13px; color:var(--accent-text); line-height:1.5; }
+  .ec-not{ display:flex; flex-wrap:wrap; gap:6px; } .ec-not button{ font-family:var(--font-body); font-weight:600; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; }
+  .ec-not button:hover{ background:var(--accent-weak); border-color:var(--accent); }
+  /* réseau trophique (overlay) */
+  .ec-web{ position:absolute; inset:0; z-index:40; display:none; align-items:center; justify-content:center; padding:20px; background:color-mix(in srgb,var(--bg) 78%,transparent); backdrop-filter:blur(9px); }
+  .ec-web.show{ display:flex; }
+  .ec-web-card{ position:relative; width:min(760px,96vw); background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow-lg); padding:20px 22px 22px; max-height:94%; overflow:auto; }
+  .ec-web-card h2{ font-family:var(--font-title); font-weight:800; font-size:22px; margin:0 0 3px; }
+  .ec-web-card p.lead{ color:var(--fg-muted); font-size:13.5px; margin:0 0 12px; line-height:1.5; }
+  .ec-web-svg{ width:100%; height:auto; display:block; }
+  .ec-node{ cursor:pointer; } .ec-node text{ pointer-events:none; }
+  .ec-node .ring{ transition:.2s; } .ec-node:hover .ring, .ec-node.hot .ring{ stroke-width:5; filter:drop-shadow(0 0 8px currentColor); }
+  .ec-flow{ stroke-dasharray:6 9; animation:ecDash 1.1s linear infinite; }
+  @keyframes ecDash{ to{ stroke-dashoffset:-30; } }
+  .ec-web-close{ position:absolute; top:14px; right:14px; }
+  .ec-legend2{ display:flex; flex-wrap:wrap; gap:8px 14px; margin-top:12px; font-size:12px; } .ec-legend2 span{ display:flex; align-items:center; gap:6px; } .ec-legend2 i{ width:11px; height:11px; border-radius:3px; }
+  /* marqueur de sélection 3D */
+  .ec-marker{ position:absolute; z-index:15; transform:translate(-50%,-50%); pointer-events:none; width:54px; height:54px; border-radius:999px; border:2.5px solid var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 26%,transparent); opacity:0; transition:opacity .2s; }
+  .ec-marker.show{ opacity:1; animation:ecPulse 1.6s ease-out infinite; }
+  @keyframes ecPulse{ 0%{ box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 40%,transparent);} 70%{ box-shadow:0 0 0 15px transparent;} 100%{ box-shadow:0 0 0 3px transparent;} }
+  @media (prefers-reduced-motion: reduce){ .ec-flow{animation:none} .ec-marker.show{animation:none} }
+  @media (max-width:720px){ .ec-ctrl{width:158px} .ec-info{width:min(294px,84vw)} .ec-counts{gap:9px; padding:7px 11px} .ec-c .v{font-size:15px} }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ===== Modèle Lotka-Volterra étendu : V=plantes, N=herbivores, P=prédateurs ===== */
+let V=150, N=45, P=14, pollution=0;
+const PARAMS={ a:0.7, b:0.012, c:0.0009, d:0.32, e:0.0016, f:0.42, K:260 };
+const MAX={ tree:48, herb:38, pred:18, flower:150, grass:2600, deco:9 };
+const PONDC=new THREE.Vector3(-13,0,10), PONDR=8.5;
+
+let scene,camera,renderer,composer,controls,clock,sun,hemi,windU;
+let ground,water,mist,treeMesh,trunkMesh,grassMesh,flowerMesh;
+let maxAniso=8;
+
+/* ===== Textures PBR CC0 (Poly Haven) : helpers du gabarit photoréaliste ===== */
+const texLoader=new THREE.TextureLoader();
+const PBR_BASE='../assets/3d/pbr2k/';
+function loadTex(url,srgb,rep){ const t=texLoader.load(url,undefined,undefined,()=>{}); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep,rep); t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=maxAniso; return t; }
+// applique diffuse(sRGB)/normal/roughness(+ao bakée) réels sur un matériau existant
+function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE+slug+'/'+slug+'_';
+  material.map=loadTex(b+'diff_'+res+'.jpg',true,rep);
+  material.normalMap=loadTex(b+'nor_gl_'+res+'.jpg',false,rep); material.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  material.roughnessMap=loadTex(b+'rough_'+res+'.jpg',false,rep);
+  if(opt.ao){ material.aoMap=loadTex(b+'ao_'+res+'.jpg',false,rep); material.aoMapIntensity=opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color); else material.color.setHex(0xffffff);
+  material.roughness=1; material.metalness=0; material.needsUpdate=true; return material; }
+// duplique le canal UV pour permettre l'aoMap (three lit l'AO sur uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+let herbPool=[], predPool=[], decoPool=[], birds=[], flies=[];
+let history=[], gctx, gcanvas;
+let raycaster, pointer, marker, focusTween=null;
+let night=false, ac=null, ambGain=null, chirpTimer=null;
+let phase=null, finds=null, sceneReady=false;
+
+/* ===== Grammaire commune : la coquille de jeu ===== */
+const shell=window.Konstrio.createGame({
+  id:'3d-12-ecosysteme', code:'3D·12', title:'Écosystème & biodiversité', type:'3D',
+  domain:{ label:'Écologie', color:'#23A06E' },
+  intro:{
+    greet:"Bienvenue dans un monde vivant ! Une forêt, une mare, des animaux qui se déplacent. Clique sur un être vivant pour découvrir son rôle, ou joue avec les populations et observe l'équilibre de la nature.",
+    rule:"Un écosystème est un équilibre vivant : le <b>Soleil</b> nourrit les <b>plantes</b>, qui nourrissent les <b>herbivores</b>, mangés par les <b>prédateurs</b> ; les <b>décomposeurs</b> recyclent tout. Explore ce petit monde et comprends comment tout est relié.",
+    how:["Glisse pour explorer le biome · clique un être vivant pour sa fiche et son rôle.","Ouvre le <b>Réseau trophique</b> pour voir « qui mange qui ».","Règle les populations et la pollution, et regarde les courbes s'équilibrer… ou s'effondrer."],
+    keys:"Glisser = tourner · molette = zoom · R = réseau trophique · N = jour/nuit · Échap = pause.",
+    objectif:"Comprendre la chaîne alimentaire (producteur → consommateur → décomposeur) et l'équilibre proie-prédateur.",
+    hint:"Tout est relié : trop de prédateurs → les herbivores chutent → les prédateurs manquent de nourriture et chutent à leur tour. Clique le bouton « Réseau trophique » pour voir les liens !",
+    why:"Les populations oscillent naturellement (modèle de Lotka-Volterra) : proies et prédateurs se régulent. La pollution casse cet équilibre en réduisant la survie des espèces."
+  },
+  learned:[
+    "La chaîne alimentaire : Soleil → plantes (producteurs) → herbivores → prédateurs → décomposeurs.",
+    "Chaque être vivant a un rôle : producteur, consommateur ou décomposeur.",
+    "Les populations oscillent : proies et prédateurs se régulent mutuellement.",
+    "La pollution appauvrit l'écosystème et peut provoquer un effondrement."
+  ],
+  onReady:init, onStart:startMode, onTheme:()=>applyTheme(),
+  onHint:()=>{ shell.say(shell.cfg.intro.hint,'idee'); openWeb(); },
+});
+
+/* ============================================================
+   INITIALISATION DE LA SCÈNE
+   ============================================================ */
+function init(){
+  const stage=shell.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0xbcd8e6,0.017);
+  camera=new THREE.PerspectiveCamera(52, stage.clientWidth/stage.clientHeight,.1,300); camera.position.set(6,15,30);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  stage.appendChild(renderer.domElement);
+  maxAniso=Math.min(8, renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
+  // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produit du noir → chaîne robuste + AO bakée
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render|mesa/i.test(rn); }catch(e){}
+
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene,camera));
+  if(!software){
+    // GPU : occlusion ambiante en espace-écran (GTAO) pour ancrer arbres, animaux et reliefs au sol
+    const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=0.85;
+    try{ gtao.updateGtaoMaterial({ radius:0.5, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao=gtao;
+  }
+  // bloom doux : reflets du soleil sur l'eau, halos lumineux — jamais délavé
+  const bloom=new UnrealBloomPass(new THREE.Vector2(W,H),0.22,0.55,0.92); composer.addPass(bloom); composer.bloom=bloom;
+  // anti-aliasing SMAA (le composer court-circuite le MSAA du canvas)
+  composer.addPass(new SMAAPass(W,H));
+  // OutputPass : tone mapping ACES + conversion sRGB en fin de chaîne
+  composer.addPass(new OutputPass());
+
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=0.08;
+  controls.maxPolarAngle=Math.PI/2.12; controls.minDistance=9; controls.maxDistance=64; controls.target.set(0,2,0);
+  controls.autoRotate=REDUCED; controls.autoRotateSpeed=0.28;
+
+  // lumières : hémisphérique douce + soleil directionnel avec ombres
+  hemi=new THREE.HemisphereLight(0xd8f0ff,0x4a6a3a,0.9); scene.add(hemi);
+  sun=new THREE.DirectionalLight(0xfff2d8,1.5); sun.position.set(18,26,10); sun.castShadow=true;
+  sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.near=1; sun.shadow.camera.far=100;
+  sun.shadow.camera.left=-42; sun.shadow.camera.right=42; sun.shadow.camera.top=42; sun.shadow.camera.bottom=-42;
+  sun.shadow.bias=-0.0004; scene.add(sun); scene.add(sun.target);
+
+  // environnement HDRI réel (CC0 Poly Haven) : ciel + éclairage image (IBL) + réflexions
+  const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  new RGBELoader().load('../assets/3d/env/sky_day_1k.hdr', hdr=>{
+    hdr.mapping=THREE.EquirectangularReflectionMapping;
+    scene.environment=pmrem.fromEquirectangular(hdr).texture;
+    scene.background=hdr; scene.backgroundBlurriness=0.05; scene.backgroundIntensity=1.0;
+    if(water) water.material.envMap=scene.environment;
+  }, undefined, ()=>{});
+
+  windU={ value:0 };
+  buildTerrain(); buildPond(); buildTrees(); buildGrass(); buildFlowers(); buildRocks(); buildDecomposers();
+  buildHerbivores(); buildPredators(); buildBirds(); buildButterflies(); buildMist();
+
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  marker=document.createElement('div'); marker.className='ec-marker'; stage.appendChild(marker);
+
+  buildUI(); applyTheme();
+  renderer.domElement.addEventListener('pointerdown',onPick);
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
+  document.addEventListener('keydown',onKey);
+  sceneReady=true; animate();
+}
+
+/* ---------- terrain : disque, texture herbe, léger relief ---------- */
+function inPond(x,z){ return Math.hypot(x-PONDC.x,z-PONDC.z) < PONDR+1.2; }
+function terrainH(x,z){ // relief doux, creusé sous la mare
+  let h = Math.sin(x*0.11)*Math.cos(z*0.13)*0.9 + Math.sin((x+z)*0.07)*0.6;
+  const d=Math.hypot(x-PONDC.x,z-PONDC.z); if(d<PONDR+3) h -= (1-Math.min(1,d/(PONDR+3)))*2.4;
+  return h;
+}
+function buildTerrain(){
+  const geo=new THREE.CircleGeometry(46,120); geo.rotateX(-Math.PI/2);
+  const pos=geo.attributes.position;
+  for(let i=0;i<pos.count;i++){ const x=pos.getX(i),z=pos.getZ(i); pos.setY(i, terrainH(x,z)); }
+  geo.computeVertexNormals(); enableAO(geo);
+  // sol herbe/rocaille réel (CC0 Poly Haven) : diffuse sRGB + normal + roughness + AO bakée, tuilage large
+  const gmat=new THREE.MeshStandardMaterial({color:0xffffff, roughness:1, metalness:0, envMapIntensity:0.55});
+  applyPBR(gmat,'aerial_grass_rock','1k',{repeat:20,normal:1.1,ao:true,aoInt:1.0});
+  ground=new THREE.Mesh(geo,gmat); ground.receiveShadow=true; scene.add(ground);
+}
+
+/* ---------- mare : eau réfléchissante animée + berge + roseaux ---------- */
+function buildPond(){
+  const wgeo=new THREE.CircleGeometry(PONDR,64); wgeo.rotateX(-Math.PI/2);
+  water=new THREE.Mesh(wgeo, new THREE.MeshStandardMaterial({
+    color:0x2f6f86, roughness:0.06, metalness:0.55, transparent:true, opacity:0.88,
+    envMapIntensity:1.4, side:THREE.DoubleSide }));
+  water.position.set(PONDC.x, -0.35, PONDC.z); water.userData.base=[];
+  const wp=wgeo.attributes.position; for(let i=0;i<wp.count;i++) water.userData.base.push(wp.getY(i));
+  scene.add(water);
+  // berge terreuse : sol de forêt réel (CC0 Poly Haven) — feuilles/humus autour de l'eau
+  const bankGeo=new THREE.RingGeometry(PONDR-0.2,PONDR+1.6,64).rotateX(-Math.PI/2); enableAO(bankGeo);
+  const bankMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,metalness:0,envMapIntensity:0.5});
+  applyPBR(bankMat,'forrest_ground_01','1k',{repeat:5,normal:1.2,ao:true});
+  const bank=new THREE.Mesh(bankGeo,bankMat);
+  bank.position.set(PONDC.x,-0.28,PONDC.z); bank.receiveShadow=true; scene.add(bank);
+  // roseaux autour de la mare
+  const reedMat=new THREE.MeshStandardMaterial({color:0x4f7a3a,roughness:0.9,flatShading:true});
+  for(let i=0;i<40;i++){ const a=Math.random()*6.28, r=PONDR+0.3+Math.random()*1.2;
+    const rd=new THREE.Mesh(new THREE.ConeGeometry(0.05,0.9+Math.random()*0.7,4),reedMat);
+    rd.position.set(PONDC.x+Math.cos(a)*r, -0.1+rd.geometry.parameters.height/2, PONDC.z+Math.sin(a)*r);
+    rd.rotation.z=(Math.random()-0.5)*0.4; rd.castShadow=true; scene.add(rd);
+    if(Math.random()<0.4){ const cat=new THREE.Mesh(new THREE.CapsuleGeometry(0.08,0.24,4,6),new THREE.MeshStandardMaterial({color:0x6b4423})); cat.position.copy(rd.position); cat.position.y+=rd.geometry.parameters.height/2; scene.add(cat); }
+  }
+  // 2 nénuphars
+  for(let i=0;i<3;i++){ const lp=new THREE.Mesh(new THREE.CircleGeometry(0.6+Math.random()*0.3,12).rotateX(-Math.PI/2), new THREE.MeshStandardMaterial({color:0x3d8b46,roughness:0.7,side:THREE.DoubleSide}));
+    const a=Math.random()*6.28, r=Math.random()*PONDR*0.6; lp.position.set(PONDC.x+Math.cos(a)*r,-0.3,PONDC.z+Math.sin(a)*r); scene.add(lp); }
+}
+
+/* ---------- arbres : géométrie fusionnée + InstancedMesh (perf) ---------- */
+// tronc seul (écorce PBR réelle) — géométrie séparée pour porter une texture d'écorce
+function trunkTreeGeo(){ const trunk=new THREE.CylinderGeometry(0.16,0.24,1.3,12); trunk.translate(0,0.62,0); enableAO(trunk); return trunk; }
+// feuillage seul (cônes stylisés, couleurs par sommet)
+function foliageTreeGeo(){
+  const parts=[];
+  [[1.35,1.6,1.05,0x2f8a3e],[1.05,1.4,1.9,0x35984a],[0.7,1.1,2.7,0x3aa552]].forEach(f=>{
+    const c=new THREE.ConeGeometry(f[0],f[1],9); c.translate(0,f[2],0); colorGeo(c,f[3]); parts.push(c); });
+  return BufferGeometryUtils.mergeGeometries(parts,false);
+}
+function colorGeo(g,hex){ const c=new THREE.Color(hex); const n=g.attributes.position.count; const arr=new Float32Array(n*3);
+  for(let i=0;i<n;i++){ arr[i*3]=c.r; arr[i*3+1]=c.g; arr[i*3+2]=c.b; } g.setAttribute('color',new THREE.BufferAttribute(arr,3)); }
+function windShader(mat, amp){ mat.onBeforeCompile=(sh)=>{ sh.uniforms.uTime=windU;
+  sh.vertexShader='uniform float uTime;\n'+sh.vertexShader;
+  sh.vertexShader=sh.vertexShader.replace('#include <begin_vertex>',
+    '#include <begin_vertex>\n#ifdef USE_INSTANCING\n float ph=instanceMatrix[3][0]*0.6+instanceMatrix[3][2]*0.6;\n#else\n float ph=position.x*0.6+position.z*0.6;\n#endif\n float sway=sin(uTime*1.4+ph)*'+amp.toFixed(3)+'*max(position.y,0.0);\n transformed.x+=sway; transformed.z+=sway*0.4;'); }; }
+function buildTrees(){
+  // feuillage stylisé (couleurs par sommet + vent)
+  const folMat=new THREE.MeshStandardMaterial({vertexColors:true, flatShading:true, roughness:0.92});
+  windShader(folMat,0.03);
+  treeMesh=new THREE.InstancedMesh(foliageTreeGeo(), folMat, MAX.tree);
+  treeMesh.castShadow=true; treeMesh.receiveShadow=true;
+  // troncs : écorce PBR réelle (CC0 Poly Haven), mêmes matrices d'instance que le feuillage
+  const barkMat=new THREE.MeshStandardMaterial({color:0xffffff, roughness:1, metalness:0, envMapIntensity:0.4});
+  applyPBR(barkMat,'bark_brown_02','1k',{repeat:2,normal:1.0,ao:true});
+  windShader(barkMat,0.03);
+  trunkMesh=new THREE.InstancedMesh(trunkTreeGeo(), barkMat, MAX.tree);
+  trunkMesh.castShadow=true; trunkMesh.receiveShadow=true;
+  const d=new THREE.Object3D(); treeMesh.userData.pos=[];
+  for(let i=0;i<MAX.tree;i++){ let x,z,tries=0; do{ const a=Math.random()*6.28,r=6+Math.random()*34; x=Math.cos(a)*r; z=Math.sin(a)*r; tries++; }while(inPond(x,z)&&tries<12);
+    const y=terrainH(x,z); const s=0.85+Math.random()*0.8;
+    d.position.set(x,y,z); d.rotation.set(0,Math.random()*6.28,0); d.scale.setScalar(s); d.updateMatrix();
+    treeMesh.setMatrixAt(i,d.matrix); trunkMesh.setMatrixAt(i,d.matrix); treeMesh.userData.pos.push(new THREE.Vector3(x,y+s*1.6,z)); }
+  const cnt=Math.round(V/PARAMS.K*MAX.tree); treeMesh.count=cnt; trunkMesh.count=cnt;
+  treeMesh.userData.kind='plant'; trunkMesh.userData.kind='plant';
+  scene.add(treeMesh); scene.add(trunkMesh);
+}
+
+/* ---------- herbe instanciée avec vent ---------- */
+function buildGrass(){
+  const blade=new THREE.ConeGeometry(0.05,0.55,3); blade.translate(0,0.27,0);
+  const mat=new THREE.MeshStandardMaterial({color:0x5f9740,roughness:1,flatShading:true}); windShader(mat,0.05);
+  grassMesh=new THREE.InstancedMesh(blade,mat,MAX.grass); grassMesh.castShadow=false; grassMesh.receiveShadow=true;
+  const d=new THREE.Object3D();
+  for(let i=0;i<MAX.grass;i++){ let x,z,tries=0; do{ const a=Math.random()*6.28,r=Math.random()*42; x=Math.cos(a)*r; z=Math.sin(a)*r; tries++; }while(inPond(x,z)&&tries<10);
+    d.position.set(x,terrainH(x,z),z); d.rotation.set(0,Math.random()*6.28,0); d.scale.set(1,0.7+Math.random()*0.9,1); d.updateMatrix(); grassMesh.setMatrixAt(i,d.matrix);
+    const c=new THREE.Color().setHSL(0.28+Math.random()*0.06,0.5,0.32+Math.random()*0.12); grassMesh.setColorAt(i,c); }
+  scene.add(grassMesh);
+}
+function buildFlowers(){
+  const g=new THREE.SphereGeometry(0.11,7,6); g.translate(0,0.35,0);
+  const stem=new THREE.CylinderGeometry(0.02,0.02,0.35,4); stem.translate(0,0.17,0); colorGeo(stem,0x3f7a30); colorGeo(g,0xffffff);
+  const merged=BufferGeometryUtils.mergeGeometries([stem,g],false);
+  const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.8}); windShader(mat,0.03);
+  flowerMesh=new THREE.InstancedMesh(merged,mat,MAX.flower);
+  const d=new THREE.Object3D(); const cols=[0xffd54a,0xff8fb0,0xef5350,0x9575cd,0xffffff,0xff9800];
+  for(let i=0;i<MAX.flower;i++){ let x,z,tries=0; do{ const a=Math.random()*6.28,r=3+Math.random()*36; x=Math.cos(a)*r; z=Math.sin(a)*r; tries++; }while(inPond(x,z)&&tries<10);
+    d.position.set(x,terrainH(x,z),z); d.rotation.set(0,Math.random()*6.28,0); d.scale.setScalar(0.7+Math.random()*0.6); d.updateMatrix(); flowerMesh.setMatrixAt(i,d.matrix);
+    // colore uniquement la fleur (les stems restent verts via vertexColors de base) — teinte instance
+    flowerMesh.setColorAt(i,new THREE.Color(cols[i%cols.length])); }
+  scene.add(flowerMesh);
+}
+function buildRocks(){
+  const mat=new THREE.MeshStandardMaterial({color:0x8a8478,roughness:0.85,metalness:0.05,flatShading:true});
+  for(let i=0;i<14;i++){ const rk=new THREE.Mesh(new THREE.IcosahedronGeometry(0.5+Math.random()*0.7,0),mat.clone());
+    let x,z,tries=0; do{ const a=Math.random()*6.28,r=6+Math.random()*32; x=Math.cos(a)*r; z=Math.sin(a)*r; tries++; }while(inPond(x,z)&&tries<8);
+    rk.position.set(x,terrainH(x,z)+0.2,z); rk.rotation.set(Math.random(),Math.random(),Math.random()); rk.scale.y=0.7; rk.castShadow=true; rk.receiveShadow=true; scene.add(rk); }
+}
+
+/* ---------- décomposeurs : bosquets de champignons cliquables ---------- */
+function makeMushroom(){ const g=new THREE.Group();
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.09,0.3,7),new THREE.MeshStandardMaterial({color:0xefe7d2,roughness:0.9})); stem.position.y=0.15; g.add(stem);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(0.18,10,8,0,6.28,0,Math.PI/2),new THREE.MeshStandardMaterial({color:0xc0392b,roughness:0.6})); cap.position.y=0.3; cap.scale.y=0.7; g.add(cap);
+  g.traverse(o=>{ o.userData.kind='deco'; if(o.castShadow!==undefined)o.castShadow=true; }); g.userData.kind='deco'; return g; }
+function buildDecomposers(){
+  for(let i=0;i<MAX.deco;i++){ const clump=new THREE.Group();
+    const n=2+Math.floor(Math.random()*3); for(let j=0;j<n;j++){ const m=makeMushroom(); m.position.set((Math.random()-0.5)*0.6,0,(Math.random()-0.5)*0.6); m.scale.setScalar(0.7+Math.random()*0.6); clump.add(m); }
+    let x,z,tries=0; do{ const a=Math.random()*6.28,r=5+Math.random()*30; x=Math.cos(a)*r; z=Math.sin(a)*r; tries++; }while(inPond(x,z)&&tries<10);
+    clump.position.set(x,terrainH(x,z),z); clump.userData.kind='deco'; scene.add(clump); decoPool.push(clump); }
+}
+
+/* ---------- herbivores (lapins/cerfs stylisés) ---------- */
+function buildHerbivores(){
+  for(let i=0;i<MAX.herb;i++){ const g=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.CapsuleGeometry(0.28,0.5,5,10),new THREE.MeshStandardMaterial({color:0xc8b89a,roughness:0.85,flatShading:true})); body.rotation.z=Math.PI/2; body.castShadow=true; g.add(body);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(0.24,10,9),new THREE.MeshStandardMaterial({color:0xd6c8ad})); head.position.set(0.5,0.12,0); head.castShadow=true; g.add(head);
+    [[-0.09],[0.09]].forEach(e=>{ const ear=new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.22,3,6),new THREE.MeshStandardMaterial({color:0xd6c8ad})); ear.position.set(0.52,0.34,e[0]); ear.rotation.z=0.2; g.add(ear); });
+    const tail=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,7),new THREE.MeshStandardMaterial({color:0xffffff})); tail.position.set(-0.5,0.05,0); g.add(tail);
+    g.userData={kind:'herb', v:new THREE.Vector3(Math.random()-.5,0,Math.random()-.5).normalize(), sp:1.6+Math.random()*0.8, hop:Math.random()*6.28, base:0};
+    g.traverse(o=>o.userData.kind='herb'); g.userData.kind='herb'; g.visible=false; scene.add(g); herbPool.push(g); }
+}
+function buildPredators(){
+  for(let i=0;i<MAX.pred;i++){ const g=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.CapsuleGeometry(0.3,0.75,5,10),new THREE.MeshStandardMaterial({color:0xc15a2a,roughness:0.8,flatShading:true})); body.rotation.z=Math.PI/2; body.castShadow=true; g.add(body);
+    const head=new THREE.Mesh(new THREE.ConeGeometry(0.26,0.5,7),new THREE.MeshStandardMaterial({color:0xcf6a34})); head.rotation.z=-Math.PI/2; head.position.set(0.62,0.1,0); head.castShadow=true; g.add(head);
+    [[-0.1],[0.1]].forEach(e=>{ const ear=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.18,4),new THREE.MeshStandardMaterial({color:0x8a3d18})); ear.position.set(0.5,0.32,e[0]); g.add(ear); });
+    const tail=new THREE.Mesh(new THREE.ConeGeometry(0.13,0.6,6),new THREE.MeshStandardMaterial({color:0xe0e0e0})); tail.rotation.z=Math.PI/2.4; tail.position.set(-0.6,0.14,0); g.add(tail);
+    g.userData={kind:'pred', v:new THREE.Vector3(Math.random()-.5,0,Math.random()-.5).normalize(), sp:2.4+Math.random()*1.0, hop:Math.random()*6.28};
+    g.traverse(o=>o.userData.kind='pred'); g.userData.kind='pred'; g.visible=false; scene.add(g); predPool.push(g); }
+}
+/* ---------- oiseaux (cercles au-dessus) & papillons ---------- */
+function buildBirds(){
+  const mat=new THREE.MeshStandardMaterial({color:0x35435a,flatShading:true});
+  for(let i=0;i<6;i++){ const g=new THREE.Group();
+    [-1,1].forEach(s=>{ const w=new THREE.Mesh(new THREE.ConeGeometry(0.18,0.6,3),mat); w.rotation.z=s*Math.PI/2; w.position.x=s*0.3; g.add(w); w.userData.wing=s; });
+    g.userData={r:14+Math.random()*18, h:12+Math.random()*7, a:Math.random()*6.28, sp:0.25+Math.random()*0.25}; scene.add(g); birds.push(g); }
+}
+function buildButterflies(){
+  const cols=[0xff9800,0xffd54a,0x7e57c2,0xef5350];
+  for(let i=0;i<10;i++){ const g=new THREE.Group(); const mat=new THREE.MeshStandardMaterial({color:cols[i%cols.length],roughness:0.6,side:THREE.DoubleSide,flatShading:true});
+    [-1,1].forEach(s=>{ const w=new THREE.Mesh(new THREE.CircleGeometry(0.12,8),mat); w.position.x=s*0.1; w.rotation.y=s*0.6; w.userData.wing=s; g.add(w); });
+    const a=Math.random()*6.28,r=4+Math.random()*30; g.userData={cx:Math.cos(a)*r,cz:Math.sin(a)*r,a:Math.random()*6.28,sp:0.5+Math.random()*0.6,rad:1.2+Math.random()*2}; g.position.set(g.userData.cx,terrainH(g.userData.cx,g.userData.cz)+1,g.userData.cz); scene.add(g); flies.push(g); }
+}
+function buildMist(){
+  const m=new THREE.Mesh(new THREE.CircleGeometry(44,48).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.05,depthWrite:false}));
+  m.position.y=0.6; mist=m; scene.add(m);
+}
+
+/* ============================================================
+   UI (panneau réglages, compteurs, graphe, réseau trophique)
+   ============================================================ */
+function buildUI(){
+  const stage=shell.stage;
+  const c=document.createElement('div'); c.className='ec-panel ec-ctrl'; c.innerHTML=`<h3>🌍 Populations & pollution</h3>
+    <div class="ec-sl"><label>🌿 Plantes <b id="ecVv">150</b></label><input id="ecV" type="range" min="0" max="260" value="150"></div>
+    <div class="ec-sl"><label>🐇 Herbivores <b id="ecNv">45</b></label><input id="ecN" type="range" min="0" max="120" value="45"></div>
+    <div class="ec-sl"><label>🦊 Prédateurs <b id="ecPv">14</b></label><input id="ecP" type="range" min="0" max="50" value="14"></div>
+    <div class="ec-sl"><label>🏭 Pollution <b id="ecPolv">0</b>%</label><input id="ecPol" type="range" min="0" max="100" value="0"></div>
+    <button class="ec-b" id="ecWeb">🔗 Réseau trophique</button>
+    <div class="ec-brow"><button class="ec-b" id="ecBalance">🌱 Équilibre</button><button class="ec-b" id="ecNight" title="Jour / nuit">🌙 Nuit</button></div>
+    <button class="ec-b" id="ecNotions">📚 Notions</button>
+    <div style="font-size:11px;color:var(--fg-muted);line-height:1.4">💡 Clique une plante, un animal ou un champignon pour sa fiche.</div>`;
+  stage.appendChild(c);
+  const bind=(id,fn)=>c.querySelector(id).oninput=fn;
+  bind('#ecV',e=>{ V=+e.target.value; txt('ecVv',V); });
+  bind('#ecN',e=>{ N=+e.target.value; txt('ecNv',N); });
+  bind('#ecP',e=>{ P=+e.target.value; txt('ecPv',P); });
+  bind('#ecPol',e=>{ pollution=+e.target.value/100; txt('ecPolv',+e.target.value); updateAmb(); if(+e.target.value>55) shell.say("La pollution monte : les animaux survivent moins bien et l'écosystème s'appauvrit…",'rassurant'); });
+  c.querySelector('#ecBalance').onclick=()=>{ V=155;N=46;P=14;pollution=0; sync(); shell.sound('good'); shell.say("Équilibre rétabli : plantes, herbivores et prédateurs en harmonie.",'fier'); };
+  c.querySelector('#ecNight').onclick=()=>toggleNight();
+  c.querySelector('#ecWeb').onclick=()=>openWeb();
+  c.querySelector('#ecNotions').onclick=()=>openNotions();
+
+  const counts=document.createElement('div'); counts.className='ec-panel ec-counts'; counts.innerHTML=
+    `<div class="ec-c"><div class="v" id="ecCv" style="color:#2faa4a">150</div><div class="k"><i style="background:#2faa4a"></i>Plantes</div></div>
+     <div class="ec-c"><div class="v" id="ecCn" style="color:#c8b89a">45</div><div class="k"><i style="background:#c8b89a"></i>Herbivores</div></div>
+     <div class="ec-c"><div class="v" id="ecCp" style="color:#c15a2a">14</div><div class="k"><i style="background:#c15a2a"></i>Prédateurs</div></div>`;
+  stage.appendChild(counts);
+
+  const gr=document.createElement('div'); gr.className='ec-panel ec-graph';
+  gr.innerHTML='<div class="ec-glegend"><span><i style="background:#2faa4a"></i>Plantes</span><span><i style="background:#c8b89a"></i>Herbivores</span><span><i style="background:#c15a2a"></i>Prédateurs</span></div><canvas></canvas>';
+  stage.appendChild(gr); gcanvas=gr.querySelector('canvas'); gctx=gcanvas.getContext('2d'); resizeGraph();
+
+  const info=document.createElement('div'); info.className='ec-panel ec-info'; info.id='ecInfo'; stage.appendChild(info);
+  const hint=document.createElement('div'); hint.className='ec-hint'; hint.id='ecHint'; hint.innerHTML='Explore le biome · clique un être vivant 🦊'; stage.appendChild(hint);
+
+  const web=document.createElement('div'); web.className='ec-web'; web.id='ecWebOv'; stage.appendChild(web);
+}
+function txt(id,v){ const e=document.getElementById(id); if(e)e.textContent=Math.round(v); }
+function sync(){ const set=(id,val)=>{ const e=document.getElementById(id); if(e)e.value=val; };
+  set('ecV',V); txt('ecVv',V); set('ecN',N); txt('ecNv',N); set('ecP',P); txt('ecPv',P); set('ecPol',pollution*100); txt('ecPolv',pollution*100); }
+function resizeGraph(){ if(!gcanvas)return; const dpr=Math.min(devicePixelRatio,2); gcanvas.width=gcanvas.clientWidth*dpr; gcanvas.height=gcanvas.clientHeight*dpr; gctx.setTransform(dpr,0,0,dpr,0,0); }
+
+/* ============================================================
+   DONNÉES PÉDAGOGIQUES : rôles, espèces, notions
+   ============================================================ */
+const ROLES={
+  producteur:{ label:'Producteur', color:'#2f8a3e', icon:'🌿' },
+  consommateur:{ label:'Consommateur', color:'#c15a2a', icon:'🍖' },
+  decomposeur:{ label:'Décomposeur', color:'#8e6bc0', icon:'♻️' },
+};
+const SPECIES={
+  plant:{ emoji:'🌿', name:'Producteurs (plantes)', sub:'1er niveau trophique', color:'#2f8a3e', role:'producteur',
+    stats:[['Rôle','Producteur'],['Énergie','Soleil (photosynthèse)'],['Mangés par','Herbivores']],
+    desc:["Les plantes (arbres, herbes, fleurs) sont les <b>producteurs</b> : grâce à la photosynthèse, elles transforment la lumière du Soleil, l'eau et le CO₂ en matière vivante.","Elles sont la <b>base</b> de la chaîne alimentaire : toute l'énergie de l'écosystème part d'elles.","Plus elles sont abondantes et variées, plus l'écosystème peut nourrir d'animaux."],
+    fun:"Une forêt absorbe le CO₂ et produit l'oxygène que nous respirons : un vrai « poumon vert »." },
+  herb:{ emoji:'🐇', name:'Herbivores', sub:'Consommateurs primaires', color:'#c8b89a', role:'consommateur',
+    stats:[['Rôle','Consommateur primaire'],['Régime','Plantes'],['Mangés par','Prédateurs']],
+    desc:["Les herbivores (lapins, cerfs, criquets…) mangent les plantes : ce sont les <b>consommateurs primaires</b>.","Leur nombre dépend de la nourriture : beaucoup de plantes → la population grandit ; pénurie → elle chute.","Ils sont eux-mêmes la proie des prédateurs : un maillon central du réseau trophique."],
+    fun:"Sans prédateurs, les herbivores se multiplient, épuisent la végétation… puis s'effondrent faute de nourriture." },
+  pred:{ emoji:'🦊', name:'Prédateurs', sub:'Consommateurs secondaires', color:'#c15a2a', role:'consommateur',
+    stats:[['Rôle','Consommateur secondaire'],['Régime','Herbivores'],['Régule','Les populations']],
+    desc:["Les prédateurs (renards, loups, rapaces…) chassent les herbivores : ce sont les <b>consommateurs secondaires</b>.","Ils <b>régulent</b> les populations de proies et maintiennent l'équilibre : ce sont des espèces clés de voûte.","Peu nombreux (sommet de la pyramide), ils sont très sensibles aux déséquilibres et à la pollution."],
+    fun:"Réintroduits à Yellowstone en 1995, les loups ont fait reverdir des vallées entières en régulant les cerfs." },
+  deco:{ emoji:'🍄', name:'Décomposeurs', sub:'Recycleurs de matière', color:'#8e6bc0', role:'decomposeur',
+    stats:[['Rôle','Décomposeur'],['Régime','Matière morte'],['Rôle-clé','Recycler les nutriments']],
+    desc:["Les décomposeurs (champignons, vers de terre, bactéries) mangent la <b>matière morte</b> : feuilles, cadavres, déjections.","Ils transforment cette matière en nutriments qui retournent au sol et <b>nourrissent les plantes</b> : la boucle est bouclée !","Sans eux, les déchets s'accumuleraient et l'écosystème s'étoufferait : ce sont les recycleurs de la nature."],
+    fun:"Un seul gramme de sol forestier contient des milliards de bactéries et des kilomètres de filaments de champignons." },
+};
+const NOTIONS=[
+  { id:'chaine', name:'Chaîne alimentaire', desc:["Une chaîne alimentaire relie les êtres vivants selon « qui mange qui » : plante → herbivore → prédateur.","À chaque maillon, seule ~10 % de l'énergie passe au niveau suivant : d'où peu de prédateurs au sommet."] },
+  { id:'reseau', name:'Réseau trophique', desc:["Dans la nature, les chaînes s'entrecroisent en un <b>réseau trophique</b> : un animal a souvent plusieurs proies et plusieurs prédateurs.","Plus le réseau est riche (biodiversité), plus l'écosystème résiste aux perturbations."] },
+  { id:'niveau', name:'Niveaux trophiques', desc:["Chaque étage de la pyramide est un niveau trophique : producteurs, consommateurs primaires, secondaires, décomposeurs.","La biomasse diminue à chaque niveau : il faut beaucoup d'herbe pour nourrir peu de loups."] },
+  { id:'deco', name:'Décomposeurs & recyclage', desc:["Les décomposeurs bouclent le cycle : ils transforment la matière morte en nutriments pour les plantes.","Champignons, vers et bactéries sont les recycleurs indispensables de tout écosystème."] },
+  { id:'lotka', name:'Modèle de Lotka-Volterra', desc:["Ce jeu simule les équations de Lotka-Volterra : proies et prédateurs oscillent en décalage.","Quand les proies abondent, les prédateurs montent ; ils épuisent les proies, puis chutent à leur tour — et le cycle recommence."] },
+  { id:'capacite', name:'Capacité de charge (K)', desc:["Un milieu ne peut nourrir qu'un nombre limité d'individus : c'est la capacité de charge K.","Au-delà, les ressources manquent et la population redescend."] },
+  { id:'biodiv', name:'Biodiversité', desc:["La biodiversité est la variété du vivant (espèces, gènes, milieux).","Elle assure la stabilité : si une espèce disparaît, d'autres peuvent prendre le relais."] },
+  { id:'cle', name:'Espèce clé de voûte', desc:["Une espèce clé de voûte a un rôle bien plus grand que son effectif (souvent un prédateur).","La retirer fait s'effondrer tout l'équilibre, par effet de cascade."] },
+  { id:'pollution', name:'Pollution & bioaccumulation', desc:["La pollution réduit la survie des espèces et se concentre en remontant la chaîne (bioaccumulation).","Les prédateurs, en bout de chaîne, accumulent le plus de polluants — et sont les plus menacés."] },
+];
+
+/* ---------- fiche latérale ---------- */
+function openInfo(o){ const el=document.getElementById('ecInfo'); const R=o.role?ROLES[o.role]:null;
+  el.innerHTML=`<div class="ec-hd" style="background:linear-gradient(135deg,${o.color||'#23A06E'},#0e3a2a)"><div class="sub">${o.sub||'Notion'}</div><h2>${o.emoji?o.emoji+' ':''}${o.name}</h2><button class="ec-x" aria-label="Fermer">×</button></div>
+    <div class="ec-bd">${R?`<span class="ec-role" style="background:${R.color}">${R.icon} ${R.label}</span>`:''}
+      ${o.stats?'<div class="ec-sec">Repères</div>'+o.stats.map(st=>`<p style="margin:0 0 4px"><b>${st[0]} :</b> ${st[1]}</p>`).join(''):''}
+      <div class="ec-sec">${o.stats?'Description':'À savoir'}</div>${o.desc.map(p=>`<p>${p}</p>`).join('')}
+      ${o.fun?`<div class="ec-fun">💡 ${o.fun}</div>`:''}</div>`;
+  el.classList.add('show'); el.querySelector('.ec-x').onclick=()=>{ el.classList.remove('show'); hideMarker(); }; }
+function openNotions(){ const el=document.getElementById('ecInfo');
+  el.innerHTML=`<div class="ec-hd" style="background:linear-gradient(135deg,#23A06E,#0e3a2a)"><div class="sub">Encyclopédie</div><h2>📚 Notions d'écologie</h2><button class="ec-x">×</button></div><div class="ec-bd"><div class="ec-not">${NOTIONS.map(n=>`<button data-id="${n.id}">${n.name}</button>`).join('')}</div></div>`;
+  el.classList.add('show'); el.querySelector('.ec-x').onclick=()=>el.classList.remove('show');
+  el.querySelectorAll('.ec-not button').forEach(b=>b.onclick=()=>{ const n=NOTIONS.find(x=>x.id===b.dataset.id); openInfo({name:n.name,desc:n.desc,sub:"Notion d'écologie",color:'#23A06E'}); shell.sound('pop'); }); shell.sound('click'); }
+
+/* ============================================================
+   RÉSEAU TROPHIQUE (overlay SVG interactif)
+   ============================================================ */
+const WEBNODES=[
+  { id:'sun', label:'Soleil', emoji:'☀️', x:70, y:150, color:'#f5a623', role:null, sub:'Source d\'énergie',
+    desc:["Le <b>Soleil</b> est la source d'énergie de presque tous les écosystèmes.","Sa lumière permet aux plantes de faire la photosynthèse : c'est le point de départ de toute la chaîne alimentaire."] },
+  { id:'plant', label:'Plantes', emoji:'🌿', x:230, y:80, color:'#2f8a3e', key:'plant' },
+  { id:'herb', label:'Herbivores', emoji:'🐇', x:410, y:80, color:'#c8b89a', key:'herb' },
+  { id:'pred', label:'Prédateurs', emoji:'🦊', x:590, y:80, color:'#c15a2a', key:'pred' },
+  { id:'deco', label:'Décomposeurs', emoji:'🍄', x:410, y:230, color:'#8e6bc0', key:'deco' },
+];
+const WEBLINKS=[ ['sun','plant'],['plant','herb'],['herb','pred'],['pred','deco'],['herb','deco'],['plant','deco'],['deco','plant'] ];
+function nodeById(id){ return WEBNODES.find(n=>n.id===id); }
+function openWeb(){ const ov=document.getElementById('ecWebOv'); if(!ov)return;
+  const links=WEBLINKS.map(([a,b])=>{ const A=nodeById(a),B=nodeById(b); const recycle=(a==='deco'&&b==='plant');
+    return `<path class="ec-flow" d="M${A.x} ${A.y} ${recycle?`Q ${(A.x+B.x)/2-60} ${(A.y+B.y)/2+70} `:''}${B.x} ${B.y}" fill="none" stroke="${recycle?'#8e6bc0':'#8aa'}" stroke-width="3" opacity="${recycle?.75:.6}" marker-end="url(#ecArrow)"/>`; }).join('');
+  const nodes=WEBNODES.map(n=>`<g class="ec-node" data-id="${n.id}" style="color:${n.color}"><circle class="ring" cx="${n.x}" cy="${n.y}" r="34" fill="var(--surface)" stroke="${n.color}" stroke-width="3"/><text x="${n.x}" y="${n.y-2}" text-anchor="middle" font-size="26">${n.emoji}</text><text x="${n.x}" y="${n.y+50}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--fg)">${n.label}</text></g>`).join('');
+  ov.innerHTML=`<div class="ec-web-card"><button class="ec-b ec-web-close" id="ecWebX" style="width:auto;padding:0 12px;min-height:34px">✕ Fermer</button>
+    <h2>🔗 Réseau trophique</h2><p class="lead">« Qui mange qui » dans cet écosystème. Les flèches montrent le sens du flux d'énergie, du Soleil jusqu'aux décomposeurs qui recyclent tout. <b>Clique une bulle</b> pour découvrir son rôle.</p>
+    <svg class="ec-web-svg" viewBox="0 0 660 290" role="img" aria-label="Diagramme du réseau trophique">
+      <defs><marker id="ecArrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#8aa"/></marker></defs>
+      ${links}${nodes}</svg>
+    <div class="ec-legend2"><span><i style="background:#2f8a3e"></i>Producteur</span><span><i style="background:#c15a2a"></i>Consommateur</span><span><i style="background:#8e6bc0"></i>Décomposeur</span><span><i style="background:#f5a623"></i>Énergie solaire</span></div></div>`;
+  ov.classList.add('show');
+  ov.querySelector('#ecWebX').onclick=()=>ov.classList.remove('show');
+  ov.addEventListener('click',e=>{ if(e.target===ov)ov.classList.remove('show'); });
+  ov.querySelectorAll('.ec-node').forEach(g=>g.onclick=()=>{ const n=nodeById(g.dataset.id); shell.sound('pop');
+    if(n.key){ openInfo(SPECIES[n.key]); } else { openInfo({name:n.label,emoji:n.emoji,sub:n.sub,desc:n.desc,color:n.color}); }
+    if(phase==='web') webFind(n.id); });
+  shell.sound('click');
+}
+
+/* ============================================================
+   INTERACTION 3D : sélection d'un être vivant
+   ============================================================ */
+function pickKindFromObject(o){ while(o){ if(o.userData&&o.userData.kind) return o.userData.kind; o=o.parent; } return null; }
+function onPick(e){ if(!sceneReady)return; const r=renderer.domElement.getBoundingClientRect();
+  pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; raycaster.setFromCamera(pointer,camera);
+  const objs=[treeMesh,trunkMesh].concat(herbPool.filter(o=>o.visible),predPool.filter(o=>o.visible),decoPool);
+  const hits=raycaster.intersectObjects(objs,true); if(!hits.length)return;
+  let kind=null, point=hits[0].point.clone();
+  for(const h of hits){ if(h.object===treeMesh||h.object===trunkMesh){ kind='plant'; break; } const k=pickKindFromObject(h.object); if(k){ kind=k; break; } }
+  if(!kind)return;
+  const sp=SPECIES[kind]; openInfo(sp); showMarker(point); focusOn(point);
+  shell.say(sp.desc[0].replace(/<[^>]+>/g,''),'concentre'); shell.sound('pop');
+  if(phase==='find') findCheck(kind);
+}
+function showMarker(p){ marker.dataset.x=p.x; marker.dataset.y=p.y+1; marker.dataset.z=p.z; marker.classList.add('show'); updateMarker(); }
+function hideMarker(){ marker.classList.remove('show'); }
+function updateMarker(){ if(!marker.classList.contains('show'))return; const v=new THREE.Vector3(+marker.dataset.x,+marker.dataset.y,+marker.dataset.z); v.project(camera);
+  const r=renderer.domElement.getBoundingClientRect(); if(v.z>1){ marker.style.display='none'; return; } marker.style.display='';
+  marker.style.left=(v.x*0.5+0.5)*r.width+'px'; marker.style.top=(-v.y*0.5+0.5)*r.height+'px'; }
+function focusOn(p){ if(REDUCED)return; const tgt=p.clone(); const dir=camera.position.clone().sub(controls.target).normalize();
+  const dist=Math.max(9,Math.min(16,camera.position.distanceTo(controls.target)*0.7)); const cam=tgt.clone().add(dir.multiplyScalar(dist)); cam.y=Math.max(cam.y,tgt.y+4);
+  focusTween={ t:0, dur:0.7, fromT:controls.target.clone(), toT:tgt, fromC:camera.position.clone(), toC:cam }; }
+
+/* ============================================================
+   MODES DE JEU
+   ============================================================ */
+function startMode(m){ startAmb(); phase=null; hideMarker();
+  const hint=document.getElementById('ecHint'); if(!hint)return;
+  if(m==='cours'){ startCours(); }
+  else { hint.style.display=''; hint.innerHTML='Explore librement · règle les curseurs · clique un être vivant 🦊'; shell.setLevel('Détente'); shell.say("Explore ce petit monde à ta guise ! Clique les êtres vivants, ouvre le réseau trophique, joue avec les populations.",'joyeux'); }
+}
+/* --- Mode Cours : 3 phases guidées --- */
+const COURS=[
+  { id:'web', title:'Le réseau trophique', need:5 },
+  { id:'find', title:'Trouve les rôles', need:3 },
+  { id:'balance', title:"L'équilibre de la nature", need:1 },
+];
+let coursIdx=0;
+function startCours(){ coursIdx=0; shell.setProgress(0); shell.setLevel('Cours'); nextPhase(); }
+function nextPhase(){ if(coursIdx>=COURS.length){ finishCours(); return; }
+  const step=COURS[coursIdx]; phase=step.id; const hint=document.getElementById('ecHint'); hint.style.display='';
+  if(step.id==='web'){ finds={ set:new Set(), need:5 }; hint.innerHTML='<b class="tag">Phase 1/3 · Réseau trophique</b><br>Ouvre le réseau et clique les 5 bulles pour découvrir chaque rôle.'; openWeb(); shell.say("Voici le réseau trophique ! Clique chaque bulle (Soleil, plantes, herbivores, prédateurs, décomposeurs) pour comprendre qui mange qui.",'curieux'); }
+  else if(step.id==='find'){ finds={ queue:['producteur','consommateur','decomposeur'], done:0 }; askFind(); }
+  else if(step.id==='balance'){ V=200;N=80;P=6;pollution=0.15; sync(); finds={ stable:0, dur:16 };
+    hint.innerHTML='<b class="tag">Phase 3/3 · Équilibre</b><br>Trop d\'herbivores, peu de prédateurs ! Règle les curseurs pour stabiliser l\'écosystème.';
+    shell.say("Dernière étape ! L'écosystème est déséquilibré : trop d'herbivores. Ajuste les populations et maintiens l'équilibre quelques secondes.",'concentre'); }
+}
+function webFind(id){ if(!finds||!finds.set)return; if(finds.set.has(id))return; finds.set.add(id); shell.sound('good'); shell.addScore(40);
+  shell.setProgress((coursIdx + finds.set.size/finds.need)/COURS.length);
+  const hint=document.getElementById('ecHint'); hint.innerHTML=`<b class="tag">Phase 1/3 · Réseau trophique</b><br>Bulles découvertes : ${finds.set.size}/${finds.need} ✨`;
+  if(finds.set.size>=finds.need){ shell.say("Bravo ! Tu as exploré tout le réseau trophique. On continue !",'fier'); setTimeout(()=>{ const ov=document.getElementById('ecWebOv'); ov&&ov.classList.remove('show'); coursIdx++; shell.setProgress(coursIdx/COURS.length); nextPhase(); },1100); } }
+const FINDLBL={ producteur:'un PRODUCTEUR 🌿 (une plante)', consommateur:'un CONSOMMATEUR 🦊 (un animal)', decomposeur:'un DÉCOMPOSEUR 🍄 (un champignon)' };
+function askFind(){ const hint=document.getElementById('ecHint'); const target=finds.queue[finds.done];
+  hint.innerHTML=`<b class="tag">Phase 2/3 · Trouve les rôles</b><br>Clique dans la scène : <b>${FINDLBL[target]}</b>`;
+  shell.say(`Trouve et clique ${FINDLBL[target].replace(/<[^>]+>/g,'')} directement dans la scène.`,'curieux'); }
+function findCheck(kind){ const role=SPECIES[kind].role; const target=finds.queue[finds.done];
+  if(role===target){ shell.sound('good'); shell.addScore(70); finds.done++; shell.setProgress((coursIdx + finds.done/finds.queue.length)/COURS.length);
+    if(finds.done>=finds.queue.length){ shell.say("Parfait ! Tu reconnais les trois grands rôles du vivant. Dernière épreuve !",'fier'); coursIdx++; setTimeout(()=>{ shell.setProgress(coursIdx/COURS.length); nextPhase(); },900); }
+    else { shell.say("Bien joué ! Encore un rôle à trouver.",'joyeux'); setTimeout(askFind,700); } }
+  else { shell.sound('bad'); shell.say(`Presque ! Ça, c'est ${ROLES[role].label.toLowerCase()}. Cherche plutôt ${FINDLBL[target].replace(/<[^>]+>/g,'')}.`,'rassurant'); }
+}
+function finishCours(){ phase=null; const hint=document.getElementById('ecHint'); if(hint)hint.style.display='none';
+  shell.win({ score: Math.max(600, 300+(V>40&&V<240?300:0)), stars:3, title:'Écologiste en herbe !',
+    learned: shell.cfg.learned, buddy:"Magnifique ! Tu as compris le réseau trophique, les rôles du vivant et l'équilibre fragile de la nature.",
+    onNext:()=>{ shell.setScore(0); startCours(); }, nextLabel:'Rejouer le parcours' }); }
+
+/* ============================================================
+   AMBIANCE SONORE (WebAudio doux — non punitif)
+   ============================================================ */
+function startAmb(){ if(ac||shell.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); ambGain=ac.createGain(); ambGain.gain.value=0; ambGain.connect(ac.destination); ambGain.gain.setTargetAtTime(0.1,ac.currentTime,1.2);
+  const o=ac.createOscillator(); o.type='sine'; o.frequency.value=200; const og=ac.createGain(); og.gain.value=0.015; o.connect(og); og.connect(ambGain); o.start();
+  chirpTimer=setInterval(()=>{ if(!ac||shell.muted||pollution>0.7||night)return; const c=ac.createOscillator(),cg=ac.createGain(); c.type='sine'; c.frequency.value=1000+Math.random()*1100; cg.gain.setValueAtTime(0,ac.currentTime); cg.gain.linearRampToValueAtTime(0.03*(1-pollution),ac.currentTime+0.02); cg.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.16); c.connect(cg); cg.connect(ambGain); c.start(); c.stop(ac.currentTime+0.2); }, 1500);
+}catch(e){} }
+function updateAmb(){ if(ambGain&&ac) ambGain.gain.setTargetAtTime(shell.muted?0:0.1*(1-pollution*0.7)*(night?0.6:1),ac.currentTime,.4); }
+
+/* ============================================================
+   THÈME / JOUR-NUIT / RESIZE
+   ============================================================ */
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; if(night||dark){ setNight(true,true); } else { setNight(false,true); } }
+function toggleNight(){ setNight(!night); shell.sound('click'); }
+function setNight(on,silent){ night=on; const btn=document.getElementById('ecNight'); if(btn)btn.textContent=on?'☀️ Jour':'🌙 Nuit';
+  if(on){ hemi.color.set(0x27406a); hemi.groundColor.set(0x11202a); hemi.intensity=0.5; sun.intensity=0.35; sun.color.set(0x9fb4e0); renderer.toneMappingExposure=0.75; scene.fog.color.set(0x14243a); if(scene.background)scene.backgroundIntensity=0.35; if(mist)mist.material.opacity=0.09; }
+  else { hemi.color.set(0xd8f0ff); hemi.groundColor.set(0x4a6a3a); hemi.intensity=0.9; sun.intensity=1.5; sun.color.set(0xfff2d8); renderer.toneMappingExposure=1.05; scene.fog.color.set(0xbcd8e6); if(scene.background)scene.backgroundIntensity=1.0; if(mist)mist.material.opacity=0.05; }
+  updateAmb(); if(!silent) shell.say(on?"La nuit tombe : les prédateurs nocturnes s'activent, l'écosystème vit aussi la nuit.":"Le jour se lève sur le biome. La photosynthèse reprend !",'curieux'); }
+function onResize(){ const s=shell.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); resizeGraph(); }
+function onKey(e){ if(e.key==='r'||e.key==='R'){ const ov=document.getElementById('ecWebOv'); if(ov&&ov.classList.contains('show'))ov.classList.remove('show'); else openWeb(); } if(e.key==='n'||e.key==='N') toggleNight(); }
+
+/* ============================================================
+   BOUCLE D'ANIMATION
+   ============================================================ */
+let simAcc=0;
+function animate(){ requestAnimationFrame(animate); const dt=Math.min(.05,clock.getDelta()); const t=clock.elapsedTime;
+  if(windU) windU.value=t;
+
+  // --- simulation Lotka-Volterra (pas fixe) ---
+  simAcc+=dt; if(simAcc>0.12){ const h=simAcc; simAcc=0;
+    const dV=PARAMS.a*V*(1-V/PARAMS.K) - PARAMS.b*V*N;
+    const dN=PARAMS.c*V*N - PARAMS.d*N - pollution*0.5*N;
+    const dP=PARAMS.e*N*P - PARAMS.f*P - pollution*0.4*P;
+    V=Math.max(0,Math.min(PARAMS.K,V+dV*h*3)); N=Math.max(0,N+dN*h*3); P=Math.max(0,P+dP*h*3);
+    sync(); txt('ecCv',V); txt('ecCn',N); txt('ecCp',P);
+    history.push([V,N,P]); if(history.length>120)history.shift(); drawGraph();
+    // phase équilibre du mode cours
+    if(phase==='balance'&&finds){ const balanced=V>45&&V<235&&N>12&&N<108&&P>3&&P<45; finds.stable=balanced?finds.stable+h:Math.max(0,finds.stable-h*0.5);
+      const p=Math.min(1,finds.stable/finds.dur); shell.setProgress((coursIdx+p)/COURS.length);
+      const hint=document.getElementById('ecHint'); if(hint) hint.innerHTML=`<b class="tag">Phase 3/3 · Équilibre</b><br>${balanced?'✅ Écosystème stable !':'⚠️ Déséquilibre…'} maintiens l'équilibre : ${finds.stable.toFixed(0)}/${finds.dur}s`;
+      if(finds.stable>=finds.dur){ phase=null; shell.addScore(200); finishCours(); } }
+  }
+
+  // --- effectifs affichés (instancing) ---
+  if(treeMesh){ const tc=Math.max(0,Math.round(V/PARAMS.K*MAX.tree)); treeMesh.count=tc; if(trunkMesh) trunkMesh.count=tc; }
+  poolVisible(herbPool, Math.round(N/120*MAX.herb));
+  poolVisible(predPool, Math.round(P/50*MAX.pred));
+
+  // --- déplacement des animaux (errance + saut) ---
+  moveAnimals(herbPool, dt, 2.0, 0.14); moveAnimals(predPool, dt, 3.0, 0.10);
+
+  // --- oiseaux & papillons ---
+  birds.forEach(b=>{ b.userData.a+=b.userData.sp*dt; const x=Math.cos(b.userData.a)*b.userData.r, z=Math.sin(b.userData.a)*b.userData.r; b.position.set(x,b.userData.h,z); b.lookAt(Math.cos(b.userData.a+0.1)*b.userData.r,b.userData.h,Math.sin(b.userData.a+0.1)*b.userData.r);
+    if(!REDUCED)b.children.forEach(w=>{ if(w.userData.wing)w.rotation.z=w.userData.wing*(Math.PI/2)+Math.sin(t*10)*0.5*w.userData.wing; }); });
+  flies.forEach(f=>{ f.userData.a+=f.userData.sp*dt; const x=f.userData.cx+Math.cos(f.userData.a)*f.userData.rad, z=f.userData.cz+Math.sin(f.userData.a*1.3)*f.userData.rad; f.position.set(x,terrainH(x,z)+0.8+Math.sin(t*2+f.userData.a)*0.3,z);
+    if(!REDUCED)f.children.forEach(w=>{ if(w.userData.wing)w.rotation.y=w.userData.wing*(0.5+Math.abs(Math.sin(t*12))*0.9); }); });
+
+  // --- eau : ondulation ---
+  if(water&&!REDUCED){ const wp=water.geometry.attributes.position, base=water.userData.base; for(let i=0;i<wp.count;i++){ const x=wp.getX(i),z=wp.getZ(i); wp.setY(i, base[i]+Math.sin(x*0.9+t*1.6)*0.05+Math.cos(z*1.1+t*1.3)*0.05); } wp.needsUpdate=true; }
+
+  // --- caméra : zoom doux vers l'élément cliqué ---
+  if(focusTween){ focusTween.t+=dt; const k=Math.min(1,focusTween.t/focusTween.dur); const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    controls.target.lerpVectors(focusTween.fromT,focusTween.toT,e); camera.position.lerpVectors(focusTween.fromC,focusTween.toC,e); if(k>=1)focusTween=null; }
+
+  updateMarker(); controls.update(); composer.render();
+}
+function poolVisible(pool,n){ n=Math.max(0,Math.min(pool.length,n)); pool.forEach((m,i)=>{ const vis=i<n; if(m.visible!==vis)m.visible=vis; }); }
+function moveAnimals(pool,dt,speed,hopAmp){ pool.forEach(g=>{ if(!g.visible)return; const u=g.userData; u.hop+=dt*8;
+  g.position.x+=u.v.x*dt*u.sp; g.position.z+=u.v.z*dt*u.sp;
+  const d=Math.hypot(g.position.x,g.position.z); if(d>40||inPond(g.position.x,g.position.z)){ u.v.x*=-1; u.v.z*=-1; g.position.x+=u.v.x*dt*u.sp*2; g.position.z+=u.v.z*dt*u.sp*2; }
+  if(Math.random()<0.006){ const a=Math.random()*6.28; u.v.set(Math.cos(a),0,Math.sin(a)); }
+  const gy=terrainH(g.position.x,g.position.z); g.position.y=gy+0.35+(REDUCED?0:Math.max(0,Math.sin(u.hop))*hopAmp);
+  g.lookAt(g.position.x+u.v.x,g.position.y,g.position.z+u.v.z); }); }
+function drawGraph(){ if(!gctx)return; const w=gcanvas.clientWidth,h=gcanvas.clientHeight; gctx.clearRect(0,0,w,h);
+  // grille légère
+  gctx.strokeStyle='rgba(128,128,128,.14)'; gctx.lineWidth=1; for(let i=1;i<4;i++){ const y=h*i/4; gctx.beginPath(); gctx.moveTo(0,y); gctx.lineTo(w,y); gctx.stroke(); }
+  const cols=['#2faa4a','#c8b89a','#c15a2a']; const maxes=[PARAMS.K,120,50];
+  [0,1,2].forEach(s=>{ gctx.strokeStyle=cols[s]; gctx.lineWidth=2.2; gctx.beginPath(); history.forEach((p,i)=>{ const x=i/119*w, y=h-(p[s]/maxes[s])*(h-14)-6; i?gctx.lineTo(x,y):gctx.moveTo(x,y); }); gctx.stroke(); }); }
+</script>
+</body>
+</html>

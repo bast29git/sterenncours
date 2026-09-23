@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Plantes & photosynthèse</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Quelle partie de la plante absorbe l\'eau du sol ?', options:['les racines','les feuilles','les fleurs','les fruits'], answer:'les racines', explain:'Elles puisent eau et minéraux.'},
+ {lvl:1, prompt:'Grâce à quoi les plantes fabriquent-elles leur nourriture ?', options:['la lumière (photosynthèse)','la viande','le sucre du sol','rien'], answer:'la lumière (photosynthèse)', explain:'Elles transforment lumière, eau et CO₂ en sucre.'},
+ {lvl:1, prompt:'Quel gaz les plantes rejettent-elles le jour ?', options:['l\'oxygène','le CO₂','l\'azote','l\'hélium'], answer:'l\'oxygène', explain:'C\'est l\'oxygène que nous respirons !'},
+ {lvl:2, prompt:'Le pigment vert des feuilles est…', options:['la chlorophylle','l\'hémoglobine','la mélanine','la kératine'], answer:'la chlorophylle', explain:'Elle capte l\'énergie lumineuse.'},
+ {lvl:2, prompt:'La photosynthèse a besoin de lumière, d\'eau et de…', options:['dioxyde de carbone','oxygène','sel','métal'], answer:'dioxyde de carbone', explain:'CO₂ + H₂O + lumière → sucre + O₂.'},
+ {lvl:2, prompt:'Comment les fleurs se reproduisent-elles ?', options:['par la pollinisation','par division','par photosynthèse','par les racines'], answer:'par la pollinisation', explain:'Le pollen féconde l\'ovule, souvent via les insectes.'},
+ {lvl:3, prompt:'Par quels minuscules pores la feuille échange-t-elle les gaz ?', options:['les stomates','les racines','les pétales','les épines'], answer:'les stomates', explain:'Ils s\'ouvrent et se ferment pour réguler les échanges et l\'eau.'},
+ {lvl:3, prompt:'La sève « brute » (eau + minéraux) monte des racines vers les feuilles grâce à…', options:['l\'évaporation par les feuilles','une pompe','le vent','la gravité'], answer:'l\'évaporation par les feuilles', explain:'La transpiration tire la colonne d\'eau vers le haut.'},
+ {lvl:3, prompt:'Pourquoi les forêts sont-elles cruciales pour le climat ?', options:['elles absorbent le CO₂ et produisent de l\'O₂','elles font de l\'ombre','elles bloquent le vent','sans raison'], answer:'elles absorbent le CO₂ et produisent de l\'O₂', explain:'Ce sont les « poumons » de la planète.'},
+];
+QuizGame({ id:'2d-103-plantes-photosynthese', code:'2D·103', title:'Plantes & photosynthèse', domain:{label:'Bio & SVT',color:'#2AA98C'},
+ intro:{ greet:"Les plantes nourrissent la planète et fabriquent notre oxygène. Comment ?", rule:"Comprends les plantes, la photosynthèse, la chlorophylle et la pollinisation. Trois niveaux.", how:["Lis la question.","Choisis la bonne réponse.","Niveau Expert : stomates, sève, rôle climatique."], objectif:"Comprendre les plantes et la photosynthèse.", hint:"Photosynthèse : lumière + eau + CO₂ → sucre + oxygène, grâce à la chlorophylle.", why:"Les plantes sont à la base de presque toutes les chaînes alimentaires." },
+ learned:["Racines, feuilles, photosynthèse.","Chlorophylle et échanges gazeux.","Pollinisation, stomates, rôle climatique des forêts."],
+ rounds });
+</script></body></html>

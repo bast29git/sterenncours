@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Conjugaison express</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .cj-stage { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; padding:20px; }
+  .cj-levels { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+  .cj-lv { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:7px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; min-height:36px; }
+  .cj-lv[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .cj-combo { font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--brand-amber); min-height:18px; }
+  .cj-prompt { text-align:center; }
+  .cj-verb { font-family:var(--font-mono); font-size:14px; color:var(--accent-text); text-transform:uppercase; letter-spacing:.05em; }
+  .cj-sent { font-family:var(--font-title); font-weight:800; font-size:clamp(26px,5vw,40px); margin-top:8px; }
+  .cj-sent .blank { color:var(--accent); border-bottom:4px solid var(--accent); padding:0 10px; }
+  .cj-tense { font-size:14px; color:var(--fg-muted); margin-top:6px; }
+  .cj-opts { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:min(440px,100%); }
+  .cj-opt { font-family:var(--font-body); font-weight:700; font-size:18px; min-height:60px; border-radius:14px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; transition:.14s; }
+  .cj-opt:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .cj-opt:focus-visible { outline:none; box-shadow:var(--ring); }
+  .cj-opt.ok { background:var(--ok); color:var(--ok-fg); border-color:var(--ok-fg); }
+  .cj-opt.no { background:var(--err); color:var(--err-fg); border-color:var(--err-fg); }
+</style>
+</head>
+<body>
+<script>
+const PRO=['Je','Tu','Il','Nous','Vous','Ils'];
+const PROl=['je','tu','il','nous','vous','ils'];
+const VERBS={
+  'être':{présent:['suis','es','est','sommes','êtes','sont'],futur:['serai','seras','sera','serons','serez','seront'],imparfait:['étais','étais','était','étions','étiez','étaient']},
+  'avoir':{présent:['ai','as','a','avons','avez','ont'],futur:['aurai','auras','aura','aurons','aurez','auront'],imparfait:['avais','avais','avait','avions','aviez','avaient']},
+  'aller':{présent:['vais','vas','va','allons','allez','vont'],futur:['irai','iras','ira','irons','irez','iront'],imparfait:['allais','allais','allait','allions','alliez','allaient']},
+  'faire':{présent:['fais','fais','fait','faisons','faites','font'],futur:['ferai','feras','fera','ferons','ferez','feront'],imparfait:['faisais','faisais','faisait','faisions','faisiez','faisaient']},
+  'chanter':{présent:['chante','chantes','chante','chantons','chantez','chantent'],futur:['chanterai','chanteras','chantera','chanterons','chanterez','chanteront'],imparfait:['chantais','chantais','chantait','chantions','chantiez','chantaient']},
+  'finir':{présent:['finis','finis','finit','finissons','finissez','finissent'],futur:['finirai','finiras','finira','finirons','finirez','finiront'],imparfait:['finissais','finissais','finissait','finissions','finissiez','finissaient']},
+  'prendre':{présent:['prends','prends','prend','prenons','prenez','prennent'],futur:['prendrai','prendras','prendra','prendrons','prendrez','prendront'],imparfait:['prenais','prenais','prenait','prenions','preniez','prenaient']},
+  'pouvoir':{présent:['peux','peux','peut','pouvons','pouvez','peuvent'],futur:['pourrai','pourras','pourra','pourrons','pourrez','pourront'],imparfait:['pouvais','pouvais','pouvait','pouvions','pouviez','pouvaient']},
+};
+const VKEYS=Object.keys(VERBS), TENSES=['présent','futur','imparfait'];
+let level='melange', mode='detente', combo=0, asked=0, right=0, cur=null;
+
+const shell=window.Konstrio.createGame({
+  id:'2d-27-conjugaison', code:'2D·27', title:'Conjugaison express', type:'2D',
+  domain:{ label:'Français & Langues', color:'#1457A8' },
+  intro:{
+    greet:"En piste pour la conjugaison ! Choisis la bonne forme du verbe pour chaque phrase. Les bonnes réponses d'affilée font monter ton combo.",
+    rule:"Pour chaque phrase, choisis le verbe correctement <b>conjugué</b> selon le pronom et le temps demandé. Présent, futur ou imparfait : à toi de trouver !",
+    how:["Lis le pronom, l'infinitif entre parenthèses et le temps indiqué.","Clique la bonne forme parmi les quatre propositions.","Enchaîne les bonnes réponses pour faire grimper ton score."],
+    keys:"Touches 1 à 4 pour choisir une proposition.",
+    objectif:"Conjuguer sans faute aux trois temps de l'indicatif les plus courants.",
+    hint:"Au présent : « nous » finit presque toujours par -ons, « vous » par -ez, « ils » par -ent (ou -ont).",
+    why:"Bien conjuguer, c'est situer l'action dans le temps : hier (imparfait), maintenant (présent) ou demain (futur)."
+  },
+  learned:["Présent, futur, imparfait : trois temps de l'indicatif pour situer une action.","Les terminaisons suivent des régularités selon le pronom (-ons, -ez, -ent).","Les verbes fréquents (être, avoir, aller, faire) sont irréguliers : à mémoriser."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; start(api); },
+  onRestart:(api)=>start(api),
+});
+shell.onTimeout=()=>finish();
+
+let stage;
+function build(api){
+  shell.api=api;
+  stage=document.createElement('div'); stage.className='cj-stage';
+  stage.innerHTML=`<div class="cj-levels" id="cjLv"></div>
+    <div class="cj-combo" id="cjCombo"></div>
+    <div class="cj-prompt"><div class="cj-verb" id="cjVerb"></div><div class="cj-sent" id="cjSent"></div><div class="cj-tense" id="cjTense"></div></div>
+    <div class="cj-opts" id="cjOpts"></div>`;
+  api.stage.appendChild(stage);
+  const lvs=[['present','Présent'],['futur','Futur'],['imparfait','Imparfait'],['melange','Mélange']];
+  const lv=stage.querySelector('#cjLv');
+  lvs.forEach(([k,t])=>{ const b=document.createElement('button'); b.className='cj-lv'; b.textContent=t; b.dataset.k=k; b.setAttribute('aria-pressed',k===level); b.onclick=()=>{ level=k; lv.querySelectorAll('.cj-lv').forEach(x=>x.setAttribute('aria-pressed',x.dataset.k===k)); shell.sound('click'); next(); }; lv.appendChild(b); });
+  document.addEventListener('keydown',e=>{ const n=+e.key; if(n>=1&&n<=4){ const b=document.querySelectorAll('.cj-opt')[n-1]; if(b&&!b.disabled) b.click(); } });
+  start(api);
+}
+function start(api){ shell.api=api; combo=0; asked=0; right=0; api.setScore(0); api.setProgress(0);
+  if(mode==='cours'){ api.timer.reset(75); api.timer.show(false); api.timer.start(); api.setLevel('75 s'); } else api.setLevel('1/12');
+  next();
+}
+function tenseLabel(t){ return t==='présent'?'au présent':t==='futur'?'au futur':'à l\'imparfait'; }
+function next(){
+  if(mode==='detente'&&asked>=12){ finish(); return; }
+  const v=VKEYS[Math.floor(Math.random()*VKEYS.length)];
+  const t = level==='melange'?TENSES[Math.floor(Math.random()*3)] : level==='present'?'présent':level;
+  const p=Math.floor(Math.random()*6);
+  const correct=VERBS[v][t][p];
+  // distracteurs : autres personnes/temps du même verbe
+  const pool=new Set();
+  TENSES.forEach(tt=>VERBS[v][tt].forEach(f=>{ if(f!==correct) pool.add(f); }));
+  const distract=[...pool].sort(()=>Math.random()-.5).slice(0,3);
+  const opts=[correct,...distract].sort(()=>Math.random()-.5);
+  cur={v,t,p,correct};
+  document.getElementById('cjVerb').textContent='Verbe : '+v;
+  const pron = (p===2? 'Il/Elle' : p===5? 'Ils/Elles' : PRO[p]);
+  document.getElementById('cjSent').innerHTML=`${pron} <span class="blank">…</span>`;
+  document.getElementById('cjTense').textContent=`Conjugue « ${v} » ${tenseLabel(t)}`;
+  document.getElementById('cjCombo').textContent=combo>1?('🔥 Combo ×'+combo):'';
+  const O=document.getElementById('cjOpts'); O.innerHTML='';
+  opts.forEach((o,i)=>{ const b=document.createElement('button'); b.className='cj-opt'; b.textContent=o; b.onclick=()=>answer(b,o); O.appendChild(b); });
+}
+function answer(btn,val){
+  document.querySelectorAll('.cj-opt').forEach(b=>b.disabled=true);
+  const ok=val===cur.correct; asked++;
+  if(ok){ combo++; right++; const pts=10*Math.max(1,combo); shell.api.addScore(pts); shell.sound('good'); btn.classList.add('ok');
+    document.getElementById('cjSent').innerHTML=document.getElementById('cjSent').innerHTML.replace('…',cur.correct);
+    shell.api.say(combo>=4?'Série en feu ! 🔥':'Bonne conjugaison !', combo>=4?'celebration':'fier'); }
+  else { combo=0; shell.sound('bad'); btn.classList.add('no'); document.querySelectorAll('.cj-opt').forEach(b=>{ if(b.textContent===cur.correct) b.classList.add('ok'); });
+    shell.api.say(`${PRO[cur.p]==='Je'?'Je':PRO[cur.p]} → « ${cur.correct} ». On retient !`,'rassurant'); }
+  if(mode==='detente'){ shell.api.setLevel(Math.min(asked+1,12)+'/12'); shell.api.setProgress(asked/12); }
+  setTimeout(next, ok?700:1300);
+}
+function finish(){ shell.api.timer.stop(); const sc=parseInt(document.querySelector('.ksh-score').textContent,10); const stars=sc>=400?3:sc>=200?2:1;
+  shell.api.win({ score:sc, stars, title:`${right} bonnes conjugaisons`,
+    buddy: stars===3?"Champion de la conjugaison ! Les temps n'ont plus de secret.":"Bien joué — révise les terminaisons du présent pour aller plus vite.",
+    learned:shell.cfg.learned, onNext:()=>start(shell.api), nextLabel:'Rejouer' });
+}
+</script>
+</body>
+</html>

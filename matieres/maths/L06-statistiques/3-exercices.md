@@ -499,3 +499,11 @@ Partie C : 6 points (1 + 1 pour les lectures, 2 pour la réfutation chiffrée, 2
 Partie D : 3 points (1,5 pour les angles et la vérification, 1,5 pour l'analyse du graphique).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

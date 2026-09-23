@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Cyber-défense</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .cy-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  /* Télémétrie SOC (haut-gauche) */
+  .cy-tel { top:14px; left:14px; width:214px; padding:13px; display:flex; flex-direction:column; gap:11px; }
+  .cy-tel h3 { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0; display:flex; align-items:center; gap:6px; }
+  .cy-tel h3 .dot { width:7px; height:7px; border-radius:999px; background:#35E08A; box-shadow:0 0 8px #35E08A; }
+  .cy-post { display:flex; flex-direction:column; gap:5px; }
+  .cy-post .top { display:flex; justify-content:space-between; align-items:baseline; }
+  .cy-post .lbl { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--fg-muted); }
+  .cy-post .num { font-family:var(--font-data); font-weight:800; font-size:26px; line-height:1; }
+  .cy-postbar { height:9px; border-radius:6px; background:var(--surface-2); overflow:hidden; }
+  .cy-postbar i { display:block; height:100%; width:0; border-radius:6px; transition:width .35s, background .35s; background:linear-gradient(90deg,#E63329,#F5A623,#35E08A); }
+  .cy-metric { display:flex; flex-direction:column; gap:4px; }
+  .cy-mrow { display:flex; justify-content:space-between; align-items:baseline; }
+  .cy-mrow .k { color:var(--fg-muted); font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .cy-mrow .v { font-family:var(--font-data); font-weight:800; font-size:15px; }
+  .cy-status { font-size:11px; color:var(--fg-muted); line-height:1.4; font-family:var(--font-mono); border-top:1px solid var(--border); padding-top:9px; }
+  /* Barre d'actions (haut-centre) */
+  .cy-actions { top:14px; left:50%; transform:translateX(-50%); padding:9px 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:center; max-width:min(66vw,760px); }
+  .cy-ab { font-family:var(--font-body); font-weight:700; font-size:12px; min-height:38px; padding:0 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:6px; }
+  .cy-ab:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+  .cy-ab:focus-visible { outline:none; box-shadow:var(--ring); }
+  .cy-ab[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .cy-ab.danger { background:linear-gradient(135deg,#E63329,#a01810); border-color:transparent; color:#fff; }
+  .cy-ab.danger:hover { box-shadow:0 8px 22px rgba(230,51,41,.4); }
+  .cy-ab.go { background:linear-gradient(135deg,#1E8C7A,#0f5a4d); border-color:transparent; color:#fff; }
+  /* Dock des remparts (bas-centre) */
+  .cy-dock { bottom:16px; left:50%; transform:translateX(-50%); padding:10px 12px 12px; display:flex; flex-direction:column; gap:8px; align-items:center; max-width:96vw; }
+  .cy-dock .cap { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--fg-muted); }
+  .cy-chips { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+  .cy-chip { font-family:var(--font-body); font-weight:700; font-size:12px; min-height:44px; padding:4px 12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; display:inline-flex; flex-direction:column; align-items:center; gap:1px; line-height:1.15; position:relative; }
+  .cy-chip .ic { font-size:16px; }
+  .cy-chip .nm { font-size:10.5px; }
+  .cy-chip:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+  .cy-chip:focus-visible { outline:none; box-shadow:var(--ring); }
+  .cy-chip[aria-pressed="true"] { color:#fff; border-color:transparent; box-shadow:0 6px 18px rgba(0,0,0,.28); }
+  .cy-chip .led { position:absolute; top:5px; right:6px; width:7px; height:7px; border-radius:999px; background:var(--fg-muted); opacity:.4; }
+  .cy-chip[aria-pressed="true"] .led { background:#fff; opacity:1; box-shadow:0 0 7px #fff; }
+  /* Fiche (droite) */
+  .cy-info { right:14px; top:14px; width:322px; padding:0; overflow:hidden; transform:translateX(130%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; z-index:30; }
+  .cy-info.show { transform:none; }
+  .cy-hd { padding:16px 18px; color:#fff; position:relative; flex:none; display:flex; gap:12px; align-items:center; }
+  .cy-hd .ico { width:46px; height:46px; border-radius:12px; background:rgba(255,255,255,.2); display:grid; place-items:center; font-size:24px; flex:none; }
+  .cy-hd h2 { font-family:var(--font-title); font-weight:800; font-size:20px; margin:0; line-height:1.1; }
+  .cy-hd .sub { font-family:var(--font-mono); font-size:10.5px; opacity:.92; text-transform:uppercase; letter-spacing:.04em; }
+  .cy-x { position:absolute; top:12px; right:12px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:16px; }
+  .cy-body { padding:14px 18px 18px; overflow:auto; }
+  .cy-body p { font-size:13.5px; line-height:1.6; margin:0 0 9px; color:var(--fg); }
+  .cy-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; margin:0 0 12px; }
+  .cy-st .k { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.03em; text-transform:uppercase; color:var(--fg-muted); }
+  .cy-st .v { font-family:var(--font-data); font-weight:700; font-size:13.5px; }
+  .cy-sec { font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:2px 0 8px; }
+  .cy-block { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
+  .cy-tag { font-family:var(--font-mono); font-size:10.5px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); border-radius:999px; padding:3px 9px; display:inline-flex; gap:5px; align-items:center; }
+  .cy-tag .d { width:8px; height:8px; border-radius:999px; }
+  .cy-fun { background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.5; color:var(--accent-text); }
+  .cy-act-btn { width:100%; margin-top:12px; font-family:var(--font-body); font-weight:800; font-size:14px; min-height:44px; border-radius:11px; border:none; color:#fff; cursor:pointer; }
+  /* Étiquettes flottantes */
+  .cy-label { position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 78%,transparent); padding:3px 8px; border-radius:7px; pointer-events:none; z-index:15; border:1px solid var(--border); white-space:nowrap; display:flex; align-items:center; gap:5px; transition:opacity .2s; }
+  .cy-label .d { width:8px; height:8px; border-radius:999px; flex:none; }
+  .cy-label.off { opacity:.5; }
+  .cy-label.off .d { opacity:.35; }
+  /* Hint */
+  .cy-hint { position:absolute; bottom:96px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; max-width:88vw; text-align:center; }
+  /* Quiz (mode Cours) */
+  .cy-quiz { top:16px; left:50%; transform:translateX(-50%); z-index:22; background:var(--accent); color:#fff; padding:12px 18px; border-radius:14px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:7px; align-items:center; max-width:min(92vw,520px); text-align:center; }
+  .cy-quiz .qn { font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 11px; font-size:12px; }
+  .cy-quiz b { font-size:15px; }
+  .cy-quiz .ask { font-size:13px; opacity:.96; line-height:1.35; }
+  .cy-qrow { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-top:2px; }
+  .cy-qo { font-family:var(--font-body); font-weight:700; font-size:13px; min-height:42px; padding:0 14px; border-radius:10px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.18); color:#fff; cursor:pointer; }
+  .cy-qo:hover { background:rgba(255,255,255,.32); }
+  @media (max-width:760px){
+    .cy-tel { width:158px; padding:10px; gap:8px; }
+    .cy-post .num { font-size:21px; }
+    .cy-info { width:min(322px,90vw); }
+    .cy-actions { max-width:94vw; }
+    .cy-chip { min-height:46px; }
+  }
+  @media (prefers-reduced-motion: reduce){ .cy-info { transition:none; } }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ====== REMPARTS (défense en profondeur, du plus externe au cœur) ====== */
+const DEF = [
+  { id:'awareness', r:14.0, ang:0.55, icon:'🎓', color:'#F5A623', name:'Sensibilisation', sub:'Le facteur humain',
+    stats:[['Cible','les utilisateurs'],['Contre','hameçonnage, arnaques'],['Outil','formation, tests'],['Effet','réflexe de méfiance'],['Coût','faible'],['Rôle','1ʳᵉ ligne humaine']],
+    desc:["La grande majorité des cyberattaques commencent par un humain piégé : un faux e-mail, un lien trompeur. La sensibilisation apprend à repérer ces pièges.","On entraîne les équipes à vérifier l'expéditeur, à ne jamais donner son mot de passe et à signaler un message douteux. Un utilisateur averti est un rempart."],
+    fun:"On estime que plus de 8 attaques sur 10 exploitent d'abord une erreur humaine, pas une faille technique.",
+    blocks:['phishing'] },
+  { id:'firewall', r:12.0, ang:1.35, icon:'🧱', color:'#FF8A3D', name:'Pare-feu', sub:'Filtrage du trafic',
+    stats:[['Rôle','filtrer les connexions'],['Bloque','trafic non autorisé'],['Laisse passer','trafic légitime'],['Règles','listes de contrôle'],['Position','à l\'entrée du réseau'],['Contre','DDoS, scans']],
+    desc:["Le pare-feu est le mur d'enceinte du réseau : il inspecte chaque connexion entrante et sortante et n'autorise que ce qui est prévu par ses règles.","Face à un déluge de requêtes (DDoS), il filtre et absorbe le trafic illégitime pour garder le service accessible aux vrais utilisateurs."],
+    fun:"Un pare-feu d'entreprise peut examiner des millions de connexions par seconde, en silence, jour et nuit.",
+    blocks:['ddos','scan'] },
+  { id:'ids', r:10.5, ang:2.2, icon:'📡', color:'#8b5be0', name:'IDS / IPS', sub:'Détection d\'intrusion',
+    stats:[['Rôle','repérer l\'anormal'],['IDS','détecte et alerte'],['IPS','détecte et bloque'],['Analyse','comportements suspects'],['Contre','intrusions, scans'],['Complément','du pare-feu']],
+    desc:["L'IDS/IPS surveille le trafic à la recherche de comportements anormaux : un scan de ports, une connexion inhabituelle, une signature d'attaque connue.","L'IDS lève l'alerte ; l'IPS va plus loin et coupe automatiquement la connexion malveillante. C'est la vigie du réseau, derrière le pare-feu."],
+    fun:"Un IDS peut détecter un attaquant qui « tâte » discrètement le réseau bien avant qu'il ne passe à l'action.",
+    blocks:['scan','malware','exploit'] },
+  { id:'crypto', r:9.0, ang:3.05, icon:'🔒', color:'#29B6E0', name:'Chiffrement / VPN', sub:'Confidentialité',
+    stats:[['Rôle','rendre illisible'],['Protège','données en transit'],['Outil','VPN, HTTPS, TLS'],['Contre','interception'],['Clé','secrète'],['Effet','confidentialité']],
+    desc:["Le chiffrement transforme les données en un texte illisible sans la clé. Même interceptées, elles ne révèlent rien à un espion.","Un VPN chiffre tout le tunnel entre l'utilisateur et l'entreprise : le trafic traverse Internet sans pouvoir être lu ou modifié en chemin."],
+    fun:"Le petit cadenas de ton navigateur (HTTPS) chiffre déjà chaque page que tu consultes.",
+    blocks:['sniff'] },
+  { id:'patch', r:7.5, ang:3.9, icon:'⬆️', color:'#35E08A', name:'Correctifs', sub:'Mises à jour',
+    stats:[['Rôle','corriger les failles'],['Quoi','logiciels & systèmes'],['Rythme','régulier, rapide'],['Contre','exploitation de faille'],['Risque évité','vulnérabilité connue'],['Bonne pratique','tout à jour']],
+    desc:["Un logiciel obsolète peut cacher une faille connue des attaquants. La mise à jour (correctif, « patch ») la referme avant qu'elle ne soit exploitée.","Beaucoup d'attaques majeures n'ont réussi que parce qu'un correctif disponible n'avait pas été appliqué. Mettre à jour, c'est se protéger."],
+    fun:"Certaines attaques mondiales ont frappé des mois APRÈS la publication du correctif qui les aurait bloquées.",
+    blocks:['exploit'] },
+  { id:'av', r:6.0, ang:4.75, icon:'🦠', color:'#2ea6ff', name:'Antivirus / EDR', sub:'Anti-malware',
+    stats:[['Rôle','détecter les logiciels malveillants'],['EDR','surveille le poste en continu'],['Action','quarantaine / blocage'],['Contre','virus, rançongiciel'],['Mise à jour','signatures + IA'],['Position','sur chaque machine']],
+    desc:["L'antivirus et l'EDR surveillent chaque machine : ils reconnaissent les logiciels malveillants et les mettent en quarantaine avant qu'ils n'agissent.","L'EDR moderne observe aussi les comportements suspects (un fichier qui chiffre tout à toute vitesse) pour stopper une attaque inédite en temps réel."],
+    fun:"Un EDR peut isoler automatiquement une machine du réseau dès qu'il détecte un comportement de rançongiciel.",
+    blocks:['malware','ransom'] },
+  { id:'mfa', r:4.5, ang:5.6, icon:'🔑', color:'#F25C9A', name:'MFA / 2FA', sub:'Double authentification',
+    stats:[['Rôle','vérifier l\'identité'],['Facteur 1','mot de passe'],['Facteur 2','code / appli / clé'],['Contre','vol d\'identifiants'],['Effet','mot de passe volé = inutile'],['Coût','très faible']],
+    desc:["Un mot de passe seul peut être volé ou deviné. La double authentification (2FA/MFA) exige un second facteur : un code temporaire, une appli, une clé physique.","Même avec ton mot de passe, un pirate est bloqué sans ce second facteur qu'il n'a pas. C'est l'un des remparts les plus efficaces pour un coût minime."],
+    fun:"Activer la 2FA bloque la quasi-totalité des tentatives de connexion à partir d'un mot de passe volé.",
+    blocks:['creds'] },
+  { id:'backup', r:3.2, ang:6.45, icon:'💾', color:'#1E8C7A', name:'Sauvegarde', sub:'Restauration',
+    stats:[['Rôle','copie de secours'],['Règle','3-2-1'],['Hors ligne','à l\'abri du réseau'],['Contre','rançongiciel'],['Effet','tout restaurer'],['Test','restaurations régulières']],
+    desc:["La sauvegarde est le dernier rempart : une copie des données conservée à l'écart. Si un rançongiciel chiffre tout, on restaure sans payer la rançon.","La règle « 3-2-1 » : 3 copies, sur 2 supports, dont 1 hors site. Une sauvegarde déconnectée du réseau ne peut pas être chiffrée par l'attaque."],
+    fun:"Une bonne sauvegarde transforme un rançongiciel en simple mauvaise soirée : on efface et on restaure.",
+    blocks:['ransom'] },
+];
+const DEFBYID = {}; DEF.forEach(d=>DEFBYID[d.id]=d);
+
+/* ====== MENACES (framing 100% défensif : ce dont on se protège) ====== */
+const THREATS = {
+  phishing:{ name:'Hameçonnage (phishing)', color:0xff8a3d, def:'awareness', blockedBy:['awareness'], info:"Un faux e-mail pousse à livrer son mot de passe. Rempart : la vigilance et la formation des utilisateurs." },
+  ddos:{ name:'Attaque DDoS', color:0xff3b30, def:'firewall', blockedBy:['firewall'], info:"Un déluge de requêtes veut saturer le service. Rempart : le pare-feu filtre le trafic illégitime." },
+  scan:{ name:'Scan / reconnaissance', color:0xff6a45, def:'ids', blockedBy:['firewall','ids'], info:"Un intrus sonde le réseau à la recherche d'une porte. Rempart : le pare-feu et l'IDS/IPS le repèrent." },
+  sniff:{ name:'Interception (espionnage)', color:0xff4d6d, def:'crypto', blockedBy:['crypto'], info:"On tente de lire les données qui circulent. Rempart : le chiffrement les rend illisibles." },
+  exploit:{ name:'Exploitation de faille', color:0xff3355, def:'patch', blockedBy:['ids','patch'], info:"Un logiciel non à jour a une faille connue. Rempart : le correctif la referme." },
+  malware:{ name:'Logiciel malveillant', color:0xff7a45, def:'av', blockedBy:['ids','av'], info:"Un virus veut infecter une machine. Rempart : l'antivirus/EDR le met en quarantaine." },
+  creds:{ name:'Vol d\'identifiants', color:0xff477e, def:'mfa', blockedBy:['mfa'], info:"Un mot de passe a été volé. Rempart : la double authentification (2FA) bloque la connexion." },
+  ransom:{ name:'Rançongiciel', color:0xe11d48, def:'backup', blockedBy:['av','backup'], info:"Les fichiers sont chiffrés contre rançon. Remparts : l'EDR l'arrête, et la sauvegarde permet de restaurer." },
+};
+const THREAT_IDS = Object.keys(THREATS);
+
+const NOTIONS = [
+  ['Défense en profondeur',"On ne compte jamais sur un seul rempart. On empile des couches (humain, pare-feu, détection, chiffrement, correctifs, antivirus, 2FA, sauvegarde) : si l'une cède, la suivante protège."],
+  ['Surface d\'attaque',"C'est l'ensemble des points par lesquels on pourrait être attaqué : postes, comptes, logiciels, services exposés. On la réduit au minimum nécessaire."],
+  ['Le facteur humain',"La plupart des attaques commencent par un humain piégé (phishing). La formation et la méfiance sont un rempart aussi important que la technique."],
+  ['Pare-feu & filtrage',"Le pare-feu n'autorise que le trafic prévu et bloque le reste. C'est le mur d'enceinte du réseau."],
+  ['Détection (IDS/IPS)',"On surveille en continu les comportements anormaux pour repérer — et bloquer — un intrus avant qu'il n'agisse."],
+  ['Chiffrement',"Rendre les données illisibles sans la clé : même interceptées, elles ne révèlent rien. HTTPS, VPN, disques chiffrés."],
+  ['Mises à jour',"Un logiciel à jour n'a pas la faille connue que l'attaquant cherchait. Corriger vite est une protection majeure."],
+  ['Antivirus / EDR',"Sur chaque machine, il détecte et isole les logiciels malveillants, y compris par leur comportement."],
+  ['Authentification forte (MFA)',"Un second facteur (code, appli, clé) rend un mot de passe volé inutilisable. Simple et très efficace."],
+  ['Sauvegarde',"Une copie hors ligne des données : le dernier rempart contre le rançongiciel. On restaure sans payer."],
+  ['Moindre privilège',"Chaque personne et chaque service n'a que les droits strictement nécessaires : un compte compromis fait moins de dégâts."],
+  ['Réponse à incident',"Détecter, isoler, éradiquer, restaurer, apprendre : un plan préparé permet de réagir vite et calmement à une attaque."],
+];
+
+/* ====== ÉTAT ====== */
+let scene, camera, renderer, composer, controls, clock, raycaster, pointer;
+let clickMeshes = [], labels = {}, hovered = null;
+let coreGroup, coreCore, coreRing, coreAura, emitters = [];
+let threats = [], threatPool = [], burstPool = [], spawnAcc = 0, ambientEvery = 2.0;
+let posture = 0, postureTarget = 0, blocked = 0, breaches = 0, threatsSeen = 0;
+let coreFlash = 0, wave = null, demo = null;
+let ac = null, humGain = null;
+let mode = 'detente', labelsOn = true;
+let challenge = null, quizTier = 'debutant';
+
+const shell = window.Konstrio.createGame({
+  id:'3d-07-cyberdefense', code:'3D·07', title:'Cyber-défense 3D', type:'3D',
+  domain:{ label:'Cybersécurité', color:'#E63329' },
+  intro:{
+    greet:"Bienvenue au centre de sécurité (SOC) ! Autour du cœur de l'entreprise, huit remparts en couches. Des menaces arrivent d'Internet — active les bons remparts et regarde-les neutraliser chaque attaque en direct.",
+    rule:"C'est la <b>défense en profondeur</b> : des couches concentriques protègent le cœur de l'entreprise. Chaque <b>menace</b> (rouge, venue d'Internet) a son <b>rempart</b> : phishing→sensibilisation, DDoS→pare-feu, malware→antivirus, vol de mot de passe→2FA, rançongiciel→sauvegarde… <b>Active</b> les remparts et vois la <b>posture de sécurité</b> monter.",
+    how:[
+      "Glisse pour tourner · molette pour zoomer · clique un rempart pour l'activer et lire sa fiche.",
+      "Active les remparts en bas (les 8 pastilles) ou en cliquant leur tour dans la scène.",
+      "Regarde les paquets rouges arriver d'Internet : un rempart actif les neutralise avant le cœur.",
+      "Teste les scénarios : « Rançongiciel », « Démo 2FA » et « Vague d'attaques ».",
+    ],
+    keys:"Glisser = tourner · molette = zoom · clic rempart = activer + fiche.",
+    objectif:"Monter la posture de sécurité en activant les bons remparts contre chaque menace.",
+    hint:"Chaque menace a UN rempart principal : phishing→sensibilisation, DDoS→pare-feu, malware→antivirus, mot de passe volé→2FA, rançongiciel→sauvegarde, faille→correctifs, espionnage→chiffrement, scan→IDS/IPS.",
+    why:"Aucun rempart n'arrête tout : en empilant les couches (défense en profondeur), si l'une cède, la suivante protège le cœur. C'est le principe de la cyber-défense.",
+  },
+  learned:[
+    "La cyber-défense empile des couches : humain, pare-feu, détection, chiffrement, correctifs, antivirus, 2FA, sauvegarde.",
+    "Chaque menace a son rempart : phishing→sensibilisation, DDoS→pare-feu, malware→antivirus, rançongiciel→sauvegarde.",
+    "La double authentification (2FA) rend un mot de passe volé inutilisable.",
+    "La sauvegarde hors ligne est le dernier rempart contre le rançongiciel : on restaure sans payer.",
+  ],
+  onReady: init, onStart: startMode, onTheme: ()=>applyTheme(),
+  onHint: ()=>shell.say(shell.cfg.intro.hint,'curieux'),
+  onWhy: ()=>shell.say(shell.cfg.intro.why,'idee'),
+});
+
+/* ====== INIT ====== */
+function init(){
+  const stage = shell.stage; clock = new THREE.Clock();
+  scene = new THREE.Scene(); scene.fog = new THREE.Fog(0x070912, 26, 66);
+  camera = new THREE.PerspectiveCamera(52, stage.clientWidth/stage.clientHeight, 0.1, 240);
+  camera.position.set(0, 17, 24);
+  renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(stage.clientWidth, stage.clientHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.18;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.appendChild(renderer.domElement);
+
+  // Chaîne cinématique : RenderPass → (GTAO si GPU réel) → Bloom calé → SMAA → OutputPass (ACES + sRGB)
+  // GARDE-FOU : rendu logiciel (SwiftShader/llvmpipe) ou mode réduit → PAS d'AO écran (produirait du noir)
+  let software = false;
+  try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : ''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){ software = true; }
+  const W = stage.clientWidth, H = stage.clientHeight;
+  composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
+  if(!software && !REDUCED){
+    const gtao = new GTAOPass(scene, camera, W, H); gtao.blendIntensity = 0.9;
+    try{ gtao.updateGtaoMaterial({ radius:0.6, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao = gtao;
+  }
+  const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.75, 0.55, 0.82);
+  composer.addPass(bloom); composer.bloom = bloom;
+  composer.addPass(new SMAAPass(W, H));
+  composer.addPass(new OutputPass());
+
+  controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = .07;
+  controls.minDistance = 8; controls.maxDistance = 52; controls.maxPolarAngle = Math.PI * 0.49;
+  controls.target.set(0, 2, 0); controls.autoRotate = REDUCED; controls.autoRotateSpeed = .3;
+
+  scene.add(new THREE.HemisphereLight(0xa9c2ff, 0x141a2c, 0.6));
+  const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(9, 20, 10); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.camera.near = 1; key.shadow.camera.far = 70;
+  key.shadow.camera.left = -24; key.shadow.camera.right = 24; key.shadow.camera.top = 24; key.shadow.camera.bottom = -24;
+  key.shadow.bias = -0.0004; scene.add(key);
+  const fill = new THREE.DirectionalLight(0x6f8bff, 0.28); fill.position.set(-10, 7, -9); scene.add(fill);
+
+  const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  new RGBELoader().load('../assets/3d/env/studio_1k.hdr', hdr=>{
+    hdr.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = pmrem.fromEquirectangular(hdr).texture; hdr.dispose();
+  }, undefined, ()=>{});
+
+  buildFloor();
+  buildCore();
+  buildShields();
+  buildInternet();
+  buildPools();
+
+  raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = 0.3;
+  pointer = new THREE.Vector2(-2, -2);
+  buildUI(); applyTheme();
+
+  // Détente : quelques remparts déjà en place pour la mise en scène
+  if(mode==='detente'){ setDefense('firewall', true, true); setDefense('av', true, true); }
+  syncChips(); refreshTelemetry();
+
+  renderer.domElement.addEventListener('pointermove', onMove);
+  renderer.domElement.addEventListener('pointerdown', onDown);
+  window.addEventListener('resize', onResize); new ResizeObserver(onResize).observe(stage);
+  animate();
+}
+
+/* ====== MATÉRIAUX & TEXTURES ====== */
+const mat = (c, metal, rough, o={}) => new THREE.MeshStandardMaterial(Object.assign({ color:c, metalness:metal, roughness:rough, envMapIntensity:1.0 }, o));
+function emiss(c){ return new THREE.MeshBasicMaterial({ color:c }); }
+function glowTex(hex){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const col=new THREE.Color(hex); const g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.35,`rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},.75)`); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+function floorTex(){
+  const c = document.createElement('canvas'); c.width = c.height = 512; const x = c.getContext('2d');
+  x.fillStyle = '#0d1424'; x.fillRect(0,0,512,512);
+  const tile = 64;
+  for(let gx=0; gx<512; gx+=tile) for(let gy=0; gy<512; gy+=tile){
+    x.strokeStyle = 'rgba(90,120,180,.22)'; x.lineWidth = 1.5; x.strokeRect(gx+1, gy+1, tile-2, tile-2);
+    x.fillStyle = 'rgba(80,110,180,.10)'; x.fillRect(gx+4, gy+4, 4, 4);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
+}
+
+function buildFloor(){
+  const ftex = floorTex(); ftex.repeat.set(10, 10);
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(30, 72), new THREE.MeshStandardMaterial({ map:ftex, color:0x8fa0c4, roughness:0.62, metalness:0.42, envMapIntensity:0.7 }));
+  floor.rotation.x = -Math.PI/2; floor.position.y = 0; floor.receiveShadow = true; scene.add(floor);
+  // Anneaux concentriques peints au sol = couches de défense
+  DEF.forEach(d=>{
+    const ring = new THREE.Mesh(new THREE.RingGeometry(d.r-0.05, d.r+0.05, 96), new THREE.MeshBasicMaterial({ color:d.color, transparent:true, opacity:0.14, side:THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI/2; ring.position.y = 0.02; scene.add(ring); d._floorRing = ring;
+  });
+  // Dôme de ciel sombre
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(90, 24, 16), new THREE.MeshBasicMaterial({ color:0x060810, side:THREE.BackSide }));
+  scene.add(sky);
+}
+
+/* ====== CŒUR PROTÉGÉ (actifs de l'entreprise) ====== */
+function buildCore(){
+  coreGroup = new THREE.Group(); scene.add(coreGroup);
+  // socle
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.5, 0.5, 40), mat(0x1a2338, 0.6, 0.4)); base.position.y = 0.25; base.receiveShadow = true; coreGroup.add(base);
+  // baie de données centrale
+  const vault = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.4, 1.7), mat(0x162033, 0.7, 0.35, { envMapIntensity:1.2 })); vault.position.y = 1.7; vault.castShadow = true; coreGroup.add(vault);
+  for(let i=0;i<6;i++){ const led = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.08,0.05), emiss(0x35E08A)); led.position.set(0, 0.9+i*0.28, 0.86); coreGroup.add(led); led.userData.coreLed = true; }
+  // noyau de données lumineux
+  coreCore = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 1), new THREE.MeshStandardMaterial({ color:0x35E08A, emissive:0x1E8C7A, emissiveIntensity:0.9, roughness:0.3 }));
+  coreCore.position.y = 3.5; coreGroup.add(coreCore);
+  const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1, 1), new THREE.MeshBasicMaterial({ color:0x8ff5d8, wireframe:true, transparent:true, opacity:0.45 })); wire.position.y = 3.5; coreGroup.add(wire); coreGroup.userData.wire = wire;
+  coreRing = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.05, 8, 48), new THREE.MeshBasicMaterial({ color:0x35E08A, transparent:true, opacity:0.7 })); coreRing.position.y = 3.5; coreRing.rotation.x = Math.PI/2; coreGroup.add(coreRing);
+  coreAura = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex(0x35E08A), transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.5 })); coreAura.scale.setScalar(7); coreAura.position.y = 3.4; coreGroup.add(coreAura);
+  // postes de travail autour
+  for(let i=0;i<6;i++){ const a = i/6*Math.PI*2; const px=Math.cos(a)*2.6, pz=Math.sin(a)*2.6;
+    const desk = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.4,0.5), mat(0x232c40, 0.5, 0.6)); desk.position.set(px,0.55,pz); desk.castShadow=true; coreGroup.add(desk);
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.55,0.34), emiss(0x2ea6ff)); scr.position.set(px,0.9,pz); scr.lookAt(0,0.9,0); coreGroup.add(scr); scr.userData.deskScreen = true;
+  }
+  // zone cliquable "cœur"
+  const hit = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 4.6, 20), new THREE.MeshBasicMaterial({ visible:false })); hit.position.y = 2.3; hit.userData.equip = 'core'; coreGroup.add(hit); clickMeshes.push(hit);
+  addAnchor('core', 0, 5.0, 0);
+}
+
+/* ====== REMPARTS : dômes + anneaux + tours ====== */
+function buildShields(){
+  DEF.forEach(d=>{
+    const col = new THREE.Color(d.color);
+    // dôme énergie (grille)
+    const domeMat = new THREE.MeshBasicMaterial({ color:col, wireframe:true, transparent:true, opacity:0.03, blending:THREE.AdditiveBlending, depthWrite:false });
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(d.r, 30, 15, 0, Math.PI*2, 0, Math.PI*0.5), domeMat);
+    scene.add(dome);
+    // anneau lumineux au sol
+    const ringMat = new THREE.MeshBasicMaterial({ color:col, transparent:true, opacity:0.22, blending:THREE.AdditiveBlending, depthWrite:false });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(d.r, 0.08, 8, 100), ringMat); ring.rotation.x = Math.PI/2; ring.position.y = 0.05; scene.add(ring);
+    // tour / console du rempart
+    const px = Math.cos(d.ang)*d.r, pz = Math.sin(d.ang)*d.r;
+    const tower = new THREE.Group(); tower.position.set(px, 0, pz);
+    const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.7,0.3,20), mat(0x1c2438,0.6,0.45)); foot.position.y=0.15; foot.castShadow=true; tower.add(foot);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.7,1.7,0.7), mat(0x222c42,0.65,0.4,{envMapIntensity:1.1})); body.position.y=1.05; body.castShadow=true; tower.add(body);
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.52,0.4), emiss(col.getHex())); screen.position.set(0,1.25,0.36); screen.lookAt(0,1.25,4); tower.add(screen); screen.userData.towerScreen = true;
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.22,18,18), new THREE.MeshStandardMaterial({ color:col, emissive:col, emissiveIntensity:0.7, roughness:0.3 })); beacon.position.y=2.1; tower.add(beacon);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex(col.getHex()), transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.0 })); halo.scale.setScalar(2.4); halo.position.y=2.1; tower.add(halo);
+    tower.traverse(o=>{ if(o.isMesh){ o.userData.equip = d.id; clickMeshes.push(o); } });
+    scene.add(tower);
+    d.active = false; d.flash = 0; d._dome = dome; d._domeMat = domeMat; d._ring = ring; d._ringMat = ringMat; d._tower = tower; d._screen = screen; d._beacon = beacon; d._halo = halo;
+    addAnchor(d.id, px, 2.7, pz);
+  });
+}
+
+/* ====== INTERNET / ZONE HOSTILE (émetteurs de menaces) ====== */
+function buildInternet(){
+  const angs = [0.95, 2.75, 4.7];
+  angs.forEach((a,i)=>{
+    const g = new THREE.Group(); const R = 16.5; g.position.set(Math.cos(a)*R, 4.5+i*1.2, Math.sin(a)*R);
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.9, 1), new THREE.MeshStandardMaterial({ color:0x8b5be0, emissive:0x8b5be0, emissiveIntensity:0.5, roughness:0.4 })); g.add(core);
+    const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25, 1), new THREE.MeshBasicMaterial({ color:0xc9a6ff, wireframe:true, transparent:true, opacity:0.4 })); g.add(wire); g.userData.wire = wire;
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex(0xb18bff), transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.7 })); halo.scale.setScalar(5); g.add(halo);
+    g.traverse(o=>{ if(o.isMesh){ o.userData.equip = 'internet'; clickMeshes.push(o); } });
+    scene.add(g); emitters.push(g);
+    if(i===0) addAnchor('internet', g.position.x, g.position.y+1.6, g.position.z);
+  });
+}
+
+/* ====== POOLS : menaces + particules d'éclatement ====== */
+function buildPools(){
+  const nT = REDUCED ? 12 : 28;
+  const geo = new THREE.IcosahedronGeometry(0.32, 0);
+  for(let i=0;i<nT;i++){ const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color:0xff3b30, emissive:0xff3b30, emissiveIntensity:0.9, roughness:0.35 })); m.visible=false; scene.add(m);
+    const trail = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex(0xff5a45), transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0 })); trail.scale.setScalar(1.4); m.add(trail);
+    threatPool.push({ mesh:m, trail, active:false }); }
+  const nB = REDUCED ? 16 : 46;
+  for(let i=0;i<nB;i++){ const s = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex(0xffffff), transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0 })); s.scale.setScalar(0.8); s.visible=false; scene.add(s); burstPool.push({ s, active:false, life:0, vel:new THREE.Vector3() }); }
+}
+
+/* ====== ÉTIQUETTES ====== */
+function addAnchor(id, x, y, z){ labels[id] = { anchor:new THREE.Vector3(x,y,z), el:null }; }
+const LABEL_DEF = {};
+DEF.forEach(d=>{ LABEL_DEF[d.id] = [d.name, d.color]; });
+LABEL_DEF.core = ['Cœur · actifs', '#35E08A'];
+LABEL_DEF.internet = ['Internet · zone hostile', '#b18bff'];
+function updateLabels(){
+  const stage = shell.stage;
+  Object.keys(LABEL_DEF).forEach(id=>{
+    const L = labels[id]; if(!L) return;
+    if(!labelsOn){ if(L.el) L.el.style.display='none'; return; }
+    if(!L.el){ const e = document.createElement('div'); e.className='cy-label'; e.innerHTML = `<span class="d" style="background:${LABEL_DEF[id][1]}"></span>${LABEL_DEF[id][0]}`; stage.appendChild(e); L.el = e; }
+    const d = DEFBYID[id];
+    L.el.classList.toggle('off', !!d && !d.active);
+    const v = L.anchor.clone().project(camera);
+    if(v.z > 1){ L.el.style.display='none'; return; } L.el.style.display='flex';
+    L.el.style.left = ((v.x*.5+.5)*stage.clientWidth)+'px'; L.el.style.top = ((-v.y*.5+.5)*stage.clientHeight)+'px';
+  });
+}
+
+/* ====== UI ====== */
+function buildUI(){
+  const stage = shell.stage;
+  // Télémétrie SOC (haut-gauche)
+  const tel = document.createElement('div'); tel.className='cy-panel cy-tel';
+  tel.innerHTML = `
+    <h3><span class="dot" id="cyDot"></span> Centre de sécurité · SOC</h3>
+    <div class="cy-post"><div class="top"><span class="lbl">Posture de sécurité</span><span class="num" id="cyPostN">0%</span></div><div class="cy-postbar"><i id="cyPostBar"></i></div></div>
+    <div class="cy-metric"><div class="cy-mrow"><span class="k">Menaces bloquées</span><span class="v" id="cyBlk" style="color:#35E08A">0</span></div></div>
+    <div class="cy-metric"><div class="cy-mrow"><span class="k">Intrusions au cœur</span><span class="v" id="cyBr" style="color:#ff6a5a">0</span></div></div>
+    <div class="cy-metric"><div class="cy-mrow"><span class="k">Niveau de risque</span><span class="v" id="cyRisk">Élevé</span></div></div>
+    <div class="cy-status" id="cyStatus">Active des remparts pour protéger le cœur.</div>`;
+  stage.appendChild(tel);
+  // Barre d'actions (haut-centre) — visible en Détente
+  const act = document.createElement('div'); act.className='cy-panel cy-actions'; act.id='cyActions';
+  act.innerHTML = `
+    <button class="cy-ab go" id="cyAll">🛡️ Bouclier max</button>
+    <button class="cy-ab" id="cyReset">♻️ Réinitialiser</button>
+    <button class="cy-ab danger" id="cyRansom">🔒 Rançongiciel</button>
+    <button class="cy-ab" id="cyMfa">🔑 Démo 2FA</button>
+    <button class="cy-ab" id="cyWave">⚔️ Vague d'attaques</button>
+    <button class="cy-ab" id="cyNot">📚 Notions</button>
+    <button class="cy-ab" id="cyLabels" aria-pressed="true">🏷️ Étiquettes</button>
+    <button class="cy-ab" id="cyView">↺ Vue</button>`;
+  stage.appendChild(act);
+  act.querySelector('#cyAll').onclick = ()=>{ DEF.forEach(d=>setDefense(d.id, true)); syncChips(); shell.sound('win'); shell.say("Défense en profondeur complète : chaque menace rencontre son rempart. Le cœur est protégé !",'fier'); shell.toast('🛡️ Tous les remparts actifs'); };
+  act.querySelector('#cyReset').onclick = ()=>{ DEF.forEach(d=>setDefense(d.id, false)); syncChips(); shell.sound('click'); shell.say("Remparts désactivés. Regarde comme les menaces atteignent le cœur… puis rallume-les !",'rassurant'); };
+  act.querySelector('#cyRansom').onclick = playRansomDemo;
+  act.querySelector('#cyMfa').onclick = playMfaDemo;
+  act.querySelector('#cyWave').onclick = ()=>{ wave && wave.on ? null : startWave(); };
+  act.querySelector('#cyNot').onclick = openNotions;
+  act.querySelector('#cyLabels').onclick = e=>{ labelsOn = !labelsOn; e.currentTarget.setAttribute('aria-pressed', labelsOn); shell.sound('click'); };
+  act.querySelector('#cyView').onclick = ()=>{ camera.position.set(0,17,24); controls.target.set(0,2,0); shell.sound('click'); };
+  // Dock des remparts (bas-centre)
+  const dock = document.createElement('div'); dock.className='cy-panel cy-dock'; dock.id='cyDock';
+  dock.innerHTML = `<span class="cap">Remparts — clique pour activer un rempart</span>
+    <div class="cy-chips" id="cyChips">${DEF.map(d=>`<button class="cy-chip" data-d="${d.id}" aria-pressed="false" title="${d.name}"><span class="led"></span><span class="ic">${d.icon}</span><span class="nm">${d.name}</span></button>`).join('')}</div>`;
+  stage.appendChild(dock);
+  dock.querySelectorAll('[data-d]').forEach(b=> b.onclick = ()=>{ toggleDefense(b.dataset.d); });
+  // Fiche (droite)
+  const info = document.createElement('div'); info.className='cy-panel cy-info'; info.id='cyInfo'; stage.appendChild(info);
+  // Hint
+  const hint = document.createElement('div'); hint.className='cy-hint'; hint.id='cyHint';
+  hint.textContent = 'Clique un rempart pour l\'activer · regarde les menaces rouges se faire neutraliser';
+  stage.appendChild(hint);
+}
+function syncChips(){ DEF.forEach(d=>{ const c = document.querySelector(`.cy-chip[data-d="${d.id}"]`); if(c){ c.setAttribute('aria-pressed', d.active); c.style.background = d.active ? d.color : ''; } }); }
+
+/* ====== REMPARTS : activation ====== */
+function setDefense(id, on, silent){
+  const d = DEFBYID[id]; if(!d) return; if(d.active === on) return;
+  d.active = on;
+  if(!silent) shell.sound(on ? 'good' : 'click');
+  updatePostureTarget();
+}
+function toggleDefense(id){
+  const d = DEFBYID[id]; if(!d) return;
+  const now = !d.active; setDefense(id, now);
+  syncChips(); openFiche(id);
+  if(now){ shell.toast(d.icon+' '+d.name+' activé'); shell.say(activationLine(d), 'joyeux'); }
+  else { shell.say(d.name+" désactivé. Sans lui, les menaces correspondantes passeront.", 'rassurant'); }
+  if(mode==='cours') evalChallenge(id);
+}
+function activationLine(d){
+  const names = d.blocks.map(t=>THREATS[t].name.replace(/ \(.*\)/,'')).join(', ');
+  return `${d.name} en ligne : rempart contre ${names}. ${d.fun}`;
+}
+function updatePostureTarget(){
+  const n = DEF.filter(d=>d.active).length;
+  postureTarget = Math.round(n/DEF.length*100);
+}
+
+/* ====== FICHE ====== */
+function openFiche(id){
+  if(id==='core') return openCoreFiche();
+  if(id==='internet') return openInternetFiche();
+  const d = DEFBYID[id]; if(!d) return;
+  const el = document.getElementById('cyInfo'); const hex = d.color;
+  el.innerHTML = `
+    <div class="cy-hd" style="background:linear-gradient(135deg,${hex},#0a1424)">
+      <div class="ico">${d.icon}</div>
+      <div><div class="sub">${d.sub}</div><h2>${d.name}</h2></div>
+      <button class="cy-x" aria-label="Fermer">×</button>
+    </div>
+    <div class="cy-body">
+      <div class="cy-sec">Caractéristiques</div>
+      <div class="cy-stats">${d.stats.map(s=>`<div class="cy-st"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('')}</div>
+      <div class="cy-sec">Protège contre</div>
+      <div class="cy-block">${d.blocks.map(t=>`<span class="cy-tag"><span class="d" style="background:#ff5a45"></span>${THREATS[t].name}</span>`).join('')}</div>
+      <div class="cy-sec">Son rôle</div>
+      ${d.desc.map(p=>`<p>${p}</p>`).join('')}
+      ${d.fun?`<div class="cy-fun">💡 ${d.fun}</div>`:''}
+      <button class="cy-act-btn" id="cyFicheToggle" style="background:linear-gradient(135deg,${hex},#0a1424)">${d.active?'Désactiver ce rempart':'Activer ce rempart'}</button>
+    </div>`;
+  el.classList.add('show');
+  el.querySelector('.cy-x').onclick = ()=>el.classList.remove('show');
+  el.querySelector('#cyFicheToggle').onclick = ()=>toggleDefense(id);
+}
+function openCoreFiche(){
+  const el = document.getElementById('cyInfo');
+  el.innerHTML = `
+    <div class="cy-hd" style="background:linear-gradient(135deg,#1E8C7A,#0a2a24)">
+      <div class="ico">💎</div><div><div class="sub">Ce que l'on protège</div><h2>Cœur de l'entreprise</h2></div>
+      <button class="cy-x" aria-label="Fermer">×</button>
+    </div>
+    <div class="cy-body">
+      <div class="cy-sec">Actifs sensibles</div>
+      <div class="cy-stats">
+        <div class="cy-st"><div class="k">Données</div><div class="v">clients, RH, finances</div></div>
+        <div class="cy-st"><div class="k">Applications</div><div class="v">métier, e-mail</div></div>
+        <div class="cy-st"><div class="k">Postes</div><div class="v">ordinateurs des équipes</div></div>
+        <div class="cy-st"><div class="k">Réputation</div><div class="v">confiance des clients</div></div>
+      </div>
+      <div class="cy-sec">Pourquoi le protéger</div>
+      <p>Au centre se trouvent les données et services vitaux de l'entreprise. Une intrusion peut voler des informations, bloquer l'activité ou coûter très cher.</p>
+      <p>C'est pour cela qu'on empile des <b>remparts en couches</b> autour de lui : la défense en profondeur. Plus l'attaquant progresse, plus il rencontre d'obstacles.</p>
+      <div class="cy-fun">💡 La sécurité vise trois choses : la <b>confidentialité</b>, l'<b>intégrité</b> et la <b>disponibilité</b> des données (le « triangle CIA »).</div>
+    </div>`;
+  el.classList.add('show'); el.querySelector('.cy-x').onclick = ()=>el.classList.remove('show');
+}
+function openInternetFiche(){
+  const el = document.getElementById('cyInfo');
+  el.innerHTML = `
+    <div class="cy-hd" style="background:linear-gradient(135deg,#8b5be0,#1a1030)">
+      <div class="ico">🌐</div><div><div class="sub">D'où viennent les menaces</div><h2>Internet · zone hostile</h2></div>
+      <button class="cy-x" aria-label="Fermer">×</button>
+    </div>
+    <div class="cy-body">
+      <div class="cy-sec">Types de menaces</div>
+      <div class="cy-block">${THREAT_IDS.map(t=>`<span class="cy-tag"><span class="d" style="background:#ff5a45"></span>${THREATS[t].name}</span>`).join('')}</div>
+      <div class="cy-sec">À comprendre</div>
+      <p>Internet relie l'entreprise au monde — et laisse aussi passer des attaques : e-mails piégés, logiciels malveillants, tentatives d'intrusion, saturation…</p>
+      <p>Chaque menace a un <b>rempart</b> adapté. Le jeu consiste à activer le bon rempart pour chaque type d'attaque, et à empiler les couches pour que rien n'atteigne le cœur.</p>
+      <div class="cy-fun">💡 On ne « rend jamais Internet sûr » : on rend l'entreprise <b>résiliente</b>, capable d'encaisser et de se remettre d'une attaque.</div>
+    </div>`;
+  el.classList.add('show'); el.querySelector('.cy-x').onclick = ()=>el.classList.remove('show');
+}
+function openNotions(){
+  const el = document.getElementById('cyInfo');
+  el.innerHTML = `
+    <div class="cy-hd" style="background:linear-gradient(135deg,#E63329,#2a0a0a)">
+      <div class="ico">📚</div><div><div class="sub">Cours · encyclopédie</div><h2>Cyber-défense</h2></div>
+      <button class="cy-x" aria-label="Fermer">×</button>
+    </div>
+    <div class="cy-body" style="max-height:64vh;overflow:auto">${NOTIONS.map(n=>`<div style="margin-bottom:11px"><b style="font-size:13.5px">${n[0]}</b><p style="margin:4px 0 0">${n[1]}</p></div>`).join('')}</div>`;
+  el.classList.add('show'); el.querySelector('.cy-x').onclick = ()=>el.classList.remove('show'); shell.sound('click');
+}
+
+/* ====== MENACES : apparition, mouvement, blocage ====== */
+function outermostBlock(id){
+  const th = THREATS[id]; let best = null;
+  th.blockedBy.forEach(dfid=>{ const d = DEFBYID[dfid]; if(d && d.active){ if(!best || d.r > best.r) best = d; } });
+  return best;
+}
+function spawnThreat(forceId){
+  const slot = threatPool.find(p=>!p.active); if(!slot) return null;
+  const id = forceId || THREAT_IDS[Math.floor(Math.random()*THREAT_IDS.length)];
+  const th = THREATS[id];
+  const em = emitters[Math.floor(Math.random()*emitters.length)];
+  const from = em.position.clone().add(new THREE.Vector3((Math.random()-.5)*2,(Math.random()-.5)*2,(Math.random()-.5)*2));
+  const to = new THREE.Vector3((Math.random()-.5)*1.2, 2.0 + (Math.random()-.5)*1.5, (Math.random()-.5)*1.2);
+  slot.active = true; slot.id = id; slot.from = from; slot.to = to; slot.t = 0;
+  slot.speed = 0.16 + Math.random()*0.05;
+  slot.mesh.visible = true; slot.mesh.position.copy(from);
+  slot.mesh.material.color.setHex(th.color); slot.mesh.material.emissive.setHex(th.color);
+  slot.trail.material.color.setHex(th.color); slot.trail.material.opacity = 0.8;
+  slot.done = false;
+  threats.push(slot); threatsSeen++;
+  return slot;
+}
+function blockThreat(slot, d){
+  blocked++;
+  d.flash = 1.0;
+  spawnBurst(slot.mesh.position, d.color, 6);
+  shell.sound('good');
+  recycleThreat(slot);
+}
+function coreHit(slot){
+  breaches++; coreFlash = 1.0;
+  spawnBurst(slot.mesh.position, 0xff3b30, 8);
+  shell.sound('bad');
+  postureTarget = Math.max(0, postureTarget - 2);
+  recycleThreat(slot);
+}
+function recycleThreat(slot){ slot.active = false; slot.done = true; slot.mesh.visible = false; slot.trail.material.opacity = 0; }
+function updateThreats(dt){
+  threats.forEach(slot=>{
+    if(!slot.active) return;
+    slot.t += dt * slot.speed;
+    if(slot.t >= 1){ slot.mesh.position.copy(slot.to); }
+    else slot.mesh.position.lerpVectors(slot.from, slot.to, slot.t);
+    slot.mesh.rotation.x += dt*3; slot.mesh.rotation.y += dt*4;
+    const dist = slot.mesh.position.length();
+    const blk = outermostBlock(slot.id);
+    if(blk && dist <= blk.r){ blockThreat(slot, blk); return; }
+    if(dist <= 2.2 || slot.t >= 1.02){ coreHit(slot); return; }
+  });
+  threats = threats.filter(s=>s.active);
+}
+
+/* ====== PARTICULES D'ÉCLATEMENT ====== */
+function spawnBurst(pos, hex, n){
+  let k = 0;
+  for(let i=0;i<burstPool.length && k<n;i++){ const b = burstPool[i]; if(b.active) continue;
+    b.active = true; b.life = 1.0; b.s.visible = true; b.s.material.color.setHex(hex); b.s.material.opacity = 0.9;
+    b.s.position.copy(pos); b.s.scale.setScalar(0.6);
+    b.vel.set((Math.random()-.5), (Math.random()-.5), (Math.random()-.5)).multiplyScalar(6);
+    k++;
+  }
+}
+function updateBursts(dt){
+  burstPool.forEach(b=>{ if(!b.active) return;
+    b.life -= dt*2.2; if(b.life<=0){ b.active=false; b.s.visible=false; return; }
+    b.s.position.addScaledVector(b.vel, dt); b.vel.multiplyScalar(0.9);
+    b.s.material.opacity = Math.max(0, b.life*0.9); b.s.scale.setScalar(0.6 + (1-b.life)*1.4);
+  });
+}
+
+/* ====== SCÉNARIOS ====== */
+function playRansomDemo(){
+  if(demo) return; if(document.getElementById('cyInfo')) document.getElementById('cyInfo').classList.remove('show');
+  const hadBackup = DEFBYID.backup.active, hadAv = DEFBYID.av.active;
+  shell.say("Scénario rançongiciel : un fichier piégé arrive. Étape par étape, voyons comment on s'en protège.", 'concentre');
+  shell.toast('🔒 Simulation rançongiciel');
+  const steps = [
+    { t:1200, run:()=>{ spawnThreat('ransom'); shell.say("1/4 — Le rançongiciel entre : il veut chiffrer tous les fichiers pour exiger une rançon.", 'surpris'); } },
+    { t:2600, run:()=>{ if(!hadAv){ setDefense('av', true); syncChips(); } shell.say("2/4 — L'antivirus/EDR détecte le comportement anormal (chiffrement massif) et isole la machine.", 'concentre'); } },
+    { t:2400, run:()=>{ if(!hadBackup){ setDefense('backup', true); syncChips(); } spawnThreat('ransom'); shell.say("3/4 — Même si des fichiers étaient touchés, la sauvegarde hors ligne garde une copie saine.", 'joyeux'); } },
+    { t:2400, run:()=>{ shell.say("4/4 — On restaure depuis la sauvegarde : aucune rançon payée, activité repartie. C'est la résilience !", 'celebration'); shell.sound('win'); demo=null; } },
+  ];
+  runSteps(steps);
+}
+function playMfaDemo(){
+  if(demo) return; if(document.getElementById('cyInfo')) document.getElementById('cyInfo').classList.remove('show');
+  const hadMfa = DEFBYID.mfa.active;
+  if(hadMfa){ setDefense('mfa', false); syncChips(); }
+  shell.say("Démo 2FA : un pirate a volé un mot de passe. Que se passe-t-il avec et sans double authentification ?", 'concentre');
+  shell.toast('🔑 Démo authentification');
+  const steps = [
+    { t:1200, run:()=>{ spawnThreat('creds'); shell.say("Sans 2FA : le mot de passe seul suffit à se connecter… la menace file droit vers le cœur.", 'surpris'); } },
+    { t:2600, run:()=>{ setDefense('mfa', true); syncChips(); shell.say("On active la double authentification (2FA) : un second facteur est désormais exigé.", 'joyeux'); } },
+    { t:1600, run:()=>{ spawnThreat('creds'); shell.say("Avec 2FA : le mot de passe volé ne suffit plus. Sans le second facteur, la connexion est bloquée !", 'celebration'); shell.sound('win'); demo=null; } },
+  ];
+  runSteps(steps);
+}
+function runSteps(steps){ demo = { steps, i:0 };
+  function next(){ if(!demo) return; if(demo.i>=steps.length){ demo=null; return; } const s = steps[demo.i++]; s.run(); setTimeout(next, s.t); }
+  next();
+}
+function startWave(){
+  wave = { on:true, left: REDUCED ? 8 : 16, every:0.55, acc:0 };
+  document.getElementById('cyWave').setAttribute('aria-pressed', true);
+  shell.sound('pop'); shell.toast('⚔️ Vague d\'attaques en cours');
+  shell.say("Vague d'attaques ! Une rafale de menaces variées arrive. Tes remparts actifs les neutralisent — active-en d'autres si le cœur est touché.", 'surpris');
+}
+function endWave(){ if(wave) wave.on=false; wave=null; const b=document.getElementById('cyWave'); if(b) b.setAttribute('aria-pressed', false);
+  shell.say(`Vague terminée : ${blocked} menaces bloquées au total. Plus tu as de remparts, plus le cœur reste intact.`, 'fier'); }
+
+/* ====== TÉLÉMÉTRIE ====== */
+function refreshTelemetry(){
+  const pn = document.getElementById('cyPostN'), pb = document.getElementById('cyPostBar');
+  if(pn) pn.textContent = Math.round(posture)+'%';
+  if(pb){ pb.style.width = Math.max(2,posture)+'%'; }
+  const blk = document.getElementById('cyBlk'), br = document.getElementById('cyBr'), rk = document.getElementById('cyRisk');
+  if(blk) blk.textContent = blocked; if(br) br.textContent = breaches;
+  let risk='Élevé', rc='#ff6a5a'; if(posture>=80){ risk='Faible'; rc='#35E08A'; } else if(posture>=45){ risk='Modéré'; rc='#F5A623'; }
+  if(rk){ rk.textContent = risk; rk.style.color = rc; }
+  const dot = document.getElementById('cyDot'), st = document.getElementById('cyStatus');
+  let msg='● Nominal', dc='#35E08A';
+  const missing = DEF.filter(d=>!d.active);
+  if(posture>=100){ msg='● Forteresse — défense en profondeur complète'; dc='#35E08A'; }
+  else if(coreFlash>0.4){ msg='✖ Intrusion au cœur !'; dc='#E63329'; }
+  else if(missing.length){ msg='⚠ '+missing.length+' rempart(s) à activer'; dc = posture>=45?'#F5A623':'#E63329'; }
+  if(dot){ dot.style.background=dc; dot.style.boxShadow='0 0 8px '+dc; }
+  if(st){ st.textContent = wave&&wave.on ? 'Vague d\'attaques en cours…' : (posture>=100 ? 'Le cœur est protégé sur toutes les couches.' : 'Chaque menace a son rempart — active-les.'); }
+}
+
+/* ====== SON D'AMBIANCE ====== */
+function startHum(){ if(ac || shell.muted) return; try{
+  ac = new (window.AudioContext||window.webkitAudioContext)();
+  humGain = ac.createGain(); humGain.gain.value = 0; humGain.connect(ac.destination); humGain.gain.setTargetAtTime(0.05, ac.currentTime, .8);
+  const o = ac.createOscillator(); o.type='sine'; o.frequency.value=72;
+  const o2 = ac.createOscillator(); o2.type='sine'; o2.frequency.value=110;
+  const lfo = ac.createOscillator(); lfo.frequency.value=0.15; const lg = ac.createGain(); lg.gain.value=8; lfo.connect(lg); lg.connect(o.frequency);
+  o.connect(humGain); o2.connect(humGain); o.start(); o2.start(); lfo.start();
+}catch(e){} }
+
+/* ====== POINTER ====== */
+function setP(e){ const r = renderer.domElement.getBoundingClientRect(); pointer.x = ((e.clientX-r.left)/r.width)*2-1; pointer.y = -((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer, camera); return raycaster.intersectObjects(clickMeshes, false); }
+function onMove(e){ setP(e); const h = pick(); renderer.domElement.style.cursor = h.length ? 'pointer' : 'grab';
+  let g = null; if(h.length){ let o = h[0].object; let p=o; while(p && !p.userData.equip) p=p.parent; if(p && DEFBYID[p.userData.equip]) g = DEFBYID[p.userData.equip]._tower; }
+  hovered = g; }
+function onDown(e){ setP(e); const h = pick(); if(!h.length) return;
+  let o = h[0].object; let p = o; while(p && !p.userData.equip) p = p.parent;
+  const id = p ? p.userData.equip : (o.userData.equip || null); if(!id) return;
+  if(DEFBYID[id]){ toggleDefense(id); }
+  else { openFiche(id); shell.sound('pop'); }
+}
+
+/* ====== MODE COURS ====== */
+const CHALLS = [
+  { target:'awareness', threat:'phishing', tier:0, title:'Le piège humain', ask:"Un e-mail piégé (phishing) arrive. Active le rempart qui protège l'utilisateur.", done:"Oui ! La sensibilisation apprend à repérer les faux e-mails." },
+  { target:'firewall', threat:'ddos', tier:0, title:'Le déluge', ask:"Une attaque DDoS veut saturer le service. Active le rempart qui filtre le trafic.", done:"Bravo ! Le pare-feu filtre le trafic illégitime." },
+  { target:'av', threat:'malware', tier:0, title:'Le virus', ask:"Un logiciel malveillant vise une machine. Active le rempart qui le met en quarantaine.", done:"Exact — l'antivirus/EDR détecte et isole le malware." },
+  { target:'mfa', threat:'creds', tier:0, title:'Le mot de passe volé', ask:"Un mot de passe a été volé. Active le rempart qui bloque quand même la connexion.", done:"Parfait ! La 2FA rend un mot de passe volé inutilisable." },
+  { target:'backup', threat:'ransom', tier:1, title:'La rançon', ask:"Un rançongiciel chiffre les fichiers. Active le rempart qui permet de tout restaurer.", done:"Oui ! La sauvegarde hors ligne restaure sans payer." },
+  { target:'patch', threat:'exploit', tier:1, title:'La faille', ask:"Un logiciel non à jour a une faille connue. Active le rempart qui la referme.", done:"Bien vu — le correctif corrige la vulnérabilité." },
+  { target:'ids', threat:'scan', tier:2, title:'La reconnaissance', ask:"Un intrus sonde le réseau (scan). Active le rempart qui détecte l'anormal.", done:"Exact — l'IDS/IPS repère et bloque le comportement suspect." },
+  { target:'crypto', threat:'sniff', tier:2, title:'L\'espion', ask:"On tente d'intercepter les données. Active le rempart qui les rend illisibles.", done:"Parfait ! Le chiffrement protège la confidentialité." },
+];
+function startMode(m){
+  mode = m; startHum();
+  const act = document.getElementById('cyActions'); if(act) act.style.display = (m==='cours') ? 'none' : '';
+  const hint = document.getElementById('cyHint'); if(hint) hint.style.display = (m==='cours') ? 'none' : '';
+  const info = document.getElementById('cyInfo'); if(info) info.classList.remove('show');
+  wave = null; demo = null;
+  if(m==='cours'){ DEF.forEach(d=>d.active=false); syncChips(); updatePostureTarget(); shell.setScore(0); chooseDifficulty(); }
+  else { clearQuiz(); DEF.forEach(d=>d.active=false); setDefense('firewall',true,true); setDefense('av',true,true); syncChips(); shell.setLevel('libre'); shell.say(shell.cfg.intro.greet,'joyeux'); }
+}
+function chooseDifficulty(){
+  clearQuiz(); let b = document.getElementById('cyQuiz');
+  if(!b){ b = document.createElement('div'); b.className='cy-panel cy-quiz'; b.id='cyQuiz'; shell.stage.appendChild(b); }
+  b.innerHTML = `<b>🎓 Choisis ta difficulté</b><div class="cy-qrow">
+    <button class="cy-qo" data-t="debutant">Débutant · 4</button>
+    <button class="cy-qo" data-t="inter">Confirmé · 6</button>
+    <button class="cy-qo" data-t="expert">Expert · 8</button></div>`;
+  b.querySelectorAll('[data-t]').forEach(x=>x.onclick = ()=>{ shell.sound('click'); quizTier = x.dataset.t; startQuiz(); });
+  shell.say("Renforce l'entreprise rempart par rempart : à chaque défi, active la bonne protection. Choisis ton niveau !", 'curieux');
+}
+function startQuiz(){
+  const len = quizTier==='expert' ? 8 : quizTier==='inter' ? 6 : 4;
+  const maxTier = quizTier==='expert' ? 2 : quizTier==='inter' ? 1 : 0;
+  const pool = CHALLS.filter(c=>c.tier <= maxTier).sort(()=>Math.random()-.5).slice(0, len);
+  challenge = { list:pool, idx:0, score:0, total:pool.length };
+  DEF.forEach(d=>d.active=false); syncChips(); updatePostureTarget();
+  shell.setScore(0); shell.setProgress(0); askChallenge();
+}
+function askChallenge(){
+  if(!challenge) return;
+  if(challenge.idx >= challenge.total){ winQuiz(); return; }
+  const ch = challenge.list[challenge.idx]; challenge.done = false;
+  let b = document.getElementById('cyQuiz');
+  if(!b){ b = document.createElement('div'); b.className='cy-panel cy-quiz'; b.id='cyQuiz'; shell.stage.appendChild(b); }
+  b.innerHTML = `<span class="qn">${challenge.idx+1}/${challenge.total}</span><b>${ch.title}</b><div class="ask">${ch.ask}</div>`;
+  shell.setLevel((challenge.idx+1)+'/'+challenge.total); shell.setProgress(challenge.idx/challenge.total);
+  shell.say(ch.ask, 'concentre');
+  // menace de contexte
+  if(ch.threat) setTimeout(()=>{ if(challenge && !challenge.done) spawnThreat(ch.threat); }, 500);
+}
+function evalChallenge(id){ if(!challenge || challenge.done) return; const ch = challenge.list[challenge.idx];
+  if(!DEFBYID[id] || !DEFBYID[id].active) return;
+  if(id===ch.target){ passChallenge(); }
+  else { shell.sound('bad'); shell.say("Ce rempart ne pare pas cette menace-là. "+ch.ask, 'rassurant'); }
+}
+function passChallenge(){
+  if(!challenge) return;
+  const ch = challenge.list[challenge.idx]; if(challenge.done) return; challenge.done = true;
+  challenge.score++; shell.addScore(150); shell.sound('good'); shell.say(ch.done, 'celebration'); shell.toast('✅ '+ch.title);
+  if(ch.threat) spawnThreat(ch.threat);
+  setTimeout(()=>{ if(!challenge) return; challenge.idx++; shell.setProgress(challenge.idx/challenge.total); askChallenge(); }, 1350);
+}
+function winQuiz(){
+  if(!challenge) return;
+  const sc = challenge.score, tot = challenge.total; clearQuiz();
+  const st = sc>=tot ? 3 : sc>=Math.ceil(tot*0.6) ? 2 : 1;
+  shell.setProgress(1);
+  shell.win({
+    score: sc*150, stars: st, title: sc+'/'+tot+' remparts activés',
+    learned: shell.cfg.learned,
+    buddy: st===3 ? "Sans faute ! Tu maîtrises la défense en profondeur : chaque menace, son rempart. L'entreprise est une forteresse." : "Bien joué — relis les fiches des remparts et retente pour le sans-faute.",
+    onNext: ()=>{ shell.setScore(0); chooseDifficulty(); }, nextLabel:'Rejouer',
+  });
+  challenge = null;
+}
+function clearQuiz(){ const b = document.getElementById('cyQuiz'); if(b) b.remove(); challenge = null; }
+
+/* ====== THÈME / RESIZE ====== */
+function applyTheme(){ const dark = document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x05070e:0x0a0f1c, 1); if(scene.fog) scene.fog.color.setHex(dark?0x05070e:0x0a0f1c); }
+function onResize(){ const s = shell.stage; if(!s.clientWidth) return; camera.aspect = s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth, s.clientHeight); composer.setSize(s.clientWidth, s.clientHeight); }
+
+/* ====== ANIMATION ====== */
+let telAcc = 0;
+function animate(){
+  requestAnimationFrame(animate); const dt = Math.min(0.05, clock.getDelta()); const t = clock.elapsedTime;
+
+  // Posture lissée
+  posture += (postureTarget - posture) * 0.08;
+
+  // Remparts : rendu selon activation + flash de blocage
+  DEF.forEach(d=>{
+    if(d.flash > 0) d.flash = Math.max(0, d.flash - dt*1.8);
+    const base = d.active ? 0.16 : 0.03;
+    const puls = d.active && !REDUCED ? 0.05*Math.abs(Math.sin(t*1.5 + d.ang)) : 0;
+    d._domeMat.opacity = base + puls + d.flash*0.6;
+    d._ringMat.opacity = (d.active ? 0.7 : 0.2) + d.flash*0.5;
+    d._floorRing.material.opacity = d.active ? 0.28 : 0.1;
+    const emi = d.active ? (0.7 + (REDUCED?0:0.3*Math.abs(Math.sin(t*3+d.ang)))) : 0.12;
+    d._beacon.material.emissiveIntensity = emi + d.flash*1.5;
+    d._halo.material.opacity = (d.active ? 0.55 : 0.0) + d.flash*0.6;
+    if(d.active) d._screen.material.color.set(d.color); else d._screen.material.color.setHex(0x1a2030);
+    // hover
+    const lit = hovered===d._tower; d._tower.scale.lerp(new THREE.Vector3(lit?1.06:1, lit?1.06:1, lit?1.06:1), 0.15);
+  });
+
+  // Cœur : rotation + aura selon posture + flash d'intrusion
+  if(coreCore){ coreCore.rotation.y += dt*0.6; coreCore.rotation.x += dt*0.2; if(coreGroup.userData.wire) coreGroup.userData.wire.rotation.y -= dt*0.4; }
+  if(coreRing) coreRing.rotation.z += dt*0.5;
+  if(coreFlash>0) coreFlash = Math.max(0, coreFlash - dt*1.6);
+  if(coreAura){ const green = new THREE.Color(0x35E08A), red = new THREE.Color(0xff3b30); const c = green.clone().lerp(red, coreFlash); coreAura.material.color.copy(c); coreAura.material.opacity = 0.35 + posture/100*0.35 + coreFlash*0.4; const sc = 6 + posture/100*2 + coreFlash*2; coreAura.scale.setScalar(sc); }
+  if(coreCore){ coreCore.material.emissiveIntensity = 0.7 + posture/100*0.5 + coreFlash*0.8; if(coreFlash>0.3) coreCore.material.emissive.setHex(0xff3b30); else coreCore.material.emissive.setHex(0x1E8C7A); }
+
+  // Émetteurs Internet
+  emitters.forEach((g,i)=>{ g.rotation.y += dt*0.4; if(g.userData.wire) g.userData.wire.rotation.x += dt*0.3; });
+
+  // Apparition ambiante des menaces (Détente)
+  if(mode==='detente' && !document.querySelector('.ksh-fin:not([hidden])')){
+    spawnAcc += dt;
+    const every = wave&&wave.on ? wave.every : ambientEvery;
+    if(spawnAcc > every){ spawnAcc = 0;
+      if(wave&&wave.on){ spawnThreat(); wave.left--; if(wave.left<=0) endWave(); }
+      else if(!demo) spawnThreat();
+    }
+  }
+  updateThreats(dt);
+  updateBursts(dt);
+  // traînée des menaces
+  threats.forEach(s=>{ if(s.active && !REDUCED) s.trail.material.opacity = 0.55+0.25*Math.abs(Math.sin(t*8)); });
+
+  // Télémétrie
+  telAcc += dt; if(telAcc > 0.15){ telAcc = 0; refreshTelemetry(); }
+
+  controls.update(); updateLabels(); composer.render();
+}
+</script>
+</body>
+</html>

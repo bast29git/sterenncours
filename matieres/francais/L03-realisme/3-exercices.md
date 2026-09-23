@@ -425,3 +425,11 @@ Partie C : 4 points (1,5 pour les trois points de vue, 1,5 pour l'identification
 Partie D : 5 points (3 pour le respect des cinq contraintes, 2 pour la qualité de la description et l'absence de mots interdits).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

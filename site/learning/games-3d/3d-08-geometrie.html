@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Géométrie dans l'espace</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .gg-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); backdrop-filter:blur(14px); }
+  .gg-left { top:14px; left:14px; width:250px; padding:14px; display:flex; flex-direction:column; gap:14px; max-height:calc(100% - 28px); overflow:auto; scrollbar-width:thin; }
+  .gg-left::-webkit-scrollbar{ width:7px } .gg-left::-webkit-scrollbar-thumb{ background:var(--border); border-radius:9px }
+  .gg-sec h3 { font-family:var(--font-mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 8px; display:flex; align-items:center; gap:6px; }
+  .gg-solids { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .gg-s { font-family:var(--font-body); font-weight:700; font-size:11.5px; padding:8px 5px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; min-height:42px; transition:.15s; display:flex; flex-direction:column; align-items:center; gap:3px; line-height:1.05; }
+  .gg-s .ic { font-size:15px; line-height:1; }
+  .gg-s[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 40%,transparent); }
+  .gg-s:focus-visible, .gg-m:focus-visible, .gg-tg:focus-visible, .gg-tf:focus-visible, .gg-btn:focus-visible { outline:none; box-shadow:var(--ring); }
+  .gg-row { display:flex; gap:6px; }
+  .gg-mat { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .gg-m, .gg-tg, .gg-tf { flex:1; font-family:var(--font-body); font-size:11.5px; font-weight:700; padding:8px 4px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; min-height:38px; transition:.15s; }
+  .gg-m[aria-pressed="true"], .gg-tg[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .gg-tf { background:var(--surface); }
+  .gg-tf:hover, .gg-btn:hover:not(:disabled) { background:var(--surface-2); transform:translateY(-1px); }
+  .gg-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .gg-slider { display:flex; flex-direction:column; gap:6px; }
+  .gg-slider label { font-family:var(--font-mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--fg-muted); display:flex; justify-content:space-between; }
+  .gg-slider label b { color:var(--fg); font-family:var(--font-data); }
+  .gg-slider input[type=range] { accent-color:var(--accent); width:100%; height:22px; }
+  .gg-btn { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:10px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; min-height:42px; width:100%; transition:.15s; }
+  .gg-btn[aria-pressed="true"] { background:var(--brand-amber); border-color:var(--brand-amber); color:#13142B; }
+  .gg-btn:disabled { opacity:.38; cursor:not-allowed; }
+  /* panneau droit — mesures */
+  .gg-right { top:14px; right:14px; width:226px; padding:16px; max-height:calc(100% - 28px); overflow:auto; }
+  .gg-right .name { font-family:var(--font-title); font-weight:800; font-size:19px; margin-bottom:3px; display:flex; align-items:center; gap:8px; }
+  .gg-right .name .swatch { width:14px; height:14px; border-radius:5px; flex:none; box-shadow:0 1px 4px rgba(0,0,0,.25); }
+  .gg-sub { font-family:var(--font-mono); font-size:10.5px; color:var(--fg-muted); margin-bottom:12px; }
+  .gg-vef { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:9px; }
+  .gg-vef .b { background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:7px 4px; text-align:center; }
+  .gg-vef .b .k { font-family:var(--font-mono); font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:var(--fg-muted); }
+  .gg-vef .b .v { font-family:var(--font-data); font-weight:800; font-size:19px; line-height:1.1; }
+  .gg-euler { font-family:var(--font-mono); font-size:11.5px; background:var(--accent-weak); color:var(--accent-text); border-radius:9px; padding:7px 9px; margin-bottom:12px; line-height:1.4; }
+  .gg-euler .ok { color:var(--ok-fg,#12805c); font-weight:700; }
+  .gg-f { margin-bottom:11px; }
+  .gg-f .k { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--fg-muted); }
+  .gg-f .form { font-family:var(--font-mono); font-size:12px; color:var(--fg-muted); }
+  .gg-f .v { font-family:var(--font-data); font-weight:800; font-size:21px; line-height:1.15; }
+  .gg-scalebox { background:var(--accent-weak); border-radius:11px; padding:10px 12px; }
+  .gg-scalebox .k { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--accent-text); margin-bottom:4px; }
+  .gg-scalebox .body { font-size:12px; line-height:1.5; color:var(--accent-text); }
+  /* quiz bas */
+  .gg-quiz { position:absolute; left:50%; transform:translateX(-50%); bottom:18px; z-index:24; background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 94%,#000),var(--accent)); color:#fff; padding:14px 18px; border-radius:16px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:11px; align-items:center; max-width:min(560px,92%); }
+  .gg-quiz .qn { position:absolute; top:-10px; left:14px; font-family:var(--font-data); font-weight:700; font-size:11px; background:var(--brand-amber); color:#13142B; border-radius:999px; padding:2px 10px; }
+  .gg-quiz .q { font-weight:700; font-size:15px; text-align:center; line-height:1.35; }
+  .gg-quiz .q b { color:var(--brand-amber); }
+  .gg-opts { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .gg-opt { font-family:var(--font-data); font-weight:700; font-size:15px; min-height:44px; padding:0 16px; border-radius:11px; border:none; background:rgba(255,255,255,.16); color:#fff; cursor:pointer; transition:.13s; }
+  .gg-opt:hover { background:rgba(255,255,255,.32); transform:translateY(-1px); }
+  .gg-opt.good { background:#2fbf7a; } .gg-opt.bad { background:#e05656; }
+  .gg-action-hint { font-size:12.5px; opacity:.92; }
+  /* toast d'aide bas */
+  .gg-tip { position:absolute; left:50%; bottom:16px; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 86%,transparent); border:1px solid var(--border); padding:7px 15px; border-radius:999px; pointer-events:none; max-width:88%; text-align:center; }
+  .gg-flash { position:absolute; left:50%; top:16px; transform:translateX(-50%); z-index:26; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-lg); border-radius:12px; padding:9px 16px; font-weight:700; font-size:13.5px; color:var(--fg); opacity:0; transition:.3s; pointer-events:none; }
+  .gg-flash.show { opacity:1; }
+  @media (max-width:760px){
+    .gg-left{ width:186px; padding:11px; gap:11px }
+    .gg-right{ width:160px; padding:12px }
+    .gg-s{ font-size:10.5px } .gg-right .name{ font-size:16px } .gg-f .v{ font-size:18px }
+  }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ============================================================
+   ATELIER DE GÉOMÉTRIE 3D — solides, patrons, sections,
+   transformations, révolution, mesures & Euler.
+   ============================================================ */
+
+/* ---- Catalogue des solides ---- */
+const SOLIDS = {
+  tetra:   { name:'Tétraèdre', ic:'▲', color:0xE8556B, poly:true, V:4,  E:6,  F:4,  net:'tetra',    vf:'a³·√2 ⁄ 12',        sf:'√3 · a²' },
+  cube:    { name:'Cube',      ic:'■', color:0x6E6BFF, poly:true, V:8,  E:12, F:6,  net:'cube',      vf:'a³',                sf:'6 · a²' },
+  octa:    { name:'Octaèdre',  ic:'◆', color:0x29B6E0, poly:true, V:6,  E:12, F:8,  net:null,        vf:'a³·√2 ⁄ 3',         sf:'2√3 · a²' },
+  dodeca:  { name:'Dodécaèdre',ic:'⬠', color:0xF5A623, poly:true, V:20, E:30, F:12, net:null,        vf:'≈ 7,66 · a³',       sf:'≈ 20,6 · a²' },
+  icosa:   { name:'Icosaèdre', ic:'✦', color:0x33C481, poly:true, V:12, E:30, F:20, net:null,        vf:'≈ 2,18 · a³',       sf:'5√3 · a²' },
+  pave:    { name:'Pavé',      ic:'▬', color:0x9B5DE5, poly:true, V:8,  E:12, F:6,  net:null,        vf:'L × l × h',         sf:'2(Ll + lh + Lh)' },
+  pyramide:{ name:'Pyramide',  ic:'△', color:0xFF8A3D, poly:true, V:5,  E:8,  F:5,  net:'pyramide',  vf:'(base² × h) ⁄ 3',   sf:'base² + 2·base·apoth.' },
+  prisme:  { name:'Prisme',    ic:'⬡', color:0xE36B9E, poly:true, V:6,  E:9,  F:5,  net:null,        vf:'aire_base × long.', sf:'2·base + périmètre·L' },
+  cylindre:{ name:'Cylindre',  ic:'⬭', color:0x4ECDC4, poly:false,rev:true,                          vf:'π · r² · h',        sf:'2πr² + 2πrh' },
+  cone:    { name:'Cône',      ic:'⏥', color:0xFFC93C, poly:false,rev:true,                          vf:'(π · r² · h) ⁄ 3',  sf:'πr² + πr·g' },
+  sphere:  { name:'Sphère',    ic:'●', color:0x5C7CFA, poly:false,rev:true,                          vf:'(4 ⁄ 3)·π·r³',      sf:'4π · r²' },
+};
+const POLY_KEYS = Object.keys(SOLIDS).filter(k=>SOLIDS[k].poly);
+
+/* ---- État ---- */
+const st = { solid:'cube', matMode:'plein', showEdges:true, showVerts:false,
+  dim:2, cut:0, netOn:false, unfold:1, autorotate:!REDUCED, mode:'detente' };
+
+let scene, camera, renderer, controls, composer, clock;
+let solidGroup, mesh, edgeLines, vertGroup, capMesh, floor, gridHelper, axesGroup;
+let clip;
+let netGroup=null, netFlaps=[];
+let ghostTween=null, ghostObjs=[];
+let revTween=null, revObjs=[];
+let hlOverlay=null;
+let raycaster, pointer;
+let envReady=false;
+let quiz=null;
+let contactShadow=null, maxAniso=8;
+const tmp = new THREE.Vector3();
+
+/* ============================================================ TEXTURES PBR CC0 (Poly Haven) */
+const texLoader = new THREE.TextureLoader();
+const PBR_BASE = '../assets/3d/pbr2k/';
+const _texCache = {};
+function loadTex(url, srgb, rep){
+  const key = url+'|'+(rep||1)+'|'+(srgb?1:0);
+  if(_texCache[key]) return _texCache[key];
+  const t = texLoader.load(url, undefined, undefined, ()=>{});
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; if(rep) t.repeat.set(rep, rep);
+  t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = maxAniso;
+  _texCache[key] = t; return t;
+}
+/* applique diffuse/normal/roughness(+metal,+ao bakée) réels sur un matériau existant */
+function applyPBR(material, slug, res, opt={}){
+  const rep = opt.repeat||1, b = PBR_BASE+slug+'/'+slug+'_';
+  material.map = loadTex(b+'diff_'+res+'.jpg', true, rep);
+  material.normalMap = loadTex(b+'nor_gl_'+res+'.jpg', false, rep); material.normalScale = new THREE.Vector2(opt.normal||1, opt.normal||1);
+  material.roughnessMap = loadTex(b+'rough_'+res+'.jpg', false, rep);
+  if(opt.metal){ material.metalnessMap = loadTex(b+'metal_'+res+'.jpg', false, rep); }
+  if(opt.ao){ material.aoMap = loadTex(b+'ao_'+res+'.jpg', false, rep); material.aoMapIntensity = opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color);
+  material.needsUpdate = true; return material;
+}
+/* duplique le canal UV pour permettre l'aoMap (utilise uv1) */
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+/* tache d'ombre de contact douce (occlusion lisible même en rendu logiciel) */
+function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,8,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.24)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
+
+const shell = window.Konstrio.createGame({
+  id:'3d-08-geometrie', code:'3D·08', title:"Géométrie dans l'espace", type:'3D',
+  domain:{ label:'Maths', color:'#9B2BB0' },
+  intro:{
+    greet:"Bienvenue dans l'atelier de géométrie ! Choisis un solide, fais-le tourner, coupe-le, déplie son patron, applique des transformations et lis ses mesures en direct.",
+    rule:"Un véritable atelier de géométrie dans l'espace : polyèdres de Platon en <b>verre</b>, <b>métal</b> ou plastique, <b>patrons</b> qui se déplient, <b>sections</b> planes, <b>solides de révolution</b> et <b>transformations</b>. Toutes les mesures (V, A, F, volume, aire) se calculent en temps réel — avec la formule d'Euler <b>V − A + F = 2</b>.",
+    how:["Choisis un solide et change sa matière (verre, métal…).","Déplie son patron, coupe-le par un plan, ou applique une transformation.","En mode Cours, relève 7 défis : faces, sommets, arêtes, volumes, patrons."],
+    keys:"Glisser = tourner · molette = zoomer · clic sur une face = la mesurer · R = rotation auto.",
+    objectif:"Comprendre les solides : compter V/A/F, vérifier Euler, reconnaître un patron et estimer un volume.",
+    hint:"Formule d'Euler pour tout polyèdre convexe : sommets − arêtes + faces = 2. Le cube : 8 − 12 + 6 = 2 ✓.",
+    why:"Le patron (solide déplié à plat) montre que la surface d'un solide est faite de figures planes : on peut donc calculer son aire. Et une section révèle sa structure interne."
+  },
+  learned:[
+    "Formule d'Euler : sommets − arêtes + faces = 2 pour tout polyèdre convexe.",
+    "Les 5 solides de Platon ont toutes leurs faces identiques : tétraèdre, cube, octaèdre, dodécaèdre, icosaèdre.",
+    "Un patron est le solide déplié à plat : il sert à calculer l'aire de surface.",
+    "Loi d'échelle : agrandir ×k multiplie l'aire par k² et le volume par k³.",
+    "Cylindre, cône et sphère sont des solides de révolution : une courbe qui tourne autour d'un axe."
+  ],
+  onReady:(api)=>init(api),
+  onStart:(m,api)=>{ st.mode=m; resetScene(); if(m==='cours'){ api.setScore(0); api.setStars(0); startQuiz(); } else { api.setLevel('libre'); tip("Explore librement : matière, coupe, patron, transformations…"); } },
+  onRestart:(api)=>{ if(st.mode==='cours'){ api.setScore(0); api.setStars(0); startQuiz(); } },
+  onTheme:()=>{ applyTheme(); rebuild(); },
+});
+
+/* ============================================================ INIT */
+function init(api){
+  shell.api = api; const stage = api.stage;
+  scene = new THREE.Scene(); clock = new THREE.Clock();
+  camera = new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight, .1, 200);
+  camera.position.set(5, 4.2, 6.6);
+  renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(stage.clientWidth, stage.clientHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.02;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.localClippingEnabled = true;
+  stage.appendChild(renderer.domElement);
+  maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 8);
+
+  // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y échoue → chaîne robuste + AO bakée
+  let software = false;
+  try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  if(!software){
+    // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu produit
+    const gtao = new GTAOPass(scene, camera, W, H); gtao.blendIntensity = 1.0;
+    try{ gtao.updateGtaoMaterial({ radius:0.45, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao = gtao;
+  }
+  const bp = new UnrealBloomPass(new THREE.Vector2(W, H), 0.34, 0.55, 0.9);
+  composer.addPass(bp); composer.bloom = bp;
+  composer.addPass(new SMAAPass(W, H));
+  composer.addPass(new OutputPass());
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = .08;
+  controls.minDistance = 3.4; controls.maxDistance = 22; controls.maxPolarAngle = Math.PI*0.92;
+  controls.target.set(0, 0.2, 0);
+  controls.autoRotate = st.autorotate; controls.autoRotateSpeed = REDUCED ? .35 : .75;
+
+  // Lumières : hémisphère + clé (ombre) + remplissage
+  scene.add(new THREE.HemisphereLight(0xdfeaff, 0x2a3350, 0.55));
+  const key = new THREE.DirectionalLight(0xffffff, 1.55); key.position.set(6, 11, 6.5); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.camera.near = 1; key.shadow.camera.far = 42;
+  key.shadow.camera.left = -10; key.shadow.camera.right = 10; key.shadow.camera.top = 10; key.shadow.camera.bottom = -10;
+  key.shadow.bias = -0.0004; key.shadow.radius = 4; scene.add(key);
+  const fill = new THREE.DirectionalLight(0x9fb8ff, 0.4); fill.position.set(-7, 4, -6); scene.add(fill);
+  scene.add(new THREE.DirectionalLight(0xffe6c2, 0.3).translateY(0));
+
+  // IBL studio muséal réel (Poly Haven CC0) → reflets crédibles sur verre, marbre & métal
+  const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  const rgbe = new RGBELoader();
+  rgbe.load('../assets/3d/hdri/studio_small_09_1k.hdr', hdr=>{
+    hdr.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = pmrem.fromEquirectangular(hdr).texture;
+    scene.background = hdr; scene.backgroundBlurriness = 0.6; scene.backgroundIntensity = themeDark()?0.42:0.85;
+    envReady = true; rebuild();
+  }, undefined, ()=>{
+    // repli : ancien studio local, sinon éclairage lumières + hémisphère (jamais noir)
+    rgbe.load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); envReady=true; rebuild(); }, undefined, ()=>{ envReady=false; });
+  });
+
+  // Socle studio muséal (carrelage béton PBR CC0, AO bakée) + grille + ombre de contact douce
+  const floorMat = new THREE.MeshStandardMaterial({ color:0xd8dae2, roughness:0.85, metalness:0.05, envMapIntensity:0.55 });
+  applyPBR(floorMat, 'concrete_tiles', '1k', { repeat:7, normal:0.85, ao:true, aoInt:1.0 });
+  const fgeo = new THREE.CircleGeometry(16, 96); enableAO(fgeo);
+  floor = new THREE.Mesh(fgeo, floorMat);
+  floor.rotation.x = -Math.PI/2; floor.position.y = -2.6; floor.receiveShadow = true; scene.add(floor);
+  gridHelper = new THREE.GridHelper(20, 20, 0x6f7bbf, 0x3a4270); gridHelper.position.y = -2.58;
+  gridHelper.material.transparent = true; gridHelper.material.opacity = 0.22; scene.add(gridHelper);
+  contactShadow = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.MeshBasicMaterial({ map:makeContactShadow(), transparent:true, depthWrite:false, opacity:0.85 }));
+  contactShadow.rotation.x = -Math.PI/2; contactShadow.position.y = -2.58; scene.add(contactShadow);
+
+  axesGroup = buildAxes(); axesGroup.visible = false; scene.add(axesGroup);
+
+  solidGroup = new THREE.Group(); scene.add(solidGroup);
+  clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 3);
+
+  raycaster = new THREE.Raycaster(); pointer = new THREE.Vector2();
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+  buildUI(); applyTheme(); rebuild();
+  window.addEventListener('resize', onResize); new ResizeObserver(onResize).observe(stage);
+  document.addEventListener('keydown', onKey);
+  animate();
+}
+
+/* ============================================================ MATÉRIAUX & GÉOMÉTRIE */
+function currentColor(){ return SOLIDS[st.solid].color; }
+function themeDark(){ return document.documentElement.getAttribute('data-theme')==='dark'; }
+function edgeColor(){ return themeDark() ? 0xdfe4ff : 0x2a2f5c; }
+function vertColor(){ return 0xF5A623; }
+
+function solidMaterial(){
+  const c = currentColor();
+  if(st.matMode==='verre'){
+    // verre transmissif — gagne les vrais reflets IBL du studio muséal
+    return new THREE.MeshPhysicalMaterial({ color:c, metalness:0, roughness:0.04, transmission:1.0,
+      thickness:1.4, ior:1.5, envMapIntensity:1.9, clearcoat:1, clearcoatRoughness:0.05, reflectivity:0.6, specularIntensity:1,
+      transparent:true, side:THREE.DoubleSide, attenuationColor:c, attenuationDistance:3.5 });
+  }
+  if(st.matMode==='metal'){
+    // acier brossé réel (metal_plate_02) + reflets IBL forts
+    const m = new THREE.MeshStandardMaterial({ color:0xeef1f6, metalness:1, roughness:0.28, envMapIntensity:1.9, side:THREE.DoubleSide });
+    applyPBR(m, 'metal_plate_02', '1k', { repeat:1, metal:true, normal:0.7, ao:true, aoInt:0.9, color:0xe8ecf2 });
+    return m;
+  }
+  if(st.matMode==='marbre'){
+    // marbre blanc poli CC0 (marble_01) : vernis clearcoat sous le studio
+    const m = new THREE.MeshPhysicalMaterial({ color:0xffffff, metalness:0.0, roughness:0.35, envMapIntensity:1.15,
+      clearcoat:0.7, clearcoatRoughness:0.12, side:THREE.DoubleSide });
+    applyPBR(m, 'marble_01', '1k', { repeat:1, normal:0.6, ao:true, aoInt:1.0 });
+    return m;
+  }
+  if(st.matMode==='bois'){
+    // bois noble (planches usées) — matité chaude, léger vernis
+    const m = new THREE.MeshPhysicalMaterial({ color:0xffffff, metalness:0.0, roughness:0.75, envMapIntensity:0.7,
+      clearcoat:0.25, clearcoatRoughness:0.4, side:THREE.DoubleSide });
+    applyPBR(m, 'worn_planks', '1k', { repeat:1.5, normal:1.0, ao:true, aoInt:1.0 });
+    return m;
+  }
+  if(st.matMode==='filaire'){
+    return new THREE.MeshBasicMaterial({ color:c, wireframe:true });
+  }
+  // plein — plastique coloré premium
+  return new THREE.MeshPhysicalMaterial({ color:c, metalness:0.04, roughness:0.34, envMapIntensity:1.1,
+    clearcoat:0.6, clearcoatRoughness:0.25, side:THREE.DoubleSide });
+}
+
+/* Construit la géométrie + méta (dimensions lisibles) selon la taille */
+function buildGeom(){
+  const a = st.dim;
+  let g, dims;
+  switch(st.solid){
+    case 'cube':     g = new THREE.BoxGeometry(a, a, a); dims = `a = ${fmt(a)}`; break;
+    case 'pave':   { const L=a*1.4,l=a,H=a*.7; g = new THREE.BoxGeometry(L,l,H); dims = `${fmt(L)} × ${fmt(l)} × ${fmt(H)}`; break; }
+    case 'tetra':    g = new THREE.TetrahedronGeometry(a*0.92); dims = `arête a = ${fmt(edgeOf(g))}`; break;
+    case 'octa':     g = new THREE.OctahedronGeometry(a*0.95); dims = `arête a = ${fmt(edgeOf(g))}`; break;
+    case 'dodeca':   g = new THREE.DodecahedronGeometry(a*0.86); dims = `arête a = ${fmt(edgeOf(g))}`; break;
+    case 'icosa':    g = new THREE.IcosahedronGeometry(a*0.92); dims = `arête a = ${fmt(edgeOf(g))}`; break;
+    case 'pyramide':{ const base=a, H=a*1.2; g = new THREE.ConeGeometry(base/Math.SQRT2, H, 4).rotateY(Math.PI/4); dims = `base ${fmt(base)}, h ${fmt(H)}`; break; }
+    case 'prisme': { const s=a, L=a*1.6; g = new THREE.CylinderGeometry(s/Math.sqrt(3), s/Math.sqrt(3), L, 3).rotateZ(Math.PI/2).rotateX(Math.PI/2); dims = `côté ${fmt(s)}, long. ${fmt(L)}`; break; }
+    case 'cylindre':{ const r=a/1.6,H=a*1.4; g = new THREE.CylinderGeometry(r,r,H,56); dims = `r ${fmt(r)}, h ${fmt(H)}`; break; }
+    case 'cone':   { const r=a/1.4,H=a*1.5; g = new THREE.ConeGeometry(r,H,56); dims = `r ${fmt(r)}, h ${fmt(H)}`; break; }
+    case 'sphere': { const r=a/1.3; g = new THREE.SphereGeometry(r,56,40); dims = `r ${fmt(r)}`; break; }
+  }
+  g.computeVertexNormals();
+  return { g, dims };
+}
+function edgeOf(g){ const eg = new THREE.EdgesGeometry(g,1); const p=eg.attributes.position; if(!p||p.count<2){ eg.dispose(); return 0; } const a=new THREE.Vector3().fromBufferAttribute(p,0), b=new THREE.Vector3().fromBufferAttribute(p,1); const d=a.distanceTo(b); eg.dispose(); return d; }
+
+/* Volume & aire numériques (géométries centrées à l'origine) */
+function measureGeom(g){
+  const pos=g.attributes.position, idx=g.index;
+  let vol=0, area=0;
+  const a=new THREE.Vector3(), b=new THREE.Vector3(), c=new THREE.Vector3(), ab=new THREE.Vector3(), ac=new THREE.Vector3(), cr=new THREE.Vector3();
+  const tri=(i0,i1,i2)=>{ a.fromBufferAttribute(pos,i0); b.fromBufferAttribute(pos,i1); c.fromBufferAttribute(pos,i2);
+    vol += a.dot(cr.crossVectors(b,c))/6; ab.subVectors(b,a); ac.subVectors(c,a); area += 0.5*cr.crossVectors(ab,ac).length(); };
+  if(idx){ for(let i=0;i<idx.count;i+=3) tri(idx.getX(i),idx.getX(i+1),idx.getX(i+2)); }
+  else { for(let i=0;i<pos.count;i+=3) tri(i,i+1,i+2); }
+  return { V:Math.abs(vol), S:area };
+}
+function volumeOf(k){ const prev=st.solid; st.solid=k; const { g }=buildGeom(); const m=measureGeom(g); g.dispose(); st.solid=prev; return m.V; }
+function uniqueVerts(g){ const pos=g.attributes.position, seen=new Set(), out=[];
+  for(let i=0;i<pos.count;i++){ const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i); const key=`${Math.round(x*80)},${Math.round(y*80)},${Math.round(z*80)}`; if(!seen.has(key)){ seen.add(key); out.push(new THREE.Vector3(x,y,z)); } }
+  return out; }
+
+/* ============================================================ REBUILD */
+function clearGroup(grp){ while(grp.children.length){ const o=grp.children.pop(); o.traverse&&o.traverse(n=>{ if(n.geometry)n.geometry.dispose(); if(n.material){ (Array.isArray(n.material)?n.material:[n.material]).forEach(m=>m.dispose&&m.dispose()); } }); } }
+
+function rebuild(){
+  clearGroup(solidGroup);
+  mesh = edgeLines = vertGroup = capMesh = null; netGroup = null; netFlaps = [];
+
+  if(st.netOn && SOLIDS[st.solid].net){ buildNet(); updateReadout(); return; }
+
+  const { g } = buildGeom(); enableAO(g);
+  const useClip = st.cut > 0;
+  const mat = solidMaterial();
+  mat.clippingPlanes = useClip ? [clip] : []; mat.clipShadows = true;
+  mesh = new THREE.Mesh(g, mat); mesh.castShadow = true; mesh.receiveShadow = true; mesh.userData.pick = true;
+  solidGroup.add(mesh);
+
+  // arêtes surlignées
+  if(st.showEdges && st.matMode!=='filaire'){
+    const thr = SOLIDS[st.solid].poly ? 1 : 22;
+    edgeLines = new THREE.LineSegments(new THREE.EdgesGeometry(g, thr), new THREE.LineBasicMaterial({ color:edgeColor(), clippingPlanes: useClip?[clip]:[] }));
+    solidGroup.add(edgeLines);
+  }
+  // sommets
+  if(st.showVerts && SOLIDS[st.solid].poly){
+    vertGroup = new THREE.Group();
+    const vs = uniqueVerts(g); const vg = new THREE.SphereGeometry(st.dim*0.055, 16, 12); const vm = new THREE.MeshStandardMaterial({ color:vertColor(), emissive:0x7a4b00, emissiveIntensity:0.3, roughness:0.4 });
+    vs.forEach(p=>{ const s=new THREE.Mesh(vg, vm); s.position.copy(p); s.castShadow=true; vertGroup.add(s); });
+    solidGroup.add(vertGroup);
+  }
+  // section colorée
+  if(useClip){
+    const bb = new THREE.Box3().setFromBufferAttribute(g.attributes.position); const size=bb.getSize(new THREE.Vector3());
+    const cs = Math.max(size.x, size.z) * 1.02;
+    capMesh = new THREE.Mesh(new THREE.PlaneGeometry(cs, cs), new THREE.MeshBasicMaterial({ color:0xF5A623, transparent:true, opacity:0.6, side:THREE.DoubleSide }));
+    capMesh.rotation.x = -Math.PI/2; solidGroup.add(capMesh);
+  }
+  updateClip();
+  positionOnFloor(g);
+  updateReadout();
+}
+function positionOnFloor(g){ g.computeBoundingBox(); const minY=g.boundingBox.min.y; floor.position.y = -Math.max(2.2, -minY + 0.35); gridHelper.position.y = floor.position.y + 0.02;
+  if(contactShadow){ const sz=g.boundingBox.getSize(tmp); const foot=Math.max(sz.x,sz.z); contactShadow.position.y = floor.position.y + 0.015; contactShadow.scale.setScalar(Math.max(1.1, foot*0.9)); } }
+
+function updateClip(){
+  if(!clip) return;
+  const g = mesh ? mesh.geometry : null; let top=st.dim, bot=-st.dim;
+  if(g){ g.computeBoundingBox(); top=g.boundingBox.max.y; bot=g.boundingBox.min.y; }
+  const y = top - st.cut*(top-bot); clip.constant = y; // plan horizontal descendant
+  if(capMesh){ capMesh.position.y = y; capMesh.visible = st.cut>0 && st.cut<1; }
+}
+
+/* ============================================================ PATRONS (nets) */
+function netFaceMat(){ const c=currentColor(); return new THREE.MeshPhysicalMaterial({ color:c, roughness:0.4, metalness:0.03, clearcoat:0.4, side:THREE.DoubleSide, envMapIntensity:1 }); }
+function faceMesh2D(verts){ // verts: [[x,y],...] plan local z=0, charnière le long de X à y=0
+  const shape=new THREE.Shape(); shape.moveTo(verts[0][0],verts[0][1]); for(let i=1;i<verts.length;i++) shape.lineTo(verts[i][0],verts[i][1]); shape.closePath();
+  const g=new THREE.ShapeGeometry(shape); const m=new THREE.Mesh(g, netFaceMat()); m.castShadow=true; m.receiveShadow=true;
+  const pts=verts.map(v=>new THREE.Vector3(v[0],v[1],0)); pts.push(pts[0].clone());
+  m.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color:edgeColor() })));
+  return m;
+}
+function faceMesh3D(p0,p1,p2){ const g=new THREE.BufferGeometry().setFromPoints([p0,p1,p2]); g.setIndex([0,1,2]); g.computeVertexNormals();
+  const m=new THREE.Mesh(g, netFaceMat()); m.castShadow=true; m.receiveShadow=true;
+  m.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p0,p1,p2,p0]), new THREE.LineBasicMaterial({ color:edgeColor() }))); return m;
+}
+/* charnière : holder oriente (X=arête, Y=vers l'extérieur, Z=haut) ; fold pivote autour de X */
+function makeFlap(edgeMid, edgeDir, outward, faceVerts2D, maxAngle){
+  const ex=edgeDir.clone().normalize(); const ey=outward.clone().normalize();
+  let ez=new THREE.Vector3().crossVectors(ex,ey);
+  if(ez.y<0){ ex.negate(); ez.crossVectors(ex,ey); }
+  ez.normalize();
+  const holder=new THREE.Object3D(); holder.position.copy(edgeMid);
+  holder.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(ex,ey,ez));
+  const fold=new THREE.Object3D(); holder.add(fold);
+  fold.add(faceMesh2D(faceVerts2D));
+  const flap={ fold, maxAngle }; netFlaps.push(flap);
+  return { holder, fold };
+}
+function buildNet(){
+  netGroup = new THREE.Group(); solidGroup.add(netGroup); netFlaps=[];
+  const type = SOLIDS[st.solid].net;
+  const a = st.dim, h=a/2;
+  if(type==='cube'){
+    const base=new THREE.Mesh(new THREE.PlaneGeometry(a,a), netFaceMat()); base.rotation.x=-Math.PI/2; base.receiveShadow=true;
+    base.add(new THREE.LineSegments(new THREE.EdgesGeometry(base.geometry), new THREE.LineBasicMaterial({color:edgeColor()})));
+    netGroup.add(base);
+    const wall=[[-h,0],[h,0],[h,a],[-h,a]];
+    const R=makeFlap(new THREE.Vector3(h,0,0), new THREE.Vector3(0,0,1), new THREE.Vector3(1,0,0), wall, Math.PI/2); netGroup.add(R.holder);
+    const L=makeFlap(new THREE.Vector3(-h,0,0), new THREE.Vector3(0,0,1), new THREE.Vector3(-1,0,0), wall, Math.PI/2); netGroup.add(L.holder);
+    const B=makeFlap(new THREE.Vector3(0,0,-h), new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,-1), wall, Math.PI/2); netGroup.add(B.holder);
+    const F=makeFlap(new THREE.Vector3(0,0,h), new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,1), wall, Math.PI/2); netGroup.add(F.holder);
+    // face du dessus : charnière sur le bord haut du mur avant (repère local du mur)
+    const topHolder=new THREE.Object3D(); topHolder.position.set(0,a,0); F.fold.add(topHolder);
+    const topFold=new THREE.Object3D(); topHolder.add(topFold); topFold.add(faceMesh2D(wall)); netFlaps.push({ fold:topFold, maxAngle:Math.PI/2 });
+  } else if(type==='pyramide'){
+    const base=new THREE.Mesh(new THREE.PlaneGeometry(a,a), netFaceMat()); base.rotation.x=-Math.PI/2; base.receiveShadow=true;
+    base.add(new THREE.LineSegments(new THREE.EdgesGeometry(base.geometry), new THREE.LineBasicMaterial({color:edgeColor()})));
+    netGroup.add(base);
+    const H=a*1.2, l=Math.hypot(H, h); const alpha=Math.atan2(H, h);
+    const tri=[[-h,0],[h,0],[0,l]];
+    [[new THREE.Vector3(h,0,0),new THREE.Vector3(0,0,1),new THREE.Vector3(1,0,0)],
+     [new THREE.Vector3(-h,0,0),new THREE.Vector3(0,0,1),new THREE.Vector3(-1,0,0)],
+     [new THREE.Vector3(0,0,h),new THREE.Vector3(1,0,0),new THREE.Vector3(0,0,1)],
+     [new THREE.Vector3(0,0,-h),new THREE.Vector3(1,0,0),new THREE.Vector3(0,0,-1)]]
+     .forEach(([m,d,o])=>{ netGroup.add(makeFlap(m,d,o,tri,alpha).holder); });
+  } else if(type==='tetra'){
+    const e=a, Rc=e/Math.sqrt(3), hT=e*Math.sqrt(3)/2; const maxA=Math.PI-Math.acos(1/3);
+    const V=[0,120,240].map(deg=>{ const t=(deg+90)*Math.PI/180; return new THREE.Vector3(Rc*Math.cos(t),0,Rc*Math.sin(t)); });
+    netGroup.add(faceMesh3D(V[0],V[1],V[2])); // triangle central
+    const flap=[[-e/2,0],[e/2,0],[0,hT]];
+    for(let i=0;i<3;i++){ const p=V[i], q=V[(i+1)%3]; const mid=p.clone().add(q).multiplyScalar(0.5); const dir=q.clone().sub(p); const out=mid.clone().normalize();
+      netGroup.add(makeFlap(mid,dir,out,flap,maxA).holder); }
+  }
+  netGroup.position.y = -a*0.15;
+  applyFold();
+}
+function applyFold(){ const u=st.unfold; netFlaps.forEach(f=>{ f.fold.rotation.x = (1-u)*f.maxAngle; }); }
+
+/* ============================================================ AXES & TRANSFORMATIONS */
+function buildAxes(){
+  const g=new THREE.Group();
+  const mk=(dir,col)=>{ const a=new THREE.ArrowHelper(dir, new THREE.Vector3(0,0,0), 3.3, col, 0.4, 0.24); g.add(a); };
+  mk(new THREE.Vector3(1,0,0),0xE8556B); mk(new THREE.Vector3(0,1,0),0x33C481); mk(new THREE.Vector3(0,0,1),0x29B6E0);
+  return g;
+}
+function ghostMat(){ return new THREE.MeshPhysicalMaterial({ color:0x6E6BFF, transparent:true, opacity:0.92, roughness:0.28, metalness:0.05, clearcoat:0.5, side:THREE.DoubleSide }); }
+function faintMat(){ return new THREE.MeshStandardMaterial({ color:0x9aa2cc, transparent:true, opacity:0.26, roughness:0.7, side:THREE.DoubleSide }); }
+function clearGhost(){ ghostObjs.forEach(o=>{ scene.remove(o); o.traverse&&o.traverse(n=>{ n.geometry&&n.geometry.dispose(); n.material&&n.material.dispose&&n.material.dispose(); }); }); ghostObjs=[]; ghostTween=null; axesGroup.visible=false; }
+function playTransform(kind){
+  clearGhost(); if(st.netOn){ st.netOn=false; syncNetBtn(); rebuild(); }
+  axesGroup.visible = true; solidGroup.visible = false;
+  const { g } = buildGeom();
+  const orig=new THREE.Mesh(g.clone(), faintMat()); const ghost=new THREE.Mesh(g.clone(), ghostMat());
+  ghost.castShadow=true; scene.add(orig); scene.add(ghost); ghostObjs.push(orig,ghost);
+  let helper=null;
+  if(kind==='translation'){ orig.position.set(0,0,0); helper=new THREE.ArrowHelper(new THREE.Vector3(1,0,0),new THREE.Vector3(0,0,0),0.1,0xF5A623,0.35,0.2); scene.add(helper); ghostObjs.push(helper); }
+  else if(kind==='rotation'){ orig.position.set(0,0,0); }
+  else if(kind==='symetrie'){ orig.position.set(1.9,0,0); ghost.position.set(1.9,0,0);
+    const pl=new THREE.Mesh(new THREE.PlaneGeometry(6,6), new THREE.MeshBasicMaterial({color:0x33C481,transparent:true,opacity:0.16,side:THREE.DoubleSide})); scene.add(pl); ghostObjs.push(pl); }
+  else if(kind==='homothetie'){ orig.position.set(0,0,0); const dot=new THREE.Mesh(new THREE.SphereGeometry(0.12,16,12),new THREE.MeshBasicMaterial({color:0xF5A623})); scene.add(dot); ghostObjs.push(dot); }
+  const msg={translation:"Translation : on glisse le solide sans le déformer ni le tourner.",rotation:"Rotation : le solide pivote autour d'un axe (ici l'axe vertical).",symetrie:"Symétrie : le solide se reflète comme dans un miroir (plan vert).",homothetie:"Homothétie : on agrandit le solide depuis un centre — les proportions restent."}[kind];
+  shell.api.say(msg,'idee'); shell.sound('pop');
+  ghostTween={ kind, orig, ghost, helper, t0:performance.now(), dur:REDUCED?900:2600 };
+}
+function updateGhost(now){
+  if(!ghostTween) return; const T=ghostTween;
+  let p=Math.min(1,(now-T.t0)/T.dur); const e=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+  if(T.kind==='translation'){ T.ghost.position.set(3.4*e,0,0); if(T.helper){ T.helper.setLength(Math.max(0.05,3.4*e),0.35,0.2); } }
+  else if(T.kind==='rotation'){ T.ghost.rotation.y = e*Math.PI/2; }
+  else if(T.kind==='symetrie'){ T.ghost.position.x = 1.9-3.8*e; T.ghost.scale.x = 1-2*e; }
+  else if(T.kind==='homothetie'){ const k=1+0.85*e; T.ghost.scale.setScalar(k); }
+  if(p>=1 && !T.done){ T.done=true; }
+}
+
+/* ============================================================ RÉVOLUTION */
+function clearRev(){ revObjs.forEach(o=>{ scene.remove(o); o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); revObjs=[]; revTween=null; }
+function revProfile(){ const a=st.dim; const pts=[];
+  if(st.solid==='cylindre'){ const r=a/1.6,H=a*1.4; pts.push(new THREE.Vector2(0.001,-H/2),new THREE.Vector2(r,-H/2),new THREE.Vector2(r,H/2),new THREE.Vector2(0.001,H/2)); }
+  else if(st.solid==='cone'){ const r=a/1.4,H=a*1.5; pts.push(new THREE.Vector2(0.001,-H/2),new THREE.Vector2(r,-H/2),new THREE.Vector2(0.001,H/2)); }
+  else { const r=a/1.3; for(let i=0;i<=24;i++){ const t=-Math.PI/2+Math.PI*i/24; pts.push(new THREE.Vector2(Math.cos(t)*r,Math.sin(t)*r)); } }
+  return pts;
+}
+function playRevolution(){
+  clearRev(); if(st.netOn){ st.netOn=false; syncNetBtn(); } clearGhost(); solidGroup.visible=false; axesGroup.visible=true;
+  const pts=revProfile();
+  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts.map(p=>new THREE.Vector3(p.x,p.y,0))), new THREE.LineBasicMaterial({color:0xF5A623,linewidth:2}));
+  scene.add(line); revObjs.push(line);
+  const swept=new THREE.Mesh(new THREE.LatheGeometry(pts,4,0,0.001), solidMaterial()); swept.castShadow=true; scene.add(swept); revObjs.push(swept);
+  shell.api.say("Solide de révolution : la courbe rouge tourne autour de l'axe vertical et engendre le volume.",'idee'); shell.sound('pop');
+  revTween={ pts, line, swept, t0:performance.now(), dur:REDUCED?1000:3000, last:0 };
+}
+function updateRev(now){
+  if(!revTween) return; const T=revTween; let p=Math.min(1,(now-T.t0)/T.dur);
+  const ang=Math.max(0.02, p*Math.PI*2);
+  if(ang-T.last>0.12 || p>=1){ T.last=ang; T.swept.geometry.dispose(); T.swept.geometry=new THREE.LatheGeometry(T.pts,56,0,ang); }
+  T.line.rotation.y = ang;
+  if(p>=1 && !T.done){ T.done=true; setTimeout(()=>{ clearRev(); solidGroup.visible=true; axesGroup.visible=false; }, 700); }
+}
+
+/* ============================================================ MESURES / READOUT */
+function fmt(x){ if(!isFinite(x)) return '—'; return (Math.round(x*100)/100).toLocaleString('fr-FR'); }
+function updateReadout(){
+  const S=SOLIDS[st.solid]; const { g, dims } = buildGeom(); const m=measureGeom(g);
+  document.getElementById('ggName').textContent=S.name;
+  document.getElementById('ggSwatch').style.background='#'+S.color.toString(16).padStart(6,'0');
+  document.getElementById('ggSub').textContent = S.poly ? (isPlaton(st.solid)?'Solide de Platon · polyèdre régulier':'Polyèdre') : (S.rev?'Solide de révolution · surface courbe':'Solide');
+  // V/A/F
+  const vef=document.getElementById('ggVEF');
+  if(S.poly){ vef.style.display=''; document.getElementById('vV').textContent=S.V; document.getElementById('vA').textContent=S.E; document.getElementById('vF').textContent=S.F;
+    const euler=S.V-S.E+S.F; document.getElementById('ggEuler').innerHTML=`V − A + F = ${S.V} − ${S.E} + ${S.F} = <b>${euler}</b> ${euler===2?'<span class="ok">✓ formule d\'Euler</span>':''}`;
+    document.getElementById('ggEuler').style.display='';
+  } else { vef.style.display='none'; document.getElementById('ggEuler').style.display='none'; }
+  document.getElementById('ggDim').textContent=dims;
+  document.getElementById('ggVform').textContent='V = '+S.vf;
+  document.getElementById('ggVval').textContent=fmt(m.V)+' u³';
+  document.getElementById('ggSform').textContent='A = '+S.sf;
+  document.getElementById('ggSval').textContent=fmt(m.S)+' u²';
+  const k=st.dim; document.getElementById('ggScale').innerHTML=`Taille ×<b>${k.toFixed(2)}</b> (vs 1) → aire ×<b>${(k*k).toFixed(2)}</b> (k²), volume ×<b>${(k*k*k).toFixed(2)}</b> (k³).<br><span style="opacity:.85">Doubler la taille multiplie l'aire par 4 et le volume par 8 !</span>`;
+  g.dispose();
+}
+function isPlaton(k){ return ['tetra','cube','octa','dodeca','icosa'].includes(k); }
+
+/* ============================================================ UI */
+function buildUI(){
+  const stage=shell.api.stage;
+  const left=document.createElement('div'); left.className='gg-panel gg-left';
+  left.innerHTML=`
+    <div class="gg-sec"><h3>◆ Solide</h3><div class="gg-solids" id="ggSolids"></div></div>
+    <div class="gg-sec"><h3>Matière</h3><div class="gg-mat" id="ggMat">
+      <button class="gg-m" data-m="plein" aria-pressed="true">Plein</button>
+      <button class="gg-m" data-m="verre" aria-pressed="false">Verre</button>
+      <button class="gg-m" data-m="metal" aria-pressed="false">Métal</button>
+      <button class="gg-m" data-m="marbre" aria-pressed="false">Marbre</button>
+      <button class="gg-m" data-m="bois" aria-pressed="false">Bois</button>
+      <button class="gg-m" data-m="filaire" aria-pressed="false">Fil</button></div></div>
+    <div class="gg-sec"><h3>Éléments</h3><div class="gg-row">
+      <button class="gg-tg" id="ggEdges" aria-pressed="true">Arêtes</button>
+      <button class="gg-tg" id="ggVerts" aria-pressed="false">Sommets</button>
+      <button class="gg-tg" id="ggRot" aria-pressed="${st.autorotate}">Rotation</button></div></div>
+    <div class="gg-sec"><div class="gg-slider"><label>Taille <b id="ggDimV">2,00</b></label><input id="ggDimS" type="range" min="1" max="4" step="0.05" value="2"></div></div>
+    <div class="gg-sec"><div class="gg-slider"><label>Plan de coupe <b id="ggCutV">0 %</b></label><input id="ggCut" type="range" min="0" max="1" step="0.01" value="0"></div></div>
+    <div class="gg-sec"><h3>Patron</h3><button class="gg-btn" id="ggNet" aria-pressed="false">📦 Déplier en patron</button>
+      <div class="gg-slider" id="ggFoldWrap" style="display:none;margin-top:8px"><label>Dépliage <b id="ggFoldV">100 %</b></label><input id="ggFold" type="range" min="0" max="1" step="0.01" value="1"></div></div>
+    <div class="gg-sec"><h3>Transformations</h3><div class="gg-grid2" id="ggTf">
+      <button class="gg-tf" data-t="translation">➜ Translation</button>
+      <button class="gg-tf" data-t="rotation">↻ Rotation</button>
+      <button class="gg-tf" data-t="symetrie">◑ Symétrie</button>
+      <button class="gg-tf" data-t="homothetie">⤢ Homothétie</button></div></div>
+    <div class="gg-sec"><button class="gg-btn" id="ggRev">🌀 Solide de révolution</button></div>`;
+  stage.appendChild(left);
+
+  const right=document.createElement('div'); right.className='gg-panel gg-right';
+  right.innerHTML=`
+    <div class="name"><span class="swatch" id="ggSwatch"></span><span id="ggName">Cube</span></div>
+    <div class="gg-sub" id="ggSub"></div>
+    <div class="gg-vef" id="ggVEF">
+      <div class="b"><div class="k">Sommets</div><div class="v" id="vV">8</div></div>
+      <div class="b"><div class="k">Arêtes</div><div class="v" id="vA">12</div></div>
+      <div class="b"><div class="k">Faces</div><div class="v" id="vF">6</div></div></div>
+    <div class="gg-euler" id="ggEuler"></div>
+    <div class="gg-f"><div class="k">Dimensions</div><div class="form" id="ggDim"></div></div>
+    <div class="gg-f"><div class="k">Volume</div><div class="form" id="ggVform"></div><div class="v" id="ggVval"></div></div>
+    <div class="gg-f"><div class="k">Aire de surface</div><div class="form" id="ggSform"></div><div class="v" id="ggSval"></div></div>
+    <div class="gg-scalebox"><div class="k">Loi d'échelle</div><div class="body" id="ggScale"></div></div>`;
+  stage.appendChild(right);
+
+  const tip=document.createElement('div'); tip.className='gg-tip'; tip.id='ggTip'; stage.appendChild(tip);
+  const flash=document.createElement('div'); flash.className='gg-flash'; flash.id='ggFlash'; stage.appendChild(flash);
+
+  // solides
+  const sol=left.querySelector('#ggSolids');
+  Object.keys(SOLIDS).forEach(k=>{ const b=document.createElement('button'); b.className='gg-s'; b.dataset.k=k; b.setAttribute('aria-pressed',k===st.solid);
+    b.innerHTML=`<span class="ic">${SOLIDS[k].ic}</span>${SOLIDS[k].name}`; b.onclick=()=>setSolid(k); sol.appendChild(b); });
+  // matière
+  left.querySelectorAll('#ggMat .gg-m').forEach(b=> b.onclick=()=>{ st.matMode=b.dataset.m; left.querySelectorAll('#ggMat .gg-m').forEach(x=>x.setAttribute('aria-pressed',x.dataset.m===st.matMode)); shell.sound('click'); if(!st.netOn) rebuild(); });
+  left.querySelector('#ggEdges').onclick=e=>{ st.showEdges=!st.showEdges; e.target.setAttribute('aria-pressed',st.showEdges); shell.sound('click'); rebuild(); };
+  left.querySelector('#ggVerts').onclick=e=>{ st.showVerts=!st.showVerts; e.target.setAttribute('aria-pressed',st.showVerts); shell.sound('click'); rebuild(); };
+  left.querySelector('#ggRot').onclick=e=>{ st.autorotate=!st.autorotate; e.target.setAttribute('aria-pressed',st.autorotate); controls.autoRotate=st.autorotate; };
+  left.querySelector('#ggDimS').oninput=e=>{ st.dim=+e.target.value; document.getElementById('ggDimV').textContent=st.dim.toFixed(2); if(st.netOn) buildNet(); else rebuild(); updateReadout(); };
+  left.querySelector('#ggCut').oninput=e=>{ st.cut=+e.target.value; document.getElementById('ggCutV').textContent=Math.round(st.cut*100)+' %'; if(!st.netOn) rebuild(); };
+  left.querySelector('#ggNet').onclick=toggleNet;
+  left.querySelector('#ggFold').oninput=e=>{ st.unfold=+e.target.value; document.getElementById('ggFoldV').textContent=Math.round(st.unfold*100)+' %'; applyFold(); };
+  left.querySelectorAll('#ggTf .gg-tf').forEach(b=> b.onclick=()=>playTransform(b.dataset.t));
+  left.querySelector('#ggRev').onclick=()=>{ if(SOLIDS[st.solid].rev) playRevolution(); else { flashMsg("La révolution s'applique au cylindre, cône ou sphère."); shell.sound('bad'); } };
+  syncNetBtn();
+}
+function tip(msg){ const t=document.getElementById('ggTip'); if(t) t.textContent=msg; }
+function flashMsg(msg){ const f=document.getElementById('ggFlash'); if(!f)return; f.textContent=msg; f.classList.add('show'); clearTimeout(f._t); f._t=setTimeout(()=>f.classList.remove('show'),1800); }
+function syncNetBtn(){ const b=document.getElementById('ggNet'); if(!b)return; const ok=!!SOLIDS[st.solid].net; b.disabled=!ok; b.setAttribute('aria-pressed',st.netOn&&ok); b.textContent = st.netOn?'📦 Replier le solide':'📦 Déplier en patron'; document.getElementById('ggFoldWrap').style.display = (st.netOn&&ok)?'':'none'; }
+
+function toggleNet(){
+  if(!SOLIDS[st.solid].net) return;
+  clearGhost(); clearRev(); solidGroup.visible=true;
+  st.netOn=!st.netOn; syncNetBtn(); shell.sound('pop');
+  if(st.netOn){ st.cut=0; const cs=document.getElementById('ggCut'); if(cs){cs.value=0;document.getElementById('ggCutV').textContent='0 %';}
+    st.unfold=0; rebuild(); animateFold(1); shell.api.say(`Patron du ${SOLIDS[st.solid].name.toLowerCase()} : ses ${SOLIDS[st.solid].F} faces à plat ! Fais glisser « Dépliage » pour replier.`,'enthousiaste'); }
+  else { rebuild(); shell.api.say("Solide reformé à partir de son patron.",'fier'); }
+  // défi Cours « déplie »
+  if(quiz && quiz.q && quiz.q.kind==='action' && st.netOn){ resolveAction(); }
+}
+let foldRAF=null;
+function animateFold(target){ cancelAnimationFrame(foldRAF); const start=st.unfold, t0=performance.now(), dur=REDUCED?400:950;
+  const step=(t)=>{ const k=Math.min(1,(t-t0)/dur); st.unfold=start+(target-start)*(1-Math.pow(1-k,3)); const fs=document.getElementById('ggFold'); if(fs){fs.value=st.unfold;document.getElementById('ggFoldV').textContent=Math.round(st.unfold*100)+' %';} applyFold(); if(k<1) foldRAF=requestAnimationFrame(step); };
+  foldRAF=requestAnimationFrame(step);
+}
+
+function setSolid(k, silent){
+  st.solid=k; st.netOn=false; st.cut=0; clearGhost(); clearRev(); solidGroup.visible=true;
+  const cs=document.getElementById('ggCut'); if(cs){cs.value=0;document.getElementById('ggCutV').textContent='0 %';}
+  document.querySelectorAll('#ggSolids .gg-s').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));
+  syncNetBtn(); rebuild();
+  if(!silent){ shell.sound('click'); shell.api.say(`${SOLIDS[k].name} : observe ses faces, coupe-le, déplie-le, et lis son volume.`,'concentre'); }
+}
+function resetScene(){ clearGhost(); clearRev(); st.netOn=false; st.cut=0; solidGroup.visible=true; const cs=document.getElementById('ggCut'); if(cs){cs.value=0;document.getElementById('ggCutV').textContent='0 %';} syncNetBtn(); rebuild(); }
+
+/* ============================================================ INTERACTION / CLICK FACE */
+function onPointerDown(ev){
+  if(!mesh || !solidGroup.visible) return;
+  const r=renderer.domElement.getBoundingClientRect();
+  pointer.x=((ev.clientX-r.left)/r.width)*2-1; pointer.y=-((ev.clientY-r.top)/r.height)*2+1;
+  raycaster.setFromCamera(pointer, camera);
+  const hit=raycaster.intersectObject(mesh, false)[0];
+  if(!hit || !hit.face) return;
+  const g=mesh.geometry, pos=g.attributes.position, f=hit.face;
+  const a=new THREE.Vector3().fromBufferAttribute(pos,f.a), b=new THREE.Vector3().fromBufferAttribute(pos,f.b), c=new THREE.Vector3().fromBufferAttribute(pos,f.c);
+  if(hlOverlay){ scene.remove(hlOverlay); hlOverlay.geometry.dispose(); hlOverlay.material.dispose(); hlOverlay=null; }
+  const hg=new THREE.BufferGeometry().setFromPoints([a,b,c]); hg.setIndex([0,1,2]);
+  hlOverlay=new THREE.Mesh(hg, new THREE.MeshBasicMaterial({color:0xF5A623,transparent:true,opacity:0.7,side:THREE.DoubleSide,depthTest:false}));
+  hlOverlay.renderOrder=999; solidGroup.add(hlOverlay);
+  const area=0.5*new THREE.Vector3().subVectors(b,a).cross(new THREE.Vector3().subVectors(c,a)).length();
+  shell.sound('tick');
+  if(SOLIDS[st.solid].poly) shell.api.say(`Tu as sélectionné une face du ${SOLIDS[st.solid].name.toLowerCase()}. Un polyèdre est fait de faces planes assemblées.`,'curieux');
+  else shell.api.say(`Sur une surface courbe, il n'y a pas de « faces » planes : c'est un maillage de petits triangles.`,'curieux');
+  flashMsg(`Face sélectionnée · aire du triangle ≈ ${fmt(area)} u²`);
+}
+
+function onKey(e){ if(e.key==='r'||e.key==='R'){ st.autorotate=!st.autorotate; controls.autoRotate=st.autorotate; const b=document.getElementById('ggRot'); if(b)b.setAttribute('aria-pressed',st.autorotate); } }
+
+/* ============================================================ THÈME / RESIZE / LOOP */
+function applyTheme(){ const dark=themeDark();
+  renderer.domElement.style.background = dark
+    ? 'radial-gradient(circle at 50% 22%, #161a38 0%, #0a0c1a 55%, #05060d 100%)'
+    : 'radial-gradient(circle at 50% 20%, #f2f4ff 0%, #e2e6f8 55%, #d3d8ef 100%)';
+  if(floor) floor.material.color.set(dark?0x8a90a2:0xd8dae2);
+  if(scene && scene.background && scene.background.isTexture) scene.backgroundIntensity = dark?0.42:0.85;
+  if(composer&&composer.bloom) composer.bloom.strength = dark?0.4:0.28;
+}
+function onResize(){ const s=shell.api.stage; if(!s.clientWidth) return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); if(composer) composer.setSize(s.clientWidth,s.clientHeight); }
+function animate(){ requestAnimationFrame(animate); const now=performance.now(); controls.update();
+  updateGhost(now); updateRev(now);
+  if(capMesh && st.cut>0) capMesh.position.y = clip.constant;
+  composer.render();
+}
+
+/* ============================================================ MODE COURS */
+function mkIntOpts(correct, n){ const s=new Set([correct]); let guard=0; while(s.size<n && guard++<40){ const d=correct+(Math.random()<.5?-1:1)*(1+Math.floor(Math.random()*4)); if(d>0) s.add(d); } return [...s].sort(()=>Math.random()-.5); }
+function mkNumOpts(correct, n){ const s=new Set([Math.round(correct*100)/100]); let guard=0; while(s.size<n && guard++<40){ const f=correct*(0.55+Math.random()*1.1); s.add(Math.round(f*100)/100); } return [...s].sort(()=>Math.random()-.5); }
+
+function buildQuestions(){
+  const qs=[];
+  const rndPoly=()=>POLY_KEYS[Math.floor(Math.random()*POLY_KEYS.length)];
+  // 1 action « déplie »
+  qs.push({ kind:'action', focus:'cube', prompt:`Défi : <b>déplie ce cube</b> en patron ! Utilise le bouton « Déplier en patron ».` });
+  // 1 reconnaissance de patron
+  const netK=['cube','tetra','pyramide'][Math.floor(Math.random()*3)];
+  qs.push({ kind:'name', focus:netK, showNet:true, answer:SOLIDS[netK].name, opts:pickNames(netK), prompt:`Ce <b>patron</b> est celui de quel solide ?` });
+  // 5 questions variées
+  const gens=[
+    ()=>{ const k=rndPoly(); return { kind:'mcq', focus:k, answer:SOLIDS[k].F, opts:mkIntOpts(SOLIDS[k].F,3), prompt:`Combien de <b>faces</b> a ${article(k)} ?`, unit:'' }; },
+    ()=>{ const k=rndPoly(); return { kind:'mcq', focus:k, answer:SOLIDS[k].V, opts:mkIntOpts(SOLIDS[k].V,3), prompt:`Combien de <b>sommets</b> a ${article(k)} ?`, unit:'' }; },
+    ()=>{ const k=rndPoly(); return { kind:'mcq', focus:k, answer:SOLIDS[k].E, opts:mkIntOpts(SOLIDS[k].E,3), prompt:`Combien d'<b>arêtes</b> a ${article(k)} ?`, unit:'' }; },
+    ()=>{ const k=rndPoly(); return { kind:'mcq', focus:k, answer:2, opts:[1,2,3], prompt:`Formule d'Euler : combien vaut <b>V − A + F</b> pour ce solide ?`, unit:'' }; },
+    ()=>{ const k=rndPoly(); const v=Math.round(volumeOf(k)*100)/100; return { kind:'mcq', focus:k, answer:v, opts:mkNumOpts(v,3), prompt:`Quel est le <b>volume</b> de ce solide ?`, unit:' u³', num:true }; },
+  ];
+  const pool=[...gens];
+  for(let i=0;i<5;i++){ const ggen=pool[i%pool.length]; qs.push(ggen()); }
+  // mélange en gardant l'action pas en dernier
+  return qs;
+}
+function article(k){ const n=SOLIDS[k].name.toLowerCase(); return (/^[aeiouâêîôéè]/.test(n)?"cet ":"ce ")+n; }
+function pickNames(correctK){ const names=new Set([SOLIDS[correctK].name]); const pool=['cube','tetra','pyramide','octa','prisme','pave']; while(names.size<3){ const k=pool[Math.floor(Math.random()*pool.length)]; names.add(SOLIDS[k].name); } return [...names].sort(()=>Math.random()-.5); }
+
+function startQuiz(){ resetScene(); quiz={ idx:0, score:0, total:7, list:buildQuestions() }; shell.api.setProgress(0); askQuiz(); }
+function askQuiz(){
+  if(!quiz) return; if(quiz.idx>=quiz.total){ winQuiz(); return; }
+  const q=quiz.list[quiz.idx]; quiz.q=q;
+  shell.api.setLevel((quiz.idx+1)+'/'+quiz.total); shell.api.setProgress(quiz.idx/quiz.total);
+  // met en scène le solide concerné
+  if(q.showNet){ setSolid(q.focus,true); st.netOn=true; syncNetBtn(); st.unfold=1; rebuild(); }
+  else { st.netOn=false; syncNetBtn(); setSolid(q.focus,true); }
+  let bar=document.getElementById('ggQuiz'); if(!bar){ bar=document.createElement('div'); bar.className='gg-quiz'; bar.id='ggQuiz'; shell.api.stage.appendChild(bar); }
+  if(q.kind==='action'){
+    bar.innerHTML=`<span class="qn">Défi ${quiz.idx+1}/${quiz.total}</span><div class="q">${q.prompt}</div><div class="gg-action-hint">👉 Clique sur « 📦 Déplier en patron » à gauche.</div>`;
+    shell.api.say("Déplie le cube pour valider ce défi. Prends ton temps !",'encourageant');
+  } else {
+    const opts=q.opts.map(o=>`<button class="gg-opt" data-o="${o}">${q.num?fmt(o):o}${q.unit||''}</button>`).join('');
+    bar.innerHTML=`<span class="qn">Défi ${quiz.idx+1}/${quiz.total}</span><div class="q">${q.prompt}</div><div class="gg-opts">${opts}</div>`;
+    bar.querySelectorAll('.gg-opt').forEach(b=> b.onclick=()=>answer(b, q));
+    shell.api.say("Observe le solide et choisis ta réponse. Aucune pénalité — on apprend !",'curieux');
+  }
+}
+function answer(btn, q){
+  const val=q.num?parseFloat(btn.dataset.o):(q.kind==='name'?btn.dataset.o:parseFloat(btn.dataset.o));
+  const good = q.kind==='name' ? (val===q.answer) : (Math.abs(val-q.answer)<0.02);
+  document.querySelectorAll('#ggQuiz .gg-opt').forEach(b=>b.disabled=true);
+  if(good){ btn.classList.add('good'); shell.sound('good'); shell.api.addScore(150); quiz.score++; shell.api.say("Exact, bravo ! 🎉",'fier'); }
+  else { btn.classList.add('bad'); shell.sound('bad'); document.querySelectorAll('#ggQuiz .gg-opt').forEach(b=>{ const bv=q.num?parseFloat(b.dataset.o):(q.kind==='name'?b.dataset.o:parseFloat(b.dataset.o)); if((q.kind==='name'?bv===q.answer:Math.abs(bv-q.answer)<0.02)) b.classList.add('good'); });
+    shell.api.say(`Ce n'est pas grave — la bonne réponse est ${q.kind==='name'?q.answer:(q.num?fmt(q.answer)+(q.unit||''):q.answer)}. On continue !`,'rassurant'); }
+  nextSoon();
+}
+function resolveAction(){ if(!quiz||!quiz.q||quiz.q.kind!=='action')return; shell.sound('good'); shell.api.addScore(150); quiz.score++; shell.api.say("Patron déplié — parfait ! Un patron sert à calculer l'aire de surface.",'fier'); flashMsg('Défi réussi ! +150'); nextSoon(); }
+function nextSoon(){ quiz.idx++; shell.api.setProgress(quiz.idx/quiz.total); quiz.q=null; setTimeout(()=>{ if(quiz) askQuiz(); }, 1500); }
+function winQuiz(){ const bar=document.getElementById('ggQuiz'); if(bar)bar.remove();
+  const s=quiz.score, total=quiz.total; const pct=s/total; const stars=pct>=0.85?3:pct>=0.5?2:1;
+  shell.api.win({ score:s*150, stars, title:`${s}/${total} défis réussis`, learned:shell.cfg.learned,
+    buddy: stars===3?"Maître des solides ! Tu maîtrises Euler, les patrons et les volumes.":"Beau parcours — retiens : V − A + F = 2, et le patron sert à calculer l'aire.",
+    onNext:()=>{ shell.api.setScore(0); shell.api.setStars(0); startQuiz(); }, nextLabel:'Rejouer' });
+  quiz=null;
+}
+</script>
+</body>
+</html>

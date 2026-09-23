@@ -431,3 +431,11 @@ Partie C : 5 points (2 pour le calcul, 2 pour l'énoncé de la loi, 1 pour l'exp
 Partie D : 5 points (1,5 pour le triangle, 1,5 pour le couvercle, 2 pour la rédaction sur l'aération).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

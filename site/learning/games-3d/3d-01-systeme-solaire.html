@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Système solaire</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .ss-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 86%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(14px); }
+  .ss-search { top:14px; left:50%; transform:translateX(-50%); width:min(360px,76vw); padding:0; }
+  .ss-search input { width:100%; font-family:var(--font-body); font-size:14px; height:44px; padding:0 16px 0 40px; border:none; background:transparent; color:var(--fg); outline:none; border-radius:14px; }
+  .ss-search .mag { position:absolute; left:14px; top:13px; opacity:.6; }
+  .ss-sugg { position:absolute; top:48px; left:0; right:0; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-lg); overflow:hidden; max-height:340px; overflow-y:auto; display:none; }
+  .ss-sugg.show { display:block; }
+  .ss-sugg .grp { font-family:var(--font-mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); padding:8px 14px 3px; }
+  .ss-sugg button { width:100%; text-align:left; border:none; background:none; padding:9px 14px; font-size:14px; color:var(--fg); cursor:pointer; display:flex; align-items:center; gap:10px; }
+  .ss-sugg button:hover, .ss-sugg button.active { background:var(--accent-weak); }
+  .ss-sugg .dot { width:13px; height:13px; border-radius:999px; flex:none; }
+  .ss-sugg .k { font-family:var(--font-mono); font-size:10px; color:var(--fg-muted); margin-left:auto; }
+  .ss-controls { top:70px; left:14px; width:230px; padding:14px; display:flex; flex-direction:column; gap:13px; max-height:calc(100% - 92px); overflow:auto; }
+  .ss-controls h3 { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 7px; }
+  .ss-toggles { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .ss-tg { font-family:var(--font-body); font-weight:700; font-size:11.5px; padding:7px 6px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; min-height:34px; }
+  .ss-tg[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ss-tg:focus-visible { outline:none; box-shadow:var(--ring); }
+  .ss-time { display:flex; flex-direction:column; gap:7px; }
+  .ss-date { font-family:var(--font-data); font-weight:700; font-size:14px; text-align:center; }
+  .ss-speedrow { display:flex; align-items:center; gap:6px; }
+  .ss-speedrow input { flex:1; accent-color:var(--accent); }
+  .ss-spd { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); min-width:54px; text-align:right; }
+  .ss-mini { font: inherit; font-weight:700; font-size:11px; padding:6px 9px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; }
+  .ss-kbd { font-family:var(--font-mono); font-size:10px; color:var(--fg-muted); line-height:1.6; }
+  .ss-kbd b { color:var(--fg); background:var(--surface-2); border:1px solid var(--border); border-radius:4px; padding:0 4px; }
+  .ss-info { right:14px; top:14px; width:330px; padding:0; overflow:hidden; transform:translateX(125%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; }
+  .ss-info.show { transform:none; }
+  .ss-info-hd { padding:18px; color:#fff; position:relative; flex:none; display:flex; gap:14px; align-items:center; }
+  .ss-info-hd img { width:64px; height:64px; border-radius:999px; object-fit:cover; flex:none; box-shadow:0 4px 14px rgba(0,0,0,.4); background:#000; }
+  .ss-info-hd h2 { font-family:var(--font-title); font-weight:800; font-size:24px; margin:0; }
+  .ss-info-hd .sub { font-family:var(--font-mono); font-size:11px; opacity:.92; text-transform:uppercase; letter-spacing:.05em; }
+  .ss-info-close { position:absolute; top:12px; right:12px; width:28px; height:28px; border-radius:8px; border:none; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:16px; }
+  .ss-info-body { padding:16px 18px 20px; overflow:auto; }
+  .ss-sec { font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:14px 0 8px; }
+  .ss-sec:first-child { margin-top:0; }
+  .ss-stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px 14px; }
+  .ss-st .k { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--fg-muted); }
+  .ss-st .v { font-family:var(--font-data); font-weight:700; font-size:14px; }
+  .ss-info-body p { font-size:13.5px; line-height:1.6; margin:0 0 9px; color:var(--fg); }
+  .ss-fun { background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.5; color:var(--accent-text); }
+  .ss-moonchips { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .ss-moonchips button { font-family:var(--font-mono); font-size:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); border-radius:999px; padding:4px 10px; cursor:pointer; }
+  .ss-label { position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 72%,transparent); padding:2px 7px; border-radius:6px; pointer-events:none; z-index:15; border:1px solid var(--border); white-space:nowrap; }
+  .ss-hint { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; }
+  .ss-quiz { position:absolute; top:68px; left:50%; transform:translateX(-50%); z-index:22; background:var(--accent); color:#fff; border-radius:14px; padding:12px 18px; box-shadow:var(--shadow-lg); font-weight:700; font-size:15px; display:flex; align-items:center; gap:12px; max-width:90%; }
+  .ss-quiz .qn { font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 10px; font-size:12px; }
+  .ss-mission { position:absolute; inset:0; z-index:40; pointer-events:none; display:none; font-family:var(--font-body); }
+  .ss-mission.on { display:block; }
+  .ss-m-top { position:absolute; top:18px; left:50%; transform:translateX(-50%); text-align:center; max-width:min(560px,90vw); pointer-events:none; }
+  .ss-m-phase { font-family:var(--font-mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#9fd0ff; margin-bottom:6px; }
+  .ss-m-title { font-family:var(--font-display,var(--font-body)); font-weight:800; font-size:25px; color:#fff; text-shadow:0 2px 18px rgba(0,0,0,.7); margin:0 0 6px; }
+  .ss-m-cap { font-size:14px; color:#dfe9ff; text-shadow:0 1px 8px rgba(0,0,0,.7); line-height:1.4; }
+  .ss-m-tel { position:absolute; top:18px; right:18px; background:rgba(8,12,26,.62); backdrop-filter:blur(7px); border:1px solid rgba(120,160,255,.28); border-radius:14px; padding:12px 15px; color:#eaf1ff; min-width:148px; }
+  .ss-m-tel .row { display:flex; justify-content:space-between; gap:14px; font-size:12.5px; padding:3px 0; }
+  .ss-m-tel .row b { font-family:var(--font-data,var(--font-mono)); font-weight:700; }
+  .ss-m-tel .vok b { color:#7ef5b0; } .ss-m-tel .vbad b { color:#ff8d7a; }
+  .ss-m-tel .gauge { height:7px; border-radius:5px; background:rgba(255,255,255,.14); margin-top:6px; overflow:hidden; }
+  .ss-m-tel .gauge i { display:block; height:100%; background:linear-gradient(90deg,#29B6E0,#6E6BFF); border-radius:5px; transition:width .12s; }
+  .ss-m-act { position:absolute; bottom:88px; left:50%; transform:translateX(-50%); display:flex; gap:12px; align-items:center; flex-direction:column; pointer-events:auto; }
+  .ss-m-btn { font-family:var(--font-body); font-weight:800; font-size:17px; padding:15px 30px; border-radius:14px; border:none; background:linear-gradient(135deg,#F5A623,#E63329); color:#fff; cursor:pointer; box-shadow:0 8px 28px rgba(230,51,41,.45); transition:transform .12s, box-shadow .12s; touch-action:none; }
+  .ss-m-btn:hover { transform:translateY(-2px); box-shadow:0 12px 34px rgba(230,51,41,.55); }
+  .ss-m-btn.thrust { background:linear-gradient(135deg,#29B6E0,#6E6BFF); box-shadow:0 8px 28px rgba(110,107,255,.5); }
+  .ss-m-btn:active, .ss-m-btn.held { transform:scale(.96); }
+  .ss-m-quit { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); pointer-events:auto; font-family:var(--font-body); font-weight:700; font-size:13px; padding:9px 18px; border-radius:11px; border:1px solid rgba(255,255,255,.32); background:rgba(8,12,26,.55); color:#dfe9ff; cursor:pointer; }
+  /* ====== contrôles d'alunissage (mode facile / manuel) ====== */
+  .ss-lc { display:flex; flex-direction:column; gap:10px; align-items:center; pointer-events:auto; }
+  .ss-lc-modes { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .ss-lc-mode, .ss-lc-tog { font-family:var(--font-body); font-weight:800; font-size:12.5px; min-height:44px; padding:8px 13px; border-radius:12px; border:1px solid rgba(255,255,255,.28); background:rgba(8,12,26,.6); color:#eaf1ff; cursor:pointer; backdrop-filter:blur(6px); }
+  .ss-lc-mode { background:linear-gradient(135deg,#2fae6a,#1f8f52); border:none; box-shadow:0 6px 20px rgba(47,174,106,.4); }
+  .ss-lc-mode.manual { background:linear-gradient(135deg,#E6633C,#c23f22); box-shadow:0 6px 20px rgba(230,99,60,.4); }
+  .ss-lc-tog[aria-pressed="true"] { background:rgba(126,200,255,.22); border-color:#7ec8ff; color:#fff; }
+  .ss-lc-tog:disabled { opacity:.4; cursor:not-allowed; }
+  .ss-lc-pad { display:flex; gap:14px; align-items:center; }
+  .ss-lc-dir { width:64px; height:64px; border-radius:16px; border:1px solid rgba(255,255,255,.3); background:rgba(8,12,26,.6); color:#fff; font-size:24px; cursor:pointer; backdrop-filter:blur(6px); touch-action:none; }
+  .ss-lc-dir:active, .ss-lc-dir.held { transform:scale(.94); background:rgba(110,107,255,.45); border-color:#8f8bff; }
+  .ss-lc-thrust { min-width:158px; height:72px; border-radius:18px; border:none; background:linear-gradient(135deg,#29B6E0,#6E6BFF); color:#fff; font-weight:800; font-size:16px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; box-shadow:0 8px 28px rgba(110,107,255,.5); touch-action:none; }
+  .ss-lc-thrust span { font-size:11.5px; letter-spacing:.06em; opacity:.92; }
+  .ss-lc-thrust:active, .ss-lc-thrust.held { transform:scale(.96); box-shadow:0 4px 18px rgba(110,107,255,.75); }
+  .ss-lc-legend { font-size:12px; color:#cfd9f2; text-shadow:0 1px 6px rgba(0,0,0,.7); text-align:center; max-width:92vw; line-height:1.4; }
+  .ss-lc-legend b { font-family:var(--font-mono); background:rgba(255,255,255,.14); border-radius:5px; padding:1px 6px; }
+  .ss-m-flash { position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .25s; }
+  /* mini-stepper des phases + témoin de contact */
+  .ss-m-steps { display:flex; gap:5px; justify-content:center; margin-top:9px; }
+  .ss-m-steps i { width:8px; height:8px; border-radius:999px; background:rgba(255,255,255,.22); transition:.2s; }
+  .ss-m-steps i.done { background:#7ec8ff; }
+  .ss-m-steps i.now { background:#fff; box-shadow:0 0 0 3px rgba(126,200,255,.35); }
+  .ss-m-contact { margin-top:8px; text-align:center; font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; color:#3a4152; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:4px 0; transition:.15s; }
+  .ss-m-contact.on { color:#04120a; background:#7ef5b0; border-color:#7ef5b0; box-shadow:0 0 16px rgba(126,245,176,.55); font-weight:800; }
+  /* ====== ÉCRAN DE FIN — Apollo 11 ====== */
+  .ss-end { position:absolute; inset:0; z-index:60; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:24px 16px; background:radial-gradient(120% 80% at 50% -10%,#0a1636,#04060f 60%,#010208); font-family:var(--font-body); -webkit-tap-highlight-color:transparent; }
+  .ss-end-card { position:relative; width:min(660px,96vw); border-radius:22px; border:1px solid rgba(120,160,255,.22); background:linear-gradient(180deg,rgba(14,20,42,.92),rgba(8,11,26,.96)); box-shadow:0 30px 90px rgba(0,0,0,.6); overflow:hidden; color:#eaf1ff; animation:ssEndIn .5s cubic-bezier(.22,1,.36,1); }
+  @keyframes ssEndIn { from{opacity:0; transform:translateY(22px) scale(.98)} to{opacity:1; transform:none} }
+  /* héros : lever de Terre au-dessus de l'horizon lunaire */
+  .ss-hero { position:relative; height:190px; overflow:hidden; background:linear-gradient(180deg,#04060f 0%,#070b1c 60%,#0b1024 100%); }
+  .ss-hero .stars { position:absolute; inset:0; background-image:radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 70% 20%,#cfe0ff,transparent),radial-gradient(1px 1px at 45% 55%,#fff,transparent),radial-gradient(1.5px 1.5px at 85% 42%,#fff,transparent),radial-gradient(1px 1px at 12% 68%,#dfe9ff,transparent),radial-gradient(1px 1px at 60% 72%,#fff,transparent); opacity:.85; }
+  .ss-earth { position:absolute; left:50%; top:34px; transform:translateX(-50%); width:96px; height:96px; border-radius:999px; background:radial-gradient(circle at 34% 30%,#bfe0ff 0%,#4d97e6 30%,#1f5fae 55%,#0c356e 78%,#06203f 100%); box-shadow:0 0 34px 8px rgba(90,160,255,.35), inset -14px -12px 26px rgba(0,0,0,.5); animation:ssEarthF 9s ease-in-out infinite alternate; }
+  .ss-earth::after { content:""; position:absolute; inset:0; border-radius:999px; background:radial-gradient(circle at 60% 68%,rgba(255,255,255,.28),transparent 42%),radial-gradient(circle at 30% 62%,rgba(255,255,255,.18),transparent 38%); mix-blend-mode:screen; }
+  @keyframes ssEarthF { from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(-7px)} }
+  .ss-horizon { position:absolute; left:-10%; right:-10%; bottom:-70px; height:150px; border-radius:50%/60px; background:linear-gradient(180deg,#3a3a40,#17171b); box-shadow:0 -2px 0 rgba(255,255,255,.10), inset 0 8px 26px rgba(255,255,255,.05); }
+  .ss-horizon::before { content:""; position:absolute; left:22%; top:26px; width:34px; height:14px; border-radius:50%; background:radial-gradient(circle at 40% 30%,#2a2a2e,#0e0e11); box-shadow:120px 10px 0 -3px #14141a, 210px -4px 0 -6px #16161c; }
+  .ss-end-badge { position:absolute; right:16px; top:14px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .ss-end-badge svg { filter:drop-shadow(0 4px 12px rgba(245,166,35,.5)); }
+  .ss-end-body { padding:20px 22px 22px; }
+  .ss-end-flag { display:inline-block; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#9fd0ff; }
+  .ss-end-h { font-family:var(--font-title,var(--font-body)); font-weight:800; font-size:27px; margin:5px 0 4px; color:#fff; }
+  .ss-end-sub { font-size:13.5px; color:#c6d2ea; margin:0 0 16px; line-height:1.5; }
+  .ss-quote { position:relative; border-left:3px solid var(--brand-amber,#F5A623); padding:2px 0 2px 14px; margin:0 0 14px; }
+  .ss-quote .o { font-size:16px; font-style:italic; color:#fff; line-height:1.45; }
+  .ss-quote .fr { font-size:12.5px; color:#a9b6d4; margin-top:3px; }
+  .ss-quote .by { display:block; font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; color:#7f8bab; margin-top:6px; text-transform:uppercase; }
+  /* lecteur audio contrôlable + sous-titres */
+  .ss-aud { background:rgba(255,255,255,.05); border:1px solid rgba(120,160,255,.18); border-radius:14px; padding:12px 13px; margin:0 0 16px; }
+  .ss-aud-tabs { display:flex; gap:6px; margin-bottom:10px; }
+  .ss-aud-tabs button { flex:1; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.03em; padding:6px 4px; border-radius:8px; border:1px solid rgba(120,160,255,.22); background:transparent; color:#c6d2ea; cursor:pointer; }
+  .ss-aud-tabs button[aria-selected="true"] { background:rgba(126,200,255,.16); border-color:#7ec8ff; color:#fff; }
+  .ss-aud-row { display:flex; align-items:center; gap:11px; }
+  .ss-aud-play { flex:none; width:46px; height:46px; border-radius:999px; border:none; background:linear-gradient(135deg,#29B6E0,#6E6BFF); color:#fff; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(110,107,255,.45); }
+  .ss-aud-play:focus-visible, .ss-b:focus-visible, .ss-aud-tabs button:focus-visible { outline:2px solid #7ec8ff; outline-offset:2px; }
+  .ss-aud-mid { flex:1; }
+  .ss-aud-bar { height:6px; border-radius:5px; background:rgba(255,255,255,.14); overflow:hidden; cursor:pointer; }
+  .ss-aud-bar i { display:block; height:100%; width:0; background:linear-gradient(90deg,#29B6E0,#6E6BFF); border-radius:5px; }
+  .ss-aud-time { font-family:var(--font-mono); font-size:10px; color:#8b97b6; margin-top:4px; display:flex; justify-content:space-between; }
+  .ss-sub { min-height:38px; margin-top:9px; text-align:center; }
+  .ss-sub .o { font-size:14px; font-style:italic; color:#fff; }
+  .ss-sub .fr { font-size:11.5px; color:#9fb0d4; margin-top:2px; }
+  .ss-reward { display:flex; align-items:center; gap:12px; background:rgba(245,166,35,.08); border:1px solid rgba(245,166,35,.28); border-radius:12px; padding:11px 13px; margin:0 0 16px; }
+  .ss-reward .xp { font-family:var(--font-data,var(--font-mono)); font-weight:800; font-size:22px; color:#F5A623; }
+  .ss-reward .lbl { font-size:12px; color:#e7d2a8; line-height:1.4; }
+  .ss-end-row { display:flex; flex-wrap:wrap; gap:10px; }
+  .ss-b { flex:1; min-width:140px; font-family:var(--font-body); font-weight:800; font-size:14.5px; padding:13px 16px; border-radius:12px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#eaf1ff; cursor:pointer; transition:transform .12s,background .15s; }
+  .ss-b:hover { transform:translateY(-2px); }
+  .ss-b.primary { border:none; background:linear-gradient(135deg,#F5A623,#E63329); color:#fff; box-shadow:0 8px 24px rgba(230,51,41,.4); }
+  .ss-b.next { border:none; background:linear-gradient(135deg,#29B6E0,#6E6BFF); color:#fff; }
+  @media (prefers-reduced-motion: reduce){ .ss-end-card,.ss-earth{animation:none} }
+  @media (max-width:720px){ .ss-controls{width:172px;padding:10px} .ss-info{width:min(330px,86vw)} .ss-m-title{font-size:20px} .ss-end-h{font-size:22px} .ss-hero{height:150px} .ss-earth{width:74px;height:74px} }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
+import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+const REDUCED = window.Konstrio.REDUCED;
+
+/* cellules de la planche photo (5 colonnes × 5 lignes) */
+const CELL = { sun:[0,0], mercure:[0,1], venus:[0,2], terre:[0,3], lune:[0,4],
+  mars:[1,0], jupiter:[1,1], saturne:[1,2], uranus:[1,3], neptune:[1,4],
+  pluton:[2,0], vesta:[2,1], tethys:[2,2], callisto:[2,3], europe:[2,4],
+  io:[3,0], titan:[3,1], mimas:[3,2], ganymede:[3,3], triton:[3,4],
+  phobos:[4,0], deimos:[4,1], dione:[4,2], rhea:[4,3], japet:[4,4] };
+
+/* ====== DONNÉES RICHES ====== */
+const DATA = {
+  sun: { name:'Soleil', sub:'Étoile naine jaune · type G2V', color:'#F5A623', stats:[['Diamètre','1 392 700 km'],['Masse','1,99 × 10³⁰ kg'],['Température (surface)','5 500 °C'],['Température (cœur)','15 millions °C'],['Composition','74 % H · 24 % He'],['Âge','4,6 milliards d\'années'],['Rotation','25 jours (équateur)'],['Distance Terre','149,6 millions km']],
+    desc:["Le Soleil est l'étoile autour de laquelle gravite tout notre système. À lui seul, il concentre 99,86 % de la masse totale : sa gravité gouverne la danse des planètes.","Au cœur, la fusion nucléaire transforme chaque seconde 600 millions de tonnes d'hydrogène en hélium, libérant l'énergie qui met 8 minutes à nous parvenir sous forme de lumière.","Sa surface bouillonnante, la photosphère, est parcourue de taches sombres et d'éruptions qui projettent des particules : c'est l'origine des aurores polaires."],
+    fun:"Si le Soleil était une porte de 2 m, la Terre serait un grain de sable de 1,8 cm posé à 215 m de là." },
+  mercure: { name:'Mercure', sub:'Planète tellurique · la plus proche', color:'#9c8a7a', stats:[['Distance au Soleil','57,9 M km (0,39 UA)'],['Diamètre','4 879 km'],['Année','88 jours'],['Jour solaire','176 jours'],['Température','-173 à 427 °C'],['Lunes','0'],['Gravité','0,38 g'],['Atmosphère','quasi inexistante']],
+    desc:["Mercure file autour du Soleil en seulement 88 jours : c'est la planète la plus rapide. Mais elle tourne très lentement sur elle-même.","Sans atmosphère pour retenir la chaleur, elle subit les plus grands écarts de température du système solaire : brûlante le jour, glaciale la nuit.","Sa surface criblée de cratères ressemble à celle de la Lune, gardant la mémoire de 4 milliards d'années de collisions."],
+    fun:"Sur Mercure, une journée (du lever au lever du Soleil) dure deux années mercuriennes !" },
+  venus: { name:'Vénus', sub:'Planète tellurique · « l\'étoile du berger »', color:'#d9a86a', stats:[['Distance au Soleil','108,2 M km (0,72 UA)'],['Diamètre','12 104 km'],['Année','225 jours'],['Jour','243 jours (rétrograde)'],['Température','464 °C'],['Lunes','0'],['Pression','92 × la Terre'],['Atmosphère','96 % CO₂']],
+    desc:["Vénus est la jumelle de la Terre par la taille, mais un enfer : son atmosphère épaisse de CO₂ piège la chaleur dans un effet de serre emballé, la rendant plus chaude que Mercure.","Une pression écrasante, équivalente à 900 m sous l'océan, et des pluies d'acide sulfurique règnent à sa surface.","Fait étrange : elle tourne à l'envers, si bien que le Soleil s'y lève à l'ouest."],
+    fun:"Vénus est l'objet le plus brillant du ciel après le Soleil et la Lune — d'où son surnom d'étoile du berger." },
+  terre: { name:'Terre', sub:'Notre planète · zone habitable', color:'#2e7fd6', stats:[['Distance au Soleil','149,6 M km (1 UA)'],['Diamètre','12 742 km'],['Année','365,25 jours'],['Jour','23 h 56 min'],['Température moy.','15 °C'],['Lunes','1 (la Lune)'],['Eau','71 % de la surface'],['Âge','4,54 milliards d\'années']],
+    desc:["La Terre est, à ce jour, le seul monde connu abritant la vie. Sa distance au Soleil place l'eau liquide à sa surface : ni trop chaud, ni trop froid.","Son champ magnétique, généré par un noyau de fer en fusion, nous protège du vent solaire, tandis que son atmosphère filtre les rayons dangereux.","La Lune stabilise l'inclinaison de son axe, garantissant des saisons régulières depuis des milliards d'années."],
+    fun:"Vue de l'espace, la Terre est une bille bleue : c'est le « point bleu pâle » photographié par la sonde Voyager à 6 milliards de km." },
+  mars: { name:'Mars', sub:'Planète tellurique · la planète rouge', color:'#c1440e', stats:[['Distance au Soleil','227,9 M km (1,52 UA)'],['Diamètre','6 779 km'],['Année','687 jours'],['Jour','24 h 37 min'],['Température','-63 °C'],['Lunes','2 (Phobos, Déimos)'],['Gravité','0,38 g'],['Atmosphère','95 % CO₂ (ténue)']],
+    desc:["Mars doit sa couleur rouille à l'oxyde de fer qui recouvre sa surface. C'est la planète la plus explorée après la Terre.","Elle abrite Olympus Mons, un volcan de 22 km de haut (trois fois l'Everest), et Valles Marineris, un canyon long comme les États-Unis.","Des traces de rivières asséchées prouvent que de l'eau liquide y a coulé : Mars est la cible n°1 dans la recherche d'une vie passée."],
+    fun:"Une journée martienne, le « sol », dure 24 h 37 min — presque comme la nôtre. Les rovers vivent à l'heure de Mars !" },
+  jupiter: { name:'Jupiter', sub:'Géante gazeuse · la plus grande', color:'#d8a86b', stats:[['Distance au Soleil','778 M km (5,2 UA)'],['Diamètre','139 820 km'],['Année','11,9 ans'],['Jour','9 h 56 min'],['Température','-110 °C'],['Lunes','95+ (Io, Europe…)'],['Composition','H et He'],['Masse','2,5 × toutes les autres planètes']],
+    desc:["Jupiter est si massive qu'elle pèse plus que toutes les autres planètes réunies. C'est une boule de gaz sans surface solide.","Sa Grande Tache rouge est une tempête anticyclonique vieille de plus de 350 ans, assez grande pour engloutir la Terre.","Ses quatre grandes lunes, découvertes par Galilée en 1610, furent la première preuve que tout ne tourne pas autour de la Terre."],
+    fun:"Jupiter tourne si vite (moins de 10 h) qu'elle est visiblement aplatie aux pôles : c'est le jour le plus court du système solaire." },
+  saturne: { name:'Saturne', sub:'Géante gazeuse · le seigneur des anneaux', color:'#e3c98a', stats:[['Distance au Soleil','1,43 Md km (9,6 UA)'],['Diamètre','116 460 km'],['Année','29,5 ans'],['Jour','10 h 42 min'],['Température','-140 °C'],['Lunes','146+ (Titan…)'],['Densité','0,69 (flotterait sur l\'eau)'],['Anneaux','> 280 000 km de large']],
+    desc:["Saturne est célèbre pour ses anneaux spectaculaires, composés de milliards de morceaux de glace et de roche, de la taille d'un grain de poussière à celle d'une maison.","Bien que 9 fois plus large que la Terre, elle est si peu dense qu'elle flotterait dans une (gigantesque) baignoire.","Sa lune Titan possède une atmosphère épaisse et des lacs de méthane liquide — un monde fascinant pour la science."],
+    fun:"Les anneaux de Saturne sont immenses mais ultra-fins : à peine 10 m d'épaisseur par endroits, pour 280 000 km de large." },
+  uranus: { name:'Uranus', sub:'Géante de glace · couchée sur le côté', color:'#9fdbe0', stats:[['Distance au Soleil','2,87 Md km (19,2 UA)'],['Diamètre','50 724 km'],['Année','84 ans'],['Jour','17 h 14 min'],['Température','-195 °C'],['Lunes','28'],['Inclinaison axe','98°'],['Composition','glaces, méthane']],
+    desc:["Uranus roule littéralement sur le côté : son axe est incliné à 98°, sans doute après une collision géante. Résultat : ses pôles font face au Soleil à tour de rôle.","Le méthane de son atmosphère absorbe le rouge et lui donne sa teinte bleu-vert.","Une saison y dure plus de 20 ans : chaque pôle connaît 42 ans de jour continu puis 42 ans de nuit."],
+    fun:"Uranus fut la première planète découverte au télescope, en 1781, par William Herschel." },
+  neptune: { name:'Neptune', sub:'Géante de glace · la plus lointaine', color:'#3b5bdb', stats:[['Distance au Soleil','4,5 Md km (30 UA)'],['Diamètre','49 244 km'],['Année','165 ans'],['Jour','16 h'],['Température','-200 °C'],['Lunes','16 (Triton)'],['Vents','jusqu\'à 2 100 km/h'],['Découverte','1846 (par le calcul)']],
+    desc:["Neptune est la planète la plus éloignée du Soleil, invisible à l'œil nu. Elle fut découverte non par observation, mais par calcul mathématique.","C'est le monde le plus venteux : des bourrasques y dépassent 2 000 km/h, plus rapides que le son sur Terre.","Sa grande lune Triton orbite à l'envers : ce serait un objet capturé venu des confins glacés du système solaire."],
+    fun:"Depuis sa découverte en 1846, Neptune n'a accompli qu'une seule orbite complète, achevée en 2011." },
+  pluton: { name:'Pluton', sub:'Planète naine · ceinture de Kuiper', color:'#caa890', stats:[['Distance au Soleil','5,9 Md km (39 UA)'],['Diamètre','2 377 km'],['Année','248 ans'],['Jour','6,4 jours'],['Température','-229 °C'],['Lunes','5 (Charon…)'],['Statut','planète naine (2006)'],['Découverte','1930']],
+    desc:["Longtemps 9ᵉ planète, Pluton a été reclassée « planète naine » en 2006 car elle partage son orbite avec d'autres objets de la ceinture de Kuiper.","En 2015, la sonde New Horizons a révélé un monde surprenant : une immense plaine de glace en forme de cœur, des montagnes de glace d'eau.","Pluton et sa lune Charon, presque aussi grande, forment une « planète double » qui tourne autour d'un point situé entre les deux."],
+    fun:"Sur Pluton, le Soleil n'est qu'un point très brillant : il y fait à peine plus clair qu'un soir de pleine Lune sur Terre." },
+};
+const MOON = (name, parent, txt) => ({ name, sub:'Lune de '+parent, color:'#bbbbcc', moon:true, stats:[['Astre parent',parent]], desc:[txt], fun:'' });
+Object.assign(DATA, {
+  lune: { name:'Lune', sub:'Satellite naturel de la Terre', color:'#cfcfcf', stats:[['Distance Terre','384 400 km'],['Diamètre','3 474 km'],['Période','27,3 jours'],['Gravité','0,17 g'],['Température','-173 à 127 °C']],
+    desc:["La Lune est le seul astre, hors la Terre, foulé par l'être humain (1969-1972). Elle s'éloigne de nous de 3,8 cm par an.","Sa gravité provoque les marées et stabilise l'axe de rotation de la Terre, condition essentielle à un climat stable.","Elle nous montre toujours la même face car sa rotation est synchronisée avec son orbite."],
+    fun:"Les empreintes des astronautes d'Apollo resteront visibles des millions d'années : sans vent ni pluie, rien ne les efface." },
+  io: MOON('Io','Jupiter',"Le corps le plus volcanique du système solaire : ses 400 volcans crachent du soufre, repeignant sa surface en jaune et orange."),
+  europe: MOON('Europe','Jupiter',"Sous sa croûte de glace lisse se cache un océan d'eau salée deux fois plus vaste que tous les océans terrestres : un candidat majeur pour la vie."),
+  ganymede: MOON('Ganymède','Jupiter',"La plus grande lune du système solaire, plus grosse que Mercure, et la seule à posséder son propre champ magnétique."),
+  callisto: MOON('Callisto','Jupiter',"Sa surface, criblée de cratères, est l'une des plus anciennes et stables connues : un véritable musée de l'histoire du système solaire."),
+  titan: MOON('Titan','Saturne',"La seule lune à atmosphère dense. Il y pleut du méthane qui forme rivières, lacs et mers — le seul autre monde avec des liquides stables en surface."),
+  mimas: MOON('Mimas','Saturne',"Son énorme cratère Herschel lui donne des airs d'« Étoile de la Mort » de Star Wars."),
+  tethys: MOON('Téthys','Saturne',"Une lune de glace presque pure, marquée par un canyon géant, Ithaca Chasma, qui en fait presque le tour."),
+  dione: MOON('Dioné','Saturne',"Ses falaises de glace brillantes furent prises pour de la glace fraîche par la sonde Cassini."),
+  rhea: MOON('Rhéa','Saturne',"La deuxième plus grande lune de Saturne, un monde glacé qui pourrait posséder de fins anneaux à elle."),
+  japet: MOON('Japet','Saturne',"Mystère : une face sombre comme du charbon, l'autre blanche comme neige, et une étrange crête équatoriale de 13 km de haut."),
+  triton: MOON('Triton','Neptune',"Elle orbite à l'envers et crache des geysers d'azote glacé : ce serait un objet capturé de la ceinture de Kuiper."),
+  phobos: MOON('Phobos','Mars',"La plus grande lune de Mars, en forme de patate, se rapproche en spirale : elle finira par se briser en un anneau dans 50 millions d'années."),
+  deimos: MOON('Déimos','Mars',"La plus petite et lointaine lune de Mars, si petite que depuis le sol elle ressemblerait à une étoile un peu floue."),
+  vesta: { name:'Vesta', sub:'Astéroïde · ceinture principale', color:'#b0a090', stats:[['Diamètre','525 km'],['Distance','2,36 UA'],['Type','astéroïde']], desc:["Vesta est l'un des plus gros astéroïdes de la ceinture entre Mars et Jupiter, assez brillant pour être parfois vu à l'œil nu.","Des fragments arrachés par d'anciens impacts tombent encore sur Terre sous forme de météorites."], fun:"" },
+});
+
+/* objets non-physiques : étoiles, constellations, ciel profond, concepts (fiches encyclopédiques) */
+const SKY = [
+  { id:'sirius', grp:'Étoiles', name:'Sirius', sub:'Étoile · la plus brillante du ciel', color:'#bcd0ff', stats:[['Distance','8,6 années-lumière'],['Type','étoile A1 + naine blanche'],['Constellation','Grand Chien'],['Magnitude','-1,46']], desc:["Sirius est l'étoile la plus brillante de notre ciel nocturne. C'est en réalité un système double : une étoile bleutée et sa compagne naine blanche.","Les Égyptiens réglaient leur calendrier sur son lever, qui annonçait la crue du Nil."], fun:"Son nom vient du grec « brûlant ». On l'appelle aussi l'Étoile du Chien." },
+  { id:'betelgeuse', grp:'Étoiles', name:'Bételgeuse', sub:'Supergéante rouge · Orion', color:'#ff8a5a', stats:[['Distance','~640 a.l.'],['Type','supergéante rouge'],['Diamètre','~1 000 × le Soleil'],['Avenir','supernova (un jour)']], desc:["Bételgeuse marque l'épaule d'Orion. Si on la plaçait à la place du Soleil, elle engloutirait Mars.","En fin de vie, elle explosera en supernova : un spectacle visible en plein jour, qui pourrait survenir demain… ou dans 100 000 ans."], fun:"En 2019-2020, elle a mystérieusement faibli, faisant croire à une explosion imminente : c'était un nuage de poussière." },
+  { id:'polaris', grp:'Étoiles', name:'Polaris (Étoile polaire)', sub:'Étoile · Petite Ourse', color:'#fff5d0', stats:[['Distance','~430 a.l.'],['Type','supergéante jaune'],['Rôle','indique le nord']], desc:["L'Étoile polaire est presque pile dans l'axe de rotation de la Terre : elle semble immobile tandis que tout le ciel tourne autour d'elle.","Elle a guidé les navigateurs pendant des siècles pour trouver le nord."], fun:"Dans 12 000 ans, à cause de la précession de la Terre, ce sera Véga la nouvelle étoile polaire." },
+  { id:'vega', grp:'Étoiles', name:'Véga', sub:'Étoile · Lyre', color:'#cfe0ff', stats:[['Distance','25 a.l.'],['Type','étoile blanche A0'],['Triangle d\'été','avec Deneb et Altaïr']], desc:["Véga est l'une des étoiles les plus étudiées et a servi de référence « magnitude zéro ».","Elle forme, avec Deneb et Altaïr, le grand Triangle de l'été, facile à repérer."], fun:"Véga fut la première étoile (autre que le Soleil) photographiée, en 1850." },
+  { id:'orion', grp:'Constellations', name:'Orion (le Chasseur)', sub:'Constellation d\'hiver', color:'#7fb0ff', stats:[['Étoiles phares','Bételgeuse, Rigel'],['Repère','les 3 étoiles de la Ceinture'],['Visible','automne-hiver']], desc:["Orion est l'une des constellations les plus reconnaissables, avec ses trois étoiles alignées formant la « Ceinture du chasseur ».","Juste en dessous se niche la Nébuleuse d'Orion, une pouponnière d'étoiles visible aux jumelles."], fun:"Les trois étoiles de la Ceinture étaient appelées « les Trois Rois » dans de nombreuses cultures." },
+  { id:'grande-ourse', grp:'Constellations', name:'Grande Ourse', sub:'Constellation circumpolaire', color:'#9fc0ff', stats:[['Astérisme','la Grande Casserole'],['Usage','trouver l\'étoile polaire'],['Visible','toute l\'année (nord)']], desc:["La Grande Ourse contient la célèbre « Grande Casserole ». En prolongeant 5 fois le bord de la casserole, on tombe sur l'Étoile polaire.","C'est souvent la première figure que l'on apprend à reconnaître dans le ciel."], fun:"Chez les Romains, ces étoiles étaient les « sept bœufs » (septem triones) — d'où vient le mot « septentrion », le nord." },
+  { id:'cassiopee', grp:'Constellations', name:'Cassiopée', sub:'Constellation en W', color:'#a6c8ff', stats:[['Forme','un grand W (ou M)'],['Face','à la Grande Ourse'],['Visible','toute l\'année (nord)']], desc:["Cassiopée dessine un W bien net, de l'autre côté de l'étoile polaire par rapport à la Grande Ourse.","Quand l'une est basse, l'autre est haute : ensemble, elles encadrent le pôle nord céleste."], fun:"Dans la mythologie grecque, Cassiopée était une reine vaniteuse punie en étant attachée à son trône dans le ciel." },
+  { id:'cygne', grp:'Constellations', name:'Cygne (Croix du Nord)', sub:'Constellation d\'été', color:'#a6c8ff', stats:[['Étoile phare','Deneb (très lumineuse)'],['Astérisme','la Croix du Nord'],['Visible','été (nord)']], desc:["Le Cygne s'étend le long de la Voie lactée, ailes déployées. Ses étoiles principales dessinent une grande croix.","Sa tête, Albireo, est une superbe étoile double aux couleurs contrastées (or et bleu) dans un petit télescope.","Deneb, à son extrémité, forme avec Véga et Altaïr le Triangle de l'été."], fun:"Deneb est si lumineuse que, malgré une distance de ~1 500 années-lumière, elle brille comme une étoile proche." },
+  { id:'lion', grp:'Constellations', name:'Lion', sub:'Constellation du zodiaque (printemps)', color:'#9fc0ff', stats:[['Étoile phare','Régulus (« le petit roi »)'],['Astérisme','la Faucille (point d\'interrogation)'],['Visible','printemps']], desc:["Le Lion est l'une des rares constellations qui évoque vraiment sa figure : un lion couché. Sa tête forme une « faucille » en point d'interrogation inversé.","Régulus, à la base de la faucille, est l'une des étoiles les plus brillantes du ciel et se trouve quasiment sur l'écliptique.","Chaque année en novembre, l'essaim d'étoiles filantes des Léonides semble en jaillir."], fun:"Régulus signifie « petit roi » : les astronomes de l'Antiquité y voyaient le cœur royal du Lion." },
+  { id:'voie-lactee', grp:'Ciel profond', name:'Voie lactée', sub:'Notre galaxie', color:'#d0c0ff', stats:[['Type','galaxie spirale barrée'],['Étoiles','100 à 400 milliards'],['Diamètre','~100 000 a.l.'],['Soleil','à ~26 000 a.l. du centre']], desc:["La Voie lactée est la galaxie qui contient le Soleil et tout ce qu'on voit. Vue de l'intérieur, elle dessine une bande laiteuse en travers du ciel.","En son centre se cache un trou noir supermassif, Sagittarius A*, de 4 millions de fois la masse du Soleil."], fun:"La lumière met 100 000 ans à traverser la Voie lactée de part en part." },
+  { id:'andromede', grp:'Ciel profond', name:'Galaxie d\'Andromède (M31)', sub:'Galaxie voisine', color:'#c0d0ff', stats:[['Distance','2,5 millions a.l.'],['Type','galaxie spirale'],['Étoiles','~1 000 milliards'],['Avenir','fusion avec la Voie lactée']], desc:["Andromède est la grande galaxie la plus proche de la nôtre et l'objet le plus lointain visible à l'œil nu.","Elle fonce vers nous : dans 4,5 milliards d'années, elle fusionnera avec la Voie lactée pour former une galaxie géante."], fun:"La lumière d'Andromède que tu vois ce soir est partie il y a 2,5 millions d'années, bien avant l'apparition de l'humanité." },
+  { id:'orion-neb', grp:'Ciel profond', name:'Nébuleuse d\'Orion (M42)', sub:'Pouponnière d\'étoiles', color:'#ff9ad0', stats:[['Distance','1 344 a.l.'],['Type','nébuleuse en émission'],['Rôle','naissance d\'étoiles']], desc:["La Nébuleuse d'Orion est un immense nuage de gaz où naissent de nouvelles étoiles en ce moment même.","Visible aux jumelles sous l'épée d'Orion, c'est l'une des plus belles cibles pour les astronomes amateurs."], fun:"" },
+  { id:'pleiades', grp:'Ciel profond', name:'Les Pléiades', sub:'Amas d\'étoiles', color:'#bcd0ff', stats:[['Distance','444 a.l.'],['Étoiles','~1 000 jeunes étoiles'],['Surnom','les Sept Sœurs']], desc:["Les Pléiades forment un petit amas d'étoiles bleues très jeunes, facilement visible à l'œil nu comme une mini-casserole brumeuse.","De nombreuses cultures (grecque, japonaise, maorie) les ont intégrées à leurs mythes et calendriers."], fun:"Le logo de Subaru représente les Pléiades : « Subaru » signifie « réunir » en japonais." },
+  { id:'trou-noir', grp:'Concepts', name:'Trou noir', sub:'Objet à gravité extrême', color:'#222', stats:[['Champ','gravité si forte que rien ne s\'échappe'],['Vitesse de libération','> vitesse de la lumière'],['Détection','par leurs effets']], desc:["Un trou noir est une région où la gravité est si intense que même la lumière ne peut s'en échapper — d'où sa noirceur.","Ils naissent de l'effondrement d'étoiles très massives. En 2019, on a obtenu la première « photo » de l'ombre d'un trou noir."], fun:"Le temps ralentit près d'un trou noir : un instant pour toi pourrait durer des années vu de loin." },
+  { id:'comete', grp:'Concepts', name:'Comète', sub:'« Boule de neige sale »', color:'#9fe0ff', stats:[['Composition','glace, poussière, roche'],['Origine','ceinture de Kuiper / nuage d\'Oort'],['Queue','toujours opposée au Soleil']], desc:["Une comète est un petit corps glacé qui, en s'approchant du Soleil, se réchauffe et libère gaz et poussières formant une longue queue lumineuse.","La célèbre comète de Halley repasse près de la Terre tous les 76 ans : prochain rendez-vous en 2061."], fun:"La queue d'une comète pointe toujours à l'opposé du Soleil, poussée par le vent solaire — pas vers l'arrière de sa trajectoire." },
+  { id:"voyager1", grp:"Sondes & robots", name:"Voyager 1", sub:"Sonde · objet humain le plus lointain", color:"#bcd0ff", stats:[["Lancement","5 sept. 1977"],["Distance","> 24 milliards de km"],["Statut","espace interstellaire (2012)"],["Vitesse","61 000 km/h"]], desc:["Voyager 1 est l'objet fabriqué par l'homme le plus éloigné de la Terre. Lancée en 1977, elle a survolé Jupiter et Saturne avant de filer vers les étoiles.","En 2012, elle est devenue le premier vaisseau à quitter l'héliosphère pour l'espace interstellaire. Elle communique encore avec la Terre, à plus de 22 heures-lumière.","Elle emporte le « Disque d'or », un message sonore et visuel de l'humanité destiné à d'éventuels extraterrestres."], fun:"Le signal de Voyager 1 met plus de 22 heures à nous parvenir." },
+  { id:"voyager2", grp:"Sondes & robots", name:"Voyager 2", sub:"Sonde · seule à avoir vu les 4 géantes", color:"#aac4ff", stats:[["Lancement","20 août 1977"],["Exploit","Jupiter, Saturne, Uranus, Neptune"],["Statut","espace interstellaire (2018)"]], desc:["Voyager 2 est la seule sonde à avoir survolé les quatre planètes géantes : Jupiter, Saturne, Uranus et Neptune.","Nos seules images rapprochées d'Uranus et de Neptune proviennent encore d'elle, lors de survols en 1986 et 1989.","Comme sa jumelle, elle file désormais dans l'espace interstellaire avec son propre Disque d'or."], fun:"Voyager 2 a été lancée AVANT Voyager 1, mais sur une trajectoire plus lente — d'où son numéro." },
+  { id:"newhorizons", grp:"Sondes & robots", name:"New Horizons", sub:"Sonde · survol de Pluton", color:"#caa890", stats:[["Lancement","2006"],["Survol Pluton","14 juillet 2015"],["Vitesse","~58 000 km/h"]], desc:["New Horizons a révélé Pluton pour la première fois en 2015, dévoilant une grande plaine de glace en forme de cœur et des montagnes de glace d'eau.","Après Pluton, elle a survolé Arrokoth, l'objet le plus lointain jamais visité de près, dans la ceinture de Kuiper.","Le voyage jusqu'à Pluton a duré plus de neuf ans."], fun:"À bord se trouvent une partie des cendres de Clyde Tombaugh, le découvreur de Pluton en 1930." },
+  { id:"parker", grp:"Sondes & robots", name:"Parker Solar Probe", sub:"Sonde · « touche » le Soleil", color:"#ffcf8a", stats:[["Lancement","2018"],["Record","objet le plus rapide (~690 000 km/h)"],["Exploit","traversée de la couronne (2021)"]], desc:["Parker Solar Probe plonge dans la couronne du Soleil pour comprendre le vent solaire et pourquoi la couronne est plus chaude que la surface.","Protégée par un bouclier thermique, elle est devenue l'objet le plus rapide jamais construit, accéléré par la gravité du Soleil.","C'est la première sonde à avoir « touché » le Soleil en traversant son atmosphère."], fun:"Son bouclier supporte près de 1 400 °C en face avant pendant que l'électronique reste à température ambiante juste derrière." },
+  { id:"cassini", grp:"Sondes & robots", name:"Cassini-Huygens", sub:"Sonde · l'exploration de Saturne", color:"#e3c98a", stats:[["Mission","1997-2017"],["Étude","Saturne, anneaux, lunes"],["Atterrisseur","Huygens sur Titan (2005)"]], desc:["Cassini a étudié Saturne pendant 13 ans, révélant ses anneaux et ses lunes avec un détail inédit.","Son module Huygens s'est posé sur Titan en 2005 : la première fois qu'un engin atterrissait sur une lune du système solaire externe.","En 2017, pour ne pas contaminer une lune habitable, Cassini a plongé volontairement dans Saturne (le « Grand Final »)."], fun:"Cassini a découvert des geysers d'eau sur la petite lune Encelade — un océan caché propice à la vie." },
+  { id:"perseverance", grp:"Sondes & robots", name:"Perseverance", sub:"Rover · à la recherche de vie sur Mars", color:"#c1440e", stats:[["Arrivée Mars","18 février 2021"],["Lieu","cratère Jezero (ancien delta)"],["Compagnon","hélicoptère Ingenuity"]], desc:["Perseverance explore un ancien lac martien à la recherche de traces de vie passée, et met de côté des échantillons qu'une future mission rapportera sur Terre.","Il a emporté Ingenuity, le premier engin à voler dans l'atmosphère d'une autre planète.","Il fabrique même un peu d'oxygène à partir du CO₂ martien, une étape vers l'exploration humaine."], fun:"Un microphone à bord a enregistré pour la première fois les sons de Mars : le vent, et le bourdonnement de l'hélicoptère." },
+  { id:"hubble", grp:"Télescopes & stations", name:"Télescope Hubble", sub:"Observatoire spatial · depuis 1990", color:"#cfe0ff", stats:[["Lancement","1990"],["Orbite","~540 km d'altitude"],["Apport","images mythiques de l'Univers"]], desc:["Hubble, en orbite au-dessus de l'atmosphère, a fourni certaines des images les plus célèbres de l'astronomie : nébuleuses, galaxies lointaines, champs profonds.","En observant des milliers de galaxies dans une minuscule portion de ciel (le « Champ profond »), il a montré l'immensité de l'Univers.","Réparé et amélioré par des astronautes lors de plusieurs missions de la navette."], fun:"Au début, un défaut de son miroir rendait les images floues : des astronautes ont dû lui poser des « lunettes » en 1993." },
+  { id:"jwst", grp:"Télescopes & stations", name:"Télescope James Webb (JWST)", sub:"Observatoire infrarouge · depuis 2021", color:"#ffd9a0", stats:[["Lancement","25 déc. 2021"],["Position","point de Lagrange L2 (1,5 M km)"],["Vision","infrarouge · premières galaxies"]], desc:["Successeur de Hubble, le télescope James Webb observe dans l'infrarouge pour voir à travers la poussière et remonter aux toutes premières galaxies.","Son miroir doré de 6,5 m se déploie comme une fleur ; un immense bouclier le garde au froid (-235 °C).","Il étudie aussi l'atmosphère d'exoplanètes, à la recherche de mondes habitables."], fun:"Webb voit si loin qu'il observe la lumière partie il y a plus de 13 milliards d'années — l'enfance de l'Univers." },
+  { id:"iss", grp:"Télescopes & stations", name:"Station spatiale internationale (ISS)", sub:"Laboratoire habité · depuis 1998", color:"#dfe8ff", stats:[["Altitude","~400 km"],["Vitesse","28 000 km/h"],["Tour de Terre","~90 minutes"],["Équipage","permanent depuis 2000"]], desc:["L'ISS est un immense laboratoire en orbite, fruit de la coopération de nombreux pays. Des astronautes y vivent et y mènent des expériences en apesanteur.","Elle fait le tour de la Terre en 90 minutes : son équipage voit 16 levers et couchers de Soleil par jour.","Visible à l'œil nu depuis le sol comme un point très brillant traversant rapidement le ciel."], fun:"En micro-gravité, les astronautes grandissent de quelques centimètres… et leur cœur change de forme." },
+  { id:"spoutnik", grp:"Exploration spatiale", name:"Spoutnik 1", sub:"Histoire · le 1er satellite (1957)", color:"#9fc0ff", stats:[["Lancement","4 octobre 1957"],["Pays","URSS"],["Conséquence","début de l'ère spatiale"]], desc:["Spoutnik 1, une sphère métallique grande comme un ballon de plage, fut le premier objet placé en orbite par l'être humain.","Son simple « bip-bip » radio, capté dans le monde entier, a déclenché la course à l'espace entre l'URSS et les États-Unis.","Il a ouvert l'ère spatiale et bouleversé la science et la politique du XXe siècle."], fun:"La panique provoquée aux États-Unis a directement mené à la création de la NASA, l'année suivante." },
+  { id:"gagarine", grp:"Exploration spatiale", name:"Youri Gagarine", sub:"Histoire · 1er humain dans l'espace (1961)", color:"#bcd0ff", stats:[["Date","12 avril 1961"],["Vaisseau","Vostok 1"],["Durée","1 orbite, 108 minutes"]], desc:["Le 12 avril 1961, le cosmonaute soviétique Youri Gagarine devient le premier être humain à voyager dans l'espace et à faire le tour de la Terre.","Son vol a prouvé qu'un humain pouvait survivre au lancement, à l'apesanteur et au retour.","Sa phrase « La Terre est bleue ! » est restée célèbre."], fun:"Le 12 avril est aujourd'hui célébré dans le monde comme la « Nuit de Youri », fête de l'espace." },
+  { id:"apollo11", grp:"Exploration spatiale", name:"Apollo 11", sub:"Histoire · 1ers pas sur la Lune (1969)", color:"#fff5d0", stats:[["Date","20 juillet 1969"],["Équipage","Armstrong, Aldrin, Collins"],["Phrase","« Un petit pas pour l'homme… »"]], desc:["Le 20 juillet 1969, Neil Armstrong et Buzz Aldrin deviennent les premiers humains à marcher sur la Lune, suivis par des centaines de millions de téléspectateurs.","Six missions Apollo se sont posées entre 1969 et 1972, rapportant des roches lunaires précieuses pour la science.","Aucun humain n'est retourné sur la Lune depuis 1972 — le programme Artemis prépare le retour."], fun:"Les empreintes des astronautes resteront visibles des millions d'années, faute de vent et de pluie sur la Lune." },
+  { id:"course-espace", grp:"Exploration spatiale", name:"La course à l'espace", sub:"Histoire · USA contre URSS", color:"#a6c8ff", stats:[["Période","1957-1975"],["Acteurs","États-Unis / URSS"],["Enjeu","prestige de la Guerre froide"]], desc:["Pendant la Guerre froide, États-Unis et URSS rivalisent d'exploits spatiaux : premier satellite, premier homme, premiers pas sur la Lune.","Cette compétition a accéléré d'incroyables avancées techniques en à peine quinze ans.","Elle s'est apaisée avec la mission commune Apollo-Soyouz (1975), symbole de coopération."], fun:"Beaucoup de technologies du quotidien (matériaux, capteurs, miniaturisation) découlent de cette course effrénée." },
+  { id:"mars-rovers", grp:"Exploration spatiale", name:"Les rovers martiens", sub:"Histoire · robots explorateurs de Mars", color:"#c1440e", stats:[["Premiers","Sojourner (1997)"],["Longévité","Opportunity : ~15 ans"],["Récents","Curiosity, Perseverance"]], desc:["Depuis Sojourner en 1997, une série de robots roulent sur Mars pour étudier ses roches, son climat passé et la possibilité d'une vie ancienne.","Opportunity, prévu pour 90 jours, a fonctionné près de 15 ans et parcouru 45 km.","Ces rovers sont nos « yeux et mains » sur Mars, en attendant les premiers humains."], fun:"Quand le contact avec Opportunity fut perdu, son dernier message fut résumé ainsi : « Ma batterie est faible et il fait sombre. »" },
+  { id:"artemis", grp:"Exploration spatiale", name:"Programme Artemis", sub:"Histoire · le retour vers la Lune", color:"#ffe0b0", stats:[["Objectif","ramener des humains sur la Lune"],["Ambition","base lunaire, puis Mars"],["Acteurs","NASA + partenaires"]], desc:["Artemis vise à ramener des astronautes sur la Lune, dont la première femme, et à y établir une présence durable.","La Lune servirait de tremplin et de terrain d'entraînement pour le grand objectif suivant : envoyer des humains vers Mars.","C'est le plus ambitieux programme d'exploration habitée depuis Apollo."], fun:"Le nom Artemis est celui de la déesse grecque de la Lune, sœur jumelle d'Apollon — clin d'œil au programme Apollo." },
+  { id:"nasa", grp:"Agences & entreprises", name:"NASA", sub:"Agence spatiale des États-Unis (1958)", color:"#3b5bdb", stats:[["Création","1958"],["Réussites","Apollo, Hubble, JWST, rovers"],["Devise","pour le bien de tous"]], desc:["La NASA est l'agence spatiale civile des États-Unis. Elle a mené les humains sur la Lune et explore le système solaire avec des sondes.","Elle développe télescopes, rovers martiens, et prépare le retour vers la Lune (Artemis) puis Mars.","Une grande partie de ses images et données sont dans le domaine public."], fun:"« NASA » signifie National Aeronautics and Space Administration." },
+  { id:"esa", grp:"Agences & entreprises", name:"ESA", sub:"Agence spatiale européenne (1975)", color:"#1B82E0", stats:[["Création","1975"],["Membres","22 pays européens"],["Lanceur","fusées Ariane"]], desc:["L'ESA coordonne l'effort spatial européen : satellites, sondes (Rosetta, Mars Express), et participation à l'ISS.","Elle lance ses fusées Ariane depuis Kourou, en Guyane française, proche de l'équateur (avantage pour le lancement).","Le Français Thomas Pesquet est l'un de ses astronautes."], fun:"Kourou est idéalement placée près de l'équateur : la rotation de la Terre y donne un « coup de pouce » gratuit aux fusées." },
+  { id:"spacex", grp:"Agences & entreprises", name:"SpaceX", sub:"Entreprise spatiale privée (2002)", color:"#222", stats:[["Fondée","2002"],["Révolution","fusées réutilisables"],["Vaisseaux","Falcon 9, Dragon, Starship"]], desc:["SpaceX a bouleversé le spatial en rendant ses fusées Falcon 9 réutilisables : le 1er étage revient se poser pour resservir.","Elle transporte fret et astronautes vers l'ISS, et développe Starship, un géant destiné à la Lune et à Mars.","Son réseau Starlink déploie des milliers de satellites pour l'Internet."], fun:"Voir un étage de fusée revenir se poser tout seul à la verticale était de la science-fiction il y a peu — c'est devenu routinier." },
+  { id:"roscosmos", grp:"Agences & entreprises", name:"Roscosmos", sub:"Agence spatiale russe", color:"#c1440e", stats:[["Héritage","programme spatial soviétique"],["Vaisseau","Soyouz (très fiable)"],["Premier","satellite et homme dans l'espace"]], desc:["Héritière du programme soviétique, l'agence russe détient des premières historiques : Spoutnik, Gagarine, première femme dans l'espace.","Son vaisseau Soyouz, d'une fiabilité légendaire, a longtemps été le seul moyen d'atteindre l'ISS.","La coopération sur l'ISS reste un symbole fort malgré les tensions."], fun:"Le vaisseau Soyouz vole depuis les années 1960 : un des engins spatiaux les plus durables de l'histoire." },
+  { id:"saturn-v", grp:"Fusées & lanceurs", name:"Saturn V", sub:"La fusée de la Lune (Apollo)", color:"#e3c98a", stats:[["Hauteur","111 m"],["Poussée","34 millions de newtons"],["Mission","emmener Apollo vers la Lune"]], desc:["Saturn V est la fusée qui a propulsé les missions Apollo vers la Lune. Haute comme un immeuble de 36 étages, elle reste l'une des plus puissantes jamais construites.","Ses trois étages se larguaient successivement pour gagner en vitesse.","Aucune n'a jamais échoué lors d'un vol habité."], fun:"Au décollage, Saturn V brûlait environ 13 tonnes de carburant par seconde." },
+  { id:"falcon9", grp:"Fusées & lanceurs", name:"Falcon 9", sub:"Fusée réutilisable de SpaceX", color:"#888", stats:[["Particularité","1er étage réutilisable"],["Usage","satellites, ISS, astronautes"],["Atterrissage","retour vertical"]], desc:["Falcon 9 a démocratisé l'accès à l'espace en réutilisant son premier étage, qui revient se poser sur une barge ou au sol.","Cette réutilisation a fait chuter le coût de mise en orbite.","Elle lance satellites, cargos et équipages."], fun:"Certains boosters Falcon 9 ont volé puis atterri plus de quinze fois." },
+  { id:"starship", grp:"Fusées & lanceurs", name:"Starship", sub:"Le géant pour la Lune et Mars", color:"#9aa", stats:[["Objectif","Lune, Mars, gros fret"],["Particularité","entièrement réutilisable"],["Taille","la plus grande fusée jamais construite"]], desc:["Starship est conçu pour être entièrement réutilisable et transporter des charges et des humains vers la Lune et Mars.","C'est la fusée la plus grande et la plus puissante jamais développée.","La NASA l'a choisie pour l'alunissage du programme Artemis."], fun:"Starship est si grand qu'il pourrait emporter en une fois bien plus que la Station spatiale entière." },
+  { id:"ariane", grp:"Fusées & lanceurs", name:"Ariane", sub:"Les lanceurs européens", color:"#1B82E0", stats:[["Opérateur","Europe (ESA)"],["Site","Kourou, Guyane"],["Spécialité","satellites en orbite haute"]], desc:["Les fusées Ariane assurent depuis des décennies l'accès européen indépendant à l'espace, surtout pour les satellites de télécommunication.","Ariane 5 a notamment lancé le télescope James Webb.","Ariane 6 prend aujourd'hui la relève."], fun:"C'est une Ariane 5 qui a lancé le télescope James Webb, avec une précision telle qu'elle lui a fait gagner des années de carburant." },
+  { id:"armstrong", grp:"Astronautes", name:"Neil Armstrong", sub:"1er homme sur la Lune (1969)", color:"#fff5d0", stats:[["Mission","Apollo 11"],["Date","20 juillet 1969"],["Métier","pilote d'essai, astronaute"]], desc:["Neil Armstrong fut le premier être humain à poser le pied sur la Lune, prononçant la phrase « un petit pas pour l'homme, un bond de géant pour l'humanité ».","Pilote d'essai exceptionnel, il garda toujours une grande modestie.","Son exploit reste l'un des moments les plus regardés de l'histoire."], fun:"Il a dû piloter manuellement le module lunaire dans les dernières secondes pour éviter un champ de rochers." },
+  { id:"pesquet", grp:"Astronautes", name:"Thomas Pesquet", sub:"Astronaute français de l'ESA", color:"#1B82E0", stats:[["Agence","ESA"],["Missions","2 séjours sur l'ISS"],["Rôle","commandant de l'ISS (2021)"]], desc:["Thomas Pesquet est l'astronaute français le plus connu de sa génération, ayant effectué deux longs séjours sur la Station spatiale.","Il a réalisé des sorties dans l'espace et de nombreuses expériences scientifiques.","Il a largement partagé son quotidien orbital et de superbes photos de la Terre."], fun:"Depuis l'ISS, il a photographié la Terre des milliers de fois — chaque jour, l'équipage voit 16 levers de Soleil." },
+  { id:"terechkova", grp:"Astronautes", name:"Valentina Terechkova", sub:"1re femme dans l'espace (1963)", color:"#c1440e", stats:[["Date","16 juin 1963"],["Vaisseau","Vostok 6"],["Pays","URSS"]], desc:["Valentina Terechkova fut la première femme à voler dans l'espace, seule à bord, deux ans seulement après Gagarine.","Ancienne ouvrière du textile et parachutiste, elle est devenue un symbole mondial.","Il faudra ensuite attendre près de 20 ans pour qu'une autre femme vole."], fun:"Elle a passé près de trois jours en orbite — plus de temps cumulé que tous les astronautes américains réunis à l'époque." },
+  { id:"vitesse-liberation", grp:"Histoire & concepts", name:"Vitesse de libération", sub:"Concept · s'arracher à la gravité", color:"#9fc0ff", stats:[["Sur Terre","~11,2 km/s (40 000 km/h)"],["Dépend de","la masse de l'astre"]], desc:["La vitesse de libération est la vitesse minimale pour échapper à l'attraction d'un astre sans retomber.","Sur Terre, il faut atteindre environ 11,2 km/s : c'est tout le défi des fusées.","Sur la Lune, bien plus faible, il suffit de 2,4 km/s — d'où des décollages lunaires plus faciles."], fun:"Sur un trou noir, la vitesse de libération dépasse celle de la lumière : rien ne peut s'en échapper." },
+  { id:"apesanteur", grp:"Histoire & concepts", name:"L'apesanteur", sub:"Concept · flotter en orbite", color:"#dfe8ff", stats:[["Cause","chute libre permanente"],["Lieu","ISS, vaisseaux en orbite"]], desc:["En orbite, les astronautes flottent non parce qu'il n'y a plus de gravité (elle est presque aussi forte qu'au sol), mais parce qu'ils sont en chute libre permanente avec leur vaisseau.","Cette « micro-gravité » modifie le corps : muscles, os, circulation.","Elle permet des expériences impossibles sur Terre."], fun:"Pour ne pas perdre trop de muscle, les astronautes font environ deux heures de sport par jour." },
+  { id:"gravite-assistee", grp:"Histoire & concepts", name:"Gravité assistée", sub:"Concept · la « fronde » spatiale", color:"#a6c8ff", stats:[["Principe","emprunter de la vitesse à une planète"],["Usage","Voyager, Cassini, New Horizons"]], desc:["La gravité assistée consiste à frôler une planète pour qu'elle « catapulte » la sonde, lui donnant vitesse et nouvelle direction sans carburant.","Voyager a ainsi enchaîné les planètes géantes.","C'est une astuce essentielle pour atteindre les confins du système solaire."], fun:"Sans gravité assistée, atteindre les planètes lointaines demanderait des quantités de carburant irréalistes." },
+  { id:"exoplanete", grp:"Histoire & concepts", name:"Exoplanète", sub:"Concept · des mondes autres soleils", color:"#9fe0ff", stats:[["Définition","planète autour d'une autre étoile"],["Découvertes","des milliers connues"],["Quête","des mondes habitables"]], desc:["Une exoplanète est une planète qui orbite une étoile autre que le Soleil. On en a découvert des milliers depuis 1995.","Certaines se trouvent dans la « zone habitable », où l'eau liquide serait possible.","Le télescope James Webb analyse leur atmosphère à la recherche de signes de vie."], fun:"Il existe probablement plus de planètes que d'étoiles dans la galaxie — soit des centaines de milliards." },
+  { id:"zone-habitable", grp:"Histoire & concepts", name:"Zone habitable", sub:"Concept · « Boucle d'or »", color:"#7fb0ff", stats:[["Idée","ni trop chaud, ni trop froid"],["Critère","eau liquide possible"]], desc:["La zone habitable est la région autour d'une étoile où la température permettrait à l'eau de rester liquide à la surface d'une planète.","La Terre s'y trouve : ni trop près (comme Vénus, brûlante), ni trop loin (comme Mars, gelée).","C'est la première chose qu'on cherche pour une planète potentiellement vivable."], fun:"On l'appelle aussi « zone Boucle d'or » : comme dans le conte, il faut que ce soit « juste comme il faut »." },
+  { id:"fusee-principe", grp:"Histoire & concepts", name:"Comment vole une fusée", sub:"Concept · action-réaction", color:"#ffcf8a", stats:[["Principe","éjecter de la masse vers le bas"],["Loi","action = réaction (Newton)"],["Étages","largués pour s'alléger"]], desc:["Une fusée avance en éjectant violemment des gaz vers le bas : la réaction la pousse vers le haut (3e loi de Newton).","Elle fonctionne même dans le vide, contrairement à un avion qui a besoin d'air.","Ses étages se larguent au fur et à mesure pour ne pas traîner de poids inutile."], fun:"Une fusée n'a pas besoin d'air pour avancer : c'est pour ça qu'elle peut voler dans l'espace, là où un avion s'arrêterait." },
+];
+
+/* taille & orbite (schématique) — billboards photo */
+const PLANETS = [
+  { id:'mercure', size:1.3, oi:0, period:88, L0:252.25, rate:4.0923, moons:[] },
+  { id:'venus', size:1.9, oi:1, period:225, L0:181.98, rate:1.6021, moons:[] },
+  { id:'terre', size:2.0, oi:2, period:365.25, L0:100.46, rate:0.9856, moons:[{id:'lune',d:3.4,size:.7,per:27}] },
+  { id:'mars', size:1.6, oi:3, period:687, L0:355.43, rate:0.5240, moons:[{id:'phobos',d:2.2,size:.4,per:.3},{id:'deimos',d:2.9,size:.35,per:1.3}] },
+  { id:'jupiter', size:4.6, oi:4, period:4333, L0:34.35, rate:0.0831, moons:[{id:'io',d:5,size:.6,per:1.8},{id:'europe',d:6,size:.55,per:3.5},{id:'ganymede',d:7.2,size:.75,per:7},{id:'callisto',d:8.6,size:.7,per:16}] },
+  { id:'saturne', size:5.4, oi:5, period:10759, L0:49.94, rate:0.0334, moons:[{id:'titan',d:6.5,size:.7,per:16},{id:'rhea',d:5.4,size:.45,per:4.5},{id:'mimas',d:4.6,size:.35,per:.9},{id:'japet',d:8,size:.45,per:79}] },
+  { id:'uranus', size:2.8, oi:6, period:30687, L0:313.23, rate:0.01176, moons:[] },
+  { id:'neptune', size:2.7, oi:7, period:60190, L0:304.88, rate:0.00602, moons:[{id:'triton',d:3.6,size:.5,per:6}] },
+  { id:'pluton', size:1.0, oi:8, period:90560, L0:238.0, rate:0.00397, moons:[] },
+];
+function sizeMul(real){ return real?1.25:1; }
+function orbitFor(oi, real){ return real ? 34 + oi*[0,0.6,1.1,1.9,5,9.2,15,24,31][oi]*1.2 : 22 + oi*16; }
+
+/* ====== ÉTAT ====== */
+let real=false, showOrbits=true, showLabels=true, showMoons=true, planetarium=false;
+let timeOffset=0, speed=1, playing=false;
+const J2000 = Date.UTC(2000,0,1,12,0,0);
+let baseDays = (Date.now()-J2000)/86400000;
+let sheetImg=null, sheetReady=false, discCache={};
+let scene, camera, renderer, composer, controls, raycaster, pointer, clock;
+let sun, sunGlow, planetSprites=[], orbitLines=[], beltPts, starField, constLines, domeGround, skybox, milkyOn=true, sunLight;
+let bodies=[]; // {obj, id, kind, parent}
+let camTarget=null, focusDist=20, flying=false, hovered=null, quiz=null, labelEls={}, constLabelEls=[], aligned=false;
+let probeSprites=[], showProbes=true;
+let mission=null, missionGroup=null, rocket=null, lander=null, missionFlame=null, earthGround=null, moonGround=null, missionThrust=false, savedCam=null, missionAudio=null;
+let moonGlobe=null, earthGlobe=null, dust=null; /* Lune/Terre translunaires + poussière regolithe */
+
+const shell = window.Konstrio.createGame({
+  id:'3d-01-systeme-solaire', code:'3D·01', title:'Système solaire & exploration spatiale',
+  type:'3D', domain:{ label:'Espace & Astro', color:'#1B82E0' },
+  intro:{
+    greet:"Bienvenue à bord ! Cherche n'importe quel astre, étoile ou constellation, clique une planète pour sa fiche complète, et passe en vue planétarium pour lever les yeux vers le ciel comme sous un dôme.",
+    rule:"Explore le système solaire en images réelles : navigue à la souris ou au clavier, cherche planètes, lunes, étoiles, constellations et objets du ciel profond, et plonge dans des fiches détaillées. Le curseur de temps montre les positions du jour.",
+    how:[
+      "Souris : glisser = orbiter, molette = zoom. Clavier : ← → ↑ ↓ pour tourner, + / − pour zoomer, Tab pour passer d'un astre à l'autre.",
+      "Cherche un astre dans la barre (planètes, lunes, étoiles, constellations, galaxies…) : la fiche s'ouvre.",
+      "Active les calques (orbites, lunes, échelle réaliste, constellations) et la vue planétarium (dôme céleste).",
+      "En mode Cours, réponds aux défis en cliquant le bon astre.",
+    ],
+    keys:"← → ↑ ↓ tourner · + / − zoom · Tab astre suivant · P play/pause · Échap pause.",
+    objectif:"Identifier les planètes et lunes, comprendre les orbites et explorer le ciel profond.",
+    hint:"La barre de recherche connaît plus de 40 objets : tape « Titan », « Orion » ou « trou noir » pour voir.",
+    why:"Les planètes proches du Soleil vont plus vite : leur gravité plus forte les oblige à accélérer pour rester en orbite (3ᵉ loi de Kepler).",
+  },
+  learned:[
+    "Les 8 planètes, Pluton, et les grandes lunes du système solaire en images réelles.",
+    "Le ciel profond : étoiles, constellations, galaxies et concepts (trou noir, comète…).",
+    "Plus une planète est proche du Soleil, plus son année est courte (Kepler).",
+  ],
+  onReady: init, onStart: startMode, onTheme: ()=>applyTheme(),
+});
+
+/* ====== INIT ====== */
+function init(){
+  const stage=shell.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(55, stage.clientWidth/stage.clientHeight, 0.05, 8000);
+  camera.position.set(0,70,180);
+  renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15;
+  stage.appendChild(renderer.domElement);
+  /* ====== chaîne de rendu cinématique : Render → (GTAO si GPU réel) → Bloom → SMAA → Output ====== */
+  composer=new EffectComposer(renderer); composer.addPass(new RenderPass(scene,camera));
+  // garde-fou : rendu logiciel (SwiftShader/llvmpipe) ou mouvement réduit → pas d'AO écran (jamais de rendu noir)
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  if(!software&&!REDUCED){ try{
+    const gtao=new GTAOPass(scene,camera,stage.clientWidth,stage.clientHeight); gtao.blendIntensity=0.7;
+    try{ gtao.updateGtaoMaterial({ radius:0.5, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    // la pré-passe normales/profondeur du GTAO ignore sprites & lensflare (leur onBeforeRender polluerait le G-buffer)
+    gtao.render=function(rd,wb,rb,dt,mk){ const hid=[]; scene.traverse(o=>{ if((o.isSprite||o.isLensflare)&&o.visible){ o.visible=false; hid.push(o); } }); try{ GTAOPass.prototype.render.call(this,rd,wb,rb,dt,mk); } finally { hid.forEach(o=>o.visible=true); } };
+    composer.addPass(gtao); composer.gtao=gtao;
+  }catch(e){} }
+  const bloom=new UnrealBloomPass(new THREE.Vector2(stage.clientWidth,stage.clientHeight),0.7,0.5,0.82); composer.addPass(bloom); composer.bloom=bloom;
+  composer.addPass(new SMAAPass(stage.clientWidth,stage.clientHeight)); // anti-aliasing net (anneaux de Saturne, arêtes de la fusée)
+  composer.addPass(new OutputPass()); // tone mapping ACES + conversion sRGB en fin de chaîne
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.06; controls.minDistance=4; controls.maxDistance=2600; controls.autoRotate=REDUCED; controls.autoRotateSpeed=.18;
+  scene.add(new THREE.AmbientLight(0x6678aa,0.42));
+  sunLight=new THREE.PointLight(0xfff4d6,2.7,0,0); scene.add(sunLight);
+  if(!REDUCED){ const fMain=glowTex(), fGhost=flareTex(); const lf=new Lensflare();
+    lf.addElement(new LensflareElement(fMain, 130, 0, new THREE.Color(0xffe6bf)));
+    lf.addElement(new LensflareElement(fGhost, 34, 0.5, new THREE.Color(0x9fd0ff)));
+    lf.addElement(new LensflareElement(fGhost, 52, 0.8, new THREE.Color(0xffc0e0)));
+    sunLight.add(lf); }
+  skybox=makeSkybox(); scene.add(skybox);
+  starField=makeStars(); scene.add(starField);
+  constLines=makeConstellations(); constLines.visible=false; scene.add(constLines);
+  domeGround=makeDome(); domeGround.visible=false; scene.add(domeGround);
+
+  // soleil — sphère émissive texturée + halo additif + lensflare
+  sun=new THREE.Mesh(new THREE.SphereGeometry(1,48,32), new THREE.MeshBasicMaterial({ color:0xffe08a })); sun.scale.setScalar(13); scene.add(sun);
+  sunGlow=new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex(), color:0xffb648, transparent:true, opacity:.8, blending:THREE.AdditiveBlending, depthWrite:false })); sunGlow.scale.setScalar(40); scene.add(sunGlow);
+  bodies.push({ obj:sun, id:'sun', kind:'sun' });
+
+  // planètes — VRAIES sphères 3D texturées, éclairées par le Soleil (terminateur réaliste)
+  const TILT={ terre:0.41, mars:0.44, jupiter:0.05, saturne:0.47, uranus:1.71, neptune:0.49 };
+  PLANETS.forEach(p=>{
+    const mat=new THREE.MeshStandardMaterial({ color:new THREE.Color(DATA[p.id].color), roughness:1, metalness:0 });
+    const spr=new THREE.Mesh(new THREE.SphereGeometry(1,44,30), mat);
+    spr.scale.setScalar(p.size*sizeMul(real)); spr.rotation.z=TILT[p.id]||0; scene.add(spr);
+    spr.userData={ p, moons:[], spin:(0.35+Math.random()*0.4)*(p.id==='venus'?-1:1) }; planetSprites.push(spr);
+    bodies.push({ obj:spr, id:p.id, kind:'planet' });
+    if(p.id==='saturne'){ const rg=makeRing(); spr.add(rg); spr.userData.ring=rg; }
+    if(p.id==='terre'){
+      const cl=new THREE.Mesh(new THREE.SphereGeometry(1.015,44,30), new THREE.MeshStandardMaterial({ color:0xffffff, transparent:true, opacity:.85, depthWrite:false })); spr.add(cl); spr.userData.clouds=cl;
+      const atm=new THREE.Mesh(new THREE.SphereGeometry(1.16,32,22), new THREE.MeshBasicMaterial({ color:0x6aa6ff, transparent:true, opacity:.16, side:THREE.BackSide, blending:THREE.AdditiveBlending, depthWrite:false })); spr.add(atm);
+    }
+    p.moons.forEach(mo=>{ const ms=new THREE.Mesh(new THREE.SphereGeometry(1,22,16), new THREE.MeshStandardMaterial({ color:0xb7b7c4, roughness:1 })); ms.scale.setScalar(mo.size); scene.add(ms); ms.userData={mo,phase:Math.random()*6.28}; spr.userData.moons.push(ms); bodies.push({ obj:ms, id:mo.id, kind:'moon', parentSprite:spr }); });
+    const orb=new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color:0x6f7bbf, transparent:true, opacity:.28 })); scene.add(orb); orbitLines.push(orb);
+  });
+  beltPts=makeBelt(); scene.add(beltPts);
+  makeProbes();
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  layout(); buildUI(); applyTheme();
+  loadTextures();
+  renderer.domElement.addEventListener('pointermove',onMove);
+  renderer.domElement.addEventListener('pointerdown',onDown);
+  window.addEventListener('keydown',onKey); window.addEventListener('keyup',e=>{ if(!(mission&&mission.active))return; const k=e.key;
+    if(k===' '||k==='Spacebar'||k==='ArrowUp'){ missionThrust=false; } else if(k==='ArrowLeft'||k==='ArrowRight'){ mission.thrustL=0; } });
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
+  animate();
+}
+const TEXBASE='../assets/3d/planets/';
+const TEXMAP={ sun:'2k_sun.jpg', mercure:'2k_mercury.jpg', venus:'2k_venus_atmosphere.jpg', terre:'2k_earth_daymap.jpg', mars:'2k_mars.jpg', jupiter:'2k_jupiter.jpg', saturne:'2k_saturn.jpg', uranus:'2k_uranus.jpg', neptune:'2k_neptune.jpg', lune:'2k_moon.jpg' };
+function loadTextures(){ const L=new THREE.TextureLoader(); const srgb=t=>{ t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t; };
+  L.load(TEXBASE+TEXMAP.sun, t=>{ srgb(t); sun.material.map=t; sun.material.color.set(0xffffff); sun.material.needsUpdate=true; });
+  L.load(TEXBASE+'2k_stars_milky_way.jpg', t=>{ srgb(t); if(skybox){ skybox.material.map=t; skybox.material.color.set(milkyOn?0x5a5a72:0x0c0c14); skybox.material.needsUpdate=true; } });
+  planetSprites.forEach(spr=>{ const f=TEXMAP[spr.userData.p.id]; if(f) L.load(TEXBASE+f, t=>{ srgb(t); spr.material.map=t; spr.material.color.set(0xffffff); spr.material.needsUpdate=true; });
+    if(spr.userData.clouds) L.load(TEXBASE+'2k_earth_clouds.jpg', t=>{ srgb(t); const c=spr.userData.clouds.material; c.map=t; c.alphaMap=t; c.color.set(0xffffff); c.needsUpdate=true; });
+    if(spr.userData.ring) L.load(TEXBASE+'2k_saturn_ring_alpha.png', t=>{ t.colorSpace=THREE.SRGBColorSpace; const m=spr.userData.ring.material; m.map=t; m.alphaMap=t; m.needsUpdate=true; });
+  });
+  bodies.filter(b=>b.kind==='moon'&&b.id==='lune').forEach(b=> L.load(TEXBASE+TEXMAP.lune, t=>{ srgb(t); if(b.obj.material){ b.obj.material.map=t; b.obj.material.color.set(0xffffff); b.obj.material.needsUpdate=true; } }));
+}
+function makeRing(){ const g=new THREE.RingGeometry(1.35,2.35,80,1); const pos=g.attributes.position, uv=g.attributes.uv, v=new THREE.Vector3();
+  for(let i=0;i<pos.count;i++){ v.fromBufferAttribute(pos,i); const rr=(v.length()-1.35)/(2.35-1.35); uv.setXY(i, rr, 0.5); }
+  const m=new THREE.MeshBasicMaterial({ color:0xffffff, side:THREE.DoubleSide, transparent:true, opacity:.92, depthWrite:false });
+  const ring=new THREE.Mesh(g,m); ring.rotation.x=-Math.PI/2; ring.userData.isRing=true; return ring; }
+function loadSheet(){}
+function discTexture(id){ if(discCache[id]) return discCache[id]; if(!sheetReady||!CELL[id]) return null;
+  const [r,c]=CELL[id]; const W=sheetImg.width,H=sheetImg.height, cw=W/5, ch=H/5; const cx=c*cw+cw/2, cy=r*ch+ch*0.40; const R=cw*0.40;
+  const s=256; const cv=document.createElement('canvas'); cv.width=cv.height=s; const ctx=cv.getContext('2d');
+  ctx.drawImage(sheetImg, cx-R, cy-R, R*2, R*2, 0,0, s,s);
+  ctx.globalCompositeOperation='destination-in'; const g=ctx.createRadialGradient(s/2,s/2,s*0.30,s/2,s/2,s*0.49); g.addColorStop(0,'#fff'); g.addColorStop(.85,'#fff'); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
+  const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; discCache[id]=t; return t;
+}
+function applySheet(){
+  const st=discTexture('sun'); if(st){ sun.material=new THREE.SpriteMaterial({ map:st }); }
+  bodies.forEach(b=>{ if(b.kind==='planet'||b.kind==='moon'){ const t=discTexture(b.id); if(t) b.obj.material=new THREE.SpriteMaterial({ map:t, transparent:true }); } });
+}
+function glowTex(){ const c=document.createElement('canvas'); c.width=c.height=128; const ctx=c.getContext('2d'); const g=ctx.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(255,245,200,1)'); g.addColorStop(.35,'rgba(255,180,60,.55)'); g.addColorStop(1,'rgba(255,160,40,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+function flareTex(){ const c=document.createElement('canvas'); c.width=c.height=64; const ctx=c.getContext('2d'); const g=ctx.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(255,255,255,.9)'); g.addColorStop(.25,'rgba(255,255,255,.35)'); g.addColorStop(.7,'rgba(255,255,255,.08)'); g.addColorStop(1,'rgba(255,255,255,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(32,32,32,0,7); ctx.fill(); return new THREE.CanvasTexture(c); }
+function makeSkybox(){ return new THREE.Mesh(new THREE.SphereGeometry(4600,64,40), new THREE.MeshBasicMaterial({ color:0x05060c, side:THREE.BackSide })); }
+function makeStars(){ const n=REDUCED?1500:4500, pos=new Float32Array(n*3), col=new Float32Array(n*3); const cc=new THREE.Color(); for(let i=0;i<n;i++){ const v=new THREE.Vector3().setFromSphericalCoords(1500+Math.random()*2400, Math.acos(2*Math.random()-1), Math.random()*6.28); pos[i*3]=v.x; pos[i*3+1]=v.y; pos[i*3+2]=v.z; cc.setHSL(.55+Math.random()*.08,.18,.55+Math.random()*.3); col[i*3]=cc.r; col[i*3+1]=cc.g; col[i*3+2]=cc.b; } const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3)); return new THREE.Points(g,new THREE.PointsMaterial({ size:1.5, sizeAttenuation:false, vertexColors:true, transparent:true, opacity:.55 })); }
+function makeBelt(){ const n=REDUCED?900:2200, pos=new Float32Array(n*3); const r0=(orbitFor(3,false)+orbitFor(4,false))/2; for(let i=0;i<n;i++){ const a=Math.random()*6.28, rr=r0+(Math.random()-.5)*12; pos[i*3]=Math.cos(a)*rr+(Math.random()-.5)*3; pos[i*3+1]=(Math.random()-.5)*3; pos[i*3+2]=Math.sin(a)*rr+(Math.random()-.5)*3; } const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); return new THREE.Points(g,new THREE.PointsMaterial({ color:0x9a8f7a, size:1.2, sizeAttenuation:false, transparent:true, opacity:.7 })); }
+/* Constellations — étoiles réelles (RA en heures, Dec en degrés) → sphère céleste */
+const CONSTELLATIONS = [
+  { id:'orion', n:'Orion', stars:{ bet:[5.92,7.41], bel:[5.42,6.35], min:[5.53,-0.30], aln:[5.60,-1.20], alt:[5.68,-1.94], sai:[5.80,-9.67], rig:[5.24,-8.20] }, lines:[['bet','bel'],['bel','min'],['min','aln'],['aln','alt'],['alt','sai'],['sai','rig'],['rig','bel'],['bet','alt']] },
+  { id:'grande-ourse', n:'Grande Ourse', stars:{ dub:[11.06,61.75], mer:[11.03,56.38], phe:[11.90,53.69], meg:[12.26,57.03], ali:[12.90,55.96], miz:[13.40,54.93], alk:[13.79,49.31] }, lines:[['dub','mer'],['mer','phe'],['phe','meg'],['meg','dub'],['meg','ali'],['ali','miz'],['miz','alk']] },
+  { id:'cassiopee', n:'Cassiopée', stars:{ caph:[0.15,59.15], sch:[0.68,56.54], gam:[0.95,60.72], ruc:[1.43,60.24], seg:[1.91,63.67] }, lines:[['caph','sch'],['sch','gam'],['gam','ruc'],['ruc','seg']] },
+  { id:'cygne', n:'Cygne', stars:{ den:[20.69,45.28], sad:[20.37,40.26], alb:[19.51,27.96], gie:[20.77,33.97], del:[19.75,45.13] }, lines:[['den','sad'],['sad','alb'],['gie','sad'],['sad','del']] },
+  { id:'lion', n:'Lion', stars:{ reg:[10.14,11.97], eta:[10.12,16.76], alg:[10.33,19.84], zet:[10.28,23.42], zos:[11.24,20.52], den2:[11.82,14.57], chi:[11.24,15.43] }, lines:[['reg','eta'],['eta','alg'],['alg','zet'],['reg','chi'],['chi','zos'],['zos','den2'],['den2','chi']] },
+];
+const CR=3500;
+function radecVec(ra,dec){ const a=ra*15*Math.PI/180, d=dec*Math.PI/180; return new THREE.Vector3(Math.cos(d)*Math.cos(a), Math.sin(d), -Math.cos(d)*Math.sin(a)).multiplyScalar(CR); }
+function starPointTex(){ const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d'); const g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'#ffffff'); g.addColorStop(.22,'rgba(225,238,255,.95)'); g.addColorStop(.55,'rgba(150,190,255,.4)'); g.addColorStop(1,'rgba(120,170,255,0)'); x.fillStyle=g; x.beginPath(); x.arc(32,32,32,0,7); x.fill(); return new THREE.CanvasTexture(c); }
+function makeConstellations(){ const grp=new THREE.Group(); const flat=[], starPts=[];
+  CONSTELLATIONS.forEach(c=>{ const sv={}; const cen=new THREE.Vector3(); let n=0; for(const k in c.stars){ const v=radecVec(c.stars[k][0],c.stars[k][1]); sv[k]=v; starPts.push(v.x,v.y,v.z); cen.add(v); n++; } c._center=cen.multiplyScalar(1/Math.max(1,n)); c.lines.forEach(([a,b])=>{ if(sv[a]&&sv[b]) flat.push(sv[a].x,sv[a].y,sv[a].z, sv[b].x,sv[b].y,sv[b].z); }); });
+  const lg=new LineSegmentsGeometry(); lg.setPositions(flat); const lm=new LineMaterial({ color:0x7fb0ff, linewidth:2.6, transparent:true, opacity:.85 }); lm.resolution.set(window.innerWidth,window.innerHeight); grp.add(new LineSegments2(lg,lm)); grp.userData.lineMat=lm;
+  const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.Float32BufferAttribute(starPts,3)); grp.add(new THREE.Points(sg,new THREE.PointsMaterial({ map:starPointTex(), color:0xf0f6ff, size:18, sizeAttenuation:false, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending }))); return grp; }
+function makeDome(){ const geo=new THREE.SphereGeometry(3000,32,16,0,6.28,1.6,1.6); const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({ color:0x0a0e1a, side:THREE.BackSide, transparent:true, opacity:.92 })); return m; }
+
+function layout(){ planetSprites.forEach((spr,i)=>{ const p=spr.userData.p; spr.scale.setScalar(p.size*sizeMul(real)); p.orbit=orbitFor(p.oi,real); const pts=[]; for(let a=0;a<=96;a++){ const t=a/96*6.28318; pts.push(new THREE.Vector3(Math.cos(t)*p.orbit,0,Math.sin(t)*p.orbit)); } orbitLines[i].geometry.setFromPoints(pts); }); controls.maxDistance=real?3000:520; }
+
+/* ====== UI ====== */
+function buildUI(){
+  const stage=shell.stage;
+  const search=document.createElement('div'); search.className='ss-panel ss-search';
+  search.innerHTML=`<svg class="mag" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="ssSearch" placeholder="Rechercher : planète, lune, étoile, constellation…" aria-label="Rechercher" autocomplete="off"><div class="ss-sugg" id="ssSugg"></div>`;
+  stage.appendChild(search);
+  const inp=search.querySelector('#ssSearch'), sugg=search.querySelector('#ssSugg'); let active=-1, items=[];
+  function catalog(){ const out=[]; bodies.forEach(b=>{ const d=DATA[b.id]; if(d) out.push({ key:b.id, name:d.name, grp:b.kind==='sun'?'Étoile':b.kind==='moon'?'Lunes':'Planètes', color:d.color, body:b }); }); SKY.forEach(s=>out.push({ key:s.id, name:s.name, grp:s.grp, color:s.color, sky:s })); return out; }
+  function renderSugg(q){ active=-1; const all=catalog(); items = q ? all.filter(x=>x.name.toLowerCase().includes(q.toLowerCase())).slice(0,12) : all.slice(0,12);
+    if(!items.length){ sugg.classList.remove('show'); sugg.innerHTML=''; return; }
+    let html='', lastGrp=''; items.forEach(x=>{ if(x.grp!==lastGrp){ html+=`<div class="grp">${x.grp}</div>`; lastGrp=x.grp; } html+=`<button data-k="${x.key}"><span class="dot" style="background:${x.color}"></span>${x.name}<span class="k">${x.grp}</span></button>`; });
+    sugg.innerHTML=html; sugg.classList.add('show'); sugg.querySelectorAll('button').forEach(btn=> btn.onclick=()=>{ pickSearch(btn.dataset.k); inp.value=''; sugg.classList.remove('show'); }); }
+  inp.addEventListener('input',()=>renderSugg(inp.value));
+  inp.addEventListener('focus',()=>renderSugg(inp.value));
+  inp.addEventListener('keydown',e=>{ const btns=[...sugg.querySelectorAll('button')]; if(e.key==='ArrowDown'){active=Math.min(btns.length-1,active+1);} else if(e.key==='ArrowUp'){active=Math.max(0,active-1);} else if(e.key==='Enter'){ if(btns[active])btns[active].click(); else if(btns[0])btns[0].click(); return; } else if(e.key==='Escape'){ sugg.classList.remove('show'); inp.blur(); return; } else return; btns.forEach((b,i)=>b.classList.toggle('active',i===active)); if(btns[active])btns[active].scrollIntoViewIfNeeded&&btns[active].scrollIntoViewIfNeeded(); e.preventDefault(); });
+  inp.addEventListener('blur',()=>setTimeout(()=>sugg.classList.remove('show'),200));
+  search._inp=inp;
+
+  const ctr=document.createElement('div'); ctr.className='ss-panel ss-controls';
+  ctr.innerHTML=`<div><h3>Calques &amp; vues</h3><div class="ss-toggles" style="margin-top:8px">
+      <button class="ss-tg" data-k="orbits" aria-pressed="true">Orbites</button>
+      <button class="ss-tg" data-k="labels" aria-pressed="true">Étiquettes</button>
+      <button class="ss-tg" data-k="moons" aria-pressed="true">Lunes</button>
+      <button class="ss-tg" data-k="real" aria-pressed="false">Échelle réaliste</button>
+      <button class="ss-tg" data-k="const" aria-pressed="false">Constellations</button>
+      <button class="ss-tg" data-k="milky" aria-pressed="true">🌌 Voie lactée</button>
+      <button class="ss-tg" data-k="probes" aria-pressed="true">🛰 Sondes</button>
+      <button class="ss-tg" data-k="overview" >🛰 Vue d'ensemble</button>
+      <button class="ss-tg" data-k="aligned" aria-pressed="false">📏 Vue alignée</button>
+      <button class="ss-tg" data-k="planet" aria-pressed="false" style="grid-column:span 2">🔭 Vue planétarium (dôme)</button>
+      <button class="ss-tg" data-k="mission" aria-pressed="false" style="grid-column:span 2;background:linear-gradient(135deg,#F5A623,#E63329);border:none;color:#fff">🚀 Mission Apollo (décollage → alunissage)</button></div></div>
+    <div class="ss-time"><h3>Temps &amp; animation</h3><div class="ss-date" id="ssDate">—</div>
+      <button class="ss-mini" id="ssPlay" style="width:100%;background:var(--accent);border-color:var(--accent);color:#fff;min-height:38px;font-size:13px">▶ Animer les orbites</button>
+      <div class="ss-speedrow"><span style="font-size:11px;color:var(--fg-muted)">Vitesse</span><input id="ssSpeed" type="range" min="-6" max="6" step="0.5" value="1"><span class="ss-spd" id="ssSpd">×1 j/s</span></div>
+      <div class="ss-speedrow"><input id="ssScrub" type="range" min="-3650" max="36500" step="1" value="0" style="flex:1"></div>
+      <button class="ss-mini" id="ssNow" style="align-self:flex-start">⟲ Date du jour</button></div>
+    <div><h3>Clavier</h3><div class="ss-kbd"><b>← →</b> <b>↑ ↓</b> tourner · <b>+ −</b> zoom<br><b>Tab</b> astre suivant · <b>P</b> play/pause</div></div>`;
+  stage.appendChild(ctr);
+  const info=document.createElement('div'); info.className='ss-panel ss-info'; info.id='ssInfo'; stage.appendChild(info);
+  const hint=document.createElement('div'); hint.className='ss-hint'; hint.id='ssHint'; hint.textContent='Cherche un astre · clique une planète · ← → ↑ ↓ pour naviguer'; stage.appendChild(hint);
+  ctr.querySelectorAll('.ss-tg').forEach(b=> b.onclick=()=>{ const k=b.dataset.k; if(k==='overview'){ overviewView(); return; } if(k==='aligned'){ alignedView(); return; } if(k==='mission'){ startMission(); return; } const on=b.getAttribute('aria-pressed')!=='true'; b.setAttribute('aria-pressed',on); shell.sound('click');
+    if(k==='orbits'){ showOrbits=on; orbitLines.forEach(o=>o.visible=on&&!planetarium); }
+    if(k==='labels') showLabels=on;
+    if(k==='moons'){ showMoons=on; planetSprites.forEach(s=>s.userData.moons.forEach(m=>m.visible=on&&!planetarium)); }
+    if(k==='const'){ constLines.visible=on||planetarium; }
+    if(k==='milky'){ milkyOn=on; if(skybox) skybox.material.color.set(on?0x5a5a72:0x0c0c14); }
+    if(k==='probes'){ showProbes=on; }
+    if(k==='real'){ real=on; layout(); shell.say(on?"Échelle réaliste : l'espace est immense et vide !":"Échelle schématique : tout rapproché pour mieux voir.",'surpris'); }
+    if(k==='planet'){ planetarium=on; togglePlanetarium(on); }
+  });
+  const $=s=>ctr.querySelector(s);
+  $('#ssPlay').onclick=()=>{ playing=!playing; $('#ssPlay').textContent=playing?'⏸ Pause des orbites':'▶ Animer les orbites'; };
+  $('#ssSpeed').oninput=e=>{ speed=Math.sign(+e.target.value)*Math.pow(Math.abs(+e.target.value),2); $('#ssSpd').textContent='×'+(Math.abs(speed)<1?speed.toFixed(1):Math.round(speed))+' j/s'; };
+  $('#ssScrub').oninput=e=> timeOffset=+e.target.value;
+  $('#ssNow').onclick=()=>{ timeOffset=0; $('#ssScrub').value=0; shell.sound('click'); };
+}
+function pickSearch(key){ const b=bodies.find(x=>x.id===key); if(b){ if(b.kind==='probe') selectProbe(b); else selectBody(b); return; } const s=SKY.find(x=>x.id===key); if(s){ openFiche(s, 'sky'); if(s.grp==='Constellations'&&!planetarium){ /* met en avant constellations */ constLines.visible=true; document.querySelector('[data-k="const"]').setAttribute('aria-pressed',true); } shell.say(s.desc[0],'enthousiaste'); shell.sound('pop'); } }
+
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x03040a:0x06080f,1); if(composer&&composer.bloom) composer.bloom.strength=dark?0.55:0.5; }
+
+/* ====== INTERACTIONS ====== */
+function onResize(){ const s=shell.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); if(constLines&&constLines.userData&&constLines.userData.lineMat) constLines.userData.lineMat.resolution.set(s.clientWidth,s.clientHeight); }
+function setPointer(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer,camera); const objs=bodies.filter(b=>b.obj.visible!==false).map(b=>b.obj); const hits=raycaster.intersectObjects(objs,true); if(!hits.length)return null; let o=hits[0].object; while(o){ const b=bodies.find(x=>x.obj===o); if(b)return b; o=o.parent; } return null; }
+function onMove(e){ setPointer(e); renderer.domElement.style.cursor=pick()?'pointer':'grab'; hovered=(pick()||{}).obj||null; }
+function onDown(e){ if(planetarium)return; setPointer(e); const b=pick(); if(b){ if(b.kind==='probe') selectProbe(b); else selectBody(b); } }
+function rotateCam(dT,dP){ const off=camera.position.clone().sub(controls.target); const sph=new THREE.Spherical().setFromVector3(off); sph.theta+=dT; sph.phi=Math.max(0.05,Math.min(Math.PI-0.05,sph.phi+dP)); off.setFromSpherical(sph); camera.position.copy(controls.target).add(off); }
+function zoomCam(f){ const off=camera.position.clone().sub(controls.target); off.multiplyScalar(f); const d=off.length(); if(d>controls.minDistance&&d<controls.maxDistance) camera.position.copy(controls.target).add(off); }
+let bodyIdx=0;
+function onKey(e){ if(e.target&&e.target.tagName==='INPUT')return; const k=e.key;
+  if(mission&&mission.active){
+    if(k===' '||k==='Spacebar'||k==='ArrowUp'){ missionThrust=true; e.preventDefault(); }
+    else if(k==='ArrowLeft'){ mission.thrustL=-1; e.preventDefault(); }
+    else if(k==='ArrowRight'){ mission.thrustL=1; e.preventDefault(); }
+    else if(k==='a'||k==='A'){ toggleAssist(); e.preventDefault(); }
+    return;
+  }
+  if(k==='ArrowLeft'){ rotateCam(-0.12,0); e.preventDefault(); } else if(k==='ArrowRight'){ rotateCam(0.12,0); e.preventDefault(); }
+  else if(k==='ArrowUp'){ rotateCam(0,-0.1); e.preventDefault(); } else if(k==='ArrowDown'){ rotateCam(0,0.1); e.preventDefault(); }
+  else if(k==='+'||k==='='){ zoomCam(0.88); } else if(k==='-'){ zoomCam(1.14); }
+  else if(k==='Tab'){ e.preventDefault(); const sel=bodies.filter(b=>b.obj.visible!==false); bodyIdx=(bodyIdx+1)%sel.length; selectBody(sel[bodyIdx]); }
+  else if(k==='p'||k==='P'){ playing=!playing; const pb=document.getElementById('ssPlay'); if(pb)pb.textContent=playing?'⏸ Pause des orbites':'▶ Animer les orbites'; }
+}
+function selectBody(b){ const d=DATA[b.id]; if(!d)return; openFiche(d, b.kind); if(b.kind==='planet'||b.kind==='moon') loadHiRes(b.obj,b.id); const sz=b.kind==='sun'?75:(b.kind==='planet'? b.obj.userData.p.size*8+8 : 6); focusOn(b.obj,sz); shell.say(d.desc[0], b.kind==='sun'?'enthousiaste':'concentre'); shell.sound('pop'); checkQuiz(b); if(b.id==='sun'){ /* easter */ } }
+function focusOn(obj,dist){ if(planetarium){ exitPlanetarium(); } camTarget=obj; focusDist=dist; flying=true; }
+function openFiche(d, kind){
+  const el=document.getElementById('ssInfo'); const img = (CELL[d===DATA.sun?'sun':null]) ? '' : '';
+  const cellId = Object.keys(DATA).find(k=>DATA[k]===d); const hasImg = false;
+  let imgTag=''; if(hasImg){ const t=discTexture(cellId); imgTag = t ? `<img src="${t.image.toDataURL ? t.image.toDataURL() : ''}" alt="">` : ''; }
+  const moons = d.moonsList; // not used
+  const moonChips = ''; 
+  const planetObj = PLANETS.find(p=>p.id===cellId);
+  let chips=''; if(planetObj && planetObj.moons.length){ chips=`<div class="ss-sec">Lunes</div><div class="ss-moonchips">`+planetObj.moons.map(m=>`<button data-m="${m.id}">🌑 ${DATA[m.id]?DATA[m.id].name:m.id}</button>`).join('')+`</div>`; }
+  el.innerHTML=`<div class="ss-info-hd" style="background:linear-gradient(135deg,${d.color},${shade(d.color,-40)})">${imgTag}<div><div class="sub">${d.sub}</div><h2>${d.name}</h2></div><button class="ss-info-close" aria-label="Fermer">×</button></div>
+    <div class="ss-info-body"><div class="ss-sec">Chiffres clés</div><div class="ss-stat-grid">${(d.stats||[]).map(s=>`<div class="ss-st"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('')}</div>
+    <div class="ss-sec">Description</div>${(d.desc||[]).map(p=>`<p>${p}</p>`).join('')}
+    ${d.fun?`<div class="ss-fun">💡 Le savais-tu ? ${d.fun}</div>`:''}${chips}</div>`;
+  el.classList.add('show'); el.querySelector('.ss-info-close').onclick=()=>{ el.classList.remove('show'); camTarget=null; };
+  el.querySelectorAll('[data-m]').forEach(btn=> btn.onclick=()=>{ const b=bodies.find(x=>x.id===btn.dataset.m); if(b)selectBody(b); });
+}
+function shade(hex,p){ const n=parseInt(hex.replace('#',''),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; const f=v=>Math.max(0,Math.min(255,Math.round(v+v*p/100))); return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+
+/* ====== PLANÉTARIUM (dôme) ====== */
+function togglePlanetarium(on){ if(on)enterPlanetarium(); else exitPlanetarium(); }
+function enterPlanetarium(){ planetarium=true; shell.sound('pop');
+  sun.visible=false; sunGlow.visible=false; if(sunLight)sunLight.visible=false; beltPts.visible=false; planetSprites.forEach(s=>{ s.visible=false; s.userData.moons.forEach(m=>m.visible=false); }); orbitLines.forEach(o=>o.visible=false);
+  constLines.visible=true; domeGround.visible=false; if(skybox)skybox.material.color.set(0x8a90b4); document.querySelector('[data-k="planet"]').setAttribute('aria-pressed',true);
+  const cb=document.querySelector('[data-k="const"]'); if(cb)cb.setAttribute('aria-pressed',true);
+  camTarget=null; flying=false; controls.target.set(0,0,0); camera.position.set(0,0,0.8); controls.minDistance=0.2; controls.maxDistance=2.5; controls.enablePan=false;
+  shell.say("Vue planétarium : tu es au centre du ciel. Glisse (ou ← → ↑ ↓) pour balayer la voûte céleste, repère les constellations réelles et clique leur nom pour la fiche.",'enthousiaste'); updateConstLabels();
+}
+function exitPlanetarium(){ if(!planetarium && !domeGround.visible) {} planetarium=false; const pb=document.querySelector('[data-k="planet"]'); if(pb)pb.setAttribute('aria-pressed',false);
+  sun.visible=true; sunGlow.visible=true; if(sunLight)sunLight.visible=true; beltPts.visible=true; planetSprites.forEach(s=>{ s.visible=true; s.userData.moons.forEach(m=>m.visible=showMoons); }); orbitLines.forEach(o=>o.visible=showOrbits); domeGround.visible=false; constLines.visible=document.querySelector('[data-k="const"]').getAttribute('aria-pressed')==='true';
+  controls.minDistance=4; controls.maxDistance=real?3000:520; controls.enablePan=true; if(skybox)skybox.material.color.set(milkyOn?0x5a5a72:0x0c0c14); controls.target.set(0,0,0); camera.position.set(0,70,180); updateConstLabels();
+}
+function overviewView(){ if(planetarium)exitPlanetarium(); if(aligned)alignedView(); playing=false; const pb=document.getElementById('ssPlay'); if(pb)pb.textContent='▶ Animer les orbites'; camTarget=null; flying=false; controls.target.set(0,0,0); camera.position.set(0,150,230); shell.say("Vue d'ensemble : orbites en pause, clique tranquillement chaque astre.",'concentre'); shell.sound('click'); }
+function alignedView(){ if(planetarium)exitPlanetarium(); aligned=!aligned; playing=false; const pb=document.getElementById('ssPlay'); if(pb)pb.textContent='▶ Animer les orbites'; const ab=document.querySelector('[data-k="aligned"]'); if(ab)ab.setAttribute('aria-pressed',aligned); shell.sound('click'); camTarget=null; flying=false;
+  if(aligned){ orbitLines.forEach(o=>o.visible=false); if(beltPts)beltPts.visible=false; controls.target.set(150,0,0); camera.position.set(150,42,205); shell.say("Vue alignée : les planètes en file, à l'échelle relative de leurs tailles. Compare-les d'un coup d'œil !",'enthousiaste'); }
+  else { orbitLines.forEach(o=>o.visible=showOrbits&&!planetarium); if(beltPts)beltPts.visible=true; controls.target.set(0,0,0); camera.position.set(0,70,180); shell.say("Retour au système solaire.",'concentre'); } }
+
+/* ====== COURS — 3 niveaux de difficulté ====== */
+const QUIZ_TIERS = {
+  debutant:{ label:'Débutant', pts:120, items:[
+    {id:'mercure',q:"Trouve et clique : <b>Mercure</b>."},{id:'venus',q:"Trouve et clique : <b>Vénus</b>."},{id:'terre',q:"Trouve et clique : <b>la Terre</b>."},{id:'mars',q:"Trouve et clique : <b>Mars</b>."},{id:'jupiter',q:"Trouve et clique : <b>Jupiter</b>."},{id:'saturne',q:"Trouve et clique : <b>Saturne</b>."},{id:'uranus',q:"Trouve et clique : <b>Uranus</b>."},{id:'neptune',q:"Trouve et clique : <b>Neptune</b>."},{id:'sun',q:"Trouve et clique : <b>le Soleil</b>."},{id:'lune',q:"Trouve et clique : <b>la Lune</b>."} ]},
+  inter:{ label:'Intermédiaire', pts:180, items:[
+    {id:'mercure',q:"Clique la planète <b>la plus proche du Soleil</b> (année de 88 jours)."},{id:'venus',q:"Clique la planète à l'<b>effet de serre emballé</b>, plus chaude que Mercure."},{id:'terre',q:"Clique la seule planète <b>habitée</b>, dans la zone habitable."},{id:'mars',q:"Clique la <b>planète rouge</b>, couverte d'oxyde de fer."},{id:'jupiter',q:"Clique la <b>plus grande</b> planète, à la Grande Tache rouge."},{id:'saturne',q:"Clique le <b>seigneur des anneaux</b>."},{id:'uranus',q:"Clique la planète <b>couchée sur le côté</b> (axe à 98°)."},{id:'neptune',q:"Clique la planète <b>la plus venteuse</b>, découverte par le calcul."},{id:'titan',q:"Cherche la lune de Saturne aux <b>lacs de méthane</b>."},{id:'io',q:"Cherche la lune <b>la plus volcanique</b> de Jupiter."} ]},
+  expert:{ label:'Expert', pts:260, items:[
+    {id:'mercure',q:"Kepler : clique la planète à l'<b>année la plus courte</b>."},{id:'neptune',q:"Kepler : clique la planète à l'<b>année la plus longue</b> (~165 ans)."},{id:'saturne',q:"Clique la planète <b>si peu dense</b> qu'elle flotterait sur l'eau."},{id:'jupiter',q:"Clique la planète plus massive que <b>toutes les autres réunies</b>."},{id:'venus',q:"Clique la planète qui tourne <b>à l'envers</b> (Soleil levant à l'ouest)."},{id:'mars',q:"Clique le monde d'<b>Olympus Mons</b>, plus haut volcan connu."},{id:'europe',q:"Cherche la lune de Jupiter à l'<b>océan sous la glace</b>."},{id:'triton',q:"Cherche la lune de Neptune qui orbite <b>à l'envers</b>."},{id:'ganymede',q:"Cherche la <b>plus grande lune</b> du système solaire."},{id:'uranus',q:"Clique la planète dont une <b>saison dure 42 ans</b>."} ]},
+};
+function startMode(mode){ const h=document.getElementById('ssHint'); if(h)h.style.display=mode==='cours'?'none':''; if(mode==='cours'){ shell.setScore(0); chooseDifficulty(); } else { clearQuiz(); shell.setScore(0); } }
+function chooseDifficulty(){ clearQuiz(); let bar=document.getElementById('ssQuiz'); if(!bar){ bar=document.createElement('div'); bar.className='ss-quiz'; bar.id='ssQuiz'; shell.stage.appendChild(bar); } bar.style.flexWrap='wrap'; bar.innerHTML=`<span>🎯 Difficulté :</span>`+Object.keys(QUIZ_TIERS).map(k=>`<button class="ss-diff" data-t="${k}" style="font:inherit;font-weight:700;font-size:13px;padding:7px 13px;border-radius:9px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.18);color:#fff;cursor:pointer">${QUIZ_TIERS[k].label}</button>`).join(''); bar.querySelectorAll('.ss-diff').forEach(b=>b.onclick=()=>{ shell.sound('click'); startQuiz(b.dataset.t); }); shell.say('Trois niveaux : Débutant (noms), Intermédiaire (indices), Expert (raisonnement, Kepler). À toi !','curieux'); }
+function startQuiz(tier){ const T=QUIZ_TIERS[tier]||QUIZ_TIERS.debutant; const order=T.items.slice().sort(()=>Math.random()-.5).slice(0,6); quiz={tier,pts:T.pts,targets:order,idx:0,score:0,total:order.length}; shell.setScore(0); shell.setProgress(0); askQuiz(); }
+function askQuiz(){ if(!quiz)return; if(quiz.idx>=quiz.total){ winQuiz(); return; } const t=quiz.targets[quiz.idx]; showQuizBar(t.q, quiz.idx+1, quiz.total); shell.say('Clique le bon astre — ou cherche-le dans la barre.','concentre'); }
+function showQuizBar(html,n,total){ let bar=document.getElementById('ssQuiz'); if(!bar){ bar=document.createElement('div'); bar.className='ss-quiz'; bar.id='ssQuiz'; shell.stage.appendChild(bar); } bar.style.flexWrap='wrap'; bar.innerHTML=`<span class="qn">${n}/${total}</span><span>${html}</span>`; }
+function checkQuiz(b){ if(!quiz||!quiz.targets)return; const want=quiz.targets[quiz.idx]; if(!want)return; if(want.id===b.id){ quiz.score++; quiz.idx++; shell.addScore(quiz.pts); shell.sound('good'); shell.setProgress(quiz.idx/quiz.total); shell.say('Exact ! '+DATA[b.id].name+'.','celebration'); setTimeout(askQuiz,1000); } else { shell.sound('bad'); shell.addScore(-20); shell.say("Pas celui-ci. Relis l'indice et observe.",'rassurant'); } }
+function winQuiz(){ const bar=document.getElementById('ssQuiz'); if(bar)bar.remove(); const stars=quiz.score>=quiz.total?3:quiz.score>=quiz.total-1?2:1; const lbl=(QUIZ_TIERS[quiz.tier]||{}).label||''; shell.win({ score:parseInt(document.querySelector('.ksh-score').textContent||'0',10), stars, title:'Astres identifiés — '+lbl+' !', learned:shell.cfg.learned, buddy:"Bravo, navigateur des étoiles !" }); quiz=null; }
+function clearQuiz(){ const bar=document.getElementById('ssQuiz'); if(bar)bar.remove(); quiz=null; }
+
+function pmat(c,metal,rough){ return new THREE.MeshStandardMaterial({color:c,metalness:metal==null?0.5:metal,roughness:rough==null?0.5:rough}); }
+function buildHubble(){ const g=new THREE.Group(); const tube=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,1.7,22), pmat(0xd2d2da,0.55,0.4)); tube.rotation.x=Math.PI/2; g.add(tube);
+  const ap=new THREE.Mesh(new THREE.CylinderGeometry(0.52,0.52,0.12,22), pmat(0x1a1a1f,0.2,0.85)); ap.rotation.x=Math.PI/2; ap.position.z=0.9; g.add(ap);
+  const back=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.5,0.3,22), pmat(0xb8a86a,0.7,0.4)); back.rotation.x=Math.PI/2; back.position.z=-0.95; g.add(back);
+  [-1,1].forEach(sg=>{ const p=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.02,0.72), pmat(0x2a3a72,0.35,0.45)); p.position.set(sg*1.15,0,0); g.add(p); const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.5,6),pmat(0x999)); arm.rotation.z=Math.PI/2; arm.position.set(sg*0.55,0,0); g.add(arm); });
+  return g; }
+function buildJWST(){ const g=new THREE.Group();
+  for(let i=0;i<5;i++){ const sh=new THREE.Mesh(new THREE.PlaneGeometry(3.6,2.4), new THREE.MeshStandardMaterial({color:0x8a7ab0,metalness:0.85,roughness:0.25,side:THREE.DoubleSide})); sh.rotation.x=-Math.PI/2; sh.rotation.z=Math.PI/4; sh.position.y=-0.35-i*0.13; sh.scale.setScalar(1-i*0.05); g.add(sh); }
+  const mg=new THREE.Group(); const hex=new THREE.CircleGeometry(0.3,6); const gold=new THREE.MeshStandardMaterial({color:0xe0a820,metalness:0.95,roughness:0.22,side:THREE.DoubleSide,emissive:0x3a2700,emissiveIntensity:0.25});
+  const offs=[[0,0],[0.54,0],[-0.54,0],[0.27,0.47],[-0.27,0.47],[0.27,-0.47],[-0.27,-0.47],[0.81,0.47],[-0.81,0.47],[0.81,-0.47],[-0.81,-0.47],[0.54,0.94],[-0.54,0.94],[0.54,-0.94],[-0.54,-0.94],[0,0.94],[0,-0.94],[1.08,0]];
+  offs.forEach(o=>{ const h=new THREE.Mesh(hex,gold); h.position.set(o[0],o[1],0.55); h.rotation.z=Math.PI/6; mg.add(h); }); g.add(mg);
+  const boom=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1.4,6),pmat(0x444)); boom.position.set(0,0,1.0); boom.rotation.x=Math.PI/2; g.add(boom);
+  const sec=new THREE.Mesh(new THREE.CircleGeometry(0.16,16), new THREE.MeshStandardMaterial({color:0xd0d0d8,metalness:0.8,roughness:0.3,side:THREE.DoubleSide})); sec.position.set(0,0,1.7); g.add(sec);
+  return g; }
+function buildISS(){ const g=new THREE.Group(); const truss=new THREE.Mesh(new THREE.BoxGeometry(4.2,0.14,0.14), pmat(0xc6cad2,0.6,0.4)); g.add(truss);
+  const mod=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,1.6,18), pmat(0xececed,0.4,0.5)); mod.rotation.z=Math.PI/2; g.add(mod);
+  const mod2=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.9,16), pmat(0xdadde2,0.4,0.5)); mod2.rotation.x=Math.PI/2; g.add(mod2);
+  [[-1.7,1],[-1.7,-1],[1.7,1],[1.7,-1]].forEach(p=>{ const a=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.02,1.7), new THREE.MeshStandardMaterial({color:0x2a3658,metalness:0.35,roughness:0.5,emissive:0x101830,emissiveIntensity:0.2})); a.position.set(p[0],0,p[1]*1.05); g.add(a); });
+  const rad=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.02,0.6), pmat(0xffffff,0.2,0.6)); rad.position.set(0,0.5,0); g.add(rad);
+  return g; }
+/* ====== SONDES & SATELLITES VISIBLES + textures haute-déf au focus ====== */
+function probeTex(kind){ const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d'); const g=x.createRadialGradient(32,32,0,32,32,30); g.addColorStop(0,'rgba(150,200,255,.45)'); g.addColorStop(1,'rgba(150,200,255,0)'); x.fillStyle=g; x.fillRect(0,0,64,64); x.strokeStyle='#dce8ff'; x.fillStyle='#9fc4ff'; x.lineWidth=2;
+  if(kind==='scope'){ x.fillRect(27,18,10,26); x.strokeRect(27,18,10,26); x.fillRect(24,14,16,5); x.strokeRect(24,14,16,5); }
+  else { x.fillRect(28,27,8,10); x.strokeRect(28,27,8,10); x.fillRect(9,29,16,6); x.strokeRect(9,29,16,6); x.fillRect(39,29,16,6); x.strokeRect(39,29,16,6); }
+  return new THREE.CanvasTexture(c); }
+const PROBES=[ {id:'iss',k:'sat',d:3.0,per:0.25,inc:0.5,name:'ISS'}, {id:'hubble',k:'scope',d:3.8,per:0.35,inc:-0.4,name:'Hubble'}, {id:'jwst',k:'scope',earthBeyond:1.16,name:'JWST'}, {id:'parker',k:'sat',sun:true,d:10,per:0.8,name:'Parker'}, {id:'voyager1',k:'sat',fixed:[300,80,150],name:'Voyager 1'}, {id:'voyager2',k:'sat',fixed:[-280,-60,210],name:'Voyager 2'}, {id:'newhorizons',k:'sat',fixed:[-160,40,-250],name:'New Horizons'} ];
+const PROBE_BUILD={ iss:buildISS, hubble:buildHubble, jwst:buildJWST };
+function makeProbes(){ const tSat=probeTex('sat'), tScope=probeTex('scope'); PROBES.forEach(pr=>{ let obj; if(PROBE_BUILD[pr.id]){ obj=PROBE_BUILD[pr.id](); obj.scale.setScalar(0.7); obj.userData.model=true; } else { obj=new THREE.Sprite(new THREE.SpriteMaterial({ map:pr.k==='scope'?tScope:tSat, transparent:true, depthWrite:false })); obj.scale.setScalar(2.6); } obj.userData.pr=pr; scene.add(obj); probeSprites.push(obj); bodies.push({ obj, id:pr.id, kind:'probe', sky:SKY.find(z=>z.id===pr.id) }); }); }
+function positionProbes(simDays){ const terre=planetSprites[2]; const ep=terre?terre.position:new THREE.Vector3(); probeSprites.forEach(spr=>{ const pr=spr.userData.pr;  if(spr===camTarget){ if(spr.userData.model)spr.rotation.y=performance.now()*0.00025; spr.visible=showProbes&&!planetarium&&!aligned; return; } let pos;
+  if(pr.fixed){ pos=new THREE.Vector3(pr.fixed[0],pr.fixed[1],pr.fixed[2]); }
+  else if(pr.sun){ const a=simDays*0.3/pr.per; pos=new THREE.Vector3(Math.cos(a)*pr.d, Math.sin(a)*pr.d*0.25, Math.sin(a)*pr.d); }
+  else if(pr.earthBeyond){ pos=ep.clone().multiplyScalar(pr.earthBeyond); pos.y+=1.5; }
+  else { const a=simDays*6.28/Math.max(.1,pr.per); pos=ep.clone().add(new THREE.Vector3(Math.cos(a)*pr.d, Math.sin(a)*pr.d*pr.inc, Math.sin(a)*pr.d)); }
+  spr.position.copy(pos); if(spr.userData.model){ spr.rotation.y=performance.now()*0.00025; spr.rotation.x=0.3; } spr.visible=showProbes&&!planetarium&&!aligned; }); }
+function updateProbeLabels(){ const stage=shell.stage; probeSprites.forEach(spr=>{ const pr=spr.userData.pr; let el=spr.userData._lbl; const show=showProbes&&showLabels&&!planetarium&&!aligned; if(!show){ if(el)el.style.display='none'; return; } if(!el){ el=document.createElement('div'); el.className='ss-label'; el.style.fontSize='10px'; el.style.color='#bcd8ff'; el.textContent='🛰 '+pr.name; stage.appendChild(el); spr.userData._lbl=el; } const v=spr.position.clone().project(camera); if(v.z>1||!spr.visible){ el.style.display='none'; return; } el.style.display='block'; el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight-16)+'px'; }); }
+function selectProbe(b){ if(!b.sky)return; openFiche(b.sky,"sky"); focusOn(b.obj,4.5); shell.say(b.sky.desc[0],'enthousiaste'); shell.sound('pop'); checkQuiz(b); }
+const HIRES=new Set(['terre','mars','jupiter','saturne','lune']); const hiresDone={};
+function loadHiRes(mesh,id){ if(!HIRES.has(id)||hiresDone[id]||!mesh||!mesh.material) return; hiresDone[id]=true; new THREE.TextureLoader().load(TEXBASE+'hires_'+id+'.jpg', t=>{ t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; mesh.material.map=t; mesh.material.color.set(0xffffff); mesh.material.needsUpdate=true; }, undefined, ()=>{ hiresDone[id]=false; }); }
+/* ====== MISSION APOLLO 11 : décollage étagé (Saturn V) + alunissage ====== */
+function mmat(c,metal,rough,emis){ const m=new THREE.MeshStandardMaterial({color:c,metalness:metal==null?0.6:metal,roughness:rough==null?0.45:rough}); if(emis){ m.emissive=new THREE.Color(emis); m.emissiveIntensity=0.5; } return m; }
+function csrgb(t){ t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t; }
+
+/* -- livrée Saturn V dessinée au canvas : damier de roulis, bandes noires, drapeau, USA, UNITED STATES, meatball NASA -- */
+function rocketTex(kind){
+  const c=document.createElement('canvas'); c.width=1024; c.height=1024; const x=c.getContext('2d');
+  const flag=(fx,fy,fw)=>{ const fh=fw*0.66; for(let r=0;r<13;r++){ x.fillStyle=r%2?'#f3f4f7':'#c8102e'; x.fillRect(fx,fy+r*fh/13,fw,fh/13); } x.fillStyle='#0b2b6b'; x.fillRect(fx,fy,fw*0.42,fh*0.54); x.fillStyle='#fff'; x.font='bold 10px Arial'; x.textAlign='left'; for(let s=0;s<12;s++) x.fillText('★',fx+4+(s%4)*10, fy+11+Math.floor(s/4)*13); };
+  const nasa=(cx,cy)=>{ x.beginPath(); x.arc(cx,cy,48,0,7); x.fillStyle='#0b3d91'; x.fill(); x.strokeStyle='#fff'; x.lineWidth=3; x.beginPath(); x.ellipse(cx,cy,42,15,-0.5,0,7); x.stroke(); x.fillStyle='#fff'; x.font='900 25px Arial'; x.textAlign='center'; x.fillText('NASA',cx,cy+9); x.strokeStyle='#fc3d21'; x.lineWidth=6; x.beginPath(); x.arc(cx,cy,37,3.7,5.4); x.stroke(); };
+  if(kind==='s2'){ // étages supérieurs : blanc cassé, bandes noires, USA
+    x.fillStyle='#e7eaf0'; x.fillRect(0,0,1024,1024);
+    x.fillStyle='#15171c'; x.fillRect(0,0,1024,66); x.fillRect(0,958,1024,66);
+    for(const cx of [256,768]){ x.fillStyle='#c8102e'; x.font='900 150px Arial'; x.textAlign='center'; x.fillText('USA',cx,560); nasa(cx,760); }
+    return csrgb(new THREE.CanvasTexture(c));
+  }
+  // premier étage S-IC
+  x.fillStyle='#eff1f5'; x.fillRect(0,0,1024,1024);
+  for(let i=0;i<16;i++){ x.fillStyle=(i%2)?'#15171c':'#eff1f5'; x.fillRect(i*64,0,64,120); } // damier de roulis (haut)
+  x.fillStyle='#15171c'; x.fillRect(0,150,1024,24); x.fillRect(0,470,1024,42); x.fillRect(0,912,1024,58); // bandes de séparation
+  for(const cx of [256,768]){
+    flag(cx-64,210,128);
+    x.fillStyle='#c8102e'; x.font='900 140px Arial'; x.textAlign='center'; x.fillText('USA', cx, 470);
+    x.fillStyle='#15171c'; x.font='800 40px Arial'; x.fillText('UNITED STATES', cx, 700);
+    nasa(cx,808);
+  }
+  return csrgb(new THREE.CanvasTexture(c));
+}
+function finShape(){ const sh=new THREE.Shape(); sh.moveTo(0,0); sh.lineTo(1.4,-0.3); sh.lineTo(1.4,-1.25); sh.lineTo(0,-2.7); sh.closePath(); return new THREE.ExtrudeGeometry(sh,{depth:0.16,bevelEnabled:false}); }
+function f1Engine(){ const e=new THREE.Group(); const bell=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.44,0.9,18,1,true), mmat(0x2b2e35,0.8,0.4)); bell.position.y=-0.45; e.add(bell); const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.28,14), mmat(0x53575f,0.7,0.5)); cap.position.y=0.05; e.add(cap); return e; }
+
+/* Saturn V complète : S-IC + S-II + S-IVB + case à instruments + CSM + tour de sauvetage (LES) */
+function buildRocket(){ const g=new THREE.Group();
+  const livS1=rocketTex('s1'), livS2=rocketTex('s2');
+  // ---------- ÉTAGE 1 : S-IC (le plus gros, 5 F-1) ----------
+  const st1=new THREE.Group(); g.add(st1); g.userData.st1=st1;
+  const s1=new THREE.Mesh(new THREE.CylinderGeometry(1.34,1.42,7.5,44), new THREE.MeshStandardMaterial({map:livS1,metalness:0.22,roughness:0.55})); s1.position.y=3.75; st1.add(s1);
+  const fg=finShape(); for(let i=0;i<4;i++){ const a=i*Math.PI/2; const f=new THREE.Mesh(fg, mmat(0x1c1e26,0.5,0.55)); f.position.set(Math.cos(a)*1.36,2.5,Math.sin(a)*1.36); f.rotation.y=-a; st1.add(f); }
+  const eng1=new THREE.Group(); [[0,0],[0.74,0],[-0.74,0],[0,0.74],[0,-0.74]].forEach(o=>{ const e=f1Engine(); e.position.set(o[0],0,o[1]); eng1.add(e); }); st1.add(eng1);
+  const is1=new THREE.Mesh(new THREE.CylinderGeometry(1.32,1.34,0.5,40), mmat(0x181a20,0.5,0.5)); is1.position.y=7.75; st1.add(is1);
+  // ---------- ÉTAGE 2 : S-II (5 J-2) ----------
+  const st2=new THREE.Group(); g.add(st2); g.userData.st2=st2;
+  const s2=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.32,4.6,40), new THREE.MeshStandardMaterial({map:livS2,metalness:0.3,roughness:0.5})); s2.position.y=10.3; st2.add(s2);
+  [[0,0],[0.5,0],[-0.5,0],[0,0.5],[0,-0.5]].forEach(o=>{ const e=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.25,0.55,14,1,true), mmat(0x2b2e35,0.8,0.4)); e.position.set(o[0],7.72,o[1]); st2.add(e); });
+  const is2=new THREE.Mesh(new THREE.CylinderGeometry(1.28,1.3,0.42,36), mmat(0x181a20,0.5,0.5)); is2.position.y=12.8; st2.add(is2);
+  // ---------- ÉTAGE 3 : S-IVB (1 J-2) + case à instruments ----------
+  const st3=new THREE.Group(); g.add(st3); g.userData.st3=st3;
+  const s3cone=new THREE.Mesh(new THREE.CylinderGeometry(0.92,1.28,0.95,36), mmat(0xe7eaf0,0.35,0.5)); s3cone.position.y=13.5; st3.add(s3cone);
+  const s3=new THREE.Mesh(new THREE.CylinderGeometry(0.92,0.92,2.5,36), new THREE.MeshStandardMaterial({map:livS2,metalness:0.3,roughness:0.5})); s3.position.y=15.25; st3.add(s3);
+  const j2=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.32,0.62,16,1,true), mmat(0x2b2e35,0.8,0.4)); j2.position.y=12.95; st3.add(j2);
+  const iu=new THREE.Mesh(new THREE.CylinderGeometry(0.92,0.92,0.32,36), mmat(0x2a2d34,0.6,0.5)); iu.position.y=16.66; st3.add(iu);
+  // ---------- VAISSEAU : adaptateur (SLA) + module de service + module de commande ----------
+  const sc=new THREE.Group(); g.add(sc); g.userData.sc=sc;
+  const sla=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.92,1.4,32), mmat(0xd9dde6,0.5,0.45)); sla.position.y=17.52; sc.add(sla);
+  const sm=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.55,1.7,32), mmat(0xc3c9d4,0.7,0.4)); sm.position.y=19.07; sc.add(sm);
+  const smNoz=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.26,0.5,16,1,true), mmat(0x2b2e35,0.8,0.4)); smNoz.position.y=17.9; sc.add(smNoz);
+  const cm=new THREE.Mesh(new THREE.ConeGeometry(0.57,0.98,32), mmat(0x33363d,0.5,0.4)); cm.position.y=20.4; sc.add(cm);
+  // ---------- TOUR DE SAUVETAGE (LES) ----------
+  const les=new THREE.Group(); g.add(les); g.userData.les=les;
+  const bpc=new THREE.Mesh(new THREE.ConeGeometry(0.5,0.72,24), mmat(0xd0d5de,0.5,0.5)); bpc.position.y=21.15; les.add(bpc);
+  for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4; const strut=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,1.15,6), mmat(0xb0b5bf,0.6,0.4)); strut.position.set(Math.cos(a)*0.19,21.7,Math.sin(a)*0.19); strut.rotation.z=Math.cos(a)*0.16; strut.rotation.x=-Math.sin(a)*0.16; les.add(strut); }
+  const lnz=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.3,0.32,18,1,true), mmat(0x2b2e35,0.8,0.4)); lnz.position.y=21.95; les.add(lnz);
+  const lm=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,1.0,18), mmat(0xd23a2a,0.4,0.5)); lm.position.y=22.55; les.add(lm);
+  const ltip=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.55,8), mmat(0xb0b5bf,0.6,0.4)); ltip.position.y=23.3; les.add(ltip);
+  g.userData.engY1=0.0; g.userData.engY2=7.72; g.userData.engY3=12.95;
+  return g; }
+function buildFlame(){ const g=new THREE.Group();
+  const core=new THREE.Mesh(new THREE.ConeGeometry(0.9,4.2,20,1,true), new THREE.MeshBasicMaterial({color:0xfff1c4,transparent:true,opacity:0.95,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide})); core.rotation.x=Math.PI; core.position.y=-2.1; g.add(core);
+  const out=new THREE.Mesh(new THREE.ConeGeometry(1.5,6.0,20,1,true), new THREE.MeshBasicMaterial({color:0xff7a1a,transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide})); out.rotation.x=Math.PI; out.position.y=-3.0; g.add(out);
+  g.userData.core=core; g.userData.out=out; return g; }
+/* module lunaire (LM « Eagle ») détaillé : étage de descente octogonal + étage de remontée + pieds + RCS + antenne */
+function buildLander(){ const g=new THREE.Group();
+  const desc=new THREE.Mesh(new THREE.CylinderGeometry(1.7,1.85,1.35,8), mmat(0xd9a52a,0.85,0.4,0x3a2600)); desc.position.y=1.0; desc.rotation.y=Math.PI/8; g.add(desc);
+  const foil=new THREE.Mesh(new THREE.CylinderGeometry(1.74,1.9,0.45,8), mmat(0xcaa02a,0.9,0.5,0x2e1e00)); foil.position.y=0.45; foil.rotation.y=Math.PI/8; g.add(foil);
+  const dbell=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.62,0.85,20,1,true), mmat(0x26282e,0.85,0.4)); dbell.position.y=-0.12; g.add(dbell); // moteur de descente
+  const asc=new THREE.Mesh(new THREE.CylinderGeometry(1.12,1.42,1.2,8), mmat(0xdfe4ec,0.55,0.45)); asc.position.y=2.35; asc.rotation.y=Math.PI/8; g.add(asc);
+  const asc2=new THREE.Mesh(new THREE.BoxGeometry(1.9,0.85,1.7), mmat(0xd7dde6,0.55,0.45)); asc2.position.y=2.92; g.add(asc2);
+  for(const sx of [-0.42,0.42]){ const w=new THREE.Mesh(new THREE.CircleGeometry(0.22,3), new THREE.MeshStandardMaterial({color:0x0f1826,metalness:0.5,roughness:0.2,emissive:0x14314f,emissiveIntensity:0.6})); w.position.set(sx,3.02,0.86); w.rotation.z=Math.PI; g.add(w); }
+  const hatch=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.6,0.06), mmat(0xb9c0cc,0.5,0.5)); hatch.position.set(0,2.5,0.9); g.add(hatch);
+  const ant=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,1.1,6), mmat(0x9aa0ac,0.6,0.4)); ant.position.set(0.6,3.9,-0.2); g.add(ant);
+  const dish=new THREE.Mesh(new THREE.SphereGeometry(0.28,16,10,0,6.28,0,Math.PI/2), new THREE.MeshStandardMaterial({color:0xcfd4dc,metalness:0.7,roughness:0.3,side:THREE.DoubleSide})); dish.position.set(0.6,4.42,-0.2); dish.rotation.x=-0.6; g.add(dish);
+  for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4; const q=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.16,0.16), mmat(0x8a8f99,0.7,0.4)); q.position.set(Math.cos(a)*1.05,3.25,Math.sin(a)*1.05); g.add(q); }
+  for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4;
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,2.9,8), mmat(0xc7cdd6,0.7,0.4)); leg.position.set(Math.cos(a)*1.55,0.1,Math.sin(a)*1.55); leg.rotation.z=Math.cos(a)*0.62; leg.rotation.x=-Math.sin(a)*0.62; g.add(leg);
+    const strut=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,1.4,6), mmat(0xaeb4be,0.7,0.4)); strut.position.set(Math.cos(a)*1.05,0.55,Math.sin(a)*1.05); strut.rotation.z=Math.cos(a)*1.0; strut.rotation.x=-Math.sin(a)*1.0; g.add(strut);
+    const pad=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.3,0.14,14), mmat(0x9aa0ac,0.7,0.5)); pad.position.set(Math.cos(a)*2.45,-1.25,Math.sin(a)*2.45); g.add(pad);
+    const probe=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.7,6), mmat(0x777c86,0.6,0.5)); probe.position.set(Math.cos(a)*2.45,-1.6,Math.sin(a)*2.45); g.add(probe); }
+  const lf=buildFlame(); lf.scale.setScalar(0.4); lf.position.y=-0.12; lf.visible=false; g.add(lf); g.userData.flame=lf;
+  return g; }
+/* poussière / regolithe soulevée par le moteur de descente au contact */
+function buildDust(){ const n=REDUCED?60:170; const pos=new Float32Array(n*3); const vel=[];
+  for(let i=0;i<n;i++){ const a=Math.random()*6.28, r=Math.random()*0.4; pos[i*3]=Math.cos(a)*r; pos[i*3+1]=Math.random()*0.1; pos[i*3+2]=Math.sin(a)*r; vel.push({a, r, sp:0.7+Math.random()*1.8, up:0.05+Math.random()*0.25}); }
+  const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const m=new THREE.PointsMaterial({color:0xc4b79c, size:0.85, sizeAttenuation:true, transparent:true, opacity:0, depthWrite:false});
+  const p=new THREE.Points(geo,m); p.userData.vel=vel; return p; }
+function updateDust(dt,intensity){ if(!dust)return; const p=dust.geometry.attributes.position, vel=dust.userData.vel;
+  dust.material.opacity += (intensity-dust.material.opacity)*Math.min(1,dt*6);
+  if(dust.material.opacity<0.01 && intensity<=0){ return; }
+  for(let i=0;i<vel.length;i++){ const v=vel[i]; v.r+=v.sp*dt*(0.8+intensity); if(v.r>4.2){ v.r=0.1+Math.random()*0.2; } p.array[i*3]=Math.cos(v.a)*v.r; p.array[i*3+1]=v.up*Math.min(v.r,1.4)*0.5; p.array[i*3+2]=Math.sin(v.a)*v.r; }
+  p.needsUpdate=true; }
+/* Lune procédurale (cratères + mers) : relief visible même sans photo chargée */
+function moonBumpTex(){ const c=document.createElement('canvas'); c.width=512; c.height=256; const x=c.getContext('2d');
+  x.fillStyle='#8a8a90'; x.fillRect(0,0,512,256);
+  for(let i=0;i<9;i++){ const cx=Math.random()*512, cy=Math.random()*256, r=22+Math.random()*46; const gd=x.createRadialGradient(cx,cy,0,cx,cy,r); gd.addColorStop(0,'rgba(78,78,86,0.55)'); gd.addColorStop(1,'rgba(78,78,86,0)'); x.fillStyle=gd; x.beginPath(); x.arc(cx,cy,r,0,7); x.fill(); }
+  for(let i=0;i<240;i++){ const cx=Math.random()*512, cy=Math.random()*256, r=1+Math.random()*Math.random()*15; const gd=x.createRadialGradient(cx,cy,0,cx,cy,r); gd.addColorStop(0,'#5f5f66'); gd.addColorStop(0.68,'#8a8a90'); gd.addColorStop(0.86,'#cfcfd5'); gd.addColorStop(1,'#8a8a90'); x.fillStyle=gd; x.beginPath(); x.arc(cx,cy,r,0,7); x.fill(); }
+  return csrgb(new THREE.CanvasTexture(c)); }
+function buildMoonGlobe(r){ const tex=moonBumpTex(); const m=new THREE.MeshStandardMaterial({map:tex,bumpMap:tex,bumpScale:0.5,metalness:0.0,roughness:1.0}); const s=new THREE.Mesh(new THREE.SphereGeometry(r,48,32), m);
+  new THREE.TextureLoader().load(TEXBASE+'2k_moon.jpg', t=>{ t.colorSpace=THREE.SRGBColorSpace; m.map=t; m.needsUpdate=true; }, undefined, ()=>{}); return s; }
+function buildEarthGlobe(r){ const m=new THREE.MeshStandardMaterial({color:0x2a5fa0,metalness:0.0,roughness:0.95}); const s=new THREE.Mesh(new THREE.SphereGeometry(r,48,32), m);
+  new THREE.TextureLoader().load(TEXBASE+'2k_earth_daymap.jpg', t=>{ t.colorSpace=THREE.SRGBColorSpace; m.map=t; m.color.set(0xffffff); m.needsUpdate=true; }, undefined, ()=>{});
+  const atm=new THREE.Mesh(new THREE.SphereGeometry(r*1.05,32,24), new THREE.MeshBasicMaterial({color:0x6fb4ff,transparent:true,opacity:0.16,side:THREE.BackSide})); s.add(atm); return s; }
+function buildGround(tex,color){ const geo=new THREE.SphereGeometry(420,48,32); const mat=new THREE.MeshStandardMaterial({color:color,metalness:0.0,roughness:1.0}); const m=new THREE.Mesh(geo,mat); m.position.y=-422;
+  new THREE.TextureLoader().load(TEXBASE+tex, t=>{ t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(8,8); t.anisotropy=4; mat.map=t; mat.color.set(0xffffff); mat.needsUpdate=true; });
+  return m; }
+
+const MPHASES=[
+  {id:'pad', title:'À la rampe de lancement', cap:'Saturn V (110 m) sur le pas de tir 39A. Prête pour la séquence de lancement.', gate:'▶ Démarrer le compte à rebours', alt:0, vel:0},
+  {id:'countdown', title:'Compte à rebours', cap:'Tous les voyants au vert… 3… 2… 1…', dur:3.6, alt:0, vel:0},
+  {id:'ignition', title:'Allumage', cap:'Mise à feu des cinq moteurs F-1 : 34 000 kN de poussée retenus par les bras de maintien.', gate:'🔥 Mettre à feu', flame:true, alt:0, vel:0},
+  {id:'liftoff', title:'Décollage', cap:'« Liftoff! We have a liftoff! » — la fusée s’arrache de la rampe.', dur:4.6, flame:true},
+  {id:'maxq', title:'Max Q', cap:'Pression dynamique maximale — la structure encaisse le mur de l’air.', dur:3.0, flame:true},
+  {id:'sep1', title:'Séparation du 1ᵉʳ étage (S-IC)', cap:'Réservoirs vides : on largue le S-IC. Rétrofusées à l’allumage, le S-II prend le relais.', gate:'⬇ Larguer le S-IC', flame:true},
+  {id:'les', title:'Largage de la tour de sauvetage', cap:'Plus besoin de la tour d’éjection : on la largue vers le haut, hors trajectoire.', gate:'🗼 Larguer la tour (LES)', flame:true},
+  {id:'ascent2', title:'Poussée du 2ᵉ étage (S-II)', cap:'Les cinq moteurs J-2 poussent le vaisseau vers l’orbite.', dur:4.0, flame:true},
+  {id:'sep2', title:'Séparation du 2ᵉ étage (S-II)', cap:'Second largage : le S-II tombe, le troisième étage S-IVB s’allume.', gate:'⬇ Larguer le S-II', flame:true},
+  {id:'orbit', title:'Mise en orbite', cap:'Orbite de parking atteinte : la Terre défile sous nos pieds.', dur:3.8, flame:false},
+  {id:'tli', title:'Injection trans-lunaire (TLI)', cap:'Rallume le S-IVB pour quitter l’orbite et viser la Lune.', gate:'🌙 Cap sur la Lune', flame:true},
+  {id:'transit', title:'Voyage translunaire', cap:'384 000 km à travers le vide… la Terre s’éloigne, la Lune grandit.', dur:5.5, flame:false},
+  {id:'descent', title:'Alunissage piloté', cap:'Mode assisté par défaut : ↑/Espace pour freiner, ←/→ pour t\'orienter. Pose-toi en douceur sur la cible (bascule « Manuel » pour le défi réaliste).', interactive:true},
+  {id:'landed', title:'« The Eagle has landed »', cap:'Posé en douceur sur la mer de la Tranquillité. Moteur coupé, contact !', gate:'✓ Voir le débrief de mission', flame:false},
+];
+
+function playA(k,vol,loop){ if(!missionAudio||shell.muted)return; const a=missionAudio[k]; if(!a)return; try{ a.loop=!!loop; a.volume=vol; a.currentTime=0; a.play().catch(()=>{}); }catch(e){} }
+function fadeA(k){ if(!missionAudio)return; const a=missionAudio[k]; if(!a)return; const id=setInterval(()=>{ if(a.volume>0.04){ a.volume=Math.max(0,a.volume-0.06); } else { a.pause(); clearInterval(id); } },60); }
+function stopAllA(){ if(!missionAudio)return; Object.values(missionAudio).forEach(a=>{ try{a.pause();}catch(e){} }); }
+function startMission(){ if(mission&&mission.active)return; shell.sound('pop');
+  if(!missionAudio){ const B='../assets/3d/audio/'; missionAudio={ launch:new Audio(B+'saturn-launch.ogg'), landed:new Audio(B+'apollo-eagle-landed.mp3'), step:new Audio(B+'apollo-small-step.ogg') }; Object.values(missionAudio).forEach(a=>a.preload='auto'); }
+  if(planetarium)exitPlanetarium(); if(aligned)alignedView();
+  setSolarVisible(false); controls.enabled=false; flying=false; camTarget=null;
+  if(!savedCam) savedCam={ pos:camera.position.clone(), tgt:controls.target.clone() };
+  missionGroup=new THREE.Group(); scene.add(missionGroup);
+  earthGround=buildGround('2k_earth_daymap.jpg',0x2a5fa0); missionGroup.add(earthGround);
+  rocket=buildRocket(); rocket.position.set(0,0,0); missionGroup.add(rocket);
+  missionFlame=buildFlame(); missionFlame.visible=false; rocket.add(missionFlame);
+  const pad=new THREE.Mesh(new THREE.CylinderGeometry(2.6,3.0,1.0,24), mmat(0x4a4f5a,0.6,0.6)); pad.position.y=-0.5; missionGroup.add(pad);
+  // tour ombilicale (treillis)
+  const tower=new THREE.Group(); for(let s=0;s<4;s++){ const col=new THREE.Mesh(new THREE.BoxGeometry(0.16,17,0.16), mmat(0x8a3a2a,0.5,0.6)); col.position.set((s<2?-0.5:0.5),8,(s%2?-0.5:0.5)); tower.add(col); } for(let y=1;y<17;y+=2){ const beam=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.1,0.1), mmat(0x8a3a2a,0.5,0.6)); beam.position.set(0,y,0.5); tower.add(beam); const b2=beam.clone(); b2.position.z=-0.5; tower.add(b2); }
+  tower.position.set(-4.2,0,0); missionGroup.add(tower); missionGroup.userData.tower=tower;
+  if(!missionGroup.userData.lights){ const key=new THREE.DirectionalLight(0xfff2d8,2.4); key.position.set(40,60,30); missionGroup.add(key); const amb=new THREE.HemisphereLight(0x9fc0ff,0x202028,0.7); missionGroup.add(amb); missionGroup.userData.lights=true; }
+  document.querySelectorAll('.ss-panel').forEach(p=>p.dataset._hidden=p.style.display||'')||0; document.querySelectorAll('.ss-panel').forEach(p=>p.style.display='none'); const hint=document.getElementById('ssHint'); if(hint)hint.style.visibility='hidden';
+  buildMissionHUD();
+  mission={ active:true, ended:false, i:-1, t:0, alt:0, vel:0, visualY:0, landed:false, crash:false, flameStage:1, engY:0, debris:[], assist:true, stabilize:true, autopose:false, px:0, pvx:0, thrustL:0 };
+  setMissionPhase(0);
+  shell.say('Mission Apollo 11 : du pas de tir jusqu’à l’alunissage. Suis les consignes, largue les étages, puis pilote la descente finale toi-même !','enthousiaste');
+}
+function setSolarVisible(v){ if(sun)sun.visible=v; if(sunGlow)sunGlow.visible=v; if(sunLight)sunLight.visible=v; if(beltPts)beltPts.visible=v;
+  planetSprites.forEach(s=>{ s.visible=v; if(s.userData.moons)s.userData.moons.forEach(m=>m.visible=v&&showMoons); });
+  orbitLines.forEach(o=>o.visible=v&&showOrbits); if(constLines)constLines.visible=v&&constLines.visible&&false; probeSprites.forEach(p=>p.visible=v&&showProbes);
+  if(!v){ Object.values(labelEls).forEach(e=>e&&(e.style.display='none')); constLabelEls.forEach(e=>e&&(e.style.display='none')); probeSprites.forEach(p=>{ if(p.userData._lbl)p.userData._lbl.style.display='none'; }); }
+}
+function buildMissionHUD(){ let h=document.getElementById('ssMission'); if(h)h.remove();
+  h=document.createElement('div'); h.className='ss-mission on'; h.id='ssMission';
+  const dots=MPHASES.map((p,i)=>`<i data-si="${i}"></i>`).join('');
+  h.innerHTML=`<div class="ss-m-flash" id="mFlash" style="background:radial-gradient(circle at 50% 60%,rgba(255,240,200,.9),transparent 60%)"></div>
+   <div class="ss-m-top"><div class="ss-m-phase" id="mPhase">Phase</div><h2 class="ss-m-title" id="mTitle">—</h2><div class="ss-m-cap" id="mCap">—</div><div class="ss-m-steps" id="mSteps">${dots}</div></div>
+   <div class="ss-m-tel"><div class="row"><span>Altitude</span><b id="mAlt">0</b></div><div class="row" id="mVelRow"><span>Vitesse vert.</span><b id="mVel">0</b></div><div class="row" id="mDriftRow"><span>Dérive</span><b id="mDrift">—</b></div><div class="row"><span>Carburant</span><b id="mFuel">100%</b></div><div class="gauge"><i id="mFuelBar" style="width:100%"></i></div><div class="ss-m-contact" id="mContact">○ pas de contact</div></div>
+   <div class="ss-m-act" id="mAct"></div>
+   <button class="ss-m-quit" id="mQuit">Quitter la mission</button>`;
+  shell.stage.appendChild(h);
+  document.getElementById('mQuit').onclick=()=>endMission(false);
+}
+function setFlameStage(n){ if(!missionFlame||!rocket)return; const u=rocket.userData; const y=n===1?u.engY1:n===2?u.engY2:u.engY3; missionFlame.position.y=y; missionFlame.scale.setScalar(n===1?1.0:n===2?0.72:0.52); if(mission){ mission.flameStage=n; mission.engY=y; } }
+function jettison(grp,up){ if(!grp||!missionGroup)return; const wp=new THREE.Vector3(); grp.getWorldPosition(wp); const wq=new THREE.Quaternion(); grp.getWorldQuaternion(wq); if(grp.parent)grp.parent.remove(grp); missionGroup.add(grp); grp.position.copy(wp); grp.quaternion.copy(wq);
+  mission.debris.push({o:grp, vy:up?10:-7, vx:(Math.random()-.5)*2, vz:(Math.random()-.5)*2, rx:(Math.random()-.5)*1.3, rz:(Math.random()-.5)*1.3, t:0}); flashScreen('rgba(255,235,190,.75)'); shell.sound('pop'); }
+function setContactLight(on){ const c=document.getElementById('mContact'); if(!c)return; c.classList.toggle('on',on); c.textContent=on?'◉ CONTACT — moteur coupé':'○ pas de contact'; }
+function setMissionPhase(i){ if(!mission)return; mission.i=i; mission.t=0; const ph=MPHASES[i]; if(!ph)return;
+  document.getElementById('mPhase').textContent=(i+1)+' / '+MPHASES.length;
+  document.getElementById('mTitle').textContent=ph.title; document.getElementById('mCap').textContent=ph.cap;
+  const steps=document.getElementById('mSteps'); if(steps)[...steps.children].forEach((d,k)=>{ d.className=k<i?'done':k===i?'now':''; });
+  if(missionFlame)missionFlame.visible=!!ph.flame; shell.sound(ph.id==='ignition'||ph.id==='liftoff'?'win':'click');
+  if(ph.id==='ignition')setFlameStage(1);
+  if(missionAudio){ if(ph.id==='liftoff')playA('launch',0.30,true); else if(ph.id==='orbit'||ph.id==='maxq')fadeA('launch'); if(ph.id==='tli')playA('launch',0.24,true); if(ph.id==='transit')fadeA('launch'); if(ph.id==='landed'){ fadeA('launch'); playA('landed',0.8,false); } }
+  // bascule fusée -> module lunaire à l'injection trans-lunaire
+  if(ph.id==='transit'&&!mission.swapped){ mission.swapped=true; if(earthGround)earthGround.visible=false; rocket.visible=false; if(missionGroup.userData.tower)missionGroup.userData.tower.visible=false;
+    lander=buildLander(); lander.position.set(0,0,0); missionGroup.add(lander);
+    earthGlobe=buildEarthGlobe(3.6); earthGlobe.position.set(-6,3,-42); missionGroup.add(earthGlobe);
+    moonGlobe=buildMoonGlobe(1.6); moonGlobe.position.set(3,-6,60); missionGroup.add(moonGlobe); }
+  if(ph.id==='descent'){ if(moonGlobe)moonGlobe.visible=false; if(earthGlobe)earthGlobe.visible=false;
+    if(!moonGround){ moonGround=buildGround('2k_moon.jpg',0x8a8a90); moonGround.position.y=-421.3; missionGroup.add(moonGround); } moonGround.visible=true;
+    if(!dust){ dust=buildDust(); dust.position.y=-1.3; missionGroup.add(dust); }
+    // cible d'alunissage (anneau au sol) pour donner un sens à l'orientation ←/→
+    if(!mission.padRing){ const ring=new THREE.Mesh(new THREE.RingGeometry(3.2,3.9,40), new THREE.MeshBasicMaterial({color:0x7ec8ff,transparent:true,opacity:0.5,side:THREE.DoubleSide})); ring.rotation.x=-Math.PI/2; ring.position.y=-1.22; missionGroup.add(ring);
+      const bull=new THREE.Mesh(new THREE.RingGeometry(0.5,0.85,28), new THREE.MeshBasicMaterial({color:0x7ef5b0,transparent:true,opacity:0.65,side:THREE.DoubleSide})); bull.rotation.x=-Math.PI/2; bull.position.y=-1.21; missionGroup.add(bull); mission.padRing=ring; mission.padBull=bull; }
+    const A=mission.assist;
+    mission.alt=A?70:90; mission.vel=A?-1.6:-2.5; mission.fuel=1.0; mission.px=0; mission.pvx=0; mission.thrustL=0; mission.landed=false; mission.crash=false; setContactLight(false);
+    if(lander){ lander.position.set(0,mission.alt,0); lander.rotation.set(0,0,0); if(lander.userData.flame)lander.userData.flame.visible=true; } }
+  if(ph.id==='landed'){ if(lander){ lander.position.y=0; if(lander.userData.flame)lander.userData.flame.visible=false; plantFlag(); } setContactLight(true); }
+  // bouton d'action
+  const act=document.getElementById('mAct'); act.innerHTML='';
+  if(ph.gate){ const btn=document.createElement('button'); btn.className='ss-m-btn'; btn.textContent=ph.gate;
+    btn.onclick=()=>{ shell.sound('pop');
+      if(ph.id==='sep1'){ jettison(rocket.userData.st1); setFlameStage(2); }
+      else if(ph.id==='les'){ jettison(rocket.userData.les,true); }
+      else if(ph.id==='sep2'){ jettison(rocket.userData.st2); setFlameStage(3); }
+      if(ph.id==='landed'){ showEndScreen(); } else { setMissionPhase(i+1); } };
+    act.appendChild(btn); }
+  else if(ph.interactive){ buildLanderControls(act); setAssistUI(); }
+}
+/* contrôles d'alunissage : gros boutons tactiles + bascule assisté/manuel + légende clavier */
+function buildLanderControls(act){
+  const wrap=document.createElement('div'); wrap.className='ss-lc';
+  wrap.innerHTML=`
+    <div class="ss-lc-modes">
+      <button class="ss-lc-mode" id="mAssist">🟢 Assisté</button>
+      <button class="ss-lc-tog" id="mStab" aria-pressed="true">🎚 Stabilisation</button>
+      <button class="ss-lc-tog" id="mAuto" aria-pressed="false">🛟 Auto-pose</button>
+    </div>
+    <div class="ss-lc-pad">
+      <button class="ss-lc-dir" id="mLeft" aria-label="Orienter à gauche">◀</button>
+      <button class="ss-lc-thrust" id="mThrust">🔥<span>POUSSÉE</span></button>
+      <button class="ss-lc-dir" id="mRight" aria-label="Orienter à droite">▶</button>
+    </div>
+    <div class="ss-lc-legend">Clavier : <b>↑</b>/<b>Espace</b> poussée · <b>←</b> <b>→</b> orientation · <b>A</b> mode — maintiens pour freiner la chute.</div>`;
+  act.appendChild(wrap);
+  const th=wrap.querySelector('#mThrust');
+  const thDn=e=>{ if(e)e.preventDefault(); missionThrust=true; th.classList.add('held'); };
+  const thUp=e=>{ if(e)e.preventDefault(); missionThrust=false; th.classList.remove('held'); };
+  th.addEventListener('pointerdown',thDn); th.addEventListener('pointerleave',thUp); window.addEventListener('pointerup',thUp);
+  const L=wrap.querySelector('#mLeft'), R=wrap.querySelector('#mRight');
+  const setL=(v,btn)=>e=>{ if(e)e.preventDefault(); mission.thrustL=v; if(btn)btn.classList.toggle('held',v!==0); };
+  L.addEventListener('pointerdown',setL(-1,L)); L.addEventListener('pointerup',setL(0,L)); L.addEventListener('pointerleave',setL(0,L));
+  R.addEventListener('pointerdown',setL(1,R)); R.addEventListener('pointerup',setL(0,R)); R.addEventListener('pointerleave',setL(0,R));
+  window.addEventListener('pointerup',()=>{ if(L.classList.contains('held')||R.classList.contains('held')){ L.classList.remove('held'); R.classList.remove('held'); if(mission)mission.thrustL=0; } });
+  wrap.querySelector('#mAssist').onclick=toggleAssist;
+  wrap.querySelector('#mStab').onclick=()=>{ if(!mission||!mission.assist)return; mission.stabilize=!mission.stabilize; setAssistUI(); shell.sound('click'); };
+  wrap.querySelector('#mAuto').onclick=()=>{ if(!mission||!mission.assist)return; mission.autopose=!mission.autopose; setAssistUI(); shell.sound('click'); shell.say(mission.autopose?'Auto-pose activée : la descente se stabilise seule, regarde le module se poser en douceur.':'Auto-pose coupée : c\'est toi qui gères la poussée.','concentre'); };
+}
+function setAssistUI(){ if(!mission)return; const b=document.getElementById('mAssist'); if(b){ b.textContent=mission.assist?'🟢 Assisté':'🔴 Manuel'; b.classList.toggle('manual',!mission.assist); }
+  const st=document.getElementById('mStab'); if(st){ st.setAttribute('aria-pressed', !!(mission.assist&&mission.stabilize)); st.disabled=!mission.assist; }
+  const au=document.getElementById('mAuto'); if(au){ au.setAttribute('aria-pressed', !!(mission.assist&&mission.autopose)); au.disabled=!mission.assist; }
+}
+function toggleAssist(){ if(!mission)return; mission.assist=!mission.assist; if(!mission.assist)mission.autopose=false; setAssistUI(); shell.sound('click');
+  shell.say(mission.assist?'Mode assisté : chute limitée, maintien vertical et stabilisation t\'aident à te poser sans stress — impossible d\'échouer vraiment.':'Mode manuel : pilotage réaliste. Pose-toi sous 2,5 m/s, bien centré sur la cible. Qui peut le plus peut le moins !','concentre'); }
+/* drapeau + plaque commémorative plantés à l'alunissage */
+function plantFlag(){ if(!lander||lander.userData._flag)return; const f=new THREE.Group();
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,2.0,6), mmat(0xd8dde5,0.7,0.4)); pole.position.y=-0.3; f.add(pole);
+  const cvs=document.createElement('canvas'); cvs.width=64; cvs.height=42; const cx=cvs.getContext('2d'); for(let r=0;r<13;r++){ cx.fillStyle=r%2?'#f3f4f7':'#c8102e'; cx.fillRect(0,r*42/13,64,42/13); } cx.fillStyle='#0b2b6b'; cx.fillRect(0,0,27,22);
+  const flag=new THREE.Mesh(new THREE.PlaneGeometry(1.2,0.78), new THREE.MeshStandardMaterial({map:csrgb(new THREE.CanvasTexture(cvs)),side:THREE.DoubleSide,metalness:0.1,roughness:0.7})); flag.position.set(0.62,0.4,0); f.add(flag);
+  f.position.set(3.0,0,1.6); lander.parent.add(f); lander.userData._flag=f; }
+function updateMission(dt){ if(!mission)return; dt=Math.min(dt,0.05);
+  // débris d'étages largués (toujours animés)
+  if(mission.debris&&mission.debris.length){ for(const d of mission.debris){ d.t+=dt; d.o.position.y+=d.vy*dt; d.o.position.x+=d.vx*dt; d.o.position.z+=d.vz*dt; d.vy-=2.4*dt; d.o.rotation.x+=d.rx*dt; d.o.rotation.z+=d.rz*dt; } mission.debris=mission.debris.filter(d=>{ if(d.t>6){ missionGroup.remove(d.o); return false; } return true; }); }
+  // cinématique de fin (LM posé) pendant l'écran de fin
+  if(mission.ended){ mission.t+=dt; const a=0.6+mission.t*0.12; const ly=lander?lander.position.y:0; camera.position.lerp(new THREE.Vector3(Math.cos(a)*11,ly+5.2,Math.sin(a)*11),0.03); camera.lookAt(0,ly+2,0); updateDust(dt,0); return; }
+  const ph=MPHASES[mission.i]; if(!ph)return; mission.t+=dt;
+  let alt=mission.alt, vel=mission.vel, fuel=mission.fuel!=null?mission.fuel:1;
+  if(missionFlame&&missionFlame.visible){ const fl=0.85+Math.random()*0.3; missionFlame.userData.core.scale.set(fl,1+Math.random()*0.25,fl); missionFlame.userData.out.scale.set(fl,1+Math.random()*0.3,fl); }
+  if(lander&&lander.userData.flame){ const on=(ph.id==='descent')&&missionThrust&&fuel>0; lander.userData.flame.visible=on; if(on)lander.userData.flame.scale.setScalar(0.4*(0.8+Math.random()*0.35)); }
+  if(ph.id==='countdown'){ rocket.position.y=0; const left=Math.max(0,ph.dur-mission.t); const cc=document.getElementById('mCap'); if(cc)cc.textContent='Tous les voyants au vert… T− '+left.toFixed(1)+' s'; if(mission.t>=ph.dur)setMissionPhase(mission.i+1); }
+  else if(ph.id==='ignition'){ rocket.position.y=0; rocket.position.x=Math.sin(mission.t*40)*0.03; }
+  else if(ph.id==='liftoff'){ const p=Math.min(1,mission.t/ph.dur); mission.visualY=p*p*70; rocket.position.y=mission.visualY; rocket.position.x=Math.sin(mission.t*30)*0.05*(1-p); alt=Math.round(p*p*12*10)/10; vel=Math.round(p*900); rocket.rotation.z=p*0.05; if(p>=1)setMissionPhase(mission.i+1); }
+  else if(ph.id==='maxq'){ const p=Math.min(1,mission.t/ph.dur); mission.visualY=70+p*70; rocket.position.y=mission.visualY; alt=Math.round((12+p*22)*10)/10; vel=Math.round(900+p*700); rocket.rotation.z=0.05+p*0.14; rocket.position.x=Math.sin(mission.t*22)*0.14*(1-p); if(p>=1)setMissionPhase(mission.i+1); }
+  else if(ph.id==='sep1'){ mission.visualY+=6*dt; rocket.position.y=mission.visualY; alt=Math.round(34+ (mission.visualY-140)*0.1); vel=1650; rocket.rotation.z=0.19; }
+  else if(ph.id==='les'){ mission.visualY+=6*dt; rocket.position.y=mission.visualY; alt=52; vel=2100; rocket.rotation.z=0.2; }
+  else if(ph.id==='ascent2'){ const p=Math.min(1,mission.t/ph.dur); mission.visualY=(mission.visualY||150)+ (40*dt); rocket.position.y=mission.visualY; alt=Math.round(60+p*120); vel=Math.round(2100+p*4000); rocket.rotation.z=0.2+p*0.5; if(p>=1)setMissionPhase(mission.i+1); }
+  else if(ph.id==='sep2'){ mission.visualY+=5*dt; rocket.position.y=mission.visualY; alt=185; vel=6400; rocket.rotation.z=0.7; }
+  else if(ph.id==='orbit'){ const p=Math.min(1,mission.t/ph.dur); alt=200; vel=7800; rocket.rotation.z=0.75; rocket.position.x=Math.sin(p*3.14)*8; if(p>=1)setMissionPhase(mission.i+1); }
+  else if(ph.id==='tli'){ alt=320; vel=10800; rocket.rotation.z=0.75; }
+  else if(ph.id==='transit'){ const p=Math.min(1,mission.t/ph.dur); alt=Math.round(38+p*346)+'k'; vel=10800;
+    if(lander){ lander.rotation.y+=dt*0.25; lander.position.y=Math.sin(p*3.14)*0.6; }
+    if(moonGlobe){ moonGlobe.position.z=60-p*47; moonGlobe.position.y=-6+p*4; moonGlobe.rotation.y+=dt*0.05; }
+    if(earthGlobe){ const s=1-p*0.55; earthGlobe.scale.setScalar(s); earthGlobe.position.z=-42-p*46; earthGlobe.rotation.y+=dt*0.06; }
+    if(p>=1)setMissionPhase(mission.i+1); }
+  else if(ph.id==='descent'){ const A=mission.assist;
+    const g = A?1.05:1.45, thr = A?4.3:3.7, drain = A?0.032:0.055;
+    let up = missionThrust, lx = mission.thrustL||0;
+    // AUTO-POSE (assisté) : gère seul la poussée + recentrage pour un poser tout en douceur
+    if(A && mission.autopose && fuel>0){ const desired = -Math.min(3.0, 0.45+alt*0.15); up = vel < desired;
+      lx = Math.abs(mission.px)>0.06 ? -Math.max(-1,Math.min(1,mission.px*0.7)) : (Math.abs(mission.pvx)>0.03?-Math.sign(mission.pvx):0); }
+    // MAINTIEN VERTICAL (fly-by-wire) : si tu ne pousses pas, l'assistance freine une chute trop rapide
+    let assistUp=0; const capV = A ? (alt<2.5?-1.7:-2.6) : -999;
+    if(A && !up && fuel>0 && vel < capV) assistUp=0.7;
+    const thrustAmt = (up?thr:0) + assistUp*thr;
+    vel += (-g + (fuel>0?thrustAmt:0))*dt*5;
+    if(fuel>0 && (up||assistUp>0)) fuel=Math.max(0, fuel - dt*drain*((up?1:0)+assistUp));
+    alt += vel*dt*2.4;
+    // ORIENTATION latérale (←/→) : la cible au sol donne un but ; la stabilisation aide à rester centré
+    const latThr = A?2.6:3.4; if(fuel>0 && lx) mission.pvx += lx*latThr*dt;
+    const damp = A?(mission.stabilize?2.6:1.1):0.5; mission.pvx -= mission.pvx*Math.min(1,damp*dt);
+    mission.px = Math.max(-7,Math.min(7, mission.px + mission.pvx*dt*1.4));
+    if(lander){ lander.position.x=mission.px; lander.rotation.z=Math.max(-0.35,Math.min(0.35,-mission.pvx*0.14)); }
+    const ttl=document.getElementById('mTitle'); if(ttl){ ttl.textContent = alt>30?'Approche — « High Gate »' : alt>8?(A?'Descente assistée — reste sur la cible':'Pilotage manuel — « Low Gate »') : 'Prise de contact — poussière soulevée !'; }
+    updateDust(dt, alt<9?Math.max(0,(1-alt/9))*((up||assistUp>0)?1:0.3):0);
+    setContactLight(alt<=1.7 && alt>0);
+    if(alt<=0){ alt=0; const vok=Math.abs(vel) < (A?3.6:2.5), pok=Math.abs(mission.px) < (A?4.2:2.4);
+      if(vok&&pok){ mission.landed=true; if(lander){ lander.rotation.z=0; if(lander.userData.flame)lander.userData.flame.visible=false; } mission.landVel=Math.abs(vel); setMissionPhase(mission.i+1); }
+      else { mission.crash=true; flashScreen('#ff5a3c'); const why = !pok?('trop loin de la cible ('+Math.abs(mission.px).toFixed(1)+' m)') : ('trop rapide ('+Math.abs(vel).toFixed(1)+' m/s)');
+        shell.say('Presque ! '+why+' — on remonte pour retenter l\'approche. Aucun stress, tu peux recommencer autant que tu veux.','rassurant');
+        mission.alt = A?55:85; mission.vel = A?-1.4:-2.2; mission.fuel=Math.min(1,fuel+0.4); mission.pvx=0; mission.px*=0.35; if(lander){ lander.position.set(mission.px,mission.alt,0); lander.rotation.z=0; } updateTel(mission.alt,mission.vel,mission.fuel); return; } }
+    mission.alt=alt; mission.vel=vel; mission.fuel=fuel; if(lander)lander.position.y=alt;
+    const dr=document.getElementById('mDrift'); if(dr){ dr.textContent=mission.px.toFixed(1)+' m'; const pk=Math.abs(mission.px)<(A?4.2:2.4); dr.style.color=pk?'#7ef5b0':'#ff8d7a'; } }
+  else if(ph.id==='landed'){ alt=0; vel=0; if(lander)lander.position.y=0; updateDust(dt,0); }
+  if(typeof alt==='number'){ mission.alt=alt; mission.vel=vel; if(ph.id==='descent')updateTel(alt,vel,fuel); else updateTel(alt,vel,fuel,true); }
+  else updateTel(alt,vel,fuel,true);
+  // caméra cinématographique
+  let camPos, look; const rx=rocket?rocket.position.x:0, ry=rocket?rocket.position.y:0; const cy=ry+(mission.engY||0);
+  if(ph.id==='pad'||ph.id==='countdown'){ camPos=new THREE.Vector3(20,13,42); look=new THREE.Vector3(0,11,0); }
+  else if(ph.id==='ignition'){ camPos=new THREE.Vector3(15,7,30); look=new THREE.Vector3(0,7,0); }
+  else if(['liftoff','maxq'].includes(ph.id)){ camPos=new THREE.Vector3(14,cy+9,32); look=new THREE.Vector3(rx,cy+7,0); }
+  else if(['sep1','les','sep2'].includes(ph.id)){ camPos=new THREE.Vector3(19,cy+7,40); look=new THREE.Vector3(rx,cy+5,0); }
+  else if(ph.id==='ascent2'){ camPos=new THREE.Vector3(15,cy+8,32); look=new THREE.Vector3(rx,cy+6,0); }
+  else if(['orbit','tli'].includes(ph.id)){ camPos=new THREE.Vector3(22,cy+5,34); look=new THREE.Vector3(rx,cy+3,0); }
+  else if(ph.id==='transit'){ const ly=lander?lander.position.y:0; camPos=new THREE.Vector3(7,ly+3.5,15); look=lander?new THREE.Vector3(0,ly+1.5,0):new THREE.Vector3(0,0,0); }
+  else if(['descent','landed'].includes(ph.id)){ const ly=lander?lander.position.y:0; const px=mission.px||0; camPos=new THREE.Vector3(9+px*0.5,ly+5,15); look=new THREE.Vector3(px*0.6,ly+2,0); }
+  if(camPos){ camera.position.lerp(camPos,0.06); camera.lookAt(look); }
+}
+function updateTel(alt,vel,fuel,space){ const a=document.getElementById('mAlt'),v=document.getElementById('mVel'),vr=document.getElementById('mVelRow'),f=document.getElementById('mFuel'),fb=document.getElementById('mFuelBar'); if(!a)return;
+  a.textContent=(typeof alt==='number'?(alt>=1000?(alt/1000).toFixed(0)+' k':alt.toFixed(alt<100?1:0)):alt)+(typeof alt==='string'?' km':(space?' km':' m'));
+  v.textContent=(typeof vel==='number'?(Math.abs(vel)>=100?Math.round(vel):vel.toFixed(1)):vel)+' m/s';
+  const isDesc=MPHASES[mission.i]&&MPHASES[mission.i].id==='descent'; const safeThr=mission&&mission.assist?3.5:2.5;
+  const safe=typeof vel==='number'&&Math.abs(vel)<safeThr; vr.className='row '+(isDesc?(safe?'vok':'vbad'):'');
+  if(fuel!=null){ f.textContent=Math.round(fuel*100)+'%'; fb.style.width=(fuel*100)+'%'; }
+  const dr=document.getElementById('mDrift'); if(dr&&!isDesc)dr.textContent='—';
+}
+function flashScreen(col){ const fl=document.getElementById('mFlash'); if(!fl)return; fl.style.background='radial-gradient(circle at 50% 55%,'+col+',transparent 60%)'; fl.style.opacity='0.85'; setTimeout(()=>fl.style.opacity='0',260); }
+
+/* ====== ÉCRAN DE FIN — Apollo 11 (visuel, citations, audio contrôlable, récompense) ====== */
+const APOLLO_CLIPS={
+  step:{ label:'« Un petit pas… »', src:'step', cues:[
+    {f:0.00, o:'That’s one small step for man…', fr:'« C’est un petit pas pour l’Homme… »'},
+    {f:0.52, o:'…one giant leap for mankind.', fr:'« …un bond de géant pour l’humanité. »'} ] },
+  landed:{ label:'« The Eagle has landed »', src:'landed', cues:[
+    {f:0.00, o:'Houston, Tranquility Base here.', fr:'« Houston, ici la base de la Tranquillité. »'},
+    {f:0.55, o:'The Eagle has landed.', fr:'« L’Aigle s’est posé. »'} ] },
+};
+function badgeSVG(){ return `<svg width="58" height="58" viewBox="0 0 58 58" aria-hidden="true"><defs><linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD87A"/><stop offset="1" stop-color="#E68A1E"/></linearGradient></defs><circle cx="29" cy="26" r="20" fill="url(#bg1)" stroke="#fff3d6" stroke-width="2"/><path d="M29 12l3.6 7.3 8 1.2-5.8 5.6 1.4 8L29 37.3 21.8 41l1.4-8-5.8-5.6 8-1.2z" fill="#7a3d00" opacity=".85"/><path d="M20 44l-3 11 12-5 12 5-3-11" fill="#c8102e"/></svg>`; }
+function showEndScreen(){ if(!mission)return; mission.ended=true; missionThrust=false;
+  const hud=document.getElementById('ssMission'); if(hud)hud.remove();
+  // récompense enregistrée une seule fois
+  const soft=mission.landVel!=null?mission.landVel:1.5; const score=800+Math.round(Math.max(0,(2.5-soft)/2.5)*400);
+  const gained=Math.round(score/10)+3*50+30; let lvl=null;
+  try{ if(window.KonstrioAch){ window.KonstrioAch.recordWin(shell.cfg.id,{stars:3,score:score,mode:shell.mode}); lvl=window.KonstrioAch.get().level; } }catch(e){}
+  try{ if(window.Konstrio&&window.Konstrio.unlock)window.Konstrio.unlock('play3d'); }catch(e){}
+  shell.sound('win');
+  const el=document.createElement('div'); el.className='ss-end'; el.id='ssEnd'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Débrief de la mission Apollo 11');
+  el.innerHTML=`
+   <div class="ss-end-card">
+    <div class="ss-hero"><div class="stars"></div><div class="ss-earth"></div><div class="ss-horizon"></div>
+      <div class="ss-end-badge">${badgeSVG()}<span style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:.1em;color:#ffd87a">APOLLO 11</span></div>
+    </div>
+    <div class="ss-end-body">
+      <span class="ss-end-flag">Mer de la Tranquillité · 20 juillet 1969</span>
+      <h2 class="ss-end-h">Mission accomplie, commandant.</h2>
+      <p class="ss-end-sub">Décollage, largage des étages, injection trans-lunaire et alunissage réussis. Tu viens de rejouer l’un des plus grands moments de l’histoire humaine.</p>
+      <div class="ss-quote">
+        <div class="o">“That’s one small step for man, one giant leap for mankind.”</div>
+        <div class="fr">« C’est un petit pas pour l’Homme, un bond de géant pour l’humanité. »</div>
+        <span class="by">Neil A. Armstrong — 1ᵉʳ pas sur la Lune</span>
+      </div>
+      <div class="ss-aud">
+        <div class="ss-aud-tabs" role="tablist">
+          <button role="tab" data-clip="step" aria-selected="true">${APOLLO_CLIPS.step.label}</button>
+          <button role="tab" data-clip="landed" aria-selected="false">${APOLLO_CLIPS.landed.label}</button>
+        </div>
+        <div class="ss-aud-row">
+          <button class="ss-aud-play" id="endPlay" aria-label="Lire l’enregistrement">▶</button>
+          <div class="ss-aud-mid">
+            <div class="ss-aud-bar" id="endBar"><i id="endFill"></i></div>
+            <div class="ss-aud-time"><span id="endCur">0:00</span><span id="endDur">0:00</span></div>
+          </div>
+        </div>
+        <div class="ss-sub" id="endSub"><div class="o">Appuie sur ▶ pour écouter l’enregistrement d’époque de la NASA.</div><div class="fr">Sous-titres synchronisés · lecture contrôlable</div></div>
+      </div>
+      <div class="ss-reward"><div>${badgeSVG().replace('width="58" height="58"','width="40" height="40"')}</div><div><div class="xp" id="endXp">+0 XP</div><div class="lbl">Badge « Alunissage Apollo 11 » débloqué${lvl?` · niveau ${lvl}`:''} · 3 ★</div></div></div>
+      <div class="ss-end-row">
+        <button class="ss-b primary" id="endReplay">↺ Rejouer la mission</button>
+        <button class="ss-b next" id="endNext">Explorer d’autres mondes ▸</button>
+        <button class="ss-b" id="endBack">✕ Retour au système solaire</button>
+      </div>
+    </div>
+   </div>`;
+  shell.stage.appendChild(el);
+  // compteur d'XP animé (doux si reduced-motion)
+  const xpEl=el.querySelector('#endXp');
+  if(REDUCED){ xpEl.textContent='+'+gained+' XP'; } else { let cur=0; const step=Math.max(1,Math.round(gained/28)); const iv=setInterval(()=>{ cur=Math.min(gained,cur+step); xpEl.textContent='+'+cur+' XP'; if(cur>=gained)clearInterval(iv); },28); }
+  // ---- lecteur audio contrôlable + sous-titres synchronisés ----
+  let clip='step', audio=null; const fmt=s=>{ s=Math.max(0,s|0); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+  const playBtn=el.querySelector('#endPlay'), fill=el.querySelector('#endFill'), bar=el.querySelector('#endBar'), curEl=el.querySelector('#endCur'), durEl=el.querySelector('#endDur'), sub=el.querySelector('#endSub');
+  function getAudio(){ return missionAudio?missionAudio[APOLLO_CLIPS[clip].src]:null; }
+  function renderSub(){ if(!audio||!audio.duration){ return; } const p=audio.currentTime/audio.duration; const cues=APOLLO_CLIPS[clip].cues; let c=cues[0]; for(const q of cues){ if(p>=q.f)c=q; } sub.innerHTML=`<div class="o">${c.o}</div><div class="fr">${c.fr}</div>`; }
+  function onTime(){ if(!audio||!audio.duration)return; fill.style.width=(audio.currentTime/audio.duration*100)+'%'; curEl.textContent=fmt(audio.currentTime); durEl.textContent=fmt(audio.duration); renderSub(); }
+  function onEnd(){ playBtn.textContent='▶'; playBtn.setAttribute('aria-label','Lire l’enregistrement'); fill.style.width='0%'; }
+  function bind(a){ if(!a)return; a.addEventListener('timeupdate',onTime); a.addEventListener('ended',onEnd); a.addEventListener('loadedmetadata',()=>{ durEl.textContent=fmt(a.duration||0); }); if(a.duration)durEl.textContent=fmt(a.duration); }
+  function selectClip(k){ if(audio){ audio.pause(); audio.removeEventListener('timeupdate',onTime); audio.removeEventListener('ended',onEnd); } clip=k; audio=getAudio(); onEnd(); curEl.textContent='0:00'; bind(audio); el.querySelectorAll('.ss-aud-tabs button').forEach(b=>b.setAttribute('aria-selected', b.dataset.clip===k?'true':'false')); sub.innerHTML=`<div class="o">${APOLLO_CLIPS[k].cues[0].o}</div><div class="fr">Appuie sur ▶ pour écouter.</div>`; }
+  el.querySelectorAll('.ss-aud-tabs button').forEach(b=> b.onclick=()=>selectClip(b.dataset.clip));
+  playBtn.onclick=()=>{ audio=getAudio(); if(!audio){ sub.innerHTML='<div class="o">Audio indisponible hors-ligne.</div>'; return; } if(audio.paused){ audio.volume=1; audio.play().then(()=>{ playBtn.textContent='⏸'; playBtn.setAttribute('aria-label','Mettre en pause'); }).catch(()=>{ sub.innerHTML='<div class="o">Lecture bloquée par le navigateur.</div>'; }); } else { audio.pause(); playBtn.textContent='▶'; playBtn.setAttribute('aria-label','Lire l’enregistrement'); } };
+  bar.onclick=e=>{ if(!audio||!audio.duration)return; const r=bar.getBoundingClientRect(); audio.currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*audio.duration; onTime(); };
+  selectClip('step');
+  el.querySelector('#endReplay').onclick=()=>{ if(audio)audio.pause(); restartMission(); };
+  el.querySelector('#endNext').onclick=()=>{ if(audio)audio.pause(); window.location.href='/learning/hub'; };
+  el.querySelector('#endBack').onclick=()=>{ if(audio)audio.pause(); endMission(true); };
+  el.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(audio)audio.pause(); endMission(true); } });
+  setTimeout(()=>{ el.querySelector('#endReplay').focus(); },40);
+  if(!REDUCED&&shell.buddy&&shell.buddy.celebrate)try{shell.buddy.celebrate();}catch(e){}
+  shell.say('Mission Apollo 11 accomplie ! Écoute la citation mythique quand tu veux, puis rejoue ou explore d’autres mondes.','celebration');
+}
+function cleanupMission(){ if(mission)mission.active=false; missionThrust=false;
+  const h=document.getElementById('ssMission'); if(h)h.remove(); const e=document.getElementById('ssEnd'); if(e)e.remove();
+  if(missionGroup){ scene.remove(missionGroup); missionGroup.traverse(o=>{ if(o.geometry)o.geometry.dispose&&o.geometry.dispose(); if(o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{ if(m.map&&m.map.dispose)m.map.dispose(); m.dispose&&m.dispose(); }); } }); }
+  missionGroup=rocket=lander=missionFlame=earthGround=moonGround=moonGlobe=earthGlobe=dust=null; mission=null;
+}
+function restartMission(){ stopAllA(); cleanupMission(); startMission(); }
+function endMission(won){ if(!mission&&!document.getElementById('ssEnd'))return; stopAllA(); cleanupMission();
+  document.querySelectorAll('.ss-panel').forEach(p=>p.style.display=p.dataset._hidden||''); const hint2=document.getElementById('ssHint'); if(hint2)hint2.style.visibility='';
+  setSolarVisible(true); controls.enabled=true;
+  if(savedCam){ camera.position.copy(savedCam.pos); controls.target.copy(savedCam.tgt); savedCam=null; } camera.lookAt(controls.target);
+  const mb=document.querySelector('[data-k="mission"]'); if(mb)mb.setAttribute('aria-pressed','false');
+  if(won){ shell.sound('win'); shell.say('De retour parmi les planètes. Bravo pour cette mission Apollo 11 !','celebration'); }
+  else shell.say('Mission interrompue. Tu peux la relancer quand tu veux depuis le panneau.','neutre');
+}
+/* ====== BOUCLE ====== */
+let last=performance.now();
+function animate(){ requestAnimationFrame(animate); const dt=clock.getDelta();
+  if(mission&&mission.active){ updateMission(dt); composer.render(); return; }
+  if(playing) timeOffset+=speed*dt; const simDays=baseDays+timeOffset;
+  planetSprites.forEach((spr,i)=>{ const p=spr.userData.p; if(aligned){ spr.position.set(40+i*30,0,0); } else { const ang=THREE.MathUtils.degToRad(p.L0+p.rate*simDays); const r=p.orbit; spr.position.set(Math.cos(ang)*r,0,-Math.sin(ang)*r); } if(!REDUCED){ spr.rotation.y+=spr.userData.spin*dt; if(spr.userData.clouds) spr.userData.clouds.rotation.y+=spr.userData.spin*0.35*dt; }
+    spr.userData.moons.forEach(ms=>{ const mo=ms.userData.mo; const ma=simDays/Math.max(.3,mo.per)*6.28+ms.userData.phase; const md=p.size*sizeMul(real)+mo.d*(real?0.7:1); ms.position.set(spr.position.x+Math.cos(ma)*md, Math.sin(ma)*md*0.18, spr.position.z-Math.sin(ma)*md); }); });
+  sunGlow.position.copy(sun.position); positionProbes(simDays); if(!REDUCED){ sun.rotation.y+=0.025*dt; const pulse=1+Math.sin(performance.now()*0.0012)*0.045; sunGlow.scale.setScalar(40*pulse); }
+  if(flying&&camTarget){ const tp=new THREE.Vector3(); camTarget.getWorldPosition(tp); controls.target.lerp(tp,0.08); const dir=camera.position.clone().sub(tp).normalize(); const want=tp.clone().add(dir.multiplyScalar(focusDist)); camera.position.lerp(want,0.06); if(camera.position.distanceTo(want)<2)flying=false; }
+  else if(camTarget&&!planetarium){ const tp=new THREE.Vector3(); camTarget.getWorldPosition(tp); controls.target.lerp(tp,0.04); }
+  controls.update(); updateLabels(); updateConstLabels(); updateProbeLabels(); updateDate(simDays); composer.render();
+}
+function updateDate(simDays){ const el=document.getElementById('ssDate'); if(!el)return; const d=new Date(J2000+simDays*86400000); el.textContent=d.toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}); }
+function updateLabels(){ const stage=shell.stage; planetSprites.forEach(spr=>{ const p=spr.userData.p; let el=labelEls[p.id]; if(!showLabels||planetarium){ if(el)el.style.display='none'; return; } if(!el){ el=document.createElement('div'); el.className='ss-label'; el.textContent=DATA[p.id].name; stage.appendChild(el); labelEls[p.id]=el; } const v=spr.position.clone().project(camera); if(v.z>1){ el.style.display='none'; return; } el.style.display='block'; el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight - p.size*sizeMul(real)*4 -14)+'px'; }); }
+function updateConstLabels(){ const stage=shell.stage; CONSTELLATIONS.forEach((c,i)=>{ let el=constLabelEls[i]; const show=planetarium||constLines.visible; if(!show){ if(el)el.style.display='none'; return; } if(!el){ el=document.createElement('div'); el.className='ss-label'; el.style.color='#a8c8ff'; el.style.fontSize='13px'; el.style.cursor='pointer'; el.style.pointerEvents='auto'; el.textContent='✦ '+c.n; el.title='Voir la fiche'; el.onclick=()=>pickSearch(c.id); stage.appendChild(el); constLabelEls[i]=el; } if(!c._center){ el.style.display='none'; return; } const v=c._center.clone().project(camera); if(v.z>1){ el.style.display='none'; return; } el.style.display='block'; el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight)+'px'; }); }
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Cybermenaces</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Un « virus » informatique est…', options:['un programme malveillant qui se propage','un microbe','une pub','un cookie'], answer:'un programme malveillant qui se propage', explain:'Il infecte des fichiers et se réplique.'},
+ {lvl:1, prompt:'À quoi sert un antivirus ?', options:['détecter et bloquer les logiciels malveillants','accélérer le PC','créer des mots de passe','naviguer'], answer:'détecter et bloquer les logiciels malveillants', explain:'À tenir à jour pour rester efficace.'},
+ {lvl:1, prompt:'Mettre à jour ses logiciels permet de…', options:['corriger des failles de sécurité','ralentir l\'appareil','perdre ses données','rien'], answer:'corriger des failles de sécurité', explain:'Les correctifs bouchent les trous exploités par les pirates.'},
+ {lvl:2, prompt:'Un « ransomware » (rançongiciel)…', options:['chiffre tes fichiers et exige une rançon','accélère le PC','fait des sauvegardes','est inoffensif'], answer:'chiffre tes fichiers et exige une rançon', explain:'D\'où l\'importance des sauvegardes régulières.'},
+ {lvl:2, prompt:'Un « cheval de Troie » (trojan) se cache…', options:['dans un logiciel d\'apparence légitime','dans le wifi','dans l\'écran','dans la souris'], answer:'dans un logiciel d\'apparence légitime', explain:'On l\'installe sans se méfier.'},
+ {lvl:2, prompt:'La meilleure protection contre un ransomware est…', options:['des sauvegardes régulières (hors ligne)','payer la rançon','éteindre Internet','rien'], answer:'des sauvegardes régulières (hors ligne)', explain:'On restaure sans payer.'},
+ {lvl:3, prompt:'Une attaque « DDoS » consiste à…', options:['saturer un serveur de requêtes pour le faire tomber','voler un mot de passe','chiffrer des fichiers','envoyer un mail'], answer:'saturer un serveur de requêtes pour le faire tomber', explain:'Des milliers de machines attaquent en même temps.'},
+ {lvl:3, prompt:'Un « botnet » est…', options:['un réseau de machines infectées contrôlées à distance','un robot ménager','un antivirus','un site web'], answer:'un réseau de machines infectées contrôlées à distance', explain:'Utilisé pour des attaques massives (DDoS, spam).'},
+ {lvl:3, prompt:'La « défense en profondeur » consiste à…', options:['empiler plusieurs couches de protection','n\'avoir qu\'un antivirus','tout interdire','débrancher'], answer:'empiler plusieurs couches de protection', explain:'Pare-feu + antivirus + mises à jour + sauvegardes + formation.'},
+];
+QuizGame({ id:'2d-123-cybermenaces', code:'2D·123', title:'Cybermenaces', domain:{label:'Cybersécurité',color:'#E63329'},
+ intro:{ greet:"Virus, ransomware, DDoS… connais tes ennemis pour mieux te défendre.", rule:"Découvre les logiciels malveillants, les attaques et les protections. Trois niveaux, niveau pro.", how:["Lis la question.","Choisis la bonne réponse.","Niveau Expert : DDoS, botnet, défense en profondeur."], objectif:"Connaître les cybermenaces et les parades.", hint:"Sauvegardes + mises à jour + antivirus + prudence = défense en profondeur.", why:"Comprendre les menaces est la première étape pour s'en protéger." },
+ learned:["Virus, trojan, ransomware.","DDoS, botnet.","Antivirus, mises à jour, défense en profondeur."],
+ rounds });
+</script></body></html>

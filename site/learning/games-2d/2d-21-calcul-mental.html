@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Calcul mental</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .cm-stage { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; padding:20px; }
+  .cm-combo { font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--accent-text); min-height:20px; transition:.2s; }
+  .cm-combo.big { font-size:18px; color:var(--brand-amber); }
+  .cm-prob { font-family:var(--font-data); font-weight:700; font-size:clamp(44px,9vw,84px); line-height:1; letter-spacing:-.02em; display:flex; align-items:center; gap:18px; }
+  .cm-ans { min-width:110px; border-bottom:4px solid var(--accent); color:var(--accent-text); text-align:center; }
+  .cm-ans.ok { color:var(--ok-fg); border-color:var(--brand-teal); }
+  .cm-ans.no { color:var(--err-fg); border-color:var(--brand-red); animation:cmShake .35s; }
+  @keyframes cmShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+  .cm-pad { display:grid; grid-template-columns:repeat(3,72px); gap:10px; }
+  .cm-key { height:64px; border-radius:14px; border:1px solid var(--border); background:var(--surface); color:var(--fg); font-family:var(--font-data); font-weight:700; font-size:26px; cursor:pointer; transition:transform .1s, background .15s; }
+  .cm-key:hover { background:var(--surface-2); } .cm-key:active { transform:scale(.94); }
+  .cm-key:focus-visible { outline:none; box-shadow:var(--ring); }
+  .cm-key.ok { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .cm-key.wide { grid-column:span 1; }
+  .cm-levels { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .cm-lv { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:7px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; min-height:36px; }
+  .cm-lv[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+</style>
+</head>
+<body>
+<script>
+let level='facile', mode='detente', d=1, combo=0, asked=0, right=0, answer='', cur=null, remaining=15;
+const LEVELS={ facile:{d:1,lbl:'Facile'}, moyen:{d:2,lbl:'Moyen'}, difficile:{d:3,lbl:'Difficile'}, expert:{d:4,lbl:'Expert'} };
+
+const shell=window.Konstrio.createGame({
+  id:'2d-21-calcul-mental', code:'2D·21', title:'Calcul mental', type:'2D',
+  domain:{ label:'Mathématiques', color:'#9B2BB0' },
+  intro:{
+    greet:"Échauffe tes neurones ! Réponds aux calculs le plus vite possible. Les bonnes réponses d'affilée font monter ton combo !",
+    rule:"Calcule de tête et tape ta réponse. Chaque bonne réponse rapporte des points, et les séries (combos) les multiplient. Choisis ta difficulté — ça monte tout seul si tu enchaînes !",
+    how:["Tape ta réponse au clavier ou sur le pavé, puis Entrée (ou OK).","Enchaîne les bonnes réponses : le combo multiplie tes points.","Mode Cours = 60 secondes chrono. Mode Détente = 15 calculs à ton rythme."],
+    keys:"Chiffres 0–9, Retour arrière pour corriger, Entrée pour valider, « - » pour un résultat négatif.",
+    objectif:"Marquer un maximum de points en 60 secondes et gagner en rapidité de calcul.",
+    hint:"Pour multiplier par 9, multiplie par 10 et retire une fois le nombre. 9×7 = 70−7 = 63 !",
+    why:"Le calcul mental muscle la mémoire de travail et libère ton attention pour raisonner sur des problèmes plus complexes."
+  },
+  learned:["Les automatismes (tables, compléments à 10) accélèrent tout calcul.","Décomposer un nombre rend le calcul plus facile (9×7 = 70−7).","Un peu d'entraînement régulier améliore vite la rapidité."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; start(api); },
+  onRestart:(api)=>start(api),
+});
+shell.onTimeout=()=>finish();
+
+let stage;
+function build(api){
+  shell.api=api;
+  stage=document.createElement('div'); stage.className='cm-stage';
+  stage.innerHTML=`
+    <div class="cm-levels" id="cmLv"></div>
+    <div class="cm-combo" id="cmCombo"></div>
+    <div class="cm-prob"><span id="cmQ">7 × 8</span><span>=</span><span class="cm-ans" id="cmA">?</span></div>
+    <div class="cm-pad" id="cmPad"></div>`;
+  api.stage.appendChild(stage);
+  const lv=stage.querySelector('#cmLv');
+  Object.keys(LEVELS).forEach(k=>{ const b=document.createElement('button'); b.className='cm-lv'; b.textContent=LEVELS[k].lbl; b.setAttribute('aria-pressed',k===level); b.onclick=()=>{ level=k; d=LEVELS[k].d; lv.querySelectorAll('.cm-lv').forEach((x,i)=>x.setAttribute('aria-pressed',Object.keys(LEVELS)[i]===k)); shell.sound('click'); next(); }; lv.appendChild(b); });
+  const pad=stage.querySelector('#cmPad');
+  ['1','2','3','4','5','6','7','8','9','-','0','⌫'].forEach(t=>{ const b=document.createElement('button'); b.className='cm-key'; b.textContent=t; b.onclick=()=>press(t); pad.appendChild(b); });
+  const ok=document.createElement('button'); ok.className='cm-key ok'; ok.textContent='OK'; ok.style.gridColumn='span 3'; ok.onclick=submit; pad.appendChild(ok);
+  document.addEventListener('keydown',e=>{ if(/[0-9]/.test(e.key))press(e.key); else if(e.key==='-')press('-'); else if(e.key==='Backspace')press('⌫'); else if(e.key==='Enter')submit(); });
+  start(api);
+}
+function start(api){
+  shell.api=api; d=LEVELS[level].d; combo=0; asked=0; right=0; remaining=15; api.setScore(0); api.setProgress(0);
+  if(mode==='cours'){ api.timer.reset(60); api.timer.show(false); api.timer.start(); api.setLevel('60 s'); }
+  else { api.setLevel('1/15'); }
+  next();
+}
+function gen(diff){
+  const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  let a,b,op,res;
+  if(diff===1){ op=Math.random()<.5?'+':'−'; a=r(2,19); b=r(2,19); if(op==='−'&&b>a)[a,b]=[b,a]; res=op==='+'?a+b:a-b; }
+  else if(diff===2){ const t=Math.random(); if(t<.5){ op='×'; a=r(2,9); b=r(2,9); res=a*b; } else { op=Math.random()<.5?'+':'−'; a=r(10,49); b=r(10,49); if(op==='−'&&b>a)[a,b]=[b,a]; res=op==='+'?a+b:a-b; } }
+  else if(diff===3){ const t=Math.random(); if(t<.4){ op='×'; a=r(3,12); b=r(3,12); res=a*b; } else if(t<.7){ op='÷'; b=r(2,9); res=r(2,9); a=b*res; } else { op=Math.random()<.5?'+':'−'; a=r(20,99); b=r(20,99); if(op==='−'&&b>a)[a,b]=[b,a]; res=op==='+'?a+b:a-b; } }
+  else { const t=Math.random(); if(t<.4){ op='×'; a=r(6,19); b=r(3,14); res=a*b; } else if(t<.7){ op='÷'; b=r(3,12); res=r(3,15); a=b*res; } else { op=Math.random()<.5?'+':'−'; a=r(50,199); b=r(20,150); if(op==='−'&&b>a)[a,b]=[b,a]; res=op==='+'?a+b:a-b; } }
+  return { q:`${a} ${op} ${b}`, res };
+}
+function next(){
+  if(mode==='detente' && asked>=15){ finish(); return; }
+  // auto-ramp en détente/cours selon combo
+  const dyn=Math.min(4, d + Math.floor(combo/4));
+  cur=gen(dyn); answer='';
+  document.getElementById('cmQ').textContent=cur.q;
+  const a=document.getElementById('cmA'); a.textContent='?'; a.className='cm-ans';
+  document.getElementById('cmCombo').textContent = combo>1?('🔥 Combo ×'+combo):'';
+  document.getElementById('cmCombo').className='cm-combo'+(combo>=4?' big':'');
+}
+function press(t){
+  const a=document.getElementById('cmA'); if(a.classList.contains('ok')||a.classList.contains('no')) return;
+  if(t==='⌫') answer=answer.slice(0,-1);
+  else if(t==='-'){ answer = answer.startsWith('-')?answer.slice(1):'-'+answer; }
+  else if(answer.replace('-','').length<6) answer+=t;
+  a.textContent=answer===''?'?':answer; shell.sound('tick');
+}
+function submit(){
+  if(answer===''||answer==='-') return;
+  const a=document.getElementById('cmA'); const ok=parseInt(answer,10)===cur.res; asked++;
+  if(ok){ combo++; right++; const pts=10*Math.max(1,combo); shell.api.addScore(pts); shell.sound('good'); a.classList.add('ok');
+    if(combo===5){ shell.api.say("Cinq d'affilée ! Tu es lancé 🔥",'celebration'); shell.api.toast('🔥 Combo ×5 !'); }
+    else if(combo>1 && combo%3===0) shell.api.say('Joli enchaînement, continue !','fier');
+  } else { combo=0; shell.sound('bad'); a.textContent=answer; a.classList.add('no'); shell.api.say(`${cur.q} = ${cur.res}. On reste concentré !`,'rassurant'); }
+  if(mode==='detente'){ shell.api.setLevel(Math.min(asked+1,15)+'/15'); shell.api.setProgress(asked/15); }
+  setTimeout(next, ok?420:950);
+}
+function finish(){
+  shell.api.timer.stop();
+  const sc=parseInt(document.querySelector('.ksh-score').textContent,10);
+  const stars = sc>=600?3:sc>=300?2:1;
+  shell.api.win({ score:sc, stars, title:`${right} bonnes réponses`,
+    buddy: stars===3?"Calculateur express ! Ta rapidité est impressionnante.":"Bien joué — vise les combos pour exploser ton score.",
+    learned: shell.cfg.learned, onNext:()=>start(shell.api), nextLabel:'Rejouer' });
+}
+</script>
+</body>
+</html>

@@ -443,3 +443,11 @@ Parte C : 5 points (0,4 par forme correcte).
 Parte D : 5 points (2 pour les éléments imposés, 1,5 pour la correction de la langue, 1,5 pour la structure du récit).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

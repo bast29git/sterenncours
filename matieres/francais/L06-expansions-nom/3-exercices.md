@@ -454,3 +454,11 @@ Partie C : 5 points (0,5 pour le pronom, 0,5 pour la justification, par item).
 Partie D : 5 points (2 pour le respect des contraintes, 2 pour la qualité de la description, 1 pour l'absence de surcharge).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

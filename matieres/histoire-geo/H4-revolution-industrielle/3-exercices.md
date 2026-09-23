@@ -403,3 +403,11 @@ Partie C : 6 points (1 pour le calcul, 2 pour le lien expliqué, 1,5 pour les tr
 Partie D : 5 points (1 pour l'introduction et la conclusion, 2 pour la partie sur les classes sociales, 2 pour la partie sur les conditions et les mobilisations).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

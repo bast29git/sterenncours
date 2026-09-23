@@ -413,3 +413,11 @@ Partie C : 5 points (2 pour l'explication sur la guerre, 2 pour la Terreur daté
 Partie D : 5 points (1 pour l'introduction et la conclusion, 2 pour la partie sur ce qui reste, 2 pour la partie sur ce qui disparaît).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

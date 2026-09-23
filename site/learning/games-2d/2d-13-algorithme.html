@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · Constructeur d'algorithme</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .al-wrap { position:absolute; inset:0; display:flex; gap:14px; padding:16px; }
+  .al-left { flex:1; min-width:0; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; }
+  .al-canvas { background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); }
+  .al-right { width:230px; flex:none; display:flex; flex-direction:column; gap:10px; }
+  .al-h { font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--fg-muted); }
+  .al-palette { display:flex; flex-direction:column; gap:6px; }
+  .al-blk { font-family:var(--font-body); font-weight:700; font-size:13px; padding:10px 12px; border-radius:10px; border:none; color:#fff; cursor:pointer; text-align:left; }
+  .al-blk.mv { background:var(--brand-teal); } .al-blk.tr { background:var(--brand-blue); } .al-blk.tl { background:var(--brand-violet); }
+  .al-prog { flex:1; min-height:80px; background:var(--surface-2); border:1px dashed var(--border); border-radius:10px; padding:8px; display:flex; flex-direction:column; gap:5px; overflow:auto; }
+  .al-pblk { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:8px 10px; border-radius:8px; color:#fff; cursor:pointer; display:flex; justify-content:space-between; }
+  .al-pblk.running { outline:3px solid var(--brand-amber); }
+  .al-btns { display:flex; gap:8px; }
+  .al-b { flex:1; font-family:var(--font-body); font-weight:700; min-height:42px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; }
+  .al-b.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  @media (max-width:680px){ .al-wrap{flex-direction:column} .al-right{width:auto} }
+</style>
+</head>
+<body>
+<script>
+const LEVELS=[
+  { n:5, robot:{x:0,y:4,d:1}, goal:{x:4,y:4}, walls:[] },
+  { n:5, robot:{x:0,y:4,d:0}, goal:{x:0,y:0}, walls:[] },
+  { n:6, robot:{x:0,y:5,d:1}, goal:{x:5,y:0}, walls:[[2,5],[2,4],[2,3]] },
+  { n:6, robot:{x:0,y:0,d:2}, goal:{x:5,y:5}, walls:[[1,2],[2,2],[3,2],[3,3],[3,4]] },
+];
+let mode='detente', lvl=0, prog=[], robot, running=false;
+const DIRS=[[0,-1],[1,0],[0,1],[-1,0]]; // up,right,down,left
+const shell=window.Konstrio.createGame({
+  id:'2d-13-algorithme', code:'2D·13', title:"Constructeur d'algorithme", type:'2D',
+  domain:{ label:'Dev & Info', color:'#6E6BFF' },
+  intro:{
+    greet:"Programme le robot avec des blocs ! Empile les instructions pour l'amener jusqu'à l'étoile.",
+    rule:"Un <b>algorithme</b> est une suite d'instructions. Empile des blocs (avancer, tourner) pour guider le robot 🤖 jusqu'à l'objectif ⭐, sans heurter de mur.",
+    how:["Clique les blocs pour les ajouter à ton programme (à droite).","Clique un bloc du programme pour le retirer.","Appuie sur « Exécuter » : le robot suit tes instructions, une par une."],
+    keys:"Clique les blocs ; Exécuter pour lancer.",
+    objectif:"Comprendre la notion de séquence d'instructions et d'orientation.",
+    hint:"Le robot avance dans la direction où il regarde. Tourne-le AVANT d'avancer si besoin.",
+    why:"Programmer, c'est décomposer un but en étapes simples et ordonnées : c'est exactement un algorithme."
+  },
+  learned:["Un algorithme est une séquence ordonnée d'instructions.","L'ordre compte : tourner puis avancer ≠ avancer puis tourner.","Décomposer un problème en petites étapes est la base de la programmation."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; lvl=0; api.setScore(0); show(); },
+  onRestart:(api)=>{ lvl=0; api.setScore(0); show(); },
+});
+let canvas,ctx,wrap;
+function build(api){ shell.api=api; wrap=document.createElement('div'); wrap.className='al-wrap';
+  wrap.innerHTML=`<div class="al-left"><canvas class="al-canvas" width="360" height="360"></canvas></div>
+    <div class="al-right">
+      <div class="al-h">Blocs</div>
+      <div class="al-palette">
+        <button class="al-blk mv" data-t="move">⬆ Avancer</button>
+        <button class="al-blk tr" data-t="right">↻ Tourner à droite</button>
+        <button class="al-blk tl" data-t="left">↺ Tourner à gauche</button>
+      </div>
+      <div class="al-h">Mon programme</div>
+      <div class="al-prog" id="alProg"></div>
+      <div class="al-btns"><button class="al-b" id="alClear">Vider</button><button class="al-b primary" id="alRun">▶ Exécuter</button></div>
+    </div>`;
+  api.stage.appendChild(wrap); canvas=wrap.querySelector('canvas'); ctx=canvas.getContext('2d');
+  wrap.querySelectorAll('.al-blk').forEach(b=> b.onclick=()=>{ if(running)return; prog.push(b.dataset.t); shell.sound('tick'); renderProg(); });
+  wrap.querySelector('#alClear').onclick=()=>{ if(running)return; prog=[]; renderProg(); };
+  wrap.querySelector('#alRun').onclick=run;
+  show(); }
+function show(){ if(lvl>=LEVELS.length){ finish(); return; } const L=LEVELS[lvl]; robot={...L.robot}; prog=[];
+  shell.api.setLevel((lvl+1)+'/'+LEVELS.length); shell.api.setProgress(lvl/LEVELS.length);
+  renderProg(); draw(); shell.api.say(lvl===0?"Amène le robot à l'étoile. Ajoute des blocs « Avancer » !":"Niveau "+(lvl+1)+" : réfléchis aux virages.",'concentre'); }
+function renderProg(){ const p=document.getElementById('alProg'); p.innerHTML=''; const lbl={move:'⬆ Avancer',right:'↻ Droite',left:'↺ Gauche'}; const col={move:'var(--brand-teal)',right:'var(--brand-blue)',left:'var(--brand-violet)'};
+  prog.forEach((t,i)=>{ const d=document.createElement('div'); d.className='al-pblk'; d.style.background=col[t]; d.innerHTML=`<span>${i+1}. ${lbl[t]}</span><span>✕</span>`; d.onclick=()=>{ if(running)return; prog.splice(i,1); renderProg(); }; p.appendChild(d); }); }
+function draw(hi){ const L=LEVELS[lvl]; const n=L.n, u=360/n; ctx.clearRect(0,0,360,360);
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){ ctx.fillStyle=(x+y)%2?css('--surface-2'):css('--surface'); ctx.fillRect(x*u,y*u,u,u); }
+  L.walls.forEach(([x,y])=>{ ctx.fillStyle=css('--fg-muted'); ctx.fillRect(x*u+3,y*u+3,u-6,u-6); });
+  // goal
+  ctx.fillStyle=css('--brand-amber'); ctx.font=(u*0.6)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('⭐',L.goal.x*u+u/2,L.goal.y*u+u/2+2);
+  // robot
+  const rx=robot.x*u+u/2, ry=robot.y*u+u/2; ctx.save(); ctx.translate(rx,ry); ctx.rotate(robot.d*Math.PI/2);
+  ctx.fillStyle=css('--accent'); ctx.beginPath(); ctx.roundRect(-u*0.3,-u*0.3,u*0.6,u*0.6,6); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.moveTo(0,-u*0.28); ctx.lineTo(-u*0.12,-u*0.1); ctx.lineTo(u*0.12,-u*0.1); ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim()||'#888'; }
+async function run(){ if(running||!prog.length){ if(!prog.length)shell.api.say("Ajoute d'abord des blocs à ton programme !",'curieux'); return; } running=true; const L=LEVELS[lvl]; robot={...L.robot}; draw();
+  const pblks=document.querySelectorAll('.al-pblk');
+  for(let i=0;i<prog.length;i++){ pblks.forEach(b=>b.classList.remove('running')); pblks[i]&&pblks[i].classList.add('running');
+    const t=prog[i]; if(t==='right')robot.d=(robot.d+1)%4; else if(t==='left')robot.d=(robot.d+3)%4; else { const nx=robot.x+DIRS[robot.d][0], ny=robot.y+DIRS[robot.d][1]; if(nx<0||ny<0||nx>=L.n||ny>=L.n||L.walls.some(([wx,wy])=>wx===nx&&wy===ny)){ shell.sound('bad'); shell.api.say("Aïe, le robot a heurté un mur ! Revois ton programme.",'rassurant'); draw(); running=false; pblks.forEach(b=>b.classList.remove('running')); return; } robot.x=nx; robot.y=ny; }
+    shell.sound('tick'); draw(); await new Promise(r=>setTimeout(r,420));
+  }
+  pblks.forEach(b=>b.classList.remove('running'));
+  if(robot.x===L.goal.x&&robot.y===L.goal.y){ shell.sound('win'); shell.api.addScore(150); shell.api.say('Objectif atteint ! Bel algorithme 🎉',(window.Konstrio.REDUCED?'fier':'celebration')); lvl++; shell.api.setProgress(lvl/LEVELS.length); running=false; setTimeout(show,1300); }
+  else { shell.sound('bad'); shell.api.say("Le robot s'est arrêté ailleurs que sur l'étoile. Ajuste les blocs !",'rassurant'); running=false; }
+}
+function finish(){ const stars=3; shell.api.win({ score:parseInt(document.querySelector('.ksh-score').textContent,10), stars, title:'Tous les niveaux résolus !',
+  buddy:"Tu sais décomposer un but en instructions : c'est le cœur de la programmation !", learned:shell.cfg.learned,
+  onNext:()=>{ lvl=0; shell.api.setScore(0); show(); }, nextLabel:'Rejouer' }); }
+</script>
+</body>
+</html>

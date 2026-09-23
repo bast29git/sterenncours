@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Terre & volcanisme</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .te-panel{ position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  .te-modes{ top:14px; left:50%; transform:translateX(-50%); padding:6px; display:flex; gap:5px; flex-wrap:wrap; justify-content:center; max-width:94vw; }
+  .te-m{ font-family:var(--font-body); font-weight:700; font-size:13px; padding:9px 15px; border-radius:10px; border:none; background:transparent; color:var(--fg-muted); cursor:pointer; transition:background .15s,color .15s; display:inline-flex; align-items:center; gap:6px; min-height:40px; }
+  .te-m[aria-pressed="true"]{ background:var(--accent); color:#fff; }
+  .te-m:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .te-tools{ top:70px; left:14px; width:186px; padding:12px; display:flex; flex-direction:column; gap:9px; }
+  .te-tools h3{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 2px; }
+  .te-tg{ font-family:var(--font-body); font-weight:700; font-size:12px; padding:8px 10px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; text-align:left; transition:.15s; min-height:36px; display:flex; align-items:center; gap:8px; }
+  .te-tg[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .te-tg:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .te-act{ bottom:16px; left:50%; transform:translateX(-50%); padding:10px 16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; max-width:92vw; }
+  .te-b{ font-family:var(--font-body); font-weight:700; font-size:13.5px; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:transform .12s,box-shadow .2s; display:inline-flex; align-items:center; gap:7px; }
+  .te-b:hover{ transform:translateY(-1px); box-shadow:var(--shadow-md); }
+  .te-b:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .te-b.primary{ background:linear-gradient(135deg,#ff7a2a,#e63329); border-color:transparent; color:#fff; box-shadow:0 8px 22px rgba(230,51,41,.38); }
+  .te-info{ right:14px; top:14px; width:296px; padding:0; overflow:hidden; transform:translateX(125%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; }
+  .te-info.show{ transform:none; }
+  .te-hd{ padding:16px 18px; color:#fff; position:relative; flex:none; }
+  .te-hd h2{ font-family:var(--font-title); font-weight:800; font-size:20px; margin:0; line-height:1.15; }
+  .te-hd .sub{ font-family:var(--font-mono); font-size:11px; opacity:.92; text-transform:uppercase; letter-spacing:.04em; }
+  .te-x{ position:absolute; top:12px; right:12px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:16px; }
+  .te-body{ padding:14px 18px 18px; overflow:auto; } .te-body p{ font-size:13.5px; line-height:1.55; margin:0 0 9px; color:var(--fg); }
+  .te-facts{ display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; margin:4px 0 10px; }
+  .te-fk{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.03em; text-transform:uppercase; color:var(--fg-muted); }
+  .te-fv{ font-family:var(--font-data); font-weight:700; font-size:14px; }
+  .te-fun{ background:var(--accent-weak); border-radius:10px; padding:10px 12px; font-size:12.5px; line-height:1.5; color:var(--accent-text); }
+  .te-hint{ position:absolute; bottom:74px; left:50%; transform:translateX(-50%); z-index:18; font-size:12.5px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); padding:8px 15px; border-radius:999px; text-align:center; max-width:84%; }
+  .te-label{ position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 74%,transparent); padding:2px 7px; border-radius:6px; pointer-events:none; z-index:15; border:1px solid var(--border); white-space:nowrap; transition:opacity .2s; }
+  .te-label.lava{ color:#ffd9b0; border-color:rgba(255,120,40,.5); background:rgba(40,14,6,.66); }
+  /* Séquence éruption */
+  .te-phase{ position:absolute; top:74px; left:50%; transform:translateX(-50%); z-index:22; text-align:center; max-width:min(520px,90vw); pointer-events:none; display:none; }
+  .te-phase.on{ display:block; }
+  .te-ph-tag{ font-family:var(--font-mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#ffb47a; margin-bottom:5px; text-shadow:0 2px 12px rgba(0,0,0,.7); }
+  .te-ph-title{ font-family:var(--font-title); font-weight:800; font-size:24px; color:#fff; text-shadow:0 2px 16px rgba(0,0,0,.75); margin:0 0 5px; }
+  .te-ph-cap{ font-size:13.5px; color:#ffe6d2; text-shadow:0 1px 8px rgba(0,0,0,.75); line-height:1.4; }
+  .te-steps{ display:flex; gap:6px; justify-content:center; margin-top:10px; }
+  .te-steps i{ width:9px; height:9px; border-radius:999px; background:rgba(255,255,255,.24); transition:.25s; }
+  .te-steps i.done{ background:#ff9a52; } .te-steps i.now{ background:#fff; box-shadow:0 0 0 4px rgba(255,140,60,.35); }
+  .te-flash{ position:absolute; inset:0; z-index:19; background:radial-gradient(circle at 50% 40%,rgba(255,180,90,.9),rgba(255,90,30,.2) 45%,transparent 70%); opacity:0; pointer-events:none; transition:opacity .3s; }
+  /* Quiz */
+  .te-quiz{ position:absolute; top:70px; left:50%; transform:translateX(-50%); z-index:23; background:linear-gradient(135deg,#2b7,#1E8C7A); color:#fff; border-radius:16px; padding:14px 18px; box-shadow:var(--shadow-lg); max-width:min(520px,92vw); display:none; }
+  .te-quiz.on{ display:block; }
+  .te-quiz .qn{ font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; opacity:.9; }
+  .te-quiz .qt{ font-weight:800; font-size:16px; line-height:1.3; margin:3px 0 10px; }
+  .te-choices{ display:flex; flex-wrap:wrap; gap:8px; }
+  .te-choices button{ font-family:var(--font-body); font-weight:700; font-size:13.5px; padding:10px 16px; border-radius:11px; border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.14); color:#fff; cursor:pointer; min-height:42px; transition:.15s; }
+  .te-choices button:hover{ background:rgba(255,255,255,.26); }
+  .te-choices button:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ .te-info{ transition:none; } }
+  @media (max-width:720px){ .te-tools{ display:none; } .te-info{ width:min(300px,88vw); } .te-ph-title{ font-size:20px; } }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ======================= DONNÉES PÉDAGOGIQUES ======================= */
+const R = 3.4;                 // rayon de la croûte (surface)
+// fractions de rayon (exagérées pour la lisibilité enfant)
+const FR = { inner:0.20, outer:0.42, mantle:0.90, crust:1.0 };
+const LAYERS = [
+  { id:'inner',  name:'Noyau interne', sub:'5 100 – 6 370 km', col:'#fff0c0', emis:1.15, r:FR.inner*R,
+    facts:[['État','solide'],['Température','~5 400 °C'],['Matière','fer + nickel']],
+    info:["Une boule de fer solide aussi chaude que la surface du Soleil : environ 5 400 °C !","L'énorme pression au centre de la Terre l'empêche de fondre malgré la chaleur."],
+    fun:"C'est le point le plus profond de la Terre : impossible à visiter, on l'étudie grâce aux ondes des séismes." },
+  { id:'outer',  name:'Noyau externe', sub:'2 900 – 5 100 km', col:'#F5A623', emis:0.95, r:FR.outer*R,
+    facts:[['État','liquide'],['Rôle','champ magnétique'],['Matière','fer + nickel']],
+    info:["Du métal liquide en fusion qui bouge sans arrêt. Ses courants créent le champ magnétique de la Terre.","Sans lui, pas de boussole… et pas de bouclier contre le vent solaire."],
+    fun:"C'est ce noyau liquide qui fait pointer l'aiguille de ta boussole vers le Nord." },
+  { id:'mantle', name:'Manteau', sub:'70 – 2 900 km', col:'#c1440e', emis:0.30, r:FR.mantle*R,
+    facts:[['Épaisseur','~2 800 km'],['État','roche molle'],['Mouvement','convection']],
+    info:["La couche la plus épaisse, faite de roche brûlante qui s'écoule très, très lentement, comme du miel.","Ces lents mouvements de convection déplacent les plaques et nourrissent les volcans."],
+    fun:"La roche du manteau met des millions d'années à faire un seul tour de « brassage »." },
+  { id:'crust',  name:'Croûte terrestre', sub:'0 – 70 km', col:'#3a7a4a', emis:0.0, r:FR.crust*R,
+    facts:[['Épaisseur','5 – 70 km'],['État','solide, fragile'],['On y vit','oui !']],
+    info:["La fine couche solide sur laquelle nous vivons. Très mince : comme la peau sur une pomme.","Elle est cassée en morceaux géants, les plaques tectoniques, qui glissent lentement."],
+    fun:"Sous les océans la croûte n'a que ~7 km d'épaisseur ; sous les montagnes elle atteint 70 km." },
+];
+const FICHE = {
+  chambre:{ name:'Chambre magmatique', sub:'Réservoir de magma', color:'#ff5a1e',
+    info:["Une poche de roche fondue (le magma) coincée sous le volcan, alimentée par le manteau.","Quand la pression devient trop forte, le magma remonte par la cheminée : c'est l'éruption."],
+    fun:"Le magma devient « lave » seulement quand il sort à l'air libre." },
+  cheminee:{ name:'Cheminée volcanique', sub:'Conduit central', color:'#8a4a2a',
+    info:["Le tuyau naturel par lequel le magma remonte de la chambre jusqu'au cratère.","Plus le conduit est étroit et le magma épais, plus l'éruption risque d'être explosive."],
+    fun:"Certaines cheminées mesurent plusieurs kilomètres de profondeur." },
+  cratere:{ name:'Cratère', sub:'Sommet du volcan', color:'#5a3a2a',
+    info:["Le grand creux au sommet, ouvert vers le ciel, d'où sortent la lave, les gaz et les cendres.","Entre deux éruptions, un lac de lave brûlante peut y rester. "],
+    fun:"Le cratère peut s'effondrer et former une immense cuvette appelée caldeira." },
+  coulee:{ name:'Coulée de lave', sub:'Rivière de roche fondue', color:'#ff6a2a',
+    info:["La lave rouge, à plus de 1 000 °C, dévale les flancs comme une rivière de feu.","En refroidissant, elle durcit et forme une nouvelle roche volcanique noire (le basalte)."],
+    fun:"Une coulée peut avancer très lentement… ou filer plus vite qu'un humain qui court." },
+  panache:{ name:'Panache & cendres', sub:'Colonne éruptive', color:'#8b8377',
+    info:["Un nuage brûlant de gaz, de cendres et de petites roches projeté haut dans le ciel.","Les cendres peuvent voyager très loin avec le vent et gêner les avions."],
+    fun:"Les plus grands panaches montent jusqu'à 40 km d'altitude, bien au-dessus des avions." },
+  cone:{ name:'Cône & roches', sub:'Le corps du volcan', color:'#4a3a30',
+    info:["Le volcan est bâti par ses propres éruptions : chaque coulée et chaque pluie de cendres l'agrandit.","Un strato-volcan alterne couches de lave durcie et couches de cendres : d'où sa forme en cône."],
+    fun:"Le Mont Fuji, au Japon, est un célèbre strato-volcan presque parfaitement conique." },
+  plaque:{ name:'Plaque tectonique', sub:'Morceau de croûte', color:'#2faa5a',
+    info:["La croûte est brisée en grandes plaques qui flottent sur le manteau et glissent de quelques cm par an.","C'est aux frontières des plaques que se concentrent volcans et tremblements de terre."],
+    fun:"Tes ongles poussent à peu près à la même vitesse que bougent les plaques !" },
+  dorsale:{ name:'Dorsale océanique', sub:'Plaques qui s\'écartent', color:'#29B6E0',
+    info:["Au fond des océans, deux plaques s'écartent. Du magma remonte dans l'ouverture et crée une nouvelle croûte.","C'est la plus longue chaîne de volcans du monde, cachée sous la mer."],
+    fun:"La dorsale médio-atlantique fait grandir l'océan de quelques cm chaque année." },
+  subduction:{ name:'Zone de subduction', sub:'Une plaque plonge', color:'#9B2BB0',
+    info:["Ici une plaque glisse sous une autre et replonge dans le manteau. Le frottement fait fondre la roche.","Ce magma remonte et forme des volcans explosifs et de puissants séismes."],
+    fun:"La « ceinture de feu » du Pacifique regroupe la plupart des volcans de subduction du monde." },
+};
+
+/* ======================= ÉTAT ======================= */
+let scene,camera,renderer,composer,bloom,controls,clock,raycaster,pointer;
+let earth, crustMesh, atmo, layerMeshes=[], crossFaces=[], pickables=[], hovered=null;
+let volcano, craterLava, chamberMesh, chamberLight, craterLight, conduitMesh, smoke=[], flows=[], flowClip, tecto, arrows=[];
+let embers=[], fountain=[];
+let mode='explore', showLabels=true, spin=false;
+let quiz=null, quizTier='debutant';
+let erupt=null, quakeT=0, ac=null;
+const labelDefs=[];
+
+const shell = window.Konstrio.createGame({
+  id:'3d-15-terre-volcanisme', code:'3D·15', title:'Terre & volcanisme', type:'3D',
+  domain:{ label:'Histoire & Géo', color:'#1E8C7A' },
+  intro:{
+    greet:"Voyage au centre de la Terre ! Ouvre-la en coupe pour voir ses couches brûlantes, puis déclenche une vraie éruption, étape par étape.",
+    rule:"La Terre est faite de couches : <b>croûte</b>, <b>manteau</b>, <b>noyau externe</b> (liquide) et <b>noyau interne</b> (solide). Le manteau brûlant nourrit les <b>volcans</b>. Explore, déclenche l'éruption, puis relève le défi.",
+    how:["Glisse pour tourner la Terre · clique une couche ou le volcan pour sa fiche.","Onglet 🌋 Éruption : suis les étapes montée du magma → explosion → coulée.","Onglet 🎯 Défi : retrouve les couches et le type de volcan."],
+    keys:"Glisser = tourner · molette = zoom · E = éruption · L = étiquettes.",
+    objectif:"Nommer les 4 couches de la Terre et comprendre comment naît une éruption volcanique.",
+    hint:"La croûte est très fine, le manteau très épais, et le noyau se cache tout au centre : interne (solide) dans externe (liquide).",
+    why:"Comprendre l'intérieur de la Terre explique les volcans, les séismes et le champ magnétique qui nous protège."
+  },
+  learned:[
+    "La Terre a 4 couches : croûte, manteau, noyau externe (liquide), noyau interne (solide).",
+    "Le magma vient du manteau ; sorti à l'air, il devient de la lave.",
+    "Une éruption suit des étapes : montée du magma, explosion, coulée, refroidissement.",
+  ],
+  onReady:init, onStart:onStart, onTheme:applyTheme, onRestart:onRestart,
+});
+
+/* ======================= TEXTURES PROCÉDURALES ======================= */
+function crossTex(){
+  const c=document.createElement('canvas'); c.width=c.height=512; const x=c.getContext('2d'); const cx=256, cy=256;
+  const ring=(r0,r1,stops)=>{ const g=x.createRadialGradient(cx,cy,r0,cx,cy,r1); stops.forEach(s=>g.addColorStop(s[0],s[1])); x.beginPath(); x.arc(cx,cy,r1,0,7); x.fillStyle=g; x.fill(); };
+  x.fillStyle='#0a0a0f'; x.fillRect(0,0,512,512);
+  ring(0, 256*FR.mantle, [[0,'#7a2d0a'],[.5,'#a3380c'],[1,'#5a230a']]);          // manteau
+  ring(0, 256*FR.outer,  [[0,'#ffd27a'],[.55,'#F5A623'],[1,'#d67a12']]);         // noyau externe
+  ring(0, 256*FR.inner,  [[0,'#fffbe8'],[.6,'#fff0c0'],[1,'#ffd06a']]);          // noyau interne
+  // fine croûte verte
+  x.beginPath(); x.arc(cx,cy,256*0.995,0,7); x.strokeStyle='#3a7a4a'; x.lineWidth=256*(FR.crust-FR.mantle)*2; x.stroke();
+  // veines de convection dans le manteau
+  x.globalAlpha=.14; x.strokeStyle='#ffb066'; x.lineWidth=2;
+  for(let i=0;i<26;i++){ const a=Math.random()*7, r=256*(FR.outer+Math.random()*(FR.mantle-FR.outer)); x.beginPath(); x.arc(cx+Math.cos(a)*r*.2, cy+Math.sin(a)*r*.2, r*(.5+Math.random()*.4), a, a+1.2); x.stroke(); }
+  x.globalAlpha=1;
+  // séparateurs nets
+  [FR.inner,FR.outer,FR.mantle].forEach(f=>{ x.beginPath(); x.arc(cx,cy,256*f,0,7); x.strokeStyle='rgba(20,10,6,.5)'; x.lineWidth=2.5; x.stroke(); });
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
+function lavaTex(){
+  const c=document.createElement('canvas'); c.width=64; c.height=256; const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,256); g.addColorStop(0,'#fff0b0'); g.addColorStop(.3,'#ff9a2a'); g.addColorStop(.7,'#ff4a14'); g.addColorStop(1,'#7a1e08');
+  x.fillStyle=g; x.fillRect(0,0,64,256);
+  x.globalAlpha=.5; for(let i=0;i<40;i++){ x.fillStyle=Math.random()<.5?'#ffd27a':'#5a1404'; x.beginPath(); x.arc(Math.random()*64,Math.random()*256,1+Math.random()*3,0,7); x.fill(); }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapT=THREE.RepeatWrapping; return t;
+}
+function smokeTex(){
+  const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d'); const g=x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,'rgba(226,222,216,.9)'); g.addColorStop(.5,'rgba(170,164,156,.5)'); g.addColorStop(1,'rgba(140,134,126,0)'); x.fillStyle=g; x.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(c);
+}
+function rockNoise(base){
+  const c=document.createElement('canvas'); c.width=c.height=256; const x=c.getContext('2d'); x.fillStyle=base; x.fillRect(0,0,256,256);
+  for(let i=0;i<2600;i++){ const v=Math.random(); x.fillStyle=`rgba(${v<.5?20:60},${v<.5?16:44},${v<.5?12:34},${.05+Math.random()*.12})`; x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*2,1+Math.random()*2); }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,3); return t;
+}
+
+/* ======================= TEXTURES PBR CC0 (Poly Haven) — roche/terrain ======================= */
+// Cartes réelles CC0 (rock_boulder_dry, rocky_terrain) : grain, relief (normal) et AO bakée
+// donnent une roche crédible qui reste lisible même en rendu logiciel (l'AO ne dépend pas de l'écran).
+const texLoader=new THREE.TextureLoader();
+const PBR_BASE='../assets/3d/pbr2k/';
+let maxAniso=8, rockNormalShared=null;
+function loadTex(url,srgb,rep){ const t=texLoader.load(url,undefined,undefined,()=>{}); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep,rep); t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=maxAniso; return t; }
+// applique diffuse/normal/roughness(+ao bakée) réels sur un matériau existant
+function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE+slug+'/'+slug+'_';
+  material.map=loadTex(b+'diff_'+res+'.jpg',true,rep);
+  material.normalMap=loadTex(b+'nor_gl_'+res+'.jpg',false,rep); material.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  material.roughnessMap=loadTex(b+'rough_'+res+'.jpg',false,rep);
+  if(opt.ao){ material.aoMap=loadTex(b+'ao_'+res+'.jpg',false,rep); material.aoMapIntensity=opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color);
+  material.needsUpdate=true; return material; }
+// duplique le canal UV pour permettre l'aoMap (utilise uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+// normal de roche partagée (relief sur la lave incandescente sans lui ôter son émissivité)
+function rockNormal(rep){ const t=loadTex(PBR_BASE+'rock_boulder_dry/rock_boulder_dry_nor_gl_1k.jpg',false,rep||2); return t; }
+
+/* ======================= INIT ======================= */
+function init(){
+  const stage=shell.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight, .1, 400); camera.position.set(-8.5,5.0,-9.5);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.06; renderer.localClippingEnabled=true;
+  stage.appendChild(renderer.domElement);
+  maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
+  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) — l'AO écran (GTAO) y produirait du noir.
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer); composer.addPass(new RenderPass(scene,camera));
+  if(!software){
+    // GPU : occlusion ambiante espace-écran pour creuser le relief de la roche
+    const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=1.0;
+    try{ gtao.updateGtaoMaterial({ radius:0.4, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao=gtao;
+  } // en rendu logiciel : pas de GTAO — l'occlusion vient des cartes AO bakées de la roche (jamais noir)
+  // bloom fort sur la lave incandescente / le noyau
+  bloom=new UnrealBloomPass(new THREE.Vector2(W,H), 0.85, 0.6, 0.72); composer.addPass(bloom);
+  composer.addPass(new SMAAPass(W,H));       // anti-aliasing (le composer court-circuite le MSAA du canvas)
+  composer.addPass(new OutputPass());        // tone mapping ACES + conversion sRGB en fin de chaîne
+
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08;
+  controls.minDistance=5; controls.maxDistance=24; controls.target.set(0,1.6,0); controls.update();
+
+  // éclairage doux dramatique
+  scene.add(new THREE.HemisphereLight(0x8aa0c0, 0x2a1810, 0.55));
+  scene.add(new THREE.AmbientLight(0x334455, 0.35));
+  const sun=new THREE.DirectionalLight(0xfff2e0, 2.1); sun.position.set(7,9,5); scene.add(sun);
+  const rim=new THREE.DirectionalLight(0x6688cc, 0.6); rim.position.set(-6,3,-6); scene.add(rim);
+
+  // fond étoilé + environnement HDR (réflexions PBR)
+  const TL=new THREE.TextureLoader(); const B='../assets/3d/';
+  TL.load(B+'planets/2k_stars_milky_way.jpg', t=>{ t.mapping=THREE.EquirectangularReflectionMapping; t.colorSpace=THREE.SRGBColorSpace; scene.background=t; }, undefined, ()=>{});
+  const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  new RGBELoader().load(B+'env/sky_day_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); }, undefined, ()=>{});
+
+  buildEarth(TL,B); buildVolcano(); buildTecto(); buildAtmosphere();
+  defineLabels();
+
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  buildUI(); applyTheme(); setMode('explore');
+
+  renderer.domElement.addEventListener('pointermove', onMove);
+  renderer.domElement.addEventListener('pointerdown', onDown);
+  window.addEventListener('resize', onResize);
+  window.addEventListener('keydown', onKey);
+  new ResizeObserver(onResize).observe(stage);
+  animate();
+}
+
+/* ======================= TERRE EN COUPE ======================= */
+function buildEarth(TL,B){
+  earth=new THREE.Group(); scene.add(earth);
+  // coques concentriques en quartier (270°), intérieur exposé côté (-X,-Z)
+  LAYERS.forEach(L=>{
+    const mat=new THREE.MeshStandardMaterial({ color:L.col, roughness:L.id==='crust'?.9:.5, metalness:L.id==='outer'?.35:0,
+      emissive:new THREE.Color(L.col), emissiveIntensity:L.emis, side:THREE.DoubleSide });
+    const m=new THREE.Mesh(new THREE.SphereGeometry(L.r, 72, 48, 0, Math.PI*1.5), mat);
+    m.userData={ fiche:L.id }; earth.add(m); layerMeshes.push(m);
+    if(L.id==='crust') crustMesh=m;
+  });
+  // texture réelle de la Terre sur la croûte
+  TL.load(B+'planets/2k_earth_daymap.jpg', t=>{ t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8;
+    crustMesh.material.map=t; crustMesh.material.color.setHex(0xffffff); crustMesh.material.roughness=0.82;
+    crustMesh.material.emissive=new THREE.Color(0x0a1420); crustMesh.material.emissiveIntensity=0.12; crustMesh.material.needsUpdate=true;
+  }, undefined, ()=>{});
+  // faces de coupe : demi-disques texturés (couches colorées + noyau émissif)
+  const ctex=crossTex();
+  const faceMat=new THREE.MeshStandardMaterial({ map:ctex, emissiveMap:ctex, emissive:0xffffff, emissiveIntensity:0.55, roughness:.7, metalness:0, side:THREE.DoubleSide });
+  const geo=new THREE.CircleGeometry(R, 96, Math.PI/2, Math.PI); // demi-disque côté -X
+  const fA=new THREE.Mesh(geo, faceMat); fA.userData={cross:true}; earth.add(fA); crossFaces.push(fA);
+  const fB=new THREE.Mesh(geo.clone(), faceMat); fB.geometry.rotateY(-Math.PI/2); fB.userData={cross:true}; earth.add(fB); crossFaces.push(fB);
+  // lueur centrale (noyau)
+  const coreGlow=new THREE.PointLight(0xff8a3a, 1.6, 6, 2); coreGlow.position.set(0,0,0); earth.add(coreGlow);
+}
+function buildAtmosphere(){
+  const mat=new THREE.ShaderMaterial({
+    uniforms:{ glowColor:{value:new THREE.Color(0x4d8fe0)} },
+    vertexShader:`varying float vI; void main(){ vec3 vn=normalize(normalMatrix*normal); vec3 vp=normalize(-(modelViewMatrix*vec4(position,1.0)).xyz); vI=pow(1.0-abs(dot(vn,vp)),2.6); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+    fragmentShader:`varying float vI; uniform vec3 glowColor; void main(){ gl_FragColor=vec4(glowColor, vI*0.85);}`,
+    side:THREE.BackSide, blending:THREE.AdditiveBlending, transparent:true, depthWrite:false });
+  atmo=new THREE.Mesh(new THREE.SphereGeometry(R*1.05,48,32), mat); scene.add(atmo);
+}
+
+/* ======================= VOLCAN ======================= */
+function buildVolcano(){
+  volcano=new THREE.Group(); volcano.position.set(0,R-0.05,0); scene.add(volcano);
+  const H=1.95, RB=1.5, RT=0.42;
+  // roche réelle CC0 (rock_boulder_dry) : grain, relief normal, AO bakée — flancs volcaniques crédibles
+  const rockMat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:1.0, metalness:0.0 });
+  applyPBR(rockMat,'rock_boulder_dry','1k',{repeat:2.4,normal:1.35,ao:true,aoInt:1.1,color:0x8a7360});
+  // terrain d'assise (rocky_terrain) : pierrailles plus claires pour le rebord & les roches éparses
+  const groundMat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:1.0, metalness:0.0 });
+  applyPBR(groundMat,'rocky_terrain','1k',{repeat:1.6,normal:1.2,ao:true,color:0x6f5c4c});
+  // cône déformé
+  const coneGeo=new THREE.CylinderGeometry(RT,RB,H,64,9,true);
+  { const p=coneGeo.attributes.position; for(let i=0;i<p.count;i++){ const y=p.getY(i); const f=1-(y+H/2)/H; const n=Math.sin(i*12.9)*0.5+Math.sin(i*4.1)*0.5; p.setX(i,p.getX(i)*(1+n*0.06*f)); p.setZ(i,p.getZ(i)*(1+Math.cos(i*7.3)*0.06*f)); } coneGeo.computeVertexNormals(); }
+  enableAO(coneGeo);
+  const cone=new THREE.Mesh(coneGeo, rockMat); cone.position.y=H/2; cone.castShadow=cone.receiveShadow=true; cone.userData={fiche:'cone'}; volcano.add(cone);
+  // apron rocheux à la base : lie le cône à la surface du globe
+  const apronGeo=new THREE.RingGeometry(RB*0.85, RB*1.55, 56, 2); enableAO(apronGeo);
+  const apron=new THREE.Mesh(apronGeo, groundMat); apron.rotation.x=-Math.PI/2; apron.position.y=0.02; apron.receiveShadow=true; volcano.add(apron);
+  // rebord du cratère
+  const rimGeo=new THREE.CylinderGeometry(RT+0.06,RT+0.16,0.22,32); enableAO(rimGeo);
+  const rimMat=rockMat.clone(); rimMat.color.setHex(0x5f4c3d);
+  const rim=new THREE.Mesh(rimGeo, rimMat); rim.position.y=H-0.02; rim.castShadow=true; rim.userData={fiche:'cratere'}; volcano.add(rim);
+  // lac de lave (cratère) — émissif procédural + relief de roche (croûte de lave)
+  craterLava=new THREE.Mesh(new THREE.CircleGeometry(RT+0.02,32), new THREE.MeshStandardMaterial({ color:0xff8a2a, emissive:0xff5a1e, emissiveIntensity:1.7, roughness:.5, side:THREE.DoubleSide, normalMap:rockNormal(3), normalScale:new THREE.Vector2(0.6,0.6) }));
+  craterLava.rotation.x=-Math.PI/2; craterLava.position.y=H+0.02; craterLava.userData={fiche:'cratere'}; volcano.add(craterLava);
+  // roches éparses
+  for(let i=0;i<11;i++){ const a=Math.random()*7, d=RB*(0.8+Math.random()*0.6); const rg=new THREE.DodecahedronGeometry(0.06+Math.random()*0.14,0); enableAO(rg); const r=new THREE.Mesh(rg, i%2?groundMat:rockMat); r.position.set(Math.cos(a)*d,0.06,Math.sin(a)*d); r.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3); r.castShadow=true; volcano.add(r); }
+  // conduit émissif visible dans le cratère
+  conduitMesh=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.22,H*0.9,16), new THREE.MeshStandardMaterial({color:0x2a0e04,emissive:0xff4a14,emissiveIntensity:0.0,roughness:.6})); conduitMesh.position.y=H*0.5; conduitMesh.userData={fiche:'cheminee'}; volcano.add(conduitMesh);
+  // point lumineux du cratère
+  craterLight=new THREE.PointLight(0xff5a1e, 0.6, 9, 2); craterLight.position.y=H+0.2; volcano.add(craterLight);
+
+  // panache de fumée (sprites)
+  const N=REDUCED?9:22; const smokeMat=new THREE.SpriteMaterial({map:smokeTex(),color:0x9a948c,transparent:true,opacity:0,depthWrite:false});
+  for(let i=0;i<N;i++){ const sp=new THREE.Sprite(smokeMat.clone()); sp.userData={life:Math.random(),sp:0.4+Math.random()*0.6,off:Math.random()*7}; sp.position.set(0,H+0.2,0); volcano.add(sp); smoke.push(sp); }
+
+  // chambre magmatique (sur la face de coupe, sous le volcan)
+  chamberMesh=new THREE.Mesh(new THREE.SphereGeometry(0.42,20,16), new THREE.MeshStandardMaterial({color:0xff7a22,emissive:0xff5a1e,emissiveIntensity:1.5,roughness:.4}));
+  chamberMesh.position.set(-0.95, R-0.95, 0.0); chamberMesh.scale.set(1.4,0.8,1.4); chamberMesh.userData={fiche:'chambre'}; scene.add(chamberMesh);
+  chamberLight=new THREE.PointLight(0xff4a14,0.8,7,2); chamberLight.position.copy(chamberMesh.position); scene.add(chamberLight);
+
+  // coulées de lave (révélées par plan de coupe)
+  flowClip=new THREE.Plane(new THREE.Vector3(0,1,0), 999); // ne masque rien par défaut
+  const ltex=lavaTex();
+  const yTop=volcano.position.y + H - 0.15;
+  for(let i=0;i<3;i++){
+    const a=(i/3)*Math.PI*2 + 0.6;
+    const pts=[]; const steps=6;
+    for(let s=0;s<=steps;s++){ const f=s/steps; const y=yTop - f*(H+0.2); const rad=(RT+0.1)+f*(RB-RT+0.15); const wob=Math.sin(f*6+i)*0.12;
+      pts.push(new THREE.Vector3(Math.cos(a+wob)*rad, y, Math.sin(a+wob)*rad)); }
+    const curve=new THREE.CatmullRomCurve3(pts);
+    const tube=new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.12, 10, false),
+      new THREE.MeshStandardMaterial({ map:ltex.clone(), emissiveMap:ltex.clone(), emissive:0xffffff, emissiveIntensity:0.0, color:0x2a1008, roughness:.55, clippingPlanes:[flowClip], normalMap:rockNormal(4), normalScale:new THREE.Vector2(0.5,0.5) }));
+    tube.material.map.wrapT=tube.material.emissiveMap.wrapT=THREE.RepeatWrapping;
+    tube.userData={fiche:'coulee', yTop, yBot:yTop-(H+0.2)}; tube.visible=false; scene.add(tube); flows.push(tube);
+  }
+}
+
+/* ======================= TECTONIQUE (schéma) ======================= */
+function buildTecto(){
+  tecto=new THREE.Group(); scene.add(tecto);
+  // deux calottes de plaque posées sur la croûte, côté visible
+  const mkPlate=(phi,col,id)=>{ const cap=new THREE.Mesh(new THREE.SphereGeometry(R*1.008, 48,24, phi, Math.PI*0.42, Math.PI*0.28, Math.PI*0.36),
+      new THREE.MeshStandardMaterial({color:col,roughness:.85,metalness:0,transparent:true,opacity:.9,side:THREE.DoubleSide})); cap.userData={fiche:id}; tecto.add(cap); return cap; };
+  mkPlate(Math.PI*1.02, 0x2faa5a, 'plaque');
+  mkPlate(Math.PI*1.30, 0x3a8ab0, 'dorsale');
+  // flèches de mouvement
+  const mkArrow=(from,dir,col)=>{ const a=new THREE.ArrowHelper(dir.clone().normalize(), from, 0.9, col, 0.3, 0.18); tecto.add(a); arrows.push(a); };
+  const surf=(phi,theta)=>new THREE.Vector3().setFromSphericalCoords(R*1.05, theta, phi);
+  mkArrow(surf(Math.PI*1.15, Math.PI*0.42), new THREE.Vector3(1,0.2,-0.4), 0x7ef5b0);
+  mkArrow(surf(Math.PI*1.34, Math.PI*0.42), new THREE.Vector3(-1,0.2,0.4), 0x9fd4ff);
+  // marqueur de subduction
+  const sub=new THREE.Mesh(new THREE.TorusGeometry(0.28,0.05,10,24,Math.PI), new THREE.MeshStandardMaterial({color:0x9B2BB0,emissive:0x5a1466,emissiveIntensity:.5,roughness:.6}));
+  sub.position.copy(surf(Math.PI*1.22, Math.PI*0.5)); sub.lookAt(0,0,0); sub.userData={fiche:'subduction'}; tecto.add(sub);
+}
+
+/* ======================= ÉTIQUETTES 3D ======================= */
+function defineLabels(){
+  const local=(m,off)=>()=>m.getWorldPosition(new THREE.Vector3()).add(off||new THREE.Vector3());
+  labelDefs.push({ text:'Croûte', get:()=>new THREE.Vector3(-R*0.99, 0.15, 0) });
+  labelDefs.push({ text:'Manteau', get:()=>new THREE.Vector3(-R*0.62, 0.4, 0) });
+  labelDefs.push({ text:'Noyau externe', get:()=>new THREE.Vector3(-R*0.30, -0.1, 0), lava:true });
+  labelDefs.push({ text:'Noyau interne', get:()=>new THREE.Vector3(-R*0.09, 0.0, 0), lava:true });
+  labelDefs.push({ text:'🌋 Volcan', get:()=>volcano.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,2.3,0)), lava:true });
+  labelDefs.push({ text:'Chambre magmatique', get:()=>chamberMesh.getWorldPosition(new THREE.Vector3()), lava:true });
+}
+
+/* ======================= UI ======================= */
+function buildUI(){
+  const stage=shell.stage;
+  const md=document.createElement('div'); md.className='te-panel te-modes';
+  md.innerHTML=`<button class="te-m" data-m="explore" aria-pressed="true">🔎 Explorer</button><button class="te-m" data-m="erupt">🌋 Éruption</button><button class="te-m" data-m="defi">🎯 Défi</button>`;
+  stage.appendChild(md);
+  md.querySelectorAll('[data-m]').forEach(b=> b.onclick=()=>{ setMode(b.dataset.m); md.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.m===mode)); shell.sound('click'); });
+
+  const tl=document.createElement('div'); tl.className='te-panel te-tools';
+  tl.innerHTML=`<h3>Affichage</h3>
+    <button class="te-tg" id="teLbl" aria-pressed="true">🏷️ Étiquettes</button>
+    <button class="te-tg" id="teSpin" aria-pressed="false">🔄 Rotation auto</button>
+    <button class="te-tg" id="teReset">🎯 Recentrer la vue</button>`;
+  stage.appendChild(tl);
+  tl.querySelector('#teLbl').onclick=e=>{ showLabels=!showLabels; e.currentTarget.setAttribute('aria-pressed',showLabels); shell.sound('click'); };
+  tl.querySelector('#teSpin').onclick=e=>{ spin=!spin; controls.autoRotate=spin; controls.autoRotateSpeed=0.5; e.currentTarget.setAttribute('aria-pressed',spin); shell.sound('click'); };
+  tl.querySelector('#teReset').onclick=()=>{ camera.position.set(-8.5,5.0,-9.5); controls.target.set(0,1.6,0); controls.update(); shell.sound('pop'); };
+
+  const act=document.createElement('div'); act.className='te-panel te-act'; act.id='teAct'; stage.appendChild(act);
+  const info=document.createElement('div'); info.className='te-panel te-info'; info.id='teInfo'; stage.appendChild(info);
+  const hint=document.createElement('div'); hint.className='te-hint'; hint.id='teHint'; stage.appendChild(hint);
+  const ph=document.createElement('div'); ph.className='te-phase'; ph.id='tePhase';
+  ph.innerHTML=`<div class="te-ph-tag" id="tePhTag"></div><h2 class="te-ph-title" id="tePhTitle"></h2><div class="te-ph-cap" id="tePhCap"></div><div class="te-steps" id="tePhSteps"></div>`;
+  stage.appendChild(ph);
+  const flash=document.createElement('div'); flash.className='te-flash'; flash.id='teFlash'; stage.appendChild(flash);
+  const qz=document.createElement('div'); qz.className='te-quiz'; qz.id='teQuiz'; stage.appendChild(qz);
+}
+
+/* ======================= MODES ======================= */
+function onStart(m){ startAmb(); if(m==='cours'){ shell.setScore(0); setMode('defi'); reflectModeBtns(); } else { setMode('explore'); reflectModeBtns(); } }
+function onRestart(){ shell.setScore(0); shell.setProgress(0); shell.setStars(0); quiz=null; endErupt(); setMode('explore'); reflectModeBtns(); }
+function reflectModeBtns(){ document.querySelectorAll('.te-modes [data-m]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.m===mode)); }
+
+function setMode(m){
+  mode=m; const act=document.getElementById('teAct'), hint=document.getElementById('teHint');
+  document.getElementById('teQuiz').classList.remove('on'); document.getElementById('tePhase').classList.remove('on');
+  closeFiche(); if(m!=='erupt') endErupt(); if(m!=='defi') quiz=null;
+  tecto.visible=true;
+  if(m==='explore'){
+    act.innerHTML=`<button class="te-b" id="teCut">🌍 Vue d'ensemble</button><button class="te-b primary" id="teGoErupt">🌋 Déclencher l'éruption</button>`;
+    act.querySelector('#teCut').onclick=()=>{ camera.position.set(-8.5,5.0,-9.5); controls.target.set(0,1.6,0); controls.update(); shell.sound('pop'); };
+    act.querySelector('#teGoErupt').onclick=()=>{ setMode('erupt'); reflectModeBtns(); };
+    hint.textContent='Clique une couche, le volcan, la chambre ou une plaque pour sa fiche';
+    shell.say("Mode Explorer : la Terre est ouverte en coupe. Clique une couche ou le volcan pour tout savoir !",'curieux');
+  } else if(m==='erupt'){
+    act.innerHTML=`<button class="te-b primary" id="teErupt">🌋 Déclencher l'éruption</button><button class="te-b" id="teCam">🎥 Vue volcan</button>`;
+    act.querySelector('#teErupt').onclick=()=> startErupt();
+    act.querySelector('#teCam').onclick=()=>{ camera.position.set(-4.2,R+2.4,-4.6); controls.target.set(0,R+0.5,0); controls.update(); shell.sound('pop'); };
+    hint.textContent="Appuie sur « Déclencher l'éruption » et suis les 4 étapes";
+    shell.say("Mode Éruption : on va réveiller le volcan pas à pas. Prêt ? Déclenche l'éruption !",'enthousiaste');
+  } else {
+    act.innerHTML='';
+    hint.textContent='Défi : réponds aux questions, sans stress !';
+    chooseDifficulty();
+  }
+}
+
+/* ======================= FICHES ======================= */
+function pickFiche(id, worldPt){
+  let data=null;
+  const L=LAYERS.find(x=>x.id===id);
+  if(L) data={ name:L.name, sub:L.sub, color:L.col, info:L.info, facts:L.facts, fun:L.fun };
+  else if(FICHE[id]) data=FICHE[id];
+  if(!data) return;
+  openFiche(data);
+  shell.say(data.info[0], 'concentre'); shell.sound('pop');
+  if(mode==='defi') checkLayerAnswer(id);
+}
+function openFiche(d){
+  const el=document.getElementById('teInfo');
+  const facts=d.facts? `<div class="te-facts">${d.facts.map(f=>`<div><div class="te-fk">${f[0]}</div><div class="te-fv">${f[1]}</div></div>`).join('')}</div>`:'';
+  const fun=d.fun? `<div class="te-fun">💡 ${d.fun}</div>`:'';
+  el.innerHTML=`<div class="te-hd" style="background:linear-gradient(135deg,${d.color},#1a1208)"><div class="sub">${d.sub||''}</div><h2>${d.name}</h2><button class="te-x" aria-label="Fermer">×</button></div><div class="te-body">${facts}${d.info.map(p=>`<p>${p}</p>`).join('')}${fun}</div>`;
+  el.classList.add('show');
+  el.querySelector('.te-x').onclick=()=>closeFiche();
+}
+function closeFiche(){ const el=document.getElementById('teInfo'); if(el) el.classList.remove('show'); }
+function layerAtRadius(r){ if(r<=FR.inner*R) return 'inner'; if(r<=FR.outer*R) return 'outer'; if(r<=FR.mantle*R) return 'mantle'; return 'crust'; }
+
+/* ======================= SÉQUENCE ÉRUPTION ======================= */
+const PHASES=[
+  { id:'pressure', tag:'Étape 1 · Montée du magma', title:'Sous pression', cap:"Le magma brûlant remonte du manteau et remplit la cheminée…", dur:REDUCED?2.2:3.4 },
+  { id:'blast',    tag:'Étape 2 · Éruption',        title:'Ça explose !',   cap:'Gaz et cendres jaillissent en un panache brûlant, la lave fuse.', dur:REDUCED?1.8:2.6 },
+  { id:'flow',     tag:'Étape 3 · Coulée de lave',  title:'La lave dévale', cap:'La lave rouge coule sur les flancs, plus de 1 000 °C.', dur:REDUCED?3.0:4.6 },
+  { id:'cool',     tag:'Étape 4 · Nouvelle terre',  title:'La roche se fige', cap:'En refroidissant, la lave forme une nouvelle roche noire.', dur:REDUCED?2.6:3.6 },
+];
+function startErupt(){
+  if(erupt) return;
+  erupt={ i:-1, t:0, done:false }; quakeT=0;
+  document.getElementById('tePhase').classList.add('on');
+  document.getElementById('tePhSteps').innerHTML=PHASES.map(()=>`<i></i>`).join('');
+  const act=document.getElementById('teAct');
+  act.innerHTML=`<button class="te-b primary" id="teNext">Suivant ▸</button><button class="te-b" id="teCam2">🎥 Vue volcan</button>`;
+  act.querySelector('#teNext').onclick=()=>{ if(!erupt) return; shell.sound('click'); if(erupt.i<PHASES.length-1) setPhase(erupt.i+1); else erupt.t=PHASES[erupt.i].dur; };
+  act.querySelector('#teCam2').onclick=()=>{ camera.position.set(-4.2,R+2.4,-4.6); controls.target.set(0,R+0.5,0); controls.update(); shell.sound('pop'); };
+  sfxRumble();
+  setPhase(0);
+}
+function setPhase(i){
+  if(!erupt) return; erupt.i=i; erupt.t=0; const ph=PHASES[i]; if(!ph) return;
+  document.getElementById('tePhTag').textContent=ph.tag;
+  document.getElementById('tePhTitle').textContent=ph.title;
+  document.getElementById('tePhCap').textContent=ph.cap;
+  document.querySelectorAll('#tePhSteps i').forEach((d,k)=>{ d.className=k<i?'done':(k===i?'now':''); });
+  const em={pressure:'concentre',blast:'surpris',flow:'enthousiaste',cool:'fier'};
+  shell.say(ph.cap, em[ph.id]||'curieux');
+  if(ph.id==='blast'){ flashScreen(); sfxRumble(); }
+  if(ph.id==='flow'){ flows.forEach(f=>f.visible=true); }
+}
+function endErupt(){
+  erupt=null; document.getElementById('tePhase').classList.remove('on');
+  flows.forEach(f=>{ f.visible=false; f.material.emissiveIntensity=0; }); flowClip.constant=999;
+  fountain.forEach(p=>scene.remove(p.mesh)); fountain=[]; embers.forEach(p=>volcano.remove(p.mesh)); embers=[];
+  conduitMesh.material.emissiveIntensity=0;
+}
+function flashScreen(){ if(REDUCED) return; const f=document.getElementById('teFlash'); f.style.opacity='1'; setTimeout(()=>f.style.opacity='0',260); }
+
+/* ======================= DÉFI (quiz bienveillant) ======================= */
+const TIERS={ debutant:'Débutant', inter:'Intermédiaire', expert:'Expert' };
+function chooseDifficulty(){
+  const b=document.getElementById('teHint'); b.style.pointerEvents='auto';
+  b.innerHTML=`🎯 Choisis ta difficulté : `+Object.keys(TIERS).map(k=>`<button class="te-b" data-t="${k}" style="min-height:32px;padding:0 12px;margin:0 3px">${TIERS[k]}</button>`).join('');
+  b.querySelectorAll('[data-t]').forEach(x=>x.onclick=()=>{ shell.sound('click'); quizTier=x.dataset.t; b.style.pointerEvents='none'; startQuiz(); });
+  shell.say("Défi : Débutant (couche nommée), Intermédiaire (par la profondeur), Expert (par la description) + questions sur les volcans. Aucun stress, tu peux réessayer !",'curieux');
+}
+function buildQuizSeq(){
+  const order=LAYERS.map(l=>l.id).sort(()=>Math.random()-.5);
+  const layerQ=order.map(id=>{ const L=LAYERS.find(x=>x.id===id);
+    const clue = quizTier==='debutant'? `Clique la couche : <b>${L.name}</b>`
+      : quizTier==='inter'? `Clique la couche à <b>${L.sub}</b> de profondeur`
+      : `Quelle couche : « <b>${L.info[0].split(/[.!]/)[0]}.</b> »`;
+    return { type:'layer', id, clue }; });
+  const mcq=[
+    { q:"D'où vient le magma d'un volcan ?", choices:[['Du manteau brûlant',1],['Du noyau interne',0],['De la mer',0]] },
+    { q:"Un volcan qui projette un grand panache de cendres est plutôt…", choices:[['explosif',1],['effusif (tranquille)',0]] },
+    { q:"Le magma sorti à l'air libre s'appelle…", choices:[['la lave',1],['le noyau',0],['la croûte',0]] },
+  ].sort(()=>Math.random()-.5);
+  // alterne couches et concepts
+  const seq=[]; const L=[...layerQ], M=[...mcq];
+  while(L.length||M.length){ if(L.length) seq.push(L.shift()); if(M.length) seq.push(M.shift()); }
+  return seq;
+}
+function startQuiz(){ quiz={ seq:buildQuizSeq(), idx:0, score:0 }; quiz.total=quiz.seq.length; shell.setProgress(0); shell.setStars(0); askQuiz(); }
+function askQuiz(){
+  if(!quiz) return; const qz=document.getElementById('teQuiz'), hint=document.getElementById('teHint');
+  if(quiz.idx>=quiz.total){ winQuiz(); return; }
+  const it=quiz.seq[quiz.idx];
+  if(it.type==='layer'){ qz.classList.remove('on'); hint.style.pointerEvents='none'; hint.innerHTML=`(${quiz.idx+1}/${quiz.total}) ${it.clue}`; shell.say('Trouve la bonne couche et clique dessus.','curieux'); }
+  else { hint.textContent=`Question ${quiz.idx+1}/${quiz.total}`; qz.classList.add('on');
+    qz.innerHTML=`<div class="qn">Question ${quiz.idx+1} / ${quiz.total}</div><div class="qt">${it.q}</div><div class="te-choices">${it.choices.map((c,i)=>`<button data-i="${i}">${c[0]}</button>`).join('')}</div>`;
+    qz.querySelectorAll('button').forEach(btn=> btn.onclick=()=>answerMCQ(it.choices[+btn.dataset.i][1]));
+    shell.say(it.q,'curieux');
+  }
+}
+function checkLayerAnswer(id){
+  if(!quiz) return; const it=quiz.seq[quiz.idx]; if(!it||it.type!=='layer') return;
+  if(id===it.id){ good(); } else { const L=LAYERS.find(x=>x.id===it.id); shell.sound('bad'); shell.say(`Presque ! Cherche plutôt : ${L.name}. Regarde bien la coupe.`,'rassurant'); }
+}
+function answerMCQ(ok){ if(!quiz) return; if(ok){ good(); } else { shell.sound('bad'); shell.say("Pas tout à fait — réfléchis et réessaie, tu vas trouver !",'rassurant'); } }
+function good(){ if(!quiz) return; quiz.score++; quiz.idx++; shell.addScore(150); shell.sound('good'); shell.setProgress(quiz.idx/quiz.total); shell.say(['Exact !','Bravo !','Parfait !','Bien joué !'][quiz.score%4],'celebration'); document.getElementById('teQuiz').classList.remove('on'); setTimeout(askQuiz, 850); }
+function winQuiz(){
+  const st=quiz.score>=quiz.total-1?3:quiz.score>=Math.ceil(quiz.total/2)?2:1;
+  document.getElementById('teQuiz').classList.remove('on'); document.getElementById('teHint').textContent='';
+  shell.win({ score:quiz.score*150, stars:st, title:`${quiz.score}/${quiz.total} bonnes réponses`,
+    learned:shell.cfg.learned, buddy:"Tu connais la Terre de la croûte au noyau, et le secret des volcans !",
+    onNext:()=>{ shell.setScore(0); startQuiz(); }, nextLabel:'Rejouer le défi' });
+  quiz=null;
+}
+
+/* ======================= SON ======================= */
+function startAmb(){ if(ac||shell.muted) return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); const g=ac.createGain(); g.gain.value=0; g.connect(ac.destination); g.gain.setTargetAtTime(0.05,ac.currentTime,1.4); const o=ac.createOscillator(); o.type='sine'; o.frequency.value=58; o.connect(g); o.start(); }catch(e){} }
+function sfxRumble(){ if(shell.muted) return; try{ if(!ac) ac=new (window.AudioContext||window.webkitAudioContext)(); const o=ac.createOscillator(),g=ac.createGain(),lp=ac.createBiquadFilter(); o.type='sawtooth'; o.frequency.value=52; lp.type='lowpass'; lp.frequency.value=210; g.gain.setValueAtTime(0.0001,ac.currentTime); g.gain.linearRampToValueAtTime(0.14,ac.currentTime+0.12); g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+2.4); o.connect(lp); lp.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime+2.5); }catch(e){} }
+
+/* ======================= INTERACTION ======================= */
+function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pickList(){ return [...crossFaces, ...layerMeshes, chamberMesh, ...tecto.children.filter(c=>c.userData.fiche), ...volcano.children.filter(c=>c.userData.fiche), ...flows]; }
+function onMove(e){ setP(e); raycaster.setFromCamera(pointer,camera); const h=raycaster.intersectObjects(pickList(),false); renderer.domElement.style.cursor=h.length?'pointer':'grab';
+  const obj=h.length?h[0].object:null; hovered = obj && layerMeshes.includes(obj)? obj:null; }
+function onDown(e){ setP(e); raycaster.setFromCamera(pointer,camera); const h=raycaster.intersectObjects(pickList(),false); if(!h.length) return; const hit=h[0], ud=hit.object.userData;
+  if(ud.cross){ pickFiche(layerAtRadius(hit.point.length()), hit.point); }
+  else if(ud.fiche){ pickFiche(ud.fiche, hit.point); } }
+function onKey(e){ if(e.target && /input|textarea/i.test(e.target.tagName)) return;
+  if(e.key==='e'||e.key==='E'){ if(mode!=='erupt'){ setMode('erupt'); reflectModeBtns(); } startErupt(); }
+  else if(e.key==='l'||e.key==='L'){ showLabels=!showLabels; const b=document.getElementById('teLbl'); if(b) b.setAttribute('aria-pressed',showLabels); } }
+
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x04050b:0x0a0e18,1); if(atmo) atmo.material.uniforms.glowColor.value.setHex(dark?0x4d8fe0:0x6aa0e6); }
+function onResize(){ const s=shell.stage; if(!s.clientWidth) return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
+
+/* ======================= ÉTIQUETTES (projection) ======================= */
+const labelEls={};
+function updateLabels(){ const stage=shell.stage;
+  labelDefs.forEach((d,i)=>{ let el=labelEls[i]; const show=showLabels && mode!=='defi';
+    if(!show){ if(el) el.style.display='none'; return; }
+    if(!el){ el=document.createElement('div'); el.className='te-label'+(d.lava?' lava':''); el.textContent=d.text; stage.appendChild(el); labelEls[i]=el; }
+    const v=d.get().project(camera); if(v.z>1){ el.style.display='none'; return; }
+    el.style.display='block'; el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight)+'px'; });
+}
+
+/* ======================= BOUCLE ======================= */
+function animate(){ requestAnimationFrame(animate); const dt=Math.min(.04, clock.getDelta()); const now=performance.now()*0.001;
+
+  // la coupe reste face à la caméra ; la rotation se fait via « Rotation auto » (orbite caméra)
+  atmo.rotation.y=earth.rotation.y; tecto.rotation.y=earth.rotation.y;
+
+  // lueur du noyau + faces émissives (pulsation lente)
+  const pulse=0.5+Math.sin(now*0.8)*0.08;
+  crossFaces.forEach(f=>f.material.emissiveIntensity=pulse+0.05);
+
+  // survol : léger grossissement de la couche
+  layerMeshes.forEach(m=>{ const lit=m===hovered; m.scale.lerp(new THREE.Vector3(lit?1.02:1,lit?1.02:1,lit?1.02:1),0.18); });
+
+  // chambre / cratère : respiration
+  const base=(mode==='erupt'&&erupt)?1:0.35;
+  chamberMesh.material.emissiveIntensity=1.2+Math.sin(now*2)*0.25*base;
+  chamberLight.intensity += ((erupt&&erupt.i>=0?1.6:0.6)-chamberLight.intensity)*0.08;
+  craterLava.material.emissiveIntensity=1.5+Math.sin(now*3)*0.3;
+
+  // panache de fumée
+  const smoking = mode==='erupt' && erupt && erupt.i>=1;
+  const smokeBase = smoking?1:(mode!=='erupt'?0.28:0.1);
+  smoke.forEach(sp=>{ if(smokeBase>0.05){ sp.userData.life-=dt*(0.35+(smoking?0.5:0)); if(sp.userData.life<=0){ sp.userData.life=1; sp.userData.sp=0.4+Math.random()*0.6; sp.position.set((Math.random()-.5)*0.35, 1.95, (Math.random()-.5)*0.35); }
+      sp.position.y+=dt*(0.7+(1-sp.userData.life)*1.4)*smokeBase; sp.position.x+=dt*0.3*smokeBase*Math.sin(sp.userData.off+now*0.3);
+      const sc=sp.userData.sp*(1+(1-sp.userData.life)*2.6); sp.scale.setScalar(sc);
+      sp.material.opacity=Math.sin(sp.userData.life*Math.PI)*0.55*smokeBase; }
+    else sp.material.opacity*=0.92; });
+
+  // séquence d'éruption
+  if(erupt && erupt.i>=0){ const ph=PHASES[erupt.i]; erupt.t+=dt; const p=Math.min(1,erupt.t/ph.dur);
+    if(ph.id==='pressure'){ conduitMesh.material.emissiveIntensity=p*1.4; quakeT=0.12*p; craterLight.intensity=0.6+p*1.4; }
+    else if(ph.id==='blast'){ conduitMesh.material.emissiveIntensity=1.4; craterLight.intensity=3.2; quakeT=0.18*(1-p*0.4);
+      // fontaine de lave
+      const rate=REDUCED?1:3; if(erupt.t<ph.dur*0.9){ for(let k=0;k<rate;k++){ const m=new THREE.Mesh(new THREE.SphereGeometry(0.06+Math.random()*0.09,6,6), new THREE.MeshStandardMaterial({color:0xff7a2a,emissive:0xff8a3a,emissiveIntensity:1.6,roughness:.5}));
+        m.position.copy(volcano.getWorldPosition(new THREE.Vector3())).add(new THREE.Vector3(0,1.98,0)); scene.add(m);
+        fountain.push({mesh:m,v:new THREE.Vector3((Math.random()-.5)*2.4, 3.4+Math.random()*2.2, (Math.random()-.5)*2.4),life:2.2}); } }
+    }
+    else if(ph.id==='flow'){ craterLight.intensity=2.2; conduitMesh.material.emissiveIntensity=1.1;
+      const yTop=flows[0].userData.yTop, yBot=flows[0].userData.yBot; flowClip.constant = -(yTop - p*(yTop-yBot));
+      flows.forEach(f=>{ f.material.emissiveIntensity=1.5; f.material.emissiveMap.offset.y=(f.material.emissiveMap.offset.y-dt*0.35)%1; f.material.map.offset.y=f.material.emissiveMap.offset.y; }); }
+    else if(ph.id==='cool'){ craterLight.intensity=0.6+ (1-p)*1.2; flowClip.constant=999; // tout visible
+      flows.forEach(f=>{ f.visible=true; f.material.emissiveIntensity=1.5*(1-p); f.material.color.lerp(new THREE.Color(0x1a1008),0.03); }); conduitMesh.material.emissiveIntensity=(1-p)*1.0; }
+    // avance de phase
+    if(erupt.t>=ph.dur){ if(erupt.i<PHASES.length-1) setPhase(erupt.i+1); else if(!erupt.done){ erupt.done=true; document.querySelectorAll('#tePhSteps i').forEach(d=>d.className='done'); shell.say("Éruption terminée ! La lave a refroidi et créé une nouvelle roche. Tu peux recommencer.",'fier'); if(!REDUCED&&shell.buddy.celebrate) shell.buddy.celebrate();
+      const act=document.getElementById('teAct'); act.innerHTML=`<button class="te-b primary" id="teAgain">🔁 Recommencer l'éruption</button><button class="te-b" id="teBackEx">🔎 Explorer</button>`;
+      act.querySelector('#teAgain').onclick=()=>{ endErupt(); document.getElementById('teAct').innerHTML=''; setMode('erupt'); reflectModeBtns(); startErupt(); };
+      act.querySelector('#teBackEx').onclick=()=>{ setMode('explore'); reflectModeBtns(); }; } }
+  }
+
+  // fontaine physique
+  fountain.forEach(o=>{ o.v.y-=9.2*dt; o.mesh.position.addScaledVector(o.v,dt); o.life-=dt; o.mesh.material.emissiveIntensity=Math.max(0,o.life*0.9); });
+  fountain=fountain.filter(o=>{ if(o.life<=0||o.mesh.position.y<R-0.5){ scene.remove(o.mesh); o.mesh.geometry.dispose(); return false; } return true; });
+
+  // secousse (séisme visuel pendant montée/explosion)
+  if(quakeT>0.001 && !REDUCED){ const s=quakeT; earth.position.x=(Math.random()-.5)*s*0.4; earth.position.z=(Math.random()-.5)*s*0.4; volcano.position.x=(Math.random()-.5)*s; } else { earth.position.x*=0.8; earth.position.z*=0.8; volcano.position.x*=0.8; }
+
+  updateLabels(); controls.update(); composer.render();
+}
+</script>
+</body>
+</html>

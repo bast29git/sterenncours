@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Bac à sable physique</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .ph-panel{ position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:15px; box-shadow:var(--shadow-md); backdrop-filter:blur(14px); }
+  .ph-panel h3{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 8px; display:flex; align-items:center; gap:6px; }
+  /* ---- panneau réglages (gauche) ---- */
+  .ph-ctrl{ top:14px; left:14px; width:224px; padding:14px; display:flex; flex-direction:column; gap:13px; max-height:calc(100% - 28px); overflow:auto; }
+  .ph-grp{ display:flex; flex-direction:column; gap:7px; }
+  .ph-seg{ display:grid; gap:5px; } .ph-seg.g4{ grid-template-columns:repeat(4,1fr); } .ph-seg.g2{ grid-template-columns:1fr 1fr; } .ph-seg.g3{ grid-template-columns:repeat(3,1fr); }
+  .ph-sb{ font-family:var(--font-body); font-weight:700; font-size:11.5px; min-height:34px; padding:5px 4px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.14s; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.15; gap:1px; }
+  .ph-sb small{ font-family:var(--font-mono); font-size:8.5px; color:var(--fg-muted); font-weight:600; }
+  .ph-sb[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ph-sb[aria-pressed="true"] small{ color:rgba(255,255,255,.85); }
+  .ph-sb:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .ph-sl{ display:flex; flex-direction:column; gap:3px; font-size:12px; } .ph-sl label{ display:flex; justify-content:space-between; align-items:baseline; } .ph-sl b{ font-family:var(--font-data); color:var(--accent-text); font-size:12.5px; } .ph-sl input[type=range]{ accent-color:var(--accent); width:100%; height:20px; }
+  .ph-b{ font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:40px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.14s; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+  .ph-b:hover{ background:var(--surface); transform:translateY(-1px); }
+  .ph-b:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .ph-b.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ph-b.primary:hover{ box-shadow:0 6px 18px rgba(110,107,255,.4); }
+  .ph-b[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ph-tglrow{ display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+  .ph-tgl{ font-family:var(--font-body); font-weight:700; font-size:11px; min-height:32px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg-muted); cursor:pointer; transition:.14s; }
+  .ph-tgl[aria-pressed="true"]{ background:var(--accent-weak); border-color:color-mix(in srgb,var(--accent) 40%,transparent); color:var(--accent-text); }
+  /* ---- démos (rail bas) ---- */
+  .ph-demos{ left:50%; bottom:14px; transform:translateX(-50%); max-width:min(660px,94vw); padding:9px 11px; display:flex; flex-direction:column; gap:7px; z-index:19; }
+  .ph-demos .lbl{ font-family:var(--font-mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); text-align:center; }
+  .ph-demorow{ display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width:thin; }
+  .ph-chip{ flex:none; font-family:var(--font-body); font-weight:700; font-size:12px; min-height:38px; padding:0 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.14s; white-space:nowrap; display:inline-flex; align-items:center; gap:6px; }
+  .ph-chip:hover{ background:var(--surface); transform:translateY(-1px); }
+  .ph-chip[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  /* ---- score + télémétrie (droite) ---- */
+  .ph-score{ top:14px; right:14px; padding:12px 18px; text-align:center; min-width:96px; } .ph-score .v{ font-family:var(--font-data); font-weight:700; font-size:26px; line-height:1; } .ph-score .k{ font-size:10px; color:var(--fg-muted); margin-top:2px; }
+  .ph-tel{ top:96px; right:14px; width:196px; padding:12px 14px; }
+  .ph-tel .r{ display:flex; justify-content:space-between; align-items:baseline; font-size:12px; margin-bottom:5px; } .ph-tel .r b{ font-family:var(--font-data); color:var(--accent-text); font-size:12.5px; }
+  .ph-tel .r b.big{ font-size:14px; }
+  .ph-tel .bar{ height:8px; border-radius:5px; background:color-mix(in srgb,var(--border) 70%,transparent); overflow:hidden; margin:8px 0 3px; display:flex; }
+  .ph-tel .bar i{ display:block; height:100%; transition:width .12s; } .ph-tel .bk{ display:flex; justify-content:space-between; font-size:9px; color:var(--fg-muted); }
+  .ph-tel .sep{ height:1px; background:var(--border); margin:9px 0; opacity:.6; }
+  /* ---- carte démo / défi (bas-gauche) ---- */
+  .ph-card{ left:50%; bottom:14px; width:344px; max-width:92vw; padding:0; overflow:hidden; transform:translateX(-50%) translateY(150%); opacity:0; transition:transform .5s cubic-bezier(.22,1,.36,1), opacity .4s; z-index:22; }
+  .ph-card.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+  .ph-card .ehd{ padding:13px 16px 11px; color:#fff; background:linear-gradient(135deg,#F5A623,#c97d10); position:relative; }
+  .ph-card .eph{ font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; opacity:.92; }
+  .ph-card .eti{ font-family:var(--font-title); font-weight:800; font-size:17px; margin:2px 0 0; }
+  .ph-card .ebody{ padding:12px 16px 14px; } .ph-card .ebody p{ font-size:12.5px; line-height:1.55; margin:0 0 11px; color:var(--fg); }
+  .ph-card .goal{ display:flex; align-items:flex-start; gap:7px; background:var(--accent-weak); color:var(--accent-text); border-radius:10px; padding:9px 11px; font-size:12px; line-height:1.45; margin:0 0 11px; }
+  .ph-card .opts{ display:flex; flex-direction:column; gap:6px; margin:0 0 11px; }
+  .ph-card .opt{ text-align:left; min-height:38px; padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--fg); font-size:12.5px; font-weight:600; cursor:pointer; transition:.14s; }
+  .ph-card .opt:hover{ background:var(--surface); border-color:var(--accent); }
+  .ph-card .opt.ok{ background:var(--ok); border-color:var(--ok-fg); color:var(--ok-fg); }
+  .ph-card .opt.no{ opacity:.5; }
+  .ph-card .erow{ display:flex; gap:8px; } .ph-card .en{ flex:1; min-height:38px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; } .ph-card .en:disabled{ opacity:.45; cursor:default; }
+  .ph-card .eq{ min-height:38px; padding:0 13px; border:1px solid var(--border); border-radius:10px; background:transparent; color:var(--fg-muted); font-size:12px; cursor:pointer; }
+  .ph-card .prog{ display:flex; gap:4px; margin-top:9px; } .ph-card .prog i{ flex:1; height:4px; border-radius:2px; background:rgba(255,255,255,.35); } .ph-card .prog i.done{ background:#fff; }
+  /* ---- hint + toast lancer ---- */
+  .ph-hint{ position:absolute; bottom:78px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 86%,transparent); border:1px solid var(--border); padding:7px 15px; border-radius:999px; pointer-events:none; text-align:center; max-width:90vw; }
+  @media (max-width:760px){
+    .ph-ctrl{ width:168px; padding:11px; gap:10px; }
+    .ph-tel{ width:150px; top:88px; }
+    .ph-score{ padding:9px 12px; min-width:72px; } .ph-score .v{ font-size:20px; }
+    .ph-card{ width:290px; }
+    .ph-hint{ bottom:120px; font-size:11px; }
+  }
+  body.cours .ph-demos, body.cours .ph-hint{ display:none !important; }
+  @media (prefers-reduced-motion: reduce){ .ph-card{ transition:none; } }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ============================================================
+   TEXTURES PBR CC0 (Poly Haven) — helpers du gabarit photoréaliste
+   ============================================================ */
+const texLoader=new THREE.TextureLoader();
+const PBR_BASE='../assets/3d/pbr2k/';
+let maxAniso=8;
+// charge une texture tuilée (SRGB pour la couleur, linéaire pour les cartes techniques)
+function loadTex(url,srgb,rep){ const t=texLoader.load(url,undefined,undefined,()=>{}); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep,rep); t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=maxAniso; return t; }
+// applique diffuse/normal/roughness(+metal,+ao bakée) réels sur un matériau existant
+function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE+slug+'/'+slug+'_';
+  material.map=loadTex(b+'diff_'+res+'.jpg',true,rep);
+  material.normalMap=loadTex(b+'nor_gl_'+res+'.jpg',false,rep); material.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  material.roughnessMap=loadTex(b+'rough_'+res+'.jpg',false,rep);
+  if(opt.metal){ material.metalnessMap=loadTex(b+'metal_'+res+'.jpg',false,rep); }
+  if(opt.ao){ material.aoMap=loadTex(b+'ao_'+res+'.jpg',false,rep); material.aoMapIntensity=opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color);
+  material.needsUpdate=true; return material; }
+// duplique le canal UV pour permettre l'aoMap (utilise uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+// tache d'ombre de contact douce (occlusion lisible même en rendu logiciel)
+function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,10,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.24)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
+
+/* ============================================================
+   ÉTAT GLOBAL DES LOIS PHYSIQUES
+   ============================================================ */
+const GRAV = { terre:9.81, lune:1.62, mars:3.72, zero:0 };
+const GRAV_LBL = { terre:'Terre', lune:'Lune', mars:'Mars', zero:'0 g' };
+let gravKey='terre', gMag=GRAV.terre;
+let restitution=0.55, friction=0.45, wind=0, air=false;
+let timeScale=1;                     // 0 pause · 0.25 ralenti · 1 · 2
+let showVel=false, showTraj=true, showEnergy=false;
+let mode='detente';
+
+/* three.js */
+let scene,camera,renderer,composer,bloom,controls,clock,raycaster,pointer,dragPlane;
+let ground, tray, dirLight, envReady=false;
+let arrowGroup, trajLine, target=null, tracked=null;
+let velArrows=new Map();
+
+/* physique */
+const bodies=[];            // tous les corps (dynamiques + statiques)
+const TRAY={ minX:-15, maxX:15, minZ:-5.5, maxZ:5.5, h:3.4 };
+const MAXBODIES=42, MAXSPEED=46;
+const SUBSTEP=1/120, MAXSUB=6, ITER=6, SLOP=0.004, PCORR=0.45;
+const ZERO=new THREE.Vector3();
+const UP=new THREE.Vector3(0,1,0);
+const LAUNCH=new THREE.Vector3(-14,1.4,0);
+let launchAngle=45, launchForce=15, lockLauncher=false;
+
+/* défis (mode cours) */
+let chIndex=0, chActive=null;
+
+/* ============================================================
+   SHELL
+   ============================================================ */
+const shell=window.Konstrio.createGame({
+  id:'3d-14-bac-sable-physique', code:'3D·14', title:'Bac à sable physique', type:'3D',
+  domain:{ label:'Physique', color:'#F5A623' },
+  intro:{
+    greet:"Bienvenue dans ton laboratoire de physique ! Ici tu manipules les lois de Newton : règle la gravité, lance des objets, lâche des dominos… et observe la vérité en direct.",
+    rule:"Un vrai <b>bac à sable de physique</b> : ajoute des objets, ils tombent, roulent et rebondissent avec une <b>vraie simulation</b>. Change la <b>gravité</b>, l'<b>élasticité</b>, la <b>friction</b>, le <b>vent</b> et le <b>temps</b> — tout réagit.",
+    how:[
+      "Choisis une <b>démo</b> en bas (pendule, dominos, berceau de Newton, ressort…) : chacune est une petite leçon.",
+      "Joue avec les réglages à gauche (gravité Terre/Lune/Mars/0g, rebond, friction, vent, ralenti).",
+      "Attrape et lance un objet à la souris, ou vise la cible avec le lanceur. En mode Cours, relève 6 défis."
+    ],
+    keys:"Glisser un objet = l'attraper/le lancer · glisser le fond = tourner · molette = zoom · Espace = pause.",
+    objectif:"Relève 6 défis : vise la cible, envoie un objet loin sur la Lune, renverse tous les dominos, abats la tour, et réponds à deux énigmes de physique.",
+    hint:"À force égale, un projectile va le plus loin à 45°. Et sur la Lune, la gravité est ~6× plus faible : tout retombe bien plus loin !",
+    why:"La gravité accélère tous les objets pareil (Galilée). L'énergie ne disparaît jamais : elle se transforme (cinétique ⇄ potentielle), et la restitution dit quelle part est gardée au rebond."
+  },
+  learned:[
+    "La gravité accélère tous les objets de la même façon, quelle que soit leur masse (Galilée).",
+    "Un projectile suit une trajectoire parabolique ; 45° donne la plus grande portée.",
+    "L'énergie se conserve et se transforme (cinétique ⇄ potentielle) ; la restitution règle les rebonds.",
+    "Moins de gravité (Lune) = chutes plus lentes et portées bien plus grandes."
+  ],
+  onReady:init, onStart:startMode, onTheme:applyTheme,
+  onHint:()=>shell.say(chActive&&chActive.hint?chActive.hint:shell.cfg.intro.hint,'idee'),
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init(){
+  const stage=shell.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(50, stage.clientWidth/stage.clientHeight, .1, 300);
+  camera.position.set(-2,13,26);
+  renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(stage.clientWidth,stage.clientHeight);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.02;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  stage.appendChild(renderer.domElement);
+  maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
+  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) → l'AO écran (GTAO) y produit du noir
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer);
+  if(software){
+    // rendu logiciel : pas de GTAO (noir) — l'occlusion vient des cartes AO bakées + ombre de contact
+    composer.addPass(new RenderPass(scene,camera));
+  } else {
+    const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=1.0;
+    try{ gtao.updateGtaoMaterial({ radius:0.6, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao=gtao;
+  }
+  if(!REDUCED){ bloom=new UnrealBloomPass(new THREE.Vector2(W,H),0.32,0.55,0.9); composer.addPass(bloom); composer.bloom=bloom; }
+  composer.addPass(new SMAAPass(W,H));
+  composer.addPass(new OutputPass());
+
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08;
+  controls.minDistance=12; controls.maxDistance=54; controls.maxPolarAngle=Math.PI/2.08; controls.target.set(0,2,0);
+  controls.autoRotate=REDUCED; controls.autoRotateSpeed=.28;
+
+  // lumières
+  scene.add(new THREE.HemisphereLight(0xdfeaff,0x2a3350,0.55));
+  dirLight=new THREE.DirectionalLight(0xfff2df,1.55); dirLight.position.set(10,20,10); dirLight.castShadow=true;
+  dirLight.shadow.mapSize.set(2048,2048); dirLight.shadow.camera.near=1; dirLight.shadow.camera.far=70;
+  dirLight.shadow.camera.left=-24; dirLight.shadow.camera.right=24; dirLight.shadow.camera.top=18; dirLight.shadow.camera.bottom=-18; dirLight.shadow.bias=-0.0004;
+  scene.add(dirLight);
+  const fill=new THREE.DirectionalLight(0xbcd0ff,0.35); fill.position.set(-10,8,-8); scene.add(fill);
+
+  buildBackdrop(); buildTray();
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  dragPlane=new THREE.Plane();
+  arrowGroup=new THREE.Group(); scene.add(arrowGroup);
+  buildTrajLine(); buildTarget();
+
+  // IBL HDRI studio réel (PMREM) — reflets crédibles sur billes/caisses, chargé en tâche de fond
+  const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  const rgbe=new RGBELoader();
+  rgbe.load('../assets/3d/hdri/studio_small_09_1k.hdr', hdr=>{
+    hdr.mapping=THREE.EquirectangularReflectionMapping;
+    scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); envReady=true;
+  }, undefined, ()=>{ rgbe.load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); envReady=true; }, undefined, ()=>{}); });
+
+  buildUI(); applyTheme();
+  const dom=renderer.domElement;
+  dom.addEventListener('pointerdown',onDown);
+  dom.addEventListener('pointermove',onMove);
+  window.addEventListener('pointerup',onUp);
+  document.addEventListener('keydown',onKey);
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
+
+  loadPreset('pendule');   // scène d'accueil vivante
+  animate();
+}
+
+/* ---------- décor ---------- */
+function buildBackdrop(){
+  const c=document.createElement('canvas'); c.width=c.height=1024; const ctx=c.getContext('2d');
+  const gr=ctx.createRadialGradient(512,360,60,512,540,760); gr.addColorStop(0,'#20283c'); gr.addColorStop(.55,'#141a28'); gr.addColorStop(1,'#080b12');
+  ctx.fillStyle=gr; ctx.fillRect(0,0,1024,1024);
+  const t=new THREE.CanvasTexture(c);
+  const sky=new THREE.Mesh(new THREE.SphereGeometry(150,32,20), new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide}));
+  sky.name='sky'; scene.add(sky);
+}
+function buildTray(){
+  // sol : plateau/atelier réel (Poly Haven CC0 « concrete_floor_02 »), tuilé + AO bakée
+  const gmat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9,metalness:.05,envMapIntensity:.55});
+  applyPBR(gmat,'concrete_floor_02','2k',{repeat:6,normal:1.05,ao:true});
+  const ggeo=new THREE.BoxGeometry(40,0.6,18); enableAO(ggeo);
+  ground=new THREE.Mesh(ggeo, gmat); ground.position.y=-0.3; ground.receiveShadow=true; scene.add(ground);
+  const grid=new THREE.GridHelper(40,40,0x4a5878,0x303a54); grid.position.y=0.014; grid.material.opacity=.22; grid.material.transparent=true; scene.add(grid);
+  // repères 1 m
+  const ringMat=new THREE.MeshBasicMaterial({color:0x6E6BFF,transparent:true,opacity:.14,side:THREE.DoubleSide});
+  const ring=new THREE.Mesh(new THREE.RingGeometry(6.4,6.6,80),ringMat); ring.rotation.x=-Math.PI/2; ring.position.y=.02; scene.add(ring);
+  // 4 parois basses en verre (statique) — contiennent les objets
+  tray=new THREE.Group(); scene.add(tray);
+  const wallMat=new THREE.MeshPhysicalMaterial({color:0x9fb4d8,roughness:.15,metalness:0,transmission:.72,transparent:true,opacity:.34,thickness:.4,side:THREE.DoubleSide,envMapIntensity:1});
+  const wh=TRAY.h, wt=0.35;
+  const spans=[
+    {p:[0,wh/2,TRAY.minZ-wt/2],s:[TRAY.maxX-TRAY.minX+wt*2,wh,wt]},
+    {p:[0,wh/2,TRAY.maxZ+wt/2],s:[TRAY.maxX-TRAY.minX+wt*2,wh,wt]},
+    {p:[TRAY.minX-wt/2,wh/2,0],s:[wt,wh,TRAY.maxZ-TRAY.minZ]},
+    {p:[TRAY.maxX+wt/2,wh/2,0],s:[wt,wh,TRAY.maxZ-TRAY.minZ]},
+  ];
+  spans.forEach(w=>{
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w.s[0],w.s[1],w.s[2]),wallMat);
+    m.position.set(w.p[0],w.p[1],w.p[2]); tray.add(m);
+    addBody({type:'box',mesh:m,pos:new THREE.Vector3(w.p[0],w.p[1],w.p[2]),half:new THREE.Vector3(w.s[0]/2,w.s[1]/2,w.s[2]/2),static:true,permanent:true});
+  });
+}
+function buildTrajLine(){
+  trajLine=new THREE.Line(new THREE.BufferGeometry(), new THREE.LineDashedMaterial({color:0xE63329,dashSize:0.6,gapSize:0.4,transparent:true,opacity:.85}));
+  trajLine.visible=false; scene.add(trajLine);
+}
+function buildTarget(){
+  target=new THREE.Group(); target.visible=false; scene.add(target);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.5,0.28,14,40), new THREE.MeshStandardMaterial({color:0xF5A623,emissive:0xF5A623,emissiveIntensity:.55,roughness:.4,metalness:.3}));
+  target.add(ring);
+  const glow=new THREE.Mesh(new THREE.CircleGeometry(1.3,32), new THREE.MeshBasicMaterial({color:0xF5A623,transparent:true,opacity:.12,side:THREE.DoubleSide}));
+  target.add(glow); target.userData.ring=ring;
+}
+
+/* ============================================================
+   MOTEUR PHYSIQUE — corps rigides simples (sphères + boîtes)
+   Intégration semi-implicite d'Euler · impulsions séquentielles
+   ============================================================ */
+function addBody(o){
+  const b={
+    type:o.type, mesh:o.mesh, static:!!o.static, permanent:!!o.permanent, demo:!!o.demo,
+    pos:o.pos.clone(), vel:new THREE.Vector3(), quat:o.quat?o.quat.clone():new THREE.Quaternion(),
+    omega:new THREE.Vector3(), restLo:0, restCount:0,
+    invIW:new THREE.Matrix3().set(0,0,0,0,0,0,0,0,0),
+    kinematic:false, grabbed:false,
+  };
+  if(o.type==='sphere'){ b.r=o.r; b.mass=o.mass!=null?o.mass:(4/3*Math.PI*o.r*o.r*o.r*(o.density||1)); }
+  else { b.half=o.half.clone(); b.mass=o.mass!=null?o.mass:(8*o.half.x*o.half.y*o.half.z*(o.density||0.6)); }
+  b.invMass=o.static?0:1/b.mass;
+  if(o.rest!=null) b.rest=o.rest;              // restitution propre (démos)
+  if(o.mu!=null) b.mu=o.mu;                     // friction propre
+  b.pendulum=o.pendulum||null;                  // {anchor:Vector3, len}
+  b.spring=o.spring||null;                      // {anchor:Vector3, restY, k}
+  // inertie (corps)
+  b.invIB=new THREE.Matrix3();
+  if(o.static){ b.invIB.set(0,0,0,0,0,0,0,0,0); }
+  else if(o.type==='sphere'){ const iv=1/(0.4*b.mass*b.r*b.r); b.invIB.set(iv,0,0,0,iv,0,0,0,iv); }
+  else { const h=b.half, ix=1/((1/3)*b.mass*(h.y*h.y+h.z*h.z)), iy=1/((1/3)*b.mass*(h.x*h.x+h.z*h.z)), iz=1/((1/3)*b.mass*(h.x*h.x+h.y*h.y)); b.invIB.set(ix,0,0,0,iy,0,0,0,iz); }
+  if(o.mesh){ o.mesh.castShadow=!o.static; o.mesh.receiveShadow=true; syncMesh(b); }
+  bodies.push(b); return b;
+}
+function syncMesh(b){ if(!b.mesh)return; b.mesh.position.copy(b.pos); b.mesh.quaternion.copy(b.quat); }
+
+const _m4=new THREE.Matrix4();
+function computeInvIW(b){
+  if(b.invMass===0) return;
+  const R=new THREE.Matrix3().setFromMatrix4(_m4.makeRotationFromQuaternion(b.quat));
+  const Rt=R.clone().transpose();
+  b.invIW.copy(R).multiply(b.invIB).multiply(Rt);
+}
+function boxCorners(b){
+  const c=[]; const h=b.half;
+  for(let sx=-1;sx<=1;sx+=2)for(let sy=-1;sy<=1;sy+=2)for(let sz=-1;sz<=1;sz+=2){
+    c.push(new THREE.Vector3(sx*h.x,sy*h.y,sz*h.z).applyQuaternion(b.quat).add(b.pos));
+  }
+  return c;
+}
+
+/* --- résolution d'un contact (impulsion normale + friction) --- */
+const _ra=new THREE.Vector3(),_rb=new THREE.Vector3();
+function effMass(b,r,n){
+  if(b.invMass===0) return 0;
+  const rn=r.clone().cross(n).applyMatrix3(b.invIW).cross(r);
+  return b.invMass + n.dot(rn);
+}
+function applyImp(b,r,imp){
+  if(b.invMass===0||b.kinematic) return;
+  b.vel.addScaledVector(imp,b.invMass);
+  b.omega.add(r.clone().cross(imp).applyMatrix3(b.invIW));
+}
+function solveContact(c){
+  const a=c.a,b=c.b,n=c.n;
+  _ra.copy(c.point).sub(a.pos); if(b)_rb.copy(c.point).sub(b.pos);
+  const va=a.vel.clone().add(a.omega.clone().cross(_ra));
+  const vb=b?b.vel.clone().add(b.omega.clone().cross(_rb)):ZERO;
+  const rv=va.sub(vb); const vn=rv.dot(n);
+  if(vn>0) return;
+  let k=effMass(a,_ra,n)+(b?effMass(b,_rb,n):0); if(k<=1e-8) return;
+  const jn=-(1+c.e)*vn/k;
+  const imp=n.clone().multiplyScalar(jn);
+  applyImp(a,_ra,imp); if(b)applyImp(b,_rb,imp.clone().negate());
+  // friction
+  const va2=a.vel.clone().add(a.omega.clone().cross(_ra));
+  const vb2=b?b.vel.clone().add(b.omega.clone().cross(_rb)):ZERO;
+  const rv2=va2.sub(vb2); const vtv=rv2.clone().addScaledVector(n,-rv2.dot(n)); const vtl=vtv.length();
+  if(vtl>1e-5){
+    const t=vtv.multiplyScalar(1/vtl);
+    let kt=effMass(a,_ra,t)+(b?effMass(b,_rb,t):0); if(kt<=1e-8) return;
+    let jt=-rv2.dot(t)/kt; const lim=c.mu*jn; jt=Math.max(-lim,Math.min(lim,jt));
+    const fi=t.multiplyScalar(jt); applyImp(a,_ra,fi); if(b)applyImp(b,_rb,fi.clone().negate());
+  }
+}
+
+/* --- génération des contacts --- */
+function pairRest(a,b){ const ra=a.rest!=null?a.rest:restitution, rb=b&&b.rest!=null?b.rest:restitution; return Math.min(ra,rb); }
+function pairMu(a,b){ const ma=a.mu!=null?a.mu:friction, mb=b&&b.mu!=null?b.mu:friction; return Math.sqrt(Math.max(0,ma)*Math.max(0,mb)); }
+
+function collide(contacts){
+  // sol (plan y=0)
+  for(const a of bodies){ if(a.invMass===0) continue;
+    if(a.type==='sphere'){ const pen=a.r-a.pos.y; if(pen>0) contacts.push({a,b:null,n:UP.clone(),point:new THREE.Vector3(a.pos.x,0,a.pos.z),pen,e:a.rest!=null?a.rest:restitution,mu:a.mu!=null?a.mu:friction}); }
+    else { for(const cr of boxCorners(a)){ if(cr.y<0) contacts.push({a,b:null,n:UP.clone(),point:cr,pen:-cr.y,e:a.rest!=null?a.rest:restitution,mu:a.mu!=null?a.mu:friction}); } }
+  }
+  // paires
+  for(let i=0;i<bodies.length;i++){ for(let j=i+1;j<bodies.length;j++){
+    const A=bodies[i],B=bodies[j]; if(A.invMass===0&&B.invMass===0) continue;
+    const e=pairRest(A,B), mu=pairMu(A,B);
+    if(A.type==='sphere'&&B.type==='sphere') sphSph(A,B,e,mu,contacts);
+    else if(A.type==='sphere'&&B.type==='box') sphBox(A,B,e,mu,contacts);
+    else if(A.type==='box'&&B.type==='sphere') sphBox(B,A,e,mu,contacts);
+    else boxBox(A,B,e,mu,contacts);
+  }}
+}
+function sphSph(A,B,e,mu,out){
+  const d=A.pos.clone().sub(B.pos); const dist=d.length(); const pen=(A.r+B.r)-dist;
+  if(pen>0){ const n=dist>1e-6?d.multiplyScalar(1/dist):UP.clone(); const point=B.pos.clone().addScaledVector(n,B.r); out.push({a:A,b:B,n,point,pen,e,mu}); }
+}
+const _lp=new THREE.Vector3();
+function sphBox(S,Bx,e,mu,out){
+  const iq=Bx.quat.clone().invert(); _lp.copy(S.pos).sub(Bx.pos).applyQuaternion(iq);
+  const h=Bx.half; const cx=Math.max(-h.x,Math.min(h.x,_lp.x)),cy=Math.max(-h.y,Math.min(h.y,_lp.y)),cz=Math.max(-h.z,Math.min(h.z,_lp.z));
+  const inside=(Math.abs(_lp.x)<h.x&&Math.abs(_lp.y)<h.y&&Math.abs(_lp.z)<h.z);
+  let nLocal,pen,closest;
+  if(inside){
+    const px=h.x-Math.abs(_lp.x),py=h.y-Math.abs(_lp.y),pz=h.z-Math.abs(_lp.z);
+    if(px<=py&&px<=pz){ nLocal=new THREE.Vector3(Math.sign(_lp.x)||1,0,0); pen=px+S.r; }
+    else if(py<=pz){ nLocal=new THREE.Vector3(0,Math.sign(_lp.y)||1,0); pen=py+S.r; }
+    else { nLocal=new THREE.Vector3(0,0,Math.sign(_lp.z)||1); pen=pz+S.r; }
+    closest=new THREE.Vector3(cx,cy,cz);
+  } else {
+    closest=new THREE.Vector3(cx,cy,cz); const delta=_lp.clone().sub(closest); const dl=delta.length();
+    if(dl>S.r) return; nLocal=dl>1e-6?delta.multiplyScalar(1/dl):UP.clone(); pen=S.r-dl;
+  }
+  const n=nLocal.applyQuaternion(Bx.quat).normalize();
+  const point=closest.applyQuaternion(Bx.quat).add(Bx.pos);
+  // n doit pousser S (=a) hors de Bx (=b) : de b vers a
+  if(S.pos.clone().sub(point).dot(n)<0) n.negate();
+  out.push({a:S,b:Bx,n,point,pen:Math.min(pen,1.5),e,mu});
+}
+function vertsIn(A,B,e,mu,out){   // sommets de A dans B → contact face
+  const iq=B.quat.clone().invert(); const h=B.half;
+  for(const cr of boxCorners(A)){
+    const l=cr.clone().sub(B.pos).applyQuaternion(iq);
+    if(Math.abs(l.x)<h.x&&Math.abs(l.y)<h.y&&Math.abs(l.z)<h.z){
+      const px=h.x-Math.abs(l.x),py=h.y-Math.abs(l.y),pz=h.z-Math.abs(l.z);
+      let nLocal,pen;
+      if(px<=py&&px<=pz){ nLocal=new THREE.Vector3(Math.sign(l.x)||1,0,0); pen=px; }
+      else if(py<=pz){ nLocal=new THREE.Vector3(0,Math.sign(l.y)||1,0); pen=py; }
+      else { nLocal=new THREE.Vector3(0,0,Math.sign(l.z)||1); pen=pz; }
+      const n=nLocal.applyQuaternion(B.quat).normalize();
+      if(A.pos.clone().sub(cr).dot(n)<0) n.negate();
+      out.push({a:A,b:B,n,point:cr.clone(),pen:Math.min(pen,1.0),e,mu});
+    }
+  }
+}
+function boxBox(A,B,e,mu,out){ vertsIn(A,B,e,mu,out); vertsIn(B,A,e,mu,out); }
+
+/* --- un sous-pas --- */
+const _gvec=new THREE.Vector3(), _wq=new THREE.Quaternion();
+function substep(dt){
+  const gv=_gvec.set(0,-gMag,0);
+  for(const b of bodies){ if(b.invMass===0||b.kinematic) continue;
+    b.vel.addScaledVector(gv,dt);
+    if(wind!==0) b.vel.x+=wind*dt;
+    if(air){ const sp=b.vel.length(); if(sp>1e-4){ const area=b.type==='sphere'?(b.r*b.r):(b.half.x*b.half.y); const drag=0.9*area*sp; b.vel.addScaledVector(b.vel, -Math.min(0.6, drag*b.invMass*dt)); } }
+    if(b.spring){ const f=b.spring.anchor.clone().sub(b.pos); f.x*=b.spring.k; f.z*=b.spring.k; f.y=(b.spring.anchor.y-b.pos.y)*b.spring.k; b.vel.addScaledVector(f, b.invMass*dt); b.vel.multiplyScalar(1-0.4*dt); }
+    // amortissement léger (stabilité)
+    b.vel.multiplyScalar(1-0.06*dt); b.omega.multiplyScalar(1-0.9*dt);
+    const sp=b.vel.length(); if(sp>MAXSPEED) b.vel.multiplyScalar(MAXSPEED/sp);
+  }
+  // intégration position + orientation
+  for(const b of bodies){ if(b.invMass===0||b.kinematic) continue;
+    b.pos.addScaledVector(b.vel,dt);
+    if(b.omega.lengthSq()>1e-9){ _wq.set(b.omega.x,b.omega.y,b.omega.z,0).multiply(b.quat); b.quat.x+=0.5*_wq.x*dt; b.quat.y+=0.5*_wq.y*dt; b.quat.z+=0.5*_wq.z*dt; b.quat.w+=0.5*_wq.w*dt; b.quat.normalize(); }
+    if(b.pendulum){ const d=b.pos.clone().sub(b.pendulum.anchor); const L=d.length(); if(L>1e-4){ const n=d.multiplyScalar(1/L); b.pos.copy(b.pendulum.anchor).addScaledVector(n, b.pendulum.len); const vr=b.vel.dot(n); b.vel.addScaledVector(n,-vr); b.vel.multiplyScalar(1-0.02*dt); } }
+  }
+  for(const b of bodies) computeInvIW(b);
+  // contacts + solveur séquentiel
+  const contacts=[]; collide(contacts);
+  for(let it=0;it<ITER;it++) for(const c of contacts) solveContact(c);
+  // correction de position
+  for(const c of contacts){ const a=c.a,b=c.b; const tot=a.invMass+(b?b.invMass:0); if(tot<=0) continue;
+    const corr=Math.max(c.pen-SLOP,0)/tot*PCORR; a.pos.addScaledVector(c.n,corr*a.invMass); if(b)b.pos.addScaledVector(c.n,-corr*b.invMass);
+  }
+  // repos (anti-jitter)
+  for(const b of bodies){ if(b.invMass===0||b.kinematic) continue;
+    if(b.vel.length()<0.06&&b.omega.length()<0.12){ b.restCount++; if(b.restCount>26){ b.vel.multiplyScalar(0.4); b.omega.multiplyScalar(0.4); } } else b.restCount=0;
+  }
+}
+
+/* ============================================================
+   OBJETS
+   ============================================================ */
+const BALLCOL=[0x29B6E0,0x6E6BFF,0x1E8C7A,0xF5A623,0xE63329,0xE8618C];
+let colIdx=0;
+function mkSphere(pos,r,col,opts={}){
+  const metal=!!opts.metal;   // bille métal : reflète le HDRI (studio)
+  const m=new THREE.Mesh(new THREE.SphereGeometry(r,26,20), new THREE.MeshStandardMaterial({color:col,roughness:metal?.2:.28,metalness:metal?.92:.3,envMapIntensity:1.25,emissive:col,emissiveIntensity:metal?0:.04}));
+  scene.add(m);
+  return addBody(Object.assign({type:'sphere',mesh:m,pos,r,density:opts.density||1},opts));
+}
+function mkBox(pos,half,col,opts={}){
+  const g=new THREE.BoxGeometry(half.x*2,half.y*2,half.z*2);
+  const mat=new THREE.MeshStandardMaterial({color:col,roughness:opts.rough!=null?opts.rough:.55,metalness:.12,envMapIntensity:.8});
+  if(opts.tex){ enableAO(g); applyPBR(mat,opts.tex,'1k',{repeat:opts.rep||1.4,normal:1,ao:true,aoInt:.9}); mat.color.setHex(col); }  // grain bois réel, teinte conservée (distinctif)
+  const m=new THREE.Mesh(g, mat);
+  if(opts.quat) m.quaternion.copy(opts.quat); scene.add(m);
+  return addBody(Object.assign({type:'box',mesh:m,pos,half,quat:opts.quat},opts));
+}
+function mkStaticBox(pos,half,col,opts={}){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(half.x*2,half.y*2,half.z*2), new THREE.MeshStandardMaterial({color:col,roughness:.5,metalness:.2,envMapIntensity:.7}));
+  if(opts.quat) m.quaternion.copy(opts.quat); scene.add(m);
+  return addBody(Object.assign({type:'box',mesh:m,pos,half,quat:opts.quat,static:true,demo:true},opts));
+}
+function countDynamic(){ let n=0; for(const b of bodies) if(b.invMass>0) n++; return n; }
+function addObject(kind){
+  if(countDynamic()>=MAXBODIES){ shell.toast('Bac plein — vide un peu !'); return; }
+  const x=(Math.random()-.5)*10, z=(Math.random()-.5)*6, y=TRAY.h+2+Math.random()*2;
+  if(kind==='sphere'){ const r=0.45+Math.random()*0.3; mkSphere(new THREE.Vector3(x,y,z),r,BALLCOL[colIdx++%BALLCOL.length]); }
+  else if(kind==='box'){ const s=0.5+Math.random()*0.25; mkBox(new THREE.Vector3(x,y,z),new THREE.Vector3(s,s,s),0xC98A3C,{rough:.7,tex:'worn_planks',rep:1}); }
+  else if(kind==='domino'){ mkBox(new THREE.Vector3(x,1.2,z),new THREE.Vector3(0.16,1.1,0.6),0xD9C08A,{rough:.6,tex:'brown_planks_09',rep:1}); }
+  shell.sound('pop'); afterChange();
+}
+function launch(){
+  if(countDynamic()>=MAXBODIES){ const first=bodies.find(b=>b.invMass>0&&!b.permanent&&!b.pendulum&&!b.spring); if(first) removeBody(first); }
+  const a=launchAngle*Math.PI/180; const v=new THREE.Vector3(Math.cos(a)*launchForce,Math.sin(a)*launchForce,0);
+  const s=mkSphere(LAUNCH.clone(),0.5,0xE63329,{rest:0.5,metal:true}); s.vel.copy(v); tracked=s;
+  sfx(240,0.05); shell.sound('pop'); afterChange();
+}
+function removeBody(b){ const i=bodies.indexOf(b); if(i<0) return; if(b.mesh){ scene.remove(b.mesh); b.mesh.geometry&&b.mesh.geometry.dispose&&b.mesh.geometry.dispose(); } if(velArrows.has(b)){ arrowGroup.remove(velArrows.get(b)); velArrows.delete(b); } bodies.splice(i,1); if(tracked===b) tracked=null; }
+function clearDynamic(keepDemoStatic=false){
+  for(let i=bodies.length-1;i>=0;i--){ const b=bodies[i]; if(b.permanent) continue; if(b.static&&keepDemoStatic) continue; removeBody(b); }
+  // nettoie les décors de démo (tiges, ressorts, ancres)
+  for(const o of [...decor]){ scene.remove(o); decor.delete(o); }
+  tracked=null; afterChange();
+}
+const decor=new Set();
+function addDecor(o){ scene.add(o); decor.add(o); return o; }
+
+/* ============================================================
+   DÉMOS GUIDÉES (mode Détente) — chaque preset = une leçon
+   ============================================================ */
+const PENDROD=[], SPRINGS=[];
+function loadPreset(id, silent){
+  clearDynamic(); PENDROD.length=0; SPRINGS.length=0;
+  target.visible=false; setChip(id);
+  const P=PRESETS[id]; if(!P) return;
+  P.build();
+  if(!silent){ shell.say(P.say,'enthousiaste'); shell.sound('pop'); }
+  hint(P.hint||'');
+  afterChange();
+}
+const PRESETS={
+  chute:{ label:'Chute libre', say:"Chute libre : je lâche une grosse boule et une petite bille en même temps. Sans air, elles touchent le sol ENSEMBLE — la gravité accélère tout pareil (Galilée). Active « Air » pour voir la plume traîner !",
+    hint:"Active/désactive « Air » : sans air, les deux tombent à la même vitesse.",
+    build:()=>{ const big=mkSphere(new THREE.Vector3(-4,TRAY.h+7,-1.5),0.85,0x6E6BFF,{density:2.4}); mkSphere(new THREE.Vector3(-1,TRAY.h+7,-1.5),0.35,0x29B6E0,{density:2.4}); const feather=mkSphere(new THREE.Vector3(2,TRAY.h+7,1.5),0.5,0xF5A623,{density:0.05}); feather.mesh.scale.set(1.4,0.25,1.4); tracked=big; } },
+  incline:{ label:'Plan incliné', say:"Plan incliné : la bille roule et prend de la vitesse en descendant. Plus la pente est raide, plus l'accélération est grande. Baisse la friction pour la voir filer !",
+    hint:"Change la friction : à zéro, elle glisse sans rouler ; élevée, elle roule.",
+    build:()=>{ const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),-0.5); mkStaticBox(new THREE.Vector3(-4,2.4,0),new THREE.Vector3(7,0.3,4),0x6E6BFF,{quat:q,mu:0.5}); const q2=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),0.32); mkStaticBox(new THREE.Vector3(7,1.5,0),new THREE.Vector3(6,0.3,4),0x1E8C7A,{quat:q2,mu:0.5}); const s=mkSphere(new THREE.Vector3(-8.5,6.4,0),0.55,0xF5A623); tracked=s; } },
+  pendule:{ label:'Pendule', say:"Pendule : la bille oscille et échange sans cesse énergie potentielle (en haut) et cinétique (en bas). Change la gravité : sur la Lune, il balance bien plus lentement !",
+    hint:"Attrape la bille et lâche-la d'une autre hauteur pour changer l'amplitude.",
+    build:()=>{ const anchor=new THREE.Vector3(0,TRAY.h+5.5,0); mkPost(anchor); const bob=mkSphere(new THREE.Vector3(-5,TRAY.h+1.5,0),0.6,0x29B6E0,{pendulum:{anchor:anchor.clone(),len:anchor.distanceTo(new THREE.Vector3(-5,TRAY.h+1.5,0))}}); bob.pendulum.len=6.2; bob.pos.copy(anchor).add(new THREE.Vector3(-1,-1,0).normalize().multiplyScalar(6.2)); PENDROD.push(bob); tracked=bob; } },
+  newton:{ label:'Berceau de Newton', say:"Berceau de Newton : je tire UNE bille, elle percute la file… et UNE SEULE ressort de l'autre côté. La quantité de mouvement et l'énergie se transmettent à travers les billes immobiles.",
+    hint:"Compte combien de billes ressortent : autant que tu en lâches !",
+    build:()=>{ const y=TRAY.h+2.4, top=TRAY.h+5.5, len=Math.hypot(top-y,0)+3; const n=5, gap=1.02; const start=-(n-1)*gap/2;
+      for(let i=0;i<n;i++){ const x=start+i*gap; const anchor=new THREE.Vector3(x,top,0); mkPost(anchor,0.5); const bob=mkSphere(new THREE.Vector3(x,top-3,0),0.5,0xC0C6D4,{rest:0.98,density:3,pendulum:{anchor:anchor.clone(),len:3}}); bob.mesh.material.metalness=.85; bob.mesh.material.roughness=.18; PENDROD.push(bob); if(i===0){ bob.pos.set(x-3,top,0);} else bob.pos.set(x,top-3,0); }
+      tracked=bodies[bodies.length-1]; } },
+  dominos:{ label:'Dominos', say:"Dominos : je pousse le premier… et une réaction en chaîne renverse tous les autres. Chaque domino transmet son énergie au suivant. Clique « Pousser » ou envoie une bille !",
+    hint:"Le bouton 🎯 Pousser fait tomber le premier domino.",
+    build:()=>{ const n=11, x0=-8; for(let i=0;i<n;i++){ mkBox(new THREE.Vector3(x0+i*1.35,1.15,0),new THREE.Vector3(0.16,1.05,0.62),i%2?0xE8618C:0xD9C08A,{rough:.6,mu:0.55,tex:'brown_planks_09',rep:1}); } } },
+  catapulte:{ label:'Catapulte', say:"Tir parabolique : règle l'angle et la force, puis « Lancer ». Le projectile dessine une parabole. Vise l'anneau ! À 45°, la portée est maximale.",
+    hint:"Trajectoire en pointillés : ajuste angle & force, puis 🎯 Lancer.",
+    build:()=>{ target.visible=true; target.position.set(11,4,0); mkStaticBox(new THREE.Vector3(2,2,0),new THREE.Vector3(0.4,2,3),0x6E6BFF,{mu:.6}); showTraj=true; syncTogglesUI(); } },
+  tour:{ label:'Tour à abattre', say:"Une tour de caisses : envoie une bille (lanceur 🎯) pour la faire s'écrouler. Toute l'énergie de l'impact se transforme en chute des caisses !",
+    hint:"Vise la base de la tour avec le lanceur pour tout renverser.",
+    build:()=>{ const cx=7; for(let lvl=0;lvl<4;lvl++){ const wcount=3-Math.floor(lvl/2); const w=0.7; for(let k=0;k<3;k++){ mkBox(new THREE.Vector3(cx+(k-1)*1.5, 0.72+lvl*1.44, 0), new THREE.Vector3(w,0.7,0.9), lvl%2?0xC98A3C:0xA5713B,{rough:.75,mu:.6,tex:'worn_planks',rep:1}); } } } },
+  ressort:{ label:'Ressort (Hooke)', say:"Ressort de Hooke : la masse oscille de haut en bas. Plus tu tires fort, plus le ressort pousse fort (F = -k·x). Change la gravité : l'équilibre se déplace !",
+    hint:"Attrape la masse et lâche-la : elle oscille autour de son équilibre.",
+    build:()=>{ const anchor=new THREE.Vector3(0,TRAY.h+5.5,0); mkPost(anchor,0.6); const bob=mkSphere(new THREE.Vector3(0,TRAY.h+1,0),0.7,0x1E8C7A,{density:1.4,spring:{anchor:anchor.clone(),restY:TRAY.h+3.5,k:26}}); bob.spring.anchor.y=TRAY.h+3.5; const coil=mkCoil(); SPRINGS.push({bob,coil,anchor:new THREE.Vector3(0,TRAY.h+5.5,0)}); tracked=bob; } },
+};
+function mkPost(anchor,barLen){
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,anchor.y+0.4,10), new THREE.MeshStandardMaterial({color:0x8792a6,roughness:.5,metalness:.6}));
+  post.position.set(anchor.x, (anchor.y)/2, anchor.z-0.001); post.castShadow=true; addDecor(post);
+  const knob=new THREE.Mesh(new THREE.SphereGeometry(0.14,12,10), new THREE.MeshStandardMaterial({color:0x8792a6,metalness:.7,roughness:.35})); knob.position.copy(anchor); addDecor(knob);
+  return anchor;
+}
+function mkCoil(){ const g=new THREE.CylinderGeometry(0.16,0.16,1,10,1,true); const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xbfc7d6,metalness:.7,roughness:.3,wireframe:true})); addDecor(m); return m; }
+
+/* ============================================================
+   DÉFIS (mode Cours) — ≥6, feedback non punitif
+   ============================================================ */
+const CHALLENGES=[
+  { id:'cible', ph:'Défi 1', ti:'Vise la cible', txt:"Règle l'angle et la force du lanceur pour faire passer un projectile dans l'anneau orange. Astuce : à 45°, on va le plus loin.",
+    goal:"Fais passer une bille dans l'anneau.", type:'aim',
+    setup:()=>{ clearDynamic(); target.visible=true; target.position.set(9,4,0); showTraj=true; syncTogglesUI(); },
+    hint:"Augmente la force si tu retombes court, réduis l'angle si tu passes au-dessus." },
+  { id:'lune', ph:'Défi 2', ti:'Objectif Lune', txt:"La cible est très loin : avec la gravité de la Terre, impossible de l'atteindre à cette force. Change de <b>planète</b> pour y arriver !",
+    goal:"Atteins la cible lointaine (indice : baisse la gravité).", type:'aim', lock:true, angle:45, force:15,
+    setup:()=>{ clearDynamic(); target.visible=true; target.position.set(13,5,0); showTraj=true; syncTogglesUI(); },
+    hint:"Sur la Lune, la gravité est ~6× plus faible : le projectile vole bien plus loin." },
+  { id:'dominos', ph:'Défi 3', ti:'Réaction en chaîne', txt:"Renverse TOUS les dominos. Utilise le bouton « Pousser » ou envoie une bille avec le lanceur.",
+    goal:"Fais tomber les 10 dominos.", type:'dominos',
+    setup:()=>{ clearDynamic(); target.visible=false; const n=10,x0=-7; chActive._doms=[]; for(let i=0;i<n;i++){ const d=mkBox(new THREE.Vector3(x0+i*1.35,1.15,0),new THREE.Vector3(0.16,1.05,0.62),i%2?0xE8618C:0xD9C08A,{rough:.6,mu:.55,tex:'brown_planks_09',rep:1}); chActive._doms.push(d); } },
+    hint:"Un seul domino qui tombe suffit à déclencher toute la chaîne." },
+  { id:'course', ph:'Défi 4', ti:'Qui arrive en bas ?', txt:"Deux billes partent de la même hauteur sur deux pentes. Laquelle atteint le sol en <b>premier</b> ?",
+    goal:"Réponds, puis observe la course.", type:'quiz',
+    q:["La bille sur la pente raide","La bille sur la pente douce","Exactement en même temps"], correct:0,
+    explain:"La pente raide donne une accélération plus grande ET un trajet plus court : elle gagne. Sur la même hauteur, la gravité fait le reste.",
+    setup:()=>{ clearDynamic(); target.visible=false; const qA=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),-0.72); mkStaticBox(new THREE.Vector3(-3,3,-2.5),new THREE.Vector3(6,0.3,1.6),0xE8618C,{quat:qA,mu:.2}); const qB=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),-0.34); mkStaticBox(new THREE.Vector3(-1,2.4,2.5),new THREE.Vector3(7,0.3,1.6),0x29B6E0,{quat:qB,mu:.2}); mkSphere(new THREE.Vector3(-7.4,6.6,-2.5),0.5,0xE8618C,{mu:.15}); mkSphere(new THREE.Vector3(-7.6,5.2,2.5),0.5,0x29B6E0,{mu:.15}); },
+    hint:"Pense à l'accélération : plus la pente est raide, plus la bille prend de la vitesse." },
+  { id:'berceau', ph:'Défi 5', ti:'Berceau de Newton', txt:"Je tire UNE bille sur le côté du berceau. Combien de billes vont ressortir de l'autre côté ?",
+    goal:"Réponds, puis regarde la démo.", type:'quiz',
+    q:["Une seule bille","Deux billes","Toutes les billes"], correct:0,
+    explain:"Une bille entre, une bille sort : la quantité de mouvement et l'énergie traversent les billes immobiles sans les bouger.",
+    setup:()=>{ clearDynamic(); target.visible=false; PRESETS.newton.build(); },
+    hint:"Autant de billes ressortent que tu en as lâchées : ici, une." },
+  { id:'tour', ph:'Défi 6', ti:'Abats la tour', txt:"Envoie une bille avec le lanceur 🎯 pour faire s'écrouler la tour de caisses. Vise bien la base !",
+    goal:"Fais tomber la tour (une caisse au sol).", type:'tower',
+    setup:()=>{ clearDynamic(); target.visible=false; chActive._blocks=[]; const cx=8; for(let lvl=0;lvl<4;lvl++){ for(let k=0;k<3;k++){ const b=mkBox(new THREE.Vector3(cx+(k-1)*1.5,0.72+lvl*1.44,0),new THREE.Vector3(0.7,0.7,0.9),lvl%2?0xC98A3C:0xA5713B,{rough:.75,mu:.6,tex:'worn_planks',rep:1}); chActive._blocks.push(b); } } chActive._h0=3*1.44; },
+    hint:"Mets de la force et vise le bas de la pile pour tout renverser." },
+];
+function startChallenge(i){
+  chIndex=i; const C=CHALLENGES[i]; chActive={def:C,done:false,answered:false,startT:performance.now()};
+  showTraj=false; C.setup(); syncTogglesUI();
+  if(C.lock){ lockLauncher=true; launchAngle=C.angle; launchForce=C.force; syncLauncherUI(); } else lockLauncher=false, syncLauncherUI();
+  renderChallengeCard();
+  shell.setLevel((i+1)+'/'+CHALLENGES.length); shell.setProgress(i/CHALLENGES.length);
+  shell.say(C.ti+' — '+C.goal,'curieux');
+}
+function renderChallengeCard(){
+  const C=chActive.def; const el=document.getElementById('phCard');
+  const dots=CHALLENGES.map((_,k)=>`<i class="${k<chIndex?'done':''}"></i>`).join('');
+  let opts='';
+  if(C.type==='quiz'){ opts='<div class="opts">'+C.q.map((o,k)=>`<button class="opt" data-k="${k}">${o}</button>`).join('')+'</div>'; }
+  el.innerHTML=`<div class="ehd"><div class="eph">${C.ph} · ${chIndex+1}/${CHALLENGES.length}</div><div class="eti">${C.ti}</div><div class="prog">${dots}</div></div>
+    <div class="ebody"><p>${C.txt}</p><div class="goal">🎯 <span>${C.goal}</span></div>${opts}
+    <div class="erow"><button class="en" id="chNext" ${C.type==='quiz'?'disabled':''}>${chIndex>=CHALLENGES.length-1?'Terminer ✓':'Défi suivant ▸'}</button><button class="eq" id="chSkip">Passer</button></div></div>`;
+  el.classList.add('show');
+  if(C.type==='quiz'){ el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answerQuiz(+b.dataset.k)); }
+  document.getElementById('chSkip').onclick=()=>nextChallenge(false);
+  document.getElementById('chNext').onclick=()=>nextChallenge(true);
+}
+function answerQuiz(k){
+  if(chActive.answered) return; const C=chActive.def; chActive.answered=true;
+  const opts=document.querySelectorAll('#phCard .opt');
+  opts.forEach((b,i)=>{ if(i===C.correct) b.classList.add('ok'); else if(i===k) b.classList.add('no'); b.style.pointerEvents='none'; });
+  const ok=k===C.correct;
+  document.getElementById('chNext').disabled=false;
+  if(ok){ chActive.done=true; shell.addScore(150); shell.sound('good'); shell.say('Exact ! '+C.explain,'celebration'); }
+  else { shell.addScore(40); shell.sound('bad'); shell.say('Pas tout à fait — '+C.explain+' Regarde la démo !','rassurant'); }
+  // lance la démo visuelle
+  if(C.id==='course'){ for(const b of bodies){ if(b.invMass>0&&b.type==='sphere'){ b.vel.set(0.5,0,0);} } }
+  if(C.id==='berceau'){ /* déjà armé : première bille écartée retombe */ }
+}
+function markChallengeDone(){
+  if(!chActive||chActive.done) return; chActive.done=true;
+  const dt=(performance.now()-chActive.startT)/1000; const bonus=Math.max(50,220-Math.floor(dt)*4);
+  shell.addScore(bonus); shell.sound('good'); shell.say('Réussi ! +'+bonus+' pts 🎉','celebration');
+  document.getElementById('chNext').disabled=false;
+  shell.toast('Défi réussi ! +'+bonus);
+}
+function nextChallenge(requireDone){
+  if(requireDone && chActive && !chActive.done){ shell.say("Tu peux réussir ce défi — ou clique « Passer » pour continuer.",'encourageant'); return; }
+  lockLauncher=false;
+  if(chIndex>=CHALLENGES.length-1){ finishCourse(); return; }
+  startChallenge(chIndex+1);
+}
+function finishCourse(){
+  document.getElementById('phCard').classList.remove('show');
+  const sc=parseInt(document.querySelector('.ksh-score').textContent||'0',10);
+  const stars=sc>=900?3:sc>=550?2:1;
+  shell.win({ score:sc, stars, title:'Laboratoire maîtrisé !', learned:shell.cfg.learned,
+    buddy:"Tu as manipulé la gravité, l'énergie et la quantité de mouvement comme un·e physicien·ne !",
+    onNext:()=>{ chIndex=0; document.querySelector('.ksh-score').textContent='0'; shell.setScore(0); startChallenge(0); }, nextLabel:'Rejouer les défis' });
+}
+function checkChallenge(){
+  if(mode!=='cours'||!chActive||chActive.done) return; const C=chActive.def;
+  if(C.type==='aim'){ for(const b of bodies){ if(b.invMass>0&&b.type==='sphere'&&target.visible&&b.pos.distanceTo(target.position)<1.5){ if(C.lock&&gravKey==='terre'){ /* infaisable sur Terre : ne devrait pas arriver */ } markChallengeDone(); pulseTarget(); break; } } }
+  else if(C.type==='dominos'){ const doms=chActive._doms||[]; if(doms.length){ const fallen=doms.filter(d=>Math.abs(d.quat.x)+Math.abs(d.quat.z)>0.4||d.pos.y<0.9).length; if(fallen>=doms.length-1) markChallengeDone(); } }
+  else if(C.type==='tower'){ const bl=chActive._blocks||[]; const down=bl.filter(b=>b.pos.y<0.9).length; if(down>=1) markChallengeDone(); }
+}
+function pulseTarget(){ if(target.userData.ring) target.userData.ring.material.emissiveIntensity=2; }
+
+/* ============================================================
+   INTERACTION (attraper / lancer à la souris)
+   ============================================================ */
+let grabbed=null, grabHist=[], grabPlaneN=new THREE.Vector3();
+function pointerNDC(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function onDown(e){
+  pointerNDC(e); raycaster.setFromCamera(pointer,camera);
+  const meshes=bodies.filter(b=>b.invMass>0&&b.mesh).map(b=>b.mesh);
+  const hit=raycaster.intersectObjects(meshes,false)[0];
+  if(hit){ const b=bodies.find(x=>x.mesh===hit.object); if(b){ grabbed=b; b.kinematic=true; b.grabbed=true; b.vel.set(0,0,0); b.omega.set(0,0,0); grabHist=[]; grabPlaneN.copy(camera.position).sub(b.pos).setY(Math.max(0.15,0)).normalize(); grabPlaneN.copy(camera.getWorldDirection(new THREE.Vector3())).negate(); dragPlane.setFromNormalAndCoplanarPoint(grabPlaneN,b.pos); controls.enabled=false; tracked=b; sfx(360,0.03); } }
+}
+function onMove(e){
+  pointerNDC(e); if(!grabbed) return; raycaster.setFromCamera(pointer,camera);
+  const pt=new THREE.Vector3(); if(raycaster.ray.intersectPlane(dragPlane,pt)){ pt.y=Math.max(grabbed.r||0.4,pt.y); pt.x=Math.max(TRAY.minX+1,Math.min(TRAY.maxX-1,pt.x)); pt.z=Math.max(TRAY.minZ+1,Math.min(TRAY.maxZ-1,pt.z)); grabbed._target=pt.clone(); grabHist.push({p:pt.clone(),t:performance.now()}); if(grabHist.length>6) grabHist.shift(); }
+}
+function onUp(){
+  if(!grabbed) return; const b=grabbed; b.kinematic=false; b.grabbed=false; controls.enabled=true;
+  // vitesse de lâcher = déplacement récent
+  if(grabHist.length>=2){ const a=grabHist[0], z=grabHist[grabHist.length-1]; const dt=Math.max(0.016,(z.t-a.t)/1000); b.vel.copy(z.p).sub(a.p).multiplyScalar(1/dt); const sp=b.vel.length(); if(sp>MAXSPEED) b.vel.multiplyScalar(MAXSPEED/sp); }
+  grabbed=null; grabHist=[]; sfx(200,0.04); shell.sound('click');
+}
+function onKey(e){ if(e.code==='Space'){ e.preventDefault(); setTime(timeScale===0?1:0); } }
+
+/* ============================================================
+   UI
+   ============================================================ */
+function segGrav(){ return Object.keys(GRAV_LBL).map(k=>`<button class="ph-sb" data-g="${k}" aria-pressed="${k===gravKey}">${GRAV_LBL[k]}<small>${GRAV[k]||0} m/s²</small></button>`).join(''); }
+function buildUI(){
+  const stage=shell.stage;
+  // Réglages
+  const c=document.createElement('div'); c.className='ph-panel ph-ctrl';
+  c.innerHTML=`
+    <div class="ph-grp"><h3>🪐 Gravité</h3><div class="ph-seg g4" id="phGrav">${segGrav()}</div></div>
+    <div class="ph-grp"><h3>⚙️ Lois</h3>
+      <div class="ph-sl"><label>Rebond (restitution) <b id="phRv">${restitution.toFixed(2)}</b></label><input id="phR" type="range" min="0" max="0.98" step="0.02" value="${restitution}"></div>
+      <div class="ph-sl"><label>Friction <b id="phFrv">${friction.toFixed(2)}</b></label><input id="phFr" type="range" min="0" max="1" step="0.02" value="${friction}"></div>
+      <div class="ph-sl"><label>Vent <b id="phWv">0</b></label><input id="phW" type="range" min="-8" max="8" step="0.5" value="0"></div>
+    </div>
+    <div class="ph-grp"><h3>⏱️ Temps</h3><div class="ph-seg g4" id="phTime">
+      <button class="ph-sb" data-t="0" aria-pressed="false">⏸<small>pause</small></button>
+      <button class="ph-sb" data-t="0.25" aria-pressed="false">🐢<small>ralenti</small></button>
+      <button class="ph-sb" data-t="1" aria-pressed="true">▶<small>normal</small></button>
+      <button class="ph-sb" data-t="2" aria-pressed="false">⏩<small>×2</small></button>
+    </div></div>
+    <div class="ph-grp"><h3>➕ Ajouter</h3><div class="ph-seg g3">
+      <button class="ph-b" id="phAddS">● Bille</button><button class="ph-b" id="phAddB">◼ Caisse</button><button class="ph-b" id="phAddD">▮ Domino</button>
+    </div></div>
+    <div class="ph-grp"><h3>🎯 Lanceur</h3>
+      <div class="ph-sl"><label>Angle <b id="phAv">${launchAngle}</b>°</label><input id="phA" type="range" min="10" max="80" value="${launchAngle}"></div>
+      <div class="ph-sl"><label>Force <b id="phLv">${launchForce}</b></label><input id="phL" type="range" min="6" max="26" value="${launchForce}"></div>
+      <button class="ph-b primary" id="phLaunch">🎯 Lancer</button>
+    </div>
+    <div class="ph-grp"><h3>👁️ Affichage</h3><div class="ph-tglrow">
+      <button class="ph-tgl" id="tgVel" aria-pressed="false">➡ Vitesse</button>
+      <button class="ph-tgl" id="tgTraj" aria-pressed="true">⤴ Trajectoire</button>
+      <button class="ph-tgl" id="tgEnergy" aria-pressed="false">⚡ Énergie</button>
+      <button class="ph-tgl" id="tgAir" aria-pressed="false">💨 Air</button>
+    </div></div>
+    <div class="ph-seg g2"><button class="ph-b" id="phPush">🎯 Pousser</button><button class="ph-b" id="phClear">🧹 Vider</button></div>`;
+  stage.appendChild(c);
+
+  // Score
+  const sc=document.createElement('div'); sc.className='ph-panel ph-score'; sc.innerHTML=`<div class="v" id="phScoreV">0</div><div class="k" id="phScoreK">Objets dans le bac</div>`; stage.appendChild(sc);
+  // Télémétrie
+  const tel=document.createElement('div'); tel.className='ph-panel ph-tel';
+  tel.innerHTML=`<h3>📡 Télémétrie</h3>
+    <div class="r">Gravité <b id="telG">Terre · 9.81</b></div>
+    <div class="r">Objets <b id="telN">0</b></div>
+    <div class="r">Énergie totale <b id="telE" class="big">0 J</b></div>
+    <div class="sep"></div>
+    <div class="r">Vitesse suivie <b id="telV">0.0 m/s</b></div>
+    <div class="r">Hauteur <b id="telH">0.0 m</b></div>
+    <div class="bar"><i id="telKe" style="background:#E63329;width:50%"></i><i id="telPe" style="background:#29B6E0;width:50%"></i></div>
+    <div class="bk"><span>cinétique</span><span>potentielle</span></div>`;
+  stage.appendChild(tel);
+
+  // Rail de démos
+  const dm=document.createElement('div'); dm.className='ph-panel ph-demos';
+  dm.innerHTML=`<div class="lbl">Démos guidées — chaque expérience est une leçon</div><div class="ph-demorow" id="phDemos">${Object.keys(PRESETS).map(k=>`<button class="ph-chip" data-p="${k}">${PRESETS[k].label}</button>`).join('')}</div>`;
+  stage.appendChild(dm);
+
+  // Carte défi / démo
+  const card=document.createElement('div'); card.className='ph-panel ph-card'; card.id='phCard'; stage.appendChild(card);
+  // Hint
+  const h=document.createElement('div'); h.className='ph-hint'; h.id='phHint'; h.textContent=''; stage.appendChild(h);
+
+  // events
+  c.querySelector('#phGrav').addEventListener('click',e=>{ const b=e.target.closest('[data-g]'); if(!b)return; setGravity(b.dataset.g); });
+  c.querySelector('#phTime').addEventListener('click',e=>{ const b=e.target.closest('[data-t]'); if(!b)return; setTime(+b.dataset.t); });
+  c.querySelector('#phR').oninput=e=>{ restitution=+e.target.value; document.getElementById('phRv').textContent=restitution.toFixed(2); };
+  c.querySelector('#phFr').oninput=e=>{ friction=+e.target.value; document.getElementById('phFrv').textContent=friction.toFixed(2); };
+  c.querySelector('#phW').oninput=e=>{ wind=+e.target.value; document.getElementById('phWv').textContent=wind.toFixed(1); };
+  c.querySelector('#phA').oninput=e=>{ if(lockLauncher){ e.target.value=launchAngle; return; } launchAngle=+e.target.value; document.getElementById('phAv').textContent=launchAngle; };
+  c.querySelector('#phL').oninput=e=>{ if(lockLauncher){ e.target.value=launchForce; return; } launchForce=+e.target.value; document.getElementById('phLv').textContent=launchForce; };
+  c.querySelector('#phLaunch').onclick=launch;
+  c.querySelector('#phAddS').onclick=()=>addObject('sphere');
+  c.querySelector('#phAddB').onclick=()=>addObject('box');
+  c.querySelector('#phAddD').onclick=()=>addObject('domino');
+  c.querySelector('#phPush').onclick=pushFirst;
+  c.querySelector('#phClear').onclick=()=>{ clearDynamic(); shell.sound('click'); };
+  c.querySelector('#tgVel').onclick=function(){ showVel=!showVel; this.setAttribute('aria-pressed',showVel); if(!showVel) clearArrows(); };
+  c.querySelector('#tgTraj').onclick=function(){ showTraj=!showTraj; this.setAttribute('aria-pressed',showTraj); };
+  c.querySelector('#tgEnergy').onclick=function(){ showEnergy=!showEnergy; this.setAttribute('aria-pressed',showEnergy); };
+  c.querySelector('#tgAir').onclick=function(){ air=!air; this.setAttribute('aria-pressed',air); shell.say(air?"Air activé : les objets légers (plume) sont freinés par les frottements.":"Air coupé : vide parfait, tout tombe pareil (Galilée).", 'idee'); };
+  dm.querySelector('#phDemos').addEventListener('click',e=>{ const b=e.target.closest('[data-p]'); if(!b)return; if(mode==='cours'){ shell.toast('Termine les défis, ou passe en mode Détente.'); return; } loadPreset(b.dataset.p); });
+}
+function pushFirst(){
+  // pousse le premier domino / la première caisse debout
+  let best=null,bx=Infinity; for(const b of bodies){ if(b.invMass>0&&b.type==='box'&&!b.permanent){ if(b.pos.x<bx){ bx=b.pos.x; best=b; } } }
+  if(best){ best.vel.x+=3.2; best.omega.z-=7.5; shell.sound('pop'); sfx(180,0.05); } else shell.toast('Rien à pousser ici.');
+}
+function setGravity(k){ gravKey=k; gMag=GRAV[k]; document.querySelectorAll('#phGrav [data-g]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.g===k)); document.getElementById('telG').textContent=GRAV_LBL[k]+' · '+(GRAV[k]||0); shell.sound('click'); updateTraj(); }
+function setTime(t){ timeScale=t; document.querySelectorAll('#phTime [data-t]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.t===t)); }
+function setChip(id){ document.querySelectorAll('#phDemos [data-p]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===id)); }
+function syncTogglesUI(){ const q=id=>document.getElementById(id); if(q('tgTraj'))q('tgTraj').setAttribute('aria-pressed',showTraj); if(q('tgVel'))q('tgVel').setAttribute('aria-pressed',showVel); if(q('tgEnergy'))q('tgEnergy').setAttribute('aria-pressed',showEnergy); }
+function syncLauncherUI(){ const a=document.getElementById('phA'),l=document.getElementById('phL'); if(a){ a.value=launchAngle; document.getElementById('phAv').textContent=launchAngle; a.disabled=lockLauncher; } if(l){ l.value=launchForce; document.getElementById('phLv').textContent=launchForce; l.disabled=lockLauncher; } }
+function hint(t){ const el=document.getElementById('phHint'); if(el){ el.textContent=t; el.style.display=t?'':'none'; } }
+function afterChange(){ const n=countDynamic(); const el=document.getElementById('phScoreV'); if(el&&mode==='detente') el.textContent=n; const tn=document.getElementById('telN'); if(tn) tn.textContent=n; }
+
+/* ---------- trajectoire prédite ---------- */
+function updateTraj(){
+  if(!trajLine) return;
+  const on=showTraj && !(mode==='cours'&&chActive&&chActive.def.type==='quiz');
+  trajLine.visible=on; if(!on) return;
+  const a=launchAngle*Math.PI/180, vx=Math.cos(a)*launchForce, vy=Math.sin(a)*launchForce, gg=gMag||0.001;
+  const pts=[]; for(let t=0;t<=4;t+=0.06){ const x=LAUNCH.x+vx*t, y=LAUNCH.y+vy*t-0.5*gg*t*t; if(y<0.4&&t>0.2)break; pts.push(new THREE.Vector3(x,y,0)); if(x>TRAY.maxX)break; }
+  trajLine.geometry.setFromPoints(pts); trajLine.computeLineDistances();
+}
+
+/* ---------- vecteurs vitesse ---------- */
+function clearArrows(){ for(const [,a] of velArrows) arrowGroup.remove(a); velArrows.clear(); }
+function updateArrows(){
+  if(!showVel){ if(velArrows.size) clearArrows(); return; }
+  for(const b of bodies){ if(b.invMass<=0){ continue; } let a=velArrows.get(b); const sp=b.vel.length();
+    if(sp<0.2){ if(a){ a.visible=false; } continue; }
+    if(!a){ a=new THREE.ArrowHelper(UP,b.pos,1,0xffe14a,0.5,0.3); arrowGroup.add(a); velArrows.set(b,a); }
+    a.visible=true; a.position.copy(b.pos); a.setDirection(b.vel.clone().normalize()); a.setLength(Math.min(6,sp*0.35),0.5,0.28);
+  }
+  // retire les flèches des corps disparus
+  for(const [b,a] of velArrows){ if(!bodies.includes(b)){ arrowGroup.remove(a); velArrows.delete(b); } }
+}
+
+/* ---------- ressort / pendule visuels ---------- */
+function updateVisuals(){
+  for(const s of SPRINGS){ if(!s.bob||!bodies.includes(s.bob)) continue; const top=s.anchor, bot=s.bob.pos; const mid=top.clone().add(bot).multiplyScalar(.5); const len=top.distanceTo(bot); s.coil.position.copy(mid); s.coil.scale.set(1,Math.max(0.1,len),1); s.coil.quaternion.setFromUnitVectors(UP,bot.clone().sub(top).normalize()); }
+  for(const bob of PENDROD){ if(!bob||!bodies.includes(bob)||!bob.pendulum) continue; let rod=bob._rod; if(!rod){ rod=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0x8792a6,transparent:true,opacity:.7})); addDecor(rod); bob._rod=rod; } rod.geometry.setFromPoints([bob.pendulum.anchor,bob.pos]); }
+}
+
+/* ---------- télémétrie ---------- */
+function totalEnergy(){ let E=0; for(const b of bodies){ if(b.invMass<=0) continue; const sp=b.vel.lengthSq(); const w=b.omega; const Iw= b.type==='sphere'? 0.4*b.mass*b.r*b.r*w.lengthSq() : b.mass*(b.half.lengthSq())*0.33*w.lengthSq(); E+=0.5*b.mass*sp+0.5*Iw+b.mass*gMag*Math.max(0,b.pos.y); } return E; }
+function updateTelemetry(){
+  const tE=document.getElementById('telE'); if(!tE) return; tE.textContent=Math.round(totalEnergy())+' J';
+  const b=tracked; const tv=document.getElementById('telV'), th=document.getElementById('telH');
+  if(!b||!bodies.includes(b)){ tv.textContent='0.0 m/s'; th.textContent='0.0 m'; document.getElementById('telKe').style.width='50%'; document.getElementById('telPe').style.width='50%'; return; }
+  const sp=b.vel.length(), h=Math.max(0,b.pos.y-(b.r||b.half.y)); const ke=0.5*b.mass*sp*sp, pe=b.mass*gMag*h; const tot=ke+pe||1;
+  tv.textContent=sp.toFixed(1)+' m/s'; th.textContent=h.toFixed(1)+' m';
+  document.getElementById('telKe').style.width=(ke/tot*100).toFixed(0)+'%'; document.getElementById('telPe').style.width=(pe/tot*100).toFixed(0)+'%';
+}
+
+/* ============================================================
+   THÈME / RESIZE / BOUCLE
+   ============================================================ */
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x080b12:0x0d121c,1); const sky=scene&&scene.getObjectByName('sky'); }
+function onResize(){ const s=shell.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
+function startMode(m){ mode=m;
+  document.body.classList.toggle('cours',m==='cours');
+  document.getElementById('phCard').classList.remove('show');
+  const sk=document.getElementById('phScoreK'), sv=document.getElementById('phScoreV');
+  if(m==='cours'){ if(sk)sk.textContent='Score'; shell.setScore(0); if(sv)sv.textContent='0'; startChallenge(0); }
+  else { lockLauncher=false; syncLauncherUI(); if(sk)sk.textContent='Objets dans le bac'; chActive=null; loadPreset('pendule'); afterChange(); shell.say("Mode Détente : explore librement ! Choisis une démo en bas ou joue avec les réglages.",'joyeux'); }
+}
+let audioCtx=null;
+function sfx(freq,vol){ if(shell.muted)return; try{ const ac=audioCtx||(audioCtx=new (window.AudioContext||window.webkitAudioContext)()); const o=ac.createOscillator(),gg=ac.createGain(); o.type='sine'; o.frequency.value=freq; gg.gain.setValueAtTime(vol,ac.currentTime); gg.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.15); o.connect(gg); gg.connect(ac.destination); o.start(); o.stop(ac.currentTime+0.16); }catch(e){} }
+
+let lastContactSfx=0;
+function animate(){ requestAnimationFrame(animate);
+  let dt=Math.min(0.05,clock.getDelta())*timeScale;
+  // sous-pas fixes
+  if(dt>0){ let acc=dt; let guard=0; while(acc>1e-4 && guard<MAXSUB){ const h=Math.min(SUBSTEP,acc); substep(h); acc-=h; guard++; } }
+  // corps saisi suit le pointeur
+  if(grabbed&&grabbed._target){ grabbed.pos.lerp(grabbed._target,0.5); }
+  // synchronise meshes
+  for(const b of bodies){ if(b.invMass>0||b.kinematic) syncMesh(b); }
+  updateVisuals(); updateArrows(); updateTraj();
+  if(target.visible){ target.rotation.z+=dt*0.6; if(target.userData.ring) target.userData.ring.material.emissiveIntensity=Math.max(.55,target.userData.ring.material.emissiveIntensity-dt*1.5); }
+  updateTelemetry(); checkChallenge();
+  if(mode==='detente') afterChange();
+  controls.update(); composer.render();
+}
+</script>
+</body>
+</html>

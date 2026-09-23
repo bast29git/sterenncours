@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Konstrio · États de la matière</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .em-stage { position:absolute; inset:0; display:flex; flex-direction:column; }
+  .em-canvaswrap { flex:1; min-height:0; position:relative; }
+  .em-canvaswrap canvas { position:absolute; inset:0; width:100%; height:100%; }
+  .em-state { position:absolute; top:16px; left:50%; transform:translateX(-50%); text-align:center; }
+  .em-state .nm { font-family:var(--font-title); font-weight:800; font-size:30px; }
+  .em-state .d { font-size:13px; color:var(--fg-muted); max-width:38ch; margin-top:4px; }
+  .em-thermo { position:absolute; right:18px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .em-tval { font-family:var(--font-data); font-weight:700; font-size:24px; }
+  .em-panel { padding:14px 18px; border-top:1px solid var(--border); background:color-mix(in srgb,var(--surface) 90%,transparent); backdrop-filter:blur(8px); display:flex; flex-direction:column; gap:8px; }
+  .em-subs { display:flex; gap:8px; justify-content:center; }
+  .em-sub { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:7px 14px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; }
+  .em-sub[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .em-slrow { display:flex; align-items:center; gap:12px; }
+  .em-slrow input { flex:1; accent-color:var(--accent); }
+  .em-scale { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); min-width:60px; text-align:center; }
+  .em-quiz { position:absolute; top:78px; left:50%; transform:translateX(-50%); z-index:10; background:var(--accent); color:#fff; padding:12px 18px; border-radius:14px; box-shadow:var(--shadow-lg); font-weight:700; font-size:14px; display:flex; flex-direction:column; gap:8px; align-items:center; max-width:90%; }
+  .em-qo { font-family:var(--font-body); font-weight:700; font-size:13px; min-height:40px; padding:0 14px; border-radius:10px; border:none; background:rgba(255,255,255,.2); color:#fff; cursor:pointer; margin:0 3px; }
+</style>
+</head>
+<body>
+<script>
+const SUBS={
+  eau:{ n:'Eau', melt:0, boil:100, col:'#29B6E0' },
+  fer:{ n:'Fer', melt:1538, boil:2862, col:'#9fb4c8' },
+  azote:{ n:'Azote', melt:-210, boil:-196, col:'#7fd6e0' },
+  ethanol:{ n:'Alcool (éthanol)', melt:-114, boil:78, col:'#c79be0' },
+};
+let sub='eau', temp=20, mode='detente', quiz=null;
+let canvas,ctx,parts=[],raf;
+
+const shell=window.Konstrio.createGame({
+  id:'2d-39-etats-matiere', code:'2D·39', title:'États de la matière', type:'2D',
+  domain:{ label:'Physique', color:'#F5A623' },
+  intro:{
+    greet:"Solide, liquide, gaz : tout dépend de la température ! Fais glisser le thermomètre et observe les molécules changer de comportement.",
+    rule:"La matière existe en trois états selon la <b>température</b>. Règle le thermomètre et observe les molécules : serrées et vibrantes (solide), qui glissent (liquide) ou qui volent partout (gaz).",
+    how:["Fais glisser le curseur de température et regarde l'état changer.","Repère les deux seuils : la fusion (solide→liquide) et l'ébullition (liquide→gaz).","Change de substance : chacune a ses propres températures de changement d'état."],
+    keys:"Glisse le curseur de température ; flèches gauche/droite pour ajuster.",
+    objectif:"Comprendre les changements d'état et les températures de fusion et d'ébullition.",
+    hint:"Pour l'eau : la glace fond à 0 °C, et l'eau bout à 100 °C.",
+    why:"Plus il fait chaud, plus les molécules s'agitent. Au-delà d'un seuil, elles se libèrent : le solide fond, puis le liquide s'évapore."
+  },
+  learned:["Trois états : solide (molécules serrées), liquide (elles glissent), gaz (elles volent).","L'eau fond à 0 °C et bout à 100 °C.","Chaque substance a ses propres températures de fusion et d'ébullition."],
+  onReady:(api)=>build(api),
+  onStart:(m,api)=>{ mode=m; if(m==='cours'){ api.setScore(0); startQuiz(); } else api.setLevel('libre'); },
+  onRestart:(api)=>{ if(mode==='cours'){ api.setScore(0); startQuiz(); } },
+  onTheme:()=>draw(),
+});
+function stateOf(t){ const s=SUBS[sub]; if(t<s.melt)return'solide'; if(t<s.boil)return'liquide'; return'gaz'; }
+let stage;
+function build(api){
+  shell.api=api;
+  stage=document.createElement('div'); stage.className='em-stage';
+  stage.innerHTML=`<div class="em-canvaswrap"><canvas></canvas>
+      <div class="em-state"><div class="nm" id="emNm">—</div><div class="d" id="emD"></div></div></div>
+    <div class="em-panel">
+      <div class="em-subs" id="emSubs"></div>
+      <div class="em-slrow"><span class="em-scale">❄ froid</span><input id="emT" type="range" min="-220" max="3000" step="1" value="20"><span class="em-scale">chaud 🔥</span></div>
+      <div style="text-align:center"><span class="em-tval" id="emTval">20 °C</span></div>
+    </div>`;
+  api.stage.appendChild(stage);
+  canvas=stage.querySelector('canvas'); ctx=canvas.getContext('2d');
+  const subs=stage.querySelector('#emSubs');
+  Object.keys(SUBS).forEach(k=>{ const b=document.createElement('button'); b.className='em-sub'; b.textContent=SUBS[k].n; b.setAttribute('aria-pressed',k===sub); b.onclick=()=>{ sub=k; subs.querySelectorAll('.em-sub').forEach((x,i)=>x.setAttribute('aria-pressed',Object.keys(SUBS)[i]===k)); setRange(); shell.sound('click'); update(); if(mode==='cours'&&quiz) askQuiz(); }; subs.appendChild(b); });
+  const sl=stage.querySelector('#emT'); sl.oninput=e=>{ temp=+e.target.value; update(); };
+  initParts(); setRange(); update();
+  const ro=new ResizeObserver(resize); ro.observe(stage.querySelector('.em-canvaswrap'));
+  resize(); animate();
+}
+function setRange(){ const s=SUBS[sub]; const sl=document.getElementById('emT'); sl.min=Math.min(-30,s.melt-60); sl.max=s.boil+80; if(temp<+sl.min||temp>+sl.max){ temp=Math.round((s.melt+s.boil)/2); sl.value=temp; } }
+function resize(){ if(!canvas)return; const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight,dpr=Math.min(devicePixelRatio,2); canvas.width=w*dpr; canvas.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+function initParts(){ parts=[]; for(let i=0;i<70;i++) parts.push({x:Math.random(),y:Math.random(),vx:(Math.random()-.5),vy:(Math.random()-.5),ox:0,oy:0}); }
+function update(){
+  const st=stateOf(temp); const s=SUBS[sub];
+  document.getElementById('emTval').textContent=Math.round(temp)+' °C';
+  document.getElementById('emNm').textContent=st.charAt(0).toUpperCase()+st.slice(1);
+  document.getElementById('emNm').style.color=s.col;
+  const d= st==='solide'?`Les molécules sont serrées et ne font que vibrer. Fusion à ${s.melt} °C.`: st==='liquide'?`Les molécules glissent les unes sur les autres. Ébullition à ${s.boil} °C.`:`Les molécules sont libres et volent dans tout l'espace.`;
+  document.getElementById('emD').textContent=d;
+  shell.api && shell.api.say(`À ${Math.round(temp)} °C, ${s.n.toLowerCase()} est ${st==='gaz'?'à l\'état gazeux':st==='solide'?'solide':'liquide'}.`, st==='gaz'?'surpris':'concentre');
+}
+function draw(){
+  if(!ctx)return; const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight; ctx.clearRect(0,0,w,h);
+  const st=stateOf(temp), s=SUBS[sub], col=s.col;
+  const cw=Math.min(w*0.7,420), ch=Math.min(h*0.62,300), ox=(w-cw)/2, oy=(h-ch)/2+10;
+  // contenant
+  ctx.strokeStyle='var(--border)'; ctx.lineWidth=2;
+  if(st!=='gaz'){ ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox,oy+ch); ctx.lineTo(ox+cw,oy+ch); ctx.lineTo(ox+cw,oy); ctx.strokeStyle=getCSS('--border'); ctx.stroke(); }
+  ctx.fillStyle=col;
+  parts.forEach((p,i)=>{
+    if(st==='solide'){ const cols=10,rows=7; const gx=i%cols, gy=Math.floor(i/cols); const px=ox+cw*0.18+gx*(cw*0.64/cols)+Math.sin(Date.now()/200+i)*2.2; const py=oy+ch*0.3+gy*(ch*0.5/rows)+Math.cos(Date.now()/180+i)*2.2; circle(px,py,6); }
+    else if(st==='liquid'||st==='liquide'){ p.x+=p.vx*0.0008; p.y+=p.vy*0.0008; if(p.x<0.05||p.x>0.95)p.vx*=-1; if(p.y<0.45||p.y>0.95)p.vy*=-1; p.x=Math.max(.05,Math.min(.95,p.x)); p.y=Math.max(.45,Math.min(.95,p.y)); circle(ox+p.x*cw, oy+p.y*ch, 6); }
+    else { p.x+=p.vx*0.004; p.y+=p.vy*0.004; if(p.x<0.02||p.x>0.98)p.vx*=-1; if(p.y<0.02||p.y>0.98)p.vy*=-1; p.x=Math.max(.02,Math.min(.98,p.x)); p.y=Math.max(.02,Math.min(.98,p.y)); circle(ox+p.x*cw, oy+p.y*ch, 5); }
+  });
+  function circle(x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill(); }
+}
+function getCSS(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim()||'#888'; }
+function animate(){ raf=requestAnimationFrame(animate); draw(); }
+// ---- Cours ----
+function startQuiz(){ quiz={ idx:0, score:0, total:6 }; shell.api.setProgress(0); askQuiz(); }
+function askQuiz(){ if(!quiz)return; if(quiz.idx>=quiz.total){ winQuiz(); return; }
+  shell.api.setLevel((quiz.idx+1)+'/'+quiz.total); shell.api.setProgress(quiz.idx/quiz.total);
+  const s=SUBS[sub]; const types=['state','threshold']; const t=types[quiz.idx%2];
+  let q,opts,correct;
+  if(t==='state'){ const tt=[s.melt-40,(s.melt+s.boil)/2,s.boil+40][Math.floor(Math.random()*3)]; correct=stateOf(tt); q=`À ${Math.round(tt)} °C, dans quel état est ${s.n.toLowerCase()} ?`; opts=['solide','liquide','gaz']; }
+  else { correct=String(Math.random()<.5?s.melt:s.boil); const isMelt=+correct===s.melt; q=`Température de ${isMelt?'fusion':'ébullition'} de ${s.n.toLowerCase()} ?`; const set=new Set([correct]); while(set.size<3) set.add(String(+correct+(Math.random()<.5?1:-1)*(20+Math.floor(Math.random()*120)))); opts=[...set].sort(()=>Math.random()-.5).map(v=>v+' °C'); correct=correct+' °C'; }
+  let bar=document.getElementById('emQuiz'); if(!bar){ bar=document.createElement('div'); bar.className='em-quiz'; bar.id='emQuiz'; shell.api.stage.appendChild(bar); }
+  bar.innerHTML=`<div>${q}</div><div>${opts.map(o=>`<button class="em-qo">${o}</button>`).join('')}</div>`;
+  bar.querySelectorAll('.em-qo').forEach(b=> b.onclick=()=>{ const ok=b.textContent===correct||b.textContent===String(correct); if(ok){ shell.sound('good'); shell.api.addScore(150); quiz.score++; shell.api.say('Exact !','fier'); } else { shell.sound('bad'); shell.api.say('La bonne réponse était '+correct+'.','rassurant'); } quiz.idx++; shell.api.setProgress(quiz.idx/quiz.total); bar.remove(); setTimeout(askQuiz,1100); });
+  shell.api.say("Observe en réglant la température, puis réponds !",'curieux');
+}
+function winQuiz(){ const b=document.getElementById('emQuiz'); if(b)b.remove(); const st=quiz.score>=6?3:quiz.score>=4?2:1;
+  shell.api.win({ score:quiz.score*150, stars:st, title:`${quiz.score}/6 bonnes réponses`, learned:shell.cfg.learned,
+    buddy: st===3?"Tu maîtrises les changements d'état !":"Bien — retiens : l'eau fond à 0 °C, bout à 100 °C.",
+    onNext:()=>{ shell.api.setScore(0); startQuiz(); }, nextLabel:'Rejouer' }); quiz=null; }
+</script>
+</body>
+</html>

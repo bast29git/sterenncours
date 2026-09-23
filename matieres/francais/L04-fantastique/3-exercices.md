@@ -434,3 +434,11 @@ Partie C : 5 points (2 pour le cadre, 1,5 pour la série, 1,5 pour la descriptio
 Partie D : 5 points (3 pour le respect des six contraintes, 2 pour la qualité de l'écriture et l'efficacité de la chute).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

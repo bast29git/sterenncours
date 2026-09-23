@@ -454,3 +454,11 @@ Partie C : 5 points (0,5 pour le calcul, 1,5 pour le logement, 1,5 pour les rés
 Partie D : 5 points (1 pour l'introduction et la conclusion, 1,5 pour les effets, 1,5 pour la concentration, 1 pour les trois chiffres exacts).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::

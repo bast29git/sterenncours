@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Konstrio · Personnages historiques</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+const rounds=[
+ {lvl:1, prompt:'Qui était empereur des Français au début du XIXᵉ siècle ?', options:['Napoléon Bonaparte','Louis XIV','Jules César','Charlemagne'], answer:'Napoléon Bonaparte', explain:'Sacré empereur en 1804.'},
+ {lvl:1, prompt:'Quel roi est surnommé le « Roi-Soleil » ?', options:['Louis XIV','Louis XVI','François Iᵉʳ','Henri IV'], answer:'Louis XIV', explain:'Il a fait construire le château de Versailles.'},
+ {lvl:1, prompt:'Qui a mené la France pendant la Résistance et fondé la Vᵉ République ?', options:['Charles de Gaulle','Napoléon','Jean Jaurès','Clemenceau'], answer:'Charles de Gaulle', explain:'Appel du 18 juin 1940 ; président de 1959 à 1969.'},
+ {lvl:2, prompt:'Qui a découvert la radioactivité (2 prix Nobel) ?', options:['Marie Curie','Albert Einstein','Louis Pasteur','Galilée'], answer:'Marie Curie', explain:'Seule femme à recevoir 2 Nobel (physique et chimie).'},
+ {lvl:2, prompt:'Quel savant a développé le vaccin contre la rage ?', options:['Louis Pasteur','Charles Darwin','Isaac Newton','Marie Curie'], answer:'Louis Pasteur', explain:'Pionnier de la microbiologie.'},
+ {lvl:2, prompt:'Qui a peint « La Joconde » ?', options:['Léonard de Vinci','Picasso','Van Gogh','Monet'], answer:'Léonard de Vinci', explain:'Génie de la Renaissance, exposé au Louvre.'},
+ {lvl:3, prompt:'Quelle militante a marqué la lutte pour les droits civiques aux États-Unis en refusant de céder sa place dans un bus ?', options:['Rosa Parks','Marie Curie','Simone Veil','Jeanne d\'Arc'], answer:'Rosa Parks', explain:'1955, un acte fondateur du mouvement.'},
+ {lvl:3, prompt:'Qui a fait voter la loi dépénalisant l\'IVG en France (1975) ?', options:['Simone Veil','Marie Curie','George Sand','Olympe de Gouges'], answer:'Simone Veil', explain:'Ministre de la Santé, figure majeure du XXᵉ siècle.'},
+ {lvl:3, prompt:'Quel naturaliste a formulé la théorie de l\'évolution ?', options:['Charles Darwin','Newton','Mendeleïev','Pasteur'], answer:'Charles Darwin', explain:'« De l\'origine des espèces » (1859).'},
+];
+QuizGame({ id:'2d-130-personnages-historiques', code:'2D·130', title:'Personnages historiques', domain:{label:'Histoire & Géo',color:'#E0892B'},
+ intro:{ greet:"Napoléon, Marie Curie, de Gaulle… rencontre celles et ceux qui ont marqué l'Histoire.", rule:"Reconnais les grandes figures historiques, scientifiques et artistiques. Trois niveaux.", how:["Lis la question.","Choisis le bon personnage.","Niveau Expert : Rosa Parks, Simone Veil, Darwin."], objectif:"Connaître les grandes figures qui ont façonné le monde.", hint:"Associe chaque personnage à son domaine : politique, science, art, droits.", why:"Connaître ces figures éclaire les grands tournants de l'Histoire." },
+ learned:["Figures politiques : Napoléon, Louis XIV, de Gaulle.","Scientifiques : Curie, Pasteur, Darwin.","Art et droits : de Vinci, Rosa Parks, Simone Veil."],
+ rounds });
+</script></body></html>

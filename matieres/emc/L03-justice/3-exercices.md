@@ -455,3 +455,11 @@ Partie C : 5 points (1 point par cas correctement orienté et justifié).
 Partie D : 4 points (1 pour le droit au silence, 1 pour la présomption d'innocence, 1 pour le rôle de l'avocat, 1 pour la garantie collective).
 :::
 :::
+
+::: cocher
+- J'ai fait tous les exercices de la série A
+- J'ai fait tous les exercices de la série B
+- J'ai fait tous les exercices de la série C
+- J'ai traité le sujet de type devoir en temps limité
+- J'ai comparé chaque réponse au corrigé avant de passer à la suite
+:::
