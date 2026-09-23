@@ -338,7 +338,7 @@ function copierDossier(src, dest) {
 fs.rmSync(SORTIE, { recursive: true, force: true });
 fs.mkdirSync(SORTIE, { recursive: true });
 copierDossier(path.join(RACINE, 'theme'), path.join(SORTIE, 'theme'));
-copierDossier(path.join(RACINE, 'site'), path.join(SORTIE, 'site'));
+copierDossier(path.join(RACINE, 'site'), SORTIE);
 
 const fiches = [];
 let avertissements = 0;
@@ -449,10 +449,10 @@ function construireSommaire() {
 <main class="page">
 <header class="fiche-entete">
   <p class="fiche-fil">Sterenn · Classe de 4ᵉ</p>
-  <h1>Sommaire des supports de cours</h1>
+  <h1>Tous les documents</h1>
   <p>Tous les documents de l'année, classés par matière. Chaque leçon comporte quatre documents : cours, révision, exercices corrigés et grille d'évaluation.</p>
   <ul class="fiche-meta"><li>📚 ${lecons.size} leçon(s) commencée(s)</li><li>📄 ${fiches.length} document(s)</li></ul>
-  <p><a class="fiche-type" style="text-decoration:none" href="site/index.html">🌐 Ouvrir le portail de cours</a></p>
+  <p><a class="fiche-type" style="text-decoration:none" href="index.html">🌐 Revenir au portail de cours</a></p>
 </header>
 ${bloc('Pilotage', pilotage)}
 ${sections.join('\n')}
@@ -464,7 +464,7 @@ ${bloc('Outils complémentaires', outils)}
 `;
 }
 
-fs.writeFileSync(path.join(SORTIE, 'index.html'), construireSommaire());
+fs.writeFileSync(path.join(SORTIE, 'documents.html'), construireSommaire());
 
 /* ── Données du site : programme + disponibilité des documents ──────────── */
 const FICHIERS_DOC = {
@@ -508,7 +508,7 @@ function construireDonneesSite() {
     }
   }
 
-  const cible = path.join(SORTIE, 'site', 'data', 'programme.js');
+  const cible = path.join(SORTIE, 'data', 'programme.js');
   fs.mkdirSync(path.dirname(cible), { recursive: true });
   fs.writeFileSync(cible,
     '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
@@ -522,6 +522,65 @@ function construireDonneesSite() {
 }
 
 const programmeSite = construireDonneesSite();
+
+/* ── Contenu embarqué dans le site (lecture sans ouvrir de PDF) ─────────── */
+function ancrer(html) {
+  // Donne un identifiant stable à chaque titre de niveau 2 et renvoie le plan,
+  // qui alimente le sommaire latéral du lecteur.
+  const plan = [];
+  let n = 0;
+  const sortie = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_, contenu) => {
+    n += 1;
+    const id = 'p' + n;
+    plan.push({ id, texte: contenu.replace(/<[^>]+>/g, '').trim() });
+    return `<h2 id="${id}">${contenu}</h2>`;
+  });
+  return { html: sortie, plan };
+}
+
+function construireContenuSite(programme) {
+  if (!programme) return 0;
+  const racineContenu = path.join(SORTIE, 'data', 'contenu');
+  fs.mkdirSync(racineContenu, { recursive: true });
+  let documents = 0;
+
+  for (const m of programme.matieres) {
+    const parLecon = {};
+    for (const l of m.lecons) {
+      if (!l.docs.length) continue;
+      const docs = {};
+      for (const [type, fichier] of Object.entries(FICHIERS_DOC)) {
+        if (!l.docs.includes(type)) continue;
+        const source = path.join(RACINE, 'matieres', m.id, l.dossier, `${fichier}.md`);
+        const { meta, corps } = lireFrontMatter(fs.readFileSync(source, 'utf8'));
+        const rendu = ancrer(appliquerClassesListes(md.render(normaliserConteneurs(corps))));
+        docs[type] = {
+          titre: meta.titre || l.titre,
+          resume: meta.resume || '',
+          duree: meta.duree || '',
+          objectifs: Array.isArray(meta.objectifs) ? meta.objectifs : [],
+          competences: Array.isArray(meta.competences) ? meta.competences : [],
+          plan: rendu.plan,
+          html: rendu.html,
+        };
+        documents += 1;
+      }
+      parLecon[l.ref] = docs;
+    }
+    if (!Object.keys(parLecon).length) continue;
+    fs.writeFileSync(
+      path.join(racineContenu, `${m.id}.js`),
+      '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
+      + 'window.CONTENU = window.CONTENU || {};\n'
+      + `window.CONTENU[${JSON.stringify(m.id)}] = ${JSON.stringify(parLecon)};\n`,
+    );
+  }
+
+  console.log(`   📖 ${documents} document(s) lisibles directement dans le site`);
+  return documents;
+}
+
+construireContenuSite(programmeSite);
 
 /* ── Dossiers complets par matière (un seul document imprimable) ────────── */
 function construireDossiersMatiere(programme) {
@@ -605,7 +664,7 @@ function verifierLiens() {
   (function walk(d) {
     for (const e of fs.readdirSync(d, { withFileTypes: true })) {
       const p = path.join(d, e.name);
-      if (e.isDirectory()) { if (e.name !== 'pdf') walk(p); }
+      if (e.isDirectory()) { if (e.name !== 'pdf' && e.name !== 'data') walk(p); }
       else if (e.name.endsWith('.html')) pages.push(p);
     }
   })(SORTIE);

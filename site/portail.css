@@ -1,0 +1,247 @@
+/* =========================================================================
+   portail.css : l'écran d'entrée.
+   Vocabulaire graphique emprunté au manga : trame de points, lignes de
+   vitesse, case à bord épais et ombre portée franche, typographie d'impact.
+   Tout est dessiné en CSS et en SVG : aucune image, aucun personnage existant.
+   ========================================================================= */
+
+/* Tant que le portail est ouvert, la page entière est sombre : sans cela une
+   bande claire apparaît sous l'écran d'entrée sur les grands écrans. */
+body.portail-ouvert { background: #12131a; overflow: hidden; }
+
+.portail {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #12131a;
+  padding: 1.25rem;
+}
+
+/* ---------- Décor : lignes de vitesse et trame ------------------------- */
+.portail-decor { position: absolute; inset: 0; pointer-events: none; }
+
+.portail-decor .lignes {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 240vmax;
+  height: 240vmax;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(255, 255, 255, 0.085) 0deg 0.5deg,
+    transparent 0.5deg 3.2deg
+  );
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 14%, #000 46%, #000 100%);
+  mask-image: radial-gradient(circle at 50% 50%, transparent 14%, #000 46%, #000 100%);
+  animation: rotation-lente 120s linear infinite;
+}
+
+.portail-decor .trame {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.16) 1.1px, transparent 1.2px);
+  background-size: 9px 9px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 42%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(ellipse at 50% 42%, #000 0%, transparent 72%);
+}
+
+@keyframes rotation-lente { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* ---------- Scène ------------------------------------------------------- */
+.portail-scene { position: relative; width: min(27rem, 100%); }
+
+/* L'éclat déborde largement de la case : il doit rayonner autour, pas derrière. */
+.eclat {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(42rem, 118vw);
+  height: min(42rem, 118vw);
+  transform: translate(-50%, -50%);
+  fill: #ffd84d;
+  opacity: 0.22;
+  filter: drop-shadow(0 0 40px rgba(255, 216, 77, 0.28));
+  animation: pulsation 6s ease-in-out infinite;
+  z-index: 0;
+}
+@keyframes pulsation {
+  0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  50%      { transform: translate(-50%, -50%) scale(1.06) rotate(4deg); }
+}
+
+/* ---------- La case ------------------------------------------------------ */
+.panneau {
+  position: relative;
+  background: #fffdf6;
+  border: 4px solid #12131a;
+  border-radius: 6px;
+  padding: 1.6rem 1.5rem 1.5rem;
+  box-shadow: 13px 13px 0 #c62f4b, 0 0 0 4px #12131a, 0 22px 60px rgba(0, 0, 0, 0.55);
+  transform: rotate(-1.1deg);
+  color: #12131a;
+  z-index: 1;
+}
+.panneau > * { transform: rotate(1.1deg); }
+
+.panneau-sur {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #c62f4b;
+  margin: 0 0 0.1rem;
+}
+
+.panneau-titre {
+  margin: 0 0 0.9rem;
+  line-height: 0.92;
+  font-style: italic;
+  letter-spacing: -0.02em;
+}
+.panneau-titre span {
+  display: block;
+  font-size: clamp(2.5rem, 12vw, 3.5rem);
+  font-weight: 900;
+  color: #12131a;
+  text-shadow: 3px 3px 0 #ffd84d, 6px 6px 0 rgba(18, 19, 26, 0.16);
+}
+.panneau-titre em {
+  display: block;
+  font-size: clamp(1.15rem, 5vw, 1.5rem);
+  font-weight: 800;
+  font-style: italic;
+  color: #c62f4b;
+  margin-top: 0.15rem;
+}
+
+/* ---------- Bulle de dialogue ------------------------------------------- */
+.bulle {
+  position: relative;
+  background: #12131a;
+  color: #fffdf6;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.45;
+  border-radius: 14px;
+  padding: 0.6rem 0.9rem;
+  margin: 0 0 1.15rem;
+}
+.bulle::after {
+  content: "";
+  position: absolute;
+  left: 2rem;
+  bottom: -0.6rem;
+  width: 0;
+  height: 0;
+  border-left: 0.7rem solid transparent;
+  border-right: 0.2rem solid transparent;
+  border-top: 0.7rem solid #12131a;
+}
+
+/* ---------- Champ et bouton ---------------------------------------------- */
+.panneau label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+.champ { position: relative; }
+.champ input {
+  width: 100%;
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-align: center;
+  padding: 0.75rem 0.9rem;
+  border: 3px solid #12131a;
+  border-radius: 8px;
+  background: #fff;
+  color: #12131a;
+  box-shadow: 4px 4px 0 rgba(18, 19, 26, 0.18);
+}
+.champ input::placeholder { color: #b9b3a4; letter-spacing: 0.2em; }
+.champ input:focus {
+  outline: none;
+  border-color: #c62f4b;
+  box-shadow: 4px 4px 0 #ffd84d;
+}
+
+.portail-erreur {
+  display: none;
+  margin: 0.6rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fffdf6;
+  background: #c62f4b;
+  border: 3px solid #12131a;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+}
+.portail-erreur.visible { display: block; animation: secousse 0.32s ease; }
+@keyframes secousse {
+  0%, 100% { transform: rotate(1.1deg) translateX(0); }
+  25%      { transform: rotate(1.1deg) translateX(-5px); }
+  75%      { transform: rotate(1.1deg) translateX(5px); }
+}
+
+.bouton-go {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 1.1rem;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: #12131a;
+  background: #ffd84d;
+  border: 3px solid #12131a;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  box-shadow: 5px 5px 0 #12131a;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.bouton-go svg { width: 1.3rem; height: 1.3rem; }
+.bouton-go:hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 #12131a; }
+.bouton-go:active { transform: translate(5px, 5px); box-shadow: 0 0 0 #12131a; }
+.bouton-go:focus-visible { outline: 3px solid #c62f4b; outline-offset: 3px; }
+
+/* ---------- Onomatopée --------------------------------------------------- */
+.onomatopee {
+  z-index: 2;
+  position: absolute;
+  right: -0.4rem;
+  bottom: -1.5rem;
+  font-size: 1.35rem;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  color: #ffd84d;
+  background: #c62f4b;
+  border: 3px solid #12131a;
+  border-radius: 8px;
+  padding: 0.22rem 0.8rem;
+  transform: rotate(-7deg);
+  box-shadow: 4px 4px 0 #12131a;
+}
+
+@media (max-width: 26rem) {
+  .onomatopee { font-size: 1.05rem; bottom: -1.1rem; right: -0.2rem; }
+  .panneau { box-shadow: 9px 9px 0 #c62f4b, 0 0 0 4px #12131a; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portail-decor .lignes, .eclat { animation: none; }
+  .portail-erreur.visible { animation: none; }
+  .bouton-go { transition: none; }
+}

@@ -2,33 +2,78 @@
 <html lang="fr" data-matiere="pilotage">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cours de 4ᵉ</title>
-<meta name="description" content="Portail des cours de 4ᵉ : programme, leçons, exercices et suivi des acquis.">
-<link rel="stylesheet" href="../theme/cours.css">
+<meta name="description" content="Espace de cours de 4ᵉ : programme, leçons, exercices interactifs et suivi des acquis.">
+<meta name="theme-color" content="#12131a">
+<link rel="stylesheet" href="theme/cours.css">
+<link rel="stylesheet" href="portail.css">
 <link rel="stylesheet" href="app.css">
 </head>
 <body class="app">
 
+<!-- ============================ PORTAIL ============================ -->
 <div id="portail" class="portail">
-  <form class="portail-carte" id="form-portail" autocomplete="off">
-    <h1>Cours de 4ᵉ</h1>
-    <p class="sous">Entre ton code pour ouvrir ton espace.</p>
-    <label for="code">Code d'accès</label>
-    <input id="code" name="code" type="text" inputmode="text" autocapitalize="none" spellcheck="false" placeholder="ton code">
-    <p class="portail-erreur" id="portail-erreur" role="alert">Ce code n'est pas reconnu. Vérifie les lettres et les chiffres.</p>
-    <button class="btn btn-large" type="submit">Entrer</button>
-  </form>
+  <div class="portail-decor" aria-hidden="true">
+    <span class="lignes"></span>
+    <span class="trame"></span>
+  </div>
+
+  <div class="portail-scene">
+    <svg class="eclat" viewBox="0 0 400 400" aria-hidden="true">
+      <path d="M200 0 L228 128 L318 44 L262 158 L390 128 L272 196 L400 240 L268 236 L340 344 L232 266 L226 400 L192 272 L108 366 L164 248 L36 300 L142 216 L0 186 L138 172 L54 66 L172 140 Z"/>
+    </svg>
+
+    <form class="panneau" id="form-portail" autocomplete="off">
+      <p class="panneau-sur">Classe de 4ᵉ</p>
+      <h1 class="panneau-titre"><span>COURS</span><em>de 4ᵉ</em></h1>
+
+      <p class="bulle">Entre ton code, et ton espace s'ouvre.</p>
+
+      <label for="code">Ton code</label>
+      <div class="champ">
+        <input id="code" name="code" type="text" inputmode="text" autocapitalize="none"
+               spellcheck="false" autocomplete="off" placeholder="• • • • • • •" aria-describedby="portail-erreur">
+      </div>
+      <p class="portail-erreur" id="portail-erreur" role="alert">Ce code n'est pas reconnu. Vérifie les lettres et les chiffres.</p>
+
+      <button class="bouton-go" type="submit">
+        <span>Entrer</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </form>
+
+    <span class="onomatopee" aria-hidden="true">C'est parti !</span>
+  </div>
 </div>
 
-<div id="app" hidden>
-  <header class="barre">
-    <span class="barre-titre"><a href="#/accueil">Cours de 4ᵉ</a></span>
-    <span class="barre-role" id="badge-role"></span>
-    <nav id="nav-principal"></nav>
-    <button class="btn btn-neutre" id="btn-sortir" type="button">Sortir</button>
-  </header>
-  <main class="vue" id="vue" tabindex="-1"></main>
+<!-- ============================ APPLICATION ============================ -->
+<div id="app" class="coque" hidden>
+  <a class="saut-contenu" href="#vue">Aller au contenu</a>
+
+  <aside class="lateral" id="lateral">
+    <div class="lateral-tete">
+      <a class="marque" href="#/accueil"><span class="marque-pastille" aria-hidden="true">4ᵉ</span> Cours de 4ᵉ</a>
+      <button class="icone-bouton fermer-lateral" id="btn-fermer-lateral" type="button" aria-label="Fermer le menu">✕</button>
+    </div>
+    <nav class="lateral-nav" id="nav-lateral" aria-label="Navigation principale"></nav>
+  </aside>
+  <div class="voile" id="voile" hidden></div>
+
+  <div class="colonne">
+    <header class="topbar">
+      <button class="icone-bouton ouvrir-lateral" id="btn-ouvrir-lateral" type="button" aria-label="Ouvrir le menu">☰</button>
+      <nav class="fil" id="fil" aria-label="Fil d'Ariane"></nav>
+      <form class="recherche" id="form-recherche" role="search">
+        <label class="visuellement-cache" for="q">Rechercher une leçon</label>
+        <input id="q" type="search" placeholder="Rechercher une leçon" autocomplete="off">
+      </form>
+      <button class="icone-bouton" id="btn-theme" type="button" aria-label="Changer le thème">◐</button>
+      <span class="chip-role" id="badge-role"></span>
+      <button class="bouton-secondaire" id="btn-sortir" type="button">Sortir</button>
+    </header>
+    <main class="vue" id="vue" tabindex="-1"></main>
+  </div>
 </div>
 
 <script src="data/programme.js"></script>

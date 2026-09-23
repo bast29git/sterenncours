@@ -45,7 +45,7 @@ const TOUT = process.argv.includes('--tout');
 
 function aImprimer(relatif) {
   const chemin = relatif.split(path.sep).join('/');
-  if (chemin.startsWith('site/')) return false;
+  if (chemin === 'index.html' || chemin === 'documents.html') return false;
   if (TOUT) return true;
   return chemin.startsWith('dossiers/')
     || chemin.startsWith('00-pilotage/')
@@ -54,7 +54,7 @@ function aImprimer(relatif) {
 
 function parcourir(dossier, liste = []) {
   for (const e of fs.readdirSync(dossier, { withFileTypes: true })) {
-    if (e.name === 'pdf' || e.name === 'theme' || e.name === 'site') continue;
+    if (e.name === 'pdf' || e.name === 'theme' || e.name === 'data') continue;
     const complet = path.join(dossier, e.name);
     if (e.isDirectory()) parcourir(complet, liste);
     else if (e.name.endsWith('.html') && aImprimer(path.relative(SOURCE, complet))) {

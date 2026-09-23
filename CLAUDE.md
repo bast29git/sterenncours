@@ -72,13 +72,20 @@ Détail complet dans `00-pilotage/cadre-pedagogique.md`. Les invariants :
 
 ## 3 bis. Le portail de cours (`site/`)
 
-Application d'une seule page, sans dépendance ni serveur.
+Application d'une seule page, sans dépendance ni serveur. Après le build, elle est
+**la racine de `public/`** : c'est elle qu'on déploie. Les fiches se lisent
+**dans le site**, jamais en ouvrant un PDF ; le PDF reste proposé en téléchargement,
+un par matière.
 Codes : **`sanka29`** ouvre l'espace de Sterenn, **`babas29`** l'espace professeur.
 C'est une **séparation d'usages, pas une protection** : les codes sont lisibles dans
 le source de la page. Ne jamais y placer de donnée sensible.
 
 Le suivi des acquis vit dans le `localStorage` du navigateur, avec export et import
 JSON. Aucune donnée ne part sur un serveur.
+
+Le build génère `public/data/contenu/<matiere>.js` : le HTML de chaque fiche, son
+plan et ses métadonnées, chargé à la demande par le lecteur. On n'écrit jamais dans
+`public/`.
 
 **À faire pour chaque leçon livrée** : ajouter sa série d'exercices interactifs dans
 `site/data/exercices.js` (12 à 15 questions, types `qcm`, `vraifaux`, `saisie`).

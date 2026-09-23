@@ -1,0 +1,95 @@
+name: Déploiement Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+      - claude/amazing-hopper-yzovxz
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Nom du projet Cloudflare Pages. À changer ici si le projet porte un autre nom.
+  PROJET_PAGES: sterenncours
+  # Branche Pages visée. « main » correspond au déploiement de production,
+  # donc à l'URL stable, quelle que soit la branche qui a déclenché le build.
+  BRANCHE_PAGES: main
+
+jobs:
+  deployer:
+    name: Construire et déployer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Vérifier que les secrets Cloudflare sont présents
+        env:
+          JETON: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          COMPTE: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          manquants=""
+          [ -z "$JETON" ] && manquants="$manquants CLOUDFLARE_API_TOKEN"
+          [ -z "$COMPTE" ] && manquants="$manquants CLOUDFLARE_ACCOUNT_ID"
+          if [ -n "$manquants" ]; then
+            echo "::error::Secrets manquants ou nommés autrement :$manquants"
+            echo "Renomme les secrets du dépôt, ou adapte les noms dans .github/workflows/deploiement.yml."
+            exit 1
+          fi
+          echo "Secrets Cloudflare présents."
+
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Construire le site
+        run: npm run build
+
+      - name: Générer les PDF
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: npm run pdf
+
+      - name: Contrôler la sortie
+        run: |
+          test -f public/index.html || { echo "::error::public/index.html est absent"; exit 1; }
+          test -f public/data/programme.js || { echo "::error::les données du programme sont absentes"; exit 1; }
+          echo "Poids du site : $(du -sh public | cut -f1)"
+
+      - name: Créer le projet Pages s'il n'existe pas
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create ${{ env.PROJET_PAGES }} --production-branch=${{ env.BRANCHE_PAGES }}
+
+      - name: Déployer sur Cloudflare Pages
+        id: deploiement
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=${{ env.PROJET_PAGES }} --branch=${{ env.BRANCHE_PAGES }} --commit-dirty=true
+
+      - name: Résumé
+        run: |
+          {
+            echo "### Déploiement terminé"
+            echo ""
+            echo "- Projet Pages : \`${{ env.PROJET_PAGES }}\`"
+            echo "- Branche Pages : \`${{ env.BRANCHE_PAGES }}\`"
+            echo "- URL : ${{ steps.deploiement.outputs.deployment-url }}"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -7,8 +7,11 @@ Le niveau d'exigence est celui du programme officiel. Ce qui est adapté, c'est 
 
 ## Le portail de cours
 
-Un mini-site autonome, sans serveur ni base de données, dans `site/`.
-Après `npm run build`, il s'ouvre depuis **`public/site/index.html`**.
+Un site autonome, sans serveur ni base de données, dans `site/`.
+Après `npm run build`, il est **la racine de `public/`** : on l'ouvre depuis
+**`public/index.html`**. Les cours s'y lisent **directement dans la page**,
+sans avoir à ouvrir un PDF, et chaque matière propose en plus son dossier
+complet en téléchargement.
 
 | Code | Espace ouvert |
 |---|---|
@@ -44,8 +47,8 @@ npm run serve    # relire le tout sur http://localhost:4321
 | Journal des séances | `00-pilotage/journal-seances/` |
 
 Après un `npm run build`, deux points d'entrée :
-**`public/site/index.html`** pour le portail de cours, et
-**`public/index.html`** pour le sommaire brut de tous les documents.
+**`public/index.html`** pour le portail, et **`public/documents.html`**
+pour la liste brute de tous les documents générés.
 
 ## Les dossiers complets par matière
 
@@ -89,6 +92,20 @@ L'échelle des grilles est celle du **livret scolaire officiel**, celle-là mêm
 | Anglais LV1 | `matieres/anglais-lv1/` | 8 |
 | Espagnol LV2 | `matieres/espagnol-lv2/` | 8 |
 
+## Déploiement
+
+`.github/workflows/deploiement.yml` construit le site, génère les PDF et publie
+`public/` sur **Cloudflare Pages** à chaque push. Il attend deux secrets de dépôt :
+
+| Secret | Rôle |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | jeton d'API avec la permission « Cloudflare Pages : Edit » |
+| `CLOUDFLARE_ACCOUNT_ID` | identifiant du compte Cloudflare |
+
+Le nom du projet Pages et la branche de production se règlent en haut du fichier
+(`PROJET_PAGES`, `BRANCHE_PAGES`). Si un secret manque ou porte un autre nom, le
+workflow s'arrête avec un message qui le dit explicitement.
+
 ## Organisation du dépôt
 
 ```
@@ -98,7 +115,7 @@ outils/             Méthodes transversales, cartes de révision, suivi des acqu
 site/               Mini-sites interactifs autonomes
 theme/              Design system (cours.css) + lexique des blocs
 build/              Chaîne Markdown → HTML → PDF (Node, sans framework)
-public/             Sortie générée : non versionnée
+public/             Sortie générée : non versionnée (c'est elle qui est déployée)
 ```
 
 Les conventions de rédaction et de contribution sont dans **`CLAUDE.md`**.
