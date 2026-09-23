@@ -42,8 +42,7 @@ Chaque leçon listée ici possède ensuite **quatre documents** dans le dossier 
 
 ::: info
 Le niveau d'exigence est celui du **programme officiel de 4ᵉ**, sans allègement.
-Ce qui est adapté, c'est la **forme** : structure identique d'un document à l'autre,
-consignes explicites, une idée par bloc, critères de réussite toujours écrits noir sur blanc.
+Ce qui est adapté, c'est la **forme** : structure identique d'un document à l'autre, consignes explicites, une idée par bloc, critères de réussite toujours écrits noir sur blanc.
 :::
 
 ::: saut
@@ -51,10 +50,7 @@ consignes explicites, une idée par bloc, critères de réussite toujours écrit
 
 ## 2. L'année de 4ᵉ en un coup d'œil
 
-La 4ᵉ est la **troisième année du cycle 4** (5ᵉ – 4ᵉ – 3ᵉ). C'est l'année où
-la plupart des matières passent du « constat » à la **démonstration** et à
-l'**argumentation** : on ne demande plus seulement le bon résultat, on demande
-aussi **comment on le sait**.
+La 4ᵉ est la **troisième année du cycle 4** (5ᵉ – 4ᵉ – 3ᵉ). C'est l'année où la plupart des matières passent du « constat » à la **démonstration** et à l'**argumentation** : on ne demande plus seulement le bon résultat, on demande aussi **comment on le sait**.
 
 ### Horaires officiels hebdomadaires (grille collège, 4ᵉ)
 
@@ -87,8 +83,7 @@ aussi **comment on le sait**.
 ## 3. Le socle commun : ce qui est réellement évalué
 
 Au collège, les notes portent sur des exercices, mais le **bilan officiel** porte sur
-**cinq domaines de compétences** (le socle commun). C'est ce qui figure sur le bulletin
-et qui compte pour le brevet en fin de 3ᵉ.
+**cinq domaines de compétences** (le socle commun). C'est ce qui figure sur le bulletin et qui compte pour le brevet en fin de 3ᵉ.
 
 ::: grille
 | Domaine | Intitulé officiel | En clair | Matières porteuses |
@@ -128,9 +123,7 @@ Elles reviennent dans **chaque** grille d'évaluation de maths :
 
 ## 4. L'échelle officielle d'évaluation — les 4 niveaux
 
-Toutes les **grilles d'évaluation** de ce dossier utilisent **l'échelle officielle
-du livret scolaire**, sans variante. Quatre niveaux, toujours dans cet ordre,
-toujours avec le même pictogramme et la même couleur.
+Toutes les **grilles d'évaluation** de ce dossier utilisent **l'échelle officielle du livret scolaire**, sans variante. Quatre niveaux, toujours dans cet ordre, toujours avec le même pictogramme et la même couleur.
 
 ::: echelle
 - <span class="niveau n-insuffisant">◔ Insuffisant</span> La notion n'est pas encore installée. Il manque une étape de base : il faut reprendre la fiche de cours, pas s'entraîner davantage.
@@ -140,17 +133,12 @@ toujours avec le même pictogramme et la même couleur.
 :::
 
 ::: info
-**Correspondance avec le brevet.** En fin de 3ᵉ, ces quatre niveaux sont convertis en
-points pour chacun des huit champs du socle : maîtrise insuffisante **10 pts**,
-fragile **25 pts**, satisfaisante **40 pts**, très bonne maîtrise **50 pts**
-(soit 400 points sur les 800 du brevet). S'habituer à cette échelle dès la 4ᵉ,
-c'est arriver en 3ᵉ sans découvrir le système.
+**Correspondance avec le brevet.** En fin de 3ᵉ, ces quatre niveaux sont convertis en points pour chacun des huit champs du socle : maîtrise insuffisante **10 pts**, fragile **25 pts**, satisfaisante **40 pts**, très bonne maîtrise **50 pts**
+(soit 400 points sur les 800 du brevet). S'habituer à cette échelle dès la 4ᵉ, c'est arriver en 3ᵉ sans découvrir le système.
 :::
 
 ::: piege
-Un niveau **Fragile** n'est pas un échec : c'est une information. Il dit
-« la notion est là, elle n'est pas encore automatique ». La réponse à *Fragile*
-est **répéter**, la réponse à *Insuffisant* est **reprendre le cours**.
+Un niveau **Fragile** n'est pas un échec : c'est une information. Il dit « la notion est là, elle n'est pas encore automatique ». La réponse à *Fragile* est **répéter**, la réponse à *Insuffisant* est **reprendre le cours**.
 Ce sont deux actions différentes ; les confondre fait perdre du temps.
 :::
 
@@ -159,8 +147,7 @@ Ce sont deux actions différentes ; les confondre fait perdre du temps.
 
 ## 5. Le cadre CNED : la validation des acquis
 
-L'enseignement à distance impose une discipline que la classe fournit d'ordinaire
-toute seule : **des échéances régulières** et **des traces écrites évaluables**.
+L'enseignement à distance impose une discipline que la classe fournit d'ordinaire toute seule : **des échéances régulières** et **des traces écrites évaluables**.
 
 ::: etapes
 1. **Des devoirs notés envoyés à correction**, répartis sur les trois trimestres, dans chaque matière. Ce sont eux qui construisent le bulletin et le conseil de classe.
@@ -169,20 +156,14 @@ toute seule : **des échéances régulières** et **des traces écrites évaluab
 :::
 
 ::: aide
-Le nombre exact de devoirs et le calendrier de retour varient selon la formule
-d'inscription. **À vérifier dans le livret d'accompagnement CNED de l'année en cours**,
-puis à reporter dans `00-pilotage/progression-annuelle.md` : c'est cette date-là,
-et pas une autre, qui pilote la progression.
+Le nombre exact de devoirs et le calendrier de retour varient selon la formule d'inscription. **À vérifier dans le livret d'accompagnement CNED de l'année en cours**, puis à reporter dans `00-pilotage/progression-annuelle.md` : c'est cette date-là, et pas une autre, qui pilote la progression.
 :::
 
 ### Ce que ce dossier apporte au format CNED
 
-- Chaque leçon se termine par une **grille d'évaluation** au format exact du socle,
-  qui prépare directement le devoir envoyé à correction.
-- Chaque série d'exercices comporte des **exercices de type devoir** (énoncé long,
-  plusieurs questions liées, barème visible) pour s'entraîner dans les conditions réelles.
-- La **progression annuelle** aligne les leçons sur les périodes, pour qu'aucun
-  devoir n'arrive sur une notion non traitée.
+- Chaque leçon se termine par une **grille d'évaluation** au format exact du socle, qui prépare directement le devoir envoyé à correction.
+- Chaque série d'exercices comporte des **exercices de type devoir** (énoncé long, plusieurs questions liées, barème visible) pour s'entraîner dans les conditions réelles.
+- La **progression annuelle** aligne les leçons sur les périodes, pour qu'aucun devoir n'arrive sur une notion non traitée.
 
 ::: saut
 :::
@@ -502,8 +483,7 @@ Chaque ligne donne lieu aux **4 documents** (cours · révision · exercices · 
 
 ## 8. La progression sur l'année (5 périodes)
 
-Le découpage suit les cinq périodes scolaires. Il est **indicatif** : il se cale
-sur les dates de devoirs CNED une fois celles-ci connues.
+Le découpage suit les cinq périodes scolaires. Il est **indicatif** : il se cale sur les dates de devoirs CNED une fois celles-ci connues.
 
 ::: grille
 | Période | Maths | Français | PC | SVT | Hist-Géo / EMC | Anglais | Espagnol |
@@ -530,8 +510,7 @@ sur les dates de devoirs CNED une fois celles-ci connues.
 
 ## 9. Les adaptations mises en place
 
-Le détail est dans `00-pilotage/adaptations-tsa.md`. En résumé, dix principes
-appliqués à **tous** les documents :
+Le détail est dans `00-pilotage/adaptations-tsa.md`. En résumé, dix principes appliqués à **tous** les documents :
 
 ::: grille
 | Principe | Traduction concrète |

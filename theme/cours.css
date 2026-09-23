@@ -443,7 +443,7 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
   html, body {
     background: #ffffff;
     color: #000000;
-    font-size: 10.8pt;
+    font-size: 10pt;
   }
   .page { max-width: none; margin: 0; padding: 0; }
   .sans-impression { display: none !important; }
@@ -451,9 +451,41 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
   /* On garde les couleurs : elles portent du sens pédagogique */
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-  h2 { break-after: avoid; }
-  h3, h4 { break-after: avoid; }
-  .bloc, .exercice, .formule-cle, table, .echelle li, .corrige { break-inside: avoid; }
+  /* Compacité : à l'écran on respire, sur papier on économise la page. */
+  html, body { line-height: 1.45; }
+  p { margin: 0 0 0.55em; }
+  li { margin-bottom: 0.25em; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.15rem; margin-top: 1.2em; }
+  h3 { font-size: 1.02rem; margin-top: 1em; }
+  .fiche-entete { padding: 0.7rem 0.85rem; margin-bottom: 1rem; }
+  .fiche-meta li { font-size: 0.78rem; padding: 0.1rem 0.55rem; }
+  .bloc { margin: 0.7rem 0; padding: 0.55rem 0.75rem 0.3rem; }
+  .bloc > .bloc-titre { margin-bottom: 0.4rem; }
+  .exercice { margin: 0.8rem 0; padding: 0.55rem 0.75rem 0.3rem; }
+  .exercice-entete { margin-bottom: 0.45rem; padding-bottom: 0.35rem; }
+  .corrige { margin: 0.55rem 0 0.15rem; }
+  .corrige > summary { padding: 0.35rem 0.7rem; }
+  .corrige-corps { padding: 0.5rem 0.7rem 0.2rem; }
+  table { margin: 0.7rem 0; font-size: 0.85rem; }
+  th, td { padding: 0.26rem 0.4rem; }
+  .formule-cle { margin: 0.7rem 0; padding: 0.5rem 0.8rem; font-size: 1.05rem; }
+  .etapes > li { margin-bottom: 0.4rem; padding-left: 2.2rem; }
+  .etapes > li::before { width: 1.5rem; height: 1.5rem; font-size: 0.8rem; }
+  .echelle { gap: 0.35rem; margin: 0.8rem 0; }
+  .echelle li { padding: 0.4rem 0.6rem; grid-template-columns: 10.5rem 1fr; }
+  .schema { margin: 0.8rem 0; }
+  .schema svg { max-width: 330px; }
+  .lignes-reponse span { height: 1.55rem; }
+  .cocher li { margin-bottom: 0.35rem; }
+  .fiche-pied { margin-top: 1.5rem; padding-top: 0.6rem; }
+
+  /* Ne jamais couper ce qui perd son sens coupé — mais laisser les blocs longs
+     se répartir, sinon une page entière reste blanche avant chaque encadré. */
+  .formule-cle, .schema, .echelle li, .bloc-pause { break-inside: avoid; }
+  .bloc, .exercice, .corrige, table { break-inside: auto; }
+  tr, .etapes > li, .cocher li { break-inside: avoid; }
+  h1, h2, h3, h4, .bloc-titre, .exercice-entete { break-after: avoid; }
   .saut-page { break-before: page; }
 
   /* Les corrigés s'impriment toujours dépliés */
@@ -464,4 +496,65 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
 
   a { color: #000; text-decoration: none; }
   .fiche-pied { border-top: 1pt solid #888; }
+}
+
+/* ---------- 14. Figures & schémas --------------------------------------- */
+.schema {
+  margin: 1.4rem 0;
+  text-align: center;
+  break-inside: avoid;
+}
+.schema svg { width: 100%; max-width: 440px; height: auto; }
+.schema figcaption {
+  font-size: 0.85rem;
+  color: var(--texte-doux);
+  margin-top: 0.45rem;
+}
+.schema .trait   { stroke: var(--accent); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.schema .zone    { fill: var(--accent-doux); stroke: var(--accent); stroke-width: 3; }
+.schema .repere  { stroke: var(--texte-doux); stroke-width: 2; fill: none; stroke-dasharray: 5 4; }
+.schema .angle   { fill: none; stroke: var(--insuffisant); stroke-width: 4; }
+.schema text     { fill: var(--texte); font-family: var(--police); font-size: 16px; font-weight: 700; }
+.schema .legende { fill: var(--texte-doux); font-weight: 400; font-size: 14px; }
+
+/* ---------- 15. Sommaire général ---------------------------------------- */
+.lecons { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 0.7rem; }
+.lecon {
+  margin: 0;
+  border: 2px solid var(--trait);
+  border-left: 7px solid var(--trait-fort);
+  border-radius: var(--rayon);
+  background: var(--fond-carte);
+  padding: 0.7rem 0.9rem 0.55rem;
+}
+.lecon-complete { border-left-color: var(--accent); }
+.lecon-titre { margin: 0 0 0.45rem; font-weight: 700; }
+.lecon-ref {
+  display: inline-block;
+  min-width: 2.6rem;
+  text-align: center;
+  font-size: 0.8rem;
+  background: var(--accent-doux);
+  border: 1px solid var(--accent-trait);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 0.05rem 0.4rem;
+  margin-right: 0.45rem;
+}
+.lecon-liens { margin: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.lecon-liens a, .lecon-liens .manquant {
+  font-size: 0.85rem;
+  border-radius: 6px;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--accent-trait);
+  background: var(--accent-doux);
+  color: var(--accent);
+  text-decoration: none;
+}
+.lecon-liens a:hover { background: var(--accent); color: var(--fond-carte); }
+.lecon-liens .manquant {
+  border-style: dashed;
+  border-color: var(--trait-fort);
+  background: transparent;
+  color: var(--texte-doux);
 }

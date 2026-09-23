@@ -21,70 +21,56 @@ objectifs:
 
 ## 1. Le principe directeur
 
-**TSA sans déficience intellectuelle** : les capacités de raisonnement, de mémoire et
-d'abstraction sont intactes, voire supérieures à la moyenne sur les domaines d'intérêt.
-Ce qui coûte, ce n'est pas *comprendre* — c'est **entrer dans la tâche**, **soutenir
-l'attention malgré l'environnement**, **décoder l'implicite** et **gérer l'imprévu**.
+**TSA sans déficience intellectuelle** : les capacités de raisonnement, de mémoire et d'abstraction sont intactes, voire supérieures à la moyenne sur les domaines d'intérêt.
+Ce qui coûte, ce n'est pas *comprendre* — c'est **entrer dans la tâche**, **soutenir l'attention malgré l'environnement**, **décoder l'implicite** et **gérer l'imprévu**.
 
 ::: retenir La règle qui ne bouge jamais
 On adapte la **forme**, jamais le **fond**.
-Un exercice de 4ᵉ reste un exercice de 4ᵉ. On ne retire pas de contenu, on ne baisse
-pas l'exigence, on ne remplace pas une démonstration par un résultat à recopier.
-Ce qu'on retire, c'est **l'obstacle qui n'a rien à voir avec la notion** : la consigne
-ambiguë, la double tâche, le sous-entendu, la surcharge visuelle.
+Un exercice de 4ᵉ reste un exercice de 4ᵉ. On ne retire pas de contenu, on ne baisse pas l'exigence, on ne remplace pas une démonstration par un résultat à recopier.
+Ce qu'on retire, c'est **l'obstacle qui n'a rien à voir avec la notion** : la consigne ambiguë, la double tâche, le sous-entendu, la surcharge visuelle.
 :::
 
 ::: piege L'erreur la plus fréquente
 Confondre *TSA* et *difficulté scolaire*. Simplifier le contenu est contre-productif :
-c'est perçu comme une injustice, ça démotive, et ça prive d'un défi qui est souvent
-le meilleur moteur d'entrée dans la tâche.
+c'est perçu comme une injustice, ça démotive, et ça prive d'un défi qui est souvent le meilleur moteur d'entrée dans la tâche.
 :::
 
 ## 2. Les dix règles appliquées à tous les documents
 
 ::: definition 1 — Prévisibilité totale
-Tous les documents d'un même type ont **exactement** la même structure, dans le même
-ordre, avec la même mise en page. Une fiche de cours de maths et une fiche de cours
-d'espagnol se lisent de la même façon.
+Tous les documents d'un même type ont **exactement** la même structure, dans le même ordre, avec la même mise en page. Une fiche de cours de maths et une fiche de cours d'espagnol se lisent de la même façon.
 **Effet attendu :** plus aucune énergie dépensée à découvrir « comment marche ce document ».
 :::
 
 ::: definition 2 — Annonce explicite
-Chaque fiche commence par trois informations : le **plan**, la **durée estimée**,
-le **matériel nécessaire**. Rien ne commence sans qu'on sache où ça va et combien de temps.
+Chaque fiche commence par trois informations : le **plan**, la **durée estimée**, le **matériel nécessaire**. Rien ne commence sans qu'on sache où ça va et combien de temps.
 **Effet attendu :** réduction de l'anxiété d'anticipation, qui est le premier frein à l'entrée dans la tâche.
 :::
 
 ::: definition 3 — Séquençage court
-Une idée par bloc. Cinq à sept lignes maximum, puis un repère visuel (encadré, trait,
-pictogramme). Jamais de pavé de texte.
+Une idée par bloc. Cinq à sept lignes maximum, puis un repère visuel (encadré, trait, pictogramme). Jamais de pavé de texte.
 **Effet attendu :** l'attention se recharge à chaque frontière visuelle.
 :::
 
 ::: definition 4 — Langage littéral
 Aucune ironie, aucune métaphore non expliquée, aucun sous-entendu.
-« Développe ta réponse » devient « Ajoute deux phrases : une qui donne un exemple,
-une qui explique pourquoi cet exemple prouve ce que tu dis. »
+« Développe ta réponse » devient « Ajoute deux phrases : une qui donne un exemple, une qui explique pourquoi cet exemple prouve ce que tu dis. »
 **Effet attendu :** la consigne cesse d'être un exercice de décodage social.
 :::
 
 ::: definition 5 — Consignes atomiques
-Une consigne = une action. Une question qui demande trois choses devient trois questions
-numérotées. Les verbes de consigne sont toujours les mêmes et sont définis une fois pour toutes.
+Une consigne = une action. Une question qui demande trois choses devient trois questions numérotées. Les verbes de consigne sont toujours les mêmes et sont définis une fois pour toutes.
 **Effet attendu :** plus de réponse partielle due à une consigne « avalée ».
 :::
 
 ::: definition 6 — Critères de réussite explicites
 Avant même la correction, l'élève doit pouvoir savoir **seul** s'il a réussi.
-Chaque exercice important indique ce qui est attendu : combien de phrases, quels mots
-doivent apparaître, quelle étape doit figurer dans le calcul.
+Chaque exercice important indique ce qui est attendu : combien de phrases, quels mots doivent apparaître, quelle étape doit figurer dans le calcul.
 **Effet attendu :** autonomie réelle, et fin de la dépendance à la validation par l'adulte.
 :::
 
 ::: definition 7 — Charge sensorielle maîtrisée
-Fond crème et jamais blanc pur, texte non justifié, interligne 1,7, ligne de 60 à 68
-caractères, pas de fond coloré derrière un texte long, aucune animation automatique,
-aucun son non déclenché.
+Fond crème et jamais blanc pur, texte non justifié, interligne 1,7, ligne de 60 à 68 caractères, pas de fond coloré derrière un texte long, aucune animation automatique, aucun son non déclenché.
 **Effet attendu :** moins de fatigue visuelle, donc plus de temps de travail utile.
 :::
 
@@ -95,8 +81,7 @@ par un mot. Un document imprimé en noir et blanc reste intégralement compréhe
 :::
 
 ::: definition 9 — Points de pause balisés
-Le repère 🔁 indique les endroits où s'arrêter **sans perdre le fil**. La pause est
-prévue dans le document, donc légitime : ce n'est pas un abandon.
+Le repère 🔁 indique les endroits où s'arrêter **sans perdre le fil**. La pause est prévue dans le document, donc légitime : ce n'est pas un abandon.
 **Effet attendu :** la pause devient un outil, pas un échec.
 :::
 
@@ -108,8 +93,7 @@ Le ton est **calme, direct, factuel**, encourageant sans excès ni enthousiasme 
 
 ## 3. Le protocole de séance
 
-Une séance se déroule **toujours** dans cet ordre. C'est la prévisibilité du cadre
-qui rend le contenu abordable.
+Une séance se déroule **toujours** dans cet ordre. C'est la prévisibilité du cadre qui rend le contenu abordable.
 
 ::: etapes
 1. **Annonce** (2 min) — dire ce qu'on va faire, combien de temps, et ce qui se passe après. Écrire les trois points quelque part de visible.
@@ -122,8 +106,7 @@ qui rend le contenu abordable.
 :::
 
 ::: info Durée totale : 1 h 12 min de séance pour 55 min de travail effectif.
-C'est une proportion normale et attendue. Viser 100 % de temps utile est le meilleur
-moyen d'obtenir 40 %.
+C'est une proportion normale et attendue. Viser 100 % de temps utile est le meilleur moyen d'obtenir 40 %.
 :::
 
 ::: methode Les transitions
@@ -147,8 +130,7 @@ Les changements d'activité sont le moment le plus coûteux. Trois réflexes :
 :::
 
 ::: piege Ne jamais ajouter un exercice non annoncé
-Même si la séance se passe bien. Modifier le contrat en cours de route coûte
-plus cher que ce que l'exercice supplémentaire rapporte.
+Même si la séance se passe bien. Modifier le contrat en cours de route coûte plus cher que ce que l'exercice supplémentaire rapporte.
 :::
 
 ## 5. Les signaux à surveiller
@@ -166,8 +148,7 @@ plus cher que ce que l'exercice supplémentaire rapporte.
 
 ## 6. Le profil de Sterenn — à compléter et à tenir à jour
 
-Cette section est **volontairement vide** : elle se remplit à l'usage, et elle
-prime sur tout ce qui précède. Ce qui est observé l'emporte sur ce qui est théorique.
+Cette section est **volontairement vide** : elle se remplit à l'usage, et elle prime sur tout ce qui précède. Ce qui est observé l'emporte sur ce qui est théorique.
 
 ::: aide À renseigner
 **Centres d'intérêt à utiliser comme supports d'exercices**

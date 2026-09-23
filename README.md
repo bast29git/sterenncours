@@ -1,12 +1,9 @@
 # sterenncours — Supports de cours de 4ᵉ
 
-Supports pédagogiques préparés pour **Sterenn**, classe de **4ᵉ**, profil **TSA sans
-déficience intellectuelle**, alignés sur le **programme officiel du cycle 4** et sur
-le format de **validation des acquis du CNED**.
+Supports pédagogiques préparés pour **Sterenn**, classe de **4ᵉ**, profil **TSA sans déficience intellectuelle**, alignés sur le **programme officiel du cycle 4** et sur le format de **validation des acquis du CNED**.
 
 Le niveau d'exigence est celui du programme officiel. Ce qui est adapté, c'est la
-**forme** : structure identique d'un document à l'autre, consignes explicites,
-une idée par bloc, critères de réussite toujours écrits.
+**forme** : structure identique d'un document à l'autre, consignes explicites, une idée par bloc, critères de réussite toujours écrits.
 
 ## Démarrage
 
@@ -36,8 +33,7 @@ Toute leçon possède **quatre** documents, jamais moins :
 3. **Exercices corrigés** — énoncés progressifs + corrigés détaillés pas à pas
 4. **Grille d'évaluation** — Insuffisant · Fragile · Satisfaisant · Très bien
 
-L'échelle des grilles est celle du **livret scolaire officiel**, celle-là même qui
-est convertie en points pour le brevet en fin de 3ᵉ.
+L'échelle des grilles est celle du **livret scolaire officiel**, celle-là même qui est convertie en points pour le brevet en fin de 3ᵉ.
 
 ## Les 8 matières · 69 leçons
 

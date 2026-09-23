@@ -1,8 +1,6 @@
 # Design system — lexique des blocs
 
-Toute la mise en forme passe par des **conteneurs `:::`**. Aucun style en ligne
-n'est autorisé dans le Markdown : c'est ce qui garantit qu'une fiche de maths et
-une fiche d'espagnol se lisent exactement de la même façon.
+Toute la mise en forme passe par des **conteneurs `:::`**. Aucun style en ligne n'est autorisé dans le Markdown : c'est ce qui garantit qu'une fiche de maths et une fiche d'espagnol se lisent exactement de la même façon.
 
 ## Blocs sémantiques
 
@@ -70,9 +68,16 @@ Le gabarit place `data-matiere` sur `<html>` d'après le front-matter.
 Les couleurs disponibles : `maths`, `francais`, `histoire-geo`, `emc`,
 `physique-chimie`, `svt`, `anglais-lv1`, `espagnol-lv2`, `pilotage`.
 
+## Retours à la ligne
+
+Le rendu utilise `breaks: true` : **une ligne écrite est une ligne affichée**.
+On n'écrit donc jamais une phrase coupée en deux lignes, et chaque étape d'un
+calcul ou d'un corrigé va sur sa propre ligne.
+
 ## Règles non négociables
 
 - Aucune information portée par la **couleur seule** : toujours couleur + picto + mot.
 - Aucun texte **justifié**.
 - Aucun emoji **hors du lexique** ci-dessus.
 - Fond **crème**, jamais blanc pur, à l'écran comme à l'impression des blocs.
+- Jamais de **phrase coupée** en deux lignes dans le Markdown.
