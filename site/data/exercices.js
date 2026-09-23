@@ -210,6 +210,39 @@ window.EXERCICES = {
         choix: ['6', '12', '15', '10'],
         reponse: 1,
         explication: "Prendre 2/5 d'un nombre, c'est le diviser par 5 puis multiplier par 2 : 30 ÷ 5 = 6, puis 6 × 2 = 12. La réponse 6 correspond à 1/5 seulement : on a oublié de multiplier par le numérateur."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien vaut <strong>(-45) ÷ (-9)</strong> ?',
+        choix: ['-5', '+5', '-54', '+54'],
+        reponse: 1,
+        explication: "Deux signes identiques dans un quotient donnent un résultat positif, et 45 ÷ 9 = 5. Le résultat est donc +5. Le signe et la distance à zéro se traitent séparément : c'est ce qui rend la règle simple."
+      },
+      {
+        type: 'saisie',
+        q: 'Combien vaut <strong>5/6 - 3/8</strong> ? Donne la fraction simplifiée, sous la forme a/b.',
+        reponses: ['11/24', '11 / 24'],
+        explication: "Le plus petit dénominateur commun de 6 et 8 est 24. Alors 5/6 = 20/24 et 3/8 = 9/24, donc la différence vaut 11/24. Comme 11 est premier et ne divise pas 24, le résultat est déjà simplifié."
+      },
+      {
+        type: 'qcm',
+        q: "Quel est l'opposé de <strong>-7</strong> ?",
+        choix: ['-1/7', '+7', '1/7', '-7'],
+        reponse: 1,
+        explication: "L'opposé a la même distance à zéro et le signe contraire : c'est +7. Ne pas confondre avec l'inverse, qui retourne une fraction : l'inverse de -7 serait -1/7."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Soustraire un nombre négatif fait augmenter le résultat.',
+        reponse: true,
+        explication: "Vrai. Soustraire, c'est ajouter l'opposé : (+3) - (-8) = (+3) + (+8) = +11. C'est la seule situation où un calcul faisant intervenir un nombre négatif donne un résultat plus grand qu'au départ."
+      },
+      {
+        type: 'qcm',
+        q: 'Un réservoir de 180 litres est rempli aux <strong>2/3</strong>. Combien contient-il ?',
+        choix: ['60 L', '90 L', '120 L', '135 L'],
+        reponse: 2,
+        explication: "Prendre 2/3 d'un nombre, c'est le diviser par 3 puis multiplier par 2 : 180 ÷ 3 = 60, puis 60 × 2 = 120 litres. La réponse 60 correspond au tiers seulement."
       }
     ]
   },
@@ -316,6 +349,50 @@ window.EXERCICES = {
         choix: ["Rien, le repérage suffit", "Que l'image est belle", "L'effet produit sur le lecteur", "Le nombre de syllabes du vers"],
         reponse: 2,
         explication: "Le paragraphe se fait en quatre temps : annoncer, citer, analyser en nommant le procédé, puis dire l'effet produit. S'arrêter au repérage ne vaut aucun point, et « cette image est belle » n'apprend rien sur ce poème en particulier."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment appelle-t-on une strophe de <strong>3 vers</strong> ?',
+        choix: ['Un distique', 'Un tercet', 'Un quatrain', 'Un sizain'],
+        reponse: 1,
+        explication: "Une strophe de 3 vers est un tercet. Un distique en compte 2, un quatrain 4, un sizain 6. Un sonnet se compose de deux quatrains puis de deux tercets."
+      },
+      {
+        type: 'qcm',
+        q: 'Le schéma <strong>ABAB</strong> désigne des rimes…',
+        choix: ['suivies', 'croisées', 'embrassées', 'riches'],
+        reponse: 1,
+        explication: "ABAB, ce sont des rimes croisées : elles alternent une sur deux. AABB donne des rimes suivies, ABBA des rimes embrassées. « Riche » qualifie la qualité d'une rime, pas sa disposition."
+      },
+      {
+        type: 'saisie',
+        q: 'Comment appelle-t-on le dernier vers d\'un sonnet, souvent frappant ?',
+        reponses: ['la chute', 'chute', 'une chute'],
+        explication: "On l'appelle la chute. C'est souvent là que se trouve la pointe du poème, l'idée que le lecteur emporte. Chez Ronsard, « Cueillez dès aujourd'hui les roses de la vie » en est un exemple célèbre."
+      },
+      {
+        type: 'qcm',
+        q: "Qu'est-ce qu'un <strong>champ lexical</strong> ?",
+        choix: [
+          "L'ensemble des rimes d'un poème",
+          "L'ensemble des mots d'un texte qui se rapportent au même thème",
+          "Le nombre de syllabes d'un vers",
+          "La strophe finale d'un poème"
+        ],
+        reponse: 1,
+        explication: "Un champ lexical réunit les mots d'un texte qui se rapportent au même thème : cœur, aimer, flamme et tendresse forment le champ lexical de l'amour. Le relever est l'une des trois preuves du registre lyrique."
+      },
+      {
+        type: 'qcm',
+        q: "Dans « <strong>Sa chevelure, une nuit sans étoiles</strong> », quel procédé et quel effet ?",
+        choix: [
+          'Une comparaison, qui éclaircit la description',
+          'Une métaphore, qui transforme la chevelure en étendue sombre',
+          'Une personnification, qui donne vie à la chevelure',
+          'Aucun procédé particulier'
+        ],
+        reponse: 1,
+        explication: "Aucun mot de comparaison ne relie les deux termes : c'est une métaphore. La chevelure devient une étendue où l'on peut se perdre, et la précision « sans étoiles » retire toute lumière, ce qui ajoute de l'inquiétude à la beauté."
       }
     ]
   },
@@ -436,6 +513,44 @@ window.EXERCICES = {
         ],
         reponse: 1,
         explication: "En se dissolvant, le sel NaCl libère des ions Na⁺ et Cl⁻ qui peuvent se déplacer dans l'eau : ce sont eux qui transportent le courant. L'eau distillée contient très peu d'ions, donc presque rien pour le transporter."
+      },
+      {
+        type: 'saisie',
+        q: "Combien d'atomes au total contient <strong>H₂SO₄</strong> ?",
+        reponses: ['7', '7 atomes', 'sept'],
+        explication: "2 hydrogènes + 1 soufre + 4 oxygènes = 7 atomes, de trois sortes différentes. Le soufre n'a pas d'indice : il y en a donc un seul, et non zéro."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle est la formule du <strong>méthane</strong> ?",
+        choix: ['CH₄', 'CO₂', 'NH₃', 'C₂H₆'],
+        reponse: 0,
+        explication: "CH₄ : un atome de carbone et quatre atomes d'hydrogène. C'est le constituant principal du gaz naturel. NH₃ est l'ammoniac, CO₂ le dioxyde de carbone."
+      },
+      {
+        type: 'vraifaux',
+        q: "Le fer d'un clou est un corps pur.",
+        reponse: true,
+        explication: "Vrai : il ne contient qu'une seule sorte d'entité, des atomes de fer Fe. L'acier, en revanche, est un mélange de fer et de carbone, et c'est ce carbone qui le rend plus dur."
+      },
+      {
+        type: 'qcm',
+        q: "Dans quel état les molécules sont-elles <strong>serrées mais en désordre</strong>, et glissent les unes sur les autres ?",
+        choix: ['Solide', 'Liquide', 'Gaz', 'Aucun'],
+        reponse: 1,
+        explication: "C'est l'état liquide. Dans un solide elles sont serrées et ordonnées, immobiles à leur place ; dans un gaz elles sont très éloignées et rapides. Le liquide est le seul état qui a un volume propre sans avoir de forme propre."
+      },
+      {
+        type: 'qcm',
+        q: "Pourquoi une bouteille d'eau pleine et bouchée éclate-t-elle au congélateur ?",
+        choix: [
+          'Parce que la masse de l\'eau augmente en gelant',
+          'Parce que le volume de l\'eau augmente en gelant',
+          'Parce que les molécules se transforment',
+          'Parce que le plastique se rétracte'
+        ],
+        reponse: 1,
+        explication: "En gelant, l'eau augmente de volume d'environ 9 %, ce qui fait monter la pression dans une bouteille fermée. La masse, elle, ne change pas d'un gramme : les molécules sont les mêmes et en même nombre."
       }
     ]
   },
@@ -593,6 +708,39 @@ window.EXERCICES = {
         q: "Comment s'appelle la couche déformable sur laquelle glissent les plaques ?",
         reponses: ['asthenosphere', 'asthénosphère', "l'asthénosphère", "l'asthenosphere"],
         explication: "L'asthénosphère est la partie du manteau située sous la lithosphère. Elle reste solide, mais se déforme plus facilement : c'est sur elle que glissent les plaques rigides."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle roche compose principalement la <strong>croûte continentale</strong> ?",
+        choix: ['Le basalte', 'Le granite', 'Le calcaire', 'Le sel'],
+        reponse: 1,
+        explication: "Le granite, moins dense que le basalte de la croûte océanique. Cette différence de densité explique que la plaque continentale ne plonge jamais : quand deux continents se rencontrent, ils se plissent en montagnes."
+      },
+      {
+        type: 'qcm',
+        q: "Comment appelle-t-on la fosse très profonde qui se creuse là où une plaque plonge ?",
+        choix: ['Une dorsale', 'Une faille', 'Une fosse océanique', 'Un rift'],
+        reponse: 2,
+        explication: "Une fosse océanique. Celle du Japon dépasse 8 000 m de profondeur. Elle marque l'endroit précis où la plaque océanique commence à s'enfoncer sous l'autre plaque."
+      },
+      {
+        type: 'saisie',
+        q: "Combien de kilomètres fait environ le rayon de la Terre ?",
+        reponses: ['6370', '6 370', '6370 km', '6 370 km', '6400', '6 400'],
+        explication: "Environ 6 370 km. À comparer au forage le plus profond jamais réalisé, 12 km : on n'a donc jamais traversé la croûte. Tout ce qu'on sait de l'intérieur vient des ondes sismiques."
+      },
+      {
+        type: 'vraifaux',
+        q: "La lithosphère et la croûte désignent la même chose.",
+        reponse: false,
+        explication: "Faux. La croûte se définit par sa composition ; la lithosphère par son comportement mécanique. La lithosphère, rigide et épaisse d'environ 100 km, comprend la croûte ET le sommet du manteau. C'est elle qui est découpée en plaques."
+      },
+      {
+        type: 'qcm',
+        q: "La mer Rouge s'élargit d'environ 1,5 cm par an. Quel type de frontière s'y trouve ?",
+        choix: ['Convergente', 'Divergente', 'Coulissante', 'Aucune'],
+        reponse: 1,
+        explication: "Une frontière divergente : les deux rives s'écartent et de la croûte océanique neuve se forme entre elles. Si le mouvement continue, la mer Rouge deviendra un océan. On assiste en direct à la naissance d'un océan."
       }
     ]
   },
@@ -718,6 +866,45 @@ window.EXERCICES = {
         ],
         reponse: 1,
         explication: "Saint-Domingue représentait à elle seule les deux tiers du commerce extérieur français, et les ports de Nantes, Bordeaux et La Rochelle en vivaient. Les intérêts économiques ont longtemps résisté aux arguments moraux : il a fallu la Révolution et la révolte de 1791."
+      },
+      {
+        type: 'saisie',
+        q: "En quelle année a lieu la <strong>première</strong> abolition de l'esclavage en France ?",
+        reponses: ['1794'],
+        explication: "1794, votée par la Convention. Elle est annulée en 1802 par le rétablissement de l'esclavage sous Bonaparte. L'abolition définitive n'arrive qu'en 1848, portée par Victor Schœlcher."
+      },
+      {
+        type: 'qcm',
+        q: "Quel est le premier port négrier d'<strong>Europe</strong> ?",
+        choix: ['Nantes', 'Bordeaux', 'Liverpool', 'Lisbonne'],
+        reponse: 2,
+        explication: "Liverpool est le premier port négrier européen. Nantes est le premier port négrier français, avec environ 1 400 expéditions armées entre 1700 et 1792."
+      },
+      {
+        type: 'qcm',
+        q: "Dans la cale d'un navire négrier, chaque personne disposait d'environ…",
+        choix: ['2 m² et pouvait se lever', '0,64 m² sans pouvoir se redresser', '4 m² partagés à deux', 'une cabine individuelle'],
+        reponse: 1,
+        explication: "Environ 40 cm sur 160 cm, soit 0,64 m², sans possibilité de se redresser. C'est près de trois fois moins qu'un lit d'une place. Cette organisation visait à maximiser le nombre de personnes embarquées par voyage."
+      },
+      {
+        type: 'qcm',
+        q: "Qui dirige la révolte de Saint-Domingue de 1791 ?",
+        choix: ['Victor Schœlcher', 'Toussaint Louverture', 'Condorcet', 'Olaudah Equiano'],
+        reponse: 1,
+        explication: "Toussaint Louverture est l'une des principales figures de cette révolte, qui aboutit en 1804 à l'indépendance d'Haïti. Schœlcher porte l'abolition française de 1848 ; Condorcet et Equiano sont des abolitionnistes du XVIIIᵉ siècle."
+      },
+      {
+        type: 'qcm',
+        q: "Que dit la loi Taubira de <strong>2001</strong> ?",
+        choix: [
+          "Elle abolit l'esclavage",
+          "Elle reconnaît la traite et l'esclavage comme crime contre l'humanité",
+          "Elle indemnise les anciens propriétaires",
+          "Elle interdit la traite"
+        ],
+        reponse: 1,
+        explication: "La loi Taubira de 2001 reconnaît la traite transatlantique et l'esclavage comme un crime contre l'humanité. L'abolition date de 1848, l'interdiction de la traite de 1815, et l'indemnisation de 1848 a été versée aux anciens propriétaires."
       }
     ]
   },
@@ -854,6 +1041,45 @@ window.EXERCICES = {
         q: "En EMC, deux élèves d'avis opposés peuvent obtenir la même excellente note.",
         reponse: true,
         explication: "Vrai. On n'évalue pas l'opinion mais la qualité du raisonnement : la position est-elle claire, l'argument est-il autre chose qu'un ressenti, l'objection est-elle prise au sérieux. C'est la règle du jeu de la matière."
+      },
+      {
+        type: 'qcm',
+        q: "En quelle année a été adoptée la <strong>Déclaration des droits de l'homme et du citoyen</strong> ?",
+        choix: ['1789', '1848', '1948', '1958'],
+        reponse: 0,
+        explication: "1789. Elle a aujourd'hui valeur constitutionnelle en France. La Déclaration universelle des droits de l'homme date de 1948, et la Constitution de la Vᵉ République de 1958."
+      },
+      {
+        type: 'qcm',
+        q: "La liberté de <strong>conscience</strong> est une liberté…",
+        choix: ['individuelle', 'collective', 'réservée aux majeurs', 'suspendue en cas de crise'],
+        reponse: 0,
+        explication: "Individuelle : elle s'exerce seul. Les libertés collectives supposent d'être plusieurs : réunion, association, manifestation, liberté syndicale."
+      },
+      {
+        type: 'qcm',
+        q: "Quel motif de limitation n'est <strong>pas</strong> reconnu comme légitime ?",
+        choix: [
+          "Protéger l'ordre public",
+          "Protéger la santé publique",
+          "Éviter qu'une opinion ne choque",
+          "Protéger les droits d'autrui"
+        ],
+        reponse: 2,
+        explication: "Choquer n'est pas nuire. Une opinion qui dérange reste protégée : c'est même le cœur de la liberté d'expression. Les motifs légitimes sont l'ordre public, la santé publique, les droits d'autrui et la protection des mineurs."
+      },
+      {
+        type: 'qcm',
+        q: "Qui vérifie qu'une <strong>loi</strong> respecte la Constitution ?",
+        choix: ['Le Conseil d\'État', 'Le Conseil constitutionnel', 'Le préfet', 'Le Parlement lui-même'],
+        reponse: 1,
+        explication: "Le Conseil constitutionnel. Le Conseil d'État, lui, est la plus haute juridiction administrative : il contrôle les décisions des autorités publiques, comme les arrêtés d'un maire ou d'un préfet."
+      },
+      {
+        type: 'vraifaux',
+        q: "Une mesure de police qui limite une liberté peut être de durée indéterminée.",
+        reponse: false,
+        explication: "Faux. Une mesure de police doit être limitée dans le temps et dans l'espace, et rester proportionnée. Une interdiction générale et permanente transforme une réponse à une gêne ponctuelle en suppression durable d'une liberté."
       }
     ]
   },
@@ -986,6 +1212,50 @@ window.EXERCICES = {
         ],
         reponse: 1,
         explication: "to look forward to signifie « attendre avec impatience », « avoir hâte ». C'est une formule très fréquente en fin de lettre ou de message : I'm looking forward to hearing from you."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : <strong>I think it ……… be sunny tomorrow.</strong>',
+        choix: ['is going to', 'will', 'is', 'am going to'],
+        reponse: 1,
+        explication: "La présence de I think signale une opinion, sans preuve visible : c'est will. On emploierait be going to seulement devant un indice présent sous les yeux, comme des nuages qui s'amoncellent."
+      },
+      {
+        type: 'saisie',
+        q: 'Traduis : <strong>la semaine prochaine</strong>.',
+        reponses: ['next week'],
+        explication: "next week, sans article ni préposition : on dit I'm leaving next week, et non in the next week. Même construction pour next month, next year, next summer."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle phrase est <strong>incorrecte</strong> ?',
+        choix: [
+          "I'm meeting Sarah at 6 p.m.",
+          "I'm going to learn Japanese.",
+          "Look! It will rain.",
+          "I'll answer the phone."
+        ],
+        reponse: 2,
+        explication: "Look! signale un indice visible : il faut donc be going to, soit Look! It's going to rain. Les trois autres phrases sont correctes, chacune avec la forme adaptée à sa situation."
+      },
+      {
+        type: 'qcm',
+        q: 'Réponds brièvement : <strong>Are they going to come?</strong> (non)',
+        choix: ["No, they don't.", "No, they aren't.", "No, they won't.", "No, they not."],
+        reponse: 1,
+        explication: "La réponse courte reprend l'auxiliaire de la question. Ici l'auxiliaire est are, donc No, they aren't, ou No, they're not. won't répondrait à une question en Will they…"
+      },
+      {
+        type: 'qcm',
+        q: "Quelle forme pour : « <strong>Nous partons pour Londres lundi, les billets sont pris</strong> » ?",
+        choix: [
+          "We will fly to London on Monday.",
+          "We're going to fly to London on Monday.",
+          "We're flying to London on Monday.",
+          "We fly to London on Monday."
+        ],
+        reponse: 2,
+        explication: "Les billets sont pris et la date est fixée : c'est un rendez-vous, donc le présent continu. be going to conviendrait pour une intention sans date, et will pour une décision prise à l'instant."
       }
     ]
   },
@@ -1098,6 +1368,185 @@ window.EXERCICES = {
         choix: ['Nos despertamos.', 'Se despertamos.', 'Despertamos nos.', 'Me despertamos.'],
         reponse: 0,
         explication: "Nos despertamos. Le pronom change avec la personne : me, te, se, nos, os, se. À nosotros, c'est nos, et il se place avant le verbe conjugué."
+      },
+      {
+        type: 'saisie',
+        q: 'Conjugue <strong>comer</strong> à la personne <strong>nosotros</strong>.',
+        reponses: ['comemos', 'nosotros comemos'],
+        explication: "comemos. C'est précisément à nosotros que les groupes en -er et en -ir se distinguent : comemos contre vivimos. Partout ailleurs, leurs terminaisons sont identiques."
+      },
+      {
+        type: 'qcm',
+        q: 'Traduis : <strong>Il est quatre heures moins le quart.</strong>',
+        choix: [
+          'Son las cuatro menos cuarto.',
+          'Es la cuatro menos cuarto.',
+          'Son las tres y cuarenta y cinco.',
+          'Son las cuatro y cuarto.'
+        ],
+        reponse: 0,
+        explication: "Son las cuatro menos cuarto : l'espagnol exprime 15 h 45 comme « quatre heures moins le quart », exactement comme le français. Le pluriel son las s'impose dès qu'il ne s'agit pas d'une heure."
+      },
+      {
+        type: 'saisie',
+        q: 'Traduis : <strong>Où habites-tu ?</strong> (avec les signes)',
+        reponses: ['¿Dónde vives?', '¿Donde vives?', '¿Dónde vives ?'],
+        explication: "¿Dónde vives? Ne pas oublier le signe ouvrant ¿ ni l'accent sur dónde. Tous les mots interrogatifs portent un accent écrit, qui signale la question sans changer la prononciation."
+      },
+      {
+        type: 'qcm',
+        q: "Quel verbe emploie-t-on pour dire sa <strong>nationalité</strong> ?",
+        choix: ['tener', 'ser', 'estar', 'haber'],
+        reponse: 1,
+        explication: "ser : ella es francesa. On réserve tener à l'âge et à la possession : ella tiene catorce años. Confondre les deux est l'erreur la plus fréquente du chapitre."
+      },
+      {
+        type: 'qcm',
+        q: "Dans un récit de journée, quel mot signifie « <strong>ensuite</strong> » ?",
+        choix: ['primero', 'después', 'finalmente', 'todos los días'],
+        reponse: 1,
+        explication: "después. Les connecteurs à connaître sont primero (d'abord), después et luego (ensuite, puis), más tarde (plus tard) et finalmente (enfin). Ils organisent le récit et rapportent des points en production."
+      }
+    ]
+  },
+
+  'maths/L02': {
+    titre: 'Puissances et notation scientifique',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Combien vaut <strong>2⁵</strong> ?',
+        choix: ['10', '25', '32', '16'],
+        reponse: 2,
+        explication: "2⁵ = 2 × 2 × 2 × 2 × 2 = 32. La réponse 10 confond la puissance avec la multiplication 2 × 5. Une puissance grandit beaucoup plus vite qu'un produit : c'est un bon contrôle."
+      },
+      {
+        type: 'saisie',
+        q: 'Écris <strong>3 × 3 × 3 × 3</strong> sous forme de puissance.',
+        reponses: ['3^4', '3⁴', '3**4'],
+        explication: "3⁴ : il y a quatre facteurs. L'exposant compte les facteurs, pas les signes de multiplication. Ici il y a quatre 3 mais seulement trois signes ×."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien vaut <strong>7⁰</strong> ?',
+        choix: ['0', '1', '7', "Cela n'existe pas"],
+        reponse: 1,
+        explication: "Toute puissance d'exposant 0, pour une base non nulle, vaut 1. Ce n'est pas arbitraire : 2³ = 8, 2² = 4, 2¹ = 2, et chaque descente divise par 2, donc 2⁰ = 2 ÷ 2 = 1."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien vaut <strong>2⁻³</strong> ?',
+        choix: ['-8', '-6', '0,125', '6'],
+        reponse: 2,
+        explication: "Un exposant négatif signale un inverse : 2⁻³ = 1/2³ = 1/8 = 0,125. Le résultat est positif. Pour obtenir un nombre négatif, il faudrait une base négative et un exposant impair."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien vaut <strong>(-3)²</strong> ?',
+        choix: ['-9', '+9', '-6', '+6'],
+        reponse: 1,
+        explication: "(-3)² = (-3) × (-3) = +9. Deux facteurs négatifs donnent un produit positif. Attention : sans les parenthèses, -3² vaut -9, parce que l'exposant ne porte alors que sur le 3."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien vaut <strong>-3²</strong> ?',
+        choix: ['-9', '+9', '-6', '9 ou -9 selon le contexte'],
+        reponse: 0,
+        explication: "Sans parenthèses, l'exposant ne gouverne que le 3 : -3² = -(3 × 3) = -9. La place des parenthèses change le résultat, et c'est le piège le plus fréquent du chapitre."
+      },
+      {
+        type: 'saisie',
+        q: 'Simplifie en une seule puissance : <strong>3⁵ × 3²</strong>.',
+        reponses: ['3^7', '3⁷', '3**7'],
+        explication: "Même base : on additionne les exposants, 5 + 2 = 7, donc 3⁷. Ce n'est pas une astuce mais un comptage : 3⁵ apporte cinq facteurs, 3² en apporte deux, soit sept en tout."
+      },
+      {
+        type: 'qcm',
+        q: 'Simplifie : <strong>6⁷ ÷ 6⁴</strong>.',
+        choix: ['6³', '6¹¹', '6²⁸', '1³'],
+        reponse: 0,
+        explication: "Pour un quotient de même base, on soustrait les exposants : 7 - 4 = 3, donc 6³ = 216. La règle fonctionne aussi quand la soustraction donne un nombre négatif, ce qui produit un exposant négatif."
+      },
+      {
+        type: 'qcm',
+        q: 'Simplifie : <strong>(5²)³</strong>.',
+        choix: ['5⁵', '5⁶', '5⁸', '5⁹'],
+        reponse: 1,
+        explication: "Une parenthèse avec un exposant à l'extérieur : on multiplie les exposants, 2 × 3 = 6, donc 5⁶. La réponse 5⁵ correspondrait à 5² × 5³, où l'on additionne. Le repère : parenthèse, on multiplie ; signe ×, on additionne."
+      },
+      {
+        type: 'vraifaux',
+        q: '<strong>2³ × 5³</strong> se simplifie en <strong>10³</strong> par la règle des puissances.',
+        reponse: false,
+        explication: "Faux. Les règles exigent la même base, or ici elles sont différentes. Il faut calculer : 8 × 125 = 1 000. Le résultat vaut effectivement 10³, mais par coïncidence : avec 2³ × 5², le même raisonnement donnerait un résultat faux."
+      },
+      {
+        type: 'saisie',
+        q: "Combien vaut <strong>10⁻³</strong> ? Donne l'écriture décimale.",
+        reponses: ['0,001', '0.001'],
+        explication: "10⁻³ = 0,001 : trois chiffres après la virgule. La règle miroir : 10ⁿ s'écrit 1 suivi de n zéros, et 10⁻ⁿ a n chiffres après la virgule."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien vaut <strong>3,5 × 10³</strong> ?',
+        choix: ['35', '350', '3 500', '35 000'],
+        reponse: 2,
+        explication: "Multiplier par 10³ décale la virgule de trois rangs vers la droite : 3,5 devient 3 500. Multiplier par 10⁻² la décalerait de deux rangs vers la gauche."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la notation scientifique de <strong>4 270</strong> ?',
+        choix: ['42,7 × 10²', '4,27 × 10³', '0,427 × 10⁴', '427 × 10¹'],
+        reponse: 1,
+        explication: "La partie entière doit comporter un seul chiffre, de 1 à 9 : seul 4,27 × 10³ convient. 42,7 en a deux, 0,427 a une partie entière nulle, 427 en a trois."
+      },
+      {
+        type: 'saisie',
+        q: 'Écris <strong>0,000 45</strong> en notation scientifique. (forme a × 10^n)',
+        reponses: ['4,5 × 10^-4', '4,5x10^-4', '4.5 × 10^-4', '4,5 10^-4', '4,5*10^-4', '4,5e-4'],
+        explication: "Le premier chiffre non nul est le 4 : on place la virgule juste après, ce qui donne 4,5. La virgule a avancé de 4 rangs vers la droite, donc l'exposant est -4 : 4,5 × 10⁻⁴. Un nombre plus petit que 1 a toujours un exposant négatif."
+      },
+      {
+        type: 'qcm',
+        q: 'Lequel est le plus grand ?',
+        choix: ['9,8 × 10⁴', '3,2 × 10⁵', 'Ils sont égaux', 'On ne peut pas savoir'],
+        reponse: 1,
+        explication: "L'exposant décide en premier : 5 l'emporte sur 4, donc 3,2 × 10⁵ = 320 000 est plus grand que 9,8 × 10⁴ = 98 000, même si 9,8 semble plus grand que 3,2."
+      },
+      {
+        type: 'qcm',
+        q: "Corrige cette écriture : <strong>73,5 × 10⁴</strong>.",
+        choix: ['7,35 × 10³', '7,35 × 10⁵', '0,735 × 10⁵', '735 × 10³'],
+        reponse: 1,
+        explication: "73,5 a deux chiffres avant la virgule. On décale d'un rang vers la gauche, ce qui augmente l'exposant de 1 : 7,35 × 10⁵. Les deux écritures valent bien 735 000."
+      },
+      {
+        type: 'qcm',
+        q: 'Que vaut le préfixe <strong>nano</strong> ?',
+        choix: ['10⁻³', '10⁻⁶', '10⁻⁹', '10⁹'],
+        reponse: 2,
+        explication: "nano vaut 10⁻⁹. milli vaut 10⁻³, micro 10⁻⁶. Un atome mesure environ 0,1 nm, soit 10⁻¹⁰ m : ce sont les mêmes puissances de 10 qu'en physique-chimie."
+      },
+      {
+        type: 'qcm',
+        q: 'Calcule : <strong>(3 × 10⁴) × (2 × 10³)</strong>.',
+        choix: ['5 × 10⁷', '6 × 10⁷', '6 × 10¹²', '5 × 10¹²'],
+        reponse: 1,
+        explication: "On traite séparément les nombres et les puissances : 3 × 2 = 6, et 10⁴ × 10³ = 10⁷. Résultat : 6 × 10⁷. Les exposants s'additionnent, ils ne se multiplient pas."
+      },
+      {
+        type: 'qcm',
+        q: "Calcule : <strong>(5 × 10⁻³) × (6 × 10⁷)</strong>, en notation scientifique.",
+        choix: ['30 × 10⁴', '3 × 10⁵', '11 × 10⁴', '3 × 10⁴'],
+        reponse: 1,
+        explication: "5 × 6 = 30 et 10⁻³ × 10⁷ = 10⁴, ce qui donne 30 × 10⁴. Mais 30 a deux chiffres : il faut remettre en forme, soit 3 × 10⁵. C'est l'étape qu'on oublie le plus souvent."
+      },
+      {
+        type: 'qcm',
+        q: "La lumière parcourt 3 × 10⁸ m par seconde, et le Soleil est à 1,5 × 10¹¹ m. Combien de temps met sa lumière ?",
+        choix: ['50 secondes', '500 secondes', '5 000 secondes', '5 secondes'],
+        reponse: 1,
+        explication: "Temps = distance ÷ vitesse = (1,5 × 10¹¹) ÷ (3 × 10⁸). On sépare : 1,5 ÷ 3 = 0,5 et 10¹¹ ÷ 10⁸ = 10³, soit 0,5 × 10³ = 500 secondes, c'est-à-dire environ 8 minutes et 20 secondes."
       }
     ]
   }
