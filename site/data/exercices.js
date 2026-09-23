@@ -4828,4 +4828,144 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'francais/L08': {
+    titre: 'Les temps du récit',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Quel temps sert à poser le décor dans un récit ?',
+        choix: ['Le passé simple', 'L\'imparfait', 'Le plus-que-parfait'],
+        reponse: 1,
+        explication: "L'imparfait pose le décor, la durée et les habitudes. Le passé simple raconte les événements qui font avancer l'histoire. Un bon récit alterne les deux en permanence."
+      },
+      {
+        type: 'saisie',
+        q: 'Conjugue « finir » à l\'imparfait, troisième personne du singulier.',
+        reponses: ['il finissait', 'finissait'],
+        explication: "il finissait. On part de « nous finissons », on retire -ons, on ajoute -ait. Cette méthode fonctionne pour tous les verbes sauf « être »."
+      },
+      {
+        type: 'saisie',
+        q: 'Conjugue « venir » au passé simple, troisième personne du singulier.',
+        reponses: ['il vint', 'vint'],
+        explication: "il vint. Les verbes en -in font leur passé simple en -ins, -ins, -int. Au pluriel : ils vinrent, sans d."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel est le passé simple de « pouvoir » à la troisième personne du singulier ?',
+        choix: ['il pouva', 'il put', 'il pouvit'],
+        reponse: 1,
+        explication: "il put. C'est un passé simple en -u, comme « il courut », « il voulut », « il eut ». Ces formes courtes s'apprennent par cœur."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle différence entre « je chantai » et « je chantais » ?',
+        choix: ['Aucune', 'Le premier est un passé simple, le second un imparfait', 'Le premier est une faute'],
+        reponse: 1,
+        explication: "Un seul s les distingue à l'écrit, et la différence est presque inaudible à l'oral : c'est ce qui explique la fréquence de l'erreur. Le contexte permet toujours de trancher."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « Chaque été, ils partaient en Bretagne », quelle valeur a l\'imparfait ?',
+        choix: ['Description', 'Habitude', 'Action en cours'],
+        reponse: 1,
+        explication: "L'habitude. L'indice est « chaque été » : il ne s'agit pas d'un été particulier. Les autres indices d'habitude : tous les, souvent, toujours, d'habitude."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « Il entra, salua, s\'assit », quelle valeur a le passé simple ?',
+        choix: ['Action en cours', 'Succession d\'actions', 'Habitude'],
+        reponse: 1,
+        explication: "Une succession : trois actions brèves qui s'enchaînent rapidement. Le passé simple présente chaque action comme achevée et délimitée, ce qui permet de les mettre bout à bout."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète : « Il ______ (lire) quand la porte s\'ouvrit. »',
+        reponses: ['lisait'],
+        explication: "lisait. L'action longue qui sert de cadre est à l'imparfait, l'action brève qui l'interrompt au passé simple. C'est le couple qui structure la quasi-totalité des récits."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle différence de sens entre « Il pleuvait toute la journée » et « Il plut trois jours » ?',
+        choix: ['Aucune', 'Le premier présente un cadre, le second un épisode délimité', 'Le second est incorrect'],
+        reponse: 1,
+        explication: "L'imparfait présente la pluie sans début ni fin marqués, comme un décor. Le passé simple la présente comme un épisode qui a commencé et s'est terminé. Le fait est le même, la présentation change."
+      },
+      {
+        type: 'vraifaux',
+        q: 'On peut raconter un récit entièrement à l\'imparfait.',
+        reponse: false,
+        explication: "Faux, ou du moins c'est un défaut majeur. Tout à l'imparfait, le lecteur attend un événement qui ne vient jamais : le texte piétine. Tout au passé simple, il n'y a plus d'atmosphère."
+      },
+      {
+        type: 'qcm',
+        q: 'À quoi sert le plus-que-parfait ?',
+        choix: ['À décrire un lieu', 'À exprimer une action antérieure à une autre action passée', 'À raconter l\'avenir'],
+        reponse: 1,
+        explication: "Il marque l'antériorité et permet de revenir en arrière : « Il ouvrit la lettre. Elle lui avait été envoyée trois mois plus tôt. »"
+      },
+      {
+        type: 'qcm',
+        q: 'Comment se construit le plus-que-parfait ?',
+        choix: ['Auxiliaire au présent + participe passé', 'Auxiliaire à l\'imparfait + participe passé', 'Auxiliaire au passé simple + infinitif'],
+        reponse: 1,
+        explication: "Auxiliaire être ou avoir à l'imparfait, suivi du participe passé : il avait mangé, elle était partie, ils s'étaient levés."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle forme est correcte ?',
+        choix: ['elle avait mangée', 'elle avait mangé', 'elle était mangé'],
+        reponse: 1,
+        explication: "elle avait mangé. Avec l'auxiliaire AVOIR, le participe passé ne s'accorde pas avec le sujet. Avec ÊTRE, il s'accorde : elle était partie."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans le système du présent, quel temps remplace le plus-que-parfait ?',
+        choix: ['Le passé composé', 'L\'imparfait', 'Le futur'],
+        reponse: 0,
+        explication: "Le passé composé. Correspondances complètes : passé simple → présent de narration, imparfait → présent, plus-que-parfait → passé composé, conditionnel → futur."
+      },
+      {
+        type: 'vraifaux',
+        q: 'On peut passer du passé simple au présent au milieu d\'un récit sans raison.',
+        reponse: false,
+        explication: "Faux. C'est une rupture de temps, l'une des fautes les plus visibles en rédaction. Le lecteur perd ses repères et le correcteur y voit une erreur de conjugaison, pas un effet."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce que le présent de narration ?',
+        choix: ['Le présent employé pour raconter des faits passés', 'Le présent de l\'indicatif ordinaire', 'Un temps du futur'],
+        reponse: 0,
+        explication: "C'est l'emploi du présent pour raconter des faits passés, ce qui rend le récit plus vivant. On le trouve dans les manuels d'histoire et les commentaires sportifs."
+      },
+      {
+        type: 'qcm',
+        q: 'Quand un basculement au présent de narration est-il réussi ?',
+        choix: ['Quand il survient toutes les trois lignes', 'Quand il est rare et placé à un moment de forte tension', 'Quand il est involontaire'],
+        reponse: 1,
+        explication: "Un procédé de style ne fonctionne que s'il est rare et visiblement assumé. Employé au hasard, il ne se distingue plus d'une faute de conjugaison."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « Quand il arriva, la maison était vide : tout le monde était parti », quel est le temps de « était parti » ?',
+        choix: ['Imparfait', 'Plus-que-parfait', 'Passé simple'],
+        reponse: 1,
+        explication: "Plus-que-parfait. Les trois temps se répartissent sur trois plans : « était parti » avant, « était » pendant, « arriva » l'action du récit elle-même."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Le passé simple s\'emploie couramment à l\'oral.',
+        reponse: false,
+        explication: "Faux. On dit « il est parti », pas « il partit ». C'est un temps littéraire, propre au récit écrit : sa présence signale immédiatement qu'on lit une narration construite."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment vérifier la cohérence des temps de son récit ?',
+        choix: ['En comptant les lignes', 'En surlignant tous les verbes conjugués et en vérifiant qu\'ils appartiennent au même système', 'En relisant à voix haute uniquement'],
+        reponse: 1,
+        explication: "Surligner les verbes est la méthode la plus fiable. On vérifie ensuite que chaque imparfait correspond à un décor ou une durée, et chaque passé simple à un événement."
+      }
+    ]
+  }
 };
