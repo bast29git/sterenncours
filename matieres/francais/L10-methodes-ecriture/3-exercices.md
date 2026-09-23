@@ -286,18 +286,18 @@ Critères de réussite : titre court avec un **verbe** ; chapeau qui résume l'e
 ::: exercice 14 | application | 5 min | ecran
 Pour chaque énoncé, dis s'il s'agit d'un **argument** ou d'un **exemple**.
 
-Thèse : « Il faut développer les transports en commun. »
+Thèse : « Il faut proposer des mangas au CDI du collège. »
 
-1. « Ils réduisent le nombre de voitures en circulation, donc les embouteillages. »
-2. « À Nantes, le tramway transporte 250 000 personnes par jour. »
-3. « Ils permettent de se déplacer à ceux qui n'ont pas de permis. »
-4. « Ma grand-mère prend le bus tous les matins. »
+1. « Ils donnent le goût de lire à des élèves qui n'ouvrent jamais un roman. »
+2. « Au CDI, les mangas représentent la moitié des emprunts de l'année. »
+3. « Ils apprennent à lire une image et un texte en même temps, ce que demande aussi la presse. »
+4. « Ma cousine a commencé *La Petite Faiseuse de Livres* pendant les vacances. »
 
 ::: corrige
-1. **Argument** : il répond à « pourquoi faut-il les développer ? » en donnant une raison, la réduction des embouteillages.
+1. **Argument** : il répond à « pourquoi faut-il en proposer ? » en donnant une raison, le goût de lire.
 2. **Exemple** : il illustre par un cas concret et chiffré.
-3. **Argument** : autre raison, l'accessibilité pour ceux qui ne conduisent pas.
-4. **Exemple**, et assez faible : un cas individuel n'établit rien. Il illustre l'argument 3 mais ne le démontre pas.
+3. **Argument** : autre raison, la lecture combinée de l'image et du texte.
+4. **Exemple**, et assez faible : un cas individuel n'établit rien. Il illustre l'argument 1 mais ne le démontre pas.
 
 Retiens la question de tri : un **argument** répond à « **pourquoi** ? », un **exemple** répond à « comme quoi ? ». Un paragraphe qui n'aligne que des exemples n'argumente pas.
 :::

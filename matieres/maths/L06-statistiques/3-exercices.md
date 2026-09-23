@@ -37,7 +37,7 @@ objectifs:
 ## Série A : effectifs et fréquences
 
 ::: exercice 1 | application | 5 min | ecran
-Voici les pointures de 20 élèves.
+Voici les pointures des 20 membres du club de dessin, relevées pour commander des chaussons d'atelier.
 
 `38, 39, 38, 40, 41, 39, 38, 40, 39, 41, 38, 39, 40, 38, 41, 39, 40, 38, 39, 40`
 

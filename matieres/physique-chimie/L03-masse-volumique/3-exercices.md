@@ -141,11 +141,11 @@ On verse `60 mL` d'eau dans une éprouvette. On y plonge un objet. Le niveau mon
 :::
 
 ::: exercice 8 | application | 4 min | ecran
-Calcule le volume de ces solides sans utiliser d'eau.
+Dans l'atelier de Myne, on calcule le volume des blocs d'encre et des tablettes de cire sans utiliser d'eau.
 
-1. Un cube de `4 cm` de côté.
-2. Un pavé de `2 cm × 3 cm × 5 cm`.
-3. Un cube de `1,5 cm` de côté.
+1. Un bloc d'encre en forme de cube de `4 cm` de côté.
+2. Une tablette de cire, pavé de `2 cm × 3 cm × 5 cm`.
+3. Un petit cube d'encre de `1,5 cm` de côté.
 
 ::: corrige
 1. `V = 4 × 4 × 4 = 64 cm³`

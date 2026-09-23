@@ -121,6 +121,10 @@ Plusieurs facteurs se combinent : d'importantes réserves de **charbon** proches
 Aucun de ces facteurs n'aurait suffi seul.
 :::
 
+::: info Le papier, de la feuille à la main au rouleau sans fin
+Avant 1800, chaque feuille de papier se fabrique **à la main**, comme dans l'atelier que Myne s'acharne à monter dans *La Petite Faiseuse de Livres* : des chiffons de lin battus en pâte, une forme tendue d'une toile fine, une feuille égouttée, pressée, puis séchée. Un ouvrier en produit quelques centaines par jour. En **1799**, le Français Louis-Nicolas Robert brevette une **machine à papier continu**, perfectionnée en Angleterre par les frères Fourdrinier dans les années 1800 : le papier sort désormais en rouleau. Le prix s'effondre, et avec lui celui des journaux et des livres. C'est l'une des révolutions techniques les plus discrètes et les plus décisives du siècle : sans papier bon marché, ni presse de masse, ni école pour tous.
+:::
+
 ## 3. Les grandes innovations
 
 ::: grille

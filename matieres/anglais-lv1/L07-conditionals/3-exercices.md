@@ -181,14 +181,14 @@ Donne un conseil avec `If I were you, I would...` pour chacune de ces situations
 2. `I have a test tomorrow and I haven't studied.`
 3. `I argued with my best friend.`
 4. `I am always tired in the morning.`
-5. `I don't understand this exercise.`
+5. `I want to read the new volume of my favourite manga, but it is only in Japanese.`
 
 ::: corrige
 1. `If I were you, I would take it to a repair shop.`
 2. `If I were you, I would start revising tonight instead of watching television.`
 3. `If I were you, I would apologise and talk to her.`
 4. `If I were you, I would go to bed earlier and leave my phone in another room.`
-5. `If I were you, I would ask the teacher tomorrow morning.`
+5. `If I were you, I would wait for the French edition and read another series in the meantime.`
 
 **Les trois points à vérifier dans chacune de tes réponses.**
 - `were` et non `was`.

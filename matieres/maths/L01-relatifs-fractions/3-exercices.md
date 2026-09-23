@@ -240,7 +240,7 @@ Divise.
 :::
 
 ::: exercice 12 | entrainement | 8 min | main
-Compare ces fractions. Écris `<`, `>` ou `=`.
+Myne compte ses stocks de papier en fractions de rame et veut savoir lequel est le plus grand. Compare ces fractions. Écris `<`, `>` ou `=`.
 
 1. `3/4` et `5/8`
 2. `2/3` et `7/12`

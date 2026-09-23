@@ -64,6 +64,10 @@ Au théâtre, il n'y a **pas de narrateur**. Personne ne vient expliquer ce que 
 C'est la principale différence avec le roman, et c'est elle qui rend le théâtre plus difficile à lire qu'à voir.
 :::
 
+::: exemple Une héroïne de manga face aux attentes des autres
+Dans *The Ogre's Bride*, une jeune fille est donnée en mariage à un ogre : la décision vient de sa communauté, pas d'elle. Tout le récit tient dans l'écart entre ce que les autres attendent d'elle et ce qu'elle veut réellement, et dans la manière dont elle finit par décider par elle-même. C'est exactement la **confrontation de valeurs** que ce chapitre étudie chez Antigone face à Créon : une règle collective d'un côté, une conviction personnelle de l'autre, et un personnage qui doit choisir.
+:::
+
 ## 2. Le vocabulaire de la pièce
 
 ::: grille

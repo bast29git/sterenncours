@@ -209,6 +209,10 @@ De l'équateur vers le pôle, on rencontre successivement : le climat **équator
 Ce schéma se retrouve dans les deux hémisphères, en miroir.
 :::
 
+::: info Les nuits polaires, le pays des aurores
+Au-delà du cercle polaire, à plus de 66,5° de latitude, le Soleil ne se lève pas pendant plusieurs semaines en hiver : c'est la **nuit polaire**. Ce ciel longtemps sombre, dans un air froid et sec, est celui où l'on observe le mieux les aurores boréales, à Tromsø en Norvège ou à Yellowknife au Canada. L'inverse existe en été, le **soleil de minuit**, pour la même raison : l'axe de la Terre est incliné. Les aurores, elles, ne dépendent pas du climat mais du champ magnétique terrestre ; le climat polaire fournit seulement la longue nuit qui permet de les voir.
+:::
+
 ## 6. Pourquoi il fait plus chaud à l'équateur
 
 ::: retenir Les trois raisons

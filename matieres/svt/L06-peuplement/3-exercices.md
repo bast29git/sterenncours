@@ -71,7 +71,7 @@ Repère utile : un pH de 7 est neutre, en dessous c'est acide, au-dessus c'est b
 :::
 
 ::: exercice 3 | application | 8 min | ecran
-On relève les conditions au pied d'un mur, côté sud et côté nord, le même jour à 14 h.
+Maomao cherche où installer son séchoir à plantes. On relève les conditions au pied du mur de la cour, côté sud et côté nord, le même jour à 14 h.
 
 ::: grille
 | Mesure | Côté sud | Côté nord |

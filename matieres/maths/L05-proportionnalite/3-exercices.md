@@ -142,27 +142,27 @@ Sur un graphique, une droite passe par l'origine et par le point de coordonnées
 ## Série B : pourcentages
 
 ::: exercice 7 | application | 5 min | ecran
-Calcule.
+Maomao range la réserve de l'apothicairerie. Calcule.
 
-1. `20 %` de `150`
-2. `35 %` de `80`
-3. `8 %` de `2 500`
-4. `120 %` de `40`
+1. Elle garde `20 %` d'un lot de `150` g de racines séchées. Combien de grammes ?
+2. `35 %` des `80` fioles de la réserve sont vides. Combien de fioles ?
+3. `8 %` des `2 500` plants du jardin médicinal ont gelé. Combien de plants ?
+4. La récolte de cette année vaut `120 %` de celle de l'an dernier, qui était de `40` bottes. Combien de bottes ?
 
 ::: corrige
-1. `150 × 0,20 = 30`
-2. `80 × 0,35 = 28`
-3. `2 500 × 0,08 = 200`
-4. `40 × 1,20 = 48`. Un pourcentage peut dépasser 100.
+1. `150 × 0,20 = 30`, soit **30 g** de racines.
+2. `80 × 0,35 = 28`, soit **28 fioles** vides.
+3. `2 500 × 0,08 = 200`, soit **200 plants** gelés.
+4. `40 × 1,20 = 48`, soit **48 bottes**. Un pourcentage peut dépasser 100 : la récolte a augmenté.
 :::
 :::
 
 ::: exercice 8 | application | 5 min | ecran
-Calcule le pourcentage.
+Myne fabrique du papier dans son atelier. Calcule le pourcentage.
 
-1. `12` sur `48`
-2. `35` sur `140`
-3. `9` sur `300`
+1. `12` feuilles réussies sur `48` fabriquées
+2. `35` pages déjà reliées sur les `140` du livre
+3. `9` feuilles déchirées sur `300`
 
 ::: corrige
 1. `(12 ÷ 48) × 100 = 25 %`

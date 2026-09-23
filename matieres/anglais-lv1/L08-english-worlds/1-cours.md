@@ -201,6 +201,10 @@ Parler du monde anglophone sans les mentionner reviendrait à ne raconter qu'une
 | Le kiwi, oiseau et surnom des habitants | New Zealand |
 :::
 
+::: info Où voir les aurores boréales en anglais
+Les meilleurs endroits anglophones pour observer les `northern lights` sont **Yellowknife** et le **Yukon** au Canada, **Fairbanks** en Alaska, et le nord de l'**Écosse**, notamment les îles Shetland, où on les appelle `the mirrie dancers`. Une aurore se dit `aurora` ; l'expression courante reste `the northern lights`. Dans l'hémisphère sud, la Nouvelle-Zélande et la Tasmanie voient les `southern lights`.
+:::
+
 ## 6. L'anglais en Afrique, en Inde et aux Caraïbes
 
 ::: grille

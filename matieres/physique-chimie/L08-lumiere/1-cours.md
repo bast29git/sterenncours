@@ -238,6 +238,10 @@ C'est le principe de tous les écrans : chaque point est formé de trois minuscu
 Rouge et vert donnent du jaune, rouge et bleu du magenta, vert et bleu du cyan.
 :::
 
+::: info Les aurores boréales, une lumière colorée sans prisme
+Une aurore boréale n'est pas de la lumière blanche décomposée : chaque couleur est **émise** directement par un gaz de la haute atmosphère, excité par des particules venues du Soleil. Le **dioxygène** donne le vert, le plus fréquent, vers 100 à 150 km d'altitude, et un rouge sombre plus haut encore ; le **diazote** donne des bordures violettes et bleues. On les voit surtout près des pôles, en Norvège, en Islande, au Canada, parce que le champ magnétique terrestre y guide les particules. Les couleurs de l'aurore ne sont donc pas une affaire de réflexion mais d'émission : chaque gaz a sa couleur, comme une signature.
+:::
+
 ## 8. La couleur des objets
 
 ::: formule

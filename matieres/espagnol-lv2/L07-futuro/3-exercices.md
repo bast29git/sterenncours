@@ -301,7 +301,7 @@ Complète avec le marqueur temporel qui convient : `dentro de`, `que viene`, `pa
 
 > `El lunes tengo clase de música a las cinco.` *(présent : programmé)*
 > `El martes voy a estudiar para el examen de historia.` *(ir a : intention)*
-> `El miércoles comeré con mi abuela.` *(futur simple)*
+> `El miércoles leeré el nuevo tomo de mi manga favorito.` *(futur simple)*
 > `El jueves el tren sale a las ocho, vamos a Rennes.` *(présent : horaire)*
 > `El viernes voy a ver una película con una amiga.` *(ir a : intention)*
 > `El sábado saldré con mi perro por la playa.` *(futur simple, irrégulier `saldr-`)*

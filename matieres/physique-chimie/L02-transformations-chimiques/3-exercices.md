@@ -99,7 +99,7 @@ On verse du vinaigre sur du bicarbonate de sodium. Il se forme une mousse abonda
 :::
 
 ::: exercice 5 | entrainement | 5 min | main
-Un élève écrit : « Quand le bois brûle, la matière disparaît, c'est pour ça qu'il ne reste que des cendres. »
+Un apprenti de l'apothicairerie regarde Maomao brûler des herbes sèches et écrit : « Quand les herbes brûlent, la matière disparaît, c'est pour ça qu'il ne reste que des cendres. »
 
 1. Repère l'erreur.
 2. Rédige une correction en trois phrases, en citant la loi concernée.
@@ -107,7 +107,7 @@ Un élève écrit : « Quand le bois brûle, la matière disparaît, c'est pour 
 ::: corrige
 1. L'erreur est de croire que la **matière disparaît**. Elle change de forme et d'état, elle ne s'annule pas.
 2. Correction possible :
-   « La matière ne disparaît pas : elle se transforme. Le carbone et l'hydrogène du bois se combinent au dioxygène de l'air pour former du dioxyde de carbone et de la vapeur d'eau, qui partent dans l'atmosphère. D'après la loi de Lavoisier, si l'on pesait aussi ces gaz, la masse totale serait exactement conservée. »
+   « La matière ne disparaît pas : elle se transforme. Le carbone et l'hydrogène des herbes se combinent au dioxygène de l'air pour former du dioxyde de carbone et de la vapeur d'eau, qui partent dans l'atmosphère. D'après la loi de Lavoisier, si l'on pesait aussi ces gaz, la masse totale serait exactement conservée. »
 :::
 :::
 
