@@ -8,20 +8,24 @@
    ========================================================================= */
 
 body.corps-prof {
-  --p-fond: #F5F6F8;
+  /* Des neutres légèrement bleutés plutôt qu'un gris pur : à l'écran, le gris
+     neutre paraît terne, et le blanc franc fatigue sur une journée entière. */
+  --p-fond: #EFF2F7;
   --p-surface: #FFFFFF;
-  --p-surface-2: #FAFBFC;
-  --p-trait: #E3E6EB;
-  --p-trait-fort: #CDD2DA;
-  --p-encre: #0F1522;
-  --p-doux: #5C6675;
-  --p-faible: #8A93A2;
+  --p-surface-2: #F6F8FC;
+  --p-trait: #DCE2EC;
+  --p-trait-fort: #C0C8D6;
+  --p-encre: #131A2A;
+  --p-doux: #4E5A6E;
+  --p-faible: #7A879C;
   --p-accent: #2A5BD7;
-  --p-accent-voile: #EDF2FE;
-  --p-ok: #12794F;     --p-ok-voile: #E7F5EE;
-  --p-attention: #9A5B00; --p-attention-voile: #FCF2E2;
-  --p-alerte: #B42318; --p-alerte-voile: #FDECEC;
-  --p-r: 7px;
+  --p-accent-2: #6B4BE0;
+  --p-accent-voile: #E8EFFE;
+  --p-ok: #0F7A52;     --p-ok-voile: #E2F5EC;
+  --p-attention: #94560A; --p-attention-voile: #FDF1DE;
+  --p-alerte: #B1261C; --p-alerte-voile: #FDEAE8;
+  --p-info: #0E6E86;   --p-info-voile: #E1F3F8;
+  --p-r: 8px;
   --p-mono: 'Space Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   margin: 0;
@@ -33,18 +37,20 @@ body.corps-prof {
   -webkit-font-smoothing: antialiased;
 }
 [data-theme="dark"] body.corps-prof {
-  --p-fond: #0C1018;
-  --p-surface: #141A24;
-  --p-surface-2: #10151E;
-  --p-trait: #232B38;
-  --p-trait-fort: #333D4D;
-  --p-encre: #E7EBF2;
-  --p-doux: #A0AAB9;
-  --p-faible: #78828F;
+  --p-fond: #0B111C;
+  --p-surface: #151C2A;
+  --p-surface-2: #101725;
+  --p-trait: #263041;
+  --p-trait-fort: #38445A;
+  --p-encre: #E8EDF6;
+  --p-doux: #A6B2C4;
+  --p-faible: #7C8799;
   --p-accent: #7FA2F5;
-  --p-accent-voile: #16203A;
-  --p-ok-voile: #10261D; --p-attention-voile: #2A1F0C; --p-alerte-voile: #2B1513;
-  --p-ok: #5BC894; --p-attention: #E0A94A; --p-alerte: #F08078;
+  --p-accent-2: #A78BFA;
+  --p-accent-voile: #17223C;
+  --p-ok-voile: #0F2A20; --p-attention-voile: #2C2110; --p-alerte-voile: #2D1614;
+  --p-info-voile: #0F2830;
+  --p-ok: #4FC896; --p-attention: #E0A94A; --p-alerte: #F08078; --p-info: #5BC0D8;
 }
 
 .prof .ic { width: 1.05rem; height: 1.05rem; }
@@ -56,15 +62,24 @@ body.corps-prof {
 .p-lateral {
   position: sticky; top: 0; align-self: start; height: 100vh;
   display: flex; flex-direction: column;
-  background: var(--p-surface-2); border-right: 1px solid var(--p-trait);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--p-accent) 6%, var(--p-surface-2)) 0%,
+      var(--p-surface-2) 42%);
+  border-right: 1px solid var(--p-trait);
   padding: 0.7rem 0.6rem;
 }
 .p-lateral-tete { display: flex; align-items: center; gap: 0.5rem; padding: 0.15rem 0.35rem 0.9rem; }
 .p-marque { display: flex; align-items: center; gap: 0.55rem; }
 .p-logo {
-  width: 1.9rem; height: 1.9rem; display: grid; place-items: center;
-  border-radius: var(--p-r); background: var(--p-encre); color: var(--p-surface);
-  font-weight: 800; font-size: 0.85rem;
+  width: 1.95rem; height: 1.95rem; display: grid; place-items: center;
+  border-radius: var(--p-r); color: #fff;
+  background: linear-gradient(135deg, var(--p-accent), var(--p-accent-2));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--p-accent) 32%, transparent);
+}
+.p-logo svg { width: 1.2rem; height: 1.2rem; }
+.p-marque b {
+  background: linear-gradient(120deg, var(--p-accent), var(--p-accent-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .p-marque span { display: grid; line-height: 1.2; }
 .p-marque b { font-size: 0.9rem; font-weight: 700; }
@@ -85,7 +100,10 @@ body.corps-prof {
   border-radius: var(--p-r); padding: 0.4rem 0.5rem;
 }
 .p-nav a:hover { background: var(--p-surface); color: var(--p-encre); }
-.p-nav a.actif { background: var(--p-accent-voile); color: var(--p-accent); font-weight: 700; }
+.p-nav a.actif {
+  background: var(--p-accent-voile); color: var(--p-accent); font-weight: 700;
+  box-shadow: inset 2px 0 0 var(--p-accent);
+}
 .p-nav .ico { width: 1.05rem; height: 1.05rem; opacity: .85; }
 .p-nav a.actif .ico { opacity: 1; stroke-width: 2; }
 .p-puce-doc { display: inline-flex; padding: 0.1rem 0.2rem; vertical-align: middle; }
@@ -165,8 +183,17 @@ body.corps-prof {
 .p-bloc-tete {
   display: flex; align-items: center; gap: 0.5rem;
   padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--p-trait);
+  background: linear-gradient(180deg, var(--p-surface-2), var(--p-surface));
+  border-radius: var(--p-r) var(--p-r) 0 0;
 }
-.p-bloc-tete h2 { font-size: 0.85rem; font-weight: 700; }
+.p-bloc-tete h2 {
+  font-size: 0.85rem; font-weight: 700;
+  display: flex; align-items: center; gap: 0.45rem;
+}
+.p-bloc-tete h2::before {
+  content: ''; width: 0.25rem; height: 0.95rem; border-radius: 2px;
+  background: linear-gradient(180deg, var(--p-accent), var(--p-accent-2));
+}
 .p-bloc-tete .p-compte { margin-left: auto; font-family: var(--p-mono); font-size: 0.75rem; color: var(--p-faible); }
 .p-bloc-corps { padding: 0.85rem; }
 .p-bloc-corps > :last-child { margin-bottom: 0; }
@@ -177,9 +204,17 @@ body.corps-prof {
 /* ---------- Indicateurs ------------------------------------------------------ */
 .p-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: 0.5rem; list-style: none; padding: 0; margin: 0 0 0.9rem; }
 .p-kpis > li {
+  position: relative; overflow: hidden;
   background: var(--p-surface); border: 1px solid var(--p-trait);
-  border-radius: var(--p-r); padding: 0.55rem 0.7rem;
+  border-radius: var(--p-r); padding: 0.55rem 0.7rem 0.55rem 0.85rem;
 }
+.p-kpis > li::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--p-accent);
+}
+.p-kpis li.pos::before { background: var(--p-ok); }
+.p-kpis li.att::before { background: var(--p-attention); }
+.p-kpis li.neg::before { background: var(--p-alerte); }
 .p-kpis .v { font-family: var(--p-mono); font-size: 1.35rem; font-weight: 700; line-height: 1.15; display: block; }
 .p-kpis .l { font-size: 0.72rem; color: var(--p-faible); display: block; margin-top: 0.05rem; }
 .p-kpis li.att .v { color: var(--p-attention); }
@@ -197,7 +232,14 @@ body.corps-prof {
 .p-table tbody tr:hover td { background: var(--p-surface-2); }
 .p-table .num { font-family: var(--p-mono); font-size: 0.78rem; color: var(--p-doux); }
 .p-table .docs { white-space: nowrap; }
-.p-table .grp td { background: var(--p-accent-voile); font-weight: 700; color: var(--p-accent); font-size: 0.78rem; }
+.p-table .grp td {
+  background: color-mix(in srgb, var(--teinte, var(--p-accent)) 9%, var(--p-surface));
+  font-weight: 700; font-size: 0.78rem; color: var(--p-encre);
+  border-bottom: 1px solid color-mix(in srgb, var(--teinte, var(--p-accent)) 28%, transparent);
+}
+.p-table .grp td:first-child { box-shadow: inset 3px 0 0 var(--teinte, var(--p-accent)); }
+.p-table .grp .nom { color: var(--teinte, var(--p-accent)); font-size: 0.86rem; }
+.p-table .grp a { color: var(--p-doux); font-size: 0.76rem; }
 .p-table a { color: var(--p-encre); text-decoration: none; }
 .p-table a:hover { color: var(--p-accent); text-decoration: underline; }
 .p-table select, .p-table input {
@@ -262,6 +304,68 @@ body.corps-prof {
 .p-evt-m { font-size: 0.66rem; color: var(--p-faible); display: block; }
 @media (max-width: 64rem) { .p-cal { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 40rem) { .p-cal { grid-template-columns: 1fr; } }
+
+/* ---------- Suivi des acquis : jauges, barres, documents ---------------------- */
+.p-doc {
+  display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem;
+  border-radius: 5px; text-decoration: none;
+  color: var(--p-accent); background: var(--p-accent-voile);
+  border: 1px solid transparent;
+}
+.p-doc + .p-doc { margin-left: 0.18rem; }
+.p-doc:hover { border-color: var(--p-accent); background: var(--p-surface); }
+.p-doc.absent {
+  color: var(--p-faible); background: transparent;
+  border: 1px dashed var(--p-trait-fort); cursor: default;
+}
+.p-doc .ic { width: 0.95rem; height: 0.95rem; }
+
+.p-jauge { display: inline-flex; align-items: center; gap: 0.45rem; }
+.p-jauge .piste {
+  display: block; width: 5rem; height: 0.42rem; border-radius: 999px;
+  background: var(--p-trait); overflow: hidden;
+}
+.p-jauge .piste i { display: block; height: 100%; border-radius: 999px; background: var(--p-accent); }
+.p-jauge b { font-family: var(--p-mono); font-size: 0.74rem; font-weight: 400; color: var(--p-doux); }
+
+.p-barre-empilee {
+  display: flex; height: 0.85rem; border-radius: 999px; overflow: hidden;
+  background: var(--p-trait); margin-bottom: 0.5rem;
+}
+.p-barre-empilee i { display: block; }
+.seg-tresbien     { background: var(--p-accent); }
+.seg-satisfaisant { background: var(--p-ok); }
+.seg-fragile      { background: var(--p-attention); }
+.seg-insuffisant  { background: var(--p-alerte); }
+.seg-vide         { background: var(--p-trait-fort); }
+.p-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.4rem; margin: 0 0 0.9rem; font-size: 0.74rem; color: var(--p-faible); }
+.p-legende span {
+  width: 0.6rem; height: 0.6rem; border-radius: 3px; margin-left: 0.6rem;
+}
+.p-legende span:first-child { margin-left: 0; }
+
+.p-matieres-jauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.4rem; }
+.p-mj {
+  display: grid; gap: 0.25rem; text-decoration: none; color: var(--p-encre);
+  border: 1px solid var(--p-trait); border-left: 3px solid var(--teinte, var(--p-accent));
+  border-radius: 6px; padding: 0.45rem 0.6rem; background: var(--p-surface);
+}
+.p-mj:hover { background: var(--p-surface-2); }
+.p-mj .n { font-size: 0.79rem; font-weight: 700; }
+
+/* Dans un tableau qui défile, l'en-tête colle au conteneur et non à la page,
+   sinon il recouvre la première ligne de groupe. */
+.p-defile { overflow-x: auto; position: relative; }
+.p-defile .p-table thead th { top: 0; }
+.p-table-suivi { min-width: 74rem; }
+.p-table-suivi .titre { min-width: 15rem; }
+.p-table-suivi .titre .notions {
+  display: block; font-size: 0.72rem; color: var(--p-faible);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 20rem;
+}
+.p-table-suivi input[data-note] { width: 100%; min-width: 9rem; }
+.p-table-suivi tr.alerte td { background: var(--p-attention-voile); }
+.p-table-suivi .chaud { color: var(--p-alerte); font-weight: 700; }
 
 /* ---------- Calendrier : vue mois ---------------------------------------------- */
 .p-mois { background: var(--p-surface); border: 1px solid var(--p-trait); border-radius: var(--p-r); overflow: hidden; }

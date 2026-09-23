@@ -205,12 +205,36 @@
     }));
   }
 
-  function pastillesDocs(l) {
+  /**
+   * Les quatre documents d'une leçon, chacun cliquable quand il existe.
+   * Un document absent reste affiché en creux, pour qu'on voie d'un coup d'oeil
+   * ce qui manque sans avoir à compter.
+   */
+  function pastillesDocs(mid, l) {
     return N.TYPES_DOC.map((t) => {
       const present = (l.docs || []).indexOf(t.id) !== -1;
-      return `<span class="p-puce p-puce-doc${present ? '' : ' absent'}" title="${N.ech(t.libelle)}">${N.ic(t.ico)}</span>`;
-    }).join(' ');
+      if (!present) {
+        return `<span class="p-doc absent" title="${N.ech(t.libelle)} : à rédiger"
+          aria-label="${N.ech(t.libelle)} : à rédiger">${N.ic(t.ico)}</span>`;
+      }
+      return `<a class="p-doc" href="#/lecon/${mid}/${l.ref}/${t.id}"
+        title="Ouvrir : ${N.ech(t.libelle)}" aria-label="Ouvrir ${N.ech(t.libelle)}">${N.ic(t.ico)}</a>`;
+    }).join('');
   }
+
+  /** Une barre de progression courte, avec sa valeur lisible à côté. */
+  function jauge(faites, total, couleur) {
+    const pct = total ? Math.round((faites / total) * 100) : 0;
+    return `<span class="p-jauge" role="img" aria-label="${faites} sur ${total}, soit ${pct} pour cent">
+      <span class="piste"><i style="width:${pct}%${couleur ? ';background:' + couleur : ''}"></i></span>
+      <b>${faites}/${total}</b></span>`;
+  }
+
+  /** La couleur propre à une matière, reprise du jeu commun. */
+  const teinte = (mid) => (N.DEGRADES[mid] || ['#5C6675'])[0];
+
+  /** Une date en JJ/MM, pour les colonnes serrées d'un tableau. */
+  const jourCourt = (iso) => (iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) : '');
 
   /** Coupe proprement, sur un espace, et pose des points de suspension. */
   function court(texte, max) {
@@ -765,62 +789,154 @@
   /* =======================================================================
      Suivi des acquis
      ======================================================================= */
-  const filtres = { matiere: '', niveau: '', pretes: false };
+  const filtres = { matiere: '', niveau: '', periode: '', q: '', pretes: false };
 
   function vueSuivi() {
+    const aujourd = N.jourIso();
+
+    /* Dernière séance où chaque leçon a été travaillée, et prochaine prévue. */
+    const vues = {};
+    const aVenir = {};
+    N.etat.seances.forEach((x) => {
+      (x.lecons || []).forEach((r) => {
+        if (x.date <= aujourd) { if (!vues[r] || x.date > vues[r]) vues[r] = x.date; }
+        else if (!aVenir[r] || x.date < aVenir[r]) aVenir[r] = x.date;
+      });
+    });
+
     const lignes = [];
     PROGRAMME.matieres.forEach((m) => {
       if (filtres.matiere && m.id !== filtres.matiere) return;
-      const leconsGardees = m.lecons.filter((l) => {
+      const gardees = m.lecons.filter((l) => {
         const niv = N.niveauDe(m.id, l.ref) || '';
         if (filtres.niveau === 'nonevaluee' && niv) return false;
         if (filtres.niveau && filtres.niveau !== 'nonevaluee' && niv !== filtres.niveau) return false;
         if (filtres.pretes && (l.docs || []).length !== 4) return false;
+        if (filtres.periode && String(l.periode) !== filtres.periode) return false;
+        if (filtres.q) {
+          const foin = (l.ref + ' ' + l.titre + ' ' + (l.notions || []).join(' ')).toLowerCase();
+          if (foin.indexOf(filtres.q.toLowerCase()) === -1) return false;
+        }
         return true;
       });
-      if (!leconsGardees.length) return;
-      lignes.push({ m, lecons: leconsGardees });
+      if (!gardees.length) return;
+      lignes.push({ m, lecons: gardees });
     });
 
     const c = N.chiffres();
+    const affichees = lignes.reduce((n, g) => n + g.lecons.length, 0);
+
+    /* Répartition de l'année sur les quatre niveaux, plus les non évaluées. */
+    const repartition = { insuffisant: 0, fragile: 0, satisfaisant: 0, tresbien: 0, vide: 0 };
+    PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => {
+      const n = N.niveauDe(m.id, l.ref);
+      repartition[n || 'vide'] += 1;
+    }));
+
+    const ligne = (m, l) => {
+      const cle = N.cle(m.id, l.ref);
+      const suivi = N.etat.suivi[cle] || {};
+      const res = N.etat.resultats[cle];
+      const pret = (l.docs || []).length === 4;
+      const lues = N.TYPES_DOC.filter((t) => N.etat.fiches[cle + '/' + t.id]).length;
+      const jours = suivi.maj_le
+        ? Math.floor((Date.now() - new Date(suivi.maj_le).getTime()) / JOURS_MS) : null;
+      const aReprendre = jours !== null && jours >= REPRISE_JOURS
+        && ['insuffisant', 'fragile'].indexOf(suivi.niveau) !== -1;
+      return `<tr${aReprendre ? ' class="alerte"' : ''}>
+        <td class="num">${N.ech(l.ref)}</td>
+        <td class="titre">${pret
+    ? `<a href="#/lecon/${m.id}/${l.ref}">${N.ech(l.titre)}</a>`
+    : N.ech(l.titre)}
+          <span class="notions">${N.ech((l.notions || []).slice(0, 2).join(' · '))}</span></td>
+        <td class="num">P${l.periode}</td>
+        <td class="docs">${pastillesDocs(m.id, l)}</td>
+        <td class="num">${lues ? lues + '/' + (l.docs || []).length : '·'}</td>
+        <td class="num">${res
+    ? `<span title="${res.series} série(s)">${res.meilleur}/${res.total}</span>` : '·'}</td>
+        <td>${choixNiveau(m.id, l.ref)}</td>
+        <td>${pret ? choixOuverture(m.id, l.ref) : '<span class="p-puce">à rédiger</span>'}</td>
+        <td><input data-note data-mid="${m.id}" data-ref="${l.ref}" type="text" maxlength="200"
+              value="${N.ech(suivi.note || '')}" placeholder="ce qui reste à reprendre"></td>
+        <td class="num">${vues[cle] ? N.ech(jourCourt(vues[cle])) : '·'}</td>
+        <td class="num">${aVenir[cle] ? N.ech(jourCourt(aVenir[cle])) : '·'}</td>
+        <td class="num">${jours === null ? '·'
+    : `<span${aReprendre ? ' class="chaud"' : ''}>${jours} j</span>`}</td>
+      </tr>`;
+    };
+
     const corps = lignes.length ? `
-      <table class="p-table">
+      <div class="p-defile">
+      <table class="p-table p-table-suivi">
         <thead><tr>
-          <th style="width:4rem">Réf.</th><th>Leçon</th><th style="width:4rem">Période</th>
-          <th style="width:8.5rem">Documents</th><th style="width:6rem">Exercices</th>
-          <th style="width:11rem">Niveau</th><th style="width:9rem">Accès de Sterenn</th>
-          <th>Note de suivi</th><th style="width:7rem">Mise à jour</th>
+          <th>Réf.</th><th>Leçon</th><th>Pér.</th><th>Documents</th><th title="Fiches marquées lues">Lues</th>
+          <th title="Meilleur score à la série d'exercices">Exos</th>
+          <th>Niveau</th><th>Accès</th><th>Note de suivi</th>
+          <th title="Dernière séance où la leçon a été travaillée">Vue le</th>
+          <th title="Prochaine séance où elle est prévue">Prévue</th>
+          <th title="Jours écoulés depuis le dernier positionnement">Depuis</th>
         </tr></thead>
-        <tbody>${lignes.map((g) => `
-          <tr class="grp"><td colspan="9">${g.m.icone} ${N.ech(g.m.nom)}
-            · ${N.progression(g.m).faites}/${g.m.lecons.length} validées</td></tr>
-          ${g.lecons.map((l) => {
-    const suivi = N.etat.suivi[N.cle(g.m.id, l.ref)] || {};
-    const res = N.etat.resultats[N.cle(g.m.id, l.ref)];
-    const pret = (l.docs || []).length === 4;
-    return `<tr>
-              <td class="num">${N.ech(l.ref)}</td>
-              <td>${pret ? `<a href="#/lecon/${g.m.id}/${l.ref}">${N.ech(l.titre)}</a>` : N.ech(l.titre)}</td>
-              <td class="num">P${l.periode}</td>
-              <td class="docs">${pastillesDocs(l)}</td>
-              <td class="num">${res ? res.meilleur + '/' + res.total : '·'}</td>
-              <td>${choixNiveau(g.m.id, l.ref)}</td>
-              <td>${pret ? choixOuverture(g.m.id, l.ref) : '<span class="p-puce">à rédiger</span>'}</td>
-              <td><input data-note data-mid="${g.m.id}" data-ref="${l.ref}" type="text" maxlength="200"
-                    style="width:100%" value="${N.ech(suivi.note || '')}" placeholder="ce qui reste à reprendre"></td>
-              <td class="num">${suivi.maj_le ? N.ech(N.dateCourte(suivi.maj_le).slice(0, 5)) : '·'}</td>
-            </tr>`;
-  }).join('')}`).join('')}
+        <tbody>${lignes.map((g) => {
+    const p = N.progression(g.m);
+    const prets = g.m.lecons.filter((l) => (l.docs || []).length === 4).length;
+    return `<tr class="grp" style="--teinte:${teinte(g.m.id)}">
+            <td colspan="4"><span class="nom">${g.m.icone} ${N.ech(g.m.nom)}</span></td>
+            <td colspan="4">${jauge(p.faites, p.total, teinte(g.m.id))} validées</td>
+            <td colspan="4">${prets} leçon(s) entièrement rédigée(s)
+              · <a href="#/matiere/${g.m.id}">ouvrir la matière</a></td>
+          </tr>${g.lecons.map((l) => ligne(g.m, l)).join('')}`;
+  }).join('')}
         </tbody>
-      </table>` : '<p class="p-vide">Aucune leçon ne correspond à ces filtres.</p>';
+      </table></div>` : '<p class="p-vide">Aucune leçon ne correspond à ces filtres.</p>';
 
     afficher(
-      entete('Suivi des acquis', `${c.validees} leçons validées sur ${c.total} · ${c.fragiles} à reprendre · ${c.pretes} entièrement rédigées`)
+      entete('Suivi des acquis',
+        `${c.validees} validées sur ${c.total} · ${c.fragiles} à reprendre · ${c.pretes} entièrement rédigées`,
+        `<button class="p-bouton p-bouton-fantome" id="s-export" type="button">Exporter en CSV</button>
+         <a class="p-bouton p-bouton-fantome" href="#/matieres">Voir les matières</a>`)
+
+      + `<ul class="p-kpis">
+          <li class="pos"><span class="v">${repartition.tresbien}</span><span class="l">Très bien</span></li>
+          <li class="pos"><span class="v">${repartition.satisfaisant}</span><span class="l">Satisfaisant</span></li>
+          <li class="att"><span class="v">${repartition.fragile}</span><span class="l">Fragile</span></li>
+          <li class="neg"><span class="v">${repartition.insuffisant}</span><span class="l">Insuffisant</span></li>
+          <li><span class="v">${repartition.vide}</span><span class="l">non évaluées</span></li>
+          <li><span class="v">${c.pretes}</span><span class="l">leçons rédigées</span></li>
+        </ul>`
+
+      + bloc('Où en est l\'année', `
+        <div class="p-barre-empilee" role="img"
+             aria-label="${repartition.tresbien} très bien, ${repartition.satisfaisant} satisfaisant, ${repartition.fragile} fragile, ${repartition.insuffisant} insuffisant, ${repartition.vide} non évaluées">
+          ${['tresbien', 'satisfaisant', 'fragile', 'insuffisant', 'vide'].map((k) => {
+    const n = repartition[k];
+    return n ? `<i class="seg-${k}" style="flex:${n}" title="${n} leçon(s)"></i>` : '';
+  }).join('')}
+        </div>
+        <p class="p-legende">
+          <span class="seg-tresbien"></span> Très bien
+          <span class="seg-satisfaisant"></span> Satisfaisant
+          <span class="seg-fragile"></span> Fragile
+          <span class="seg-insuffisant"></span> Insuffisant
+          <span class="seg-vide"></span> non évaluée
+        </p>
+        <div class="p-matieres-jauges">${PROGRAMME.matieres.map((m) => {
+    const p = N.progression(m);
+    return `<a class="p-mj" href="#/matiere/${m.id}" style="--teinte:${teinte(m.id)}">
+            <span class="n">${m.icone} ${N.ech(N.nomCourt(m.id))}</span>
+            ${jauge(p.faites, p.total, teinte(m.id))}</a>`;
+  }).join('')}</div>`)
+
       + bloc('Filtres', `
         <div class="p-form"><div class="ligne">
+          <div><label for="s-q">Rechercher</label>
+            <input id="s-q" type="search" value="${N.ech(filtres.q || '')}" placeholder="titre, notion, référence"></div>
           <div><label for="s-matiere">Matière</label><select id="s-matiere">
             <option value="">toutes</option>
             ${PROGRAMME.matieres.map((m) => `<option value="${m.id}"${filtres.matiere === m.id ? ' selected' : ''}>${N.ech(m.nom)}</option>`).join('')}
+          </select></div>
+          <div><label for="s-periode">Période</label><select id="s-periode">
+            <option value="">toutes</option>
+            ${[1, 2, 3, 4, 5].map((n) => `<option value="${n}"${filtres.periode === String(n) ? ' selected' : ''}>Période ${n}</option>`).join('')}
           </select></div>
           <div><label for="s-niveau">Niveau</label><select id="s-niveau">
             <option value="">tous</option>
@@ -831,16 +947,28 @@
             <option value=""${filtres.pretes ? '' : ' selected'}>toutes les leçons</option>
             <option value="1"${filtres.pretes ? ' selected' : ''}>seulement les 4 documents rédigés</option>
           </select></div>
-        </div></div>`)
-      + bloc('Les leçons de l\'année', corps, lignes.reduce((n, g) => n + g.lecons.length, 0) + ' leçon(s)'),
+        </div>
+        <p class="p-aide">Une ligne surlignée signale une leçon fragile ou insuffisante laissée
+          sans reprise depuis plus de ${REPRISE_JOURS} jours.</p></div>`)
+
+      + bloc('Les leçons de l\'année', corps, affichees + ' leçon(s) affichée(s)'),
       [{ t: 'Pilotage' }, { t: 'Suivi des acquis' }],
     );
 
-    document.getElementById('s-matiere').addEventListener('change', (e) => { filtres.matiere = e.target.value; vueSuivi(); });
-    document.getElementById('s-niveau').addEventListener('change', (e) => { filtres.niveau = e.target.value; vueSuivi(); });
+    const relier = (id, champ) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', (e) => { filtres[champ] = e.target.value; vueSuivi(); });
+    };
+    relier('s-matiere', 'matiere');
+    relier('s-periode', 'periode');
+    relier('s-niveau', 'niveau');
     document.getElementById('s-pretes').addEventListener('change', (e) => { filtres.pretes = Boolean(e.target.value); vueSuivi(); });
+    const champQ = document.getElementById('s-q');
+    champQ.addEventListener('change', () => { filtres.q = champQ.value.trim(); vueSuivi(); });
+
     brancherNiveaux(vueSuivi);
     brancherOuvertures(vueSuivi);
+    document.getElementById('s-export').addEventListener('click', exporterSuivi);
 
     vue().querySelectorAll('[data-note]').forEach((i) => i.addEventListener('change', async () => {
       const mid = i.getAttribute('data-mid');
@@ -854,6 +982,27 @@
       } catch (e) { N.signaler(e.message); }
       return undefined;
     }));
+  }
+
+  /** Export du suivi complet, lisible dans un tableur. */
+  function exporterSuivi() {
+    const entetes = ['Matiere', 'Ref', 'Titre', 'Periode', 'Documents', 'Niveau', 'Note', 'Maj'];
+    const lignes = [entetes];
+    PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => {
+      const s = N.etat.suivi[N.cle(m.id, l.ref)] || {};
+      const n = N.NIVEAUX.find((x) => x.id === s.niveau);
+      lignes.push([m.nom, l.ref, l.titre, 'P' + l.periode, (l.docs || []).length + '/4',
+        n ? n.libelle : '', s.note || '', s.maj_le ? String(s.maj_le).slice(0, 10) : '']);
+    }));
+    const csv = lignes.map((r) => r.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(';')).join('\n');
+    const lien = document.createElement('a');
+    lien.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    lien.download = `suivi-des-acquis-${N.jourIso()}.csv`;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    URL.revokeObjectURL(lien.href);
+    N.signaler('Suivi exporté.', 'succes');
   }
 
   /* =======================================================================
@@ -1038,7 +1187,7 @@
       <td>${pret ? `<a href="#/lecon/${m.id}/${l.ref}">${N.ech(l.titre)}</a>` : N.ech(l.titre)}</td>
       <td class="p-aide" style="margin:0">${N.ech((l.notions || []).join(' · '))}</td>
       <td class="num">P${l.periode}</td>
-      <td class="docs">${pastillesDocs(l)}</td>
+      <td class="docs">${pastillesDocs(m.id, l)}</td>
       <td>${choixNiveau(m.id, l.ref)}</td>
       <td>${pret ? choixOuverture(m.id, l.ref) : '<span class="p-puce">à rédiger</span>'}</td>
       <td>${pret ? `<a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/lecon/${m.id}/${l.ref}">Lire</a>` : ''}
