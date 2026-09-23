@@ -2451,4 +2451,142 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'maths/L03': {
+    titre: 'Calcul littéral : développer, réduire, factoriser',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Comment simplifie-t-on l\'écriture de <strong>1 × x × x</strong> ?',
+        choix: ['1x2', '2x', 'x²'],
+        reponse: 2,
+        explication: "x². Le coefficient 1 ne s'écrit pas, et une lettre multipliée par elle-même donne un carré. Attention : 2x signifierait x + x, ce qui n'est pas la même chose."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle écriture est correcte ?',
+        choix: ['a5', '5a', '5 a ×'],
+        reponse: 1,
+        explication: "5a. Le nombre s'écrit toujours avant la lettre, et le signe × disparaît devant une lettre. En revanche, entre deux nombres on garde toujours le signe : 3 × 5 ne s'écrit jamais 35."
+      },
+      {
+        type: 'saisie',
+        q: 'Réduis : 5x + 3 − 2x + 8',
+        reponses: ['3x + 11', '3x+11', '11 + 3x'],
+        explication: "3x + 11. On regroupe les termes en x : 5x − 2x = 3x. Puis les nombres seuls : 3 + 8 = 11. On n'additionne jamais un terme en x avec un nombre seul."
+      },
+      {
+        type: 'vraifaux',
+        q: 'L\'expression 3x + 2 peut se réduire en 5x.',
+        reponse: false,
+        explication: "Faux. 3x et 2 ne sont pas des termes semblables : l'un a une partie littérale, l'autre non. L'expression 3x + 2 est déjà réduite, c'est une réponse complète."
+      },
+      {
+        type: 'qcm',
+        q: 'Que vaut (−2)² ?',
+        choix: ['−4', '4', '−2'],
+        reponse: 1,
+        explication: "4. On met le nombre −2 au carré, et moins par moins donne plus. Attention : −2² vaut −4, car on élève 2 au carré puis on prend l'opposé. D'où l'importance des parenthèses à la substitution."
+      },
+      {
+        type: 'saisie',
+        q: 'Calcule x² − 4x pour x = −1.',
+        reponses: ['5'],
+        explication: "(−1)² − 4 × (−1) = 1 − (−4) = 1 + 4 = 5. Les deux pièges sont le carré du négatif, qui donne +1, et la soustraction d'un nombre négatif, qui devient une addition."
+      },
+      {
+        type: 'qcm',
+        q: 'Développe 3(x + 4).',
+        choix: ['3x + 4', '3x + 12', 'x + 12'],
+        reponse: 1,
+        explication: "3x + 12. Le facteur 3 multiplie LES DEUX termes de la parenthèse. Le réflexe : tracer deux flèches au crayon avant de calculer, une par terme."
+      },
+      {
+        type: 'qcm',
+        q: 'Développe −2(x − 5).',
+        choix: ['−2x − 10', '−2x + 10', '2x + 10'],
+        reponse: 1,
+        explication: "−2x + 10. Le facteur négatif change le signe de chaque terme : (−2) × x = −2x, et (−2) × (−5) = +10. Moins par moins donne plus."
+      },
+      {
+        type: 'saisie',
+        q: 'Développe et réduis : 7 − (x + 2)',
+        reponses: ['5 - x', '5 − x', '5-x', '- x + 5', '−x + 5'],
+        explication: "5 − x. C'est l'erreur la plus fréquente du chapitre : le moins porte sur TOUTE la parenthèse, donc le +2 devient −2. On obtient 7 − x − 2, soit 5 − x, et non 7 − x + 2."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien de produits obtient-on en développant (a + b)(c + d) ?',
+        choix: ['Deux', 'Trois', 'Quatre'],
+        reponse: 2,
+        explication: "Quatre : ac, ad, bc et bd. Chaque terme de la première parenthèse multiplie chaque terme de la seconde. Compter les produits avant de réduire est le meilleur contrôle."
+      },
+      {
+        type: 'saisie',
+        q: 'Développe et réduis : (x + 2)(x + 5)',
+        reponses: ['x² + 7x + 10', 'x^2 + 7x + 10', 'x2 + 7x + 10', 'x²+7x+10'],
+        explication: "x² + 5x + 2x + 10 = x² + 7x + 10. Réponse fausse fréquente : x² + 10, qui oublie les deux produits du milieu."
+      },
+      {
+        type: 'qcm',
+        q: 'Que vaut (x + 4)² ?',
+        choix: ['x² + 16', 'x² + 8x + 16', 'x² + 4x + 16'],
+        reponse: 1,
+        explication: "x² + 8x + 16. On réécrit (x + 4)(x + 4) puis on développe les quatre produits. Le carré d'une somme n'est jamais la somme des carrés."
+      },
+      {
+        type: 'qcm',
+        q: 'Développe (2x + 3)(2x − 3).',
+        choix: ['4x² − 9', '4x² + 9', '4x² − 12x − 9'],
+        reponse: 0,
+        explication: "4x² − 6x + 6x − 9 = 4x² − 9. Les deux termes du milieu s'annulent exactement. C'est un cas remarquable qu'on retrouvera souvent."
+      },
+      {
+        type: 'qcm',
+        q: 'Que signifie « factoriser » ?',
+        choix: ['Transformer une somme en produit', 'Transformer un produit en somme', 'Calculer une valeur'],
+        reponse: 0,
+        explication: "Transformer une somme en produit. C'est l'opération inverse du développement, qui transforme un produit en somme. On repère un facteur commun et on l'écrit devant une parenthèse."
+      },
+      {
+        type: 'saisie',
+        q: 'Factorise : 6x + 15',
+        reponses: ['3(2x + 5)', '3(2x+5)', '3 (2x + 5)'],
+        explication: "3(2x + 5). Le facteur commun est 3, car 6 = 3 × 2 et 15 = 3 × 5. Vérification en redéveloppant : 3 × 2x + 3 × 5 = 6x + 15."
+      },
+      {
+        type: 'saisie',
+        q: 'Factorise : x² + 7x',
+        reponses: ['x(x + 7)', 'x(x+7)', 'x (x + 7)'],
+        explication: "x(x + 7). Le facteur commun est x, puisque x² = x × x et 7x = x × 7. Vérification : x × x + x × 7 = x² + 7x."
+      },
+      {
+        type: 'qcm',
+        q: 'Factorise 4x² − 6x.',
+        choix: ['2(2x² − 3x)', 'x(4x − 6)', '2x(2x − 3)'],
+        reponse: 2,
+        explication: "2x(2x − 3). Les trois réponses sont des factorisations valables, mais seule la troisième est complète : elle sort à la fois le 2 des nombres et le x des lettres."
+      },
+      {
+        type: 'qcm',
+        q: 'Factorise 5x + 5.',
+        choix: ['5(x)', '5(x + 1)', '5x(1 + 1)'],
+        reponse: 1,
+        explication: "5(x + 1). Quand un terme est égal au facteur commun, ce qui reste vaut 1, et non rien du tout. Vérification : 5 × x + 5 × 1 = 5x + 5."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment vérifier rapidement un développement ?',
+        choix: ['En recommençant le calcul', 'En testant les deux expressions avec x = 2', 'En regardant la longueur du résultat'],
+        reponse: 1,
+        explication: "En testant une valeur, de préférence 2 ou 3. Si les deux résultats diffèrent, il y a certainement une erreur. S'ils coïncident, c'est probablement juste : le test détecte, il ne prouve pas."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Pour vérifier une factorisation, on peut redévelopper et comparer à l\'expression de départ.',
+        reponse: true,
+        explication: "Vrai, et c'est la meilleure méthode. Développer et factoriser sont deux opérations inverses : en redéveloppant, on doit retrouver exactement l'expression initiale, terme pour terme."
+      }
+    ]
+  }
 };
