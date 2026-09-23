@@ -3004,4 +3004,144 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'physique-chimie/L03': {
+    titre: 'Masse volumique et états de la matière',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Quelle est la formule de la masse volumique ?',
+        choix: ['ρ = m × V', 'ρ = m ÷ V', 'ρ = V ÷ m'],
+        reponse: 1,
+        explication: "ρ = m ÷ V. C'est la masse d'une unité de volume. Les deux formes dérivées s'en déduisent : m = ρ × V et V = m ÷ ρ."
+      },
+      {
+        type: 'saisie',
+        q: 'Quelle est la masse volumique de l\'eau, en g/cm³ ?',
+        reponses: ['1', '1,0', '1.0', '1 g/cm3', '1,0 g/cm³'],
+        explication: "1,0 g/cm³, soit 1000 kg/m³. C'est la valeur pivot de tout le chapitre : elle sert à prévoir ce qui flotte et ce qui coule. Le gramme a d'ailleurs été défini à partir de l'eau."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien vaut 1 mL en cm³ ?',
+        choix: ['0,1 cm³', '1 cm³', '10 cm³'],
+        reponse: 1,
+        explication: "1 mL = 1 cm³. Les autres équivalences à connaître : 1 L = 1000 mL = 1000 cm³ = 1 dm³, et 1 m³ = 1000 L."
+      },
+      {
+        type: 'saisie',
+        q: 'Un objet a une masse de 54 g et un volume de 20 cm³. Quelle est sa masse volumique en g/cm³ ?',
+        reponses: ['2,7', '2.7', '2,7 g/cm3', '2,7 g/cm³'],
+        explication: "ρ = 54 ÷ 20 = 2,7 g/cm³. Cette valeur correspond à celle de l'aluminium : l'objet est donc vraisemblablement en aluminium."
+      },
+      {
+        type: 'saisie',
+        q: 'Quelle est la masse de 50 cm³ de fer ? (ρ = 7,9 g/cm³). Réponds en grammes.',
+        reponses: ['395', '395 g'],
+        explication: "m = ρ × V = 7,9 × 50 = 395 g. Quand on cherche la masse, on multiplie la masse volumique par le volume."
+      },
+      {
+        type: 'qcm',
+        q: 'Un élève écrit : m = 2 kg, V = 500 cm³, donc ρ = 2 ÷ 500 = 0,004. Quelle est l\'erreur ?',
+        choix: ['Il a inversé la formule', 'Il a mélangé les unités', 'Il n\'y a pas d\'erreur'],
+        reponse: 1,
+        explication: "Il a mélangé kilogrammes et centimètres cubes. Il faut convertir : 2 kg = 2000 g, donc ρ = 2000 ÷ 500 = 4,0 g/cm³. Un résultat aberrant signale presque toujours une unité oubliée."
+      },
+      {
+        type: 'qcm',
+        q: 'On verse 60 mL d\'eau, on plonge un objet, le niveau monte à 82 mL. Quel est le volume de l\'objet ?',
+        choix: ['82 cm³', '22 cm³', '142 cm³'],
+        reponse: 1,
+        explication: "82 − 60 = 22 cm³. Le volume de l'objet est la DIFFÉRENCE entre les deux niveaux, jamais le niveau final seul."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi la méthode du déplacement d\'eau échoue-t-elle avec un morceau de sucre ?',
+        choix: ['Le sucre flotte', 'Le sucre se dissout', 'Le sucre est trop petit'],
+        reponse: 1,
+        explication: "Le sucre se dissout : il disparaît avant qu'on puisse lire le niveau. On utiliserait un liquide où il ne se dissout pas, comme l'huile, ou on calculerait le volume géométriquement."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qu\'une erreur de parallaxe ?',
+        choix: ['Une éprouvette mal graduée', 'Une lecture faite avec l\'œil mal placé', 'Un calcul faux'],
+        reponse: 1,
+        explication: "C'est l'erreur commise quand l'œil n'est pas au niveau de la surface du liquide. Regarder de haut décale la lecture de plusieurs millilitres, alors que l'appareil est parfaitement correct."
+      },
+      {
+        type: 'saisie',
+        q: 'Quel est le volume d\'un cube de 4 cm de côté, en cm³ ?',
+        reponses: ['64', '64 cm3', '64 cm³'],
+        explication: "4 × 4 × 4 = 64 cm³. Pour une forme régulière, on calcule : la méthode du déplacement d'eau ne sert que pour les formes irrégulières."
+      },
+      {
+        type: 'qcm',
+        q: 'Un corps flotte sur un liquide si :',
+        choix: ['sa masse est plus faible', 'sa masse volumique est inférieure à celle du liquide', 'son volume est plus petit'],
+        reponse: 1,
+        explication: "Si sa masse volumique est inférieure à celle du liquide. Ni la masse totale ni le volume ne décident seuls : c'est le rapport des deux qui compte."
+      },
+      {
+        type: 'vraifaux',
+        q: 'La glace flotte sur l\'eau parce qu\'elle est moins dense que l\'eau liquide.',
+        reponse: true,
+        explication: "Vrai : 0,92 g/cm³ contre 1,0. C'est une exception rare dans la nature, car pour presque toutes les substances le solide est plus dense que le liquide et coule."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi un paquebot de 100 000 tonnes flotte-t-il alors qu\'une bille d\'acier coule ?',
+        choix: ['Parce qu\'il est plus grand', 'Parce que sa masse volumique moyenne, air intérieur compris, est inférieure à celle de l\'eau', 'Parce qu\'il avance'],
+        reponse: 1,
+        explication: "La coque d'acier entoure surtout de l'air : la masse volumique moyenne du navire tourne autour de 0,8 g/cm³. La bille, elle, est pleine d'acier à 7,8 g/cm³."
+      },
+      {
+        type: 'qcm',
+        q: 'Une mesure donne ρ = 8,85 g/cm³. Quelle conclusion est correcte ?',
+        choix: ['C\'est du cuivre.', 'C\'est vraisemblablement du cuivre.', 'On ne peut rien dire.'],
+        reponse: 1,
+        explication: "« Vraisemblablement ». Toute mesure comporte une incertitude, et plusieurs matériaux ont des masses volumiques voisines. Une masse volumique est un indice fort, pas une preuve."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment appelle-t-on le passage de l\'état gazeux à l\'état liquide ?',
+        choix: ['La condensation', 'La liquéfaction', 'La sublimation'],
+        reponse: 1,
+        explication: "La liquéfaction. Au sens strict du programme, la condensation va du gaz vers le SOLIDE, comme le givre. La buée sur une vitre est donc une liquéfaction."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle différence entre l\'ébullition et l\'évaporation ?',
+        choix: ['Aucune, ce sont des synonymes', 'L\'ébullition se fait à une température précise et dans toute la masse, l\'évaporation à toute température et en surface', 'L\'évaporation ne concerne que l\'eau'],
+        reponse: 1,
+        explication: "Les deux sont des vaporisations. L'ébullition a lieu à 100 °C pour l'eau, dans toute la masse, avec des bulles. L'évaporation a lieu à toute température, seulement en surface : c'est pourquoi une flaque sèche sans bouillir."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Lors d\'un changement d\'état, la masse se conserve.',
+        reponse: true,
+        explication: "Vrai. Ce sont les mêmes molécules, en même nombre : seule leur disposition change. Le volume, lui, peut varier énormément."
+      },
+      {
+        type: 'qcm',
+        q: 'On congèle 500 g d\'eau. Quelle est la masse de glace obtenue ?',
+        choix: ['460 g', '500 g', '543 g'],
+        reponse: 1,
+        explication: "500 g. La masse se conserve. En revanche le volume passe d'environ 500 cm³ à 543 cm³, car la glace est moins dense : 500 ÷ 0,92 ≈ 543."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi une bouteille pleine éclate-t-elle au congélateur ?',
+        choix: ['La masse de l\'eau augmente', 'L\'eau augmente de volume d\'environ 9 % en gelant', 'Le verre se rétracte au froid'],
+        reponse: 1,
+        explication: "L'eau se dilate en gelant, d'environ 9 %. Dans une bouteille pleine et fermée, il n'y a pas de place pour cette expansion : la pression fait céder les parois. Le même phénomène fissure les routes."
+      },
+      {
+        type: 'qcm',
+        q: 'Un litre d\'eau liquide donne environ 1700 litres de vapeur. Que devient la masse ?',
+        choix: ['Elle est multipliée par 1700', 'Elle reste d\'un kilogramme', 'Elle est divisée par 1700'],
+        reponse: 1,
+        explication: "Elle reste d'un kilogramme : la masse se conserve. C'est le volume qui est multiplié par 1700, donc la masse volumique qui est divisée par 1700. C'est ce qui rend une cocotte-minute dangereuse sous pression."
+      }
+    ]
+  }
 };
