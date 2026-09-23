@@ -105,7 +105,30 @@ window.EXERCICES = {
         choix: ['3 - 4 - 6', '5 - 12 - 13', '6 - 7 - 8', '2 - 3 - 4'],
         reponse: 1,
         explication: "5² + 12² = 25 + 144 = 169 = 13². Les trios à connaître sont 3-4-5, 5-12-13 et 8-15-17, ainsi que tous leurs multiples. Quand ils apparaissent dans un énoncé, le résultat tombe juste."
-      }
+      },
+      { type: 'vraifaux',
+        q: 'La réciproque du théorème de Pythagore sert à prouver qu\'un triangle est rectangle.',
+        reponse: true,
+        explication: "Vrai. Le théorème direct part d'un triangle rectangle pour calculer une longueur. La réciproque part de trois longueurs connues : si le carré du plus grand côté est égal à la somme des carrés des deux autres, alors le triangle est rectangle." },
+      { type: 'qcm',
+        q: 'Le triangle ABC est rectangle en B, avec AB = 8 cm et BC = 15 cm. Combien mesure AC ?',
+        choix: ['13 cm', '17 cm', '23 cm', '√161 cm'],
+        reponse: 1,
+        explication: "L'angle droit est en B, donc l'hypoténuse est [AC]. AC² = AB² + BC² = 64 + 225 = 289, et √289 = 17. C'est le trio 8-15-17. Additionner les longueurs, 8 + 15 = 23, est l'erreur classique." },
+      { type: 'saisie',
+        q: 'Un triangle rectangle a une hypoténuse de 10 cm et un côté de l\'angle droit de 8 cm. Combien mesure l\'autre côté, en cm ?',
+        reponses: ['6', '6 cm', '6cm'],
+        explication: "L'inconnue est un côté de l'angle droit, donc on soustrait : 10² − 8² = 100 − 64 = 36, et √36 = 6. C'est le trio 3-4-5 multiplié par 2." },
+      { type: 'qcm',
+        q: 'Dans quel cas peut-on écrire BC² = AB² + AC² ?',
+        choix: ['Si le triangle est rectangle en A', 'Si le triangle est rectangle en B', 'Si le triangle est rectangle en C', 'Dans tout triangle'],
+        reponse: 0,
+        explication: "Le côté seul dans l'égalité, ici [BC], est l'hypoténuse : il est opposé à l'angle droit, qui se trouve donc au sommet qui n'apparaît pas dans son nom, A. L'égalité n'est vraie que dans un triangle rectangle." },
+      { type: 'qcm',
+        q: 'Un triangle a pour côtés 9 cm, 12 cm et 15 cm. Que peut-on conclure ?',
+        choix: ['Il est rectangle, avec l\'angle droit opposé au côté de 15 cm', 'Il est rectangle, avec l\'angle droit opposé au côté de 9 cm', 'Il n\'est pas rectangle', 'On ne peut rien conclure'],
+        reponse: 0,
+        explication: "Le plus grand côté est 15 : 15² = 225. Et 9² + 12² = 81 + 144 = 225. L'égalité est vérifiée, donc d'après la réciproque de Pythagore le triangle est rectangle, et l'angle droit est opposé au plus grand côté. C'est le trio 3-4-5 multiplié par 3." }
     ]
   },
 
