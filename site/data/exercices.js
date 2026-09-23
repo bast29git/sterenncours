@@ -4968,4 +4968,146 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'histoire-geo/H4': {
+    titre: "L'Europe de la révolution industrielle",
+    items: [
+      {
+        type: 'qcm',
+        q: 'Dans quel pays commence la révolution industrielle ?',
+        choix: ['En France', 'En Angleterre', 'En Allemagne'],
+        reponse: 1,
+        explication: "En Angleterre, vers 1760. La France et la Belgique suivent vers 1820-1830, l'Allemagne vers 1850. Plusieurs facteurs y convergent : charbon accessible, agriculture productive, capitaux du commerce maritime, stabilité politique."
+      },
+      {
+        type: 'vraifaux',
+        q: 'La révolution industrielle est un changement rapide et brutal.',
+        reponse: false,
+        explication: "Faux. La transformation s'étale sur plus d'un siècle et progresse à des rythmes très différents selon les pays. Le mot « révolution » est justifié par l'ampleur du changement, pas par sa rapidité."
+      },
+      {
+        type: 'saisie',
+        q: 'Qui perfectionne la machine à vapeur en 1769 ?',
+        reponses: ['watt', 'Watt', 'james watt', 'James Watt'],
+        explication: "James Watt. Sa machine transforme la chaleur d'un foyer en mouvement : l'eau chauffée produit de la vapeur qui pousse un piston. C'est le point de départ de toute la mécanisation."
+      },
+      {
+        type: 'qcm',
+        q: 'Que change principalement le charbon par rapport à l\'énergie hydraulique ?',
+        choix: ['Il est moins cher', 'Il permet d\'installer une usine n\'importe où et de produire jour et nuit', 'Il est plus propre'],
+        reponse: 1,
+        explication: "Un moulin à eau doit être au bord d'une rivière et s'arrête au gel ou en sécheresse. Une machine à vapeur fonctionne partout et en continu : l'industrie cesse de dépendre de la géographie des cours d'eau."
+      },
+      {
+        type: 'qcm',
+        q: 'En quelle année circule la première ligne de chemin de fer ?',
+        choix: ['1769', '1825', '1848'],
+        reponse: 1,
+        explication: "1825, entre Stockton et Darlington. Le train crée une demande énorme de rails, donc d'acier, donc de charbon : l'industrie se nourrit elle-même. C'est l'effet d'entraînement."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel effet inattendu le chemin de fer a-t-il eu ?',
+        choix: ['Il a imposé une heure unique dans chaque pays', 'Il a fait baisser le prix du charbon', 'Il a supprimé les routes'],
+        reponse: 0,
+        explication: "Avant lui, chaque ville vivait à son heure solaire locale, ce qui n'avait aucune importance tant que les déplacements étaient lents. Les horaires de train ont exigé que toutes les gares soient à la même heure."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce que la division du travail ?',
+        choix: ['Le partage des bénéfices', 'La décomposition de la fabrication en gestes simples et répétitifs', 'Le travail en équipes alternées'],
+        reponse: 1,
+        explication: "Chaque geste est confié à un ouvrier différent. La production augmente massivement et les prix baissent, mais l'ouvrier perd son savoir-faire, son autonomie et la vue du produit fini."
+      },
+      {
+        type: 'qcm',
+        q: 'Que possède la bourgeoisie industrielle ?',
+        choix: ['Des terres héritées', 'Les moyens de production : usines, machines, capitaux', 'Seulement sa force de travail'],
+        reponse: 1,
+        explication: "Elle tire ses revenus du PROFIT, et non de la rente foncière comme la noblesse ni du salaire comme les ouvriers. Elle fonde son statut sur la réussite et non sur la naissance."
+      },
+      {
+        type: 'saisie',
+        q: 'Comment appelle-t-on l\'ensemble des ouvriers qui ne possèdent que leur force de travail ?',
+        reponses: ['prolétariat', 'le prolétariat', 'proletariat'],
+        explication: "Le prolétariat. Il doit vendre sa force de travail contre un salaire pour vivre, sans aucune sécurité : ni maladie, ni retraite, ni chômage au XIXᵉ siècle."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien d\'heures par jour travaille un ouvrier au milieu du XIX<sup>e</sup> siècle ?',
+        choix: ['8 heures', '12 à 15 heures', '10 heures'],
+        reponse: 1,
+        explication: "12 à 15 heures, six jours sur sept. Le repos hebdomadaire ne devient obligatoire en France qu'en 1906, et la journée de huit heures bien plus tard encore."
+      },
+      {
+        type: 'qcm',
+        q: 'Que dit la loi française de 1841 ?',
+        choix: ['Elle autorise les syndicats', 'Elle interdit le travail des enfants avant 8 ans', 'Elle instaure le repos hebdomadaire'],
+        reponse: 1,
+        explication: "C'est la première loi sociale française. Elle limite aussi le travail à 8 heures entre 8 et 12 ans, mais reste longtemps peu appliquée faute d'inspecteurs pour la faire respecter."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi les employeurs recherchaient-ils des enfants ?',
+        choix: ['Ils travaillaient mieux', 'Ils coûtaient moins cher, obéissaient et se glissaient sous les machines', 'Ils étaient plus nombreux'],
+        reponse: 1,
+        explication: "Leur petite taille leur permettait de nettoyer les machines SANS LES ARRÊTER, ce qui évitait une perte de production. C'est aussi ce qui explique la fréquence des accidents graves."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce que le livret ouvrier ?',
+        choix: ['Un manuel de formation', 'Un carnet obligatoire que l\'employeur conserve et sans lequel l\'ouvrier est considéré comme vagabond', 'Un contrat de travail moderne'],
+        reponse: 1,
+        explication: "Obligatoire en France jusqu'en 1890, c'est un instrument de contrôle des déplacements. L'ouvrier peut être renvoyé sans motif, mais il ne peut pas partir librement : la liberté est à sens unique."
+      },
+      {
+        type: 'qcm',
+        q: 'Manchester passe de 75 000 habitants en 1801 à plus de 300 000 en 1851. Par combien la population est-elle multipliée ?',
+        choix: ['Par deux', 'Par quatre', 'Par dix'],
+        reponse: 1,
+        explication: "Par quatre, en cinquante ans. L'industrie attire la main-d'œuvre, l'exode rural la fournit, et la ville ainsi grandie attire de nouvelles industries : le mécanisme s'auto-entretient."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi les épidémies de choléra frappent-elles d\'abord les quartiers ouvriers ?',
+        choix: ['Les ouvriers sont plus fragiles par nature', 'Ces quartiers n\'ont ni égouts ni eau potable et sont surpeuplés', 'Le climat y est différent'],
+        reponse: 1,
+        explication: "Le choléra se transmet par l'eau souillée. L'épidémie révèle une inégalité d'ÉQUIPEMENT, pas une différence de nature. Elle finira par atteindre les quartiers riches, ce qui déclenchera les travaux d'assainissement."
+      },
+      {
+        type: 'qcm',
+        q: 'Une espérance de vie ouvrière de 17 ans signifie :',
+        choix: ['que les ouvriers mouraient vers 17 ans', 'que la mortalité infantile très élevée fait chuter la moyenne', 'que le chiffre est faux'],
+        reponse: 1,
+        explication: "Une espérance de vie moyenne n'est pas un âge au décès. Si une part importante des enfants meurt avant cinq ans, la moyenne s'effondre même si les survivants atteignent quarante ou cinquante ans."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la première forme de révolte ouvrière au début du siècle ?',
+        choix: ['La grève générale', 'Le bris de machines', 'La création de partis'],
+        reponse: 1,
+        explication: "Le bris de machines, ou luddisme : la machine est d'abord perçue comme la cause du chômage. L'action se déplacera ensuite vers la grève puis l'organisation permanente."
+      },
+      {
+        type: 'qcm',
+        q: 'Que réclament les canuts de Lyon en 1831 et 1834 ?',
+        choix: ['La suppression des machines', 'Un tarif minimum garanti pour leur travail', 'Le droit de vote'],
+        reponse: 1,
+        explication: "Un prix plancher pour leur travail. Leur devise, « vivre en travaillant ou mourir en combattant », marque un tournant : ce n'est plus une émeute de la faim mais une revendication professionnelle organisée."
+      },
+      {
+        type: 'saisie',
+        q: 'En quelle année les syndicats sont-ils autorisés en France ?',
+        reponses: ['1884', 'en 1884'],
+        explication: "1884, par la loi Waldeck-Rousseau. Le droit de grève avait été reconnu vingt ans plus tôt, en 1864. Le droit de coalition, supprimé en 1791, aura donc mis soixante-treize ans à être rétabli."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment les lois sociales du XIX<sup>e</sup> siècle sont-elles obtenues ?',
+        choix: ['Elles sont accordées spontanément par les patrons', 'Elles résultent de mobilisations, d\'enquêtes et de pressions', 'Elles viennent de l\'étranger'],
+        reponse: 1,
+        explication: "Aucune n'est spontanée. Elles combinent mobilisations ouvrières, enquêtes établissant la réalité des conditions, pressions morales, et un intérêt bien compris de l'État soucieux d'une population en état de travailler."
+      }
+    ]
+  }
 };
