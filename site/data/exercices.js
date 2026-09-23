@@ -4127,4 +4127,142 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'maths/L05': {
+    titre: 'Proportionnalité, pourcentages, vitesses',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Comment teste-t-on si un tableau est de proportionnalité ?',
+        choix: ['On regarde si les nombres augmentent', 'On calcule les quotients : ils doivent tous être égaux', 'On additionne les colonnes'],
+        reponse: 1,
+        explication: "On divise la seconde grandeur par la première, colonne par colonne. Si tous les quotients sont égaux, il y a proportionnalité. Un seul quotient différent suffit à conclure que non."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Sur un graphique, des points alignés suffisent à prouver la proportionnalité.',
+        reponse: false,
+        explication: "Faux. La droite doit en plus passer par l'ORIGINE. Une droite alignée qui coupe l'axe vertical au-dessus de zéro correspond à un abonnement avec part fixe : ce n'est pas proportionnel."
+      },
+      {
+        type: 'saisie',
+        q: '5 cahiers coûtent 7,50 €. Combien coûtent 8 cahiers, en euros ?',
+        reponses: ['12', '12 €', '12€', '12 euros'],
+        explication: "k = 7,50 ÷ 5 = 1,50 € par cahier, donc 8 × 1,50 = 12 €. On peut aussi faire le produit en croix : (7,50 × 8) ÷ 5 = 12."
+      },
+      {
+        type: 'qcm',
+        q: 'Un abonnement coûte 15 € par mois plus 2 € par séance. Est-ce proportionnel ?',
+        choix: ['Oui', 'Non, car à zéro séance le prix n\'est pas nul', 'On ne peut pas savoir'],
+        reponse: 1,
+        explication: "Non. Dans une proportionnalité, à zéro correspond toujours zéro. Ici, sans aucune séance, on paie déjà 15 € : c'est une part fixe, et le graphique ne passe pas par l'origine."
+      },
+      {
+        type: 'saisie',
+        q: 'Calcule 30 % de 250.',
+        reponses: ['75'],
+        explication: "250 × 0,30 = 75. Prendre p % d'un nombre, c'est le multiplier par p ÷ 100."
+      },
+      {
+        type: 'saisie',
+        q: '18 représente quel pourcentage de 60 ? Réponds par un nombre.',
+        reponses: ['30', '30%', '30 %'],
+        explication: "(18 ÷ 60) × 100 = 30 %. Attention à ne pas confondre : appliquer un pourcentage MULTIPLIE, calculer un pourcentage DIVISE puis multiplie par 100."
+      },
+      {
+        type: 'qcm',
+        q: 'Par quel coefficient multiplier pour une hausse de 15 % ?',
+        choix: ['0,15', '1,15', '15'],
+        reponse: 1,
+        explication: "1,15. Augmenter de p % revient à multiplier par 1 + p ÷ 100. Pour une baisse de 15 %, on multiplierait par 0,85."
+      },
+      {
+        type: 'qcm',
+        q: 'Par quel coefficient multiplier pour une baisse de 40 % ?',
+        choix: ['0,40', '0,60', '1,40'],
+        reponse: 1,
+        explication: "0,60. Diminuer de 40 % revient à conserver 60 % du montant, donc à multiplier par 0,60."
+      },
+      {
+        type: 'saisie',
+        q: 'Un article à 80 € subit une remise de 30 %. Quel est son prix, en euros ?',
+        reponses: ['56', '56 €', '56€'],
+        explication: "80 × 0,70 = 56 €. La méthode par coefficient est plus sûre que de calculer la remise puis de la soustraire : une seule étape, donc moins d'erreurs."
+      },
+      {
+        type: 'qcm',
+        q: 'Après une hausse de 20 %, un article coûte 90 €. Quel était son prix initial ?',
+        choix: ['72 €', '75 €', '70 €'],
+        reponse: 1,
+        explication: "90 ÷ 1,20 = 75 €. On DIVISE par le coefficient : soustraire 20 % de 90 donnerait 72 €, ce qui est faux, car le pourcentage portait sur le prix initial."
+      },
+      {
+        type: 'qcm',
+        q: 'Un prix augmente de 10 % puis de 20 %. Quelle est la hausse totale ?',
+        choix: ['30 %', '32 %', '2 %'],
+        reponse: 1,
+        explication: "1,10 × 1,20 = 1,32, soit 32 %. Les pourcentages successifs se MULTIPLIENT, jamais ne s'additionnent : la seconde hausse s'applique à un montant déjà augmenté."
+      },
+      {
+        type: 'qcm',
+        q: 'Un prix augmente de 10 % puis baisse de 10 %. Quel est l\'effet global ?',
+        choix: ['Retour au prix initial', 'Une baisse de 1 %', 'Une hausse de 1 %'],
+        reponse: 1,
+        explication: "1,10 × 0,90 = 0,99, soit une baisse de 1 %. Sur 100 € : 100 → 110 → 99. Les deux pourcentages ne portent pas sur le même nombre."
+      },
+      {
+        type: 'qcm',
+        q: 'Un magasin annonce −30 % puis −20 % supplémentaires. Quelle est la remise réelle ?',
+        choix: ['50 %', '44 %', '56 %'],
+        reponse: 1,
+        explication: "0,70 × 0,80 = 0,56, donc on conserve 56 % du prix : la remise réelle est de 44 %. Annoncer −50 % serait trompeur."
+      },
+      {
+        type: 'saisie',
+        q: 'Un train parcourt 300 km en 2 h 30. Quelle est sa vitesse en km/h ?',
+        reponses: ['120', '120 km/h', '120km/h'],
+        explication: "2 h 30 s'écrit 2,5 en heures décimales, et non 2,30. Donc v = 300 ÷ 2,5 = 120 km/h."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment écrit-on 3 h 45 en heures décimales ?',
+        choix: ['3,45', '3,75', '3,45 h'],
+        reponse: 1,
+        explication: "3,75. On divise les minutes par 60 : 45 ÷ 60 = 0,75. De même, 2 h 30 s'écrit 2,5 et 1 h 15 s'écrit 1,25."
+      },
+      {
+        type: 'saisie',
+        q: 'Combien vaut 15 m/s en km/h ?',
+        reponses: ['54', '54 km/h', '54km/h'],
+        explication: "15 × 3,6 = 54 km/h. Le facteur 3,6 vient du fait qu'en une heure, soit 3600 secondes, on parcourt 3600 mètres, c'est-à-dire 3,6 kilomètres."
+      },
+      {
+        type: 'qcm',
+        q: 'Un trajet se fait à 60 km/h à l\'aller et 40 km/h au retour. Quelle est la vitesse moyenne ?',
+        choix: ['50 km/h', '48 km/h', '52 km/h'],
+        reponse: 1,
+        explication: "48 km/h. Sur 120 km dans chaque sens : 2 h à l'aller, 3 h au retour, donc 240 ÷ 5 = 48. On passe plus de temps à la vitesse lente, qui pèse donc davantage."
+      },
+      {
+        type: 'qcm',
+        q: 'Un robinet remplit 180 L en 12 min. Quel est son débit ?',
+        choix: ['15 L/min', '12 L/min', '20 L/min'],
+        reponse: 0,
+        explication: "180 ÷ 12 = 15 L/min. Le débit est une grandeur composée, comme la vitesse : trois formules dont une seule est à retenir."
+      },
+      {
+        type: 'qcm',
+        q: 'Une voiture consomme 6,5 L aux 100 km. Combien pour 350 km ?',
+        choix: ['22,75 L', '18,5 L', '65 L'],
+        reponse: 0,
+        explication: "350 km représente 3,5 fois 100 km, donc 6,5 × 3,5 = 22,75 L. C'est une simple proportionnalité."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Le coefficient de proportionnalité a toujours une unité.',
+        reponse: true,
+        explication: "Vrai : euros par mètre, kilomètres par heure, grammes par centimètre cube. Cette unité indique dans quel sens le coefficient s'emploie, et c'est le meilleur contrôle contre les erreurs."
+      }
+    ]
+  }
 };
