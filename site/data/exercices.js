@@ -1549,5 +1549,208 @@ window.EXERCICES = {
         explication: "Temps = distance ÷ vitesse = (1,5 × 10¹¹) ÷ (3 × 10⁸). On sépare : 1,5 ÷ 3 = 0,5 et 10¹¹ ÷ 10⁸ = 10³, soit 0,5 × 10³ = 500 secondes, c'est-à-dire environ 8 minutes et 20 secondes."
       }
     ]
+  },
+
+  'francais/L02': {
+    titre: 'Individu et société : confrontations de valeurs',
+    items: [
+      {
+        type: 'qcm',
+        q: "Qu'est-ce qu'une <strong>didascalie</strong> ?",
+        choix: [
+          'Une longue réplique',
+          "Une indication de l'auteur sur le décor, les gestes ou le ton",
+          'Un malentendu entre deux personnages',
+          'La partie chantée d\'une pièce'
+        ],
+        reponse: 1,
+        explication: "La didascalie est une indication de mise en scène, imprimée en italique et jamais prononcée. Elle donne souvent des informations que le dialogue ne contient pas : qui est seul, comment on parle, ce qu'on fait."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Les didascalies sont prononcées par les comédiens.',
+        reponse: false,
+        explication: "Faux, et sans exception. Ce sont des indications destinées au metteur en scène et aux comédiens, pas au public. On les repère à l'italique et souvent aux parenthèses."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle est la différence entre une <strong>tirade</strong> et un <strong>monologue</strong> ?",
+        choix: [
+          'La tirade est plus longue',
+          'Le monologue est en vers',
+          "La tirade s'adresse à quelqu'un, le monologue est dit par un personnage seul",
+          'Il n\'y a aucune différence'
+        ],
+        reponse: 2,
+        explication: "Le critère n'est pas la longueur mais la présence d'un interlocuteur. Une tirade de deux pages devant trois personnages reste une tirade ; deux lignes dites seul en scène forment déjà un monologue."
+      },
+      {
+        type: 'qcm',
+        q: 'Quand change-t-on de <strong>scène</strong> dans une pièce ?',
+        choix: [
+          'Quand le décor change',
+          "Quand un personnage entre ou sort",
+          'Toutes les dix répliques',
+          'Quand le sujet de la conversation change'
+        ],
+        reponse: 1,
+        explication: "Une scène se délimite par l'entrée ou la sortie d'un personnage, même si le décor et le sujet ne bougent pas. C'est le changement d'acte qui correspond en général à un changement de décor ou de temps."
+      },
+      {
+        type: 'saisie',
+        q: "Comment appelle-t-on une parole entendue du public mais pas des autres personnages ?",
+        reponses: ['un aparté', 'aparté', 'aparte', 'un aparte'],
+        explication: "Un aparté. Il n'est possible que grâce à la double énonciation : au théâtre, une réplique s'adresse en même temps au personnage et au public. L'aparté ne garde que le second destinataire."
+      },
+      {
+        type: 'qcm',
+        q: "Qu'est-ce que la <strong>double énonciation</strong> ?",
+        choix: [
+          'Un personnage qui répète deux fois la même chose',
+          "Une réplique qui s'adresse à la fois au personnage et au public",
+          'Deux personnages qui parlent en même temps',
+          'Une pièce jouée deux soirs de suite'
+        ],
+        reponse: 1,
+        explication: "Une même phrase a deux destinataires simultanés : l'interlocuteur sur scène et la salle. C'est elle qui permet l'aparté, et qui crée du comique ou de la tension quand le spectateur en sait plus qu'un personnage."
+      },
+      {
+        type: 'qcm',
+        q: "Lequel de ces mots désigne une <strong>valeur</strong> ?",
+        choix: ['une table', 'le mardi', "l'honneur", 'une réplique'],
+        reponse: 2,
+        explication: "L'honneur est un principe auquel on tient et qui guide les choix : c'est une valeur. Liberté, justice, amitié, argent en sont d'autres. Une valeur n'est ni vraie ni fausse : elle se défend."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle est la <strong>quatrième</strong> question à se poser devant un conflit de valeurs ?",
+        choix: [
+          'Qui parle le plus ?',
+          'Que risque chacun s\'il cède ?',
+          'Qui a raison ?',
+          'Combien de scènes dure le conflit ?'
+        ],
+        reponse: 1,
+        explication: "« Que risque chacun ? » C'est elle qui transforme un résumé en analyse : mesurer l'enjeu révèle souvent un déséquilibre, comme entre la vie entière d'Élise et la dot que risque Harpagon."
+      },
+      {
+        type: 'qcm',
+        q: "Dans <em>L'Avare</em>, quelles valeurs s'opposent entre Harpagon et sa fille Élise ?",
+        choix: [
+          "L'honneur et la réputation",
+          "L'argent et l'amour",
+          "L'État et la famille",
+          'La sincérité et la politesse'
+        ],
+        reponse: 1,
+        explication: "Harpagon défend l'argent, c'est-à-dire la conservation de sa fortune ; Élise défend l'amour et le droit de choisir sa vie. Le déséquilibre entre les deux enjeux est ce qui rend Harpagon ridicule."
+      },
+      {
+        type: 'qcm',
+        q: "« Selon l'INSEE, 300 000 personnes n'ont pas de logement. » Ce procédé cherche à…",
+        choix: ['persuader', 'convaincre', 'délibérer', 'émouvoir'],
+        reponse: 1,
+        explication: "Convaincre : on s'adresse à la raison avec une donnée vérifiable et une source. Persuader viserait les sentiments, par exemple en décrivant une nuit dehors. Délibérer, ce serait peser le pour et le contre avec soi-même."
+      },
+      {
+        type: 'qcm',
+        q: "« Imagine ta petite soeur à sa place. Tu accepterais ça ? » Ce procédé cherche à…",
+        choix: ['convaincre', 'persuader', 'délibérer', 'informer'],
+        reponse: 1,
+        explication: "Persuader : l'auteur vise l'émotion par l'identification et l'indignation. Aucun fait n'est apporté. Ni l'un ni l'autre n'est « meilleur » : ce qui est attendu, c'est de nommer le procédé et de dire ce qu'il produit."
+      },
+      {
+        type: 'qcm',
+        q: "« Il a tout perdu : son travail, sa maison, ses amis, sa santé. » Quel procédé ?",
+        choix: ['Une question rhétorique', 'Une énumération', 'Une opposition', 'Un exemple'],
+        reponse: 1,
+        explication: "Une énumération. Son effet est d'écraser par le nombre : chaque élément pris seul serait discutable, mais la série donne une impression d'accablement qui décourage l'objection."
+      },
+      {
+        type: 'qcm',
+        q: "« Lui n'a rien ; son patron a tout. » Quel procédé ?",
+        choix: ['Une énumération', 'Une opposition', 'Un exemple', 'Un aparté'],
+        reponse: 1,
+        explication: "Une opposition, ou antithèse : deux idées contraires placées côte à côte. Le lecteur perçoit l'écart d'un seul coup d'oeil, sans qu'on ait besoin de le lui expliquer."
+      },
+      {
+        type: 'qcm',
+        q: "Quel effet produit une <strong>question rhétorique</strong> ?",
+        choix: [
+          "Elle laisse le lecteur libre de répondre",
+          "Elle fait croire au lecteur qu'il trouve seul une réponse qui lui est imposée",
+          'Elle allonge le texte',
+          "Elle apporte une preuve"
+        ],
+        reponse: 1,
+        explication: "La réponse est évidente et n'est pas attendue : le lecteur croit la trouver lui-même, ce qui le rend complice de la thèse sans qu'il ait eu à l'accepter explicitement. Dire cet effet est ce qui rapporte les points."
+      },
+      {
+        type: 'vraifaux',
+        q: "Écrire « il y a une question rhétorique » suffit dans une analyse.",
+        reponse: false,
+        explication: "Faux. Nommer un procédé ne vaut rien tant qu'on n'a pas dit ce qu'il produit sur le lecteur, et en quoi il sert la thèse défendue. C'est l'erreur qui coûte le plus de points en analyse de texte."
+      },
+      {
+        type: 'qcm',
+        q: "Quels sont les quatre temps d'un <strong>paragraphe argumenté</strong> ?",
+        choix: [
+          'Introduction, développement, transition, conclusion',
+          'Thèse, argument, exemple, conclusion',
+          'Question, réponse, preuve, résumé',
+          'Sujet, verbe, complément, ponctuation'
+        ],
+        reponse: 1,
+        explication: "Thèse, argument, exemple, conclusion. L'exemple est le temps le plus souvent oublié, et c'est celui qui distingue une opinion d'un raisonnement. La conclusion doit ajouter quelque chose, pas répéter la thèse."
+      },
+      {
+        type: 'qcm',
+        q: "« Il faut lire parce que c'est bien de lire. » Quel est le défaut de cet argument ?",
+        choix: [
+          "Il est trop long",
+          "Il répète la thèse au lieu de la soutenir",
+          "Il manque de vocabulaire",
+          "Il n'y a pas de faute"
+        ],
+        reponse: 1,
+        explication: "C'est un raisonnement circulaire : l'argument reformule la thèse sans apporter de raison distincte. Un argument valable dirait par exemple que la lecture est le seul exercice qui oblige à suivre une pensée longue sans interruption."
+      },
+      {
+        type: 'qcm',
+        q: "Dans <em>Antigone</em>, quelles valeurs s'affrontent ?",
+        choix: [
+          "L'amour et l'argent",
+          "Le devoir envers l'État et le devoir envers la famille",
+          'La sincérité et la politesse',
+          'La jeunesse et la vieillesse'
+        ],
+        reponse: 1,
+        explication: "Créon défend la loi et l'ordre public ; Antigone défend le respect dû aux morts et à son frère. Le conflit est insoluble parce que les deux valeurs sont légitimes : Créon n'est pas un tyran capricieux."
+      },
+      {
+        type: 'qcm',
+        q: "Un personnage dit « je suis parfaitement calme », avec la didascalie <em>tremblant de rage</em>. Que faut-il en conclure ?",
+        choix: [
+          "L'auteur s'est trompé",
+          "Il faut suivre le dialogue et ignorer la didascalie",
+          "L'écart entre la parole et le corps révèle ce que le personnage cache",
+          'La didascalie remplace la réplique'
+        ],
+        reponse: 2,
+        explication: "L'écart est voulu : il montre au spectateur ce que l'interlocuteur n'entend pas. C'est l'un des relevés les plus rentables dans une analyse, parce qu'il révèle un personnage sans qu'aucune réplique n'ait à le dire."
+      },
+      {
+        type: 'qcm',
+        q: "Qu'est-ce qu'un <strong>coup de théâtre</strong> ?",
+        choix: [
+          'Un malentendu entre deux personnages',
+          'Un retournement brutal et inattendu de la situation',
+          'Une réplique dite au public',
+          "La dernière scène d'un acte"
+        ],
+        reponse: 1,
+        explication: "Un retournement brutal, par exemple la découverte au dernier acte qu'un orphelin est l'héritier d'une fortune. À ne pas confondre avec le quiproquo, qui est un malentendu, ni avec l'aparté, qui s'adresse au public."
+      }
+    ]
   }
 };
