@@ -3567,4 +3567,142 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'histoire-geo/H3': {
+    titre: 'La Révolution française et l\'Empire',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Quels sont les trois ordres de l\'Ancien Régime ?',
+        choix: ['Roi, nobles, paysans', 'Clergé, noblesse, tiers état', 'Riches, classe moyenne, pauvres'],
+        reponse: 1,
+        explication: "Le clergé, environ 0,5 % de la population, la noblesse, environ 1,5 %, et le tiers état, environ 98 %. Les deux premiers sont privilégiés, le troisième paie l'essentiel des impôts."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Le tiers état est composé uniquement de paysans pauvres.',
+        reponse: false,
+        explication: "Faux. Il comprend les paysans et les ouvriers, mais aussi la bourgeoisie : marchands, avocats, médecins, parfois très riches. C'est elle qui prend la tête du mouvement en 1789."
+      },
+      {
+        type: 'saisie',
+        q: 'À quelle date a lieu la prise de la Bastille ? (jour et mois)',
+        reponses: ['14 juillet', '14 juillet 1789', 'le 14 juillet'],
+        explication: "Le 14 juillet 1789. La forteresse ne contenait que sept prisonniers : sa prise a une portée symbolique, pas militaire. Elle montre que le roi n'a plus le monopole de la force."
+      },
+      {
+        type: 'qcm',
+        q: 'Que se passe-t-il dans la nuit du 4 août 1789 ?',
+        choix: ['La prise de la Bastille', 'L\'abolition des privilèges', 'L\'exécution du roi'],
+        reponse: 1,
+        explication: "L'abolition des privilèges, votée par les députés. C'est la fin juridique de la société d'ordres. Elle répond en partie à la Grande Peur qui agite alors les campagnes."
+      },
+      {
+        type: 'saisie',
+        q: 'À quelle date est adoptée la Déclaration des droits de l\'homme et du citoyen ? (jour et mois)',
+        reponses: ['26 août', '26 août 1789', 'le 26 août'],
+        explication: "Le 26 août 1789. Elle comporte 17 articles et renverse deux principes de l'Ancien Régime : le pouvoir ne vient plus de Dieu mais de la Nation, et les droits ne dépendent plus de la naissance."
+      },
+      {
+        type: 'qcm',
+        q: 'Que dit l\'article 1 de la Déclaration ?',
+        choix: ['La souveraineté réside dans la Nation', 'Les hommes naissent et demeurent libres et égaux en droits', 'Nul ne peut être arrêté sans jugement'],
+        reponse: 1,
+        explication: "« Les hommes naissent et demeurent libres et égaux en droits. » La souveraineté de la Nation, c'est l'article 3, qui vient tout droit de Rousseau."
+      },
+      {
+        type: 'qcm',
+        q: 'De quel philosophe des Lumières vient l\'article 16, sur la séparation des pouvoirs ?',
+        choix: ['Rousseau', 'Montesquieu', 'Voltaire'],
+        reponse: 1,
+        explication: "Montesquieu, dans « De l'esprit des lois » en 1748. L'article 3 sur la souveraineté vient de Rousseau, l'article 11 sur la liberté d'expression du combat de Voltaire."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Après 1789, tous les Français majeurs peuvent voter.',
+        reponse: false,
+        explication: "Faux. La Constitution de 1791 instaure un suffrage CENSITAIRE : seuls votent les hommes qui paient un impôt suffisant, soit environ 4,3 millions sur 28 millions d'habitants. Les femmes en sont exclues."
+      },
+      {
+        type: 'qcm',
+        q: 'Que se passe-t-il à Varennes en juin 1791 ?',
+        choix: ['Une bataille', 'L\'arrestation de Louis XVI en fuite', 'La signature de la Constitution'],
+        reponse: 1,
+        explication: "Louis XVI tente de fuir pour rejoindre les armées étrangères. Reconnu et arrêté, il apparaît désormais comme un traître : l'idée républicaine, jusque-là marginale, devient une option sérieuse."
+      },
+      {
+        type: 'saisie',
+        q: 'En quelle année la Première République est-elle proclamée ?',
+        reponses: ['1792', 'en 1792'],
+        explication: "Le 21 septembre 1792, au lendemain de la victoire de Valmy. Louis XVI est exécuté quatre mois plus tard, le 21 janvier 1793."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi la guerre transforme-t-elle la Révolution à partir de 1792 ?',
+        choix: ['Elle enrichit le pays', 'Toute opposition intérieure devient suspecte de trahison', 'Elle met fin aux débats politiques'],
+        reponse: 1,
+        explication: "La situation de survie justifie des mesures d'exception au nom du salut public, et un désaccord politique se transforme en accusation de collusion avec l'ennemi. C'est le contexte de la Terreur."
+      },
+      {
+        type: 'qcm',
+        q: 'Sur quelles années s\'étend la Terreur ?',
+        choix: ['1789-1791', '1793-1794', '1799-1804'],
+        reponse: 1,
+        explication: "De septembre 1793 à juillet 1794. Mesures d'exception : loi des suspects, tribunal révolutionnaire, maximum des prix, levée en masse. Environ 17 000 exécutions après jugement."
+      },
+      {
+        type: 'vraifaux',
+        q: 'La majorité des victimes de la Terreur sont des nobles.',
+        reponse: false,
+        explication: "Faux. La majorité appartient au TIERS ÉTAT. L'image d'aristocrates montant à l'échafaud est largement fausse : la Terreur frappe d'abord ceux qui se trouvent du mauvais côté d'une dénonciation."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment prend fin la Terreur ?',
+        choix: ['Par un vote de la population', 'Par la chute de Robespierre, renversé par ses propres collègues', 'Par une invasion étrangère'],
+        reponse: 1,
+        explication: "Le 9 thermidor an II, le 27 juillet 1794. Ceux qui le renversent ne sont pas des modérés : beaucoup ont participé à la Terreur et craignent d'en devenir les prochaines victimes."
+      },
+      {
+        type: 'qcm',
+        q: 'Que se passe-t-il le 18 brumaire an VIII, le 9 novembre 1799 ?',
+        choix: ['Le sacre de Napoléon', 'Le coup d\'État de Bonaparte', 'La proclamation de la République'],
+        reponse: 1,
+        explication: "Le coup d'État qui renverse le Directoire et installe le Consulat. Le Directoire, menacé par les royalistes et les radicaux, dépendait de l'armée : il finit par être renversé par un général."
+      },
+      {
+        type: 'saisie',
+        q: 'En quelle année Napoléon est-il sacré empereur ?',
+        reponses: ['1804', 'en 1804'],
+        explication: "Le 2 décembre 1804, à Notre-Dame. Il se couronne lui-même en présence du pape : le geste signifie qu'il ne tient pas son pouvoir de l'Église, mais de lui-même et du plébiscite."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qu\'un plébiscite ?',
+        choix: ['Une élection entre plusieurs candidats', 'Un vote par oui ou non sur une décision déjà prise', 'Un impôt'],
+        reponse: 1,
+        explication: "Un vote par lequel les citoyens ratifient une décision déjà prise par le pouvoir. On ne choisit pas entre des candidats : c'est ce qui le distingue d'une élection libre."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel acquis de 1789 Napoléon conserve-t-il ?',
+        choix: ['La liberté de la presse', 'L\'égalité devant la loi', 'Les élections libres'],
+        reponse: 1,
+        explication: "L'égalité devant la loi, inscrite dans le Code civil de 1804. Il conserve aussi la fin des privilèges de naissance et la vente des biens nationaux, mais supprime les libertés politiques."
+      },
+      {
+        type: 'qcm',
+        q: 'Combien de journaux paraissent à Paris en 1811, contre plus de trois cents en 1789 ?',
+        choix: ['Quatre', 'Cinquante', 'Deux cents'],
+        reponse: 0,
+        explication: "Quatre, tous surveillés. L'article 11 de la Déclaration n'a pas été abrogé, mais il est vidé de tout effet : un droit proclamé sans institution qui le garantisse peut rester lettre morte."
+      },
+      {
+        type: 'vraifaux',
+        q: 'L\'esclavage, aboli en 1794, a été rétabli par Napoléon en 1802.',
+        reponse: true,
+        explication: "Vrai. Il ne sera définitivement aboli qu'en 1848. Conserver les acquis de 1789 ne signifiait donc pas les étendre : le Code civil place aussi les femmes sous l'autorité de leur père puis de leur mari."
+      }
+    ]
+  }
 };
