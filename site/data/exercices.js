@@ -595,5 +595,510 @@ window.EXERCICES = {
         explication: "L'asthénosphère est la partie du manteau située sous la lithosphère. Elle reste solide, mais se déforme plus facilement : c'est sur elle que glissent les plaques rigides."
       }
     ]
+  },
+
+  'histoire-geo/H1': {
+    titre: 'Négoces internationaux et traite négrière',
+    items: [
+      {
+        type: 'qcm',
+        q: "D'où part le navire dans le <strong>commerce triangulaire</strong> ?",
+        choix: ["D'Afrique", "D'Europe", "D'Amérique", "Des Antilles"],
+        reponse: 1,
+        explication: "Le navire part d'un port européen, comme Nantes ou Liverpool, chargé d'armes, de tissus, d'alcool et de verroterie. Il échange ces marchandises en Afrique, vend les captifs en Amérique, et rentre en Europe chargé de produits coloniaux."
+      },
+      {
+        type: 'qcm',
+        q: "Que transporte le navire lors du trajet <strong>Afrique vers Amérique</strong> ?",
+        choix: ['Des armes et des tissus', 'Du sucre et du café', 'Des personnes capturées et réduites en esclavage', 'De l\'or'],
+        reponse: 2,
+        explication: "C'est le « passage du milieu », une traversée de six à dix semaines. Environ 13 % des personnes embarquées n'y survivent pas. Les armes et les tissus correspondent au premier trajet, le sucre et le café au troisième."
+      },
+      {
+        type: 'saisie',
+        q: 'Quel est le premier port négrier français au XVIIIᵉ siècle ?',
+        reponses: ['Nantes', 'nantes'],
+        explication: "Nantes arme environ 1 400 expéditions négrières entre 1700 et 1792, qui déportent près de 450 000 personnes. Bordeaux, La Rochelle et Le Havre participent aussi à ce commerce. Liverpool est le premier port négrier d'Europe."
+      },
+      {
+        type: 'saisie',
+        q: 'En quelle année le <strong>Code noir</strong> est-il promulgué ?',
+        reponses: ['1685'],
+        explication: "Le Code noir est promulgué en 1685 par Louis XIV. Il qualifie les personnes réduites en esclavage de biens meubles, c'est-à-dire d'objets pouvant être vendus, donnés ou hérités. Il organise et légalise l'esclavage dans les colonies françaises."
+      },
+      {
+        type: 'qcm',
+        q: "Quel statut juridique le Code noir donne-t-il aux personnes réduites en esclavage ?",
+        choix: ['Celui de travailleur sous contrat', 'Celui de bien meuble', 'Celui de mineur', 'Celui d\'étranger'],
+        reponse: 1,
+        explication: "Le statut de bien meuble : la personne est juridiquement un objet mobilier, qui entre dans une succession et se partage entre héritiers comme un meuble. C'est la négation par la loi de son humanité."
+      },
+      {
+        type: 'vraifaux',
+        q: "L'esclavage n'a été aboli qu'une seule fois en France, en 1848.",
+        reponse: false,
+        explication: "Faux. Il y a eu deux abolitions : une première en 1794 par la Convention, annulée par le rétablissement de l'esclavage en 1802 sous Bonaparte, puis l'abolition définitive de 1848. C'est l'erreur la plus fréquente du chapitre."
+      },
+      {
+        type: 'saisie',
+        q: "En quelle année <strong>Haïti</strong> devient-elle indépendante ?",
+        reponses: ['1804'],
+        explication: "En 1804, au terme d'une révolte commencée en 1791 et menée notamment par Toussaint Louverture. Haïti est la première république née d'une révolte d'esclaves victorieuse, 44 ans avant l'abolition définitive en France."
+      },
+      {
+        type: 'qcm',
+        q: "Qu'est-ce que le <strong>marronnage</strong> ?",
+        choix: [
+          'Une culture coloniale',
+          'La fuite hors de la plantation',
+          'Un impôt payé par les colons',
+          'Le nom du voyage transatlantique'
+        ],
+        reponse: 1,
+        explication: "Le marronnage est la fuite d'une personne réduite en esclavage hors de la plantation. Les « marrons » formaient parfois des communautés autonomes dans les montagnes ou les forêts. C'est l'une des formes de résistance, avec le sabotage, la conservation des langues et les révoltes."
+      },
+      {
+        type: 'qcm',
+        q: "Environ combien de personnes ont été déportées par la <strong>traite atlantique</strong> ?",
+        choix: ['1 million', '3 millions', '12 millions', '50 millions'],
+        reponse: 2,
+        explication: "Environ 12 millions de personnes du XVIᵉ au XIXᵉ siècle, dont environ 1,5 million sont mortes pendant la traversée. Ces chiffres sont des estimations, établies à partir des registres de bord et des archives portuaires."
+      },
+      {
+        type: 'vraifaux',
+        q: "Le taux de mortalité de la traversée était connu des armateurs et intégré à leurs calculs.",
+        reponse: true,
+        explication: "Vrai, et c'est le point le plus important du chapitre. Les armateurs prévoyaient une perte d'environ un huitième et achetaient en conséquence. La mortalité n'était donc pas un accident subi, mais un coût accepté du système."
+      },
+      {
+        type: 'qcm',
+        q: "Qu'est-ce qu'une <strong>économie de plantation</strong> ?",
+        choix: [
+          'Une agriculture vivrière tournée vers la population locale',
+          'Une colonie spécialisée dans une culture destinée à l\'exportation',
+          'Un commerce entre colonies voisines',
+          'Une exploitation minière'
+        ],
+        reponse: 1,
+        explication: "La colonie ne produit qu'une ou deux cultures, destinées à la métropole, et ne produit pas sa propre nourriture : elle dépend entièrement de l'extérieur. Ce système enrichit les ports européens, pas les territoires qui produisent."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle colonie produisait à elle seule environ 40 % du sucre mondial en 1789 ?",
+        choix: ['La Martinique', 'La Jamaïque', 'Saint-Domingue', 'Le Brésil'],
+        reponse: 2,
+        explication: "Saint-Domingue, l'actuelle Haïti, était alors la colonie la plus riche du monde : environ 40 % du sucre et 60 % du café mondiaux, avec 500 000 personnes réduites en esclavage pour 30 000 colons. Elle représentait les deux tiers du commerce extérieur français."
+      },
+      {
+        type: 'qcm',
+        q: "Devant un document historique, quelle question rapporte le plus de points et s'oublie le plus souvent ?",
+        choix: [
+          'Quelle est sa nature ?',
+          'Qui en est l\'auteur ?',
+          'Dans quel but a-t-il été produit ?',
+          'De quand date-t-il ?'
+        ],
+        reponse: 2,
+        explication: "La question du but. Un registre de bord de navire négrier n'a pas été écrit pour dénoncer, mais pour compter : c'est précisément ce qui en fait une source fiable. Dire pourquoi un document a été produit change la lecture qu'on en fait."
+      },
+      {
+        type: 'vraifaux',
+        q: "L'indemnisation prévue par l'abolition de 1848 a été versée aux personnes libérées.",
+        reponse: false,
+        explication: "Faux. Elle a été versée aux anciens propriétaires, pour la perte de leur « bien ». Cette asymétrie, les exploitants dédommagés et les victimes non, est au cœur des débats actuels sur la mémoire de l'esclavage et les réparations."
+      },
+      {
+        type: 'qcm',
+        q: "Pourquoi l'abolition n'arrive-t-elle qu'après la Révolution, alors que les philosophes critiquent l'esclavage dès 1748 ?",
+        choix: [
+          'Parce que leurs textes étaient interdits',
+          'Parce que la traite représentait une part énorme de la richesse française',
+          'Parce que personne ne les lisait',
+          'Parce que le roi y était favorable'
+        ],
+        reponse: 1,
+        explication: "Saint-Domingue représentait à elle seule les deux tiers du commerce extérieur français, et les ports de Nantes, Bordeaux et La Rochelle en vivaient. Les intérêts économiques ont longtemps résisté aux arguments moraux : il a fallu la Révolution et la révolte de 1791."
+      }
+    ]
+  },
+
+  'emc/L01': {
+    titre: 'Les libertés fondamentales',
+    items: [
+      {
+        type: 'qcm',
+        q: "D'après l'article 4 de la Déclaration de 1789, la liberté consiste à pouvoir faire…",
+        choix: [
+          'tout ce que l\'on veut',
+          'tout ce qui ne nuit pas à autrui',
+          'tout ce que la loi autorise expressément',
+          'tout ce que le maire permet'
+        ],
+        reponse: 1,
+        explication: "« La liberté consiste à pouvoir faire tout ce qui ne nuit pas à autrui. » La liberté est donc très large par principe, et ce sont les limites qui doivent être justifiées, pas la liberté elle-même."
+      },
+      {
+        type: 'qcm',
+        q: "Qui seul peut fixer les limites à une liberté fondamentale ?",
+        choix: ['Le maire', 'Le préfet', 'La loi', "Le chef d'établissement"],
+        reponse: 2,
+        explication: "L'article 4 est explicite : « Ces bornes ne peuvent être déterminées que par la loi. » Un maire ou un préfet peuvent prendre des mesures locales, mais seulement dans le cadre fixé par la loi, et leurs décisions sont contrôlables par le juge."
+      },
+      {
+        type: 'qcm',
+        q: "La liberté d'association est une liberté…",
+        choix: ['individuelle', 'collective', 'ni l\'une ni l\'autre', 'réservée aux majeurs'],
+        reponse: 1,
+        explication: "Elle est collective, parce qu'elle suppose d'être plusieurs pour l'exercer. Les libertés individuelles s'exercent seul : liberté de conscience, liberté d'aller et venir, droit à la vie privée."
+      },
+      {
+        type: 'vraifaux',
+        q: "Une limite à une liberté est toujours une atteinte injustifiée.",
+        reponse: false,
+        explication: "Faux. Une limite prévue par la loi, poursuivant un but légitime comme l'ordre public ou les droits d'autrui, et proportionnée, est parfaitement légitime. Ce qui compte n'est pas l'existence de la limite, mais sa justification."
+      },
+      {
+        type: 'qcm',
+        q: "Que signifie qu'une limite est <strong>proportionnée</strong> ?",
+        choix: [
+          'Qu\'elle est votée à la majorité',
+          'Qu\'elle atteint son but sans aller au-delà de ce qui est nécessaire',
+          'Qu\'elle s\'applique à tout le monde',
+          'Qu\'elle est temporaire'
+        ],
+        reponse: 1,
+        explication: "La proportionnalité est le critère que le juge examine le plus souvent. S'il existe une mesure moins restrictive qui produirait le même résultat, la limite choisie n'est pas proportionnée et peut être annulée."
+      },
+      {
+        type: 'vraifaux',
+        q: "Il faut une autorisation pour organiser une manifestation en France.",
+        reponse: false,
+        explication: "Faux. Il faut une déclaration préalable en préfecture, en général trois jours avant, et non une autorisation. La différence est essentielle : l'administration organise la sécurité, mais ne peut pas refuser une manifestation parce qu'elle en désapprouve le motif."
+      },
+      {
+        type: 'qcm',
+        q: "La liberté d'expression protège-t-elle l'<strong>injure</strong> ?",
+        choix: [
+          'Oui, tout peut se dire',
+          'Non, ni l\'injure, ni la diffamation, ni l\'appel à la haine',
+          'Oui, sauf sur Internet',
+          'Cela dépend de la personne visée'
+        ],
+        reponse: 1,
+        explication: "L'injure, la diffamation, l'appel à la haine et l'apologie du terrorisme ne sont pas protégés : ils portent atteinte aux droits d'autrui ou à la sécurité. En revanche, une opinion qui choque ou qui dérange reste protégée."
+      },
+      {
+        type: 'saisie',
+        q: "Comment s'appelle la procédure d'urgence permettant de saisir le juge en 48 heures ?",
+        reponses: ['refere-liberte', 'référé-liberté', 'le référé-liberté', 'refere liberte', 'référé liberté'],
+        explication: "Le référé-liberté permet à toute personne de saisir le juge administratif quand une autorité publique porte une atteinte grave et manifestement illégale à une liberté fondamentale. Le juge doit statuer dans les 48 heures."
+      },
+      {
+        type: 'qcm',
+        q: "En août 2016, le Conseil d'État a suspendu des arrêtés municipaux interdisant certaines tenues sur les plages. Sur quel raisonnement ?",
+        choix: [
+          'Un maire ne peut jamais limiter une liberté',
+          'Il n\'existait pas de risque avéré pour l\'ordre public',
+          'Les arrêtés n\'étaient pas affichés',
+          'La loi l\'interdisait expressément'
+        ],
+        reponse: 1,
+        explication: "Le Conseil d'État a jugé qu'un maire ne peut restreindre une liberté fondamentale que s'il existe un risque avéré pour l'ordre public, ce qui n'était pas démontré. Cet exemple montre qu'une autorité publique n'a jamais le dernier mot."
+      },
+      {
+        type: 'qcm',
+        q: "Un journal publie des photos d'une personne célèbre chez elle. Quel critère le juge examine-t-il ?",
+        choix: [
+          'La notoriété de la personne',
+          'Si l\'information relève du débat d\'intérêt général',
+          'Le tirage du journal',
+          'L\'accord des voisins'
+        ],
+        reponse: 1,
+        explication: "Le juge regarde si l'information participe au débat d'intérêt général. Une photo prise dans un cadre privé, sans lien avec les fonctions publiques de la personne, n'en relève pas : la vie privée l'emporte alors sur la liberté de la presse."
+      },
+      {
+        type: 'qcm',
+        q: "Un cortège bloque un axe routier. Quelle est la bonne façon de traiter ce conflit de libertés ?",
+        choix: [
+          'Interdire la manifestation',
+          'Interdire la circulation définitivement',
+          'Aménager : parcours déclaré, horaires, déviations',
+          'Laisser les deux groupes s\'arranger'
+        ],
+        reponse: 2,
+        explication: "On cherche un arbitrage proportionné qui préserve autant que possible les deux libertés. Une interdiction totale supprimerait une liberté fondamentale là où un aménagement suffit : elle serait disproportionnée."
+      },
+      {
+        type: 'vraifaux',
+        q: "« Je trouve que c'est injuste » est un argument recevable en EMC.",
+        reponse: false,
+        explication: "Faux. Un ressenti n'est pas un argument. Un argument s'appuie sur un principe, sur un texte, ou sur une conséquence concrète. « Cette mesure n'est pas proportionnée, car un aménagement d'horaires aurait suffi », voilà un argument."
+      },
+      {
+        type: 'qcm',
+        q: "Combien de temps le juge a-t-il pour répondre à un référé-liberté ?",
+        choix: ['24 heures', '48 heures', 'Une semaine', 'Un mois'],
+        reponse: 1,
+        explication: "48 heures. Ce délai très court est ce qui rend la procédure utile : une atteinte à une liberté qui ne serait jugée que des mois plus tard aurait déjà produit tous ses effets."
+      },
+      {
+        type: 'qcm',
+        q: "Dans un argument complet en EMC, que vient-il après l'exemple ?",
+        choix: ['La conclusion', "L'objection", 'Une citation', 'Le résumé'],
+        reponse: 1,
+        explication: "Les cinq temps sont : position, argument, exemple, objection, réponse à l'objection. Envisager l'objection est ce qui distingue un raisonnement d'une opinion assénée, et c'est souvent ce qui manque."
+      },
+      {
+        type: 'vraifaux',
+        q: "En EMC, deux élèves d'avis opposés peuvent obtenir la même excellente note.",
+        reponse: true,
+        explication: "Vrai. On n'évalue pas l'opinion mais la qualité du raisonnement : la position est-elle claire, l'argument est-il autre chose qu'un ressenti, l'objection est-elle prise au sérieux. C'est la règle du jeu de la matière."
+      }
+    ]
+  },
+
+  'anglais-lv1/L01': {
+    titre: 'Talking about the future',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Complète : <strong>He ……… come tomorrow.</strong>',
+        choix: ['wills', 'will', 'will to', 'is will'],
+        reponse: 1,
+        explication: "will est invariable : il ne prend jamais de s, quelle que soit la personne. On dit he will come, exactement comme I will come. Et jamais de to après will."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle phrase est correcte ?',
+        choix: ['I will to help you.', 'I will helping you.', 'I will help you.', 'I will helps you.'],
+        reponse: 2,
+        explication: "Après will, on emploie la base verbale seule : ni to, ni -ing, ni -s. La bonne forme est I will help you, souvent contractée en I'll help you."
+      },
+      {
+        type: 'saisie',
+        q: "Quelle est la contraction négative de <strong>will not</strong> ?",
+        reponses: ["won't", 'wont', 'will not'],
+        explication: "La contraction est won't. La forme willn't n'existe pas en anglais : c'est l'une des irrégularités à mémoriser telle quelle."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : <strong>Look at those clouds! It ……… rain.</strong>',
+        choix: ['will', 'is going to', 'is raining', 'rains'],
+        reponse: 1,
+        explication: "Il y a un indice visible sous les yeux, les nuages : on emploie be going to. Avec will, on exprimerait une simple opinion, comme dans I think it will rain tomorrow, où l'on n'a aucune preuve."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : <strong>The phone is ringing. I ……… answer it.</strong>',
+        choix: ["'ll", "'m going to", "'m answering", 'answer'],
+        reponse: 0,
+        explication: "La décision est prise à l'instant, pendant la conversation : c'est exactement le rôle de will. Avec be going to, on dirait que la décision était déjà prise avant que le téléphone ne sonne, ce qui n'a pas de sens ici."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle forme pour : « Je vois le dentiste demain à 15 h, le rendez-vous est pris » ?",
+        choix: [
+          'I will see the dentist at 3 p.m.',
+          "I'm going to see the dentist at 3 p.m.",
+          "I'm seeing the dentist at 3 p.m.",
+          'I see the dentist at 3 p.m.'
+        ],
+        reponse: 2,
+        explication: "Un rendez-vous fixé avec une heure précise appelle le présent continu à valeur de futur. C'est la forme la plus proche du français « je vois le dentiste à 15 h »."
+      },
+      {
+        type: 'vraifaux',
+        q: "On peut écrire « gonna » dans un devoir d'anglais.",
+        reponse: false,
+        explication: "Faux. gonna est une prononciation relâchée de going to, correcte à l'oral et dans les chansons, mais comptée comme une faute à l'écrit scolaire. On écrit toujours going to."
+      },
+      {
+        type: 'qcm',
+        q: '<strong>Will you come? </strong>Quelle est la bonne réponse courte affirmative ?',
+        choix: ['Yes, I come.', 'Yes, I will come.', 'Yes, I will.', 'Yes, I am.'],
+        reponse: 2,
+        explication: "La réponse courte reprend uniquement l'auxiliaire de la question, ici will, sans répéter le verbe principal. Avec une question en Are you going to…, on répondrait Yes, I am."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : <strong>……… she going to travel next year?</strong>',
+        choix: ['Do', 'Is', 'Will', 'Does'],
+        reponse: 1,
+        explication: "Dans la structure be going to, c'est l'auxiliaire be qui passe devant le sujet pour former la question : Is she going to travel? On ne fait jamais appel à do dans cette construction."
+      },
+      {
+        type: 'saisie',
+        q: 'Traduis en anglais : <strong>après-demain</strong>.',
+        reponses: ['the day after tomorrow', 'day after tomorrow'],
+        explication: "the day after tomorrow, littéralement « le jour après demain ». L'anglais n'a pas de mot unique comme le français : il faut retenir l'expression entière."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle est la différence entre <strong>in two days</strong> et <strong>within two days</strong> ?",
+        choix: [
+          'Aucune',
+          'in = au bout de deux jours ; within = avant la fin du deuxième jour',
+          'in = avant deux jours ; within = après deux jours',
+          'within ne s\'emploie pas avec une durée'
+        ],
+        reponse: 1,
+        explication: "in two days veut dire « dans deux jours », au bout de ce délai. within two days veut dire « sous deux jours », donc avant la fin du deuxième. Cette nuance revient souvent dans les consignes et les annonces."
+      },
+      {
+        type: 'qcm',
+        q: 'Mets à la forme négative : <strong>We are meeting them at seven.</strong>',
+        choix: [
+          "We don't meeting them at seven.",
+          "We aren't meeting them at seven.",
+          "We won't meeting them at seven.",
+          'We not are meeting them at seven.'
+        ],
+        reponse: 1,
+        explication: "Le not se place après l'auxiliaire are, ce qui donne aren't. On peut aussi écrire We're not meeting them at seven. L'auxiliaire do n'intervient jamais dans une forme en be + -ing."
+      },
+      {
+        type: 'vraifaux',
+        q: "« I'm going. » suffit à exprimer un futur.",
+        reponse: false,
+        explication: "Faux. Le présent continu n'a valeur de futur que s'il est accompagné d'un moment précis : I'm going at 6 p.m., I'm going on Monday. Sans cette indication, la phrase se comprend comme un présent : « je pars, là, maintenant »."
+      },
+      {
+        type: 'qcm',
+        q: "Première question à se poser pour choisir la forme du futur ?",
+        choix: [
+          'Le verbe est-il régulier ?',
+          'Y a-t-il un rendez-vous fixé avec une heure ou une date ?',
+          'La phrase est-elle longue ?',
+          'Le sujet est-il à la troisième personne ?'
+        ],
+        reponse: 1,
+        explication: "L'arbre de décision commence toujours par le rendez-vous fixé, qui appelle le présent continu. Si la réponse est non, on demande si la décision était déjà prise, ce qui appelle be going to. Sinon, c'est will."
+      },
+      {
+        type: 'qcm',
+        q: "Traduis : <strong>I'm looking forward to it.</strong>",
+        choix: [
+          'Je regarde devant moi.',
+          "J'ai hâte.",
+          'Je cherche quelque chose.',
+          "Je m'en occupe."
+        ],
+        reponse: 1,
+        explication: "to look forward to signifie « attendre avec impatience », « avoir hâte ». C'est une formule très fréquente en fin de lettre ou de message : I'm looking forward to hearing from you."
+      }
+    ]
+  },
+
+  'espagnol-lv2/L01': {
+    titre: 'Presentarse y la vida cotidiana',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Traduis : <strong>J\'ai treize ans.</strong>',
+        choix: ['Soy trece años.', 'Tengo trece años.', 'Estoy trece años.', 'Hago trece años.'],
+        reponse: 1,
+        explication: "Pour l'âge, l'espagnol emploie tener, comme le français emploie avoir. L'erreur vient souvent de l'anglais, où l'on dit I am thirteen. En espagnol, ser ne sert jamais à dire l'âge."
+      },
+      {
+        type: 'saisie',
+        q: 'Conjugue <strong>hablar</strong> à la première personne du singulier.',
+        reponses: ['hablo', 'yo hablo'],
+        explication: "hablo. Le radical est habl-, obtenu en retirant -ar, et la terminaison de yo au premier groupe est -o. Le pronom yo est facultatif : la terminaison suffit à dire qui parle."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : <strong>Nosotros ……… en España.</strong> (vivir)',
+        choix: ['vivemos', 'vivimos', 'vivamos', 'vivemos'],
+        reponse: 1,
+        explication: "vivimos. C'est justement à nosotros que les groupes en -er et en -ir diffèrent : comemos contre vivimos. Partout ailleurs, leurs terminaisons sont identiques."
+      },
+      {
+        type: 'qcm',
+        q: 'Traduis : <strong>Il est une heure.</strong>',
+        choix: ['Son las una.', 'Es la una.', 'Es las una.', 'Son la una.'],
+        reponse: 1,
+        explication: "Es la una, au singulier, parce que una est un singulier. Pour toutes les autres heures, on emploie le pluriel : son las dos, son las tres. C'est la faute la plus fréquente sur cette partie."
+      },
+      {
+        type: 'saisie',
+        q: 'Traduis : <strong>Il est trois heures et demie.</strong>',
+        reponses: ['son las tres y media', 'Son las tres y media'],
+        explication: "Son las tres y media. Le pluriel son las s'impose dès qu'il ne s'agit pas d'une heure. « Et quart » se dit y cuarto, « moins le quart » menos cuarto."
+      },
+      {
+        type: 'qcm',
+        q: 'Où se place le pronom dans <strong>« je me lève »</strong> ?',
+        choix: ['Levanto me.', 'Me levanto.', 'Levantome.', 'Se levanto.'],
+        reponse: 1,
+        explication: "Me levanto : le pronom se place avant le verbe conjugué. En revanche, après un infinitif, il se colle à la fin : voy a levantarme. Ce double fonctionnement est la principale difficulté du chapitre."
+      },
+      {
+        type: 'qcm',
+        q: 'Traduis : <strong>Je vais me coucher.</strong>',
+        choix: ['Voy a me acostar.', 'Me voy a acostar me.', 'Voy a acostarme.', 'Voy acostar me.'],
+        reponse: 2,
+        explication: "Voy a acostarme. Après un infinitif, le pronom se colle à la fin du verbe, en un seul mot. La forme me voy a acostar existe aussi, mais acostarme est la construction à retenir en priorité."
+      },
+      {
+        type: 'vraifaux',
+        q: "En espagnol, on doit toujours écrire le pronom sujet devant le verbe.",
+        reponse: false,
+        explication: "Faux. Le pronom sujet s'omet le plus souvent, parce que la terminaison du verbe suffit à dire qui parle : on dit hablo español, pas yo hablo español. On ne le met que pour insister ou pour lever une ambiguïté."
+      },
+      {
+        type: 'qcm',
+        q: 'Que signifie <strong>mañana por la mañana</strong> ?',
+        choix: ['Ce matin', 'Demain matin', 'Tous les matins', 'Hier matin'],
+        reponse: 1,
+        explication: "Demain matin. mañana sans article signifie « demain », la mañana avec article signifie « le matin ». La répétition n'est donc pas une erreur : elle combine les deux sens."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle est la différence entre <strong>¿por qué?</strong> et <strong>porque</strong> ?",
+        choix: [
+          'Aucune, c\'est une variante orthographique',
+          '¿Por qué? pose la question, porque donne la réponse',
+          'porque pose la question, ¿por qué? y répond',
+          'Le premier s\'emploie à l\'écrit, le second à l\'oral'
+        ],
+        reponse: 1,
+        explication: "¿Por qué? en deux mots et avec accent signifie « pourquoi ? ». porque en un mot et sans accent signifie « parce que ». ¿Por qué estudias español? Porque me gusta."
+      },
+      {
+        type: 'qcm',
+        q: 'Complète : <strong>Ella ……… francesa.</strong>',
+        choix: ['tiene', 'es', 'está', 'hay'],
+        reponse: 1,
+        explication: "Es : la nationalité et l'identité se disent avec ser. On réserve tener à l'âge et à la possession. Ella es francesa, mais ella tiene catorce años."
+      },
+      {
+        type: 'saisie',
+        q: "Traduis : <strong>Comment t'appelles-tu ?</strong> (avec les signes)",
+        reponses: ['¿Cómo te llamas?', '¿Como te llamas?', '¿Cómo te llamas ?'],
+        explication: "¿Cómo te llamas? Ne pas oublier le signe ouvrant ¿ ni l'accent sur cómo. Tous les mots interrogatifs portent un accent écrit, qui ne change pas la prononciation mais signale la question."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle phrase demande l'horaire d'une action ?",
+        choix: ['¿Qué hora es?', '¿A qué hora te levantas?', '¿Cuántos años tienes?', '¿Dónde vives?'],
+        reponse: 1,
+        explication: "¿A qué hora…? demande à quelle heure a lieu une action, et la réponse commence par a las : me levanto a las siete. ¿Qué hora es? demande seulement l'heure qu'il est."
+      },
+      {
+        type: 'qcm',
+        q: "Conjugue le verbe inconnu <strong>beber</strong> (boire) à <strong>tú</strong>.",
+        choix: ['bebas', 'bebes', 'bebis', 'beber'],
+        reponse: 1,
+        explication: "bebes. beber se termine par -er, le radical est beb-, et la terminaison de tú au deuxième groupe est -es. La méthode fonctionne pour tout verbe régulier, même rencontré pour la première fois."
+      },
+      {
+        type: 'qcm',
+        q: 'Traduis : <strong>Nous nous réveillons.</strong>',
+        choix: ['Nos despertamos.', 'Se despertamos.', 'Despertamos nos.', 'Me despertamos.'],
+        reponse: 0,
+        explication: "Nos despertamos. Le pronom change avec la personne : me, te, se, nos, os, se. À nosotros, c'est nos, et il se place avant le verbe conjugué."
+      }
+    ]
   }
 };
