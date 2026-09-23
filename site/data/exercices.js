@@ -3426,4 +3426,145 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'francais/L07': {
+    titre: 'Le discours rapporté',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Combien y a-t-il de formes de discours rapporté ?',
+        choix: ['Deux', 'Trois', 'Quatre'],
+        reponse: 2,
+        explication: "Quatre : le discours direct, le discours indirect, le discours narrativisé et le discours indirect libre. Chacune place le lecteur à une distance différente du personnage."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle forme rapporte les paroles exactement telles qu\'elles ont été prononcées ?',
+        choix: ['Le discours direct', 'Le discours indirect', 'Le discours narrativisé'],
+        reponse: 0,
+        explication: "Le discours direct. Il se reconnaît à trois marques : un verbe de parole, des deux-points, et des guillemets ou des tirets."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle phrase est correcte ?',
+        choix: ['« Je pars, il dit. »', '« Je pars, dit-il. »', '« Je pars, il a dit. »'],
+        reponse: 1,
+        explication: "« Je pars, dit-il. » L'incise exige l'inversion du sujet et du verbe, avec un trait d'union quand le sujet est un pronom. C'est une règle sans exception."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Dans un dialogue, il faut mettre des guillemets à chaque réplique.',
+        reponse: false,
+        explication: "Faux. On ouvre les guillemets une seule fois au début et on les ferme une seule fois à la fin. Les tirets, après un retour à la ligne, suffisent à marquer les changements d'interlocuteur."
+      },
+      {
+        type: 'qcm',
+        q: 'Que change le verbe de parole dans « Ce n\'est rien », murmura-t-elle ?',
+        choix: ['Rien, c\'est décoratif', 'Il suggère la fragilité, alors que « trancha » suggérerait l\'autorité', 'Il indique le volume sonore uniquement'],
+        reponse: 1,
+        explication: "Le verbe de parole ne dit pas seulement qu'on parle, il dit comment. Les paroles sont identiques mais « dit », « murmura » et « trancha » construisent trois situations différentes."
+      },
+      {
+        type: 'saisie',
+        q: 'Transforme au discours indirect : « Il dit : Je suis fatigué. » (introducteur au présent)',
+        reponses: ["il dit qu'il est fatigué", "Il dit qu'il est fatigué.", "il dit qu'il est fatigué.", "Il dit qu'il est fatigué"],
+        explication: "Il dit qu'il est fatigué. L'introducteur étant au présent, les temps ne changent pas : seuls la ponctuation et le pronom sont modifiés."
+      },
+      {
+        type: 'qcm',
+        q: 'Après un verbe introducteur au passé, que devient un présent ?',
+        choix: ['Il reste au présent', 'Il devient imparfait', 'Il devient passé simple'],
+        reponse: 1,
+        explication: "Il devient imparfait : « Il a dit qu'il partait ». C'est la concordance des temps : après un introducteur au passé, les temps reculent d'un cran."
+      },
+      {
+        type: 'qcm',
+        q: 'Après un verbe introducteur au passé, que devient un futur ?',
+        choix: ['Il reste au futur', 'Il devient conditionnel présent', 'Il devient imparfait'],
+        reponse: 1,
+        explication: "Il devient conditionnel présent : « Il a dit qu'il partirait ». Attention, ce conditionnel n'exprime pas une condition : c'est un futur vu depuis le passé."
+      },
+      {
+        type: 'saisie',
+        q: 'Au discours indirect, que devient « demain » ?',
+        reponses: ['le lendemain', 'lendemain'],
+        explication: "« le lendemain ». De même, « hier » devient « la veille », « aujourd'hui » devient « ce jour-là », « ici » devient « là » et « maintenant » devient « alors »."
+      },
+      {
+        type: 'saisie',
+        q: 'Au discours indirect, que devient « hier » ?',
+        reponses: ['la veille', 'veille'],
+        explication: "« la veille ». Oublier de transformer les indicateurs de temps est l'une des erreurs les plus fréquentes : la phrase reste alors à cheval entre les deux discours."
+      },
+      {
+        type: 'qcm',
+        q: 'Transforme : « Il demande : Est-ce que tu viens ? »',
+        choix: ['Il demande est-ce que je viens.', 'Il demande si je viens.', 'Il demande si je viens ?'],
+        reponse: 1,
+        explication: "Il demande si je viens. Trois choses disparaissent : « est-ce que », remplacé par « si », le point d'interrogation, et l'inversion du sujet et du verbe."
+      },
+      {
+        type: 'qcm',
+        q: 'Transforme : « Il demande : Où vas-tu ? »',
+        choix: ['Il demande où vais-je.', 'Il demande où je vais.', 'Il demande où je vais ?'],
+        reponse: 1,
+        explication: "Il demande où je vais. Le mot interrogatif « où » est conservé, mais l'inversion disparaît et l'ordre redevient sujet puis verbe. Pas de point d'interrogation."
+      },
+      {
+        type: 'qcm',
+        q: 'Transforme : « Il demande : Qu\'est-ce que tu fais ? »',
+        choix: ['Il demande qu\'est-ce que je fais.', 'Il demande ce que je fais.', 'Il demande que je fais.'],
+        reponse: 1,
+        explication: "Il demande ce que je fais. « Qu'est-ce que » devient toujours « ce que » au discours indirect. C'est le troisième cas à connaître pour les questions."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Au discours indirect, le point d\'interrogation est conservé.',
+        reponse: false,
+        explication: "Faux, il disparaît. La phrase n'est plus une question : c'est une déclaration qui RAPPORTE une question. « Il demande si je viens. » se termine par un point."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle forme résume les paroles en quelques mots sans les rapporter ?',
+        choix: ['Le discours indirect', 'Le discours narrativisé', 'Le discours indirect libre'],
+        reponse: 1,
+        explication: "Le discours narrativisé : « Il annonça sa démission ». Il est très rapide et permet de condenser une longue conversation, mais on perd les mots exacts et le ton."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment reconnaît-on un discours indirect libre ?',
+        choix: ['À ses guillemets', 'À l\'absence de verbe introducteur et de « que », avec des marques d\'oral conservées', 'À son verbe au présent'],
+        reponse: 1,
+        explication: "Les temps et pronoms sont ceux de l'indirect, imparfait et troisième personne, mais il n'y a ni « que » ni verbe introducteur, et la phrase garde exclamations, questions et rythme heurté."
+      },
+      {
+        type: 'qcm',
+        q: '« Il était fichu. Fichu ! Et après tout, qu\'avait-il fait de mal ? » Quelle forme ?',
+        choix: ['Discours direct', 'Discours indirect', 'Discours indirect libre'],
+        reponse: 2,
+        explication: "Discours indirect libre. L'imparfait et le plus-que-parfait à la troisième personne viennent de l'indirect, mais l'exclamation et la question directe sont celles du personnage."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi les romanciers réalistes emploient-ils tant le discours indirect libre ?',
+        choix: ['Parce qu\'il est plus court', 'Parce qu\'il fait entendre une pensée sans que le narrateur la prenne en charge', 'Parce qu\'il évite la ponctuation'],
+        reponse: 1,
+        explication: "Il permet de restituer le point de vue d'un personnage tout en gardant ses distances. Le lecteur ne sait plus si la phrase est du personnage ou du narrateur : c'est l'ambiguïté recherchée."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle forme choisir pour résumer une conversation de deux heures ?',
+        choix: ['Le discours direct', 'Le discours narrativisé', 'Le discours indirect libre'],
+        reponse: 1,
+        explication: "Le discours narrativisé. Rapporter deux heures au discours direct prendrait des pages. On le réserve à ce qui n'est pas essentiel mot à mot, et on garde le direct pour les répliques qui comptent."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle forme rapproche le plus le lecteur du personnage ?',
+        choix: ['Le discours direct', 'Le discours narrativisé', 'Le discours indirect'],
+        reponse: 0,
+        explication: "Le discours direct : on entend les mots exacts. Le narrativisé est à l'opposé, le plus distant. L'indirect et l'indirect libre se situent entre les deux, l'indirect libre étant le plus proche des deux."
+      }
+    ]
+  }
 };
