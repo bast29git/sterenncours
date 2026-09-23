@@ -2725,4 +2725,144 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'anglais-lv1/L02': {
+    titre: 'Obligation, advice, permission',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Quelle phrase est correcte ?',
+        choix: ['She must to leave now.', 'She musts leave now.', 'She must leave now.'],
+        reponse: 2,
+        explication: "Un modal est suivi de la base verbale, sans « to », et ne prend jamais de « s » à la troisième personne. Les deux premières phrases cumulent chacune une de ces erreurs."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la forme interrogative de « She must wear a uniform » ?',
+        choix: ['Does she must wear a uniform?', 'Must she wear a uniform?', 'Do she must wear a uniform?'],
+        reponse: 1,
+        explication: "Must she wear a uniform ? Un modal forme sa question par inversion, sans l'auxiliaire « do ». Celui-ci n'est nécessaire que pour les verbes ordinaires."
+      },
+      {
+        type: 'saisie',
+        q: 'Corrige cette phrase : « He have to work on Saturdays. » Écris le mot correct à la place de « have ».',
+        reponses: ['has'],
+        explication: "« has ». Contrairement aux modaux, « have to » est un verbe ordinaire : il s'accorde et prend un « s » à la troisième personne du singulier."
+      },
+      {
+        type: 'qcm',
+        q: 'D\'où vient l\'obligation dans « I have to wear a uniform at school » ?',
+        choix: ['De celui qui parle', 'De l\'extérieur', 'De personne'],
+        reponse: 1,
+        explication: "De l'extérieur : c'est l'école qui impose l'uniforme. « must » exprimerait au contraire une obligation que celui qui parle s'impose à lui-même."
+      },
+      {
+        type: 'saisie',
+        q: 'Mets au passé : « I must take the bus. » Écris la phrase complète.',
+        reponses: ['i had to take the bus', 'I had to take the bus.', 'i had to take the bus.', 'I had to take the bus'],
+        explication: "I had to take the bus. « must » n'existe qu'au présent : il n'a ni passé ni futur. On passe donc obligatoirement par « had to »."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment dit-on « je devrai partir tôt » ?',
+        choix: ['I will must leave early.', 'I will have to leave early.', 'I musted leave early.'],
+        reponse: 1,
+        explication: "I will have to leave early. On ne peut jamais faire suivre un modal d'un autre modal : « will must » est impossible. Et « musted » n'existe pas."
+      },
+      {
+        type: 'qcm',
+        q: 'Que signifie « You mustn\'t take photos here » ?',
+        choix: ['Tu n\'es pas obligée de photographier', 'Il est interdit de photographier', 'Tu peux photographier si tu veux'],
+        reponse: 1,
+        explication: "Il est interdit. C'est la distinction la plus importante du chapitre : mustn't interdit, alors que don't have to libère. Les traduire tous les deux par « tu ne dois pas » crée un contresens."
+      },
+      {
+        type: 'qcm',
+        q: 'Que signifie « You don\'t have to wear a tie » ?',
+        choix: ['Il est interdit de porter une cravate', 'Tu n\'es pas obligé d\'en porter une', 'Tu dois en porter une'],
+        reponse: 1,
+        explication: "Tu n'es pas obligé. Le port de la cravate reste autorisé : il est simplement facultatif. Pour l'interdire, il faudrait écrire « You mustn't wear a tie »."
+      },
+      {
+        type: 'qcm',
+        q: 'Sur une notice de médicament, comment traduire « il ne faut surtout pas mélanger avec de l\'alcool » ?',
+        choix: ['You don\'t have to take this with alcohol.', 'You mustn\'t take this with alcohol.', 'You shouldn\'t have to take this with alcohol.'],
+        reponse: 1,
+        explication: "You mustn't take this with alcohol. C'est une interdiction stricte. La première phrase signifierait qu'on peut le faire mais que ce n'est pas obligatoire : l'erreur aurait ici une conséquence sanitaire."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète : « You look tired. You ______ go to bed early. » (un conseil)',
+        reponses: ['should'],
+        explication: "should. C'est un conseil, pas une obligation : on laisse à l'autre la liberté de ne pas le suivre. « must » serait beaucoup trop fort dans cette situation."
+      },
+      {
+        type: 'qcm',
+        q: 'Range ces formes de la plus souple à la plus forte.',
+        choix: ['must, should, could, had better', 'could, should, had better, must', 'should, could, must, had better'],
+        reponse: 1,
+        explication: "could (suggestion), should (conseil), had better (conseil pressant), must (obligation). Quatre degrés à connaître pour adapter sa phrase à la situation."
+      },
+      {
+        type: 'vraifaux',
+        q: '« You\'d better hurry » parle du passé, à cause de « had ».',
+        reponse: false,
+        explication: "Faux. Malgré la forme « had », « had better » parle du présent et du futur : « tu ferais mieux de te dépêcher ». C'est une exception qu'on retient telle quelle."
+      },
+      {
+        type: 'qcm',
+        q: 'Après « had better », quelle forme du verbe emploie-t-on ?',
+        choix: ['la base verbale sans to', 'l\'infinitif avec to', 'le participe passé'],
+        reponse: 0,
+        explication: "La base verbale sans « to » : You'd better leave. La négation se construit en « had better not » : You'd better not be late."
+      },
+      {
+        type: 'qcm',
+        q: 'Que demande « Can you swim? »',
+        choix: ['As-tu le droit de nager ici ?', 'Sais-tu nager ?', 'Veux-tu nager ?'],
+        reponse: 1,
+        explication: "Sais-tu nager ? « can » exprime ici la capacité. Pour demander l'autorisation, on dirait « May I swim here? ». Le français « peux-tu » recouvre les deux sens, pas l'anglais."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle formule est la plus formelle pour demander une permission ?',
+        choix: ['Can I ...?', 'Could I ...?', 'May I ...?'],
+        reponse: 2,
+        explication: "May I ...? est la plus formelle, adaptée à un adulte inconnu ou à un lieu officiel. « Could I » est poli, « Can I » est courant entre proches."
+      },
+      {
+        type: 'saisie',
+        q: 'Écris la forme négative de « can » en un seul mot (forme pleine).',
+        reponses: ['cannot', 'can not', 'can\'t', 'cant'],
+        explication: "cannot, contracté en can't. C'est le seul modal dont la forme pleine négative s'écrit en un seul mot : on n'écrit pas « can not » en deux mots en anglais standard."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment refuser poliment une demande en anglais ?',
+        choix: ['No, you can\'t.', 'I\'m afraid you can\'t.', 'You mustn\'t ask.'],
+        reponse: 1,
+        explication: "I'm afraid you can't. La première réponse est grammaticalement correcte mais très sèche : en anglais, on adoucit presque toujours un refus par une formule d'excuse."
+      },
+      {
+        type: 'qcm',
+        q: 'Un panneau indique « Casque obligatoire ». Comment l\'écrire en anglais ?',
+        choix: ['You don\'t have to wear a helmet.', 'You must wear a helmet.', 'You should wear a helmet.'],
+        reponse: 1,
+        explication: "You must wear a helmet, ou You have to wear a helmet. « should » serait un simple conseil, et la première phrase dirait l'inverse de ce qu'indique le panneau."
+      },
+      {
+        type: 'qcm',
+        q: 'Une note d\'école dit : « L\'uniforme n\'est pas exigé le vendredi. » Comment le traduire ?',
+        choix: ['You mustn\'t wear a uniform on Fridays.', 'You don\'t have to wear a uniform on Fridays.', 'You can\'t wear a uniform on Fridays.'],
+        reponse: 1,
+        explication: "You don't have to wear a uniform on Fridays. L'uniforme reste autorisé : il n'est simplement plus obligatoire. Les deux autres phrases l'interdiraient."
+      },
+      {
+        type: 'vraifaux',
+        q: 'La forme négative de « I must go » peut se remplacer par « I don\'t have to go » sans changer le sens.',
+        reponse: false,
+        explication: "Faux. « I mustn't go » signifie qu'il m'est interdit d'y aller, alors que « I don't have to go » signifie que je n'y suis pas obligé. À la forme affirmative, must et have to sont proches ; à la négative, ils s'opposent."
+      }
+    ]
+  }
 };
