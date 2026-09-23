@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Supports de cours 4e adaptes (TSA sans deficience intellectuelle) - alignes programme officiel cycle 4 / CNED",
+  "description": "Supports de cours de 4e et portail de suivi, alignes sur le programme officiel du cycle 4.",
   "scripts": {
     "build": "node build/build.mjs",
     "pdf": "node build/pdf.mjs",

@@ -7,11 +7,14 @@
  */
 import { lireSession } from './_commun.js';
 
+// La coquille statique est publique : elle ne contient ni code d'accès, ni
+// contenu pédagogique, ni donnée de suivi. Les modules de vue, les données
+// du programme et toutes les API restent derrière la session.
 const PUBLIC_EXACT = new Set([
-  '/', '/index.html', '/portail.css', '/app.css', '/app.js',
-  '/favicon.ico', '/robots.txt', '/api/connexion', '/api/moi',
+  '/', '/index.html', '/socle.css', '/portail.css', '/eleve.css', '/prof.css',
+  '/lecture.css', '/app.js', '/favicon.ico', '/robots.txt', '/api/connexion', '/api/moi',
 ]);
-const PUBLIC_PREFIXES = ['/theme/'];
+const PUBLIC_PREFIXES = ['/theme/', '/moteurs/'];
 
 const estPublic = (chemin) =>
   PUBLIC_EXACT.has(chemin) || PUBLIC_PREFIXES.some((p) => chemin.startsWith(p));

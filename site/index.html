@@ -1,69 +1,107 @@
 <!DOCTYPE html>
-<html lang="fr" data-matiere="pilotage">
+<html lang="fr" data-theme="light" data-palette="rose">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cours de 4ᵉ</title>
-<meta name="description" content="Espace de cours de 4ᵉ : séances, leçons, exercices et suivi.">
-<meta name="theme-color" content="#12141a">
-<link rel="stylesheet" href="theme/cours.css">
+<meta name="description" content="Espace de cours de 4ᵉ : parcours, leçons, exercices et suivi.">
+<meta name="theme-color" content="#14151f">
+<link rel="stylesheet" href="moteurs/aurora.css">
+<link rel="stylesheet" href="socle.css">
+<link rel="stylesheet" href="lecture.css">
 <link rel="stylesheet" href="portail.css">
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="eleve.css">
+<link rel="stylesheet" href="prof.css">
 </head>
-<body class="app">
+<body>
 
-<!-- ============================ PORTAIL ============================ -->
+<!-- ======================= PORTAIL ======================= -->
 <div id="portail" class="portail">
-  <svg class="planche" viewBox="0 0 1200 860" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <svg class="planche" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <defs>
-      <pattern id="trame" width="7" height="7" patternUnits="userSpaceOnUse">
-        <circle cx="1.6" cy="1.6" r="1.1"/>
+      <pattern id="tramePoints" width="6" height="6" patternUnits="userSpaceOnUse">
+        <circle cx="1.4" cy="1.4" r="1.15"/>
+      </pattern>
+      <pattern id="trameLignes" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="2.2" height="6"/>
       </pattern>
     </defs>
+
+    <!-- Découpe de la planche : cases irrégulières, gouttières franches -->
     <g class="cases">
-      <path d="M40 40 H560 V300 H40 Z"/>
-      <path d="M590 40 H1160 V196 H590 Z"/>
-      <path d="M590 226 H1160 V470 H590 Z"/>
-      <path d="M40 330 H560 V560 H40 Z"/>
-      <path d="M40 590 H420 V820 H40 Z"/>
-      <path d="M450 590 H1160 V820 H450 Z"/>
-      <path d="M590 500 H1160 V560 H590 Z"/>
+      <path d="M46 40 H700 V236 H46 Z"/>
+      <path d="M716 40 H1154 V236 H716 Z"/>
+      <path d="M46 252 H396 V520 H46 Z"/>
+      <path d="M412 252 H760 V420 H412 Z"/>
+      <path d="M776 252 H1154 V520 H776 Z"/>
+      <path d="M412 436 H760 V520 H412 Z"/>
+      <path d="M46 536 H620 V860 H46 Z"/>
+      <path d="M636 536 H1154 V700 H636 Z"/>
+      <path d="M636 716 H1154 V860 H636 Z"/>
     </g>
+
     <g class="art">
+      <!-- Case 1 : lignes de vitesse, point de fuite décentré -->
       <g class="vitesse">
-        <path d="M300 170 L60 60"/><path d="M300 170 L120 52"/><path d="M300 170 L200 46"/>
-        <path d="M300 170 L300 44"/><path d="M300 170 L400 46"/><path d="M300 170 L480 52"/>
-        <path d="M300 170 L540 60"/><path d="M300 170 L556 140"/><path d="M300 170 L556 220"/>
-        <path d="M300 170 L540 284"/><path d="M300 170 L420 292"/><path d="M300 170 L300 296"/>
-        <path d="M300 170 L180 292"/><path d="M300 170 L60 284"/><path d="M300 170 L44 220"/>
-        <path d="M300 170 L44 140"/>
+        <path d="M250 140 L50 46"/><path d="M250 140 L130 44"/><path d="M250 140 L230 42"/>
+        <path d="M250 140 L340 44"/><path d="M250 140 L470 48"/><path d="M250 140 L620 56"/>
+        <path d="M250 140 L694 110"/><path d="M250 140 L694 172"/><path d="M250 140 L640 226"/>
+        <path d="M250 140 L470 232"/><path d="M250 140 L320 234"/><path d="M250 140 L200 234"/>
+        <path d="M250 140 L80 230"/><path d="M250 140 L50 176"/><path d="M250 140 L50 110"/>
       </g>
-      <g class="horizon">
-        <path d="M600 160 H1150"/>
-        <circle cx="880" cy="118" r="42"/>
-        <path d="M600 176 H1150"/><path d="M640 190 H1110"/><path d="M700 186 L760 160"/>
-        <path d="M1000 186 L940 160"/>
+      <!-- Case 2 : horizon et soleil, trame de ciel -->
+      <g class="decor">
+        <circle cx="1010" cy="118" r="46"/>
+        <path d="M724 168 H1148"/><path d="M746 184 H1126"/><path d="M782 200 H1090"/>
+        <path d="M724 168 L820 120"/><path d="M1148 168 L1060 120"/>
+        <rect x="716" y="40" width="438" height="76" fill="url(#tramePoints)" class="trame"/>
       </g>
-      <g class="arcs">
-        <path d="M640 440 Q875 240 1110 440"/>
-        <path d="M680 442 Q875 288 1070 442"/>
-        <path d="M720 444 Q875 336 1030 444"/>
-        <path d="M760 446 Q875 384 990 446"/>
-        <path d="M604 300 L1148 300" class="fin"/>
+      <!-- Case 3 : arcs de mouvement -->
+      <g class="decor">
+        <path d="M70 470 Q220 280 372 470"/>
+        <path d="M106 474 Q220 326 334 474"/>
+        <path d="M142 478 Q220 372 298 478"/>
+        <path d="M178 482 Q220 418 262 482"/>
+        <rect x="46" y="252" width="350" height="96" fill="url(#trameLignes)" class="trame"/>
       </g>
-      <rect x="40" y="330" width="520" height="230" fill="url(#trame)" class="pointille"/>
+      <!-- Case 4 : impact, éclat concentrique -->
+      <g class="decor">
+        <path d="M586 336 m-96 0 a96 96 0 1 0 192 0 a96 96 0 1 0 -192 0"/>
+        <path d="M586 336 m-64 0 a64 64 0 1 0 128 0 a64 64 0 1 0 -128 0"/>
+        <path d="M586 336 m-34 0 a34 34 0 1 0 68 0 a34 34 0 1 0 -68 0"/>
+        <path d="M586 262 L586 410"/><path d="M512 336 L660 336"/>
+        <path d="M534 284 L638 388"/><path d="M638 284 L534 388"/>
+      </g>
+      <!-- Case 5 : pluie de traits verticaux -->
       <g class="pluie">
-        <path d="M70 600 L100 810"/><path d="M110 600 L140 810"/><path d="M150 600 L180 810"/>
-        <path d="M190 600 L220 810"/><path d="M230 600 L260 810"/><path d="M270 600 L300 810"/>
-        <path d="M310 600 L340 810"/><path d="M350 600 L380 810"/>
+        <path d="M800 262 L782 510"/><path d="M834 262 L816 510"/><path d="M868 262 L850 510"/>
+        <path d="M902 262 L884 510"/><path d="M936 262 L918 510"/><path d="M970 262 L952 510"/>
+        <path d="M1004 262 L986 510"/><path d="M1038 262 L1020 510"/><path d="M1072 262 L1054 510"/>
+        <path d="M1106 262 L1088 510"/><path d="M1140 262 L1122 510"/>
       </g>
-      <g class="onde">
-        <path d="M470 800 Q640 620 810 800"/>
-        <path d="M530 802 Q700 660 870 802"/>
-        <path d="M590 804 Q760 700 930 804"/>
-        <path d="M650 806 Q820 740 990 806"/>
-        <path d="M710 808 Q880 770 1050 808"/>
-        <path d="M470 530 H1150" class="fin"/>
+      <!-- Case 6 : bande étroite, trame -->
+      <rect x="412" y="436" width="348" height="84" fill="url(#tramePoints)" class="trame"/>
+      <path class="fin" d="M430 478 H742"/>
+      <!-- Case 7 : grande case, onde et horizon bas -->
+      <g class="decor">
+        <path d="M70 830 Q330 600 590 830"/>
+        <path d="M130 834 Q330 664 530 834"/>
+        <path d="M190 838 Q330 726 470 838"/>
+        <path d="M250 842 Q330 788 410 842"/>
+        <path d="M46 700 H620" class="fin"/>
+        <rect x="46" y="536" width="574" height="120" fill="url(#trameLignes)" class="trame"/>
+      </g>
+      <!-- Case 8 : lignes de vitesse horizontales -->
+      <g class="vitesse">
+        <path d="M646 560 H1144"/><path d="M700 578 H1144"/><path d="M646 596 H1082"/>
+        <path d="M740 614 H1144"/><path d="M646 632 H1010"/><path d="M820 650 H1144"/>
+        <path d="M646 668 H1120"/><path d="M700 686 H1040"/>
+      </g>
+      <!-- Case 9 : éclat de dialogue -->
+      <g class="decor">
+        <path d="M895 788 L930 736 L960 780 L1010 744 L1008 796 L1074 790 L1030 828 L1086 848
+                 L1020 856 L1040 856 L960 852 L930 856 L886 846 L906 818 L860 808 Z"/>
+        <rect x="636" y="716" width="220" height="144" fill="url(#tramePoints)" class="trame"/>
       </g>
     </g>
   </svg>
@@ -72,45 +110,77 @@
     <p class="entree-sur">Classe de 4ᵉ</p>
     <h1 class="entree-titre">Cours de Sterenn</h1>
     <p class="entree-sous">Entre ton code pour ouvrir ton espace.</p>
-
     <label for="code">Code d'accès</label>
     <input id="code" name="code" type="text" inputmode="text" autocapitalize="none"
            spellcheck="false" autocomplete="off" aria-describedby="portail-erreur">
     <p class="portail-erreur" id="portail-erreur" role="alert">Ce code n'est pas reconnu.</p>
-
     <button class="entree-bouton" type="submit">Entrer</button>
   </form>
 </div>
 
-<!-- ============================ APPLICATION ============================ -->
-<div id="app" class="coque" hidden>
-  <a class="saut-contenu" href="#vue">Aller au contenu</a>
+<!-- ======================= ESPACE DE STERENN ======================= -->
+<div id="app-eleve" class="eleve" hidden>
+  <a class="saut-contenu" href="#vue-eleve">Aller au contenu</a>
 
-  <aside class="lateral" id="lateral">
-    <div class="lateral-tete">
-      <a class="marque" href="#/accueil">
-        <span class="marque-pastille" aria-hidden="true">4ᵉ</span>
-        <span class="marque-texte"><b id="marque-nom">Cours de 4ᵉ</b><em id="marque-sous"></em></span>
+  <header class="e-tete">
+    <a class="e-marque" href="#/hub">
+      <span class="e-logo" aria-hidden="true">✦</span>
+      <span>Mon espace</span>
+    </a>
+
+    <nav class="e-nav" id="e-nav" aria-label="Navigation principale"></nav>
+
+    <div class="e-droite">
+      <button class="e-jeton e-jeton-bouton" id="e-btn-palette" type="button" aria-label="Changer les couleurs">
+        <span class="e-pastille-couleur" aria-hidden="true"></span>
+      </button>
+      <a class="e-jeton" href="#/progres" id="e-xp" title="Ton niveau et ton expérience">
+        <b id="e-niveau">1</b><span>niveau</span>
       </a>
-      <button class="icone-bouton fermer-lateral" id="btn-fermer-lateral" type="button" aria-label="Fermer le menu">✕</button>
+      <button class="e-avatar" id="e-btn-avatar" type="button" aria-label="Mon compagnon">
+        <span class="e-avatar-toile" id="e-avatar-toile"></span>
+      </button>
+      <button class="e-sortir" id="e-sortir" type="button">Sortir</button>
     </div>
-    <nav class="lateral-nav" id="nav-lateral" aria-label="Navigation principale"></nav>
-  </aside>
-  <div class="voile" id="voile" hidden></div>
+  </header>
 
-  <div class="colonne">
-    <header class="topbar">
-      <button class="icone-bouton ouvrir-lateral" id="btn-ouvrir-lateral" type="button" aria-label="Ouvrir le menu">☰</button>
-      <nav class="fil" id="fil" aria-label="Fil d'Ariane"></nav>
-      <form class="recherche" id="form-recherche" role="search">
-        <label class="visuellement-cache" for="q">Rechercher une leçon</label>
-        <input id="q" type="search" placeholder="Rechercher" autocomplete="off">
+  <div class="e-palette-panneau" id="e-palette-panneau" hidden>
+    <p class="e-palette-titre">Choisis tes couleurs</p>
+    <div class="e-palette-choix" id="e-palette-choix"></div>
+  </div>
+
+  <p class="e-bandeau" id="e-bandeau" role="status" hidden></p>
+  <main class="e-vue" id="vue-eleve" tabindex="-1"></main>
+</div>
+
+<!-- ======================= ESPACE PROFESSEUR ======================= -->
+<div id="app-prof" class="prof" hidden>
+  <a class="saut-contenu" href="#vue-prof">Aller au contenu</a>
+
+  <aside class="p-lateral" id="p-lateral">
+    <div class="p-lateral-tete">
+      <span class="p-marque"><span class="p-logo" aria-hidden="true">S</span>
+        <span><b>Sterenn</b><em>Classe de 4ᵉ</em></span></span>
+      <button class="p-icone p-fermer" id="p-fermer" type="button" aria-label="Fermer le menu">✕</button>
+    </div>
+    <nav class="p-nav" id="p-nav" aria-label="Navigation principale"></nav>
+    <div class="p-lateral-pied" id="p-lateral-pied"></div>
+  </aside>
+  <div class="p-voile" id="p-voile" hidden></div>
+
+  <div class="p-colonne">
+    <header class="p-topbar">
+      <button class="p-icone p-ouvrir" id="p-ouvrir" type="button" aria-label="Ouvrir le menu">☰</button>
+      <nav class="p-fil" id="p-fil" aria-label="Fil d'Ariane"></nav>
+      <form class="p-recherche" id="p-form-recherche" role="search">
+        <label class="visuellement-cache" for="p-q">Rechercher une leçon</label>
+        <input id="p-q" type="search" placeholder="Rechercher une leçon…" autocomplete="off">
       </form>
-      <button class="icone-bouton" id="btn-theme" type="button" aria-label="Changer le thème">◐</button>
-      <button class="bouton-secondaire" id="btn-sortir" type="button">Sortir</button>
+      <button class="p-icone" id="p-theme" type="button" aria-label="Changer le thème">◐</button>
+      <button class="p-bouton p-bouton-fantome" id="p-sortir" type="button">Sortir</button>
     </header>
-    <p class="bandeau" id="bandeau" role="status" hidden></p>
-    <main class="vue" id="vue" tabindex="-1"></main>
+    <p class="p-bandeau" id="p-bandeau" role="status" hidden></p>
+    <main class="p-vue" id="vue-prof" tabindex="-1"></main>
   </div>
 </div>
 

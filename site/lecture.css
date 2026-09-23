@@ -1,0 +1,10 @@
+/* =========================================================================
+   lecture.css : le design system des fiches, rangé dans sa propre couche.
+
+   theme/cours.css est écrit pour la page imprimée : il habille directement
+   body, p, a, h2, table. Dans le site, ces règles déborderaient sur toute
+   l'interface. La couche « fiche » les place sous les feuilles de l'appli :
+   partout, l'interface gagne ; à l'intérieur d'une fiche, les conteneurs
+   .p-fiche et .e-fiche redonnent la main au design system.
+   ========================================================================= */
+@import url('theme/cours.css') layer(fiche);

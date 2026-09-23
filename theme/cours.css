@@ -75,30 +75,30 @@ body {
   padding: 2.5rem 1.5rem 5rem;
 }
 
-p { margin: 0 0 0.9em; }
-strong { font-weight: 700; color: var(--texte); }
-em { font-style: italic; }
-a { color: var(--accent); text-underline-offset: 2px; }
+:where(.page, .p-fiche, .e-fiche) p { margin: 0 0 0.9em; }
+:where(.page, .p-fiche, .e-fiche) strong { font-weight: 700; color: var(--texte); }
+:where(.page, .p-fiche, .e-fiche) em { font-style: italic; }
+:where(.page, .p-fiche, .e-fiche) a { color: var(--accent); text-underline-offset: 2px; }
 
-h1, h2, h3, h4 { line-height: 1.3; font-weight: 700; margin: 0 0 0.5em; }
-h1 { font-size: 1.9rem; }
-h2 {
+:where(.page, .p-fiche, .e-fiche) :is(h1, h2, h3, h4) { line-height: 1.3; font-weight: 700; margin: 0 0 0.5em; }
+:where(.page, .p-fiche, .e-fiche) h1 { font-size: 1.9rem; }
+:where(.page, .p-fiche, .e-fiche) h2 {
   font-size: 1.35rem;
   margin-top: 2.2em;
   padding-bottom: 0.3em;
   border-bottom: 3px solid var(--accent-trait);
   color: var(--accent);
 }
-h3 { font-size: 1.1rem; margin-top: 1.8em; color: var(--texte); }
-h4 { font-size: 1rem; margin-top: 1.4em; color: var(--texte-doux); }
+:where(.page, .p-fiche, .e-fiche) h3 { font-size: 1.1rem; margin-top: 1.8em; color: var(--texte); }
+:where(.page, .p-fiche, .e-fiche) h4 { font-size: 1rem; margin-top: 1.4em; color: var(--texte-doux); }
 
-ul, ol { margin: 0 0 1em; padding-left: 1.4em; }
-li { margin-bottom: 0.45em; }
-li::marker { color: var(--accent); font-weight: 700; }
+:where(.page, .p-fiche, .e-fiche) :is(ul, ol) { margin: 0 0 1em; padding-left: 1.4em; }
+:where(.page, .p-fiche, .e-fiche) li { margin-bottom: 0.45em; }
+:where(.page, .p-fiche, .e-fiche) li::marker { color: var(--accent); font-weight: 700; }
 
-hr { border: 0; border-top: 2px dashed var(--trait); margin: 2.2em 0; }
+:where(.page, .p-fiche, .e-fiche) hr { border: 0; border-top: 2px dashed var(--trait); margin: 2.2em 0; }
 
-code {
+:where(.page, .p-fiche, .e-fiche) code {
   font-family: var(--police-chiffres);
   background: var(--fond-doux);
   padding: 0.1em 0.35em;
@@ -312,25 +312,25 @@ code {
 }
 
 /* ---------- 9. Tableaux & grille d'évaluation -------------------------- */
-table {
+:where(.page, .p-fiche, .e-fiche) table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.2rem 0;
   font-size: 0.95rem;
   break-inside: avoid;
 }
-th, td {
+:where(.page, .p-fiche, .e-fiche) :is(th, td) {
   border: 1px solid var(--trait-fort);
   padding: 0.5rem 0.65rem;
   text-align: left;
   vertical-align: top;
 }
-thead th {
+:where(.page, .p-fiche, .e-fiche) thead th {
   background: var(--accent-doux);
   color: var(--accent);
   font-size: 0.88rem;
 }
-tbody tr:nth-child(even) td { background: var(--fond-doux); }
+:where(.page, .p-fiche, .e-fiche) tbody tr:nth-child(even) td { background: var(--fond-doux); }
 
 .grille { font-size: 0.88rem; }
 .grille th:first-child, .grille td:first-child { width: 26%; font-weight: 600; }
@@ -406,7 +406,7 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
 
 /* ---------- 12. Lecture écran : thème sombre (confort) ----------------- */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="clair"]) {
+  :root:not([data-theme="light"]) {
     --fond-page:  #191b20;
     --fond-carte: #22252c;
     --fond-doux:  #2b2f38;
@@ -419,15 +419,15 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
     --insuffisant:#ff9b91; --fragile:#f2b552;
     --satisfaisant:#84d29b; --tresbien:#8dc2ee;
   }
-  :root:not([data-theme="clair"]) [data-matiere="maths"]           { --accent:#7fb4ef; --accent-doux:#1d2a3a; --accent-trait:#3a557a; }
-  :root:not([data-theme="clair"]) [data-matiere="francais"]        { --accent:#c49ae0; --accent-doux:#2a2134; --accent-trait:#553f6b; }
-  :root:not([data-theme="clair"]) [data-matiere="histoire-geo"]    { --accent:#e2a463; --accent-doux:#332619; --accent-trait:#6d4f2c; }
-  :root:not([data-theme="clair"]) [data-matiere="emc"]             { --accent:#6fc9bf; --accent-doux:#172e2c; --accent-trait:#2f5a55; }
-  :root:not([data-theme="clair"]) [data-matiere="physique-chimie"] { --accent:#f09b78; --accent-doux:#33211a; --accent-trait:#6b4232; }
-  :root:not([data-theme="clair"]) [data-matiere="svt"]             { --accent:#79c28c; --accent-doux:#1a2c20; --accent-trait:#34573f; }
-  :root:not([data-theme="clair"]) [data-matiere="anglais-lv1"]     { --accent:#9aa3e8; --accent-doux:#20233a; --accent-trait:#424879; }
-  :root:not([data-theme="clair"]) [data-matiere="espagnol-lv2"]    { --accent:#eb92b5; --accent-doux:#341e28; --accent-trait:#6e3c53; }
-  :root:not([data-theme="clair"]) [data-matiere="pilotage"]        { --accent:#b0b7c6; --accent-doux:#262a33; --accent-trait:#4a515f; }
+  :root:not([data-theme="light"]) [data-matiere="maths"]           { --accent:#7fb4ef; --accent-doux:#1d2a3a; --accent-trait:#3a557a; }
+  :root:not([data-theme="light"]) [data-matiere="francais"]        { --accent:#c49ae0; --accent-doux:#2a2134; --accent-trait:#553f6b; }
+  :root:not([data-theme="light"]) [data-matiere="histoire-geo"]    { --accent:#e2a463; --accent-doux:#332619; --accent-trait:#6d4f2c; }
+  :root:not([data-theme="light"]) [data-matiere="emc"]             { --accent:#6fc9bf; --accent-doux:#172e2c; --accent-trait:#2f5a55; }
+  :root:not([data-theme="light"]) [data-matiere="physique-chimie"] { --accent:#f09b78; --accent-doux:#33211a; --accent-trait:#6b4232; }
+  :root:not([data-theme="light"]) [data-matiere="svt"]             { --accent:#79c28c; --accent-doux:#1a2c20; --accent-trait:#34573f; }
+  :root:not([data-theme="light"]) [data-matiere="anglais-lv1"]     { --accent:#9aa3e8; --accent-doux:#20233a; --accent-trait:#424879; }
+  :root:not([data-theme="light"]) [data-matiere="espagnol-lv2"]    { --accent:#eb92b5; --accent-doux:#341e28; --accent-trait:#6e3c53; }
+  :root:not([data-theme="light"]) [data-matiere="pilotage"]        { --accent:#b0b7c6; --accent-doux:#262a33; --accent-trait:#4a515f; }
   .fiche-type { color: #191b20; }
   .etapes > li::before { color: #191b20; }
 }
@@ -570,7 +570,7 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
   --c-espagnol-lv2: #a3154f;    --c-espagnol-lv2-bg: #fbe6ee;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="clair"]) {
+  :root:not([data-theme="light"]) {
     --c-maths: #7fb4ef;           --c-maths-bg: #1d2a3a;
     --c-francais: #c49ae0;        --c-francais-bg: #2a2134;
     --c-histoire-geo: #e2a463;    --c-histoire-geo-bg: #332619;
@@ -708,13 +708,13 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
 .support-main  { color: #8a4d00; background: #fdf7ea; }
 .support-ecran { color: var(--tresbien); background: var(--tresbien-bg); }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="clair"]) .support-main { color: #f2b552; background: #382a15; }
+  :root:not([data-theme="light"]) .support-main { color: #f2b552; background: #382a15; }
 }
 
 /* ---------- 22. Thème sombre forcé (bouton de l'application) ------------- */
 /* Mêmes valeurs que le bloc @media, appliquées quel que soit le réglage du
    système, pour que le bouton de thème du site ait un effet réel.           */
-:root[data-theme="sombre"] {
+:root[data-theme="dark"] {
   --fond-page:  #191b20;
   --fond-carte: #22252c;
   --fond-doux:  #2b2f38;
@@ -736,14 +736,14 @@ tbody tr:nth-child(even) td { background: var(--fond-doux); }
   --c-anglais-lv1: #9aa3e8;     --c-anglais-lv1-bg: #20233a;
   --c-espagnol-lv2: #eb92b5;    --c-espagnol-lv2-bg: #341e28;
 }
-:root[data-theme="sombre"] [data-matiere="maths"]           { --accent:#7fb4ef; --accent-doux:#1d2a3a; --accent-trait:#3a557a; }
-:root[data-theme="sombre"] [data-matiere="francais"]        { --accent:#c49ae0; --accent-doux:#2a2134; --accent-trait:#553f6b; }
-:root[data-theme="sombre"] [data-matiere="histoire-geo"]    { --accent:#e2a463; --accent-doux:#332619; --accent-trait:#6d4f2c; }
-:root[data-theme="sombre"] [data-matiere="emc"]             { --accent:#6fc9bf; --accent-doux:#172e2c; --accent-trait:#2f5a55; }
-:root[data-theme="sombre"] [data-matiere="physique-chimie"] { --accent:#f09b78; --accent-doux:#33211a; --accent-trait:#6b4232; }
-:root[data-theme="sombre"] [data-matiere="svt"]             { --accent:#79c28c; --accent-doux:#1a2c20; --accent-trait:#34573f; }
-:root[data-theme="sombre"] [data-matiere="anglais-lv1"]     { --accent:#9aa3e8; --accent-doux:#20233a; --accent-trait:#424879; }
-:root[data-theme="sombre"] [data-matiere="espagnol-lv2"]    { --accent:#eb92b5; --accent-doux:#341e28; --accent-trait:#6e3c53; }
-:root[data-theme="sombre"] [data-matiere="pilotage"]        { --accent:#b0b7c6; --accent-doux:#262a33; --accent-trait:#4a515f; }
-:root[data-theme="sombre"] .fiche-type,
-:root[data-theme="sombre"] .etapes > li::before { color: #191b20; }
+:root[data-theme="dark"] [data-matiere="maths"]           { --accent:#7fb4ef; --accent-doux:#1d2a3a; --accent-trait:#3a557a; }
+:root[data-theme="dark"] [data-matiere="francais"]        { --accent:#c49ae0; --accent-doux:#2a2134; --accent-trait:#553f6b; }
+:root[data-theme="dark"] [data-matiere="histoire-geo"]    { --accent:#e2a463; --accent-doux:#332619; --accent-trait:#6d4f2c; }
+:root[data-theme="dark"] [data-matiere="emc"]             { --accent:#6fc9bf; --accent-doux:#172e2c; --accent-trait:#2f5a55; }
+:root[data-theme="dark"] [data-matiere="physique-chimie"] { --accent:#f09b78; --accent-doux:#33211a; --accent-trait:#6b4232; }
+:root[data-theme="dark"] [data-matiere="svt"]             { --accent:#79c28c; --accent-doux:#1a2c20; --accent-trait:#34573f; }
+:root[data-theme="dark"] [data-matiere="anglais-lv1"]     { --accent:#9aa3e8; --accent-doux:#20233a; --accent-trait:#424879; }
+:root[data-theme="dark"] [data-matiere="espagnol-lv2"]    { --accent:#eb92b5; --accent-doux:#341e28; --accent-trait:#6e3c53; }
+:root[data-theme="dark"] [data-matiere="pilotage"]        { --accent:#b0b7c6; --accent-doux:#262a33; --accent-trait:#4a515f; }
+:root[data-theme="dark"] .fiche-type,
+:root[data-theme="dark"] .etapes > li::before { color: #191b20; }

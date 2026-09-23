@@ -1,0 +1,39 @@
+/* =========================================================================
+   socle.css : le strict minimum commun aux trois régions.
+
+   Le portail, l'espace de Sterenn et le back-office ont chacun leur propre
+   direction artistique et leur propre feuille de style. Ici on ne met que
+   ce qui doit valoir partout : la remise à zéro, les utilitaires
+   d'accessibilité, et le masquage des régions inactives.
+   ========================================================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; }
+
+/* Le masquage prime sur toute mise en page : une région cachée reste cachée. */
+[hidden] { display: none !important; }
+
+.visuellement-cache {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+.saut-contenu {
+  position: absolute; left: -999px; top: 0; z-index: 100;
+  font: inherit; font-weight: 700; text-decoration: none;
+  background: #14151f; color: #fff;
+  padding: 0.6rem 1rem; border-radius: 0 0 8px 0;
+}
+.saut-contenu:focus { left: 0; }
+
+/* Repère de focus visible partout, y compris sur fond sombre. */
+:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+  }
+}
