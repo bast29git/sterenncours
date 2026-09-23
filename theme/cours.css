@@ -561,6 +561,27 @@ body {
 .schema text     { fill: var(--texte); font-family: var(--police); font-size: 16px; font-weight: 700; }
 .schema .legende { fill: var(--texte-doux); font-weight: 400; font-size: 14px; }
 
+/* Vocabulaire graphique partagé par les schémas des fiches. Les couleurs
+   restent celles du design system : aucun schéma ne repose sur la couleur
+   seule, chaque élément porte aussi une légende écrite. */
+.schema .pointille   { stroke: var(--texte-doux); stroke-width: 2; fill: none; stroke-dasharray: 4 4; }
+.schema .fleche      { stroke: var(--accent); stroke-width: 3; fill: none; }
+.schema .fleche-pointe,
+.schema .pointe      { fill: var(--accent); stroke: none; }
+.schema .plein       { fill: var(--accent); stroke: none; }
+.schema .creux       { fill: var(--fond); stroke: var(--accent); stroke-width: 2.5; }
+.schema .noyau,
+.schema .foyer       { fill: var(--insuffisant); stroke: none; }
+.schema .electron    { fill: var(--accent); stroke: none; }
+.schema .epicentre   { fill: var(--fond); stroke: var(--insuffisant); stroke-width: 3; }
+.schema .faille      { stroke: var(--texte); stroke-width: 3.5; fill: none; stroke-linecap: round; }
+.schema .onde        { fill: none; stroke: var(--accent); stroke-width: 1.6; opacity: 0.55; }
+.schema .bande       { fill: var(--accent-doux); stroke: none; }
+.schema .bande-2     { fill: var(--fond-doux); stroke: var(--trait); stroke-width: 1.5; }
+.schema .chaud       { fill: var(--insuffisant); stroke: none; opacity: 0.85; }
+.schema .froid       { fill: var(--accent); stroke: none; opacity: 0.7; }
+.schema .etiquette   { fill: var(--fond); stroke: var(--trait-fort); stroke-width: 1.5; }
+
 /* ---------- 15. Sommaire général ---------------------------------------- */
 .lecons { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 0.7rem; }
 .lecon {

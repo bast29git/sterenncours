@@ -1891,4 +1891,143 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'svt/L02': {
+    titre: 'Les séismes',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qui provoque un séisme ?',
+        choix: ['Une explosion sous la surface', 'La rupture brutale de roches soumises à des contraintes', 'Le refroidissement du noyau'],
+        reponse: 1,
+        explication: "Les contraintes dues au mouvement des plaques s'accumulent dans les roches, qui se déforment puis cassent d'un coup. Toute l'énergie accumulée part alors sous forme d'ondes."
+      },
+      {
+        type: 'qcm',
+        q: 'Où se trouve le foyer d\'un séisme ?',
+        choix: ['À la surface du sol', 'En profondeur, sur la faille', 'Au centre de la Terre'],
+        reponse: 1,
+        explication: "Le foyer, ou hypocentre, est le point de départ de la rupture, en profondeur sur la faille. L'épicentre, lui, est le point de la surface situé juste à la verticale du foyer."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Le séisme crée la faille au moment où il se produit.',
+        reponse: false,
+        explication: "Faux. Dans la grande majorité des cas la faille existe déjà : c'est une cassure ancienne, donc une zone de faiblesse. Le séisme est un rejeu, un nouveau glissement le long de cette cassure."
+      },
+      {
+        type: 'qcm',
+        q: 'Que transporte une onde sismique ?',
+        choix: ['De la roche', 'De l\'énergie', 'De l\'eau souterraine'],
+        reponse: 1,
+        explication: "De l'énergie, sous forme de vibration. La matière reste sur place et se contente d'osciller, comme un bouchon sur une vague."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Plus le foyer est profond, plus les dégâts en surface sont importants.',
+        reponse: false,
+        explication: "Faux, c'est l'inverse. Plus le foyer est profond, plus les ondes se sont atténuées avant d'atteindre la surface. À énergie égale, un foyer à 10 km fait bien plus de dégâts qu'un foyer à 300 km."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment s\'appelle le tracé enregistré par un sismographe ?',
+        choix: ['Un sismogramme', 'Un séismographe', 'Un épicentrogramme'],
+        reponse: 0,
+        explication: "Un sismogramme. Le temps est en abscisse, l'amplitude des vibrations du sol en ordonnée. C'est de l'amplitude maximale qu'on déduit la magnitude."
+      },
+      {
+        type: 'saisie',
+        q: 'Combien de stations faut-il au minimum pour localiser un épicentre par triangulation ?',
+        reponses: ['3', 'trois'],
+        explication: "Trois. Une station donne la distance mais pas la direction : on trace un cercle. Deux cercles se coupent en deux points, ce qui laisse une ambiguïté. Le troisième cercle tranche."
+      },
+      {
+        type: 'qcm',
+        q: 'La magnitude d\'un séisme mesure :',
+        choix: ['les effets observés dans une ville', 'l\'énergie libérée au foyer', 'la profondeur du foyer'],
+        reponse: 1,
+        explication: "L'énergie libérée au foyer. Elle est unique pour un séisme donné, quel que soit l'endroit où on l'observe. Les effets observés en un lieu, c'est l'intensité."
+      },
+      {
+        type: 'qcm',
+        q: 'Quand la magnitude augmente de 1, l\'énergie libérée est multipliée par environ :',
+        choix: ['2', '10', '30'],
+        reponse: 2,
+        explication: "Environ 30. C'est l'amplitude des ondes qui est multipliée par 10. Un séisme de magnitude 7 libère donc environ 30 × 30 = 900 fois plus d'énergie qu'un séisme de magnitude 5."
+      },
+      {
+        type: 'vraifaux',
+        q: 'L\'échelle de magnitude s\'arrête à 9.',
+        reponse: false,
+        explication: "Faux. L'échelle n'a pas de maximum théorique. Le record mesuré avoisine 9,5, mais cette limite vient de la longueur maximale des failles terrestres, pas de l'échelle elle-même."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment note-t-on une intensité sismique ?',
+        choix: ['En chiffres romains, de I à XII', 'Avec un nombre décimal comme 6,3', 'En pourcentage'],
+        reponse: 0,
+        explication: "En chiffres romains, de I à XII. Elle s'obtient par observation des effets : sur les personnes, les objets, les bâtiments et le paysage."
+      },
+      {
+        type: 'qcm',
+        q: 'Un même séisme de magnitude 6,3 est ressenti dans trois villes. Combien y a-t-il de magnitudes et combien d\'intensités ?',
+        choix: ['Une magnitude, trois intensités', 'Trois magnitudes, une intensité', 'Trois de chaque'],
+        reponse: 0,
+        explication: "Une seule magnitude, puisqu'elle mesure l'énergie libérée au foyer, et une intensité par lieu, puisqu'elle mesure les effets sur place. C'est la distinction la plus souvent ratée en contrôle."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Deux villes situées à la même distance de l\'épicentre subissent forcément la même intensité.',
+        reponse: false,
+        explication: "Faux. L'intensité dépend aussi de la nature du sol, car les sols meubles amplifient les secousses, et de la qualité des constructions. À distance égale, l'écart peut être de plusieurs degrés."
+      },
+      {
+        type: 'qcm',
+        q: 'Où se concentrent les séismes à la surface du globe ?',
+        choix: ['Au hasard', 'Aux limites des plaques tectoniques', 'Au centre des continents'],
+        reponse: 1,
+        explication: "Aux limites des plaques. La carte des séismes et la carte des plaques se superposent presque parfaitement : les contraintes se concentrent là où les plaques se frottent, plongent ou se heurtent."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle limite de plaques produit les foyers les plus profonds ?',
+        choix: ['La dorsale', 'La subduction', 'Le coulissage'],
+        reponse: 1,
+        explication: "La subduction : une plaque plonge sous l'autre, et les foyers s'enfoncent progressivement, parfois jusqu'à plusieurs centaines de kilomètres. Les dorsales, elles, donnent des foyers superficiels."
+      },
+      {
+        type: 'saisie',
+        q: 'Complète la relation : risque = aléa × enjeux × ________',
+        reponses: ['vulnerabilite', 'vulnérabilité', 'la vulnérabilité', 'vulnerabilité'],
+        explication: "risque = aléa × enjeux × vulnérabilité. S'il n'y a personne ni rien à détruire, le risque est nul même si l'aléa est fort. C'est le seul des trois facteurs sur lequel une société agit vraiment."
+      },
+      {
+        type: 'vraifaux',
+        q: 'On sait aujourd\'hui prévoir la date à laquelle un séisme se produira.',
+        reponse: false,
+        explication: "Faux. On sait dire où les séismes se produisent, et à peu près avec quelle force, mais pas quand. C'est pourquoi on mise sur la prévention, qui réduit les conséquences, et non sur la prévision."
+      },
+      {
+        type: 'qcm',
+        q: 'Que permet une alerte précoce de quelques secondes ?',
+        choix: ['Prévoir le séisme avant qu\'il commence', 'Arrêter les trains et couper le gaz avant les ondes destructrices', 'Empêcher la rupture de la faille'],
+        reponse: 1,
+        explication: "Elle exploite la différence de vitesse entre les ondes rapides peu destructrices et les ondes lentes qui font les dégâts. Le séisme a déjà commencé : ce n'est pas de la prévision, c'est de la détection."
+      },
+      {
+        type: 'qcm',
+        q: 'Que garantit une norme parasismique ?',
+        choix: ['Que le bâtiment ne sera pas endommagé', 'Que le bâtiment ne s\'effondrera pas pendant la secousse', 'Que le séisme sera moins fort'],
+        reponse: 1,
+        explication: "Qu'il ne s'effondrera pas, pour laisser aux occupants le temps de sortir vivants. Le bâtiment peut être fissuré et devoir être démoli ensuite : il aura pourtant fait exactement son travail."
+      },
+      {
+        type: 'qcm',
+        q: 'Pendant une secousse, à l\'intérieur d\'un bâtiment, que faut-il faire ?',
+        choix: ['Courir dehors immédiatement', 'Prendre l\'ascenseur', 'Se mettre sous une table solide, loin des fenêtres'],
+        reponse: 2,
+        explication: "Se protéger sur place sous une table solide ou contre un mur porteur, loin des vitres, en protégeant sa tête. On ne sort qu'une fois la secousse terminée, par les escaliers, jamais par l'ascenseur."
+      }
+    ]
+  }
 };
