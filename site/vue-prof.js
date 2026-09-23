@@ -340,6 +340,7 @@
           <li class="pos"><span class="v">${c.validees}</span><span class="l">leçons validées sur ${c.total}</span></li>
           <li class="${c.fragiles ? 'att' : ''}"><span class="v">${c.fragiles}</span><span class="l">à reprendre</span></li>
           <li><span class="v">${c.pretes}</span><span class="l">leçons entièrement rédigées</span></li>
+          <li><span class="v">${Object.keys(N.etat.resultats).filter((k) => k.indexOf('jeu/') === 0 && N.etat.resultats[k].meilleur >= 70).length}</span><span class="l">jeux gagnés par Sterenn</span></li>
           <li><span class="v">${faites}/${semaine.length}</span><span class="l">séances faites cette semaine</span></li>
           <li class="${aClore.length ? 'neg' : ''}"><span class="v">${aClore.length}</span><span class="l">séances à clore</span></li>
           <li class="${N.etat.messagesNonLus ? 'att' : ''}"><span class="v">${N.etat.messagesNonLus}</span><span class="l">messages non lus</span></li>
@@ -891,7 +892,7 @@
 
     afficher(
       entete('Suivi des acquis',
-        `${c.validees} validées sur ${c.total} · ${c.fragiles} à reprendre · ${c.pretes} entièrement rédigées`,
+        `${c.validees} validées sur ${c.total} · ${c.fragiles} à reprendre · ${c.pretes} entièrement rédigées · ${Object.keys(N.etat.resultats).filter((k) => k.indexOf('jeu/') === 0).length} jeu(x) joué(s)`,
         `<button class="p-bouton p-bouton-fantome" id="s-export" type="button">Exporter en CSV</button>
          <a class="p-bouton p-bouton-fantome" href="#/matieres">Voir les matières</a>`)
 
