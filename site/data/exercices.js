@@ -4544,4 +4544,146 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'svt/L04': {
+    titre: 'Météorologie et climats',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Sur quelle durée minimale calcule-t-on un climat ?',
+        choix: ['Un an', 'Dix ans', 'Trente ans'],
+        reponse: 2,
+        explication: "Trente ans au minimum. La météorologie, elle, décrit l'état de l'atmosphère sur quelques heures à quelques jours. Le climat, c'est ce à quoi on s'attend ; la météo, ce qu'on obtient."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Un hiver très froid prouve que le climat ne se réchauffe pas.',
+        reponse: false,
+        explication: "Faux. Le climat est une moyenne sur trente ans, qui peut augmenter tout en comportant des années froides. Conclure sur une tendance à partir d'un épisode, c'est juger une classe entière sur un seul élève."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel instrument mesure la pression atmosphérique ?',
+        choix: ['Le baromètre', 'L\'hygromètre', 'L\'anémomètre'],
+        reponse: 0,
+        explication: "Le baromètre, en hectopascals. L'hygromètre mesure l'humidité, l'anémomètre la vitesse du vent. La pression moyenne au niveau de la mer vaut 1013 hPa."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans un anticyclone, quel temps règne en général ?',
+        choix: ['Perturbé et pluvieux', 'Stable et sec', 'Venteux et froid'],
+        reponse: 1,
+        explication: "Stable et sec. Un anticyclone est une zone de HAUTE pression où l'air descend, ce qui empêche la formation de nuages. Une dépression, à basse pression, donne au contraire un temps perturbé."
+      },
+      {
+        type: 'saisie',
+        q: 'À combien de litres d\'eau par mètre carré correspond 1 mm de pluie ?',
+        reponses: ['1', '1 litre', '1 L', 'un litre'],
+        explication: "1 litre par mètre carré. Un orage de 30 mm dépose donc 30 litres par mètre carré, soit 300 000 litres sur un hectare : c'est ce qui explique les inondations soudaines."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi fait-il plus chaud à l\'équateur qu\'aux pôles ?',
+        choix: ['Les pôles sont plus loin du Soleil', 'Les rayons arrivent perpendiculairement à l\'équateur et très inclinés aux pôles', 'L\'air y est plus épais'],
+        reponse: 1,
+        explication: "C'est l'inclinaison des rayons. La différence de distance est négligeable : le Soleil est à 150 millions de km, le rayon terrestre n'est que de 6400 km."
+      },
+      {
+        type: 'saisie',
+        q: 'Comment appelle-t-on la part du rayonnement solaire réfléchie par une surface ?',
+        reponses: ['albédo', 'l\'albédo', 'albedo'],
+        explication: "L'albédo. La neige fraîche a un albédo de 0,85 : elle renvoie 85 % de l'énergie. L'océan n'a qu'un albédo de 0,06 : il en absorbe presque toute."
+      },
+      {
+        type: 'qcm',
+        q: 'La banquise fond, laissant place à de l\'eau sombre. Que se passe-t-il ?',
+        choix: ['L\'océan absorbe plus d\'énergie, ce qui accélère la fonte', 'Rien ne change', 'L\'océan refroidit l\'atmosphère'],
+        reponse: 0,
+        explication: "L'eau absorbe bien plus d'énergie que la glace. Elle se réchauffe, ce qui fait fondre plus de glace encore : c'est une rétroaction positive, et c'est pourquoi l'Arctique se réchauffe trois fois plus vite que la moyenne."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans quel sens souffle le vent ?',
+        choix: ['Des basses vers les hautes pressions', 'Des hautes vers les basses pressions', 'Toujours vers le nord'],
+        reponse: 1,
+        explication: "Des hautes pressions vers les basses pressions. L'air chaud, moins dense, monte ; l'air froid descend : ces mouvements créent les différences de pression qui engendrent le vent."
+      },
+      {
+        type: 'qcm',
+        q: 'Range ces zones de l\'équateur vers le pôle.',
+        choix: ['équatoriale, tropicale, désertique, tempérée, polaire', 'équatoriale, tempérée, désertique, tropicale, polaire', 'tropicale, équatoriale, tempérée, désertique, polaire'],
+        reponse: 0,
+        explication: "Équatoriale, tropicale, désertique, tempérée, polaire. Cet ordre se retrouve en miroir dans les deux hémisphères : il découle directement de l'inclinaison des rayons solaires."
+      },
+      {
+        type: 'qcm',
+        q: 'Brest et Strasbourg sont à la même latitude, mais Brest a des hivers plus doux. Pourquoi ?',
+        choix: ['Brest est plus au sud', 'Brest est au bord de l\'océan', 'Brest est plus basse en altitude'],
+        reponse: 1,
+        explication: "La proximité de l'océan. L'eau se réchauffe et se refroidit bien plus lentement que la terre : elle accumule la chaleur en été et la restitue en hiver. Strasbourg subit au contraire la continentalité."
+      },
+      {
+        type: 'qcm',
+        q: 'De combien la température baisse-t-elle environ par 100 m d\'altitude ?',
+        choix: ['0,6 °C', '2 °C', '5 °C'],
+        reponse: 0,
+        explication: "Environ 0,6 °C par 100 m. Sur 1000 m de dénivelé, cela représente déjà 6 °C, ce qui explique la présence de neige en altitude alors qu'il pleut dans la vallée."
+      },
+      {
+        type: 'qcm',
+        q: 'Sans effet de serre naturel, quelle serait la température moyenne de la Terre ?',
+        choix: ['0 °C', '−18 °C', '−50 °C'],
+        reponse: 1,
+        explication: "Environ −18 °C, au lieu de +15 °C. L'effet de serre naturel nous apporte donc environ 33 °C : sans lui, l'eau liquide et la vie telle que nous la connaissons n'existeraient pas."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Il faudrait supprimer l\'effet de serre pour sauver la planète.',
+        reponse: false,
+        explication: "Faux, et c'est même l'inverse : sans lui la Terre serait gelée. Le problème n'est pas l'effet de serre mais son RENFORCEMENT rapide depuis l'ère industrielle."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle étape décrit correctement l\'effet de serre ?',
+        choix: ['Les gaz réfléchissent les rayons du Soleil', 'Le sol réémet de l\'infrarouge, que les gaz absorbent et renvoient vers le sol', 'Les gaz chauffent directement l\'atmosphère'],
+        reponse: 1,
+        explication: "Le rayonnement solaire traverse l'atmosphère et chauffe le sol ; le sol réémet de l'infrarouge ; les gaz à effet de serre en absorbent une partie et la renvoient vers le bas."
+      },
+      {
+        type: 'qcm',
+        q: 'De combien la concentration de CO₂ a-t-elle augmenté depuis 1850 ?',
+        choix: ['De 280 à 420 ppm environ, soit +50 %', 'De 100 à 150 ppm', 'Elle n\'a pas changé'],
+        reponse: 0,
+        explication: "D'environ 280 à plus de 420 parties par million. Les carottes de glace montrent qu'elle était restée entre 180 et 300 ppm pendant 800 000 ans : ni le niveau ni la vitesse n'ont d'équivalent."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel argument montre l\'origine humaine du réchauffement actuel ?',
+        choix: ['Il fait plus chaud en été', 'La signature chimique du carbone fossile retrouvée dans l\'atmosphère', 'Les volcans sont plus actifs'],
+        reponse: 1,
+        explication: "La signature isotopique du carbone fossile, à quoi s'ajoutent la chronologie, qui coïncide avec l'ère industrielle, et la quantité émise, qui correspond à l'augmentation observée. C'est la convergence qui fait preuve."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle conséquence l\'absorption de CO₂ a-t-elle sur les océans ?',
+        choix: ['Ils deviennent plus salés', 'Ils s\'acidifient', 'Ils gèlent plus vite'],
+        reponse: 1,
+        explication: "Ils s'acidifient, ce qui fragilise les coquilles et les squelettes calcaires des coraux, des mollusques et de certains planctons. Le service rendu au climat a donc un coût."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la différence entre atténuation et adaptation ?',
+        choix: ['Aucune', 'Atténuer réduit les émissions, s\'adapter prépare aux effets inévitables', 'Atténuer concerne les pays riches, s\'adapter les pays pauvres'],
+        reponse: 1,
+        explication: "Les deux sont nécessaires : atténuer sans adapter laisse subir des effets déjà engagés, adapter sans atténuer revient à courir après un problème qui grandit sans cesse."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'appelle-t-on l\'inertie climatique ?',
+        choix: ['Le refus d\'agir', 'Le fait que les effets d\'une décision ne se mesurent que des décennies plus tard', 'La lenteur des vents'],
+        reponse: 1,
+        explication: "Le CO₂ déjà émis reste des siècles dans l'atmosphère et les océans continuent de se dilater. Attendre d'observer les conséquences pour agir revient donc à garantir qu'elles se produiront."
+      }
+    ]
+  }
 };
