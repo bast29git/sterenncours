@@ -19,89 +19,127 @@
 <div id="portail" class="portail">
   <svg class="planche" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <defs>
-      <pattern id="tramePoints" width="6" height="6" patternUnits="userSpaceOnUse">
-        <circle cx="1.4" cy="1.4" r="1.15"/>
+      <pattern id="tramePoints" width="7" height="7" patternUnits="userSpaceOnUse">
+        <circle cx="1.8" cy="1.8" r="1.5"/>
       </pattern>
-      <pattern id="trameLignes" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <rect width="2.2" height="6"/>
+      <pattern id="trameSerree" width="4" height="4" patternUnits="userSpaceOnUse">
+        <circle cx="1.1" cy="1.1" r="1"/>
       </pattern>
+      <pattern id="trameLignes" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="2.6" height="7"/>
+      </pattern>
+      <clipPath id="c1"><path d="M40 34 H628 L586 214 H40 Z"/></clipPath>
+      <clipPath id="c2"><path d="M648 34 H1160 V214 H648 Z"/></clipPath>
+      <clipPath id="c3"><path d="M40 234 H392 V498 H40 Z"/></clipPath>
+      <clipPath id="c4"><path d="M412 234 H770 V414 H412 Z"/></clipPath>
+      <clipPath id="c5"><path d="M790 234 H1160 V498 H790 Z"/></clipPath>
+      <clipPath id="c6"><path d="M412 434 H770 V498 H412 Z"/></clipPath>
+      <clipPath id="c7"><path d="M40 518 H660 L618 866 H40 Z"/></clipPath>
+      <clipPath id="c8"><path d="M690 518 H1160 V676 H690 Z"/></clipPath>
+      <clipPath id="c9"><path d="M648 696 H1160 V866 H648 Z"/></clipPath>
     </defs>
 
-    <!-- Découpe de la planche : cases irrégulières, gouttières franches -->
+    <!-- Les cases : gouttières franches, deux coupes en biais comme sur une planche -->
     <g class="cases">
-      <path d="M46 40 H700 V236 H46 Z"/>
-      <path d="M716 40 H1154 V236 H716 Z"/>
-      <path d="M46 252 H396 V520 H46 Z"/>
-      <path d="M412 252 H760 V420 H412 Z"/>
-      <path d="M776 252 H1154 V520 H776 Z"/>
-      <path d="M412 436 H760 V520 H412 Z"/>
-      <path d="M46 536 H620 V860 H46 Z"/>
-      <path d="M636 536 H1154 V700 H636 Z"/>
-      <path d="M636 716 H1154 V860 H636 Z"/>
+      <path d="M40 34 H628 L586 214 H40 Z"/>
+      <path d="M648 34 H1160 V214 H648 Z"/>
+      <path d="M40 234 H392 V498 H40 Z"/>
+      <path d="M412 234 H770 V414 H412 Z"/>
+      <path d="M790 234 H1160 V498 H790 Z"/>
+      <path d="M412 434 H770 V498 H412 Z"/>
+      <path d="M40 518 H660 L618 866 H40 Z"/>
+      <path d="M690 518 H1160 V676 H690 Z"/>
+      <path d="M648 696 H1160 V866 H648 Z"/>
     </g>
 
     <g class="art">
-      <!-- Case 1 : lignes de vitesse, point de fuite décentré -->
-      <g class="vitesse">
-        <path d="M250 140 L50 46"/><path d="M250 140 L130 44"/><path d="M250 140 L230 42"/>
-        <path d="M250 140 L340 44"/><path d="M250 140 L470 48"/><path d="M250 140 L620 56"/>
-        <path d="M250 140 L694 110"/><path d="M250 140 L694 172"/><path d="M250 140 L640 226"/>
-        <path d="M250 140 L470 232"/><path d="M250 140 L320 234"/><path d="M250 140 L200 234"/>
-        <path d="M250 140 L80 230"/><path d="M250 140 L50 176"/><path d="M250 140 L50 110"/>
+      <!-- 1. Lignes de fuite vers un point décentré -->
+      <g clip-path="url(#c1)">
+        <rect class="trame" x="40" y="34" width="588" height="180" fill="url(#trameSerree)"/>
+        <g class="vitesse">
+          <path d="M236 126 L28 22"/><path d="M236 126 L120 20"/><path d="M236 126 L228 18"/>
+          <path d="M236 126 L348 20"/><path d="M236 126 L500 26"/><path d="M236 126 L640 40"/>
+          <path d="M236 126 L648 104"/><path d="M236 126 L620 178"/><path d="M236 126 L470 222"/>
+          <path d="M236 126 L300 228"/><path d="M236 126 L180 230"/><path d="M236 126 L60 226"/>
+          <path d="M236 126 L24 166"/><path d="M236 126 L24 96"/>
+        </g>
       </g>
-      <!-- Case 2 : horizon et soleil, trame de ciel -->
-      <g class="decor">
-        <circle cx="1010" cy="118" r="46"/>
-        <path d="M724 168 H1148"/><path d="M746 184 H1126"/><path d="M782 200 H1090"/>
-        <path d="M724 168 L820 120"/><path d="M1148 168 L1060 120"/>
-        <rect x="716" y="40" width="438" height="76" fill="url(#tramePoints)" class="trame"/>
+
+      <!-- 2. Horizon, soleil bas, ciel tramé -->
+      <g clip-path="url(#c2)">
+        <rect class="trame" x="648" y="34" width="512" height="86" fill="url(#tramePoints)"/>
+        <circle class="plein" cx="1004" cy="108" r="44"/>
+        <path d="M648 160 H1160"/><path d="M672 178 H1136"/><path d="M710 196 H1098"/>
+        <path d="M648 160 L760 104"/><path d="M1160 160 L1052 104"/>
       </g>
-      <!-- Case 3 : arcs de mouvement -->
-      <g class="decor">
-        <path d="M70 470 Q220 280 372 470"/>
-        <path d="M106 474 Q220 326 334 474"/>
-        <path d="M142 478 Q220 372 298 478"/>
-        <path d="M178 482 Q220 418 262 482"/>
-        <rect x="46" y="252" width="350" height="96" fill="url(#trameLignes)" class="trame"/>
+
+      <!-- 3. Arcs de mouvement -->
+      <g clip-path="url(#c3)">
+        <rect class="trame" x="40" y="234" width="352" height="104" fill="url(#trameLignes)"/>
+        <path d="M58 456 Q216 254 374 456"/>
+        <path d="M96 462 Q216 306 336 462"/>
+        <path d="M134 468 Q216 358 298 468"/>
+        <path d="M172 474 Q216 408 260 474"/>
+        <path d="M40 486 H392" class="fin"/>
       </g>
-      <!-- Case 4 : impact, éclat concentrique -->
-      <g class="decor">
-        <path d="M586 336 m-96 0 a96 96 0 1 0 192 0 a96 96 0 1 0 -192 0"/>
-        <path d="M586 336 m-64 0 a64 64 0 1 0 128 0 a64 64 0 1 0 -128 0"/>
-        <path d="M586 336 m-34 0 a34 34 0 1 0 68 0 a34 34 0 1 0 -68 0"/>
-        <path d="M586 262 L586 410"/><path d="M512 336 L660 336"/>
-        <path d="M534 284 L638 388"/><path d="M638 284 L534 388"/>
+
+      <!-- 4. Impact : éclat concentrique -->
+      <g clip-path="url(#c4)">
+        <path d="M591 324 m-104 0 a104 104 0 1 0 208 0 a104 104 0 1 0 -208 0"/>
+        <path d="M591 324 m-70 0 a70 70 0 1 0 140 0 a70 70 0 1 0 -140 0"/>
+        <path d="M591 324 m-36 0 a36 36 0 1 0 72 0 a36 36 0 1 0 -72 0"/>
+        <path d="M591 244 L591 404"/><path d="M511 324 L671 324"/>
+        <path d="M534 267 L648 381"/><path d="M648 267 L534 381"/>
+        <path d="M470 250 L520 290"/><path d="M712 250 L662 290"/>
+        <path d="M470 398 L520 358"/><path d="M712 398 L662 358"/>
       </g>
-      <!-- Case 5 : pluie de traits verticaux -->
-      <g class="pluie">
-        <path d="M800 262 L782 510"/><path d="M834 262 L816 510"/><path d="M868 262 L850 510"/>
-        <path d="M902 262 L884 510"/><path d="M936 262 L918 510"/><path d="M970 262 L952 510"/>
-        <path d="M1004 262 L986 510"/><path d="M1038 262 L1020 510"/><path d="M1072 262 L1054 510"/>
-        <path d="M1106 262 L1088 510"/><path d="M1140 262 L1122 510"/>
+
+      <!-- 5. Pluie oblique, dégradé de trame -->
+      <g clip-path="url(#c5)">
+        <rect class="trame" x="790" y="234" width="370" height="264" fill="url(#trameSerree)"/>
+        <g class="pluie">
+          <path d="M800 234 L776 498"/><path d="M836 234 L812 498"/><path d="M872 234 L848 498"/>
+          <path d="M908 234 L884 498"/><path d="M944 234 L920 498"/><path d="M980 234 L956 498"/>
+          <path d="M1016 234 L992 498"/><path d="M1052 234 L1028 498"/><path d="M1088 234 L1064 498"/>
+          <path d="M1124 234 L1100 498"/><path d="M1160 234 L1136 498"/>
+        </g>
       </g>
-      <!-- Case 6 : bande étroite, trame -->
-      <rect x="412" y="436" width="348" height="84" fill="url(#tramePoints)" class="trame"/>
-      <path class="fin" d="M430 478 H742"/>
-      <!-- Case 7 : grande case, onde et horizon bas -->
-      <g class="decor">
-        <path d="M70 830 Q330 600 590 830"/>
-        <path d="M130 834 Q330 664 530 834"/>
-        <path d="M190 838 Q330 726 470 838"/>
-        <path d="M250 842 Q330 788 410 842"/>
-        <path d="M46 700 H620" class="fin"/>
-        <rect x="46" y="536" width="574" height="120" fill="url(#trameLignes)" class="trame"/>
+
+      <!-- 6. Bande étroite : un regard, une respiration -->
+      <g clip-path="url(#c6)">
+        <rect class="trame" x="412" y="434" width="358" height="64" fill="url(#trameLignes)"/>
+        <path d="M470 466 Q530 436 590 466 Q530 496 470 466 Z"/>
+        <circle class="plein" cx="530" cy="466" r="11"/>
+        <path class="fin" d="M620 466 H752"/>
       </g>
-      <!-- Case 8 : lignes de vitesse horizontales -->
-      <g class="vitesse">
-        <path d="M646 560 H1144"/><path d="M700 578 H1144"/><path d="M646 596 H1082"/>
-        <path d="M740 614 H1144"/><path d="M646 632 H1010"/><path d="M820 650 H1144"/>
-        <path d="M646 668 H1120"/><path d="M700 686 H1040"/>
+
+      <!-- 7. Grande case : onde, horizon bas, ciel tramé -->
+      <g clip-path="url(#c7)">
+        <rect class="trame" x="40" y="518" width="620" height="140" fill="url(#tramePoints)"/>
+        <path d="M58 838 Q330 596 602 838"/>
+        <path d="M120 844 Q330 668 540 844"/>
+        <path d="M182 850 Q330 736 478 850"/>
+        <path d="M244 856 Q330 800 416 856"/>
+        <path d="M40 700 H640" class="fin"/>
+        <path d="M40 724 H600" class="fin"/>
       </g>
-      <!-- Case 9 : éclat de dialogue -->
-      <g class="decor">
-        <path d="M895 788 L930 736 L960 780 L1010 744 L1008 796 L1074 790 L1030 828 L1086 848
-                 L1020 856 L1040 856 L960 852 L930 856 L886 846 L906 818 L860 808 Z"/>
-        <rect x="636" y="716" width="220" height="144" fill="url(#tramePoints)" class="trame"/>
+
+      <!-- 8. Lignes de vitesse horizontales -->
+      <g clip-path="url(#c8)">
+        <g class="vitesse">
+          <path d="M690 540 H1160"/><path d="M746 558 H1160"/><path d="M690 576 H1098"/>
+          <path d="M786 594 H1160"/><path d="M690 612 H1026"/><path d="M836 630 H1160"/>
+          <path d="M690 648 H1136"/><path d="M746 666 H1056"/>
+        </g>
+      </g>
+
+      <!-- 9. Éclat de dialogue -->
+      <g clip-path="url(#c9)">
+        <rect class="trame" x="648" y="696" width="230" height="170" fill="url(#trameSerree)"/>
+        <path d="M912 800 L944 742 L978 790 L1030 750 L1030 806 L1096 798 L1054 838 L1108 858
+                 L1036 866 L960 862 L930 868 L886 856 L910 826 L862 816 Z"/>
+        <path class="fin" d="M700 760 H840"/>
+        <path class="fin" d="M700 786 H806"/>
       </g>
     </g>
   </svg>
