@@ -12,7 +12,8 @@ import { lireSession } from './_commun.js';
 // du programme et toutes les API restent derrière la session.
 const PUBLIC_EXACT = new Set([
   '/', '/index.html', '/socle.css', '/portail.css', '/eleve.css', '/prof.css',
-  '/lecture.css', '/app.js', '/favicon.ico', '/robots.txt', '/api/connexion', '/api/moi',
+  '/lecture.css', '/app.js', '/favicon.svg', '/favicon.ico', '/manifeste.json',
+  '/robots.txt', '/api/connexion', '/api/moi',
 ]);
 const PUBLIC_PREFIXES = ['/theme/', '/moteurs/'];
 
@@ -41,6 +42,15 @@ export async function onRequest(context) {
       });
     }
     return Response.redirect(url.origin + '/', 302);
+  }
+
+  // Les corrigés et les grilles d'évaluation ne sont servis qu'au professeur.
+  // L'espace de Sterenn lit sa propre version, générée sans eux au build.
+  if (session.role !== 'prof' && chemin.startsWith('/data/contenu/')) {
+    return new Response(JSON.stringify({ erreur: 'Réservé à l\'espace professeur' }), {
+      status: 403,
+      headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+    });
   }
 
   context.data.session = session;

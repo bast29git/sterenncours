@@ -21,30 +21,30 @@
     {
       titre: 'Pilotage',
       items: [
-        { route: 'accueil', ico: '◈', texte: 'Aujourd\'hui' },
-        { route: 'mois', ico: '▦', texte: 'Planning' },
-        { route: 'suivi', ico: '◉', texte: 'Suivi des acquis' },
+        { route: 'accueil', ico: 'ic-accueil', texte: 'Aujourd\'hui' },
+        { route: 'mois', ico: 'ic-calendrier', texte: 'Planning' },
+        { route: 'suivi', ico: 'ic-graphique', texte: 'Suivi des acquis' },
       ],
     },
     {
       titre: 'Échanges',
       items: [
-        { route: 'messages', ico: '✉', texte: 'Messages' },
-        { route: 'depots', ico: '⇩', texte: 'Dépôts' },
+        { route: 'messages', ico: 'ic-message', texte: 'Messages' },
+        { route: 'depots', ico: 'ic-boite', texte: 'Dépôts' },
       ],
     },
     {
       titre: 'Ressources',
       items: [
-        { route: 'matieres', ico: '▤', texte: 'Matières' },
-        { route: 'programme', ico: '☰', texte: 'Programme officiel' },
-        { route: 'documents', ico: '⇓', texte: 'Dossiers PDF' },
+        { route: 'matieres', ico: 'ic-planete', texte: 'Matières' },
+        { route: 'programme', ico: 'ic-livre', texte: 'Programme officiel' },
+        { route: 'documents', ico: 'ic-telecharger', texte: 'Dossiers PDF' },
       ],
     },
     {
       titre: 'Outils',
       items: [
-        { route: 'planning', ico: '⚙', texte: 'Générateur d\'année' },
+        { route: 'planning', ico: 'ic-etincelle', texte: 'Générateur d\'année' },
       ],
     },
   ];
@@ -74,7 +74,7 @@
         ? `<span class="alerte">${N.etat.messagesNonLus}</span>` : '';
       const compte = !alerte && compteurs[i.route] ? `<span class="compte">${compteurs[i.route]}</span>` : '';
       return `<li><a href="#/${i.route}"${actif}>
-        <span class="ico" aria-hidden="true">${i.ico}</span><span>${N.ech(i.texte)}</span>${alerte}${compte}</a></li>`;
+        ${N.ic(i.ico, 'ico')}<span>${N.ech(i.texte)}</span>${alerte}${compte}</a></li>`;
     }).join('')}</ul>
       </section>`).join('');
 
@@ -208,7 +208,7 @@
   function pastillesDocs(l) {
     return N.TYPES_DOC.map((t) => {
       const present = (l.docs || []).indexOf(t.id) !== -1;
-      return `<span class="p-puce" title="${N.ech(t.libelle)}" style="${present ? '' : 'opacity:.35'}">${t.picto}</span>`;
+      return `<span class="p-puce p-puce-doc${present ? '' : ' absent'}" title="${N.ech(t.libelle)}">${N.ic(t.ico)}</span>`;
     }).join(' ');
   }
 
@@ -1085,8 +1085,8 @@
             <div class="p-lecteur-corps">
               <nav class="p-onglets">${l.docs.map((t) => {
           const info = N.TYPES_DOC.find((x) => x.id === t);
-          return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${info.picto} ${info.libelle}</a>`;
-        }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">🎯 Série d'exercices</a>` : ''}</nav>
+          return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${N.ic(info.ico)} ${info.libelle}</a>`;
+        }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} Série d'exercices</a>` : ''}</nav>
               <article class="p-fiche">${doc.html}</article>
             </div>
             <aside class="p-rail">

@@ -47,6 +47,7 @@ body.corps-prof {
   --p-ok: #5BC894; --p-attention: #E0A94A; --p-alerte: #F08078;
 }
 
+.prof .ic { width: 1.05rem; height: 1.05rem; }
 .prof { display: grid; grid-template-columns: 15rem 1fr; min-height: 100vh; }
 .p-colonne { display: flex; flex-direction: column; min-width: 0; }
 .prof h1, .prof h2, .prof h3 { margin: 0; letter-spacing: -0.015em; line-height: 1.25; }
@@ -85,7 +86,13 @@ body.corps-prof {
 }
 .p-nav a:hover { background: var(--p-surface); color: var(--p-encre); }
 .p-nav a.actif { background: var(--p-accent-voile); color: var(--p-accent); font-weight: 700; }
-.p-nav .ico { width: 1.1rem; text-align: center; opacity: .8; }
+.p-nav .ico { width: 1.05rem; height: 1.05rem; opacity: .85; }
+.p-nav a.actif .ico { opacity: 1; stroke-width: 2; }
+.p-puce-doc { display: inline-flex; padding: 0.1rem 0.2rem; vertical-align: middle; }
+.p-puce-doc .ic { width: 0.95rem; height: 0.95rem; }
+.p-puce-doc.absent { opacity: .3; }
+.p-onglets a .ic, .p-bouton .ic { width: 1rem; height: 1rem; }
+.p-etat .ic { width: 0.85rem; height: 0.85rem; }
 .p-nav .compte {
   margin-left: auto; font-family: var(--p-mono); font-size: 0.72rem;
   color: var(--p-faible);

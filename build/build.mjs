@@ -18,20 +18,45 @@ const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SORTIE = path.join(RACINE, 'public');
 const DOSSIERS_CONTENU = ['00-pilotage', 'matieres', 'outils'];
 
+/* ── Pictogrammes des blocs ────────────────────────────────────────────────
+   Dessinés au trait, et posés en SVG *en clair* dans la page : un emoji change
+   de dessin d'un appareil à l'autre, ne suit pas la couleur du texte, et
+   s'imprime mal. Le tracé est inséré tel quel plutôt que par référence, pour
+   que les pages autonomes et les PDF n'aient besoin d'aucun fichier externe. */
+const TRACES = {
+  cible:    '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
+  boussole: '<circle cx="12" cy="12" r="8.2"/><path d="M15.2 8.8 13.5 13.5 8.8 15.2 10.5 10.5Z"/>',
+  sac:      '<path d="M5 8.5h14l-1 11.5a1.6 1.6 0 0 1-1.6 1.5H7.6A1.6 1.6 0 0 1 6 20Z"/><path d="M9 8.5V6a3 3 0 0 1 6 0v2.5"/>',
+  livre:    '<path d="M12 6.6C10.5 5.2 8.6 4.5 6 4.5H3.5v13H6c2.6 0 4.5.7 6 2.1"/><path d="M12 6.6c1.5-1.4 3.4-2.1 6-2.1h2.5v13H18c-2.6 0-4.5.7-6 2.1"/><path d="M12 6.6v13"/>',
+  formule:  '<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M7.5 8h9M7.5 12h4M7.5 16h4M14.5 12v4M12.5 14h4"/>',
+  ampoule:  '<path d="M9.2 16.5a6 6 0 1 1 5.6 0"/><path d="M9.5 18.5h5M10.2 21h3.6"/><path d="M12 10v6.5"/>',
+  alerte:   '<path d="M12 3.8 21 19.5H3Z"/><path d="M12 9.8v4.4"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>',
+  cerveau:  '<path d="M12 5.2a3.2 3.2 0 0 0-5.8 1.4A3 3 0 0 0 4.6 11a3 3 0 0 0 1.5 4.3 3.1 3.1 0 0 0 5.9 1.1"/><path d="M12 5.2a3.2 3.2 0 0 1 5.8 1.4A3 3 0 0 1 19.4 11a3 3 0 0 1-1.5 4.3 3.1 3.1 0 0 1-5.9 1.1"/><path d="M12 5.2v14.2"/>',
+  outils:   '<path d="M14.5 6.2a3.6 3.6 0 0 1 4.8 4.6l-9 9-4.6-4.6 9-9Z"/><path d="M4 20l1.7-4.6"/><path d="M12.8 7.9l3.3 3.3"/>',
+  bouee:    '<circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.4"/><path d="M6.2 6.2l3.4 3.4M17.8 6.2l-3.4 3.4M6.2 17.8l3.4-3.4M17.8 17.8l-3.4-3.4"/>',
+  pause:    '<path d="M20 11.5a8 8 0 1 1-2.4-5.7"/><path d="M20.5 3.5v4.6h-4.6"/>',
+  info:     '<circle cx="12" cy="12" r="8.2"/><path d="M12 11v5.2"/><circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"/>',
+  horloge:  '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>',
+  main:     '<path d="M16.1 3.9a2.2 2.2 0 0 1 3.1 3.1L8.3 17.9 4 19.3l1.4-4.3Z"/><path d="M14.4 5.6 17.6 8.8"/>',
+  ecran:    '<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/>',
+};
+const picto = (nom) => '<svg class="ic-bloc" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+  + TRACES[nom] + '</svg>';
+
 /* ── Lexique FIXE des blocs (picto + libellé + classe) ─────────────────── */
 const BLOCS = {
-  objectif:   { picto: '🎯', libelle: 'Objectif',            classe: 'bloc-objectif' },
-  plan:       { picto: '🧭', libelle: 'Plan de la fiche',    classe: 'bloc-plan' },
-  materiel:   { picto: '🎒', libelle: 'Ce dont tu as besoin',classe: 'bloc-plan' },
-  definition: { picto: '📘', libelle: 'Définition',          classe: 'bloc-definition' },
-  formule:    { picto: '🧮', libelle: 'Formule à connaître', classe: 'bloc-formule' },
-  exemple:    { picto: '💡', libelle: 'Exemple guidé',       classe: 'bloc-exemple' },
-  piege:      { picto: '⚠️', libelle: 'Piège à éviter',      classe: 'bloc-piege' },
-  retenir:    { picto: '🧠', libelle: 'À retenir',           classe: 'bloc-retenir' },
-  methode:    { picto: '🧰', libelle: 'Méthode pas à pas',   classe: 'bloc-methode' },
-  aide:       { picto: '🆘', libelle: 'Coup de pouce',       classe: 'bloc-aide' },
-  pause:      { picto: '🔁', libelle: 'Pause conseillée',    classe: 'bloc-pause' },
-  info:       { picto: 'ℹ️', libelle: 'Bon à savoir',        classe: 'bloc-aide' },
+  objectif:   { picto: picto('cible'),    libelle: 'Objectif',            classe: 'bloc-objectif' },
+  plan:       { picto: picto('boussole'), libelle: 'Plan de la fiche',    classe: 'bloc-plan' },
+  materiel:   { picto: picto('sac'),      libelle: 'Ce dont tu as besoin',classe: 'bloc-materiel' },
+  definition: { picto: picto('livre'),    libelle: 'Définition',          classe: 'bloc-definition' },
+  formule:    { picto: picto('formule'),  libelle: 'Formule à connaître', classe: 'bloc-formule' },
+  exemple:    { picto: picto('ampoule'),  libelle: 'Exemple guidé',       classe: 'bloc-exemple' },
+  piege:      { picto: picto('alerte'),   libelle: 'Piège à éviter',      classe: 'bloc-piege' },
+  retenir:    { picto: picto('cerveau'),  libelle: 'À retenir',           classe: 'bloc-retenir' },
+  methode:    { picto: picto('outils'),   libelle: 'Méthode pas à pas',   classe: 'bloc-methode' },
+  aide:       { picto: picto('bouee'),    libelle: 'Coup de pouce',       classe: 'bloc-aide' },
+  pause:      { picto: picto('pause'),    libelle: 'Pause conseillée',    classe: 'bloc-pause' },
+  info:       { picto: picto('info'),     libelle: 'Bon à savoir',        classe: 'bloc-info' },
 };
 
 const NIVEAUX_EX = {
@@ -122,13 +147,13 @@ md.use(container, 'exercice', {
     // autonomie (travail de l'écriture), « ecran » pour ceux faits à deux.
     const support = (args[3] || '').toLowerCase();
     const badgeSupport = support === 'main'
-      ? '<span class="exercice-support support-main">✍️ à la main</span>'
-      : (support === 'ecran' ? '<span class="exercice-support support-ecran">💻 sur écran</span>' : '');
+      ? `<span class="exercice-support support-main">${picto('main')} à la main</span>`
+      : (support === 'ecran' ? `<span class="exercice-support support-ecran">${picto('ecran')} sur écran</span>` : '');
     return `<section class="exercice">\n<div class="exercice-entete">`
          + `<span class="exercice-num">Exercice ${echapper(num)}</span>`
          + `<span class="exercice-niveau niveau-${cle}">${niveau}</span>`
          + badgeSupport
-         + (duree ? `<span class="exercice-duree">⏱️ ${echapper(duree)}</span>` : '')
+         + (duree ? `<span class="exercice-duree">${picto('horloge')} ${echapper(duree)}</span>` : '')
          + `</div>\n`;
   },
 });
@@ -538,45 +563,93 @@ function ancrer(html) {
   return { html: sortie, plan };
 }
 
+/**
+ * Retire les corrigés d'un document rendu.
+ *
+ * Les corrigés vivent dans un <details class="corrige"> ... </details>. On les
+ * remplace par un repère neutre, pour que l'élève voie qu'un corrigé existe
+ * sans pouvoir le lire. Le découpage se fait par comptage de balises, et non
+ * par expression régulière : un corrigé peut contenir d'autres <details>.
+ */
+function retirerCorriges(html) {
+  const OUVRE = '<details class="corrige" open>';
+  let sortie = '';
+  let reste = html;
+  let retires = 0;
+  for (;;) {
+    const debut = reste.indexOf(OUVRE);
+    if (debut === -1) { sortie += reste; break; }
+    sortie += reste.slice(0, debut);
+    let i = debut + OUVRE.length;
+    let profondeur = 1;
+    while (profondeur > 0 && i < reste.length) {
+      const ouvrant = reste.indexOf('<details', i);
+      const fermant = reste.indexOf('</details>', i);
+      if (fermant === -1) { i = reste.length; break; }
+      if (ouvrant !== -1 && ouvrant < fermant) { profondeur += 1; i = ouvrant + 8; }
+      else { profondeur -= 1; i = fermant + 10; }
+    }
+    sortie += '<p class="corrige-cache">Corrigé disponible auprès de ton professeur.</p>';
+    retires += 1;
+    reste = reste.slice(i);
+  }
+  return { html: sortie, retires };
+}
+
 function construireContenuSite(programme) {
   if (!programme) return 0;
   const racineContenu = path.join(SORTIE, 'data', 'contenu');
+  const racineEleve = path.join(SORTIE, 'data', 'eleve');
   fs.mkdirSync(racineContenu, { recursive: true });
+  fs.mkdirSync(racineEleve, { recursive: true });
   let documents = 0;
+  let corrigesRetires = 0;
+
+  // La grille d'évaluation sert au professeur : elle n'est pas servie à l'élève.
+  const RESERVE_PROF = new Set(['evaluation']);
 
   for (const m of programme.matieres) {
     const parLecon = {};
+    const parLeconEleve = {};
     for (const l of m.lecons) {
       if (!l.docs.length) continue;
       const docs = {};
+      const docsEleve = {};
       for (const [type, fichier] of Object.entries(FICHIERS_DOC)) {
         if (!l.docs.includes(type)) continue;
         const source = path.join(RACINE, 'matieres', m.id, l.dossier, `${fichier}.md`);
         const { meta, corps } = lireFrontMatter(fs.readFileSync(source, 'utf8'));
         const rendu = ancrer(appliquerClassesListes(md.render(normaliserConteneurs(corps))));
-        docs[type] = {
+        const commun = {
           titre: meta.titre || l.titre,
           resume: meta.resume || '',
           duree: meta.duree || '',
           objectifs: Array.isArray(meta.objectifs) ? meta.objectifs : [],
           competences: Array.isArray(meta.competences) ? meta.competences : [],
           plan: rendu.plan,
-          html: rendu.html,
         };
+        docs[type] = { ...commun, html: rendu.html };
+        if (!RESERVE_PROF.has(type)) {
+          const sans = retirerCorriges(rendu.html);
+          corrigesRetires += sans.retires;
+          docsEleve[type] = { ...commun, html: sans.html };
+        }
         documents += 1;
       }
       parLecon[l.ref] = docs;
+      if (Object.keys(docsEleve).length) parLeconEleve[l.ref] = docsEleve;
     }
     if (!Object.keys(parLecon).length) continue;
-    fs.writeFileSync(
-      path.join(racineContenu, `${m.id}.js`),
-      '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
-      + 'window.CONTENU = window.CONTENU || {};\n'
-      + `window.CONTENU[${JSON.stringify(m.id)}] = ${JSON.stringify(parLecon)};\n`,
-    );
+    const entete = '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
+      + 'window.CONTENU = window.CONTENU || {};\n';
+    fs.writeFileSync(path.join(racineContenu, `${m.id}.js`),
+      entete + `window.CONTENU[${JSON.stringify(m.id)}] = ${JSON.stringify(parLecon)};\n`);
+    fs.writeFileSync(path.join(racineEleve, `${m.id}.js`),
+      entete + `window.CONTENU[${JSON.stringify(m.id)}] = ${JSON.stringify(parLeconEleve)};\n`);
   }
 
-  console.log(`   📖 ${documents} document(s) lisibles directement dans le site`);
+  console.log(`   📖 ${documents} document(s) lisibles dans le site`
+    + `, ${corrigesRetires} corrigé(s) retiré(s) de la version élève`);
   return documents;
 }
 

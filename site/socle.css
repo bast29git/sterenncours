@@ -28,6 +28,15 @@ body { margin: 0; }
 }
 .saut-contenu:focus { left: 0; }
 
+/* Pictogrammes : un seul dessin, qui suit la couleur et la taille du texte. */
+.ic {
+  width: 1.1rem; height: 1.1rem; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round;
+  vertical-align: -0.16em;
+}
+.ic-plein { fill: currentColor; stroke: none; }
+
 /* Repère de focus visible partout, y compris sur fond sombre. */
 :focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
 

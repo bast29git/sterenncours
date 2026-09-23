@@ -20,11 +20,13 @@
     { id: 'tresbien', libelle: 'Très bien', picto: '●' },
   ];
   const TYPES_DOC = [
-    { id: 'cours', libelle: 'Cours', picto: '📘' },
-    { id: 'revision', libelle: 'Révision', picto: '🧠' },
-    { id: 'exercices', libelle: 'Exercices', picto: '✍️' },
-    { id: 'evaluation', libelle: 'Évaluation', picto: '📊' },
+    { id: 'cours', libelle: 'Cours', ico: 'ic-livre' },
+    { id: 'revision', libelle: 'Révision', ico: 'ic-cerveau' },
+    { id: 'exercices', libelle: 'Exercices', ico: 'ic-crayon' },
+    { id: 'evaluation', libelle: 'Évaluation', ico: 'ic-graphique' },
   ];
+  /** Un pictogramme du jeu commun, à la taille du texte qui l'entoure. */
+  const ic = (nom, classe) => `<svg class="ic${classe ? ' ' + classe : ''}" aria-hidden="true"><use href="#${nom}"/></svg>`;
   const CRENEAUX = { A: 'Lundi', B: 'Mercredi', C: 'Vendredi' };
   const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
   const NOMS_COURTS = {
@@ -219,12 +221,17 @@
     });
   }
   const enCours = {};
+  /**
+   * Le professeur lit `data/contenu`, complet. Sterenn lit `data/eleve`, généré
+   * sans les corrigés ni les grilles d'évaluation. Le serveur refuse l'autre
+   * chemin à son rôle : ce n'est pas seulement un masquage côté navigateur.
+   */
   function chargerContenu(mid) {
     if (window.CONTENU && window.CONTENU[mid]) return Promise.resolve(window.CONTENU[mid]);
     if (enCours[mid]) return enCours[mid];
     enCours[mid] = new Promise((res) => {
       const s = document.createElement('script');
-      s.src = 'data/contenu/' + mid + '.js';
+      s.src = (estProf() ? 'data/contenu/' : 'data/eleve/') + mid + '.js';
       s.onload = () => res((window.CONTENU || {})[mid] || null);
       s.onerror = () => res(null);
       document.head.appendChild(s);
@@ -293,6 +300,7 @@
       chargerScript('moteurs/audio-engine.js').catch(() => {});
       chargerScript('moteurs/confort.js').catch(() => {});
       construirePalette();
+      majBoutonTheme();
       majReussites();
     }
 
@@ -388,6 +396,20 @@
     p.hidden = !p.hidden;
   });
 
+  /** Le bouton du thème change de dessin et d'intitulé selon l'état courant. */
+  function majBoutonTheme() {
+    const b = document.getElementById('e-btn-theme');
+    if (!b) return;
+    const sombre = lire(CLE_THEME, 'light') === 'dark';
+    b.querySelector('use').setAttribute('href', sombre ? '#ic-soleil' : '#ic-lune');
+    b.setAttribute('aria-label', sombre ? 'Revenir au thème clair' : 'Passer en thème sombre');
+    b.setAttribute('title', sombre ? 'Thème clair' : 'Thème sombre');
+  }
+  document.getElementById('e-btn-theme').addEventListener('click', () => {
+    appliquerTheme(lire(CLE_THEME, 'light') === 'dark' ? 'light' : 'dark');
+    majBoutonTheme();
+  });
+
   /* ---------- Thème du back-office ------------------------------------------------------ */
   document.getElementById('p-theme').addEventListener('click', () => {
     appliquerTheme(lire(CLE_THEME, 'light') === 'dark' ? 'light' : 'dark');
@@ -412,7 +434,7 @@
     jourIso, decaler, lundiDe, enFrancais, dateCourte, poids,
     chargerContenu, chargerSeances, chargerScript, rafraichirEtat, rafraichirSeances,
     majReussites, reussites, decision, reglementaire, router, lire, ecrire,
-    NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES,
+    NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES, ic,
     appliquerTheme, appliquerPalette,
   };
 
