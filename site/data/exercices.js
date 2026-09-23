@@ -2589,4 +2589,140 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'maths/L04': {
+    titre: 'Équations du premier degré',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Laquelle de ces écritures est une équation ?',
+        choix: ['4x − 9', '2(x + 1)', '4x − 9 = 3'],
+        reponse: 2,
+        explication: "Une équation contient un signe égal. Les deux autres écritures sont des expressions : on peut les développer ou les réduire, mais on ne peut pas les résoudre."
+      },
+      {
+        type: 'vraifaux',
+        q: 'x = 3 est solution de 2x + 4 = 10.',
+        reponse: true,
+        explication: "Vrai. Membre de gauche : 2 × 3 + 4 = 10. Membre de droite : 10. Les deux sont égaux. On calcule toujours les deux membres SÉPARÉMENT avant de comparer."
+      },
+      {
+        type: 'qcm',
+        q: 'Que peut-on faire à une équation sans changer ses solutions ?',
+        choix: ['Ajouter un nombre au membre de gauche seulement', 'Ajouter un même nombre aux deux membres', 'Multiplier les deux membres par zéro'],
+        reponse: 1,
+        explication: "Ajouter un même nombre aux deux membres. C'est l'image de la balance : ce qu'on met sur un plateau, on le met sur l'autre. Multiplier par zéro donnerait 0 = 0 et ferait perdre toute l'information."
+      },
+      {
+        type: 'saisie',
+        q: 'Résous : 3x + 5 = 20. Donne la valeur de x.',
+        reponses: ['5', 'x = 5', 'x=5'],
+        explication: "On soustrait 5 aux deux membres : 3x = 15. On divise les deux membres par 3 : x = 5. Vérification : 3 × 5 + 5 = 20."
+      },
+      {
+        type: 'saisie',
+        q: 'Résous : 7x − 12 = 30.',
+        reponses: ['6', 'x = 6', 'x=6'],
+        explication: "On ajoute 12 aux deux membres : 7x = 42. On divise par 7 : x = 6. Vérification : 7 × 6 − 12 = 42 − 12 = 30."
+      },
+      {
+        type: 'qcm',
+        q: 'Pour résoudre 4x = 20, que fait-on ?',
+        choix: ['On divise les deux membres par 4', 'On multiplie les deux membres par 4', 'On soustrait 4 aux deux membres'],
+        reponse: 0,
+        explication: "On divise par 4, ce qui donne x = 5. Multiplier donnerait 80, une erreur fréquente : quand le nombre multiplie l'inconnue, on divise pour l'isoler."
+      },
+      {
+        type: 'saisie',
+        q: 'Résous : 5x + 3 = 2x + 18.',
+        reponses: ['5', 'x = 5', 'x=5'],
+        explication: "On soustrait 2x aux deux membres : 3x + 3 = 18. Puis 3x = 15, donc x = 5. Vérification : gauche 28, droite 28."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans 3x + 20 = 8x − 5, de quel côté vaut-il mieux rassembler les x ?',
+        choix: ['À gauche', 'À droite', 'Cela ne change rien au résultat mais à droite évite un coefficient négatif'],
+        reponse: 2,
+        explication: "Les deux méthodes donnent x = 5. Mais rassembler du côté du plus grand coefficient, ici 8x à droite, évite d'obtenir un coefficient négatif et une division par un nombre négatif."
+      },
+      {
+        type: 'saisie',
+        q: 'Résous : 2(x + 5) = 18.',
+        reponses: ['4', 'x = 4', 'x=4'],
+        explication: "On développe d'abord : 2x + 10 = 18. Puis 2x = 8, donc x = 4. On développe TOUJOURS avant de rassembler les termes."
+      },
+      {
+        type: 'saisie',
+        q: 'Résous : 7x − 2(x − 3) = 21.',
+        reponses: ['3', 'x = 3', 'x=3'],
+        explication: "−2(x − 3) donne −2x + 6, et non −2x − 6. L'équation devient 5x + 6 = 21, donc 5x = 15 et x = 3. Le moins devant la parenthèse change tous les signes."
+      },
+      {
+        type: 'qcm',
+        q: 'Pour résoudre x/3 + 2 = 5, on multiplie les deux membres par 3. Qu\'obtient-on ?',
+        choix: ['x + 2 = 5', 'x + 6 = 15', 'x + 6 = 5'],
+        reponse: 1,
+        explication: "x + 6 = 15. La multiplication touche TOUS les termes, y compris le 2 qui devient 6 et le 5 qui devient 15. On trouve ensuite x = 9."
+      },
+      {
+        type: 'saisie',
+        q: 'Résous : x/2 + x/3 = 5.',
+        reponses: ['6', 'x = 6', 'x=6'],
+        explication: "Le dénominateur commun de 2 et 3 est 6. En multipliant tout par 6 : 3x + 2x = 30, soit 5x = 30 et x = 6. Vérification : 6/2 + 6/3 = 3 + 2 = 5."
+      },
+      {
+        type: 'qcm',
+        q: 'En résolvant, on obtient 5 = 9. Que conclut-on ?',
+        choix: ['x = 0', 'L\'équation n\'a aucune solution', 'L\'équation a une infinité de solutions'],
+        reponse: 1,
+        explication: "Aucune solution. Les x ont disparu des deux côtés et il reste une égalité entre nombres qui est fausse : aucune valeur de x ne peut rendre l'équation vraie."
+      },
+      {
+        type: 'qcm',
+        q: 'En résolvant, on obtient 6 = 6. Que conclut-on ?',
+        choix: ['Aucune solution', 'Une infinité de solutions', 'x = 6'],
+        reponse: 1,
+        explication: "Une infinité de solutions : l'égalité est vraie pour tout nombre. C'est le cas de 3(x + 2) = 3x + 6, qu'on appelle une identité."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Si x = 0 est solution, cela signifie que l\'équation n\'a pas de solution.',
+        reponse: false,
+        explication: "Faux. x = 0 est UNE solution, qui se trouve être le nombre zéro. C'est très différent d'une équation qu'aucune valeur ne rend vraie."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment traduit-on « 5 de moins que x » ?',
+        choix: ['5 − x', 'x − 5', 'x/5'],
+        reponse: 1,
+        explication: "x − 5. Attention : « 5 moins x » s'écrirait 5 − x, ce qui est différent. Lire lentement pour repérer qui est retranché à qui évite cette erreur classique."
+      },
+      {
+        type: 'saisie',
+        q: 'Traduis en équation : « le triple d\'un nombre, augmenté de 7, vaut 31 ». Quelle est la valeur du nombre ?',
+        reponses: ['8', 'x = 8', 'x=8'],
+        explication: "L'équation est 3x + 7 = 31. On soustrait 7 : 3x = 24, donc x = 8. Vérification : 3 × 8 + 7 = 31."
+      },
+      {
+        type: 'qcm',
+        q: 'Deux amis se partagent 48 euros, le premier recevant 6 euros de plus. Quelle équation traduit la situation, si x est la part du second ?',
+        choix: ['x + 6 = 48', 'x + (x + 6) = 48', '2x = 48 + 6'],
+        reponse: 1,
+        explication: "x + (x + 6) = 48, soit 2x + 6 = 48. On trouve x = 21 pour le second et 27 pour le premier. Vérification : 21 + 27 = 48 et 27 − 21 = 6."
+      },
+      {
+        type: 'qcm',
+        q: 'Un rectangle a une longueur de 5 cm de plus que sa largeur x, et un périmètre de 46 cm. Quelle équation écrit-on ?',
+        choix: ['x + (x + 5) = 46', '2(x + 5) + 2x = 46', 'x(x + 5) = 46'],
+        reponse: 1,
+        explication: "Le périmètre vaut 2 × longueur + 2 × largeur, soit 2(x + 5) + 2x = 46. On trouve x = 9 : la largeur fait 9 cm et la longueur 14 cm."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Une résolution est complète quand on a écrit « x = 8 ».',
+        reponse: false,
+        explication: "Faux. Il manque la vérification, qui calcule les deux membres séparément, et la conclusion, qui répond à la question posée avec les mots de l'énoncé et l'unité : « Le nombre cherché est 8 »."
+      }
+    ]
+  }
 };
