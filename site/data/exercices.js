@@ -4265,4 +4265,144 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'physique-chimie/L04': {
+    titre: 'Mouvements : vitesse et trajectoire',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Que faut-il préciser pour décrire complètement un mouvement ?',
+        choix: ['La vitesse seulement', 'Le référentiel, la trajectoire et la vitesse', 'La distance et la durée'],
+        reponse: 1,
+        explication: "Les trois. Dire « la voiture bouge » est incomplet : il faut toujours préciser par rapport à quoi on observe, quelle forme a le chemin, et à quel rythme la position change."
+      },
+      {
+        type: 'qcm',
+        q: 'Un passager assis dans un train qui roule est-il en mouvement ?',
+        choix: ['Oui, toujours', 'Non, jamais', 'Cela dépend du référentiel'],
+        reponse: 2,
+        explication: "Cela dépend. Par rapport à son siège il est immobile, par rapport au quai il roule à 200 km/h, par rapport à un train croisé à la même vitesse il va à 400 km/h. Les trois réponses sont exactes."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel référentiel emploie-t-on pour étudier le mouvement des planètes ?',
+        choix: ['Terrestre', 'Géocentrique', 'Héliocentrique'],
+        reponse: 2,
+        explication: "Héliocentrique, centré sur le Soleil : les trajectoires y deviennent des ellipses simples. Le géocentrique, centré sur la Terre, sert pour la Lune et les satellites."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Il existe un référentiel absolu, vrai pour tout le monde.',
+        reponse: false,
+        explication: "Faux. Le référentiel est une CONVENTION, choisie pour que la description soit la plus simple possible. Changer de référentiel ne change pas la réalité physique, seulement sa description."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la trajectoire d\'un ballon lancé vers un panier ?',
+        choix: ['Rectiligne', 'Circulaire', 'Curviligne'],
+        reponse: 2,
+        explication: "Curviligne : la trajectoire est une courbe en arc. Rectiligne désignerait une droite, circulaire un cercle comme celui d'une nacelle de grande roue."
+      },
+      {
+        type: 'qcm',
+        q: 'Un point de la roue d\'un vélo décrit quelle trajectoire par rapport au sol ?',
+        choix: ['Un cercle', 'Une courbe en boucles', 'Une droite'],
+        reponse: 1,
+        explication: "Une courbe en boucles, appelée cycloïde : le point avance en même temps qu'il tourne. Par rapport au CADRE du vélo, il décrirait en revanche un cercle."
+      },
+      {
+        type: 'saisie',
+        q: 'Un coureur parcourt 400 m en 50 s. Quelle est sa vitesse, en m/s ?',
+        reponses: ['8', '8 m/s', '8m/s'],
+        explication: "v = d ÷ t = 400 ÷ 50 = 8 m/s, soit environ 29 km/h. C'est l'ordre de grandeur d'un sprinteur sur une course de demi-fond."
+      },
+      {
+        type: 'saisie',
+        q: 'Convertis 20 m/s en km/h.',
+        reponses: ['72', '72 km/h', '72km/h'],
+        explication: "20 × 3,6 = 72 km/h. Le facteur 3,6 vient de 3600 secondes dans une heure divisées par 1000 mètres dans un kilomètre."
+      },
+      {
+        type: 'saisie',
+        q: 'Convertis 90 km/h en m/s.',
+        reponses: ['25', '25 m/s', '25m/s'],
+        explication: "90 ÷ 3,6 = 25 m/s. À cette vitesse, une seconde de réaction représente donc 25 mètres parcourus avant même de toucher la pédale de frein."
+      },
+      {
+        type: 'qcm',
+        q: 'Un marcheur à 15 m/s : est-ce plausible ?',
+        choix: ['Oui', 'Non, cela ferait 54 km/h', 'On ne peut pas savoir'],
+        reponse: 1,
+        explication: "Non : 15 × 3,6 = 54 km/h, la vitesse d'une voiture en ville. Un marcheur avance vers 1,4 m/s, soit 5 km/h. Convertir en km/h est le meilleur contrôle de plausibilité."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la différence entre vitesse moyenne et vitesse instantanée ?',
+        choix: ['Aucune', 'La moyenne résume un trajet, l\'instantanée décrit un instant', 'L\'instantanée est toujours plus grande'],
+        reponse: 1,
+        explication: "La vitesse moyenne rapporte la distance totale à la durée totale. L'instantanée est celle du compteur à un moment donné. Un trajet à 60 km/h de moyenne peut comporter des arrêts et des pointes à 90."
+      },
+      {
+        type: 'qcm',
+        q: 'Un trajet se fait à 60 km/h à l\'aller et 40 km/h au retour. Quelle est la vitesse moyenne ?',
+        choix: ['50 km/h', '48 km/h', '55 km/h'],
+        reponse: 1,
+        explication: "48 km/h. Sur 120 km dans chaque sens : 2 h à l'aller, 3 h au retour. 240 ÷ 5 = 48. On passe plus de temps à la vitesse lente, qui pèse donc davantage."
+      },
+      {
+        type: 'qcm',
+        q: 'Sur une chronophotographie, les positions sont de plus en plus espacées. Quel mouvement ?',
+        choix: ['Uniforme', 'Accéléré', 'Ralenti'],
+        reponse: 1,
+        explication: "Accéléré. L'intervalle de temps entre deux prises de vue étant constant, un espacement croissant signifie que l'objet parcourt plus de distance dans le même temps : sa vitesse augmente."
+      },
+      {
+        type: 'saisie',
+        q: 'Sur une chronophotographie prise toutes les 0,1 s, la distance entre deux positions vaut 2,4 cm. Quelle est la vitesse en m/s ?',
+        reponses: ['0,24', '0.24', '0,24 m/s'],
+        explication: "2,4 cm = 0,024 m. v = 0,024 ÷ 0,1 = 0,24 m/s. Penser à convertir les centimètres en mètres avant de diviser."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Un mouvement uniforme est un mouvement à l\'arrêt.',
+        reponse: false,
+        explication: "Faux. Uniforme signifie à VITESSE CONSTANTE. Un TGV qui roule à 300 km/h sans changer d'allure est en mouvement uniforme."
+      },
+      {
+        type: 'qcm',
+        q: 'Sur un graphique distance-temps, que signifie une droite horizontale ?',
+        choix: ['L\'objet est immobile', 'L\'objet avance à vitesse constante', 'L\'objet accélère'],
+        reponse: 0,
+        explication: "Il est immobile : la distance ne change plus. Attention, sur un graphique VITESSE-temps, une droite horizontale signifierait au contraire une vitesse constante. Toujours lire les axes."
+      },
+      {
+        type: 'qcm',
+        q: 'De quoi la distance d\'arrêt est-elle la somme ?',
+        choix: ['Distance de réaction + distance de freinage', 'Vitesse + durée', 'Distance de freinage seulement'],
+        reponse: 0,
+        explication: "Des deux. La distance de réaction est parcourue avant même de toucher le frein, pendant environ une seconde. La distance de freinage commence ensuite."
+      },
+      {
+        type: 'qcm',
+        q: 'Si la vitesse double, par combien la distance de freinage est-elle multipliée ?',
+        choix: ['Par 2', 'Par 4', 'Par 3'],
+        reponse: 1,
+        explication: "Par 4, car elle est proportionnelle au CARRÉ de la vitesse. La distance de réaction, elle, ne fait que doubler : elle est simplement proportionnelle à la vitesse."
+      },
+      {
+        type: 'qcm',
+        q: 'Que change l\'usage du téléphone au volant ?',
+        choix: ['La distance de freinage', 'Le temps de réaction', 'La vitesse maximale'],
+        reponse: 1,
+        explication: "Le temps de réaction, qu'il allonge fortement. La distance de freinage dépend du véhicule et de la route. À 90 km/h, une seconde d'inattention ajoute déjà 25 mètres."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la distance d\'arrêt approximative à 90 km/h ?',
+        choix: ['45 m', '70 m', '28 m'],
+        reponse: 1,
+        explication: "Environ 70 m : 25 m de réaction et 45 m de freinage. À 50 km/h elle n'est que de 28 m, et à 130 km/h elle atteint 130 m, soit plus d'un terrain de football."
+      }
+    ]
+  }
 };
