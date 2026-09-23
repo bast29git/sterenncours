@@ -4686,4 +4686,146 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'francais/L04': {
+    titre: 'La fiction pour interroger le réel : le fantastique',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Sur quoi repose le fantastique ?',
+        choix: ['La présence d\'un monstre', 'L\'hésitation entre une explication rationnelle et une explication surnaturelle', 'La violence du récit'],
+        reponse: 1,
+        explication: "L'hésitation. Un texte peut ne contenir aucune créature visible et être parfaitement fantastique, comme Le Horla, où le narrateur ne voit jamais la présence dont il constate les effets."
+      },
+      {
+        type: 'qcm',
+        q: 'Une porte s\'ouvre seule. À la fin, on découvre que c\'était le vent. De quel genre s\'agit-il ?',
+        choix: ['Fantastique', 'Étrange', 'Merveilleux'],
+        reponse: 1,
+        explication: "L'étrange : le récit tranche pour une explication rationnelle. S'il affirmait qu'un fantôme l'a ouverte sans que personne ne s'en étonne, ce serait du merveilleux."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans un conte de fées, l\'apparition d\'une fée relève :',
+        choix: ['du fantastique', 'du merveilleux', 'de l\'étrange'],
+        reponse: 1,
+        explication: "Du merveilleux : le surnaturel y est admis d'emblée et n'étonne personne. Dans le fantastique, au contraire, il dérange et le personnage cherche désespérément une explication."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel test rapide permet d\'identifier le genre d\'un texte ?',
+        choix: ['Compter les pages', 'Se demander si le personnage s\'étonne', 'Regarder la date de publication'],
+        reponse: 1,
+        explication: "Se demander si le personnage s'étonne. S'il ne s'étonne pas, le surnaturel fait partie de l'ordre du monde : c'est du merveilleux. S'il est terrifié et cherche à expliquer, c'est du fantastique."
+      },
+      {
+        type: 'saisie',
+        q: 'Quel auteur a écrit « Le Horla » ?',
+        reponses: ['maupassant', 'Maupassant', 'guy de maupassant', 'Guy de Maupassant'],
+        explication: "Maupassant. Ce journal intime d'un homme persuadé qu'une présence invisible vit chez lui est le modèle du genre : les deux lectures, surnaturel ou folie, tiennent jusqu'à la dernière ligne."
+      },
+      {
+        type: 'qcm',
+        q: 'À quel siècle le fantastique se développe-t-il ?',
+        choix: ['Au XVII<sup>e</sup>', 'Au XIX<sup>e</sup>', 'Au XX<sup>e</sup>'],
+        reponse: 1,
+        explication: "Au XIXᵉ siècle, en parallèle du réalisme. Il faut croire au monde rationnel pour qu'une entorse à ses lois fasse peur : un lecteur du Moyen Âge, qui admettait les miracles, n'aurait pas été troublé."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Un récit fantastique doit commencer directement par l\'événement étrange.',
+        reponse: false,
+        explication: "Faux, et c'est l'erreur la plus fréquente. Pour qu'un événement paraisse inexplicable, il faut d'abord que le monde paraisse explicable. Plus le début est ordinaire, plus la suite est troublante."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la première étape d\'une gradation fantastique ?',
+        choix: ['Un fait indéniable', 'Une sensation vague, un malaise', 'La confrontation'],
+        reponse: 1,
+        explication: "Une sensation vague. Viennent ensuite un détail anormal encore explicable, une répétition, un fait indéniable, puis la confrontation ou la fuite et la chute."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi une série d\'événements est-elle plus efficace qu\'un événement isolé ?',
+        choix: ['Parce que c\'est plus long', 'Parce que chaque explication rationnelle devient plus improbable que la précédente', 'Parce que le lecteur s\'habitue'],
+        reponse: 1,
+        explication: "Un événement isolé peut toujours être balayé par la fatigue ou le hasard. Une série ferme progressivement ces échappatoires : un verre vidé une fois ne signifie rien, un verre vidé chaque nuit sous un linge scellé, si."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle personne et quel point de vue emploie-t-on dans un récit fantastique ?',
+        choix: ['Troisième personne, point de vue omniscient', 'Première personne, point de vue interne', 'Deuxième personne'],
+        reponse: 1,
+        explication: "Première personne et point de vue interne : le lecteur ne sait que ce que sait le narrateur et partage son incertitude. Un narrateur omniscient détruirait immédiatement le doute."
+      },
+      {
+        type: 'qcm',
+        q: 'Que révèle un narrateur qui répète « Je ne suis pas fou » ?',
+        choix: ['Qu\'il est parfaitement lucide', 'Qu\'il doute de lui-même, ce qui le rend peu fiable', 'Qu\'il ment au lecteur'],
+        reponse: 1,
+        explication: "L'insistance produit l'effet inverse : un homme sain d'esprit n'éprouve pas le besoin de le répéter. Le lecteur se retrouve alors avec deux lectures possibles, présence réelle ou folie, sans pouvoir choisir."
+      },
+      {
+        type: 'qcm',
+        q: 'Laquelle de ces formules est une marque du doute ?',
+        choix: ['« Je vis clairement »', '« Il me sembla que »', '« Il était exactement neuf heures »'],
+        reponse: 1,
+        explication: "« Il me sembla que ». Les autres marques : « j'eus l'impression », « comme si », « peut-être », « une sorte de », « je ne sais quoi ». Un texte fantastique contient très peu d'affirmations nettes."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle phrase fait le plus peur ?',
+        choix: ['Un monstre vert à trois yeux apparut dans le couloir.', 'Il y avait quelqu\'un dans le couloir. Je ne distinguais rien, mais je savais qu\'il me regardait.', 'Les deux se valent'],
+        reponse: 1,
+        explication: "La seconde. Elle laisse le lecteur compléter lui-même, et l'imagination va toujours plus loin qu'une description. Détailler une créature fixe une image précise, donc limitée."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « La Vénus d\'Ille » de Mérimée, quel motif fantastique est employé ?',
+        choix: ['Le miroir', 'La statue vivante', 'Le double'],
+        reponse: 1,
+        explication: "La statue vivante : une Vénus de bronze semble refermer ses doigts sur une bague, avant qu'un homme ne meure écrasé. Le motif joue sur la frontière entre l'inerte et le vivant."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle fin fait basculer un récit dans le merveilleux ?',
+        choix: ['« Et je me réveillai : ce n\'était qu\'un rêve »', '« C\'était le fantôme de ma grand-mère »', '« Le verre était de nouveau vide »'],
+        reponse: 1,
+        explication: "Nommer le fantôme tranche pour le surnaturel : le doute disparaît. « C'était un rêve » ferait au contraire basculer dans l'étrange, en annulant tout ce qui précède."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Terminer un récit fantastique par « ce n\'était qu\'un rêve » est une bonne idée.',
+        reponse: false,
+        explication: "Faux. Cette fin annule tout ce qui précède : le lecteur a été mené en bateau et referme le texte déçu. C'est la fin la plus fréquente dans les rédactions, et la moins efficace."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la meilleure chute pour un récit fantastique ?',
+        choix: ['Une chute qui explique tout', 'Une chute ouverte qui n\'explique rien', 'Une chute où le héros meurt'],
+        reponse: 1,
+        explication: "Une chute ouverte. Une explication dissipe le malaise : le lecteur referme le livre soulagé, donc indifférent. Une chute ouverte laisse la question active longtemps après la lecture."
+      },
+      {
+        type: 'qcm',
+        q: 'Sous quelle forme « Le Horla » est-il écrit ?',
+        choix: ['Un journal intime', 'Une pièce de théâtre', 'Un poème'],
+        reponse: 0,
+        explication: "Un journal intime, ce qui permet de suivre l'esprit du narrateur jour après jour. Les autres formes typiques du genre sont la lettre, le témoignage écrit et le récit fait à un auditoire."
+      },
+      {
+        type: 'qcm',
+        q: 'Dans « La Cafetière » de Gautier, quel motif est employé ?',
+        choix: ['L\'objet animé', 'La présence invisible', 'Le rêve'],
+        reponse: 0,
+        explication: "L'objet animé : les personnages d'une tapisserie descendent danser la nuit. Ce motif rend inquiétant un décor familier : ce qui menace n'est pas un intrus, c'est le mobilier de la pièce."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Employer un miroir ou une maison hantée suffit à rendre un texte fantastique.',
+        reponse: false,
+        explication: "Faux. Aucun motif n'est fantastique en lui-même : ce qui compte, c'est le DOUTE qu'il installe. Un miroir qui parle sans que personne ne s'en étonne relèverait du merveilleux."
+      }
+    ]
+  }
 };
