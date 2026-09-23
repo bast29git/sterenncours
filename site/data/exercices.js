@@ -318,5 +318,282 @@ window.EXERCICES = {
         explication: "Le paragraphe se fait en quatre temps : annoncer, citer, analyser en nommant le procédé, puis dire l'effet produit. S'arrêter au repérage ne vaut aucun point, et « cette image est belle » n'apprend rien sur ce poème en particulier."
       }
     ]
+  },
+
+  'physique-chimie/L01': {
+    titre: 'Atomes et molécules',
+    items: [
+      {
+        type: 'qcm',
+        q: "Quelle est la charge du <strong>noyau</strong> d'un atome ?",
+        choix: ['Négative', 'Positive', 'Nulle', 'Variable selon l\'atome'],
+        reponse: 1,
+        explication: "Le noyau porte une charge positive, les électrons qui l'entourent une charge négative. Les deux se compensent exactement, ce qui rend l'atome globalement neutre."
+      },
+      {
+        type: 'vraifaux',
+        q: "Le noyau occupe presque tout le volume de l'atome.",
+        reponse: false,
+        explication: "Faux. Le noyau contient presque toute la masse, mais il est environ 100 000 fois plus petit que l'atome : l'essentiel du volume est du vide. C'est la confusion entre masse et volume qui trompe ici."
+      },
+      {
+        type: 'saisie',
+        q: 'Quel est le symbole chimique du <strong>sodium</strong> ?',
+        reponses: ['Na'],
+        explication: "Le sodium s'écrit Na, du latin natrium. Attention à la casse : première lettre majuscule, seconde minuscule. NA ou na seraient faux."
+      },
+      {
+        type: 'qcm',
+        q: 'Que désigne le symbole <strong>Fe</strong> ?',
+        choix: ['Le fluor', 'Le fer', 'Le francium', 'Le phosphore'],
+        reponse: 1,
+        explication: "Fe désigne le fer, du latin ferrum. Les symboles sont identiques dans toutes les langues du monde, ce qui explique que certains ne ressemblent pas au nom français."
+      },
+      {
+        type: 'qcm',
+        q: "Dans la formule <strong>H₂SO₄</strong>, combien y a-t-il d'atomes de soufre ?",
+        choix: ['0', '1', '2', '4'],
+        reponse: 1,
+        explication: "Le S n'a pas d'indice : quand il n'y a pas de chiffre, il y a un seul atome. La formule contient donc 2 hydrogènes, 1 soufre et 4 oxygènes, soit 7 atomes au total."
+      },
+      {
+        type: 'saisie',
+        q: "Combien d'atomes au total contient une molécule de <strong>CH₄</strong> ?",
+        reponses: ['5', '5 atomes', 'cinq'],
+        explication: "CH₄ contient 1 atome de carbone et 4 atomes d'hydrogène, soit 1 + 4 = 5 atomes. C'est la formule du méthane, le gaz naturel."
+      },
+      {
+        type: 'qcm',
+        q: "Dans <strong>Ca(OH)₂</strong>, combien y a-t-il d'atomes d'oxygène ?",
+        choix: ['1', '2', '3', '4'],
+        reponse: 1,
+        explication: "L'indice 2 placé après la parenthèse multiplie tout le groupe OH. Il y a donc 2 oxygènes et 2 hydrogènes, plus 1 calcium, soit 5 atomes en tout."
+      },
+      {
+        type: 'qcm',
+        q: 'Que désigne <strong>3 H₂O</strong> ?',
+        choix: ['Une molécule à 9 atomes', 'Trois molécules d\'eau', 'Trois atomes d\'hydrogène', 'Une molécule H₆O₃'],
+        reponse: 1,
+        explication: "Le grand chiffre placé devant est un coefficient : il compte les molécules. 3 H₂O, ce sont trois molécules d'eau séparées. Le petit chiffre en indice, lui, compte les atomes à l'intérieur d'une molécule."
+      },
+      {
+        type: 'saisie',
+        q: "Combien d'atomes d'oxygène y a-t-il dans <strong>4 CO₂</strong> ?",
+        reponses: ['8', '8 atomes', 'huit'],
+        explication: "Chaque molécule de CO₂ contient 2 oxygènes, et il y a 4 molécules : 4 × 2 = 8 atomes d'oxygène. Il y a aussi 4 atomes de carbone, soit 12 atomes au total."
+      },
+      {
+        type: 'qcm',
+        q: "Quelle différence y a-t-il entre <strong>CO</strong> et <strong>Co</strong> ?",
+        choix: [
+          'Aucune, seule la casse change',
+          'CO est le monoxyde de carbone, Co est le cobalt',
+          'CO est un métal, Co est un gaz',
+          'Les deux désignent le carbone'
+        ],
+        reponse: 1,
+        explication: "CO s'écrit avec deux majuscules : ce sont deux symboles, carbone et oxygène, et la molécule est le monoxyde de carbone, un gaz toxique. Co, majuscule puis minuscule, est un symbole unique, celui du cobalt, un métal. En chimie, la casse change la substance."
+      },
+      {
+        type: 'qcm',
+        q: "L'air est-il un corps pur ou un mélange ?",
+        choix: ['Un corps pur', 'Un mélange', 'Cela dépend de la température', 'Ni l\'un ni l\'autre'],
+        reponse: 1,
+        explication: "L'air est un mélange : il contient environ 78 % de diazote, 21 % de dioxygène, ainsi que de l'argon et du dioxyde de carbone. Un corps pur ne contiendrait qu'une seule sorte d'entité chimique."
+      },
+      {
+        type: 'vraifaux',
+        q: "Un jus de fruit « pur jus » est un corps pur au sens chimique.",
+        reponse: false,
+        explication: "Faux. En chimie, « pur » signifie « une seule sorte de molécules ». Un pur jus contient de l'eau, des sucres, des acides et des vitamines : c'est un mélange. Le mot n'a pas le même sens dans la vie courante et en chimie."
+      },
+      {
+        type: 'qcm',
+        q: "Qu'est-ce qui distingue l'ion <strong>Na⁺</strong> de l'atome <strong>Na</strong> ?",
+        choix: [
+          'L\'ion a gagné un électron',
+          'L\'ion a perdu un électron',
+          'L\'ion a un noyau plus gros',
+          'Il n\'y a aucune différence'
+        ],
+        reponse: 1,
+        explication: "Le signe + indique une charge positive, donc un déficit d'électrons : l'ion sodium a perdu un électron. Un ion négatif, comme Cl⁻, en a au contraire gagné un."
+      },
+      {
+        type: 'vraifaux',
+        q: "Quand de la glace fond dans un récipient fermé, la masse totale diminue.",
+        reponse: false,
+        explication: "Faux, la masse se conserve. Les molécules d'eau restent les mêmes et en même nombre : seule leur disposition change. C'est le volume qui diminue, parce que la glace occupe plus de place que l'eau liquide."
+      },
+      {
+        type: 'qcm',
+        q: "Pourquoi l'eau salée conduit-elle le courant, alors que l'eau distillée le conduit très mal ?",
+        choix: [
+          'Parce que le sel est un métal',
+          'Parce que les ions du sel se déplacent librement dans l\'eau',
+          'Parce que l\'eau salée est plus chaude',
+          'Parce que le sel casse les molécules d\'eau'
+        ],
+        reponse: 1,
+        explication: "En se dissolvant, le sel NaCl libère des ions Na⁺ et Cl⁻ qui peuvent se déplacer dans l'eau : ce sont eux qui transportent le courant. L'eau distillée contient très peu d'ions, donc presque rien pour le transporter."
+      }
+    ]
+  },
+
+  'svt/L01': {
+    titre: 'Structure de la Terre et tectonique des plaques',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Quelles sont les couches de la Terre, de la surface vers le centre ?',
+        choix: [
+          'Croûte, noyau, manteau, graine',
+          'Manteau, croûte, noyau externe, noyau interne',
+          'Croûte, manteau, noyau externe, noyau interne',
+          'Lithosphère, croûte, manteau, noyau'
+        ],
+        reponse: 2,
+        explication: "L'ordre est croûte, manteau, noyau externe, noyau interne. Le manteau représente à lui seul l'essentiel du volume terrestre, avec environ 2 900 km d'épaisseur, alors que la croûte n'en fait que 5 à 70."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Le manteau terrestre est liquide.',
+        reponse: false,
+        explication: "Faux. Le manteau est solide : il se déforme très lentement, sur des millions d'années, mais il n'est pas en fusion. La seule couche liquide de la Terre est le noyau externe. Le magma n'existe qu'en petites poches, à des endroits précis."
+      },
+      {
+        type: 'qcm',
+        q: 'Que contient la <strong>lithosphère</strong>, en plus de la croûte ?',
+        choix: [
+          'Le noyau externe',
+          'La partie supérieure du manteau',
+          'Toute l\'asthénosphère',
+          'Rien, la lithosphère c\'est la croûte'
+        ],
+        reponse: 1,
+        explication: "La lithosphère est la couche rigide de surface, d'environ 100 km d'épaisseur : elle comprend la croûte et le sommet du manteau. C'est elle qui est découpée en plaques, et elle glisse sur l'asthénosphère, plus déformable."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle roche compose principalement la <strong>croûte océanique</strong> ?',
+        choix: ['Le granite', 'Le basalte', 'Le calcaire', 'Le marbre'],
+        reponse: 1,
+        explication: "La croûte océanique est faite de basalte, une roche dense. La croûte continentale, elle, est faite de granite, moins dense. C'est cette différence de densité qui décide laquelle des deux plaques plonge en subduction."
+      },
+      {
+        type: 'qcm',
+        q: "Lors d'une subduction, quelle plaque plonge ?",
+        choix: [
+          'La plaque continentale, plus épaisse',
+          'La plaque océanique, plus dense',
+          'La plus ancienne des deux',
+          'Cela dépend de la vitesse'
+        ],
+        reponse: 1,
+        explication: "C'est toujours la plaque océanique qui plonge, parce que le basalte qui la compose est plus dense que le granite continental. Une plaque continentale est trop légère : quand deux continents se rencontrent, ils se plissent et forment des montagnes."
+      },
+      {
+        type: 'qcm',
+        q: "Que se passe-t-il à une <strong>dorsale océanique</strong> ?",
+        choix: [
+          'Une plaque plonge dans le manteau',
+          'Deux plaques glissent l\'une contre l\'autre',
+          'Du magma remonte et forme de la croûte neuve',
+          'Deux continents entrent en collision'
+        ],
+        reponse: 2,
+        explication: "À une dorsale, les plaques s'écartent, du magma remonte par la fissure, refroidit au contact de l'eau et forme de la croûte océanique neuve. C'est ce qui fait s'élargir l'océan, d'environ 2 cm par an pour l'Atlantique."
+      },
+      {
+        type: 'qcm',
+        q: 'À quelle vitesse les plaques se déplacent-elles ?',
+        choix: [
+          'Quelques mètres par an',
+          'Quelques centimètres par an',
+          'Quelques kilomètres par siècle',
+          'Elles ne se déplacent pas'
+        ],
+        reponse: 1,
+        explication: "Quelques centimètres par an, à peu près la vitesse à laquelle poussent les ongles. Ce qui rend le déplacement énorme n'est pas la vitesse mais la durée : 2 cm par an font 20 km en un million d'années."
+      },
+      {
+        type: 'saisie',
+        q: "Une plaque avance de 2 cm par an. De combien de <strong>kilomètres</strong> avance-t-elle en 1 million d'années ?",
+        reponses: ['20', '20 km', '20km'],
+        explication: "2 × 1 000 000 = 2 000 000 cm. Or 2 000 000 cm font 20 000 m, soit 20 km. Ce calcul est le meilleur exercice de changement d'échelle du chapitre : une vitesse imperceptible produit un déplacement considérable."
+      },
+      {
+        type: 'qcm',
+        q: "Pourquoi les fonds océaniques n'ont-ils jamais plus de 200 millions d'années ?",
+        choix: [
+          'Parce que les océans sont récents',
+          'Parce que la croûte océanique est recyclée en subduction',
+          'Parce que l\'eau détruit les roches',
+          'Parce qu\'on ne sait pas les dater au-delà'
+        ],
+        reponse: 1,
+        explication: "La croûte océanique naît aux dorsales et disparaît dans les zones de subduction : elle est recyclée en permanence. Les continents, trop légers pour plonger, restent en surface et conservent des roches de 4 milliards d'années."
+      },
+      {
+        type: 'qcm',
+        q: 'Comment appelle-t-on le moteur du déplacement des plaques ?',
+        choix: [
+          'La rotation de la Terre',
+          'La convection du manteau',
+          'L\'attraction de la Lune',
+          'L\'érosion des continents'
+        ],
+        reponse: 1,
+        explication: "La convection mantellique : la matière chaude et peu dense remonte, la matière refroidie redescend, ce qui entraîne les plaques. Le poids de la plaque déjà engagée en subduction tire aussi le reste vers le bas."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Les séismes et les volcans sont répartis au hasard sur la planète.',
+        reponse: false,
+        explication: "Faux. Reportés sur un planisphère, ils dessinent des lignes qui coïncident avec les frontières de plaques. L'intérieur d'une plaque est au contraire très stable. C'est l'argument le plus visuel du chapitre."
+      },
+      {
+        type: 'qcm',
+        q: "Un séisme se produit à 450 km de profondeur. À quel type de frontière ?",
+        choix: [
+          'Une dorsale',
+          'Une zone de subduction',
+          'Une faille coulissante',
+          'Ce n\'est pas possible'
+        ],
+        reponse: 1,
+        explication: "Seule une zone de subduction produit des séismes aussi profonds, jusqu'à 700 km : c'est la plaque plongeante, restée rigide, qui casse en s'enfonçant. Les séismes de dorsale et de faille coulissante sont superficiels, autour de 10 km."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi la théorie de Wegener a-t-elle été rejetée en 1912 ?',
+        choix: [
+          'Ses observations étaient fausses',
+          'Il ne pouvait pas expliquer le mécanisme du déplacement',
+          'Il n\'avait aucune preuve',
+          'Les fossiles le contredisaient'
+        ],
+        reponse: 1,
+        explication: "Ses observations étaient justes : côtes emboîtables, fossiles identiques, chaînes continues. Ce qui manquait, c'était le mécanisme. En sciences, constater un fait ne suffit pas : il faut aussi dire par quoi il est produit. Les années 1960 ont fourni ce mécanisme."
+      },
+      {
+        type: 'qcm',
+        q: "Deux plaques <strong>continentales</strong> entrent en collision. Que se forme-t-il ?",
+        choix: [
+          'Une fosse océanique',
+          'Une dorsale',
+          'Une chaîne de montagnes',
+          'Un volcan sous-marin'
+        ],
+        reponse: 2,
+        explication: "Aucune des deux n'est assez dense pour plonger : la croûte se plisse et s'épaissit, formant une chaîne de montagnes. C'est l'origine de l'Himalaya, né de la rencontre entre la plaque indienne et la plaque eurasiatique."
+      },
+      {
+        type: 'saisie',
+        q: "Comment s'appelle la couche déformable sur laquelle glissent les plaques ?",
+        reponses: ['asthenosphere', 'asthénosphère', "l'asthénosphère", "l'asthenosphere"],
+        explication: "L'asthénosphère est la partie du manteau située sous la lithosphère. Elle reste solide, mais se déforme plus facilement : c'est sur elle que glissent les plaques rigides."
+      }
+    ]
   }
 };
