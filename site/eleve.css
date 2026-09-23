@@ -115,19 +115,13 @@ body.corps-eleve {
 }
 .e-jeton b { font-size: 0.95rem; font-weight: 800; color: var(--e-vif); }
 .e-jeton-bouton { cursor: pointer; font: inherit; padding: 0.35rem; }
+.e-jeton-etoiles { gap: 0.3rem; padding-right: 0.8rem; }
+.e-jeton-etoiles span { font-size: 0.95rem; line-height: 1; }
+.e-jeton-etoiles b { font-size: 1rem; }
 .e-pastille-couleur {
   display: block; width: 1.05rem; height: 1.05rem; border-radius: 50%;
   background: linear-gradient(135deg, var(--e-vif), var(--e-doux));
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
-}
-.e-avatar {
-  width: 2.5rem; height: 2.5rem; padding: 0; cursor: pointer;
-  border-radius: 50%; border: 2px solid var(--e-doux);
-  background: var(--e-voile); overflow: hidden;
-}
-.e-avatar-toile {
-  display: grid; place-items: center; width: 100%; height: 100%;
-  font-size: 1.05rem; line-height: 1;
 }
 .e-sortir {
   font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer;
@@ -432,7 +426,7 @@ body.corps-eleve {
 }
 .e-stats strong { display: block; font-family: 'Archivo', sans-serif; font-size: 1.9rem; color: var(--e-vif); line-height: 1.1; }
 .e-stats span { display: block; font-size: 0.82rem; color: var(--e-encre-doux); }
-.e-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.7rem; list-style: none; padding: 0; margin: 0; }
+.e-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: 0.7rem; list-style: none; padding: 0; margin: 0; }
 .e-badges > li {
   display: flex; align-items: center; gap: 0.7rem;
   background: var(--e-carte); border: 1px solid var(--e-trait);
@@ -442,6 +436,133 @@ body.corps-eleve {
 .e-badges > li.obtenu { border-color: var(--e-doux); color: var(--e-encre); background: var(--e-voile); }
 .e-badges .b { font-size: 1.6rem; filter: grayscale(1); opacity: .35; }
 .e-badges > li.obtenu .b { filter: none; opacity: 1; }
+.e-badges > li > span:not(.b) { display: grid; gap: 0.1rem; min-width: 0; }
+.e-badges b { font-family: 'Archivo', sans-serif; font-size: 0.92rem; }
+.e-badges em { font-style: normal; font-size: 0.78rem; font-weight: 500; color: var(--e-encre-doux); }
+.e-badges .coche { margin-left: auto; font-weight: 800; color: var(--e-vif); }
+.e-badges .reste {
+  margin-left: auto; font-size: 0.76rem; font-weight: 800; color: var(--e-encre-doux);
+  background: var(--e-voile); border-radius: 999px; padding: 0.1rem 0.5rem;
+}
+.e-stats span em { display: block; font-style: normal; font-size: 0.72rem; opacity: .75; margin-top: 0.1rem; }
+
+/* ---------- Mes réussites : le compteur d'étoiles -------------------------- */
+.e-etoiles-tete {
+  background: linear-gradient(135deg, var(--e-vif), var(--e-doux));
+  border-radius: var(--e-r); color: #fff; text-align: center;
+  padding: 1.7rem 1.4rem 1.5rem; margin-bottom: 1.8rem; box-shadow: var(--e-ombre-forte);
+}
+.e-etoiles-compte {
+  margin: 0; font-family: 'Archivo', sans-serif; font-size: clamp(2.6rem, 8vw, 3.6rem);
+  font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+}
+.e-etoiles-libelle { margin: 0.2rem 0 0; font-size: 0.95rem; opacity: .92; }
+.e-jauge {
+  height: 0.6rem; border-radius: 999px; background: rgba(255, 255, 255, 0.32);
+  margin: 1.1rem auto 0.6rem; max-width: 22rem; overflow: hidden;
+}
+.e-jauge i { display: block; height: 100%; border-radius: 999px; background: #fff; }
+.e-etoiles-suite { margin: 0; font-size: 0.88rem; font-weight: 600; opacity: .95; }
+.e-note-fin { margin: 1.4rem 0 0; text-align: center; font-size: 0.86rem; color: var(--e-encre-doux); }
+
+/* ---------- Calendrier : le mois en bandeau -------------------------------- */
+.e-mois {
+  background: var(--e-carte); border: 1px solid var(--e-trait); border-radius: var(--e-r);
+  padding: 1rem 1.1rem 0.9rem; margin: 0 auto 1.2rem; box-shadow: var(--e-ombre);
+  max-width: 28rem;
+}
+.e-mois-tete { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.7rem; }
+.e-mois-tete h2 { flex: 1; text-align: center; font-size: 1.05rem; text-transform: capitalize; }
+.e-rond {
+  flex: none; width: 2.1rem; height: 2.1rem; display: grid; place-items: center;
+  font: inherit; font-size: 1.25rem; line-height: 1; cursor: pointer;
+  color: var(--e-vif); background: var(--e-voile);
+  border: 0; border-radius: 50%;
+}
+.e-rond:hover { background: var(--e-doux); color: #fff; }
+.e-mois-entetes, .e-mois-jours {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem;
+  list-style: none; padding: 0; margin: 0;
+}
+.e-mois-entetes > li {
+  margin: 0; text-align: center; font-size: 0.68rem; font-weight: 800;
+  color: var(--e-encre-doux); letter-spacing: 0.06em;
+}
+.e-mois-jours > li { margin: 0.12rem 0 0; }
+.e-mois-jours > li.vide { min-height: 2.3rem; }
+.e-mois-jours a {
+  position: relative;
+  display: grid; place-items: center; margin: 0 auto;
+  width: 2.3rem; height: 2.3rem; max-width: 100%; border-radius: 50%;
+  font-size: 0.85rem; font-weight: 600; text-decoration: none; color: var(--e-encre-doux);
+  border: 2px solid transparent;
+}
+.e-mois-jours a:hover { background: var(--e-voile); }
+.e-mois-jours .semaine a { background: var(--e-voile); color: var(--e-encre); }
+.e-mois-jours .cours a { font-weight: 800; color: var(--e-vif); }
+.e-mois-jours .perso a { color: var(--e-encre); }
+.e-mois-jours .perso a::after,
+.e-mois-jours .cours a::after {
+  content: ''; position: absolute; bottom: 0.14rem; left: 50%; margin-left: -0.15rem;
+  width: 0.3rem; height: 0.3rem; border-radius: 50%; background: currentColor;
+}
+.e-mois-jours .auj a { border-color: var(--e-vif); color: var(--e-vif); }
+.e-mois-legende {
+  display: flex; align-items: center; gap: 0.35rem; justify-content: center;
+  margin: 0.8rem 0 0; font-size: 0.74rem; color: var(--e-encre-doux);
+}
+.e-mois-legende .p { width: 0.45rem; height: 0.45rem; border-radius: 50%; margin-left: 0.7rem; }
+.e-mois-legende .p:first-child { margin-left: 0; }
+.e-mois-legende .p.cours { background: var(--e-vif); }
+.e-mois-legende .p.perso { background: var(--e-encre-doux); }
+
+/* ---------- Calendrier : la semaine ---------------------------------------- */
+.e-semaine {
+  background: var(--e-carte); border: 1px solid var(--e-trait); border-radius: var(--e-r);
+  padding: 1rem 1.1rem 1.1rem; box-shadow: var(--e-ombre);
+}
+.e-semaine-tete { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem; }
+.e-semaine-tete > div { flex: 1; text-align: center; }
+.e-semaine-tete h2 { font-size: 1.02rem; }
+.e-semaine-tete p { margin: 0.1rem 0 0; font-size: 0.8rem; color: var(--e-encre-doux); }
+.e-semaine-grille { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.55rem; align-items: start; }
+.e-jour-col {
+  background: var(--e-fond); border: 1px solid var(--e-trait);
+  border-radius: var(--e-r-petit); padding: 0.55rem 0.5rem; min-height: 7rem;
+}
+.e-jour-col.auj { border-color: var(--e-vif); background: var(--e-voile); }
+.e-jour-nom {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin: 0 0 0.5rem; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--e-encre-doux);
+}
+.e-jour-col.auj .e-jour-nom { color: var(--e-vif); }
+.e-jour-nom b { font-family: 'Archivo', sans-serif; font-size: 1.05rem; color: var(--e-encre); }
+.e-jour-repos { margin: 0; font-size: 0.78rem; color: var(--e-encre-doux); opacity: .75; }
+.e-evt {
+  background: var(--e-carte); border-radius: 10px; border-left: 3px solid var(--e-vif);
+  padding: 0.4rem 0.5rem; margin-bottom: 0.4rem;
+}
+.e-evt:last-child { margin-bottom: 0; }
+.e-evt.perso { border-left-style: dashed; border-left-color: var(--e-encre-doux); }
+.e-evt.faite { border-left-color: #35B37E; }
+.e-evt .h { margin: 0; font-size: 0.68rem; font-weight: 700; color: var(--e-encre-doux); }
+.e-evt .t { margin: 0.1rem 0 0; font-size: 0.82rem; font-weight: 700; line-height: 1.3; }
+.e-evt .d { margin: 0.15rem 0 0; font-size: 0.74rem; color: var(--e-encre-doux); }
+.e-evt .c { margin: 0.25rem 0 0; font-size: 0.72rem; font-weight: 800; color: var(--e-vif); }
+.e-evt .l { margin: 0.3rem 0 0; display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.e-evt .o {
+  font-size: 0.74rem; font-weight: 700; text-decoration: none;
+  color: var(--e-vif); background: var(--e-voile); border-radius: 999px; padding: 0.1rem 0.5rem;
+}
+.e-evt .o:hover { background: var(--e-vif); color: #fff; }
+.e-semaine-pied { margin: 0.9rem 0 0; text-align: center; }
+@media (max-width: 52rem) {
+  .e-semaine-grille { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 34rem) {
+  .e-semaine-grille { grid-template-columns: 1fr; }
+}
 
 /* ---------- Divers --------------------------------------------------------- */
 .e-vide { text-align: center; color: var(--e-encre-doux); padding: 3rem 1rem; }

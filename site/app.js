@@ -12,7 +12,6 @@
 
   const CLE_THEME = 'cours4e.theme';
   const CLE_PALETTE = 'cours4e.palette';
-  const CLE_COMPAGNON = 'cours4e.compagnon';
 
   const NIVEAUX = [
     { id: 'insuffisant', libelle: 'Insuffisant', picto: '◔' },
@@ -50,7 +49,7 @@
 
   const etat = {
     role: null,
-    suivi: {}, resultats: {}, fiches: {}, messagesNonLus: 0,
+    suivi: {}, resultats: {}, fiches: {}, ouvertures: {}, messagesNonLus: 0,
     seances: [],
   };
   let minuteur = null;
@@ -148,29 +147,63 @@
     return etat.seances.some((s) => s.date <= aujourd && (s.lecons || []).indexOf(cle(mid, ref)) !== -1);
   }
 
-  /**
-   * Accès progressif : Sterenn n'a pas les 69 leçons d'un bloc. Une leçon
-   * s'ouvre si c'est la première de sa matière, si la précédente est validée,
-   * ou si une séance l'a déjà mise au programme.
-   */
-  function accessible(mid, ref) {
-    if (estProf()) return true;
+  /** Décision explicite du professeur : 1 poussée, 0 retenue, null règle auto. */
+  function decision(mid, ref) {
+    const o = etat.ouvertures[cle(mid, ref)];
+    return o ? o.etat : null;
+  }
+
+  /** Ce que dirait la règle automatique, sans tenir compte de la décision. */
+  function reglementaire(mid, ref) {
     const m = matiere(mid);
     if (!m) return false;
     const i = m.lecons.findIndex((l) => l.ref === ref);
     if (i <= 0) return true;
     if (programmee(mid, ref)) return true;
-    const precedente = m.lecons[i - 1];
-    return estValidee(mid, precedente.ref);
+    return estValidee(mid, m.lecons[i - 1].ref);
+  }
+
+  /**
+   * Accès progressif : Sterenn n'a pas les 69 leçons d'un bloc. Le professeur
+   * pousse ou retient une leçon quand il le décide ; sans décision, la règle
+   * automatique s'applique (première de la matière, précédente validée, ou
+   * déjà mise au programme d'une séance passée).
+   */
+  function accessible(mid, ref) {
+    if (estProf()) return true;
+    const d = decision(mid, ref);
+    if (d === 1) return true;
+    if (d === 0) return false;
+    return reglementaire(mid, ref);
   }
 
   function raisonVerrou(mid, ref) {
+    if (decision(mid, ref) === 0) return 'Cette leçon arrivera un peu plus tard.';
     const m = matiere(mid);
     const i = m.lecons.findIndex((l) => l.ref === ref);
     const precedente = i > 0 ? m.lecons[i - 1] : null;
     return precedente
       ? `S'ouvre quand « ${precedente.titre} » est validée, ou quand elle est mise au programme.`
       : 'Pas encore ouverte.';
+  }
+
+  /**
+   * Les réussites remplacent la notion de niveau : elles comptent des acquis
+   * réels, pas du temps passé. Une fiche terminée, une série réussie, une
+   * leçon validée. Rien ne se perd, rien ne descend.
+   */
+  const SERIE_REUSSIE = 0.7;
+  function reussites() {
+    const fiches = Object.keys(etat.fiches).length;
+    let series = 0;
+    Object.values(etat.resultats).forEach((r) => {
+      if (r.total > 0 && r.meilleur / r.total >= SERIE_REUSSIE) series += 1;
+    });
+    let lecons = 0;
+    Object.values(etat.suivi).forEach((s) => {
+      if (s.niveau === 'satisfaisant' || s.niveau === 'tresbien') lecons += 1;
+    });
+    return { fiches, series, lecons, total: fiches + series + lecons * 3 };
   }
 
   /* ---------- Chargement ------------------------------------------------------ */
@@ -222,7 +255,8 @@
   }
   function retourPortail() {
     etat.role = null;
-    etat.suivi = {}; etat.resultats = {}; etat.fiches = {}; etat.seances = []; etat.messagesNonLus = 0;
+    etat.suivi = {}; etat.resultats = {}; etat.fiches = {};
+    etat.ouvertures = {}; etat.seances = []; etat.messagesNonLus = 0;
     if (minuteur) { clearInterval(minuteur); minuteur = null; }
     location.hash = '';
     document.getElementById('code').value = '';
@@ -257,12 +291,9 @@
     if (role === 'eleve') {
       // Moteurs de l'espace de Sterenn : accessibilité, trophées, sons.
       chargerScript('moteurs/audio-engine.js').catch(() => {});
-      chargerScript('moteurs/achievements.js').then(majNiveau).catch(() => {});
       chargerScript('moteurs/confort.js').catch(() => {});
       construirePalette();
-      // Le compagnon en grand vit sur la page « Mon compagnon » : dans la barre
-      // du haut, une vignette suffit et évite une seconde scène 3D.
-      document.getElementById('e-avatar-toile').textContent = lire(CLE_COMPAGNON, '🦊');
+      majReussites();
     }
 
     if (minuteur) clearInterval(minuteur);
@@ -276,6 +307,7 @@
       etat.suivi = d.suivi || {};
       etat.resultats = d.resultats || {};
       etat.fiches = d.fiches || {};
+      etat.ouvertures = d.ouvertures || {};
       etat.messagesNonLus = d.messagesNonLus || 0;
       etat.role = d.role || etat.role;
     } catch (e) {
@@ -298,10 +330,13 @@
     } catch (e) { /* sonde silencieuse */ }
   }
 
-  function majNiveau() {
-    const el = document.getElementById('e-niveau');
-    if (!el || !window.KonstrioAch) return;
-    try { el.textContent = String(window.KonstrioAch.level().level || 1); } catch (e) { /* ignore */ }
+  function majReussites() {
+    const el = document.getElementById('e-etoiles');
+    if (!el) return;
+    const n = reussites().total;
+    el.textContent = String(n);
+    const jeton = document.getElementById('e-reussites');
+    if (jeton) jeton.setAttribute('aria-label', `${n} étoile${n > 1 ? 's' : ''} gagnée${n > 1 ? 's' : ''}`);
   }
 
   /* ---------- Connexion ------------------------------------------------------------ */
@@ -352,7 +387,6 @@
     const p = document.getElementById('e-palette-panneau');
     p.hidden = !p.hidden;
   });
-  document.getElementById('e-btn-avatar').addEventListener('click', () => { location.hash = '#/moi'; });
 
   /* ---------- Thème du back-office ------------------------------------------------------ */
   document.getElementById('p-theme').addEventListener('click', () => {
@@ -377,7 +411,7 @@
     progression, chiffres, libelleLecon, accessible, raisonVerrou, programmee,
     jourIso, decaler, lundiDe, enFrancais, dateCourte, poids,
     chargerContenu, chargerSeances, chargerScript, rafraichirEtat, rafraichirSeances,
-    majNiveau, router, lire, ecrire,
+    majReussites, reussites, decision, reglementaire, router, lire, ecrire,
     NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES,
     appliquerTheme, appliquerPalette,
   };

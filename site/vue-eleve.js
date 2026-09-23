@@ -30,7 +30,7 @@
       return `<a href="#/${o.route}"${actif(o.route)}>
         <span class="ico" aria-hidden="true">${o.ico}</span><span>${o.texte}</span>${bulle}</a>`;
     }).join('');
-    N.majNiveau();
+    N.majReussites();
   }
 
   function afficher(html) {
@@ -143,14 +143,14 @@
        <div class="e-orbite" id="e-orbite"></div>
 
        <ul class="e-tuiles">
-         <li><a href="#/progres"><span class="ico" aria-hidden="true">🏅</span>
-           <b>Mes progrès</b><span>${c.validees} leçon(s) validée(s)</span></a></li>
+         <li><a href="#/reussites"><span class="ico" aria-hidden="true">⭐</span>
+           <b>Mes réussites</b><span>${N.reussites().total} étoile(s)</span></a></li>
          <li><a href="#/travail"><span class="ico" aria-hidden="true">📤</span>
            <b>Envoyer mon travail</b><span>Une photo, un document</span></a></li>
          <li><a href="#/messages"><span class="ico" aria-hidden="true">💬</span>
            <b>Messages</b><span>${N.etat.messagesNonLus ? N.etat.messagesNonLus + ' non lu(s)' : 'Poser une question'}</span></a></li>
-         <li><a href="#/moi"><span class="ico" aria-hidden="true">✨</span>
-           <b>Mon compagnon</b><span>Le personnaliser</span></a></li>
+         <li><a href="#/calendrier"><span class="ico" aria-hidden="true">🗓️</span>
+           <b>Ma semaine</b><span>Ce qui est prévu</span></a></li>
        </ul>`,
     );
     brancherChoix(vueHub);
@@ -395,7 +395,7 @@
           window.KonstrioAch.recordWin && window.KonstrioAch.recordWin(N.cle(s.mid, s.ref), Math.round((justes / s.items.length) * 100));
         }
       } catch (e) { /* les trophées ne doivent jamais bloquer */ }
-      N.majNiveau();
+      N.majReussites();
     } catch (e) { N.signaler('Résultat non enregistré : ' + e.message); }
   }
   function rendreBilan() {
@@ -429,97 +429,191 @@
   }
 
   /* ---------- Calendrier ------------------------------------------------------------ */
+  const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+  /** Le mois affiché en bandeau : une pastille par jour, les séances repérées. */
+  function bandeauMois(ancre, seances) {
+    const premier = ancre.slice(0, 8) + '01';
+    const d = new Date(premier + 'T12:00:00');
+    const jours = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    const decalage = (d.getDay() + 6) % 7;
+    const aujourd = N.jourIso();
+    const lundiCourant = N.lundiDe(ancre);
+
+    const cases = [];
+    for (let i = 0; i < decalage; i += 1) cases.push('<li class="vide" aria-hidden="true"></li>');
+    for (let n = 1; n <= jours; n += 1) {
+      const iso = premier.slice(0, 8) + String(n).padStart(2, '0');
+      const duJour = seances.filter((x) => x.date === iso);
+      const cours = duJour.some((x) => x.type === 'cours');
+      const perso = duJour.some((x) => x.type === 'travail');
+      const classes = [];
+      if (iso === aujourd) classes.push('auj');
+      if (N.lundiDe(iso) === lundiCourant) classes.push('semaine');
+      if (cours) classes.push('cours');
+      else if (perso) classes.push('perso');
+      cases.push(`<li class="${classes.join(' ')}"><a href="#/calendrier/${iso}"
+        aria-label="${N.ech(N.enFrancais(iso, true))}">${n}</a></li>`);
+    }
+
+    return `<section class="e-mois">
+      <div class="e-mois-tete">
+        <button class="e-rond" type="button" data-mois="${N.decaler(premier, -1)}" aria-label="Mois précédent">‹</button>
+        <h2>${MOIS[d.getMonth()]} ${d.getFullYear()}</h2>
+        <button class="e-rond" type="button" data-mois="${N.decaler(premier, jours)}" aria-label="Mois suivant">›</button>
+      </div>
+      <ol class="e-mois-entetes" aria-hidden="true">
+        <li>L</li><li>M</li><li>M</li><li>J</li><li>V</li><li>S</li><li>D</li>
+      </ol>
+      <ol class="e-mois-jours">${cases.join('')}</ol>
+      <p class="e-mois-legende">
+        <span class="p cours"></span> cours
+        <span class="p perso"></span> travail perso
+      </p>
+    </section>`;
+  }
+
   async function vueCalendrier(depart) {
     const valide = depart && /^\d{4}-\d{2}-\d{2}$/.test(depart);
-    const lundi = N.lundiDe(valide ? depart : N.jourIso());
+    const ancre = valide ? depart : N.jourIso();
+    const lundi = N.lundiDe(ancre);
     const aujourd = N.jourIso();
     afficher('<p class="e-vide">Chargement…</p>');
-    const seances = await N.chargerSeances(lundi, N.decaler(lundi, 6));
+
+    // On charge large : le bandeau du mois et la semaine affichée.
+    const seances = await N.chargerSeances(N.decaler(ancre.slice(0, 8) + '01', -7),
+      N.decaler(ancre.slice(0, 8) + '01', 44));
 
     const colonnes = N.JOURS.map((nom, i) => {
       const jour = N.decaler(lundi, i);
-      const duJour = seances.filter((s) => s.date === jour).sort((a, b) => String(a.debut).localeCompare(String(b.debut)));
-      const cls = ['e-carte', 'e-cal-jour'];
-      if (jour === aujourd) cls.push('auj');
-      return `<div class="${cls.join(' ')}" ${jour === aujourd ? 'style="border-color:var(--e-vif)"' : ''}>
-        <p style="margin:0 0 .5rem;font-size:.74rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:${jour === aujourd ? 'var(--e-vif)' : 'var(--e-encre-doux)'}">
-          ${nom} ${Number(jour.slice(8, 10))}</p>
-        ${duJour.length ? duJour.map((s) => evenement(s)).join('') : '<p style="margin:0;font-size:.85rem;color:var(--e-encre-doux)">Repos</p>'}
+      const duJour = seances.filter((x) => x.date === jour)
+        .sort((a, b) => String(a.debut).localeCompare(String(b.debut)));
+      return `<div class="e-jour-col${jour === aujourd ? ' auj' : ''}">
+        <p class="e-jour-nom">${nom}<b>${Number(jour.slice(8, 10))}</b></p>
+        ${duJour.length
+    ? duJour.map(evenement).join('')
+    : '<p class="e-jour-repos">Rien de prévu</p>'}
       </div>`;
     }).join('');
 
+    const semaine = seances.filter((x) => x.date >= lundi && x.date <= N.decaler(lundi, 4));
+    const cours = semaine.filter((x) => x.type === 'cours').length;
+
     afficher(
       `<h1>Ma semaine</h1>
-       <p class="e-intro">Cours le lundi, le mercredi et le vendredi, de 13 h à 14 h 30.</p>
+       <p class="e-intro">Cours le lundi, le mercredi et le vendredi. Deux temps courts le mardi et le jeudi.</p>
        ${blocChoix(seances)}
-       <div class="e-actions" style="margin-bottom:1.1rem">
-         <button class="e-bouton e-bouton-fin" id="e-prec" type="button">← Semaine passée</button>
-         <button class="e-bouton e-bouton-doux" id="e-auj" type="button">Cette semaine</button>
-         <button class="e-bouton e-bouton-fin" id="e-suiv" type="button">Semaine suivante →</button>
-       </div>
-       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.8rem;align-items:start">${colonnes}</div>`,
+       ${bandeauMois(ancre, seances)}
+       <section class="e-semaine">
+         <div class="e-semaine-tete">
+           <button class="e-rond" id="e-prec" type="button" aria-label="Semaine précédente">‹</button>
+           <div>
+             <h2>Du ${N.ech(N.enFrancais(lundi))} au ${N.ech(N.enFrancais(N.decaler(lundi, 4)))}</h2>
+             <p>${cours} cours cette semaine</p>
+           </div>
+           <button class="e-rond" id="e-suiv" type="button" aria-label="Semaine suivante">›</button>
+         </div>
+         <div class="e-semaine-grille">${colonnes}</div>
+         <p class="e-semaine-pied"><button class="e-bouton e-bouton-fin" id="e-auj" type="button">Revenir à aujourd'hui</button></p>
+       </section>`,
     );
     document.getElementById('e-prec').addEventListener('click', () => { location.hash = '#/calendrier/' + N.decaler(lundi, -7); });
     document.getElementById('e-suiv').addEventListener('click', () => { location.hash = '#/calendrier/' + N.decaler(lundi, 7); });
     document.getElementById('e-auj').addEventListener('click', () => { location.hash = '#/calendrier/' + N.jourIso(); });
-    brancherChoix(() => vueCalendrier(lundi));
+    vue().querySelectorAll('[data-mois]').forEach((b) => b.addEventListener('click',
+      () => { location.hash = '#/calendrier/' + b.getAttribute('data-mois'); }));
+    brancherChoix(() => vueCalendrier(ancre));
   }
 
   function evenement(s) {
     if (s.type === 'travail') {
-      return `<div style="border-left:3px dashed var(--e-doux);padding:.35rem .5rem;margin-bottom:.45rem">
-        <span style="font-size:.72rem;font-weight:700;color:var(--e-encre-doux)">${N.ech(s.debut)} · 15 min</span>
-        <span style="display:block;font-weight:700;font-size:.88rem">Temps perso</span>
-        <span style="display:block;font-size:.8rem;color:var(--e-encre-doux)">${N.ech(String(s.travail || '').slice(0, 70))}…</span></div>`;
+      return `<article class="e-evt perso">
+        <p class="h">${N.ech(s.debut)} · 15 min</p>
+        <p class="t">Temps perso</p>
+        <p class="d">${N.ech(court(String(s.travail || 'À voir ensemble'), 78))}</p>
+      </article>`;
     }
     const liens = (s.lecons || []).map((r) => {
       const info = N.libelleLecon(r);
       if (!info || !(info.l.docs || []).length || !N.accessible(info.m.id, info.l.ref)) return '';
-      return `<a href="#/lecon/${info.m.id}/${info.l.ref}/cours"
-        style="font-size:.78rem;font-weight:700;color:var(--e-vif);text-decoration:none">Ouvrir →</a>`;
-    }).join(' ');
-    return `<div style="border-left:3px solid var(--e-vif);padding:.35rem .5rem;margin-bottom:.45rem">
-      <span style="font-size:.72rem;font-weight:700;color:var(--e-encre-doux)">${N.ech(s.debut)} à ${N.ech(s.fin)}</span>
-      <span style="display:block;font-weight:700;font-size:.88rem;line-height:1.3">${
-      String(s.objectif || 'Séance').split(' · ').map(N.ech).join('<br>')}</span>
-      ${(s.choix || []).length && !s.choisi_le ? '<span style="display:inline-block;margin-top:.25rem;font-size:.72rem;font-weight:800;color:var(--e-vif)">✨ à choisir</span>' : ''}
-      ${liens ? `<span style="display:block;margin-top:.3rem">${liens}</span>` : ''}</div>`;
+      return `<a class="o" href="#/lecon/${info.m.id}/${info.l.ref}/cours">${info.m.icone} Ouvrir</a>`;
+    }).filter(Boolean).join('');
+    const titres = String(s.objectif || 'Séance').split(' · ');
+    return `<article class="e-evt cours${s.statut === 'faite' ? ' faite' : ''}">
+      <p class="h">${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
+      ${titres.map((t) => `<p class="t">${N.ech(t)}</p>`).join('')}
+      ${(s.choix || []).length && !s.choisi_le ? '<p class="c">✨ à toi de choisir</p>' : ''}
+      ${liens ? `<p class="l">${liens}</p>` : ''}
+    </article>`;
   }
 
-  /* ---------- Progrès ------------------------------------------------------------------ */
-  function vueProgres() {
+  /** Coupe sur un espace, sans casser un mot en deux. */
+  function court(texte, max) {
+    const t = String(texte || '');
+    if (t.length <= max) return t;
+    const coupe = t.slice(0, max);
+    const espace = coupe.lastIndexOf(' ');
+    return (espace > max * 0.6 ? coupe.slice(0, espace) : coupe).replace(/[\s,.;:·]+$/, '') + '…';
+  }
+
+  /* ---------- Mes réussites -------------------------------------------------- */
+  const PALIERS = [
+    { s: 1, i: '🌱', n: 'La première étoile', d: 'Une fiche lue jusqu\'au bout.' },
+    { s: 5, i: '🔆', n: 'Cinq étoiles', d: 'Le pli est pris.' },
+    { s: 12, i: '🎯', n: 'Douze étoiles', d: 'Une série sans faute vaut son étoile.' },
+    { s: 25, i: '🚀', n: 'Vingt-cinq étoiles', d: 'Plusieurs matières avancent en même temps.' },
+    { s: 50, i: '🏅', n: 'Cinquante étoiles', d: 'La moitié de l\'année est derrière toi.' },
+    { s: 100, i: '👑', n: 'Cent étoiles', d: 'L\'année complète.' },
+  ];
+
+  function vueReussites() {
+    const r = N.reussites();
     const c = N.chiffres();
-    const cles = Object.keys(N.etat.resultats);
-    const series = cles.reduce((n, k) => n + (N.etat.resultats[k].series || 1), 0);
-    const parfaits = cles.filter((k) => N.etat.resultats[k].meilleur === N.etat.resultats[k].total).length;
-    const fiches = Object.keys(N.etat.fiches).length;
-    const badges = [
-      { i: '🚀', n: 'Première leçon validée', ok: c.validees >= 1 },
-      { i: '🎯', n: 'Une série sans faute', ok: parfaits >= 1 },
-      { i: '📖', n: 'Cinq fiches terminées', ok: fiches >= 5 },
-      { i: '🔟', n: 'Dix leçons validées', ok: c.validees >= 10 },
-      { i: '📚', n: 'Une matière entière', ok: PROGRAMME.matieres.some((m) => N.progression(m).pct === 100) },
-      { i: '🏅', n: 'La moitié de l\'année', ok: c.validees >= Math.ceil(c.total / 2) },
-      { i: '👑', n: 'L\'année complète', ok: c.validees === c.total },
-    ];
+    const parfaits = Object.values(N.etat.resultats)
+      .filter((x) => x.meilleur === x.total && x.total > 0).length;
+    const suivant = PALIERS.find((x) => r.total < x.s);
+    const atteint = PALIERS.filter((x) => r.total >= x.s).pop();
+    const bas = atteint ? atteint.s : 0;
+    const haut = suivant ? suivant.s : (atteint ? atteint.s : 1);
+    const part = suivant ? Math.round(((r.total - bas) / (haut - bas)) * 100) : 100;
+
     afficher(
-      `<h1>Mes progrès</h1>
-       <p class="e-intro">Ce qui est validé reste validé.</p>
+      `<h1>Mes réussites</h1>
+       <p class="e-intro">Une étoile se gagne pour de bon. Rien ne redescend, jamais.</p>
+
+       <section class="e-etoiles-tete">
+         <p class="e-etoiles-compte"><span aria-hidden="true">⭐</span> ${r.total}</p>
+         <p class="e-etoiles-libelle">${r.total > 1 ? 'étoiles gagnées' : 'étoile gagnée'}</p>
+         ${suivant
+    ? `<div class="e-jauge" role="img" aria-label="${part} % du chemin vers ${N.ech(suivant.n)}">
+              <i style="width:${part}%"></i></div>
+            <p class="e-etoiles-suite">Encore ${suivant.s - r.total} pour ${N.ech(suivant.n.toLowerCase())}.</p>`
+    : '<p class="e-etoiles-suite">Tous les paliers sont atteints.</p>'}
+       </section>
+
+       <h2 class="e-titre-section">D'où viennent tes étoiles</h2>
        <ul class="e-stats">
-         <li><strong>${c.validees}</strong><span>leçons validées</span></li>
-         <li><strong>${fiches}</strong><span>fiches terminées</span></li>
-         <li><strong>${series}</strong><span>séries d'exercices</span></li>
-         <li><strong>${parfaits}</strong><span>sans faute</span></li>
+         <li><strong>${r.fiches}</strong><span>fiches terminées<em>1 étoile chacune</em></span></li>
+         <li><strong>${r.series}</strong><span>séries réussies<em>1 étoile chacune</em></span></li>
+         <li><strong>${r.lecons}</strong><span>leçons validées<em>3 étoiles chacune</em></span></li>
+         <li><strong>${parfaits}</strong><span>séries sans faute<em>le maximum</em></span></li>
        </ul>
-       <h2 class="e-titre-section">Mes badges</h2>
-       <ul class="e-badges">${badges.map((b) => `<li class="${b.ok ? 'obtenu' : ''}">
-         <span class="b" aria-hidden="true">${b.i}</span><span>${N.ech(b.n)}</span></li>`).join('')}</ul>
+
+       <h2 class="e-titre-section">Les paliers</h2>
+       <ul class="e-badges">${PALIERS.map((b) => `<li class="${r.total >= b.s ? 'obtenu' : ''}">
+         <span class="b" aria-hidden="true">${b.i}</span>
+         <span><b>${N.ech(b.n)}</b><em>${N.ech(b.d)}</em></span>
+         ${r.total >= b.s ? '<span class="coche" aria-label="obtenu">✓</span>' : `<span class="reste">${b.s - r.total}</span>`}
+       </li>`).join('')}</ul>
+
        <h2 class="e-titre-section">Matière par matière</h2>
        <ul class="e-tuiles">${PROGRAMME.matieres.map((m) => {
-        const p = N.progression(m);
-        return `<li><a href="#/matiere/${m.id}"><span class="ico" aria-hidden="true">${m.icone}</span>
-          <b>${N.ech(m.nom)}</b><span>${p.faites} / ${p.total} validées</span></a></li>`;
-      }).join('')}</ul>`,
+    const pr = N.progression(m);
+    return `<li><a href="#/matiere/${m.id}"><span class="ico" aria-hidden="true">${m.icone}</span>
+          <b>${N.ech(m.nom)}</b><span>${pr.faites} sur ${pr.total} validées</span></a></li>`;
+  }).join('')}</ul>
+       <p class="e-note-fin">${c.validees} leçon(s) validée(s) sur les ${c.total} de l'année.</p>`,
     );
   }
 
@@ -652,70 +746,6 @@
     });
   }
 
-  /* ---------- Mon compagnon -------------------------------------------------------------------- */
-  async function vueMoi() {
-    afficher(
-      `<h1>Mon compagnon</h1>
-       <p class="e-intro">Choisis son allure et les couleurs de ton espace.</p>
-       <div class="e-carte" style="text-align:center;margin-bottom:1.2rem">
-         <div id="e-avatar-grand" style="height:16rem"></div>
-         <p style="margin:.6rem 0 0;color:var(--e-encre-doux);font-size:.9rem" id="e-avatar-note">Chargement…</p>
-       </div>
-       <div class="e-carte" id="e-avatar-reglages"></div>
-       <h2 class="e-titre-section">Les couleurs de mon espace</h2>
-       <div class="e-carte">
-         <div class="e-palette-choix" id="e-palette-page"></div>
-       </div>`,
-    );
-
-    const zone = document.getElementById('e-palette-page');
-    const courante = N.lire('cours4e.palette', 'rose');
-    zone.innerHTML = N.PALETTES.map((p) => `<button type="button" data-palette="${p.id}"
-      aria-pressed="${p.id === courante}" title="${p.nom}" aria-label="${p.nom}"
-      style="background:linear-gradient(135deg,${p.c1},${p.c2})"></button>`).join('');
-    zone.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-      N.appliquerPalette(b.getAttribute('data-palette'));
-      vueMoi();
-    }));
-
-    try {
-      await N.chargerScript('moteurs/avatar.js');
-      if (!window.KonstrioAvatar) throw new Error('indisponible');
-      const A = window.KonstrioAvatar;
-      A.mount(document.getElementById('e-avatar-grand'), { taille: 'grand' });
-      document.getElementById('e-avatar-note').textContent = 'Il t\'accompagne dans tout ton espace.';
-      const cfg = A.get();
-      const reglages = document.getElementById('e-avatar-reglages');
-      const cats = Object.keys(A.OPTIONS || {}).slice(0, 6);
-      reglages.innerHTML = cats.length ? cats.map((cat) => {
-        const opts = A.OPTIONS[cat];
-        const liste = Array.isArray(opts) ? opts : (opts && opts.items) || [];
-        if (!liste.length) return '';
-        return `<p style="font-weight:800;margin:.7rem 0 .35rem;text-transform:capitalize">${N.ech(cat)}</p>
-          <div class="e-palette-choix" style="flex-wrap:wrap">${liste.slice(0, 10).map((o) => {
-          const id = o && (o.id || o.value || o);
-          const libelle = (o && (o.nom || o.label)) || id;
-          const couleur = (o && (o.couleur || o.color)) || null;
-          return `<button type="button" data-cat="${N.ech(cat)}" data-val="${N.ech(id)}"
-            aria-pressed="${cfg[cat] === id}" title="${N.ech(libelle)}" aria-label="${N.ech(libelle)}"
-            style="${couleur ? `background:${N.ech(couleur)}` : 'background:var(--e-voile);font-size:.7rem;color:var(--e-encre);width:auto;border-radius:999px;padding:0 .6rem;height:1.9rem'}">
-            ${couleur ? '' : N.ech(String(libelle).slice(0, 12))}</button>`;
-        }).join('')}</div>`;
-      }).join('') : '<p style="margin:0;color:var(--e-encre-doux)">Aucun réglage disponible.</p>';
-
-      reglages.querySelectorAll('[data-cat]').forEach((b) => b.addEventListener('click', () => {
-        const maj = {};
-        maj[b.getAttribute('data-cat')] = b.getAttribute('data-val');
-        try { A.set(maj); A.save(); vueMoi(); } catch (e) { N.signaler('Réglage indisponible.'); }
-      }));
-    } catch (e) {
-      document.getElementById('e-avatar-grand').innerHTML =
-        '<div style="font-size:5rem;line-height:1;padding-top:3rem">🦊</div>';
-      document.getElementById('e-avatar-note').textContent = 'Ton compagnon arrivera bientôt.';
-      document.getElementById('e-avatar-reglages').hidden = true;
-    }
-  }
-
   function vueIntrouvable() {
     afficher('<div class="e-vide"><p>Cette page n\'existe pas.</p><p><a class="e-bouton e-bouton-doux" href="#/hub">Revenir à l\'accueil</a></p></div>');
   }
@@ -729,10 +759,9 @@
       case 'lecon': return vueLecon(p[1], p[2], p[3]);
       case 'exos': return vueExos(p[1], p[2]);
       case 'calendrier': return vueCalendrier(p[1]);
-      case 'progres': return vueProgres();
+      case 'progres': case 'reussites': return vueReussites();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);
       case 'travail': return vueTravail();
-      case 'moi': return vueMoi();
       default: return vueIntrouvable();
     }
   }

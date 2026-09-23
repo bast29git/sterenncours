@@ -256,6 +256,61 @@ body.corps-prof {
 @media (max-width: 64rem) { .p-cal { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 40rem) { .p-cal { grid-template-columns: 1fr; } }
 
+/* ---------- Calendrier : vue mois ---------------------------------------------- */
+.p-mois { background: var(--p-surface); border: 1px solid var(--p-trait); border-radius: var(--p-r); overflow: hidden; }
+.p-m-entetes { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--p-trait); background: var(--p-surface-2); }
+.p-m-entetes span {
+  padding: 0.35rem 0.5rem; font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--p-faible);
+}
+.p-m-grille { display: grid; grid-template-columns: repeat(7, 1fr); }
+.p-m-jour {
+  min-height: 6.4rem; padding: 0.3rem 0.35rem 0.4rem;
+  border-right: 1px solid var(--p-trait); border-bottom: 1px solid var(--p-trait);
+}
+.p-m-jour:nth-child(7n) { border-right: 0; }
+.p-m-jour.hors { background: var(--p-surface-2); opacity: .5; }
+.p-m-jour.passe { background: var(--p-surface-2); }
+.p-m-jour.auj { box-shadow: inset 0 0 0 2px var(--p-accent); }
+.p-m-tete { display: flex; align-items: center; margin-bottom: 0.25rem; }
+.p-m-num { font-family: var(--p-mono); font-size: 0.78rem; font-weight: 700; color: var(--p-doux); }
+.p-m-jour.auj .p-m-num { color: var(--p-accent); }
+.p-m-plus {
+  margin-left: auto; font: inherit; font-size: 0.85rem; line-height: 1; cursor: pointer;
+  width: 1.15rem; height: 1.15rem; padding: 0; opacity: 0;
+  color: var(--p-faible); background: transparent; border: 1px solid var(--p-trait); border-radius: 4px;
+}
+.p-m-jour:hover .p-m-plus { opacity: 1; }
+.p-m-plus:hover { color: var(--p-accent); border-color: var(--p-accent); }
+.p-m-evt {
+  display: block; text-decoration: none; margin-bottom: 0.18rem;
+  border-left: 2px solid var(--p-accent); background: var(--p-surface-2);
+  border-radius: 3px; padding: 0.12rem 0.3rem;
+}
+.p-m-evt.travail { border-left-style: dashed; border-left-color: var(--p-trait-fort); }
+.p-m-evt.faite { border-left-color: var(--p-ok); }
+.p-m-evt.reportee { border-left-color: var(--p-attention); }
+.p-m-evt:hover { background: var(--p-accent-voile); }
+.p-m-evt .h { font-family: var(--p-mono); font-size: 0.62rem; color: var(--p-faible); margin-right: 0.25rem; }
+.p-m-evt .t { font-size: 0.7rem; font-weight: 600; color: var(--p-encre); }
+@media (max-width: 64rem) {
+  .p-m-jour { min-height: 4.6rem; }
+  .p-m-evt .h { display: none; }
+}
+
+/* ---------- Ouverture d'une leçon ---------------------------------------------- */
+.p-pousse { display: inline-flex; border: 1px solid var(--p-trait); border-radius: 5px; overflow: hidden; }
+.p-pousse button {
+  font: inherit; font-size: 0.7rem; font-weight: 700; cursor: pointer;
+  padding: 0.1rem 0.4rem; border: 0; border-right: 1px solid var(--p-trait);
+  background: var(--p-surface); color: var(--p-faible);
+}
+.p-pousse button:last-child { border-right: 0; }
+.p-pousse button:hover { background: var(--p-surface-2); color: var(--p-encre); }
+.p-pousse button[aria-pressed="true"] { background: var(--p-accent); color: #fff; border-color: var(--p-accent); }
+.p-pousse button.non[aria-pressed="true"] { background: var(--p-alerte); }
+.p-pousse button.auto[aria-pressed="true"] { background: var(--p-doux); }
+
 /* ---------- Formulaires --------------------------------------------------------- */
 .p-form { display: grid; gap: 0.55rem; }
 .p-form .ligne { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0.55rem; }

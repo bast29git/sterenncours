@@ -18,10 +18,18 @@
   const BLOCS_PAR_LECON = 3;
   const UNE_SUR = 4; // une séance sur quatre propose un choix
 
+  /** Le premier jour de cours de l'année. */
+  const RENTREE = '2026-10-05';
+
+  /**
+   * Les cinq rendez-vous de la semaine. Le mercredi est le seul créneau dont
+   * l'horaire bouge d'une semaine à l'autre : il se règle dans le générateur,
+   * et se corrige ensuite séance par séance.
+   */
   const CRENEAUX = [
     { jour: 0, code: 'A', type: 'cours', debut: '13:00', fin: '14:30' },
     { jour: 1, code: 'A', type: 'travail', debut: '17:00', fin: '17:20' },
-    { jour: 2, code: 'B', type: 'cours', debut: '13:00', fin: '14:30' },
+    { jour: 2, code: 'B', type: 'cours', debut: '13:00', fin: '14:30', reglable: true },
     { jour: 3, code: 'B', type: 'travail', debut: '17:00', fin: '17:20' },
     { jour: 4, code: 'C', type: 'cours', debut: '13:00', fin: '14:30' },
   ];
@@ -89,8 +97,14 @@
       .map(([id]) => id);
   }
 
-  function generer(debut, semaines) {
+  /**
+   * @param debut    Le lundi de la première semaine.
+   * @param semaines Le nombre de semaines à couvrir.
+   * @param options  { mercredi: { debut, fin } } pour décaler le créneau réglable.
+   */
+  function generer(debut, semaines, options) {
     if (!window.PROGRAMME) throw new Error('Le programme n\'est pas chargé.');
+    const reglage = (options && options.mercredi) || null;
     const fs = files();
     const seances = [];
     let numero = 0;
@@ -98,7 +112,10 @@
     for (let s = 0; s < semaines; s += 1) {
       const lundi = decaler(debut, s * 7);
 
-      for (const creneau of CRENEAUX) {
+      for (const modele of CRENEAUX) {
+        const creneau = modele.reglable && reglage
+          ? { ...modele, debut: reglage.debut || modele.debut, fin: reglage.fin || modele.fin }
+          : modele;
         const date = decaler(lundi, creneau.jour);
 
         if (creneau.type === 'travail') {
@@ -174,5 +191,5 @@
   }
   function titreDe(ref) { const t = trouver(ref); return t ? t.l.titre : null; }
 
-  window.PLANIFICATEUR = { generer, CRENEAUX, BLOCS_PAR_LECON };
+  window.PLANIFICATEUR = { generer, CRENEAUX, BLOCS_PAR_LECON, RENTREE };
 })();

@@ -74,3 +74,15 @@ ALTER TABLE seances ADD COLUMN fin TEXT NOT NULL DEFAULT '14:30';
 ALTER TABLE seances ADD COLUMN type TEXT NOT NULL DEFAULT 'cours';
 ALTER TABLE seances ADD COLUMN choix TEXT NOT NULL DEFAULT '[]';
 ALTER TABLE seances ADD COLUMN choisi_le TEXT;
+
+-- Ouverture des leçons : le professeur décide explicitement de pousser une
+-- leçon à Sterenn, ou de la retenir. En l'absence de ligne, la règle
+-- automatique s'applique (première de la matière, précédente validée, ou
+-- déjà mise au programme d'une séance passée).
+CREATE TABLE IF NOT EXISTS ouvertures (
+  cle     TEXT PRIMARY KEY,            -- "<matiere>/<ref>"
+  matiere TEXT NOT NULL,
+  ref     TEXT NOT NULL,
+  etat    INTEGER NOT NULL,            -- 1 : ouverte de force, 0 : retenue
+  maj_le  TEXT NOT NULL
+);

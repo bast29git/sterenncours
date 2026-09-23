@@ -22,7 +22,7 @@
       titre: 'Pilotage',
       items: [
         { route: 'accueil', ico: '◈', texte: 'Aujourd\'hui' },
-        { route: 'calendrier', ico: '▦', texte: 'Planning' },
+        { route: 'mois', ico: '▦', texte: 'Planning' },
         { route: 'suivi', ico: '◉', texte: 'Suivi des acquis' },
       ],
     },
@@ -51,7 +51,7 @@
 
   const PARENT = {
     matiere: 'matieres', lecon: 'matieres', exos: 'matieres',
-    seance: 'calendrier', recherche: 'matieres',
+    seance: 'mois', calendrier: 'mois', recherche: 'matieres',
   };
 
   /* ---------- Chrome : barre latérale, fil d'Ariane, recherche ------------- */
@@ -62,7 +62,7 @@
     const compteurs = {
       suivi: `${c.validees}/${c.total}`,
       matieres: String(PROGRAMME.matieres.length),
-      calendrier: String(N.etat.seances.length),
+      mois: String(N.etat.seances.length),
     };
 
     document.getElementById('p-nav').innerHTML = GROUPES.map((g) => `
@@ -149,6 +149,44 @@
       <option value=""${actuel ? '' : ' selected'}>non évaluée</option>
       ${N.NIVEAUX.map((n) => `<option value="${n.id}"${actuel === n.id ? ' selected' : ''}>${N.ech(n.libelle)}</option>`).join('')}
     </select>`;
+  }
+
+  /**
+   * Trois états d'ouverture : automatique (la règle décide), poussée (Sterenn
+   * y a accès tout de suite), retenue (elle attendra). C'est ce qui permet de
+   * livrer les leçons au fil de l'apprentissage plutôt que d'un bloc.
+   */
+  function choixOuverture(mid, ref) {
+    const d = N.decision(mid, ref);
+    const auto = N.reglementaire(mid, ref);
+    return `<span class="p-pousse" role="group" aria-label="Accès de Sterenn à cette leçon">
+      <button type="button" class="auto" data-pousse="auto" data-mid="${mid}" data-ref="${ref}"
+        aria-pressed="${d === null}" title="La règle décide : ${auto ? 'ouverte' : 'fermée'} aujourd'hui">auto</button>
+      <button type="button" data-pousse="oui" data-mid="${mid}" data-ref="${ref}"
+        aria-pressed="${d === 1}" title="Ouvrir maintenant">ouvrir</button>
+      <button type="button" class="non" data-pousse="non" data-mid="${mid}" data-ref="${ref}"
+        aria-pressed="${d === 0}" title="Retenir encore">retenir</button>
+    </span>`;
+  }
+
+  function brancherOuvertures(apres) {
+    vue().querySelectorAll('[data-pousse]').forEach((b) => b.addEventListener('click', async () => {
+      const v = b.getAttribute('data-pousse');
+      try {
+        await N.api('/ouvertures', {
+          method: 'PUT',
+          body: JSON.stringify({
+            matiere: b.getAttribute('data-mid'),
+            ref: b.getAttribute('data-ref'),
+            ouvert: v === 'auto' ? null : v === 'oui',
+          }),
+        });
+        await N.rafraichirEtat();
+        N.signaler(v === 'auto' ? 'Retour à la règle automatique.'
+          : (v === 'oui' ? 'Leçon ouverte à Sterenn.' : 'Leçon retenue.'), 'succes');
+        if (apres) apres();
+      } catch (e) { N.signaler(e.message); }
+    }));
   }
 
   function brancherNiveaux(apres) {
@@ -272,7 +310,7 @@
 
     afficher(
       entete('Aujourd\'hui', N.ech(N.enFrancais(aujourd, true)) + ' · semaine du ' + N.ech(N.enFrancais(lundi)),
-        `<a class="p-bouton p-bouton-fantome" href="#/calendrier">Voir le planning</a>
+        `<a class="p-bouton p-bouton-fantome" href="#/mois">Voir le planning</a>
          <a class="p-bouton" href="#/suivi">Suivi des acquis</a>`)
       + `<ul class="p-kpis">
           <li class="pos"><span class="v">${c.validees}</span><span class="l">leçons validées sur ${c.total}</span></li>
@@ -329,6 +367,75 @@
   /* =======================================================================
      Planning : vue semaine
      ======================================================================= */
+  const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const ENTETES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+  const moisDe = (iso) => iso.slice(0, 8) + '01';
+  const nbJours = (iso) => {
+    const d = new Date(iso + 'T12:00:00');
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  };
+
+  /** Vue mois : la grille complète, six semaines au plus, tout le planning dessus. */
+  function vueMois(iso) {
+    const base = /^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? iso : N.jourIso();
+    const premier = moisDe(base);
+    const d = new Date(premier + 'T12:00:00');
+    const total = nbJours(premier);
+    const aujourd = N.jourIso();
+    const debutGrille = N.lundiDe(premier);
+    const dernier = premier.slice(0, 8) + String(total).padStart(2, '0');
+    const finGrille = N.decaler(N.lundiDe(dernier), 6);
+    const nb = Math.round((new Date(finGrille + 'T12:00:00') - new Date(debutGrille + 'T12:00:00')) / 86400000) + 1;
+
+    const duMois = N.etat.seances.filter((x) => x.date >= premier && x.date <= dernier);
+    const faites = duMois.filter((x) => x.statut === 'faite').length;
+    const cours = duMois.filter((x) => x.type === 'cours').length;
+
+    const cellules = [];
+    for (let i = 0; i < nb; i += 1) {
+      const jour = N.decaler(debutGrille, i);
+      const dedans = jour >= premier && jour <= dernier;
+      const liste = seancesDu(jour);
+      const classes = ['p-m-jour'];
+      if (!dedans) classes.push('hors');
+      if (jour === aujourd) classes.push('auj');
+      if (jour < aujourd) classes.push('passe');
+      cellules.push(`<div class="${classes.join(' ')}">
+        <div class="p-m-tete">
+          <span class="p-m-num">${Number(jour.slice(8, 10))}</span>
+          ${dedans ? `<button class="p-m-plus" type="button" data-nouvelle="${jour}"
+            title="Ajouter une séance le ${N.ech(N.enFrancais(jour, true))}" aria-label="Ajouter une séance">+</button>` : ''}
+        </div>
+        ${liste.map((x) => `<a class="p-m-evt ${x.type === 'travail' ? 'travail' : ''} ${N.ech(x.statut || 'prevue')}"
+            href="#/seance/${x.id}" title="${N.ech(x.objectif || '')}">
+          <span class="h">${N.ech(x.debut || '')}</span>
+          <span class="t">${N.ech(court(x.objectif || (x.type === 'travail' ? 'Travail personnel' : 'Séance'), 46))}</span>
+        </a>`).join('')}
+      </div>`);
+    }
+
+    afficher(
+      entete('Planning', `${MOIS[d.getMonth()]} ${d.getFullYear()} · ${duMois.length} séance(s), ${cours} cours, ${faites} faite(s)`,
+        `<button class="p-bouton p-bouton-fantome" data-mois="${N.decaler(premier, -1)}" type="button">◀ Mois précédent</button>
+         <button class="p-bouton p-bouton-fantome" data-mois="${N.jourIso()}" type="button">Ce mois-ci</button>
+         <button class="p-bouton p-bouton-fantome" data-mois="${N.decaler(dernier, 1)}" type="button">Mois suivant ▶</button>
+         <a class="p-bouton p-bouton-fantome" href="#/calendrier/${base}">Vue semaine</a>
+         <a class="p-bouton" href="#/planning">Générer l'année</a>`)
+      + `<div class="p-mois">
+          <div class="p-m-entetes">${ENTETES.map((j) => `<span>${j}</span>`).join('')}</div>
+          <div class="p-m-grille">${cellules.join('')}</div>
+        </div>`,
+      [{ t: 'Pilotage' }, { t: 'Planning', h: '#/planning-mois' }, { t: `${MOIS[d.getMonth()]} ${d.getFullYear()}` }],
+    );
+
+    vue().querySelectorAll('[data-mois]').forEach((b) => b.addEventListener('click',
+      () => { location.hash = '#/mois/' + b.getAttribute('data-mois'); }));
+    vue().querySelectorAll('[data-nouvelle]').forEach((b) => b.addEventListener('click',
+      () => creerSeance(b.getAttribute('data-nouvelle'))));
+  }
+
   function vueCalendrier(iso) {
     const base = /^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? iso : N.jourIso();
     const lundi = N.lundiDe(base);
@@ -347,7 +454,7 @@
         </div>
         ${liste.map((s) => `<a class="p-evt ${s.type === 'travail' ? 'travail' : ''} ${s.statut === 'faite' ? 'faite' : ''}"
             href="#/seance/${s.id}" style="display:block;text-decoration:none;color:inherit">
-          <span class="p-evt-h">${N.ech(s.debut || '')}</span>
+          <span class="p-evt-h">${N.ech(s.debut || '')} à ${N.ech(s.fin || '')}</span>
           <span class="p-evt-t">${N.ech(court(s.objectif || (s.type === 'travail' ? 'Travail personnel' : 'Séance'), 68))}</span>
           <span class="p-evt-m">${resumeMatieres(s) || (s.type === 'travail' ? 'perso' : 'cours')}</span>
         </a>`).join('')
@@ -362,6 +469,7 @@
         `<button class="p-bouton p-bouton-fantome" data-semaine="${N.decaler(lundi, -7)}" type="button">◀ Semaine précédente</button>
          <button class="p-bouton p-bouton-fantome" data-semaine="${N.lundiDe(aujourd)}" type="button">Cette semaine</button>
          <button class="p-bouton p-bouton-fantome" data-semaine="${N.decaler(lundi, 7)}" type="button">Semaine suivante ▶</button>
+         <a class="p-bouton p-bouton-fantome" href="#/mois/${base}">Vue mois</a>
          <a class="p-bouton" href="#/planning">Générer l'année</a>`)
       + `<div class="p-cal">${jours.map(cellule).join('')}</div>`
       + bloc('Le détail de la semaine',
@@ -369,7 +477,7 @@
           ? semaine.map((s) => carteSeance(s)).join('')
           : '<p class="p-vide">Aucune séance sur cette semaine.</p>',
         semaine.length ? semaine.length + ' séance(s)' : ''),
-      [{ t: 'Pilotage' }, { t: 'Planning', h: '#/calendrier' }, { t: 'Semaine du ' + N.enFrancais(jours[0]) }],
+      [{ t: 'Pilotage' }, { t: 'Planning', h: '#/planning-mois' }, { t: 'Semaine du ' + N.enFrancais(jours[0]) }],
     );
 
     vue().querySelectorAll('[data-semaine]').forEach((b) => b.addEventListener('click',
@@ -426,6 +534,12 @@
             <div><label for="f-statut">Statut</label><select id="f-statut">
               ${opt('prevue', s.statut, 'Prévue')}${opt('faite', s.statut, 'Faite')}${opt('reportee', s.statut, 'Reportée')}</select></div>
           </div>
+          <div class="ligne">
+            <div><label for="f-debut">Début</label><input id="f-debut" type="time" value="${N.ech(s.debut || '13:00')}"></div>
+            <div><label for="f-fin">Fin</label><input id="f-fin" type="time" value="${N.ech(s.fin || '14:30')}"></div>
+            <div><label for="f-type">Type</label><select id="f-type">
+              ${opt('cours', s.type, 'Cours')}${opt('travail', s.type, 'Travail personnel')}</select></div>
+          </div>
           <div><label for="f-objectif">Objectif annoncé</label>
             <input id="f-objectif" type="text" maxlength="300" value="${N.ech(s.objectif || '')}"></div>
           <div><label for="f-lecons">Leçons travaillées</label>
@@ -474,6 +588,9 @@
           body: JSON.stringify({
             date: document.getElementById('f-date').value,
             creneau: document.getElementById('f-creneau').value,
+            debut: document.getElementById('f-debut').value,
+            fin: document.getElementById('f-fin').value,
+            type: document.getElementById('f-type').value,
             statut: document.getElementById('f-statut').value,
             objectif: document.getElementById('f-objectif').value,
             travail: document.getElementById('f-travail').value,
@@ -503,19 +620,21 @@
      ======================================================================= */
   let apercu = null;
 
-  function prochainLundi() {
-    const a = N.jourIso();
-    const l = N.lundiDe(a);
-    return l >= a ? l : N.decaler(l, 7);
+  /** Le lundi de rentrée, ou le prochain lundi si la rentrée est passée. */
+  function premierLundi() {
+    const rentree = (window.PLANIFICATEUR && window.PLANIFICATEUR.RENTREE) || null;
+    if (rentree && rentree >= N.jourIso()) return rentree;
+    const l = N.lundiDe(N.jourIso());
+    return l >= N.jourIso() ? l : N.decaler(l, 7);
   }
 
   function vuePlanning() {
     const existantes = N.etat.seances.length;
-    const debut = prochainLundi();
+    const debut = premierLundi();
 
     afficher(
       entete('Générateur d\'année', 'Trois séances par semaine, lundi, mercredi et vendredi de 13 h à 14 h 30, plus deux temps de travail personnel.',
-        '<a class="p-bouton p-bouton-fantome" href="#/calendrier">Voir le planning</a>')
+        '<a class="p-bouton p-bouton-fantome" href="#/mois">Voir le planning</a>')
       + '<div class="p-grille2"><div>'
       + bloc('Paramètres', `
         <form class="p-form" id="p-form-planning">
@@ -523,6 +642,12 @@
             <div><label for="g-debut">Premier lundi</label><input id="g-debut" type="date" value="${debut}"></div>
             <div><label for="g-semaines">Nombre de semaines</label><input id="g-semaines" type="number" min="1" max="52" value="36"></div>
           </div>
+          <div class="ligne">
+            <div><label for="g-merc-debut">Mercredi : début</label><input id="g-merc-debut" type="time" value="13:00"></div>
+            <div><label for="g-merc-fin">Mercredi : fin</label><input id="g-merc-fin" type="time" value="14:30"></div>
+          </div>
+          <p class="p-aide">Le lundi et le vendredi restent de 13 h à 14 h 30. Le mercredi se règle ici pour
+            toute l'année, et se corrige ensuite séance par séance.</p>
           <p class="p-aide">Le générateur répartit les ${N.chiffres().total} leçons en trois blocs chacune, fait tourner
             les matières pour qu'aucune semaine ne se répète, place les temps de travail personnel du mardi et du jeudi,
             et réserve une séance sur quatre au choix de Sterenn.</p>
@@ -551,8 +676,13 @@
       const d = document.getElementById('g-debut').value;
       const n = parseInt(document.getElementById('g-semaines').value, 10);
       if (!d || !n) return N.signaler('Indique un premier lundi et un nombre de semaines.');
+      const mercredi = {
+        debut: document.getElementById('g-merc-debut').value || '13:00',
+        fin: document.getElementById('g-merc-fin').value || '14:30',
+      };
+      if (mercredi.debut >= mercredi.fin) return N.signaler('Le mercredi doit finir après avoir commencé.');
       try {
-        apercu = window.PLANIFICATEUR.generer(N.lundiDe(d), n);
+        apercu = window.PLANIFICATEUR.generer(N.lundiDe(d), n, { mercredi });
         rendreApercu();
         document.getElementById('g-enregistrer').disabled = false;
       } catch (e) { N.signaler(e.message); }
@@ -658,10 +788,11 @@
         <thead><tr>
           <th style="width:4rem">Réf.</th><th>Leçon</th><th style="width:4rem">Période</th>
           <th style="width:8.5rem">Documents</th><th style="width:6rem">Exercices</th>
-          <th style="width:11rem">Niveau</th><th>Note de suivi</th><th style="width:7rem">Mise à jour</th>
+          <th style="width:11rem">Niveau</th><th style="width:9rem">Accès de Sterenn</th>
+          <th>Note de suivi</th><th style="width:7rem">Mise à jour</th>
         </tr></thead>
         <tbody>${lignes.map((g) => `
-          <tr class="grp"><td colspan="8">${g.m.icone} ${N.ech(g.m.nom)}
+          <tr class="grp"><td colspan="9">${g.m.icone} ${N.ech(g.m.nom)}
             · ${N.progression(g.m).faites}/${g.m.lecons.length} validées</td></tr>
           ${g.lecons.map((l) => {
     const suivi = N.etat.suivi[N.cle(g.m.id, l.ref)] || {};
@@ -674,6 +805,7 @@
               <td class="docs">${pastillesDocs(l)}</td>
               <td class="num">${res ? res.meilleur + '/' + res.total : '·'}</td>
               <td>${choixNiveau(g.m.id, l.ref)}</td>
+              <td>${pret ? choixOuverture(g.m.id, l.ref) : '<span class="p-puce">à rédiger</span>'}</td>
               <td><input data-note data-mid="${g.m.id}" data-ref="${l.ref}" type="text" maxlength="200"
                     style="width:100%" value="${N.ech(suivi.note || '')}" placeholder="ce qui reste à reprendre"></td>
               <td class="num">${suivi.maj_le ? N.ech(N.dateCourte(suivi.maj_le).slice(0, 5)) : '·'}</td>
@@ -708,6 +840,7 @@
     document.getElementById('s-niveau').addEventListener('change', (e) => { filtres.niveau = e.target.value; vueSuivi(); });
     document.getElementById('s-pretes').addEventListener('change', (e) => { filtres.pretes = Boolean(e.target.value); vueSuivi(); });
     brancherNiveaux(vueSuivi);
+    brancherOuvertures(vueSuivi);
 
     vue().querySelectorAll('[data-note]').forEach((i) => i.addEventListener('change', async () => {
       const mid = i.getAttribute('data-mid');
@@ -896,7 +1029,8 @@
         <table class="p-table">
           <thead><tr><th style="width:4rem">Réf.</th><th>Leçon</th><th>Notions</th>
             <th style="width:4rem">Période</th><th style="width:8.5rem">Documents</th>
-            <th style="width:11rem">Niveau</th><th style="width:9rem"></th></tr></thead>
+            <th style="width:11rem">Niveau</th><th style="width:9rem">Accès</th>
+            <th style="width:9rem"></th></tr></thead>
           <tbody>${m.lecons.map((l) => {
     const pret = (l.docs || []).length > 0;
     return `<tr>
@@ -906,7 +1040,8 @@
       <td class="num">P${l.periode}</td>
       <td class="docs">${pastillesDocs(l)}</td>
       <td>${choixNiveau(m.id, l.ref)}</td>
-      <td>${pret ? `<a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/lecon/${m.id}/${l.ref}">Lire</a>` : '<span class="p-puce">à rédiger</span>'}
+      <td>${pret ? choixOuverture(m.id, l.ref) : '<span class="p-puce">à rédiger</span>'}</td>
+      <td>${pret ? `<a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/lecon/${m.id}/${l.ref}">Lire</a>` : ''}
         ${N.banque(m.id, l.ref) ? `<a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/exos/${m.id}/${l.ref}">Exos</a>` : ''}</td>
     </tr>`;
   }).join('')}</tbody>
@@ -914,6 +1049,7 @@
       [{ t: 'Ressources' }, { t: 'Matières', h: '#/matieres' }, { t: m.nom }],
     );
     brancherNiveaux(() => vueMatiere(mid));
+    brancherOuvertures(() => vueMatiere(mid));
     return undefined;
   }
 
@@ -957,6 +1093,8 @@
               <div class="p-rail-bloc">
                 <h2>Niveau atteint</h2>
                 ${choixNiveau(mid, ref)}
+                <h2 style="margin-top:.6rem">Accès de Sterenn</h2>
+                ${choixOuverture(mid, ref)}
                 <p class="p-aide" style="margin-top:.35rem">${lue ? 'Lue le ' + N.ech(N.dateCourte(lue.termine_le)) : 'Pas encore marquée comme lue.'}</p>
                 ${res ? `<p class="p-aide">Exercices : ${res.meilleur}/${res.total} au mieux, ${res.series} série(s).</p>` : ''}
               </div>
@@ -969,7 +1107,7 @@
               <div class="p-rail-bloc"><h2>Actions</h2>
                 <p><button class="p-bouton p-bouton-fantome p-bouton-mini" id="p-question" type="button">Écrire à Sterenn</button></p>
                 <p style="margin-top:.35rem"><a class="p-bouton p-bouton-fantome p-bouton-mini"
-                  href="#/calendrier">Placer dans une séance</a></p>
+                  href="#/mois">Placer dans une séance</a></p>
               </div>
             </aside>
           </div>`,
@@ -977,6 +1115,7 @@
       );
 
       brancherNiveaux(() => vueLecon(mid, ref, actif));
+      brancherOuvertures(() => vueLecon(mid, ref, actif));
       document.getElementById('p-question').addEventListener('click', () => {
         location.hash = '#/messages/' + encodeURIComponent(m.nom + ' · ' + l.titre);
       });
@@ -1145,6 +1284,7 @@
     brancherChromeUneFois();
     switch (p[0]) {
       case '': case 'accueil': return vueAccueil();
+      case 'mois': return vueMois(p[1]);
       case 'calendrier': return vueCalendrier(p[1]);
       case 'seance': return vueSeance(p[1]);
       case 'planning': return vuePlanning();
