@@ -24,6 +24,21 @@ npm run serve    # relire les fiches sur http://localhost:4321
 | Progression annuelle | `00-pilotage/progression-annuelle.md` |
 | Journal des séances | `00-pilotage/journal-seances/` |
 
+Après un `npm run build`, le point d'entrée le plus pratique est le sommaire
+généré : **`public/index.html`** — toutes les leçons, par matière, avec leurs
+quatre documents.
+
+## Outils complémentaires
+
+| Outil | Ce qu'il sert à faire |
+|---|---|
+| `outils/methode-analyser-document.md` | Analyser un document en 5 questions (histoire, géo, EMC, français) |
+| `outils/methode-developpement-construit.md` | Rédiger 20 lignes organisées et argumentées |
+| `outils/methode-probleme-maths.md` | Passer de l'énoncé au calcul en 6 étapes |
+| `outils/cartes-revision.md` | Fabriquer et utiliser des cartes de répétition espacée |
+| `outils/planificateur-seance.md` | Préparer une séance minutée et prévisible |
+| `outils/suivi-acquis.md` | Suivre les 69 leçons et programmer les reprises |
+
 ## Les 4 documents de chaque leçon
 
 Toute leçon possède **quatre** documents, jamais moins :

@@ -450,8 +450,37 @@ ${bloc('Outils complémentaires', outils)}
 
 fs.writeFileSync(path.join(SORTIE, 'index.html'), construireSommaire());
 
+/* ── Vérification des liens internes ────────────────────────────────────── */
+function verifierLiens() {
+  const pages = [];
+  (function walk(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) { if (e.name !== 'pdf') walk(p); }
+      else if (e.name.endsWith('.html')) pages.push(p);
+    }
+  })(SORTIE);
+
+  let casses = 0;
+  for (const page of pages) {
+    const html = fs.readFileSync(page, 'utf8');
+    for (const m of html.matchAll(/href="([^"#][^"]*)"/g)) {
+      const lien = m[1];
+      if (/^(https?:|mailto:)/.test(lien)) continue;
+      const cible = path.resolve(path.dirname(page), lien.split('#')[0]);
+      if (!fs.existsSync(cible)) {
+        console.warn(`   ⚠️  lien cassé dans ${path.relative(SORTIE, page)} → ${lien}`);
+        casses += 1;
+      }
+    }
+  }
+  return casses;
+}
+
+const liensCasses = verifierLiens();
+
 console.log(`✅ ${fiches.length} fiche(s) générée(s) dans public/ (+ sommaire)`);
-if (avertissements) {
-  console.error(`❌ ${avertissements} avertissement(s) de front-matter — corrige avant de committer.`);
+if (avertissements || liensCasses) {
+  console.error(`❌ ${avertissements} avertissement(s) de front-matter, ${liensCasses} lien(s) cassé(s) — corrige avant de committer.`);
   process.exitCode = 1;
 }
