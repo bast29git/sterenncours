@@ -3144,4 +3144,144 @@ window.EXERCICES = {
       }
     ]
   }
+,
+  'svt/L03': {
+    titre: 'Le volcanisme',
+    items: [
+      {
+        type: 'qcm',
+        q: 'Quelle est la différence entre le magma et la lave ?',
+        choix: ['Ce sont deux matières différentes', 'C\'est la même matière : magma en profondeur, lave en surface', 'La lave est plus chaude que le magma'],
+        reponse: 1,
+        explication: "C'est la même matière. On parle de magma en profondeur, avec ses gaz dissous, et de lave une fois arrivée en surface, après qu'elle en a perdu une grande partie."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Le manteau terrestre est entièrement liquide.',
+        reponse: false,
+        explication: "Faux. Le manteau est solide, bien que déformable. Le magma se forme localement, par fusion partielle, dans trois situations précises seulement."
+      },
+      {
+        type: 'qcm',
+        q: 'Sous une dorsale océanique, qu\'est-ce qui provoque la fusion des roches ?',
+        choix: ['Une baisse de pression', 'Un apport d\'eau', 'Un choc de météorite'],
+        reponse: 0,
+        explication: "Une baisse de pression : le manteau remonte sous la dorsale, la pression diminue et la roche fond partiellement. En subduction, c'est l'eau qui abaisse le point de fusion."
+      },
+      {
+        type: 'qcm',
+        q: 'En zone de subduction, pourquoi l\'eau fait-elle fondre les roches ?',
+        choix: ['Elle les refroidit', 'Elle abaisse leur température de fusion', 'Elle les dissout'],
+        reponse: 1,
+        explication: "Elle abaisse leur température de fusion, exactement comme le sel fait fondre la glace sur une route sans que l'air se réchauffe. Des roches qui seraient restées solides fondent alors partiellement."
+      },
+      {
+        type: 'saisie',
+        q: 'Comment appelle-t-on le réservoir où le magma s\'accumule avant l\'éruption ? (deux mots)',
+        reponses: ['chambre magmatique', 'la chambre magmatique'],
+        explication: "La chambre magmatique, située à quelques kilomètres de profondeur. Le magma en remonte par la cheminée, un conduit étroit, pour sortir au cratère."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Un volcan est une montagne creuse remplie de lave.',
+        reponse: false,
+        explication: "Faux. C'est un empilement de couches déposées par les éruptions successives. Seule une cheminée étroite le traverse ; tout le reste du cône est de la roche solide."
+      },
+      {
+        type: 'qcm',
+        q: 'Quelle est la forme caractéristique d\'un volcan effusif ?',
+        choix: ['Étroit et très pentu', 'Large et peu pentu, en bouclier', 'Parfaitement conique'],
+        reponse: 1,
+        explication: "En bouclier : la lave fluide s'étale loin avant de se figer, donc les pentes sont douces. Un volcan explosif, dont la lave est visqueuse, est au contraire étroit et pentu."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qui rend une éruption explosive plutôt qu\'effusive ?',
+        choix: ['La quantité de gaz contenue dans le magma', 'La viscosité du magma', 'La profondeur de la chambre magmatique'],
+        reponse: 1,
+        explication: "La viscosité. Un magma fluide peut contenir beaucoup de gaz : il les relâche au fur et à mesure. Un magma visqueux les retient prisonniers jusqu'à la rupture brutale."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel facteur rend un magma plus visqueux ?',
+        choix: ['Une température élevée', 'Une forte teneur en silice', 'Une faible profondeur'],
+        reponse: 1,
+        explication: "Une forte teneur en silice, et aussi une température basse. À l'inverse, un magma chaud et pauvre en silice est fluide, donc effusif."
+      },
+      {
+        type: 'qcm',
+        q: 'Qu\'est-ce qu\'une nuée ardente ?',
+        choix: ['Une coulée de lave très rapide', 'Un mélange de gaz brûlants, de cendres et de blocs dévalant les pentes', 'Un nuage de vapeur d\'eau'],
+        reponse: 1,
+        explication: "Un mélange de gaz brûlants, de cendres et de blocs, à plusieurs centaines de degrés et jusqu'à plus de 500 km/h. C'est le phénomène volcanique le plus meurtrier."
+      },
+      {
+        type: 'qcm',
+        q: 'Existe-t-il une protection efficace contre une nuée ardente une fois déclenchée ?',
+        choix: ['Oui, un abri renforcé', 'Non, seule l\'évacuation préventive protège', 'Oui, il suffit de fuir en voiture'],
+        reponse: 1,
+        explication: "Non. Elle est trop rapide pour être fuie, assez chaude pour tuer par les voies respiratoires, et elle contourne les obstacles. Seule l'évacuation décidée AVANT l'éruption protège."
+      },
+      {
+        type: 'saisie',
+        q: 'Combien de morts la nuée ardente de la Montagne Pelée a-t-elle faits à Saint-Pierre en 1902 ? (en milliers, écris le nombre)',
+        reponses: ['28000', '28 000', '28000 morts', 'environ 28000', '28 000 morts'],
+        explication: "Environ 28 000 morts en quelques minutes, avec deux ou trois survivants seulement. Le volcan donnait pourtant des signes depuis des semaines, mais une élection approchait et les autorités ont minimisé le danger."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Le Piton de la Fournaise, qui entre en éruption une à deux fois par an, est le volcan français le plus dangereux.',
+        reponse: false,
+        explication: "Faux. Il est effusif : ses coulées fluides s'écoulent lentement dans une zone inhabitée. La Montagne Pelée, explosive, entre en éruption bien plus rarement mais a fait 28 000 morts en 1902."
+      },
+      {
+        type: 'qcm',
+        q: 'Où se trouve environ 75 % des volcans actifs émergés ?',
+        choix: ['Dans la ceinture de feu du Pacifique', 'En Europe', 'Sur les dorsales atlantiques'],
+        reponse: 0,
+        explication: "Dans la ceinture de feu du Pacifique, du Chili au Japon en passant par l'Alaska. Elle correspond aux zones de subduction qui entourent la plaque pacifique."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel volcanisme trouve-t-on en zone de subduction ?',
+        choix: ['Effusif', 'Explosif', 'Aucun'],
+        reponse: 1,
+        explication: "Explosif. L'eau libérée par la plaque plongeante produit un magma riche en silice et en gaz, donc visqueux. Les dorsales et les points chauds donnent au contraire un volcanisme effusif."
+      },
+      {
+        type: 'vraifaux',
+        q: 'Un volcan inactif depuis 9 000 ans peut être considéré comme définitivement éteint.',
+        reponse: false,
+        explication: "Faux. Le Chaitén, au Chili, dormait depuis plus de 9 000 ans quand il est entré en éruption en 2008. Les volcanologues préfèrent parler de volcans actifs, endormis, ou sans activité connue depuis telle date."
+      },
+      {
+        type: 'qcm',
+        q: 'Pourquoi 800 millions de personnes vivent-elles près d\'un volcan actif ?',
+        choix: ['Par ignorance du danger', 'Parce que les sols volcaniques sont très fertiles', 'Parce que les terrains y sont interdits ailleurs'],
+        reponse: 1,
+        explication: "Les cendres enrichissent la terre en minéraux et donnent des rendements agricoles élevés. Le bénéfice est quotidien et certain, le risque rare et incertain : le choix n'a rien d'irrationnel."
+      },
+      {
+        type: 'qcm',
+        q: 'Quel signe précurseur indique que la chambre magmatique se remplit ?',
+        choix: ['Une déformation, un gonflement du sol', 'Une baisse de température des sources', 'Un ciel dégagé'],
+        reponse: 0,
+        explication: "Le gonflement du sol. Les autres signes : des séismes de plus en plus fréquents, un changement de composition des gaz émis, une hausse de température des sources chaudes."
+      },
+      {
+        type: 'qcm',
+        q: 'Que permet la surveillance volcanique ?',
+        choix: ['De prévoir le jour exact de l\'éruption', 'De dire qu\'une éruption approche, sans en préciser la date ni l\'intensité', 'D\'empêcher l\'éruption'],
+        reponse: 1,
+        explication: "De dire qu'une éruption approche, souvent avec plusieurs jours ou semaines d'avance. La décision d'évacuer reste un pari : trop tard elle tue, trop souvent elle décrédibilise l'alerte suivante."
+      },
+      {
+        type: 'qcm',
+        q: 'En 1991 au Pinatubo, l\'éruption fut l\'une des plus puissantes du siècle. Pourquoi le bilan fut-il de 800 morts et non de dizaines de milliers ?',
+        choix: ['Le volcan était moins dangereux que prévu', 'Plus de 60 000 personnes avaient été évacuées avant l\'éruption', 'La région était inhabitée'],
+        reponse: 1,
+        explication: "Les volcanologues ont convaincu les autorités d'évacuer préventivement. Comparé à Saint-Pierre en 1902, où l'on n'a pas évacué, cet exemple montre que le bilan dépend autant de la décision politique que du volcan."
+      }
+    ]
+  }
 };
