@@ -222,8 +222,9 @@ var onRequestDelete2 = gerer(async (context) => {
 });
 var MAX_TENTATIVES = 12;
 var FENETRE = 600;
-async function onRequestPost(context) {
+var onRequestPost = gerer(async (context) => {
   const { request, env } = context;
+  if (!env.SESSIONS) return erreur("Stockage des sessions non configur\xE9.", 503);
   const ip = request.headers.get("cf-connecting-ip") || "inconnue";
   const cleLimite = "tentatives:" + ip;
   const tentatives = parseInt(await env.SESSIONS.get(cleLimite) || "0", 10);
@@ -251,9 +252,7 @@ async function onRequestPost(context) {
   }
   await env.SESSIONS.put(cleLimite, String(tentatives + 1), { expirationTtl: FENETRE });
   return erreur("Ce code n'est pas reconnu.", 401);
-}
-__name(onRequestPost, "onRequestPost");
-__name2(onRequestPost, "onRequestPost");
+});
 async function onRequestPost2(context) {
   const session = await lireSession(context.request, context.env);
   if (session) await supprimerSession(context.env, session.jeton);
@@ -435,7 +434,12 @@ var onRequestPatch2 = gerer(async (context) => {
 });
 var onRequestGet5 = gerer(async (context) => {
   const session = await lireSession(context.request, context.env);
-  return session ? json({ role: session.role, depuis: session.cree }) : json({ role: null });
+  const relie = {
+    kv: Boolean(context.env.SESSIONS),
+    db: Boolean(context.env.DB),
+    r2: Boolean(context.env.FICHIERS)
+  };
+  return session ? json({ role: session.role, depuis: session.cree, relie }) : json({ role: null, relie });
 });
 var onRequestPut2 = gerer(async (context) => {
   await exigerSession(context);

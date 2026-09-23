@@ -69,7 +69,9 @@ function versOctets(chaineHex) {
   return sortie;
 }
 __name(versOctets, "versOctets");
+var ITERATIONS_MAX = 1e5;
 async function deriver(code, selHex, iterations) {
+  const tours = Math.min(Number(iterations) || ITERATIONS_MAX, ITERATIONS_MAX);
   const cle = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(code),
@@ -78,7 +80,7 @@ async function deriver(code, selHex, iterations) {
     ["deriveBits"]
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt: versOctets(selHex), iterations, hash: "SHA-256" },
+    { name: "PBKDF2", salt: versOctets(selHex), iterations: tours, hash: "SHA-256" },
     cle,
     256
   );
@@ -214,8 +216,9 @@ var onRequestDelete2 = gerer(async (context) => {
 // api/connexion.js
 var MAX_TENTATIVES = 12;
 var FENETRE = 600;
-async function onRequestPost(context) {
+var onRequestPost = gerer(async (context) => {
   const { request, env } = context;
+  if (!env.SESSIONS) return erreur("Stockage des sessions non configur\xE9.", 503);
   const ip = request.headers.get("cf-connecting-ip") || "inconnue";
   const cleLimite = "tentatives:" + ip;
   const tentatives = parseInt(await env.SESSIONS.get(cleLimite) || "0", 10);
@@ -243,8 +246,7 @@ async function onRequestPost(context) {
   }
   await env.SESSIONS.put(cleLimite, String(tentatives + 1), { expirationTtl: FENETRE });
   return erreur("Ce code n'est pas reconnu.", 401);
-}
-__name(onRequestPost, "onRequestPost");
+});
 
 // api/deconnexion.js
 async function onRequestPost2(context) {
@@ -437,7 +439,12 @@ var onRequestPatch2 = gerer(async (context) => {
 // api/moi.js
 var onRequestGet5 = gerer(async (context) => {
   const session = await lireSession(context.request, context.env);
-  return session ? json({ role: session.role, depuis: session.cree }) : json({ role: null });
+  const relie = {
+    kv: Boolean(context.env.SESSIONS),
+    db: Boolean(context.env.DB),
+    r2: Boolean(context.env.FICHIERS)
+  };
+  return session ? json({ role: session.role, depuis: session.cree, relie }) : json({ role: null, relie });
 });
 
 // api/resultats.js
@@ -1254,7 +1261,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-UluGYE/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-Cm4SoE/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -1286,7 +1293,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-UluGYE/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-Cm4SoE/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

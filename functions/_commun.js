@@ -77,12 +77,16 @@ function versOctets(chaineHex) {
   return sortie;
 }
 
+/** Cloudflare plafonne PBKDF2 à 100 000 itérations : au-delà, l'appel échoue. */
+export const ITERATIONS_MAX = 100000;
+
 export async function deriver(code, selHex, iterations) {
+  const tours = Math.min(Number(iterations) || ITERATIONS_MAX, ITERATIONS_MAX);
   const cle = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveBits'],
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt: versOctets(selHex), iterations, hash: 'SHA-256' }, cle, 256,
+    { name: 'PBKDF2', salt: versOctets(selHex), iterations: tours, hash: 'SHA-256' }, cle, 256,
   );
   return hex(bits);
 }

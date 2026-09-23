@@ -26,7 +26,10 @@ const NOM_D1 = process.env.NOM_D1 || 'sterenncours';
 const NOM_R2 = process.env.NOM_R2 || 'sterenncours-fichiers';
 const CODE_ELEVE = process.env.CODE_ELEVE || 'sanka29';
 const CODE_PROF = process.env.CODE_PROF || 'babas29';
-const ITERATIONS = 150000;
+// Cloudflare Workers refuse PBKDF2 au-delà de 100 000 itérations : c'est le
+// plafond de la plateforme, pas un choix. On s'y tient exactement.
+const PLAFOND_CLOUDFLARE = 100000;
+const ITERATIONS = Math.min(Number(process.env.ITERATIONS) || PLAFOND_CLOUDFLARE, PLAFOND_CLOUDFLARE);
 
 if (!JETON || !COMPTE) {
   console.error('❌ CLOUDFLARE_API_TOKEN et CLOUDFLARE_ACCOUNT_ID sont requis.');
