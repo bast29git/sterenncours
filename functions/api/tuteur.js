@@ -16,7 +16,7 @@ import { lireReglages } from './reglages.js';
 
 const MODELE = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const MODELE_CONTROLE = '@cf/meta/llama-3.1-8b-instruct-fast';
-const QUOTA_JOUR = 200;
+const QUOTA_JOUR = { eleve: 150, prof: 60 };
 
 const MODES = {
   cours: 'Sterenn lit une fiche de cours. Tu peux expliquer la notion avec tes mots, donner un exemple différent de ceux de la fiche, reformuler une définition.',
@@ -71,11 +71,11 @@ function contientReponse(texte, attendues) {
   });
 }
 
-async function quotaAtteint(env) {
+async function quotaAtteint(env, role) {
   try {
-    const cle = 'tuteur:' + new Date().toISOString().slice(0, 10);
+    const cle = 'tuteur:' + new Date().toISOString().slice(0, 10) + ':' + role;
     const n = Number(await env.SESSIONS.get(cle)) || 0;
-    if (n >= QUOTA_JOUR) return true;
+    if (n >= (QUOTA_JOUR[role] || 50)) return true;
     await env.SESSIONS.put(cle, String(n + 1), { expirationTtl: 60 * 60 * 26 });
   } catch (e) { /* sans KV : pas de quota */ }
   return false;
@@ -97,7 +97,7 @@ export const onRequestPost = gerer(async (context) => {
   const reglages = await lireReglages(env.DB);
   if (session.role === 'eleve' && !reglages.tuteur) return erreur('Opale est en pause pour le moment.', 403);
   if (!env.AI) return json({ indisponible: true });
-  if (await quotaAtteint(env)) return json({ indisponible: true, raison: 'quota' });
+  if (await quotaAtteint(env, session.role)) return json({ indisponible: true, raison: 'quota', message: 'Opale a répondu à beaucoup de questions aujourd\'hui : elle reprend demain. En attendant, le plan de la fiche et Bastien sont là.' });
 
   const messages = [{ role: 'system', content: systeme(contexte, reglages) }];
   for (const h of historique) {

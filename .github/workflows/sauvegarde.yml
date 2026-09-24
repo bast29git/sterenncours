@@ -1,0 +1,24 @@
+name: Sauvegarde nocturne de la base
+
+on:
+  schedule:
+    - cron: '15 2 * * *'   # chaque nuit à 2 h 15 UTC
+  workflow_dispatch:
+
+jobs:
+  sauvegarder:
+    name: Écrire un instantané dans R2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Se connecter et déclencher la sauvegarde
+        env:
+          SITE: https://sterenncours.pages.dev
+          CODE_PROF: ${{ secrets.CODE_PROF }}
+        run: |
+          if [ -z "$CODE_PROF" ]; then echo "::error::Secret CODE_PROF manquant"; exit 1; fi
+          curl -sS -c cookies.txt -X POST -H 'content-type: application/json' \
+            -d "{\"code\":\"$CODE_PROF\"}" "$SITE/api/connexion" > /dev/null
+          reponse=$(curl -sS -b cookies.txt -X POST "$SITE/api/sauvegarde")
+          echo "$reponse"
+          echo "$reponse" | grep -q '"cle"' || { echo "::error::Sauvegarde non confirmée"; exit 1; }
+          curl -sS -b cookies.txt -X POST "$SITE/api/deconnexion" > /dev/null

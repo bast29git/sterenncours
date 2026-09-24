@@ -71,6 +71,15 @@ export async function onRequest(context) {
     return entetes(rep, 'no-store');
   }
 
+  // Écritures : corps borné à 32 Ko et soixante écritures par minute et par session.
+  if (chemin.startsWith('/api/') && request.method !== 'GET' && request.method !== 'HEAD') {
+    const taille = Number(request.headers.get('content-length') || 0);
+    const fichier = chemin.startsWith('/api/fichiers');
+    if (!fichier && taille > 32768) return reponseJson({ erreur: 'Requête trop volumineuse (32 Ko au plus).' }, 413);
+    const refus = await debitDepasse(env, session, request);
+    if (refus) return reponseJson({ erreur: 'Trop de requêtes d\'un coup : attends une minute.' }, 429);
+  }
+
   context.data.session = session;
   const reponse = await next();
 
@@ -79,10 +88,32 @@ export async function onRequest(context) {
   return entetes(reponse, chemin.startsWith('/api/') ? 'no-store' : 'private, max-age=600');
 }
 
+const ECRITURES_PAR_MINUTE = 60;
+async function debitDepasse(env, session, request) {
+  if (!env.SESSIONS) return false;
+  try {
+    const jeton = (request.headers.get('cookie') || '').replace(/^.*sc_session=([^;]+).*$/, '$1').slice(0, 24) || session.role;
+    const cle = 'debit:' + jeton + ':' + Math.floor(Date.now() / 60000);
+    const n = Number(await env.SESSIONS.get(cle)) || 0;
+    if (n >= ECRITURES_PAR_MINUTE) return true;
+    await env.SESSIONS.put(cle, String(n + 1), { expirationTtl: 120 });
+  } catch (e) { /* sans compteur, on laisse passer */ }
+  return false;
+}
+function reponseJson(objet, statut) {
+  return new Response(JSON.stringify(objet), { status: statut, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+}
+
 function entetes(reponse, cache) {
   const sortie = new Response(reponse.body, reponse);
   sortie.headers.set('cache-control', cache);
   sortie.headers.set('x-content-type-options', 'nosniff');
   sortie.headers.set('referrer-policy', 'strict-origin-when-cross-origin');
+  sortie.headers.set('x-frame-options', 'SAMEORIGIN');
+  sortie.headers.set('permissions-policy', 'camera=(self), microphone=(self), geolocation=()');
+  if (!sortie.headers.has('content-security-policy')) {
+    sortie.headers.set('content-security-policy',
+      "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; form-action 'self'");
+  }
   return sortie;
 }

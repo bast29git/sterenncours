@@ -57,6 +57,15 @@ jobs:
       - name: Construire le site
         run: npm run build
 
+      - name: Installer Chromium pour les scénarios
+        run: npx playwright install chromium --with-deps
+
+      - name: Jouer les scénarios de bout en bout
+        env:
+          CODE_ELEVE_TEST: eleve-test
+          CODE_PROF_TEST: prof-test
+        run: npm test
+
       - name: Générer les PDF
         env:
           CHROME_BIN: /usr/bin/google-chrome

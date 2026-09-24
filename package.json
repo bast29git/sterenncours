@@ -9,12 +9,18 @@
     "pdf": "node build/pdf.mjs",
     "pdf:tout": "node build/pdf.mjs --tout",
     "all": "npm run build && npm run pdf",
-    "serve": "node build/serve.mjs"
+    "serve": "node build/serve.mjs",
+    "test": "node tests/preparer.mjs && node tests/lancer.mjs",
+    "verifier": "node build/verifier.mjs"
   },
   "dependencies": {
     "markdown-it": "^15.0.0",
     "markdown-it-attrs": "^4.3.1",
     "markdown-it-container": "^4.0.0",
     "markdown-it-deflist": "^3.0.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.49.0",
+    "wrangler": "^4.0.0"
   }
 }

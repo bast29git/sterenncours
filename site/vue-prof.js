@@ -1579,8 +1579,36 @@
     }).join('');
     afficher(entete('Réglages', 'Ce que Sterenn voit dans son espace. Chaque changement s\'applique chez elle en moins de trente secondes.')
       + bloc('Affichage et aides', `<ul class="p-reglages">${lignes}</ul>`)
+      + bloc('Sauvegardes de la base', `
+        <p class="p-aide">Un instantané de toutes les tables est écrit chaque nuit dans le stockage de fichiers (travail planifié du dépôt). Tu peux en faire un à la main, en télécharger un, ou restaurer un instantané : l'état courant est mis de côté juste avant.</p>
+        <p class="p-modeles"><button type="button" class="p-bouton" id="r-sauver">Sauvegarder maintenant</button></p>
+        <div id="r-sauvegardes"><p class="p-vide">Chargement…</p></div>`)
       + bloc('Ce qui ne se règle pas ici', `<p class="p-aide">Les codes d\'accès, les palettes et le thème sombre appartiennent à chaque écran : Sterenn choisit sa palette et son thème elle-même, dans son espace.</p>`),
     [{ t: 'Réglages' }]);
+    const listerSauvegardes = async () => {
+      const zone = document.getElementById('r-sauvegardes');
+      try {
+        const d = await N.api('/sauvegarde');
+        if (!d.stockage) { zone.innerHTML = '<p class="p-vide">Le stockage de fichiers n\'est pas relié : pas de sauvegarde possible.</p>'; return; }
+        zone.innerHTML = d.sauvegardes.length ? `<ul class="p-liste">${d.sauvegardes.slice(0, 12).map((x) => `<li><span>${N.ech(x.cle.replace('sauvegardes/', ''))}</span><small class="p-faible">${N.ech(N.poids(x.octets))}</small>
+          <a class="p-bouton p-bouton-fantome p-bouton-mini" href="/api/sauvegarde?cle=${encodeURIComponent(x.cle)}">Télécharger</a>
+          <button type="button" class="p-bouton p-bouton-danger p-bouton-mini" data-restaurer="${N.ech(x.cle)}">Restaurer</button></li>`).join('')}</ul>` : '<p class="p-vide">Aucun instantané pour l\'instant.</p>';
+        zone.querySelectorAll('[data-restaurer]').forEach((b) => b.addEventListener('click', async () => {
+          const mot = window.prompt('Restaurer cet instantané remplace toutes les données actuelles (un filet est écrit avant). Écris « restaurer » pour confirmer.');
+          if (mot !== 'restaurer') return;
+          try {
+            const r = await N.api('/sauvegarde/restaurer', { method: 'POST', body: JSON.stringify({ cle: b.getAttribute('data-restaurer'), confirmation: 'restaurer' }) });
+            N.signaler('Restauration faite. Filet : ' + r.filet.replace('sauvegardes/', ''), 'succes');
+            await N.rafraichirEtat(); await N.rafraichirSeances(); listerSauvegardes();
+          } catch (e) { N.signaler(e.message); }
+        }));
+      } catch (e) { zone.innerHTML = `<p class="p-vide">${N.ech(e.message)}</p>`; }
+    };
+    listerSauvegardes();
+    document.getElementById('r-sauver').addEventListener('click', async () => {
+      try { const r = await N.api('/sauvegarde', { method: 'POST' }); N.signaler(`Sauvegarde écrite (${N.poids(r.octets)}).`, 'succes'); listerSauvegardes(); }
+      catch (e) { N.signaler(e.message); }
+    });
     vue().querySelectorAll('.p-interrupteur').forEach((b) => b.addEventListener('click', async () => {
       const cle = b.getAttribute('data-cle');
       const valeur = b.getAttribute('aria-checked') !== 'true';

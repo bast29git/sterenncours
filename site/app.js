@@ -335,11 +335,14 @@
   }
 
   /* ---------- Chargement ------------------------------------------------------ */
+  const VERSION = window.OPALINE_VERSION || '';
   function chargerScript(src, type) {
     return new Promise((ok, ko) => {
-      if (document.querySelector(`script[src="${src}"]`)) return ok();
+      // Déjà livré par le paquet du rôle : rien à charger.
+      if (window.PAQUET_CHARGE && window.PAQUET_CHARGE[src]) return ok();
+      if (document.querySelector(`script[src="${src}"], script[src="${src}?v=${VERSION}"]`)) return ok();
       const s = document.createElement('script');
-      s.src = src;
+      s.src = VERSION && !/^data\//.test(src) && src.indexOf('?') === -1 ? src + '?v=' + VERSION : src;
       if (type) s.type = type;
       s.onload = ok;
       s.onerror = () => ko(new Error('Chargement impossible : ' + src));
@@ -413,6 +416,8 @@
     // Tout part en même temps : scripts de la vue et des données, état partagé,
     // séances. Le premier écran attend le plus lent, pas la somme de tous.
     try {
+      // Le paquet du rôle d'abord ; s'il manque (ancien build), les fichiers un par un.
+      await chargerScript(role === 'prof' ? 'paquet-prof.js' : 'paquet-eleve.js').catch(() => {});
       await Promise.all([
         chargerScript(role === 'prof' ? 'vue-prof.js' : 'vue-eleve.js'),
         chargerScript('data/programme.js'),
@@ -440,7 +445,7 @@
     }
 
     if (minuteur) clearInterval(minuteur);
-    minuteur = setInterval(sonder, 25000);
+    minuteur = setInterval(sonder, 45000);
     router();
   }
 
@@ -466,10 +471,16 @@
   async function rafraichirSeances() {
     try { etat.seances = (await api('/seances')).seances || []; } catch (e) { etat.seances = []; }
   }
+  let empreinteEtat = null;
   async function sonder() {
     if (!etat.role) return;
     try {
-      const d = await api('/etat');
+      const reponse = await fetch('/api/etat', { credentials: 'same-origin', headers: empreinteEtat ? { 'if-none-match': empreinteEtat } : {} });
+      if (reponse.status === 304) return;
+      if (reponse.status === 401) { retourPortail(); return; }
+      if (!reponse.ok) return;
+      empreinteEtat = reponse.headers.get('etag');
+      const d = await reponse.json();
       const avant = etat.messagesNonLus;
       etat.messagesNonLus = d.messagesNonLus || 0;
       if (d.reglages && JSON.stringify(d.reglages) !== JSON.stringify(etat.reglages)) {

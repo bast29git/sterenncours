@@ -298,7 +298,7 @@
       const historique = fil.filter((m) => m.role === 'user' || m.role === 'assistant').slice(-9, -1).map((m) => ({ role: m.role, content: m.content }));
       const d = await N.api('/tuteur', { method: 'POST', body: JSON.stringify({ question: texte, contexte: contexteCourant, historique }) });
       occupe = false;
-      if (d.indisponible) ajouter('assistant', 'Je ne peux pas répondre pour le moment.', secours());
+      if (d.indisponible) ajouter('assistant', d.message || 'Je ne peux pas répondre pour le moment.', secours());
       else ajouter('assistant', d.reponse);
     } catch (e) {
       occupe = false;

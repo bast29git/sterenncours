@@ -7,6 +7,9 @@
  * avec pictogramme + libellé + couleur (redondance du sens).
  */
 import fs from 'node:fs';
+import { verifierForme } from './verifier.mjs';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import MarkdownIt from 'markdown-it';
@@ -258,6 +261,7 @@ function normaliserConteneurs(corps) {
   for (const noeud of noeuds) {
     if (noeud.fermeture === -1) {
       console.warn(`   ⚠️  conteneur non fermé ligne ${noeud.ouverture + 1}`);
+      avertissements += 1;
       continue;
     }
     const marque = ':'.repeat(3 + noeud.hauteur);
@@ -378,7 +382,31 @@ function construireIndexExercices() {
     '/* Généré par build/build.mjs : ne pas modifier à la main. */\nwindow.EXERCICES_INDEX = ' + JSON.stringify(index) + ';\n');
 }
 construireIndexExercices();
+
+/* ── Un seul script par rôle : les modules de vue sont concaténés dans l'ordre
+      de chargement. app.js charge le paquet de son rôle et n'appelle plus les
+      fichiers un par un. L'empreinte de version rend le cache sûr. ────────── */
+function construirePaquets() {
+  const crypto = require('node:crypto');
+  const lire = (f) => fs.readFileSync(path.join(RACINE, 'site', f), 'utf8');
+  const paquets = {
+    'paquet-eleve.js': ['vue-eleve.js', 'messagerie.js', 'tuteur.js', 'planificateur.js'],
+    'paquet-prof.js': ['vue-prof.js', 'messagerie.js', 'planificateur.js'],
+  };
+  let version = '';
+  for (const [nom, fichiers] of Object.entries(paquets)) {
+    const corps = fichiers.map((f) => `/* ---- ${f} ---- */\n` + lire(f)).join('\n;\n') + '\nwindow.PAQUET_CHARGE = window.PAQUET_CHARGE || {};\n' + fichiers.map((f) => `window.PAQUET_CHARGE[${JSON.stringify(f)}] = true;`).join('\n') + '\n';
+    fs.writeFileSync(path.join(SORTIE, nom), corps);
+    version += crypto.createHash('sha1').update(corps).digest('hex').slice(0, 8);
+  }
+  version = crypto.createHash('sha1').update(version + lire('app.js') + lire('eleve.css') + lire('prof.css')).digest('hex').slice(0, 10);
+  const index = path.join(SORTIE, 'index.html');
+  fs.writeFileSync(index, fs.readFileSync(index, 'utf8').replace('<script src="app.js"></script>', `<script>window.OPALINE_VERSION = ${JSON.stringify(version)};</script>\n<script src="app.js?v=${version}"></script>`));
+  fs.writeFileSync(path.join(SORTIE, 'version.json'), JSON.stringify({ version, le: new Date().toISOString() }));
+  console.log(`   📦 paquets par rôle générés, version ${version}`);
+}
 copierDossier(path.join(RACINE, 'site'), SORTIE);
+construirePaquets();
 
 const fiches = [];
 let avertissements = 0;
@@ -908,6 +936,9 @@ function verifierLiens() {
 }
 
 const liensCasses = verifierLiens();
+const manquementsForme = verifierForme();
+manquementsForme.forEach((m) => console.warn('   ⚠️  ' + m));
+avertissements += manquementsForme.length;
 
 console.log(`✅ ${fiches.length} fiche(s) générée(s) dans public/ (+ sommaire)`);
 if (avertissements || liensCasses) {

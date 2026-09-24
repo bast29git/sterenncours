@@ -58,7 +58,7 @@ export const onRequestGet = gerer(async (context) => {
     });
   }
 
-  return json({
+  const corps = {
     role: session.role,
     acces,
     verrous,
@@ -70,5 +70,14 @@ export const onRequestGet = gerer(async (context) => {
     reglages,
     felicitations,
     messagesNonLus: (messages.results && messages.results[0] && messages.results[0].n) || 0,
-  });
+  };
+  // Empreinte : le navigateur renvoie l'empreinte reçue ; si rien n'a changé, 304 sans corps.
+  const texte = JSON.stringify(corps);
+  let h = 0;
+  for (let i = 0; i < texte.length; i += 1) h = (h * 31 + texte.charCodeAt(i)) | 0;
+  const empreinte = '"' + (h >>> 0).toString(16) + '-' + texte.length + '"';
+  if (context.request.headers.get('if-none-match') === empreinte) {
+    return new Response(null, { status: 304, headers: { etag: empreinte, 'cache-control': 'no-store' } });
+  }
+  return json(corps, 200, { etag: empreinte });
 });
