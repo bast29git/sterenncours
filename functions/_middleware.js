@@ -6,6 +6,7 @@
  * Les codes d'accès ne sont plus présents dans le code envoyé au navigateur.
  */
 import { lireSession } from './_commun.js';
+import { lireAcces, accesOuvert } from './api/acces.js';
 
 // La coquille statique est publique : elle ne contient ni code d'accès, ni
 // contenu pédagogique, ni donnée de suivi. Les modules de vue, les données
@@ -51,6 +52,23 @@ export async function onRequest(context) {
       status: 403,
       headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
     });
+  }
+
+  // Le sujet d'évaluation d'une leçon n'est servi à Sterenn que si le
+  // professeur a ouvert cette évaluation : la décision est appliquée ici,
+  // avant de servir le fichier, pas seulement masquée dans l'interface.
+  const evaluation = /^\/data\/evaluations\/([a-z0-9-]+)\/([A-Za-z0-9]+)\.js$/.exec(chemin);
+  if (session.role !== 'prof' && evaluation) {
+    const acces = await lireAcces(env.DB);
+    if (!accesOuvert(acces[evaluation[1] + '/' + evaluation[2] + '/evaluation'])) {
+      return new Response(JSON.stringify({ erreur: 'Cette évaluation n\'est pas ouverte.' }), {
+        status: 403,
+        headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+      });
+    }
+    context.data.session = session;
+    const rep = await next();
+    return entetes(rep, 'no-store');
   }
 
   context.data.session = session;

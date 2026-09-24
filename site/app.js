@@ -59,6 +59,7 @@
     seances: [],
     reglages: {},
     felicitations: [],
+    acces: {}, verrous: {},
   };
   /** Valeurs par défaut des réglages professeur, si le serveur ne répond pas. */
   const REGLAGES_DEFAUT = {
@@ -120,6 +121,7 @@
    */
   const banque = (mid, ref) => {
     const k = cle(mid, ref);
+    if (!estProf() && etat.role && !accesDoc(mid, ref, 'serie')) return null;
     if (window.EXERCICES && window.EXERCICES[k]) return window.EXERCICES[k];
     const i = (window.EXERCICES_INDEX || {})[k];
     return i ? { titre: i.titre, n: i.n, items: null } : null;
@@ -190,6 +192,31 @@
     return o ? o.etat : null;
   }
 
+  /**
+   * Accès à un élément d'une leçon (cours, revision, exercices, serie, evaluation)
+   * ou à un jeu (accesJeu), décidé par le professeur dans la page Accès. Sans
+   * décision : tout suit l'ouverture de la leçon, sauf l'évaluation, fermée.
+   * Une ouverture peut porter une date de fin.
+   */
+  function decisionAcces(k) {
+    const a = etat.acces[k];
+    if (!a) return null;
+    if (a.etat !== 1) return false;
+    if (a.jusqu_au && a.jusqu_au < new Date().toISOString()) return false;
+    return true;
+  }
+  function accesDoc(mid, ref, type) {
+    if (estProf()) return true;
+    const d = decisionAcces(cle(mid, ref) + '/' + type);
+    if (d !== null) return d;
+    return type !== 'evaluation' && accessible(mid, ref);
+  }
+  function accesJeu(id) {
+    if (estProf()) return true;
+    const d = decisionAcces('jeu/' + id);
+    return d === null ? true : d;
+  }
+
   /** Ce que dirait la règle automatique, sans tenir compte de la décision. */
   function reglementaire(mid, ref) {
     const m = matiere(mid);
@@ -208,6 +235,8 @@
    */
   function accessible(mid, ref) {
     if (estProf()) return true;
+    const v = etat.verrous[cle(mid, ref)];
+    if (typeof v === 'boolean') return v;
     const d = decision(mid, ref);
     if (d === 1) return true;
     if (d === 0) return false;
@@ -344,6 +373,7 @@
     etat.role = null;
     etat.suivi = {}; etat.resultats = {}; etat.fiches = {};
     etat.ouvertures = {}; etat.seances = []; etat.messagesNonLus = 0; etat.reglages = {}; etat.felicitations = [];
+    etat.acces = {}; etat.verrous = {};
     if (minuteur) { clearInterval(minuteur); minuteur = null; }
     location.hash = '';
     document.getElementById('code').value = '';
@@ -378,6 +408,7 @@
       signaler('Le programme n\'a pas pu être chargé. Recharge la page.');
       return;
     }
+    if (window.PROGRAMME) PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => { l.matiere = m.id; }));
 
     try { await chargerScript('messagerie.js'); } catch (e) { /* la messagerie reste en texte simple */ }
 
@@ -405,6 +436,8 @@
       etat.ouvertures = d.ouvertures || {};
       etat.reglages = d.reglages || {};
       etat.felicitations = d.felicitations || [];
+      etat.acces = d.acces || {};
+      etat.verrous = d.verrous || {};
       etat.messagesNonLus = d.messagesNonLus || 0;
       etat.role = d.role || etat.role;
       appliquerReglages();
@@ -430,6 +463,8 @@
         etat.resultats = d.resultats || etat.resultats;
         etat.fiches = d.fiches || etat.fiches;
         etat.felicitations = d.felicitations || etat.felicitations;
+        etat.acces = d.acces || etat.acces;
+        etat.verrous = d.verrous || etat.verrous;
         majReussites();
       }
       if (etat.messagesNonLus !== avant) {
@@ -535,7 +570,7 @@
   /* ---------- Interface exposée aux modules de vue --------------------------------------- */
   window.NOYAU = {
     etat, api, signaler, ech, estProf,
-    matiere, lecon, cle, banque, chargerBanque, niveauDe, estValidee, dossierPdf, nomCourt,
+    matiere, lecon, cle, banque, chargerBanque, niveauDe, accesDoc, accesJeu, decisionAcces, estValidee, dossierPdf, nomCourt,
     progression, chiffres, libelleLecon, accessible, raisonVerrou, programmee,
     jourIso, decaler, lundiDe, enFrancais, dateCourte, poids,
     chargerContenu, chargerSeances, chargerScript, rafraichirEtat, rafraichirSeances,

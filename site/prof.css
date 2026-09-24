@@ -548,3 +548,29 @@ body.corps-prof {
 .p-reactions-menu button:hover { background: var(--p-surface-2); }
 .m-eclat { position: fixed; z-index: 90; font-size: 1.3rem; pointer-events: none; transform: translate(-50%, -50%); animation: m-eclat 0.9s ease-out forwards; }
 @keyframes m-eclat { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4) rotate(20deg); } }
+
+/* ---------- Accès et déblocages --------------------------------------------- */
+.p-acces-legende { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; margin: 0 0 0.9rem; font-size: 0.8rem; color: var(--p-doux); }
+.p-acces-legende span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.p-acces-legende i { font-style: normal; }
+.p-acces td, .p-acces th { vertical-align: middle; }
+.p-acces td:first-child { min-width: 16rem; }
+.p-acces-cell {
+  font: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.35rem; height: 1.75rem; padding: 0 0.55rem;
+  border-radius: 999px; border: 1px solid var(--p-trait); background: var(--p-surface); color: var(--p-faible);
+}
+.p-acces-cell span { font-weight: 600; }
+.p-acces-cell.etat-auto.auto-ouvert { color: var(--p-doux); }
+.p-acces-cell.etat-ouvert { background: var(--p-ok-voile); border-color: var(--p-ok); color: var(--p-ok); }
+.p-acces-cell.etat-ferme { background: var(--p-alerte-voile); border-color: var(--p-alerte); color: var(--p-alerte); }
+.p-acces-cell.echu { background: var(--p-attention-voile); border-color: var(--p-attention); color: var(--p-attention); }
+.p-acces-cell:hover { filter: brightness(0.96); }
+.p-acces-cell:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+.p-acces-date { display: block; margin-top: 0.3rem; font: inherit; font-size: 0.74rem; padding: 0.15rem 0.35rem; border: 1px solid var(--p-trait); border-radius: var(--p-r); background: var(--p-surface); color: var(--p-encre); }
+.p-acces-jeux > li { justify-content: space-between; }
+.p-acces-jeux small { color: var(--p-faible); }
+.p-ok { color: var(--p-ok); }
+.p-tableau-defilant { overflow-x: auto; }
+.p-faible { color: var(--p-faible); }
+.p-acces thead th { position: static; }

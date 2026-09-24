@@ -1005,3 +1005,10 @@ html[data-tuteur="0"] .e-opale-bouton, html[data-tuteur="0"] .e-opale { display:
 [data-theme="dark"] .e-rappel { background: #3A2A10; color: #FFD9A0; border-color: #7A5A20; }
 [data-theme="dark"] .e-rappel-fort { background: #3D1A18; color: #FFC2BD; border-color: #8A3A34; }
 .e-evt .c a { color: inherit; text-decoration: underline; }
+
+/* ---------- Évaluation : consignes, sujet, critères ------------------------- */
+.e-eval-consignes h2 { font-size: 1.1rem; display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; }
+.e-eval-consignes ol { margin: 0; padding-left: 1.2rem; line-height: 1.7; }
+.e-eval-limite { margin: 0.6rem 0 0; font-weight: 700; color: #9A5B00; display: flex; align-items: center; gap: 0.3rem; }
+.e-eval-criteres summary { cursor: pointer; font-weight: 800; font-family: 'Archivo', sans-serif; display: flex; align-items: center; gap: 0.4rem; }
+.e-eval-criteres[open] summary { margin-bottom: 0.8rem; }

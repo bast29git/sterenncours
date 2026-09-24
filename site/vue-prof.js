@@ -24,6 +24,7 @@
         { route: 'accueil', ico: 'ic-accueil', texte: 'Aujourd\'hui' },
         { route: 'mois', ico: 'ic-calendrier', texte: 'Planning' },
         { route: 'suivi', ico: 'ic-graphique', texte: 'Suivi des acquis' },
+        { route: 'acces', ico: 'ic-verrou', texte: 'Accès et déblocages' },
       ],
     },
     {
@@ -1576,6 +1577,78 @@
     }));
   }
 
+  /* ---------- Accès : ce que Sterenn peut ouvrir, élément par élément --------- */
+  const COLONNES_ACCES = [
+    { id: 'cours', t: 'Cours' }, { id: 'revision', t: 'Révision' }, { id: 'exercices', t: 'Exercices' },
+    { id: 'serie', t: 'Série' }, { id: 'evaluation', t: 'Évaluation' },
+  ];
+  function celluleAcces(cle, defaut) {
+    const a = N.etat.acces[cle];
+    const etat = a ? (a.etat === 1 ? 'ouvert' : 'ferme') : 'auto';
+    const perime = a && a.etat === 1 && a.jusqu_au && a.jusqu_au < new Date().toISOString();
+    const libelle = { auto: defaut ? 'auto (ouvert)' : 'auto (fermé)', ouvert: perime ? 'ouvert, échu' : 'ouvert', ferme: 'fermé' }[etat];
+    const glyphe = { auto: '○', ouvert: '✓', ferme: '✕' }[etat];
+    return `<button type="button" class="p-acces-cell etat-${etat}${perime ? ' echu' : ''}${etat === 'auto' && defaut ? ' auto-ouvert' : ''}" data-acces="${cle}" data-etat="${etat}" title="${N.ech(libelle)}. Clic : auto, ouvert, fermé." aria-label="${N.ech(cle + ' : ' + libelle)}">${glyphe}<span>${N.ech(libelle)}</span></button>`
+      + (a && a.etat === 1 && cle.endsWith('/evaluation') ? `<input type="datetime-local" class="p-acces-date" data-date="${cle}" value="${a.jusqu_au ? N.ech(a.jusqu_au.slice(0, 16)) : ''}" title="Fermeture automatique (facultatif)" aria-label="Date de fermeture">` : '');
+  }
+  function vueAcces() {
+    const blocs = PROGRAMME.matieres.map((m) => bloc(m.icone + ' ' + m.nom, `<div class="p-tableau-defilant"><table class="p-table p-acces">
+      <thead><tr><th>Leçon</th><th>Ouverture</th>${COLONNES_ACCES.map((c) => `<th>${c.t}</th>`).join('')}</tr></thead>
+      <tbody>${m.lecons.map((l) => {
+        const k = N.cle(m.id, l.ref);
+        const verrou = N.etat.verrous[k];
+        const d = N.decision(m.id, l.ref);
+        const ouv = d === 1 ? 'ouvert' : d === 0 ? 'ferme' : 'auto';
+        return `<tr>
+          <td><b>${N.ech(l.ref)}</b> ${N.ech(l.titre)}<br><small class="${verrou ? 'p-ok' : 'p-faible'}">${verrou ? 'ouverte à Sterenn' : 'verrouillée pour Sterenn'}</small></td>
+          <td><button type="button" class="p-acces-cell etat-${ouv}${ouv === 'auto' && verrou ? ' auto-ouvert' : ''}" data-ouverture="${k}" data-etat="${ouv}" title="Ouverture de la leçon : auto, poussée, retenue">${{ auto: '○', ouvert: '✓', ferme: '✕' }[ouv]}<span>${{ auto: 'auto', ouvert: 'poussée', ferme: 'retenue' }[ouv]}</span></button></td>
+          ${COLONNES_ACCES.map((c) => `<td>${celluleAcces(k + '/' + c.id, c.id === 'evaluation' ? false : !!verrou)}</td>`).join('')}
+        </tr>`;
+      }).join('')}</tbody></table></div>`)).join('');
+    const jeux = (window.JEUX || []);
+    const blocJeux = bloc('Jeux et mondes 3D', `<ul class="p-liste p-acces-jeux">${jeux.map((j) => `<li>
+        <span>${j.ico} <b>${N.ech(j.titre)}</b> <small>${j.type === '3d' ? 'monde 3D' : 'jeu'} · ${j.lecons.map(N.ech).join(', ')}</small></span>
+        ${celluleAcces('jeu/' + j.id, true)}</li>`).join('')}</ul>`, String(jeux.length));
+
+    afficher(entete('Accès et déblocages', 'Ce que Sterenn peut ouvrir, décidé ici et appliqué par le serveur. Trois états par élément : automatique, ouvert, fermé.')
+      + `<div class="p-acces-legende">
+          <span><i class="p-acces-cell etat-auto auto-ouvert">○</i> automatique : suit l'ouverture de la leçon (l'évaluation reste fermée)</span>
+          <span><i class="p-acces-cell etat-ouvert">✓</i> ouvert, quoi qu'en dise la règle ; une évaluation peut porter une date de fermeture</span>
+          <span><i class="p-acces-cell etat-ferme">✕</i> fermé, même si la leçon est ouverte</span>
+        </div>`
+      + blocs + blocJeux, [{ t: 'Pilotage' }, { t: 'Accès' }]);
+
+    const suivant = { auto: true, ouvert: false, ferme: null };
+    vue().querySelectorAll('[data-acces]').forEach((b) => b.addEventListener('click', async () => {
+      const cle = b.getAttribute('data-acces');
+      const valeur = suivant[b.getAttribute('data-etat')];
+      try {
+        await N.api('/acces', { method: 'PUT', body: JSON.stringify({ cle, etat: valeur }) });
+        await N.rafraichirEtat();
+        N.signaler(valeur === null ? 'Retour à la règle automatique.' : valeur ? 'Ouvert à Sterenn.' : 'Fermé pour Sterenn.', 'succes');
+        vueAcces();
+      } catch (e) { N.signaler(e.message); }
+    }));
+    vue().querySelectorAll('[data-date]').forEach((i) => i.addEventListener('change', async () => {
+      const cle = i.getAttribute('data-date');
+      try {
+        await N.api('/acces', { method: 'PUT', body: JSON.stringify({ cle, etat: true, jusqu_au: i.value ? new Date(i.value).toISOString() : null }) });
+        await N.rafraichirEtat();
+        N.signaler(i.value ? 'Fermeture automatique enregistrée.' : 'Sans date de fermeture.', 'succes');
+        vueAcces();
+      } catch (e) { N.signaler(e.message); }
+    }));
+    vue().querySelectorAll('[data-ouverture]').forEach((b) => b.addEventListener('click', async () => {
+      const [matiere, ref] = b.getAttribute('data-ouverture').split('/');
+      const valeur = suivant[b.getAttribute('data-etat')];
+      try {
+        await N.api('/ouvertures', { method: 'PUT', body: JSON.stringify({ matiere, ref, ouvert: valeur }) });
+        await N.rafraichirEtat();
+        vueAcces();
+      } catch (e) { N.signaler(e.message); }
+    }));
+  }
+
   /* ---------- Routage ------------------------------------------------------- */
   function rendre(p) {
     brancherChromeUneFois();
@@ -1595,6 +1668,7 @@
       case 'programme': return vueProgramme();
       case 'documents': return vueDocuments();
       case 'reglages': return vueReglages();
+      case 'acces': return vueAcces();
       case 'recherche': return vueRecherche(p[1] ? decodeURIComponent(p.slice(1).join('/')) : '');
       default: return vueIntrouvable();
     }

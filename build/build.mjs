@@ -671,6 +671,8 @@ function construireContenuSite(programme) {
       parLecon[l.ref] = docs;
       if (Object.keys(docsEleve).length) parLeconEleve[l.ref] = docsEleve;
     }
+    global.CONTENU_PROF = global.CONTENU_PROF || {};
+    global.CONTENU_PROF[m.id] = parLecon;
     if (!Object.keys(parLecon).length) continue;
     const entete = '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
       + 'window.CONTENU = window.CONTENU || {};\n';
@@ -686,6 +688,117 @@ function construireContenuSite(programme) {
 }
 
 construireContenuSite(programmeSite);
+
+/* ── Sujets d'évaluation : un fichier par leçon, servi par le serveur selon
+      l'accès décidé par le professeur (functions/_middleware.js) ────────────── */
+function extraireSection(html, motif) {
+  const debut = html.search(motif);
+  if (debut === -1) return '';
+  const suite = html.slice(debut);
+  const fin = suite.slice(1).search(/<h2 id="/);
+  return fin === -1 ? suite : suite.slice(0, fin + 1);
+}
+function construireEvaluations(programme) {
+  if (!programme) return 0;
+  const racine = path.join(SORTIE, 'data', 'evaluations');
+  let n = 0;
+  for (const m of programme.matieres) {
+    const contenu = (global.CONTENU_PROF || {})[m.id];
+    if (!contenu) continue;
+    for (const l of m.lecons) {
+      const docs = contenu[l.ref];
+      if (!docs || !docs.exercices) continue;
+      // Le sujet : la dernière partie de la fiche d'exercices si son titre parle
+      // de devoir, sinon le dernier exercice (le sujet de type devoir), sans corrigé.
+      const html = docs.exercices.html;
+      const titres = [...html.matchAll(/<h2 id="[^"]*">([^<]*)<\/h2>/g)];
+      const dernierTitre = titres.length ? titres[titres.length - 1] : null;
+      let brut = '';
+      if (dernierTitre && /devoir/i.test(dernierTitre[1])) brut = html.slice(dernierTitre.index);
+      else {
+        const secs = [...html.matchAll(/<section class="exercice">[\s\S]*?<\/section>/g)];
+        const derniere = secs.length ? secs[secs.length - 1] : null;
+        if (derniere) {
+          const avant = html.slice(0, derniere.index);
+          const cond = /<div class="bloc bloc-info">(?:(?!<\/div>)[\s\S])*<\/div>\s*$/.exec(avant);
+          brut = (cond ? cond[0] : '') + derniere[0];
+        }
+      }
+      const sujet = retirerCorriges(brut).html;
+      // Les attentes : la grille des critères de la fiche d'évaluation.
+      const criteres = docs.evaluation ? extraireSection(docs.evaluation.html, /<h2 id="[^"]*">3\. La grille/) : '';
+      if (!sujet) continue;
+      const dossier = path.join(racine, m.id);
+      fs.mkdirSync(dossier, { recursive: true });
+      fs.writeFileSync(path.join(dossier, `${l.ref}.js`),
+        '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
+        + 'window.EVALUATIONS = window.EVALUATIONS || {};\n'
+        + `window.EVALUATIONS[${JSON.stringify(m.id + '/' + l.ref)}] = ${JSON.stringify({ titre: docs.exercices.titre, sujet, criteres })};\n`);
+      n += 1;
+    }
+  }
+  console.log(`   📝 ${n} sujet(s) d'évaluation générés dans public/data/evaluations/`);
+  return n;
+}
+construireEvaluations(programmeSite);
+
+/* ── Cahiers à imprimer : les exercices « à la main » d'une leçon, sans corrigé,
+      sur une seule page imprimable ─────────────────────────────────────────── */
+function construireCahiers(programme) {
+  if (!programme) return 0;
+  const racine = path.join(SORTIE, 'cahiers');
+  let n = 0;
+  for (const m of programme.matieres) {
+    const contenu = (global.CONTENU_PROF || {})[m.id];
+    if (!contenu) continue;
+    for (const l of m.lecons) {
+      const docs = contenu[l.ref];
+      if (!docs || !docs.exercices) continue;
+      const html = retirerCorriges(docs.exercices.html).html;
+      const sections = [];
+      const re = /<section class="exercice">[\s\S]*?<\/section>/g;
+      let t;
+      while ((t = re.exec(html))) if (t[0].includes('support-main')) sections.push(t[0]);
+      if (!sections.length) continue;
+      const dossier = path.join(racine, m.id);
+      fs.mkdirSync(dossier, { recursive: true });
+      const page = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cahier · ${echapper(l.titre)}</title>
+<link rel="stylesheet" href="/theme/cours.css">
+<style>
+  body { max-width: 52rem; margin: 0 auto; padding: 1.5rem 1.2rem 3rem; }
+  .cahier-tete { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; }
+  .cahier-tete h1 { margin: 0; font-size: 1.5rem; }
+  .cahier-tete p { margin: 0.2rem 0 0; color: var(--texte-doux); }
+  .cahier-bouton { font: inherit; font-weight: 700; padding: 0.55rem 1rem; border-radius: 8px; border: 1px solid var(--trait-fort); background: var(--fond-doux); cursor: pointer; }
+  .cahier-ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0 0 1rem; font-size: 0.95rem; }
+  .cahier-ligne span { border-bottom: 1px solid var(--trait-fort); padding: 0.3rem 0; }
+  .reponse-libre { min-height: 5.5rem; border: 1px dashed var(--trait-fort); border-radius: 6px; margin: 0.6rem 0 0; }
+  .exercice { break-inside: avoid; }
+  @media print { .cahier-bouton { display: none; } body { padding: 0; } }
+</style>
+</head>
+<body class="fiche">
+<header class="cahier-tete">
+  <div><h1>${echapper(l.titre)}</h1><p>${echapper(m.nom)} · Cahier d'exercices à faire à la main · ${sections.length} exercice${sections.length > 1 ? 's' : ''}</p></div>
+  <button class="cahier-bouton" type="button" onclick="window.print()">Imprimer ou enregistrer en PDF</button>
+</header>
+<div class="cahier-ligne"><span>Prénom : Sterenn</span><span>Date : </span></div>
+${sections.map((x) => x.replace('</section>', '<div class="reponse-libre" aria-hidden="true"></div></section>')).join('\n')}
+</body>
+</html>`;
+      fs.writeFileSync(path.join(dossier, `${l.ref}.html`), page);
+      n += 1;
+    }
+  }
+  console.log(`   🖨  ${n} cahier(s) à imprimer générés dans public/cahiers/`);
+  return n;
+}
+construireCahiers(programmeSite);
 
 /* ── Dossiers complets par matière (un seul document imprimable) ────────── */
 function construireDossiersMatiere(programme) {

@@ -10,8 +10,10 @@
   'use strict';
   const N = window.NOYAU;
   /** Les documents ouverts à Sterenn. La grille d'évaluation reste au professeur. */
-  const TYPES_ELEVE = ['cours', 'revision', 'exercices'];
-  const docsVisibles = (l) => (l.docs || []).filter((t) => TYPES_ELEVE.indexOf(t) !== -1);
+  const TYPES_ELEVE = ['cours', 'revision', 'exercices', 'evaluation'];
+  /** Les documents que Sterenn peut ouvrir : selon l'accès décidé par le professeur. */
+  const docsVisibles = (l) => (l.docs || []).filter((t) => TYPES_ELEVE.indexOf(t) !== -1
+    && (!l.matiere || N.accesDoc(l.matiere, l.ref, t)));
   const vue = () => document.getElementById('vue-eleve');
   let observateurOrbite = null;
 
@@ -24,8 +26,8 @@
   ];
 
   /** Les jeux 2D et 3D rattachés à une leçon, ou à une matière entière. */
-  const jeuxDe = (mid, ref) => (window.JEUX || []).filter((j) => j.lecons.some((c) => c === mid + ':' + ref));
-  const jeuxMatiere = (mid) => (window.JEUX || []).filter((j) => j.lecons.some((c) => c.split(':')[0] === mid));
+  const jeuxDe = (mid, ref) => (window.JEUX || []).filter((j) => N.accesJeu(j.id) && j.lecons.some((c) => c === mid + ':' + ref));
+  const jeuxMatiere = (mid) => (window.JEUX || []).filter((j) => N.accesJeu(j.id) && j.lecons.some((c) => c.split(':')[0] === mid));
   const jeuGagne = (j) => { const r = N.etat.resultats['jeu/' + j.id]; return !!(r && r.meilleur >= 70); };
   const lienJeu = (j, classe) => `<a class="${classe || ''}" href="${j.url}" title="${N.ech(j.type === '3d' ? 'Monde 3D' : 'Jeu')} : ${N.ech(j.titre)}">${j.ico} ${N.ech(j.titre)}${jeuGagne(j) ? ' ✓' : ''}</a>`;
 
@@ -354,6 +356,7 @@
     const ouverts = docsVisibles(l);
     const actif = ouverts.indexOf(type) !== -1 ? type : ouverts[0];
     afficher('<p class="e-vide">Chargement…</p>');
+    if (actif === 'evaluation') return vueEvaluation(m, l, mid, ref, ouverts);
 
     N.chargerContenu(mid).then((contenu) => {
       const doc = contenu && contenu[ref] && contenu[ref][actif];
@@ -401,6 +404,49 @@
         location.hash = '#/messages/' + encodeURIComponent(m.nom + ' · ' + l.titre);
       });
     });
+  }
+
+  /* ---------- Évaluation : le sujet, servi par le serveur si l'accès est ouvert --- */
+  function ongletsLecon(mid, ref, ouverts, actif) {
+    return `<nav class="e-onglets">${ouverts.map((t) => {
+      const info = N.TYPES_DOC.find((x) => x.id === t);
+      return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${N.ic(info.ico)} ${info.libelle}</a>`;
+    }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} M'entraîner</a>` : ''}${jeuxDe(mid, ref).map((j) => lienJeu(j)).join('')}</nav>`;
+  }
+  async function vueEvaluation(m, l, mid, ref, ouverts) {
+    let e = null;
+    try {
+      await N.chargerScript(`data/evaluations/${mid}/${ref}.js`);
+      e = (window.EVALUATIONS || {})[N.cle(mid, ref)] || null;
+    } catch (err) { e = null; }
+    const decision = N.decisionAcces(N.cle(mid, ref) + '/evaluation');
+    const a = N.etat.acces[N.cle(mid, ref) + '/evaluation'];
+    const limite = a && a.jusqu_au ? N.dateCourte(a.jusqu_au) : null;
+    afficher(`<div class="e-lecteur">
+      <header class="e-lecteur-tete">
+        <p style="margin:0;color:var(--e-encre-doux);font-size:.85rem">${m.icone} ${N.ech(m.nom)}</p>
+        <h1>Évaluation : ${N.ech(l.titre)}</h1>
+        ${ongletsLecon(mid, ref, ouverts, 'evaluation')}
+      </header>
+      ${!e || decision !== true
+    ? `<div class="e-carte e-vide"><p>${N.ic('ic-verrou')} Cette évaluation n'est pas ouverte pour le moment. Bastien l'ouvre quand la leçon est prête.</p></div>`
+    : `<section class="e-carte e-eval-consignes">
+          <h2>${N.ic('ic-graphique')} Comment ça se passe</h2>
+          <ol>
+            <li>Tu fais ce sujet <b>sur papier</b>, seule, en une fois, dans la durée indiquée.</li>
+            <li>Tu écris ton prénom, la date et le numéro de chaque question.</li>
+            <li>Quand tu as fini, tu <b>photographies ta copie</b> et tu l'envoies avec le bouton en bas.</li>
+            <li>Bastien corrige avec la grille ci-dessous et te dit où tu en es sur chaque critère.</li>
+          </ol>
+          ${limite ? `<p class="e-eval-limite">${N.ic('ic-horloge')} Ouverte jusqu'au ${N.ech(limite)}.</p>` : ''}
+        </section>
+        <article class="e-fiche e-fiche-page e-eval-sujet">${e.sujet}</article>
+        ${e.criteres ? `<details class="e-carte e-eval-criteres"><summary>${N.ic('ic-cible')} Ce qui est attendu : la grille des critères</summary><div class="e-fiche e-fiche-page">${e.criteres}</div></details>` : ''}
+        <div class="e-actions">
+          <a class="e-bouton" href="#/messages/${encodeURIComponent('Évaluation · ' + m.nom + ' · ' + l.titre)}">${N.ic('ic-photo')} Envoyer la photo de ma copie</a>
+          <a class="e-bouton e-bouton-fin" href="#/matiere/${mid}">← Mon parcours</a>
+        </div>`}
+    </div>`);
   }
 
   /* ---------- Lecteur de fiche : en diapositives, ou en page ------------------- */
