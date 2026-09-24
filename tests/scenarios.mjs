@@ -30,7 +30,10 @@ export const SCENARIOS = {
     if (n === 0) {
       await page.evaluate(async () => {
         const r = window.PLANIFICATEUR.generer('2026-10-05', 37, { mercredi: { debut: '13:00', fin: '14:30' } });
-        await fetch('/api/seances/lot', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ seances: r.seances }) });
+        for (let i = 0; i < r.seances.length; i += 50) {
+          const rep = await fetch('/api/seances/lot', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ seances: r.seances.slice(i, i + 50) }) });
+          if (!rep.ok) throw new Error('lot refusé : ' + rep.status);
+        }
       });
     }
     const apres = await page.evaluate(async () => (await (await fetch('/api/seances')).json()).seances.length);

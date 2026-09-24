@@ -90,7 +90,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 ### Sécurité
 
 - **A11 · P1 · S** Limitation de débit par session sur toutes les routes d'écriture : compteur KV glissant, 60 écritures par minute, réponse 429 lisible.
-- **A12 · P1 · S** Taille maximale du corps des requêtes JSON (32 Ko) vérifiée avant `request.json()`.
+- **A12 · P1 · S** Taille maximale du corps des requêtes JSON (32 Ko, 1 Mo pour le lot de séances et la restauration) vérifiée avant `request.json()`.
 - **A13 · P2 · S** En-têtes de sécurité complets : `Content-Security-Policy` réelle (aujourd'hui absente), `Permissions-Policy`, `X-Frame-Options`.
 - **A14 · P2 · S** Rotation du jeton de session à chaque connexion et invalidation des anciens jetons du même rôle sur demande (bouton « Déconnecter partout »).
 - **A15 · P2 · M** Codes d'accès remplaçables sans redéploiement : une clé KV `codes` chiffrée, une page professeur pour les changer, l'ancien code valable dix minutes.

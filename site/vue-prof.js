@@ -966,8 +966,8 @@
     bouton.textContent = 'Enregistrement…';
     let crees = 0; let ignores = 0;
     try {
-      for (let i = 0; i < apercu.seances.length; i += 200) {
-        const paquet = apercu.seances.slice(i, i + 200);
+      for (let i = 0; i < apercu.seances.length; i += 50) {
+        const paquet = apercu.seances.slice(i, i + 50);
         const r = await N.api('/seances/lot', { method: 'POST', body: JSON.stringify({ seances: paquet }) });
         crees += r.crees || 0;
         ignores += r.ignores || 0;

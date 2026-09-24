@@ -75,7 +75,10 @@ export async function onRequest(context) {
   if (chemin.startsWith('/api/') && request.method !== 'GET' && request.method !== 'HEAD') {
     const taille = Number(request.headers.get('content-length') || 0);
     const fichier = chemin.startsWith('/api/fichiers');
-    if (!fichier && taille > 32768) return reponseJson({ erreur: 'Requête trop volumineuse (32 Ko au plus).' }, 413);
+    // Les lots de séances et la restauration d'un instantané portent une année entière.
+    const volumineux = chemin === '/api/seances/lot' || chemin === '/api/sauvegarde/restaurer';
+    const borne = volumineux ? 1048576 : 32768;
+    if (!fichier && taille > borne) return reponseJson({ erreur: `Requête trop volumineuse (${volumineux ? '1 Mo' : '32 Ko'} au plus).` }, 413);
     const refus = await debitDepasse(env, session, request);
     if (refus) return reponseJson({ erreur: 'Trop de requêtes d\'un coup : attends une minute.' }, 429);
   }
