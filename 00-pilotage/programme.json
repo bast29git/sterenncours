@@ -191,7 +191,8 @@
         "Vivre en société : individu et société, confrontations de valeurs",
         "Regarder le monde, inventer des mondes : la fiction pour interroger le réel",
         "Agir sur le monde : informer, s'informer, déformer ?",
-        "Étude de la langue"
+        "Étude de la langue",
+        "Questionnement complémentaire : la ville, lieu de tous les possibles ?"
       ],
       "competences": [
         "Lire",
@@ -322,6 +323,18 @@
             "Lettre",
             "Article",
             "Texte argumenté"
+          ]
+        },
+        {
+          "ref": "L11",
+          "dossier": "L11-la-ville",
+          "titre": "La ville, lieu de tous les possibles ?",
+          "periode": 5,
+          "notions": [
+            "Regard panoramique et regard du passant",
+            "Personnification, énumération, contraste",
+            "Promesse et menace",
+            "Poème en prose, flâneur, allégorie"
           ]
         }
       ]
