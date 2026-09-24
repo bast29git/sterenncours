@@ -4,7 +4,7 @@
    Bascule : <html data-theme="light"> | <html data-theme="dark">
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap');
+/* Les polices sont chargées par index.html, en lien direct : un @import ici bloquait le rendu. */
 
 /* ---------- THÈME CLAIR (par défaut) ---------- */
 :root,

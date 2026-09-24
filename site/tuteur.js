@@ -72,7 +72,7 @@
       const b = N.banque(p[1], p[2]);
       const idx = Number((document.querySelector('[data-exo-index]') || {}).getAttribute
         ? document.querySelector('[data-exo-index]').getAttribute('data-exo-index') : NaN);
-      const item = b && b.items && Number.isFinite(idx) ? b.items[idx] : null;
+      const item = b && Array.isArray(b.items) && Number.isFinite(idx) ? b.items[idx] : null;
       if (item) {
         c.question = String(item.q || '').replace(/<[^>]+>/g, '').slice(0, 300);
         c.attendues = item.type === 'qcm' ? [item.choix[item.reponse]]

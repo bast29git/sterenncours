@@ -215,7 +215,7 @@
       $('.ksh-play-detente').onclick = () => begin('detente');
       $('.ksh-play-cours').onclick = () => begin('cours');
       $('.ksh-acc-instr').onclick = showInstr;
-      buddy.say((intro.greet || ('Salut ! ' + (cfg.title || '') + ' — prêt à jouer ?')), 'joyeux');
+      buddy.say((intro.greet || ('Salut ! ' + (cfg.title || '') + ' : prêt à jouer ?')), 'joyeux');
     }
 
     function setMode(m) {
@@ -347,7 +347,7 @@
           </div>
         </div>`;
       $('.ksh-fin').hidden = false;
-      buddy.say(won ? (o.buddy || 'Excellent travail ! Tu as compris l\'essentiel.') : (o.buddy || 'Pas grave — recommence, tu vas y arriver.'), won ? 'celebration' : 'rassurant');
+      buddy.say(won ? (o.buddy || 'Excellent travail ! Tu as compris l\'essentiel.') : (o.buddy || 'Pas grave, recommence : tu vas y arriver.'), won ? 'celebration' : 'rassurant');
       if (won) { api.sound('win'); if (!REDUCED && buddy.celebrate) buddy.celebrate(); }
       $('.ksh-frestart').onclick = restart;
       $('.ksh-fquit').onclick = quit;

@@ -1367,6 +1367,11 @@
      Série d'exercices : l'aperçu du côté professeur
      ======================================================================= */
   function vueExos(mid, ref) {
+    if (!window.EXERCICES) {
+      afficher(entete('Série d\'exercices', '') + '<p class="p-vide">Chargement de la série…</p>', [{ t: 'Matières', h: '#/matieres' }, { t: 'Série' }]);
+      N.chargerBanque().then(() => vueExos(mid, ref)).catch((e) => N.signaler(e.message));
+      return undefined;
+    }
     const m = N.matiere(mid);
     const l = N.lecon(m, ref);
     const banque = N.banque(mid, ref);

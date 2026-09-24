@@ -113,7 +113,23 @@
   const matiere = (id) => (window.PROGRAMME ? PROGRAMME.matieres.find((m) => m.id === id) : null) || null;
   const lecon = (m, ref) => (m ? m.lecons.find((l) => l.ref === ref) : null) || null;
   const cle = (mid, ref) => mid + '/' + ref;
-  const banque = (mid, ref) => (window.EXERCICES || {})[cle(mid, ref)] || null;
+  /**
+   * La banque d'exercices pèse plus de 500 ko : au démarrage on ne charge qu'un
+   * index (titre et nombre de questions par leçon). La banque complète arrive
+   * à la première série ouverte, par chargerBanque().
+   */
+  const banque = (mid, ref) => {
+    const k = cle(mid, ref);
+    if (window.EXERCICES && window.EXERCICES[k]) return window.EXERCICES[k];
+    const i = (window.EXERCICES_INDEX || {})[k];
+    return i ? { titre: i.titre, n: i.n, items: null } : null;
+  };
+  let banquePromise = null;
+  function chargerBanque() {
+    if (window.EXERCICES) return Promise.resolve(window.EXERCICES);
+    if (!banquePromise) banquePromise = chargerScript('data/exercices.js').then(() => window.EXERCICES || {});
+    return banquePromise;
+  }
   const niveauDe = (mid, ref) => (etat.suivi[cle(mid, ref)] || {}).niveau || null;
   const estValidee = (mid, ref) => ['satisfaisant', 'tresbien'].indexOf(niveauDe(mid, ref)) !== -1;
   const dossierPdf = (mid) => 'pdf/dossiers/' + mid + '.pdf';
@@ -350,7 +366,7 @@
     try {
       await chargerScript(role === 'prof' ? 'vue-prof.js' : 'vue-eleve.js');
       await chargerScript('data/programme.js');
-      await chargerScript('data/exercices.js');
+      try { await chargerScript('data/exercices-index.js'); } catch (e) { await chargerScript('data/exercices.js'); }
       try { await chargerScript('data/jeux.js'); } catch (e) { window.JEUX = []; }
       await chargerScript('planificateur.js');
     } catch (e) {
@@ -511,7 +527,7 @@
   /* ---------- Interface exposée aux modules de vue --------------------------------------- */
   window.NOYAU = {
     etat, api, signaler, ech, estProf,
-    matiere, lecon, cle, banque, niveauDe, estValidee, dossierPdf, nomCourt,
+    matiere, lecon, cle, banque, chargerBanque, niveauDe, estValidee, dossierPdf, nomCourt,
     progression, chiffres, libelleLecon, accessible, raisonVerrou, programmee,
     jourIso, decaler, lundiDe, enFrancais, dateCourte, poids,
     chargerContenu, chargerSeances, chargerScript, rafraichirEtat, rafraichirSeances,

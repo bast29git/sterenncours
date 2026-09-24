@@ -340,10 +340,15 @@
   /* ---------- Exercices ---------------------------------------------------------- */
   let session = null;
   function vueExos(mid, ref) {
+    if (!window.EXERCICES) {
+      afficher('<p class="e-vide">Chargement de la série…</p>');
+      N.chargerBanque().then(() => vueExos(mid, ref)).catch(() => afficher('<p class="e-vide">La série n\'a pas pu être chargée. Recharge la page.</p>'));
+      return undefined;
+    }
     const m = N.matiere(mid);
     const l = N.lecon(m, ref);
     const b = N.banque(mid, ref);
-    if (!m || !l || !b) return vueIntrouvable();
+    if (!m || !l || !b || !b.items) return vueIntrouvable();
     session = { mid, ref, items: b.items, index: 0, reponses: [], termine: false };
     rendreExo();
   }

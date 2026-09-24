@@ -363,6 +363,21 @@ function copierDossier(src, dest) {
 fs.rmSync(SORTIE, { recursive: true, force: true });
 fs.mkdirSync(SORTIE, { recursive: true });
 copierDossier(path.join(RACINE, 'theme'), path.join(SORTIE, 'theme'));
+
+/* Index léger de la banque d'exercices : titre et nombre de questions par leçon.
+   Le site le charge au démarrage à la place des 500 ko de la banque complète. */
+function construireIndexExercices() {
+  const source = path.join(RACINE, 'site', 'data', 'exercices.js');
+  if (!fs.existsSync(source)) return;
+  const bac = {};
+  new Function('window', fs.readFileSync(source, 'utf8'))(bac);
+  const index = {};
+  for (const [k, v] of Object.entries(bac.EXERCICES || {})) index[k] = { titre: v.titre, n: (v.items || []).length };
+  fs.mkdirSync(path.join(SORTIE, 'data'), { recursive: true });
+  fs.writeFileSync(path.join(SORTIE, 'data', 'exercices-index.js'),
+    '/* Généré par build/build.mjs : ne pas modifier à la main. */\nwindow.EXERCICES_INDEX = ' + JSON.stringify(index) + ';\n');
+}
+construireIndexExercices();
 copierDossier(path.join(RACINE, 'site'), SORTIE);
 
 const fiches = [];

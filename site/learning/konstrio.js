@@ -132,7 +132,7 @@
         <style>${css}</style>
         <div class="wrap">
           <div class="bubble" part="bubble" ${this.hasAttribute('collapsed')||!this.message?'hidden':''}>
-            <div class="hdr"><span class="nm"><b></b> Opale ${this.context!=='default'?'<span class="ctx">'+this.context+'</span>':''}</span><button class="min" data-act="min" title="Réduire" aria-label="Réduire">—</button></div>
+            <div class="hdr"><span class="nm"><b></b> Opale ${this.context!=='default'?'<span class="ctx">'+this.context+'</span>':''}</span><button class="min" data-act="min" title="Réduire" aria-label="Réduire">▾</button></div>
             <div class="msg" aria-live="polite"></div>
             <div class="row">
               ${showHint?'<button class="mini" data-act="hint">💡 Indice</button>':''}

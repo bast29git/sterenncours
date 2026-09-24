@@ -9,6 +9,23 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="favicon.svg">
 <link rel="manifest" href="manifeste.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap">
+<script>
+/* Le fond d'aurore est l'élément le plus lourd de l'écran : on le demande tout de suite,
+   dans la version du thème mémorisé, avant que le CSS ne soit lu. */
+(function () {
+  try {
+    var sombre = localStorage.getItem('cours4e.theme') === '"dark"';
+    var portrait = window.matchMedia && window.matchMedia('(max-aspect-ratio: 3/4)').matches;
+    var l = document.createElement('link');
+    l.rel = 'preload'; l.as = 'image'; l.fetchPriority = 'high';
+    l.href = portrait ? 'fond/aurore-mobile.jpg' : (sombre ? 'fond/aurore-nuit.jpg' : 'fond/aurore-jour.jpg');
+    document.head.appendChild(l);
+  } catch (e) { /* sans stockage : pas de préchargement */ }
+})();
+</script>
 <link rel="stylesheet" href="moteurs/aurora.css">
 <link rel="stylesheet" href="socle.css">
 <link rel="stylesheet" href="lecture.css">
@@ -210,7 +227,7 @@
   <a class="saut-contenu" href="#vue-eleve">Aller au contenu</a>
 
   <header class="e-tete">
-    <a class="e-marque" href="#/hub">
+    <a class="e-marque" href="#/hub" aria-label="Opaline, accueil">
       <span class="e-logo" aria-hidden="true">
         <svg viewBox="0 0 64 64"><path fill="currentColor" d="M32 12 46 27 32 52 18 27Z"/><path fill="currentColor" opacity=".55" d="M18 27h28L32 33Z"/><path fill="currentColor" d="M50.5 6c.5 3.4 1.4 5.2 2.9 6.3 1.2.9 2.8 1.4 5.6 1.9-2.8.5-4.4 1-5.6 1.9-1.5 1.1-2.4 2.9-2.9 6.3-.5-3.4-1.4-5.2-2.9-6.3-1.2-.9-2.8-1.4-5.6-1.9 2.8-.5 4.4-1 5.6-1.9 1.5-1.1 2.4-2.9 2.9-6.3Z"/></svg>
       </span>

@@ -71,7 +71,7 @@
     '.kwo-hint.kwo-hide{opacity:0}',
     /* Pastilles de pagination (communes 3D / fallback) */
     '.kwo-dots{display:flex;justify-content:center;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.7rem .5rem 0}',
-    '.kwo-dot{width:9px;height:9px;border-radius:50%;border:0;padding:0;cursor:pointer;',
+    '.kwo-dot{width:24px;height:24px;border-radius:50%;border:0;padding:7px;background-clip:content-box;cursor:pointer;',
     ' background:color-mix(in srgb,currentColor 26%,transparent);color:inherit;transition:transform .18s,background .18s}',
     '.kwo-dot:hover{background:color-mix(in srgb,currentColor 55%,transparent)}',
     '.kwo-dot[aria-current="true"]{background:#6E6BFF;transform:scale(1.45)}',
@@ -246,7 +246,7 @@
     live.setAttribute('aria-live', 'polite');
     var dots = document.createElement('div');
     dots.className = 'kwo-dots';
-    dots.setAttribute('role', 'tablist');
+    dots.setAttribute('role', 'group');
     dots.setAttribute('aria-label', 'Aller à un monde');
     var dotEls = worlds.map(function (w, i) {
       var b = document.createElement('button');
@@ -286,7 +286,7 @@
       b.className = 'kwo-fcard';
       b.style.setProperty('--w1', (w.grad && w.grad[0]) || '#6E6BFF');
       b.style.setProperty('--w2', (w.grad && w.grad[1]) || '#1B82E0');
-      b.setAttribute('aria-label', 'Ouvrir le monde : ' + (w.titre || ''));
+      b.setAttribute('title', 'Ouvrir le monde : ' + (w.titre || ''));
       var html = '<span class="kwo-femoji" aria-hidden="true">' + (w.emoji || '✨') + '</span>';
       if (w.badge) html += '<span class="kwo-fbadge">' + w.badge + '</span>';
       html += '<span class="kwo-ft"></span><span class="kwo-fs"></span>';
