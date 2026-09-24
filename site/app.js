@@ -473,7 +473,7 @@
 
     if (minuteur) clearInterval(minuteur);
     minuteur = setInterval(sonder, 45000);
-    router();
+    if (!reprendreDernier()) router();
   }
 
   async function rafraichirEtat() {
@@ -680,14 +680,38 @@
 
   /* ---------- Routeur -------------------------------------------------------------------- */
   const vueActive = () => (estProf() ? window.VUE_PROF : window.VUE_ELEVE);
+  const CLE_DERNIER = 'opaline.dernier';
   function router() {
     if (!etat.role) return;
     const vue = vueActive();
     if (!vue) return;
     const parts = (location.hash || '#/').replace(/^#\/?/, '').split('/');
     vue.rendre(parts);
+    // C8 : on retient le dernier écran de travail de Sterenn (fiche, série, jeu, semaine).
+    if (etat.role === 'eleve' && ['lecon', 'exos', 'calendrier', 'matiere', 'choix', 'notes'].indexOf(parts[0]) !== -1) ecrire(CLE_DERNIER, { hash: location.hash, le: Date.now() });
   }
   window.addEventListener('hashchange', router);
+  /** C8 : à l'ouverture, revenir là où elle était, avec une ligne qui le dit. */
+  function reprendreDernier() {
+    if (etat.role !== 'eleve') return false;
+    const d = lire(CLE_DERNIER, null);
+    if (!d || !d.hash || (location.hash && location.hash !== '#/' && location.hash !== '#/hub')) return false;
+    if (Date.now() - (d.le || 0) > 3 * 86400000) return false;
+    const p = d.hash.replace(/^#\/?/, '').split('/');
+    let libelle = 'ton dernier écran';
+    if (p[0] === 'lecon' || p[0] === 'exos') { const m = matiere(p[1]); const l = m && lecon(m, p[2]); if (l) libelle = (p[0] === 'exos' ? 'la série de « ' : 'la fiche « ') + l.titre + ' »'; }
+    else if (p[0] === 'calendrier') libelle = 'ta semaine';
+    else if (p[0] === 'matiere') { const m = matiere(p[1]); if (m) libelle = 'le parcours de ' + m.nom; }
+    location.hash = d.hash;
+    setTimeout(() => signaler('Tu étais ici : ' + libelle + '. L\'accueil est dans la barre.', 'info'), 600);
+    return true;
+  }
+  // C7 : « ? » ouvre l'aide, hors champ de saisie.
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key !== '?' || etat.role !== 'eleve') return;
+    const c = ev.target; if (c && (c.tagName === 'INPUT' || c.tagName === 'TEXTAREA' || c.isContentEditable)) return;
+    ev.preventDefault(); location.hash = '#/aide';
+  });
 
   /* ---------- Interface exposée aux modules de vue --------------------------------------- */
   window.NOYAU = {

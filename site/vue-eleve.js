@@ -49,8 +49,8 @@
   /** C4 : l'écran parent de chaque route ; le bouton de retour y mène, toujours à la même place. */
   const PARENT = { matieres: '#/hub', matiere: '#/matieres', lecon: (p) => '#/matiere/' + p[1], exos: (p) => '#/lecon/' + p[1] + '/' + p[2] + '/exercices',
     calendrier: '#/hub', choix: '#/hub', jeux: (p) => (p[1] ? '#/jeux' : '#/hub'), reussites: '#/hub', progres: '#/hub', messages: '#/hub', travail: '#/hub',
-    decouverte: '#/hub', positionnement: '#/hub', visite: '#/hub', donnees: '#/reussites' };
-  const LIBELLE_RETOUR = { matieres: 'Accueil', matiere: 'Mes matières', lecon: 'Le parcours', exos: 'La fiche', jeux: 'Les jeux', donnees: 'Mes réussites' };
+    decouverte: '#/hub', positionnement: '#/hub', visite: '#/hub', donnees: '#/reussites', recherche: '#/matieres', aide: '#/hub', notes: '#/hub' };
+  const LIBELLE_RETOUR = { matieres: 'Accueil', matiere: 'Mes matières', lecon: 'Le parcours', exos: 'La fiche', jeux: 'Les jeux', donnees: 'Mes réussites', recherche: 'Mes matières' };
   function boutonRetour() {
     const p = (location.hash || '#/hub').replace(/^#\/?/, '').split('/');
     const parent = PARENT[p[0]];
@@ -309,6 +309,7 @@
          ${blocChoix(N.etat.seances) || '<p>Pas de choix à faire pour l\'instant. Une séance sur quatre est à toi : tu choisis parmi trois leçons.</p>'}
        </section>
        ${blocMotNouveau()}
+       ${blocARevoir()}
        ${blocEtoiles()}
 
        <div class="e-orbite-titre">
@@ -328,6 +329,10 @@
            <b>Mes matières</b><span>Ouvrir un parcours</span></a></li>
          <li><a href="#/jeux"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-etincelle"/></svg></span>
            <b>Jeux</b><span>${(window.JEUX || []).length} jeux et mondes 3D</span></a></li>
+         <li><a href="#/notes"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-crayon"/></svg></span>
+           <b>Mes notes</b><span>Ce que j'ai écrit dans les fiches</span></a></li>
+         <li><a href="#/aide"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-livre"/></svg></span>
+           <b>Aide</b><span>Douze questions, douze réponses</span></a></li>
        </ul>
 
        <h2 class="e-titre-section">${N.ic('ic-cible')} Pour commencer</h2>
@@ -375,10 +380,96 @@
   }
 
   /* ---------- Mes matières ---------------------------------------------------- */
+  function formulaireRecherche(q) {
+    return `<form class="e-recherche" id="e-form-recherche" role="search"><label class="visuellement-cache" for="e-q">Rechercher</label>
+      <input id="e-q" type="search" value="${N.ech(q || '')}" placeholder="Une leçon, un mot du cours, un jeu…" autocomplete="off">
+      <button class="e-bouton e-bouton-mini" type="submit">${N.ic('ic-loupe')} Chercher</button></form>`;
+  }
+  function brancherRecherche() {
+    const f = document.getElementById('e-form-recherche'); if (!f) return;
+    f.addEventListener('submit', (ev) => { ev.preventDefault(); const q = document.getElementById('e-q').value.trim(); if (q) location.hash = '#/recherche/' + encodeURIComponent(q); });
+  }
+  /** C6 : chercher une leçon, un mot du cours (dans les fiches ouvertes), un jeu. */
+  async function vueRecherche(brut) {
+    const q = decodeURIComponent(brut || '').trim();
+    afficher(`<h1>Recherche</h1>${formulaireRecherche(q)}<div id="e-resultats"><p class="e-vide">Recherche en cours…</p></div>`);
+    brancherRecherche();
+    const zone = document.getElementById('e-resultats');
+    if (q.length < 2) { zone.innerHTML = '<p class="e-vide">Écris au moins deux lettres.</p>'; return; }
+    const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const nq = norm(q);
+    const lecons = []; const mots = []; const jeux = [];
+    PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => {
+      if (norm(l.titre).indexOf(nq) !== -1 || (l.notions || []).some((n) => norm(n).indexOf(nq) !== -1)) lecons.push({ m, l, ouverte: N.accessible(m.id, l.ref) && docsVisibles(l).length > 0 });
+    }));
+    (window.JEUX || []).forEach((j) => { if (N.accesJeu(j.id) && (norm(j.titre).indexOf(nq) !== -1 || norm(j.apprend).indexOf(nq) !== -1)) jeux.push(j); });
+    // Les mots du cours : dans les fiches des leçons ouvertes, matière par matière.
+    const ouvertes = [];
+    PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => { if (N.accessible(m.id, l.ref) && docsVisibles(l).length) ouvertes.push({ m, l }); }));
+    const matieresOuvertes = [...new Set(ouvertes.map((x) => x.m.id))];
+    await Promise.all(matieresOuvertes.map((mid) => N.chargerContenu(mid).catch(() => null)));
+    const bac = document.createElement('div');
+    ouvertes.forEach(({ m, l }) => {
+      const contenu = window.CONTENU && window.CONTENU[m.id] && window.CONTENU[m.id][l.ref];
+      if (!contenu) return;
+      docsVisibles(l).filter((t) => t !== 'evaluation' && contenu[t]).forEach((t) => {
+        decouperFiche(contenu[t].html).forEach((sec, k) => {
+          bac.innerHTML = sec.html; const texte = bac.textContent || '';
+          const pos = norm(texte).indexOf(nq);
+          if (pos === -1 || mots.length >= 30) return;
+          mots.push({ m, l, t, k, titre: sec.titre, extrait: texte.slice(Math.max(0, pos - 60), pos + 80).replace(/\s+/g, ' ') });
+        });
+      });
+    });
+    const info = (t) => (N.TYPES_DOC.find((x) => x.id === t) || {}).libelle || t;
+    zone.innerHTML = (lecons.length + mots.length + jeux.length === 0)
+      ? `<p class="e-vide">Rien pour « ${N.ech(q)} ». Essaie un autre mot, ou demande à Opale.</p>`
+      : `${lecons.length ? `<h2 class="e-titre-section">Leçons (${lecons.length})</h2><ul class="e-resultats">${lecons.map((x) => `<li>${x.ouverte ? `<a href="#/lecon/${x.m.id}/${x.l.ref}/cours">${x.m.icone} ${N.ech(x.l.titre)}</a>` : `<span class="e-faible">${x.m.icone} ${N.ech(x.l.titre)} · plus tard</span>`}<small>${N.ech((x.l.notions || []).slice(0, 3).join(' · '))}</small></li>`).join('')}</ul>` : ''}
+         ${mots.length ? `<h2 class="e-titre-section">Dans les fiches (${mots.length})</h2><ul class="e-resultats">${mots.map((x) => `<li><a href="#/lecon/${x.m.id}/${x.l.ref}/${x.t}">${x.m.icone} ${N.ech(x.l.titre)} · ${N.ech(info(x.t))} · ${N.ech(x.titre)}</a><small>…${N.ech(x.extrait)}…</small></li>`).join('')}</ul>` : ''}
+         ${jeux.length ? `<h2 class="e-titre-section">Jeux (${jeux.length})</h2><ul class="e-resultats">${jeux.map((j) => `<li>${lienJeu(j)}<small>${N.ech(j.apprend || '')}</small></li>`).join('')}</ul>` : ''}`;
+  }
+  /** C10, C7 : la page d'aide, douze questions, et les raccourcis. */
+  function vueAide() {
+    const QR = [
+      ['Par où je commence ?', 'Par l\'accueil : le bloc « Maintenant » dit ce qu\'il y a à faire. Si rien n\'est prévu, ouvre « Ma prochaine étoile ».'],
+      ['Comment je lis une fiche ?', 'Une diapositive à la fois, avec « Suivant ». Les flèches du clavier marchent aussi. Le bouton « Page entière » montre tout d\'un coup.'],
+      ['C\'est quoi les étoiles ?', 'Une fiche terminée, une série réussie à 70 %, un jeu gagné avec deux étoiles : une étoile chacun. Une leçon validée par Bastien : trois étoiles.'],
+      ['Comment je gagne la prochaine ?', 'L\'accueil te dit exactement ce qui manque, avec le lien. À chaque palier, une nouvelle palette de couleurs s\'ouvre.'],
+      ['Que fait Opale ?', 'Elle explique, donne des pistes, pose des questions. Elle ne donne jamais la réponse : c\'est toi qui la trouves. Elle a une calculatrice, sauf en évaluation et en exercices de maths.'],
+      ['Comment j\'envoie un devoir ?', 'Dans Messages, le bouton photo. Pour une évaluation, le bloc « Envoyer ma copie » en bas du sujet : trois photos au plus, un seul envoi.'],
+      ['Je serai absente, je fais quoi ?', 'Dans Ma semaine, sur la séance, « Je serai absente » et un mot pour Bastien. Il déplace les leçons.'],
+      ['C\'est quoi « À toi de choisir » ?', 'Une séance sur quatre, tu choisis la deuxième leçon parmi trois. Tu peux changer d\'avis jusqu\'au jour de la séance.'],
+      ['Où sont mes notes ?', 'Dans « Mes notes » : tout ce que tu as écrit sous les diapositives, rangé par matière. Bastien peut les lire.'],
+      ['Je peux changer les couleurs ?', 'Le bouton palette en haut. Certaines palettes s\'ouvrent avec les étoiles. Le bouton lune passe en thème sombre.'],
+      ['L\'écran me fatigue.', 'Le bouton accessibilité en haut : taille du texte, police, interligne, calme. Dans une fiche : largeur, une phrase à la fois, lecture à voix haute.'],
+      ['Qui voit ce que je fais ?', 'Bastien, et personne d\'autre. La page « Ce que l\'application sait de moi » liste tout et te laisse télécharger tes données.'],
+    ];
+    afficher(`<div class="e-aide-page"><h1>Aide</h1><p class="e-intro">Douze questions, douze réponses de trois lignes. Si la tienne n'y est pas, écris à Bastien ou demande à Opale.</p>
+      <dl class="e-qr">${QR.map((x) => `<dt>${N.ech(x[0])}</dt><dd>${N.ech(x[1])}</dd>`).join('')}</dl>
+      <h2 class="e-titre-section">Raccourcis clavier</h2>
+      <ul class="e-raccourcis"><li><kbd>→</kbd> <kbd>←</kbd> diapositive suivante, précédente</li><li><kbd>Échap</kbd> ferme Opale, une fenêtre, la fête</li><li><kbd>?</kbd> ouvre cette aide</li><li><kbd>Ctrl</kbd> + <kbd>Entrée</kbd> envoie un message</li></ul>
+      <p class="e-actions"><a class="e-bouton e-bouton-doux" href="#/donnees">Ce que l'application sait de moi</a><a class="e-bouton e-bouton-fin" href="#/visite">Refaire la visite guidée</a></p></div>`);
+  }
+  /** C16 : le carnet « Mes notes », par matière, avec le lien vers la diapositive. */
+  function vueNotes() {
+    const entrees = [];
+    Object.keys(N.etat.profil).filter((k) => k.indexOf('moi.note.') === 0).forEach((k) => {
+      const reste = k.slice('moi.note.'.length); const [mid, ref, t] = reste.split('/');
+      const m = N.matiere(mid); const l = m && N.lecon(m, ref); if (!m || !l) return;
+      Object.entries(N.etat.profil[k] || {}).forEach(([i, texte]) => entrees.push({ m, l, t, i: Number(i), texte }));
+    });
+    const surlignes = Object.keys(N.etat.profil).filter((k) => k.indexOf('moi.surligne.') === 0).reduce((n, k) => n + ((N.etat.profil[k] || []).length), 0);
+    const parMatiere = PROGRAMME.matieres.map((m) => ({ m, notes: entrees.filter((e) => e.m.id === m.id) })).filter((x) => x.notes.length);
+    afficher(`<h1>Mes notes</h1><p class="e-intro">Ce que tu as écrit sous les diapositives, rangé par matière. ${VU_PROF}</p>
+      ${parMatiere.length ? parMatiere.map((x) => `<h2 class="e-titre-section">${x.m.icone} ${N.ech(x.m.nom)}</h2><ul class="e-notes">${x.notes.map((e) => `<li><a href="#/lecon/${e.m.id}/${e.l.ref}/${e.t}">${N.ech(e.l.titre)} · ${N.ech((N.TYPES_DOC.find((y) => y.id === e.t) || {}).libelle || e.t)} · diapositive ${e.i + 1}</a><p>${N.ech(e.texte)}</p></li>`).join('')}</ul>`).join('') : '<div class="e-carte e-vide"><p>Pas encore de note. Sous chaque diapositive, un champ t\'attend.</p></div>'}
+      ${surlignes ? `<p class="e-aide">${surlignes} passage(s) surligné(s) dans tes fiches : ils réapparaissent quand tu rouvres la fiche.</p>` : ''}`);
+  }
+
   function vueMatieres() {
     afficher(
       `<h1>Mes matières</h1>
        <p class="e-intro">Choisis une matière pour voir ton parcours.</p>
+       ${formulaireRecherche('')}
        <ul class="e-tuiles">${PROGRAMME.matieres.map((m) => {
         const p = N.progression(m);
         const prets = m.lecons.filter((l) => docsVisibles(l).length).length;
@@ -389,6 +480,7 @@
         </a></li>`;
       }).join('')}</ul>`,
     );
+    brancherRecherche();
   }
 
   function vueMatiere(mid) {
@@ -463,7 +555,7 @@
       afficher(
         `<div class="e-lecteur">
           <header class="e-lecteur-tete">
-            <p style="margin:0;color:var(--e-encre-doux);font-size:.85rem">${m.icone} ${N.ech(m.nom)}</p>
+            <nav class="e-ariane" aria-label="Fil d'Ariane"><a href="#/matieres">Mes matières</a> › <a href="#/matiere/${mid}">${m.icone} ${N.ech(m.nom)}</a> › <a href="#/lecon/${mid}/${ref}/${ouverts[0]}">${N.ech(l.titre)}</a> › <b>${N.ech((N.TYPES_DOC.find((x) => x.id === actif) || {}).libelle || actif)}</b></nav>
             <h1>${N.ech(doc.titre)}</h1>
             ${doc.resume ? `<p style="margin:0;color:var(--e-encre-doux)">${N.ech(doc.resume)}</p>` : ''}
             ${ongletsLecon(mid, ref, ouverts, actif)}
@@ -479,7 +571,7 @@
       );
 
       rendreFiche(document.getElementById('e-fiche-hote'), doc, cleFiche, () => document.getElementById('e-fini').click());
-      if (actif === 'exercices') brancherModeSeance(document.getElementById('e-fiche-hote'), doc, cleFiche);
+      if (actif === 'exercices') { brancherModeSeance(document.getElementById('e-fiche-hote'), doc, cleFiche); suiviCahier(document.getElementById('e-fiche-hote'), doc, cleFiche, mid, ref); }
 
       document.getElementById('e-fini').addEventListener('click', async () => {
         const termine = !N.etat.fiches[cleFiche];
@@ -539,6 +631,26 @@
     });
   }
 
+  /** C31 : les exercices à la main du cahier, avec une case « fait » par exercice, vue par le professeur. */
+  function suiviCahier(hote, doc, cleFiche, mid, ref) {
+    const bac = document.createElement('div'); bac.innerHTML = doc.html;
+    const mains = [...bac.querySelectorAll('section.exercice')].filter((e) => e.querySelector('.support-main')).map((e) => (e.querySelector('.exercice-num') || {}).textContent || '').map((t) => t.replace(/^Exercice\s*/i, '').trim()).filter(Boolean);
+    if (!mains.length) return;
+    const cle = 'moi.cahier.' + N.cle(mid, ref);
+    const faits = new Set(N.profil(cle, []) || []);
+    const zone = document.createElement('section'); zone.className = 'e-carte e-cahier-suivi'; zone.setAttribute('aria-labelledby', 'e-h-cahier');
+    zone.innerHTML = `<h2 id="e-h-cahier">${N.ic('ic-crayon')} Mon cahier : ce que j'ai fait à la main ${VU_PROF}</h2>
+      <p class="e-aide">Coche chaque exercice quand il est fait dans le cahier. <a href="/cahiers/${mid}/${ref}.html" target="_blank" rel="noopener">Ouvrir le cahier à imprimer</a></p>
+      <ul class="e-cahier-cases">${mains.map((n) => `<li><label><input type="checkbox" value="${N.ech(n)}" ${faits.has(n) ? 'checked' : ''}> Exercice ${N.ech(n)}</label></li>`).join('')}</ul>
+      <p class="e-cahier-total">${faits.size} sur ${mains.length} fait(s)</p>`;
+    hote.insertAdjacentElement('afterend', zone);
+    zone.querySelectorAll('input').forEach((c) => c.addEventListener('change', async () => {
+      if (c.checked) faits.add(c.value); else faits.delete(c.value);
+      zone.querySelector('.e-cahier-total').textContent = `${faits.size} sur ${mains.length} fait(s)`;
+      try { await N.enregistrerProfil(cle, faits.size ? [...faits] : null); } catch (e) { N.signaler(e.message); }
+    }));
+  }
+
   /** C27 : les exercices 1 à 4, un par écran, avec un chronomètre discret et « on corrige ensemble ». */
   function brancherModeSeance(hote, doc, cleFiche) {
     const zone = document.createElement('div');
@@ -567,6 +679,7 @@
           <button type="button" class="e-bouton e-bouton-fin e-bouton-mini" id="e-seance-quitter">Quitter le mode séance</button>
         </div>
         <article class="e-fiche e-fiche-page e-seance-corps">${e.outerHTML}</article>
+        <div class="e-brouillon"><label for="e-brouillon-texte">${N.ic('ic-crayon')} Mon brouillon pour cet exercice ${VU_PROF}</label><textarea id="e-brouillon-texte" rows="4" maxlength="1500" placeholder="Pose tes calculs ou tes idées ici. Rien n'est noté.">${N.ech((N.profil('moi.brouillon.' + cleFiche, {}) || {})[i] || '')}</textarea></div>
         <div class="e-seance-pied">
           <button type="button" class="e-bouton e-bouton-doux" id="e-seance-prec" ${i === 0 ? 'disabled' : ''}>${N.ic('ic-gauche')} Précédent</button>
           <button type="button" class="e-bouton ${fait ? 'e-bouton-doux' : ''}" id="e-seance-corriger">${fait ? '✓ Corrigé ensemble' : 'On corrige ensemble'}</button>
@@ -575,6 +688,11 @@
       depart = Date.now();
       clearInterval(minuteur);
       minuteur = setInterval(() => { const c = document.getElementById('e-seance-chrono'); if (!c) { clearInterval(minuteur); return; } const s = Math.floor((Date.now() - depart) / 1000); c.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }, 1000);
+      let attenteBrouillon = null;
+      document.getElementById('e-brouillon-texte').addEventListener('input', (ev) => {
+        clearTimeout(attenteBrouillon);
+        attenteBrouillon = setTimeout(() => { const b = N.profil('moi.brouillon.' + cleFiche, {}) || {}; const v = ev.target.value.trim(); if (v) b[i] = v; else delete b[i]; N.enregistrerProfil('moi.brouillon.' + cleFiche, Object.keys(b).length ? b : null).catch(() => {}); }, 1200);
+      });
       document.getElementById('e-seance-prec').addEventListener('click', () => { i -= 1; rendre(); });
       document.getElementById('e-seance-suiv').addEventListener('click', () => { i += 1; rendre(); });
       document.getElementById('e-seance-quitter').addEventListener('click', () => { clearInterval(minuteur); lien.hidden = false; rendreFiche(hote, doc, cleFiche, () => document.getElementById('e-fini').click()); });
@@ -780,6 +898,7 @@
         <button type="button" class="e-diapo-mode" id="e-mode-page" title="Afficher toute la fiche sur une page">${N.ic('ic-livre')}<span>Page entière</span></button>
       </div>
       <p class="e-diapo-temps">${N.ic('ic-horloge')} ${sections.length} diapositives, environ ${totalMinutes} min de lecture en tout${doc.duree ? ` · fiche prévue pour ${N.ech(doc.duree)}` : ''}.</p>
+      ${barreOutilsLecture()}
       <div class="e-diapo-jauge" role="progressbar" aria-valuemin="1" aria-valuemax="${sections.length}" aria-valuenow="1" aria-label="Avancement dans la fiche"><i id="e-diapo-jauge"></i></div>
       <article class="e-fiche e-diapo-corps" id="e-diapo-corps" tabindex="-1"></article>
       <div class="e-diapo-pied">
@@ -795,6 +914,7 @@
       memoriser(i);
       const x = sections[i];
       corps.innerHTML = `<h2 id="${N.ech(x.id)}">${N.ech(x.titre)}</h2>${x.html}`;
+      outilsLecture.apresRendu(hote, corps, cleFiche, i, sections);
       hote.querySelectorAll('[data-diapo]').forEach((b) => {
         const actif = Number(b.getAttribute('data-diapo')) === i;
         b.classList.toggle('actif', actif);
@@ -829,7 +949,214 @@
     });
     document.getElementById('e-mode-page').addEventListener('click', () => { N.ecrire(CLE_LECTURE, 'page'); rendreFiche(hote, doc, cleFiche, terminer); });
     hote.__diapo = { avancer: () => montrer(i + 1, true), reculer: () => montrer(i - 1, true) };
+    outilsLecture.brancher(hote, cleFiche, sections, () => i);
     montrer(i, false);
+  }
+
+  /* ---------- Outils de lecture : voix, largeur, une phrase à la fois, surligneur, notes, mots, pauses, zoom ---------- */
+  const CLE_LARGEUR = 'opaline.largeur';
+  const CLE_PHRASE = 'opaline.phrase';
+  const CLE_VOIX = 'opaline.voix.vitesse';
+  const VU_PROF = `<span class="e-vu-prof" title="Bastien peut lire ce que tu écris ici">${N.ic('ic-loupe')} Bastien peut lire</span>`;
+  function barreOutilsLecture() {
+    const largeur = N.lire(CLE_LARGEUR, 'normale');
+    const phrase = N.lire(CLE_PHRASE, false);
+    const vitesse = N.lire(CLE_VOIX, 1);
+    return `<div class="e-outils-lecture" role="toolbar" aria-label="Outils de lecture">
+      <span class="e-outils-groupe" aria-label="Lecture à voix haute">
+        <button type="button" class="e-outil-lecture" id="e-voix" aria-pressed="false" title="Lire cette diapositive à voix haute">${N.ic('ic-envoyer')} <span>Écouter</span></button>
+        <select id="e-voix-vitesse" aria-label="Vitesse de lecture" title="Vitesse"><option value="0.85" ${vitesse === 0.85 ? 'selected' : ''}>Lente</option><option value="1" ${vitesse === 1 ? 'selected' : ''}>Normale</option><option value="1.15" ${vitesse === 1.15 ? 'selected' : ''}>Rapide</option></select>
+      </span>
+      <button type="button" class="e-outil-lecture" id="e-phrase" aria-pressed="${phrase}" title="Afficher le texte un paragraphe à la fois">${N.ic('ic-livre')} <span>Une phrase à la fois</span></button>
+      <span class="e-outils-groupe" aria-label="Largeur de lecture">
+        ${['etroite', 'normale', 'large'].map((l) => `<button type="button" class="e-outil-lecture e-largeur" data-largeur="${l}" aria-pressed="${largeur === l}" title="Largeur ${l}">${l === 'etroite' ? '▯' : l === 'normale' ? '▭' : '▬'}<span class="visuellement-cache">Largeur ${l}</span></button>`).join('')}
+      </span>
+      <span class="e-outils-groupe e-surligne-aide" aria-label="Surligneur">${N.ic('ic-crayon')} <span>Sélectionne un passage pour le surligner</span></span>
+    </div>`;
+  }
+  /** Les définitions de la fiche (blocs « Définition : terme ») pour souligner les mots difficiles ailleurs. */
+  function definitionsDe(sections) {
+    const bac = document.createElement('div');
+    const defs = [];
+    sections.forEach((x) => {
+      bac.innerHTML = x.html;
+      bac.querySelectorAll('.bloc-definition').forEach((b) => {
+        const titre = b.querySelector('.bloc-titre span:last-child');
+        const t = titre ? titre.textContent.replace(/^Définition\s*:\s*/i, '').trim() : '';
+        const corps = [...b.children].filter((c) => !c.classList.contains('bloc-titre')).map((c) => c.textContent.trim()).join(' ').slice(0, 260);
+        if (t && t.length >= 3 && t.length <= 40 && corps) defs.push({ terme: t, texte: corps });
+      });
+    });
+    return defs;
+  }
+  const outilsLecture = {
+    /** Après chaque rendu de diapositive. */
+    apresRendu(hote, corps, cleFiche, i, sections) {
+      // Largeur
+      const lecteur = hote.closest('.e-lecteur'); if (lecteur) lecteur.setAttribute('data-largeur', N.lire(CLE_LARGEUR, 'normale'));
+      // Mots difficiles : les termes définis ailleurs, soulignés une fois par diapositive
+      if (!hote.__defs) hote.__defs = definitionsDe(sections);
+      hote.__defs.forEach((d) => {
+        const re = new RegExp('(^|[^\\p{L}])(' + d.terme.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?=[^\\p{L}]|$)', 'iu');
+        const marcheur = document.createTreeWalker(corps, NodeFilter.SHOW_TEXT);
+        let n;
+        while ((n = marcheur.nextNode())) {
+          if (n.parentNode.closest('.bloc-definition, h2, .e-mot, button, a')) continue;
+          const m = re.exec(n.nodeValue);
+          if (!m) continue;
+          const debut = m.index + m[1].length;
+          const apres = n.splitText(debut); apres.splitText(m[2].length);
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'e-mot'; b.textContent = apres.nodeValue; b.setAttribute('data-def', d.texte); b.setAttribute('aria-label', apres.nodeValue + ' : voir la définition');
+          apres.parentNode.replaceChild(b, apres);
+          break;
+        }
+      });
+      corps.querySelectorAll('.e-mot').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); montrerDefinition(b); }));
+      // Surlignages enregistrés
+      (N.profil('moi.surligne.' + cleFiche, []) || []).filter((h) => h.s === i).forEach((h) => appliquerSurlignage(corps, h.t, h.c));
+      // Une phrase à la fois
+      if (N.lire(CLE_PHRASE, false)) {
+        const enfants = [...corps.children].filter((c) => c.tagName !== 'H2');
+        enfants.forEach((c, k) => { if (k > 0) c.classList.add('e-cache'); });
+        if (enfants.length > 1) {
+          const suite = document.createElement('button'); suite.type = 'button'; suite.className = 'e-bouton e-bouton-doux e-suite'; suite.textContent = 'Suite ▸';
+          suite.addEventListener('click', () => { const c = corps.querySelector('.e-cache'); if (c) c.classList.remove('e-cache'); if (!corps.querySelector('.e-cache')) suite.remove(); });
+          corps.appendChild(suite);
+        }
+      }
+      // Pauses actives : cinq minutes, puis une phrase pour reprendre
+      corps.querySelectorAll('.bloc-pause').forEach((b) => {
+        if (b.querySelector('.e-pause-bouton')) return;
+        const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'e-bouton e-bouton-doux e-bouton-mini e-pause-bouton'; btn.textContent = 'Lancer une pause de 5 min';
+        const sortie = document.createElement('p'); sortie.className = 'e-pause-etat';
+        btn.addEventListener('click', () => {
+          let reste = 300; btn.disabled = true;
+          const t = setInterval(() => {
+            reste -= 1; sortie.textContent = `Pause : ${Math.floor(reste / 60)}:${String(reste % 60).padStart(2, '0')}`;
+            if (reste <= 0 || !document.body.contains(sortie)) { clearInterval(t); btn.disabled = false; sortie.textContent = `La pause est finie. Tu reprends ici : « ${sections[i].titre} ».`; N.signaler('La pause est finie. Tu reprends la fiche.', 'info'); }
+          }, 1000);
+        });
+        b.appendChild(btn); b.appendChild(sortie);
+      });
+      // Zoom sur les schémas, frises et tableaux
+      corps.querySelectorAll('figure, table, .frise, svg.schema').forEach((el) => {
+        if (el.closest('figure') !== el && el.tagName !== 'FIGURE' && el.closest('figure')) return;
+        const z = document.createElement('button'); z.type = 'button'; z.className = 'e-zoom-bouton'; z.title = 'Agrandir'; z.setAttribute('aria-label', 'Agrandir'); z.innerHTML = N.ic('ic-loupe');
+        z.addEventListener('click', () => agrandir(el));
+        const enveloppe = document.createElement('div'); enveloppe.className = 'e-zoomable';
+        el.parentNode.insertBefore(enveloppe, el); enveloppe.appendChild(el); enveloppe.appendChild(z);
+      });
+      // Note en marge
+      const notes = N.profil('moi.note.' + cleFiche, {}) || {};
+      const zone = hote.querySelector('.e-note-marge') || (() => { const d = document.createElement('div'); d.className = 'e-note-marge'; hote.querySelector('.e-diapo-pied').insertAdjacentElement('beforebegin', d); return d; })();
+      zone.innerHTML = `<label for="e-note-texte">${N.ic('ic-crayon')} Ma note sur cette diapositive ${VU_PROF}</label><textarea id="e-note-texte" rows="2" maxlength="600" placeholder="Une idée, une question, un exemple à toi.">${N.ech(notes[i] || '')}</textarea>`;
+      let attente = null;
+      zone.querySelector('textarea').addEventListener('input', (ev) => {
+        clearTimeout(attente);
+        attente = setTimeout(() => {
+          const actuel = N.profil('moi.note.' + cleFiche, {}) || {};
+          const v = ev.target.value.trim();
+          if (v) actuel[i] = v; else delete actuel[i];
+          N.enregistrerProfil('moi.note.' + cleFiche, Object.keys(actuel).length ? actuel : null).catch(() => {});
+        }, 1200);
+      });
+      // Arrêter la voix quand on change de diapositive
+      if (window.speechSynthesis && speechSynthesis.speaking) speechSynthesis.cancel();
+      const v = document.getElementById('e-voix'); if (v) { v.setAttribute('aria-pressed', 'false'); v.querySelector('span').textContent = 'Écouter'; }
+    },
+    /** Une fois par fiche : les boutons de la barre, la sélection, le balayage. */
+    brancher(hote, cleFiche, sections, index) {
+      const voix = document.getElementById('e-voix');
+      const vitesse = document.getElementById('e-voix-vitesse');
+      if (voix) {
+        if (!window.speechSynthesis) { voix.disabled = true; voix.title = 'La lecture à voix haute n\'est pas disponible dans ce navigateur.'; }
+        voix.addEventListener('click', () => {
+          if (speechSynthesis.speaking) { speechSynthesis.cancel(); voix.setAttribute('aria-pressed', 'false'); voix.querySelector('span').textContent = 'Écouter'; return; }
+          const corps = document.getElementById('e-diapo-corps');
+          const texte = [...corps.querySelectorAll('h2, p, li, dt, dd, th, td')].map((e) => e.textContent.trim()).filter(Boolean).join('. ');
+          const u = new SpeechSynthesisUtterance(texte); u.lang = 'fr-FR'; u.rate = Number(vitesse.value) || 1;
+          u.onend = () => { voix.setAttribute('aria-pressed', 'false'); voix.querySelector('span').textContent = 'Écouter'; };
+          speechSynthesis.speak(u); voix.setAttribute('aria-pressed', 'true'); voix.querySelector('span').textContent = 'Arrêter';
+        });
+        vitesse.addEventListener('change', () => N.ecrire(CLE_VOIX, Number(vitesse.value)));
+      }
+      const phrase = document.getElementById('e-phrase');
+      if (phrase) phrase.addEventListener('click', () => { N.ecrire(CLE_PHRASE, !N.lire(CLE_PHRASE, false)); phrase.setAttribute('aria-pressed', String(N.lire(CLE_PHRASE, false))); hote.__diapo.avancer(); hote.__diapo.reculer(); });
+      hote.querySelectorAll('.e-largeur').forEach((b) => b.addEventListener('click', () => {
+        N.ecrire(CLE_LARGEUR, b.getAttribute('data-largeur'));
+        hote.querySelectorAll('.e-largeur').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        const lecteur = hote.closest('.e-lecteur'); if (lecteur) lecteur.setAttribute('data-largeur', b.getAttribute('data-largeur'));
+      }));
+      // Surligneur : une petite barre suit la sélection
+      const corps = document.getElementById('e-diapo-corps');
+      let barre = null;
+      const fermerBarre = () => { if (barre) { barre.remove(); barre = null; } };
+      corps.addEventListener('mouseup', () => setTimeout(() => {
+        const sel = window.getSelection();
+        // Le texte brut du DOM, pas le texte affiché : une majuscule de style ne doit pas fausser la recherche.
+        const texte = sel && sel.rangeCount ? sel.getRangeAt(0).toString().trim() : '';
+        fermerBarre();
+        if (!texte || texte.length < 2 || texte.length > 300 || !sel.rangeCount || !corps.contains(sel.anchorNode)) return;
+        const r = sel.getRangeAt(0).getBoundingClientRect();
+        barre = document.createElement('div'); barre.className = 'e-surligne-barre'; barre.setAttribute('role', 'toolbar'); barre.setAttribute('aria-label', 'Surligner');
+        barre.innerHTML = ['turquoise', 'bleu', 'violet'].map((c) => `<button type="button" data-couleur="${c}" aria-label="Surligner en ${c}" class="e-surligne-${c}"></button>`).join('') + '<button type="button" data-couleur="" aria-label="Retirer le surlignage">✕</button>';
+        barre.style.left = Math.max(8, r.left + window.scrollX) + 'px'; barre.style.top = (r.top + window.scrollY - 44) + 'px';
+        document.body.appendChild(barre);
+        barre.querySelectorAll('button').forEach((b) => b.addEventListener('mousedown', (ev) => {
+          ev.preventDefault();
+          const c = b.getAttribute('data-couleur');
+          const liste = (N.profil('moi.surligne.' + cleFiche, []) || []).filter((h) => !(h.s === index() && h.t === texte));
+          if (c) { liste.push({ s: index(), t: texte, c }); appliquerSurlignage(corps, texte, c); }
+          else corps.querySelectorAll('mark.e-surligne').forEach((m) => { if (m.textContent === texte) m.replaceWith(...m.childNodes); });
+          N.enregistrerProfil('moi.surligne.' + cleFiche, liste.length ? liste.slice(-60) : null).catch(() => {});
+          sel.removeAllRanges(); fermerBarre();
+        }));
+      }, 10));
+      document.addEventListener('mousedown', (ev) => { if (barre && !barre.contains(ev.target)) fermerBarre(); });
+      // Balayage sur écran tactile
+      let x0 = null; let y0 = null;
+      hote.addEventListener('touchstart', (ev) => { x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY; }, { passive: true });
+      hote.addEventListener('touchend', (ev) => {
+        if (x0 === null) return;
+        const dx = ev.changedTouches[0].clientX - x0; const dy = ev.changedTouches[0].clientY - y0; x0 = null;
+        if (Math.abs(dx) > 70 && Math.abs(dy) < 50 && !window.getSelection().toString()) { if (dx < 0) hote.__diapo.avancer(); else hote.__diapo.reculer(); }
+      }, { passive: true });
+    },
+  };
+  function appliquerSurlignage(corps, texte, couleur) {
+    const marcheur = document.createTreeWalker(corps, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = marcheur.nextNode())) {
+      if (n.parentNode.closest('mark.e-surligne, button')) continue;
+      const k = n.nodeValue.indexOf(texte);
+      if (k === -1) continue;
+      const apres = n.splitText(k); apres.splitText(texte.length);
+      const m = document.createElement('mark'); m.className = 'e-surligne e-surligne-' + couleur; m.textContent = apres.nodeValue;
+      apres.parentNode.replaceChild(m, apres);
+      return true;
+    }
+    return false;
+  }
+  function montrerDefinition(b) {
+    document.querySelectorAll('.e-mot-def').forEach((d) => d.remove());
+    const d = document.createElement('div'); d.className = 'e-mot-def'; d.setAttribute('role', 'tooltip');
+    d.innerHTML = `<b>${N.ech(b.textContent)}</b> ${N.ech(b.getAttribute('data-def'))}`;
+    b.insertAdjacentElement('afterend', d);
+    const fermer = (ev) => { if (!d.contains(ev.target) && ev.target !== b) { d.remove(); document.removeEventListener('click', fermer); } };
+    setTimeout(() => document.addEventListener('click', fermer), 0);
+  }
+  function agrandir(el) {
+    const v = document.createElement('div'); v.className = 'e-voile-modale e-zoom';
+    v.innerHTML = `<div class="e-zoom-cadre" role="dialog" aria-label="Agrandissement"><div class="e-zoom-barre"><button type="button" class="e-bouton e-bouton-doux e-bouton-mini" data-zoom="-">−</button><span id="e-zoom-val">100 %</span><button type="button" class="e-bouton e-bouton-doux e-bouton-mini" data-zoom="+">+</button><button type="button" class="e-bouton e-bouton-mini" data-zoom="x">Fermer</button></div><div class="e-zoom-corps e-fiche"></div></div>`;
+    const clone = el.cloneNode(true); clone.querySelectorAll('.e-zoom-bouton').forEach((x) => x.remove());
+    v.querySelector('.e-zoom-corps').appendChild(clone);
+    document.body.appendChild(v);
+    let z = 1.4; const applique = () => { clone.style.transform = `scale(${z})`; clone.style.transformOrigin = 'top left'; v.querySelector('#e-zoom-val').textContent = Math.round(z * 100) + ' %'; }; applique();
+    const liberer = N.piegerFocus(v, document.activeElement);
+    const fermer = () => { liberer(); v.remove(); };
+    v.querySelectorAll('[data-zoom]').forEach((b) => b.addEventListener('click', () => { const k = b.getAttribute('data-zoom'); if (k === 'x') fermer(); else { z = Math.min(3, Math.max(0.6, z + (k === '+' ? 0.2 : -0.2))); applique(); } }));
+    v.addEventListener('click', (ev) => { if (ev.target === v) fermer(); });
+    v.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') fermer(); });
   }
   // Flèches du clavier : uniquement quand une fiche en diapositives est à l'écran.
   document.addEventListener('keydown', (ev) => {
@@ -843,18 +1170,88 @@
 
   /* ---------- Exercices ---------------------------------------------------------- */
   let session = null;
-  function vueExos(mid, ref) {
+  const CLE_CHRONO_SERIE = 'opaline.serie.chrono';
+  const TEMPS_QUESTION = 30;
+  function vueExos(mid, ref, mode) {
     if (!window.EXERCICES) {
       afficher(N.squelette('serie'));
-      N.chargerBanque().then(() => vueExos(mid, ref)).catch(() => afficher('<p class="e-vide">La série n\'a pas pu être chargée. Recharge la page.</p>'));
+      N.chargerBanque().then(() => vueExos(mid, ref, mode)).catch(() => afficher('<p class="e-vide">La série n\'a pas pu être chargée. Recharge la page.</p>'));
       return undefined;
     }
     const m = N.matiere(mid);
     const l = N.lecon(m, ref);
     const b = N.banque(mid, ref);
     if (!m || !l || !b || !b.items) return vueIntrouvable();
-    session = { mid, ref, items: b.items, index: 0, reponses: [], termine: false };
+    if (mode === 'revoir') {
+      // C30 : la série « à revoir » : les questions ratées, à J+2 puis J+7.
+      const entree = (N.profil('moi.arevoir', {}) || {})[N.cle(mid, ref)];
+      const items = entree ? entree.idx.map((k) => b.items[k]).filter(Boolean) : [];
+      if (!items.length) return vueExos(mid, ref);
+      session = { mid, ref, items, index: 0, reponses: [], termine: false, rejouees: true, revoir: true, idx: entree.idx.slice() };
+      return rendreExo();
+    }
+    session = { mid, ref, items: b.items, index: 0, reponses: [], termine: false, indices: 0 };
     rendreExo();
+  }
+  /** C29 : trois indices par question, du plus vague au plus précis. Chacun coûte un point d'affichage, jamais l'étoile. */
+  function indicesPour(item, m, l) {
+    const lienRevision = `<a href="#/lecon/${m.id}/${l.ref}/revision">la fiche de révision</a>`;
+    if (item.type === 'qcm') {
+      const faux = item.choix.map((c, i) => i).filter((i) => i !== item.reponse);
+      return [
+        `Il n'y a qu'une bonne réponse sur ${item.choix.length}. Relis la question, souligne le mot le plus important, puis élimine la proposition qui parle d'autre chose.`,
+        { texte: 'Une proposition fausse est retirée.', retirer: [faux[0]] },
+        { texte: faux.length > 1 ? 'Une deuxième proposition fausse est retirée.' : `Relis ${lienRevision} : la réponse y est écrite noir sur blanc.`, retirer: faux.length > 1 ? [faux[0], faux[1]] : [] },
+      ];
+    }
+    if (item.type === 'vraifaux') {
+      return [
+        'Cherche dans la phrase le mot qui peut la rendre fausse : un nombre, un « toujours », un « jamais », un « seulement ».',
+        `Relis ${lienRevision} et cherche la règle qui parle de ce sujet.`,
+        `Début de l'explication : « ${N.ech(String(item.explication || '').slice(0, 60))}… »`,
+      ];
+    }
+    const rep = String((item.reponses || [''])[0]);
+    const nombre = /^[-+]?\d/.test(rep.trim());
+    return [
+      `La réponse attendue est ${nombre ? 'un nombre' : (rep.split(/\s+/).length > 1 ? 'un groupe de ' + rep.split(/\s+/).length + ' mots' : 'un seul mot')}${nombre ? '' : ' de ' + rep.replace(/\s/g, '').length + ' lettres'}.`,
+      `${nombre ? 'Le résultat commence par' : 'Le mot commence par'} « ${N.ech(rep.trim().slice(0, 1))} ».`,
+      `Les deux premiers caractères : « ${N.ech(rep.trim().slice(0, 2))} ». Le reste est dans ${lienRevision}.`,
+    ];
+  }
+  function brancherIndices(item) {
+    const s = session;
+    const b = document.getElementById('e-indice'); if (!b) return;
+    const m = N.matiere(s.mid); const l = N.lecon(m, s.ref);
+    const liste = indicesPour(item, m, l);
+    let k = 0;
+    const zone = document.getElementById('e-indices');
+    b.addEventListener('click', () => {
+      if (k >= liste.length) return;
+      const ind = liste[k]; k += 1; s.indices = (s.indices || 0) + 1;
+      const texte = typeof ind === 'string' ? ind : ind.texte;
+      zone.insertAdjacentHTML('beforeend', `<p class="e-indice-texte"><b>Indice ${k}</b> ${texte}</p>`);
+      if (ind.retirer) ind.retirer.forEach((i) => { const btn = vue().querySelector(`.e-exo-choix button[data-choix="${i}"]`); if (btn) { btn.disabled = true; btn.classList.add('retire'); } });
+      b.textContent = k >= liste.length ? 'Plus d\'indice' : `Encore un indice (${k} sur 3 utilisé${k > 1 ? 's' : ''})`;
+      if (k >= liste.length) b.disabled = true;
+    });
+  }
+  function brancherChronoSerie() {
+    const actif = N.lire(CLE_CHRONO_SERIE, false);
+    const bouton = document.getElementById('e-serie-chrono-bouton');
+    const compte = document.getElementById('e-serie-chrono');
+    if (!bouton) return;
+    bouton.setAttribute('aria-pressed', String(actif));
+    bouton.addEventListener('click', () => { N.ecrire(CLE_CHRONO_SERIE, !actif); rendreExo(); });
+    if (!actif) return;
+    let reste = TEMPS_QUESTION;
+    compte.hidden = false; compte.textContent = reste + ' s';
+    const t = setInterval(() => {
+      if (!document.body.contains(compte) || document.getElementById('e-suivant')) { clearInterval(t); return; }
+      reste -= 1;
+      compte.textContent = reste > 0 ? reste + ' s' : 'Le temps conseillé est passé : prends le temps qu\'il te faut.';
+      if (reste <= 0) clearInterval(t);
+    }, 1000);
   }
   function rendreExo() {
     const s = session;
@@ -877,11 +1274,17 @@
         return `<i class="${c}"></i>`;
       }).join('')}</div>
         <div class="e-exo-carte">
-          <p class="e-exo-compteur">Question ${s.index + 1} sur ${s.items.length}</p>
+          <p class="e-exo-compteur">Question ${s.index + 1} sur ${s.items.length}${s.revoir ? ' · à revoir' : ''}
+            <button type="button" class="e-serie-chrono-bouton" id="e-serie-chrono-bouton" title="Afficher un temps conseillé de ${TEMPS_QUESTION} secondes par question, jamais imposé">${N.ic('ic-horloge')} temps conseillé</button>
+            <span class="e-serie-chrono" id="e-serie-chrono" hidden></span></p>
           <p class="e-exo-question">${item.q}</p>${corps}
+          <div class="e-indices" id="e-indices"></div>
+          <p class="e-indice-ligne"><button type="button" class="e-bouton e-bouton-fin e-bouton-mini" id="e-indice">${N.ic('ic-etincelle')} Un indice</button></p>
           <div id="e-retour"></div>
         </div></div>`,
     );
+    brancherIndices(item);
+    brancherChronoSerie();
     vue().querySelectorAll('.e-exo-choix button').forEach((b) =>
       b.addEventListener('click', (ev) => repondre(parseInt(ev.currentTarget.getAttribute('data-choix'), 10))));
     const f = document.getElementById('e-form-saisie');
@@ -908,6 +1311,7 @@
     });
     const f = document.getElementById('e-form-saisie');
     if (f) { f.querySelector('input').disabled = true; f.querySelector('button').disabled = true; }
+    const bi = document.getElementById('e-indice'); if (bi) bi.disabled = true;
     try { window.KonstrioAudio && window.KonstrioAudio.play(juste ? 'bravo' : 'indice'); } catch (e) { /* ignore */ }
 
     const dernier = s.index === s.items.length - 1;
@@ -928,8 +1332,43 @@
     if (item.type === 'vraifaux') return item.reponse ? 'Vrai' : 'Faux';
     return N.ech(item.reponses[0]);
   }
+  /** C30 : les questions ratées entrent dans « à revoir » ; une reprise réussie fait avancer l'étape (J+2 puis J+7). */
+  async function noterARevoir(s) {
+    const cle = N.cle(s.mid, s.ref);
+    const tout = N.profil('moi.arevoir', {}) || {};
+    try {
+      if (s.revoir) {
+        const rateesIdx = s.idx.filter((_, k) => s.reponses[k] === false);
+        if (!rateesIdx.length) { const e = tout[cle]; if (e && e.etape >= 1) delete tout[cle]; else if (e) { e.etape = 1; e.depuis = N.jourIso(); } }
+        else tout[cle] = { idx: rateesIdx, depuis: N.jourIso(), etape: 0 };
+      } else {
+        const rateesIdx = s.items.map((_, k) => k).filter((k) => s.reponses[k] === false);
+        if (rateesIdx.length) tout[cle] = { idx: rateesIdx, depuis: N.jourIso(), etape: 0 }; else delete tout[cle];
+      }
+      await N.enregistrerProfil('moi.arevoir', Object.keys(tout).length ? tout : null);
+    } catch (e) { /* la révision espacée ne bloque rien */ }
+  }
+  /** Les séries à revoir dont l'échéance est arrivée (J+2 à l'étape 0, J+7 à l'étape 1). */
+  function seriesARevoir() {
+    const tout = N.profil('moi.arevoir', {}) || {};
+    const auj = N.jourIso();
+    return Object.entries(tout).map(([cle, e]) => {
+      const [mid, ref] = cle.split('/'); const m = N.matiere(mid); const l = m && N.lecon(m, ref);
+      if (!m || !l || !e.idx || !e.idx.length) return null;
+      const echeance = N.decaler(e.depuis, e.etape >= 1 ? 7 : 2);
+      return { mid, ref, m, l, n: e.idx.length, echeance, prete: echeance <= auj };
+    }).filter(Boolean).sort((a, b) => a.echeance.localeCompare(b.echeance));
+  }
+  function blocARevoir() {
+    const pretes = seriesARevoir().filter((x) => x.prete).slice(0, 3);
+    if (!pretes.length) return '';
+    return `<section class="e-bloc-fixe e-arevoir" aria-labelledby="e-h-arevoir"><h2 id="e-h-arevoir">${N.ic('ic-cerveau')} À revoir aujourd'hui</h2>
+      <p>Les questions ratées reviennent deux jours puis sept jours après. Quelques minutes suffisent.</p>
+      <ul class="e-liste-avant">${pretes.map((x) => `<li><a class="e-lien-doux" href="#/exos/${x.mid}/${x.ref}/revoir">${x.m.icone} ${N.ech(x.l.titre)}</a> ${x.n} question(s)</li>`).join('')}</ul></section>`;
+  }
   async function enregistrer() {
     const s = session;
+    noterARevoir(s);
     if (s.rejouees) return;
     const justes = s.reponses.filter(Boolean).length;
     try {
@@ -960,10 +1399,12 @@
     const ratees = s.items.filter((_, i) => s.reponses[i] === false);
     if (s.rejouees) message = ratees.length ? 'Presque : ' + ratees.length + ' question(s) encore ratée(s). Relis l\'explication, puis refais la série entière quand tu veux.' : 'Toutes les questions ratées sont maintenant justes. Refais la série entière pour gagner l\'étoile.';
 
+    const pointsAffiches = Math.max(0, pct - (s.indices || 0));
     afficher(
       `<div class="e-exo">
         <h1 style="font-size:1.8rem;text-align:center">${justes} sur ${s.items.length}</h1>
-        <p class="e-intro" style="text-align:center">${s.rejouees ? 'Questions rejouées · ' : ''}${N.ech(l.titre)}</p>
+        <p class="e-intro" style="text-align:center">${s.rejouees ? 'Questions rejouées · ' : ''}${N.ech(l.titre)}${s.indices ? ` · ${pointsAffiches} points avec ${s.indices} indice(s) (l'étoile ne dépend pas des indices)` : ''}</p>
+        ${!s.rejouees && ratees.length ? `<p class="e-aide" style="text-align:center">${ratees.length} question(s) reviendront dans « À revoir » dans deux jours.</p>` : ''}
         <div class="e-carte" style="margin-bottom:1rem"><p style="margin:0">${N.ech(message)}</p></div>
         ${ratees.length ? `<div class="e-carte" style="margin-bottom:1rem">
           <h2 style="font-size:1rem;margin-bottom:.4rem">À revoir</h2>
@@ -1707,7 +2148,10 @@
       case 'matieres': return vueMatieres();
       case 'matiere': return vueMatiere(p[1]);
       case 'lecon': return vueLecon(p[1], p[2], p[3]);
-      case 'exos': return vueExos(p[1], p[2]);
+      case 'exos': return vueExos(p[1], p[2], p[3]);
+      case 'recherche': return vueRecherche(p.slice(1).join('/'));
+      case 'aide': return vueAide();
+      case 'notes': return vueNotes();
       case 'calendrier': return vueCalendrier(p[1]);
       case 'choix': return vueChoix();
       case 'decouverte': return module('vueDecouverte', p[1]);
