@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Voyage dans le temps</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .hi-panel{ position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  /* --- barre de navigation temporelle (frise) --- */
+  .hi-time{ bottom:16px; left:50%; transform:translateX(-50%); padding:11px 14px 12px; width:min(560px,94vw); display:flex; flex-direction:column; gap:8px; }
+  .hi-time .top{ display:flex; align-items:center; gap:12px; }
+  .hi-nav{ flex:none; width:44px; height:44px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; font-size:20px; display:grid; place-items:center; transition:.15s; }
+  .hi-nav:hover{ background:var(--accent); border-color:var(--accent); color:#fff; } .hi-nav:disabled{ opacity:.35; cursor:default; }
+  .hi-nav:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .hi-erabox{ flex:1; min-width:0; text-align:center; }
+  .hi-erabox .era{ font-family:var(--font-title); font-weight:800; font-size:17px; color:var(--fg); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hi-erabox .yr{ font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); letter-spacing:.03em; }
+  .hi-track{ position:relative; height:22px; }
+  .hi-track input{ position:absolute; inset:0; width:100%; margin:0; accent-color:var(--accent); z-index:2; height:100%; opacity:0; cursor:pointer; }
+  .hi-rail{ position:absolute; left:6px; right:6px; top:9px; height:4px; border-radius:3px; background:linear-gradient(90deg,#b08d57,#8a6a3a,#6a6a72,#4a6a8a); }
+  .hi-ticks{ position:absolute; left:6px; right:6px; top:2px; height:18px; }
+  .hi-ticks button{ position:absolute; transform:translateX(-50%); width:26px; height:18px; padding:0; border:none; background:none; cursor:pointer; display:grid; place-items:center; }
+  .hi-ticks button i{ display:block; width:10px; height:10px; border-radius:999px; background:var(--surface); border:2px solid #8a6a3a; transition:.15s; }
+  .hi-ticks button[aria-current="true"] i{ background:var(--accent); border-color:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 28%,transparent); }
+  /* --- fiche pédagogique --- */
+  .hi-info{ right:14px; top:14px; width:300px; padding:0; overflow:hidden; transform:translateX(130%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 92px); display:flex; flex-direction:column; }
+  .hi-info.show{ transform:none; }
+  .hi-hd{ padding:15px 18px; color:#fff; position:relative; flex:none; }
+  .hi-hd h2{ font-family:var(--font-title); font-weight:800; font-size:21px; margin:0; line-height:1.1; }
+  .hi-hd .sub{ font-family:var(--font-mono); font-size:11px; opacity:.92; text-transform:uppercase; letter-spacing:.04em; }
+  .hi-hd .yr{ display:inline-block; margin-top:7px; font-family:var(--font-data); font-weight:700; font-size:12px; background:rgba(255,255,255,.22); border-radius:999px; padding:3px 10px; }
+  .hi-x{ position:absolute; top:11px; right:11px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:16px; }
+  .hi-body{ padding:13px 18px 17px; overflow:auto; }
+  .hi-body .lbl{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:2px 0 5px; }
+  .hi-body p{ font-size:13.5px; line-height:1.56; margin:0 0 9px; color:var(--fg); }
+  .hi-body .imp{ background:var(--accent-weak); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.5; color:var(--accent-text); }
+  /* --- indices / hint --- */
+  .hi-hint{ position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 86%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; text-align:center; max-width:82%; }
+  /* --- outils (haut gauche) --- */
+  .hi-tools{ position:absolute; left:14px; top:14px; z-index:19; display:flex; flex-direction:column; gap:7px; max-width:210px; }
+  .hi-tb{ display:flex; align-items:center; gap:8px; padding:10px 13px; min-height:44px; border:1px solid var(--border); border-radius:12px; background:color-mix(in srgb,var(--surface) 90%,transparent); backdrop-filter:blur(10px); color:var(--fg); font-family:var(--font-body); font-weight:700; font-size:12.5px; cursor:pointer; box-shadow:var(--shadow-sm,0 1px 4px rgba(0,0,0,.12)); transition:.15s; text-align:left; }
+  .hi-tb:hover{ transform:translateY(-1px); background:var(--surface-2); }
+  .hi-tb.accent{ background:linear-gradient(135deg,#b08d57,#8a6a3a); color:#fff; border-color:transparent; }
+  .hi-tb.accent:hover{ filter:brightness(1.08); }
+  .hi-tb[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .hi-tb .ic{ font-size:16px; flex:none; }
+  /* --- étiquettes flottantes des époques --- */
+  .hi-label{ position:absolute; transform:translate(-50%,-100%); z-index:15; pointer-events:auto; cursor:pointer; border:none; display:none; flex-direction:column; align-items:center; gap:2px; font-family:var(--font-mono); background:none; }
+  .hi-label.on{ display:flex; }
+  .hi-label .tag{ font-weight:700; font-size:11.5px; color:var(--fg); background:color-mix(in srgb,var(--surface) 84%,transparent); border:1px solid var(--border); padding:3px 9px; border-radius:999px; white-space:nowrap; box-shadow:var(--shadow-sm,0 1px 4px rgba(0,0,0,.15)); }
+  .hi-label .yr{ font-size:9.5px; color:var(--fg-muted); }
+  .hi-label:hover .tag{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  /* --- panneau construction / voyage (réutilisé) --- */
+  .hi-build{ left:14px; top:14px; width:330px; max-width:90vw; padding:0; overflow:hidden; transform:translateX(-135%); transition:transform .5s cubic-bezier(.22,1,.36,1); }
+  .hi-build.show{ transform:none; }
+  .hi-build .bhd{ padding:14px 18px 12px; color:#fff; position:relative; }
+  .hi-build .bph{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; opacity:.9; }
+  .hi-build .bti{ font-family:var(--font-title); font-weight:800; font-size:19px; margin:2px 0 0; }
+  .hi-build .bprog{ display:flex; gap:4px; margin-top:10px; }
+  .hi-build .bprog i{ flex:1; height:4px; border-radius:2px; background:rgba(255,255,255,.3); }
+  .hi-build .bprog i.on{ background:#ffe7b0; }
+  .hi-build .bbody{ padding:13px 18px 15px; } .hi-build .bbody p{ font-size:13px; line-height:1.55; margin:0 0 11px; color:var(--fg); }
+  .hi-build .brow{ display:flex; gap:8px; }
+  .hi-build .bnext{ flex:1; min-height:44px; padding:10px; border:none; border-radius:11px; background:var(--accent); color:#fff; font-family:var(--font-title); font-weight:800; font-size:13px; cursor:pointer; }
+  .hi-build .bnext:hover{ filter:brightness(1.07); }
+  .hi-build .bquit{ min-height:44px; padding:10px 13px; border:1px solid var(--border); border-radius:11px; background:transparent; color:var(--fg-muted); font-size:12px; cursor:pointer; }
+  /* --- quiz (mode Cours) --- */
+  .hi-quiz{ position:absolute; top:64px; left:50%; transform:translateX(-50%); z-index:22; width:min(460px,92vw); padding:14px 16px 15px; text-align:center; }
+  .hi-quiz .q{ font-family:var(--font-title); font-weight:800; font-size:15.5px; color:var(--fg); line-height:1.3; margin-bottom:11px; }
+  .hi-quiz .q b{ color:var(--accent-text); }
+  .hi-quiz .opts{ display:flex; flex-direction:column; gap:8px; }
+  .hi-quiz .opts.grid{ display:grid; grid-template-columns:1fr 1fr; }
+  .hi-quiz .qo{ min-height:46px; padding:10px 12px; border:1px solid var(--border); border-radius:11px; background:var(--surface-2); color:var(--fg); font-family:var(--font-body); font-weight:700; font-size:13.5px; cursor:pointer; transition:.14s; }
+  .hi-quiz .qo:hover{ background:var(--accent-weak); border-color:var(--accent); }
+  .hi-quiz .qo.good{ background:var(--ok); border-color:var(--ok-fg); color:var(--ok-fg); }
+  .hi-quiz .qo.bad{ background:color-mix(in srgb,var(--brand-red) 16%,transparent); border-color:var(--brand-red); }
+  .hi-quiz .find{ font-size:13px; color:var(--fg-muted); font-family:var(--font-body); }
+  @media (max-width:720px){
+    .hi-info{ width:min(300px,86vw) } .hi-tools{ max-width:168px } .hi-tb{ font-size:11.5px; padding:9px 10px }
+    .hi-time{ padding:9px 10px } .hi-erabox .era{ font-size:15px }
+  }
+  @media (prefers-reduced-motion: reduce){ .hi-info,.hi-build{ transition:none } }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ============================================================
+   VOYAGE DANS LE TEMPS — frise chronologique 3D navigable
+   8 stations, chacune = une scène emblématique procédurale.
+   ============================================================ */
+const GAP = 74;                       // distance entre deux stations sur la frise
+const sx = i => i * GAP;              // position X d'une station
+
+/* Palette d'ambiance + données pédagogiques par époque */
+const ERAS = [
+  { id:'prehist', name:'Préhistoire', yr:'≈ −3000', accent:'#7a8a5c',
+    sky:0x9fbdda, fog:0xd6e0e6, sun:0xfff2d6, sunI:1.15, hemiS:0xe4eef7, hemiG:0x6a7550, sunOp:0.85, ground:0x86924f, grass:true,
+    cam:[17,10,19,3.5], pick:'stonehenge',
+    tour:{ txt:"Avant l'écriture, les premiers peuples érigent d'immenses <b>mégalithes</b> comme <b>Stonehenge</b>. Autour du feu naissent l'agriculture, l'élevage et les premiers rites collectifs.", say:"Bienvenue à la Préhistoire, au temps des bâtisseurs de pierres dressées." } },
+  { id:'egypte', name:'Égypte antique', yr:'≈ −2560', accent:'#c99a4a',
+    sky:0xf2cd8c, fog:0xf0dcae, sun:0xffe1a0, sunI:1.4, hemiS:0xffe9c4, hemiG:0xbfa068, sunOp:1, ground:0xd8bd82,
+    cam:[27,16,27,8], pick:'pyramide',
+    tour:{ txt:"Sur les rives du <b>Nil</b>, les pharaons font ériger les <b>pyramides de Gizeh</b> comme tombeaux. Une civilisation d'écriture (hiéroglyphes), d'astronomie et d'ingénierie prodigieuse.", say:"L'Égypte des pharaons : pyramides, sphinx et le fleuve nourricier, le Nil." } },
+  { id:'grece', name:'Grèce antique', yr:'≈ −447', accent:'#5f86a8',
+    sky:0x7fb4e0, fog:0xcfe0ec, sun:0xfff0d8, sunI:1.5, hemiS:0xe8f2ff, hemiG:0x9a9478, sunOp:1, ground:0xcabf9a,
+    cam:[16,9,18,5], pick:'temple_grec',
+    tour:{ txt:"En Grèce naissent la <b>démocratie</b>, la philosophie et le théâtre. Le <b>Parthénon</b>, temple de marbre à colonnes, incarne l'idéal d'harmonie et de proportion.", say:"La Grèce antique : berceau de la démocratie et des temples de marbre." } },
+  { id:'rome', name:'Rome antique', yr:'≈ 80 ap. J.-C.', accent:'#b0743a',
+    sky:0xe8c48a, fog:0xe6d2a8, sun:0xffe3b0, sunI:1.45, hemiS:0xffedcc, hemiG:0xa88a5a, sunOp:1, ground:0xcbb88e,
+    cam:[24,14,26,6], pick:'colisee',
+    tour:{ txt:"L'<b>Empire romain</b> unit la Méditerranée par ses routes, ses lois et son armée. Le <b>Colisée</b> accueillait 50 000 spectateurs pour les combats de gladiateurs.", say:"Rome et son immense empire : routes, aqueducs et le Colisée." } },
+  { id:'moyenage', name:'Moyen Âge', yr:'≈ 1200', accent:'#6b7078',
+    sky:0x9aa2ac, fog:0xc2c6cc, sun:0xf2ecdc, sunI:1.05, hemiS:0xdfe3ea, hemiG:0x62655c, sunOp:0.6, ground:0x8a9160, grass:true,
+    cam:[21,13,23,7], pick:'donjon',
+    tour:{ txt:"Après la chute de Rome, l'Europe se morcelle en <b>seigneuries</b>. Le <b>château fort</b> protège la population ; chevaliers, paysans et moines structurent la société féodale.", say:"Le Moyen Âge : châteaux forts, chevaliers et seigneurs." } },
+  { id:'gothique', name:'Cathédrales & Renaissance', yr:'≈ 1250–1500', accent:'#7c6f9a',
+    sky:0x8fa0bc, fog:0xc6ccd8, sun:0xf4eedd, sunI:1.15, hemiS:0xe2e6f0, hemiG:0x6c6a66, sunOp:0.7, ground:0x9a9078,
+    cam:[22,16,33,11], pick:'cathedrale',
+    tour:{ txt:"Les villes s'enrichissent et élèvent des <b>cathédrales gothiques</b> aux flèches vertigineuses. Bientôt la <b>Renaissance</b> et l'imprimerie rouvrent l'Europe au savoir antique.", say:"L'âge des cathédrales gothiques, puis la Renaissance et l'imprimerie." } },
+  { id:'industrie', name:'Révolution industrielle', yr:'≈ 1850', accent:'#9a6a4a',
+    sky:0xb6a894, fog:0xc4b6a2, sun:0xf0d6a8, sunI:0.95, hemiS:0xd8cdbc, hemiG:0x6a5c4a, sunOp:0.5, ground:0x8a7f6a,
+    cam:[21,13,23,8], pick:'cheminee',
+    tour:{ txt:"La <b>machine à vapeur</b> transforme le monde : usines, chemins de fer, grandes villes. Le charbon fume, la production explose — mais aussi les inégalités et la pollution.", say:"La Révolution industrielle : vapeur, usines et fumées de charbon." } },
+  { id:'moderne', name:'Époque contemporaine', yr:'aujourd\'hui', accent:'#2e8bd6',
+    sky:0x7ec0ee, fog:0xcfe3f2, sun:0xffffff, sunI:1.35, hemiS:0xeaf4ff, hemiG:0x8892a0, sunOp:1, ground:0x8f97a2,
+    cam:[24,17,28,12], pick:'gratteciel',
+    tour:{ txt:"Électricité, informatique, réseaux mondiaux : les <b>métropoles</b> de verre et d'acier concentrent des millions d'habitants. En un siècle, l'humanité change plus vite que jamais.", say:"L'époque contemporaine : gratte-ciel, électricité et monde connecté." } },
+];
+
+/* Fiches pédagogiques (date · contexte · importance) attachées aux monuments cliquables */
+const FICHES = {
+  stonehenge:{ era:0, name:'Stonehenge', sub:'Mégalithes néolithiques',
+    date:["Édifié entre ≈ −3000 et −2000, à la Préhistoire récente (Néolithique), bien avant l'invention de l'écriture."],
+    ctx:["Des blocs de plusieurs tonnes ont été transportés puis dressés en cercle par des sociétés d'agriculteurs, sans métal ni roue.","On y observait le lever du Soleil au solstice : c'était sans doute un lieu sacré et un calendrier astronomique."],
+    imp:"Preuve que, dès la Préhistoire, les humains s'organisaient en grands chantiers collectifs et lisaient le ciel." },
+  foyer_prehist:{ era:0, name:'Le foyer', sub:'La maîtrise du feu',
+    date:["Le feu est domestiqué depuis des centaines de milliers d'années."],
+    ctx:["Autour du foyer, on cuit les aliments, on se réchauffe et on se protège des prédateurs.","C'est le cœur du campement, là où se transmettent récits et savoir-faire."],
+    imp:"Le feu est l'une des premières grandes conquêtes techniques de l'humanité." },
+  pyramide:{ era:1, name:'Pyramide de Khéops', sub:'Merveille du monde',
+    date:["Bâtie vers −2560 sous le pharaon Khéops, à Gizeh, en Égypte."],
+    ctx:["Haute de 146 m, faite de ≈ 2,3 millions de blocs, elle servait de <b>tombeau</b> au pharaon, considéré comme un dieu vivant.","Un revêtement de calcaire poli la faisait briller au soleil."],
+    imp:"Seule des sept merveilles du monde antique encore debout : un chef-d'œuvre d'organisation et d'ingénierie." },
+  sphinx:{ era:1, name:'Le Sphinx', sub:'Gardien de Gizeh',
+    date:["Sculpté vers −2500, à côté des pyramides."],
+    ctx:["Corps de lion, tête de pharaon : il symbolise la puissance royale et garde le plateau des pyramides.","Taillé dans un seul banc de calcaire de 73 m de long."],
+    imp:"Emblème de l'Égypte, il mêle animal et souverain pour affirmer l'autorité divine du pharaon." },
+  temple_grec:{ era:2, name:'Le Parthénon', sub:'Temple d\'Athéna',
+    date:["Construit de −447 à −432 sur l'Acropole d'Athènes."],
+    ctx:["Ses colonnes de marbre suivent l'<b>ordre dorique</b> ; chaque proportion vise l'harmonie parfaite.","Il abritait une statue géante de la déesse Athéna, protectrice de la cité."],
+    imp:"Symbole de la Grèce classique, d'où viennent la démocratie, la philosophie et notre idéal de beauté." },
+  fronton_grec:{ era:2, name:'Le fronton', sub:'Façade sculptée',
+    date:["Élément clé des temples grecs, ≈ −450."],
+    ctx:["Ce triangle au sommet de la façade était orné de sculptures peintes racontant les mythes.","Il repose sur l'entablement, lui-même porté par les colonnes."],
+    imp:"Le fronton triangulaire est la signature de l'architecture gréco-romaine, imitée jusqu'à aujourd'hui." },
+  colisee:{ era:3, name:'Le Colisée', sub:'Amphithéâtre de Rome',
+    date:["Inauguré en 80 ap. J.-C. par l'empereur Titus."],
+    ctx:["Cette arène ovale de 50 000 places accueillait combats de gladiateurs et chasses.","Ses arcades superposées et ses voûtes préfiguraient nos stades modernes."],
+    imp:"Chef-d'œuvre d'ingénierie romaine (arc, béton) et symbole de la puissance de l'Empire." },
+  arcades_rome:{ era:3, name:'Les arcades', sub:'L\'arc romain',
+    date:["Technique maîtrisée par Rome dès −200."],
+    ctx:["L'arc répartit le poids sur les piliers : il permet des ouvertures larges et de grands édifices.","Répété, il forme aqueducs, ponts et amphithéâtres."],
+    imp:"L'arc et le béton romains ont rendu possibles des constructions gigantesques et durables." },
+  donjon:{ era:4, name:'Le donjon', sub:'Cœur du château fort',
+    date:["Les grands châteaux de pierre se multiplient du XIᵉ au XIIIᵉ siècle."],
+    ctx:["Tour la plus haute et la mieux défendue, le donjon est la résidence du seigneur et l'ultime refuge en cas d'attaque.","Autour : remparts, tours et douves protègent les habitants."],
+    imp:"Le château fort structure la société <b>féodale</b> : le seigneur protège, les paysans travaillent la terre." },
+  remparts:{ era:4, name:'Les remparts', sub:'Défense et créneaux',
+    date:["Fortifications typiques du Moyen Âge, XIIᵉ–XIVᵉ s."],
+    ctx:["Les murailles crénelées et les tours rondes permettaient de repousser les assauts.","Un pont-levis franchissait les douves remplies d'eau."],
+    imp:"Ces défenses montrent une époque d'insécurité où chaque seigneurie devait se protéger elle-même." },
+  cathedrale:{ era:5, name:'La cathédrale gothique', sub:'Flèches vers le ciel',
+    date:["Grandes cathédrales bâties du XIIᵉ au XVᵉ siècle."],
+    ctx:["Arcs brisés, croisées d'ogives et arcs-boutants permettent des murs très hauts percés de vitraux.","Leur construction pouvait durer plus d'un siècle et mobilisait toute une ville."],
+    imp:"Prouesses techniques et foi médiévales ; la Renaissance qui suit rouvrira l'Europe au savoir antique." },
+  rosace:{ era:5, name:'La rosace', sub:'Vitrail circulaire',
+    date:["Vitraux emblématiques du gothique, ≈ 1250."],
+    ctx:["Cette grande fenêtre ronde en verre coloré illuminait l'intérieur de la cathédrale.","Les images racontaient la Bible à un peuple qui ne savait pas lire."],
+    imp:"Le vitrail unit art, technique du verre et transmission d'un message à tous." },
+  cheminee:{ era:6, name:'La cheminée d\'usine', sub:'L\'ère du charbon',
+    date:["Révolution industrielle, à partir de ≈ 1780 en Angleterre puis dans toute l'Europe."],
+    ctx:["Les hautes cheminées évacuaient la fumée des <b>machines à vapeur</b> qui brûlaient du charbon.","Les usines attirent des masses d'ouvriers vers les villes."],
+    imp:"Bascule vers le monde moderne : production de masse, chemins de fer… mais aussi pollution et dures conditions ouvrières." },
+  machine_vapeur:{ era:6, name:'La machine à vapeur', sub:'Le moteur de l\'industrie',
+    date:["Perfectionnée par James Watt vers 1769."],
+    ctx:["La vapeur d'eau bouillante pousse un piston qui entraîne un grand <b>volant d'inertie</b> et les machines.","Elle remplace la force des bras, de l'eau et du vent."],
+    imp:"Première énergie mécanique maîtrisée : elle déclenche la Révolution industrielle et change le travail humain." },
+  gratteciel:{ era:7, name:'Le gratte-ciel', sub:'Métropole contemporaine',
+    date:["Les tours modernes se multiplient depuis le XXᵉ siècle."],
+    ctx:["Structure d'acier, verre et béton, ascenseurs et électricité permettent de bâtir toujours plus haut.","Les métropoles concentrent habitat, travail, finance et culture."],
+    imp:"Symbole d'un monde urbain, connecté et globalisé, où la technique évolue à un rythme inédit." },
+};
+
+let mode='detente', cur=0, ambPos=0, labelsOn=true, quiz=null, build=null, tour=null;
+let scene,camera,renderer,composer,bloom,controls,clock,raycaster,pointer,camAnim=null;
+let skyDome,sunSprite,hemi,sunLight;
+let stations=[], pickables=[], labelEls=[], smokeSystems=[], fire=null, firelight=null, flywheels=[], flags=[], windows=[];
+let pyCore=[], pyCasing=null, pyCap=null, pyReveal=0;   // construction de la pyramide
+let ac=null, ambNode=null;
+const tmpV=new THREE.Vector3();
+
+const shell = window.Konstrio.createGame({
+  id:'3d-10-histoire', code:'3D·10', title:'Voyage dans le temps', type:'3D',
+  domain:{ label:'Histoire & Géo', color:'#9B2BB0' },
+  intro:{
+    greet:"Embarque pour un voyage dans le temps ! De Stonehenge aux gratte-ciel, remonte la frise et découvre les monuments qui ont marqué l'histoire.",
+    rule:"Parcours une <b>frise chronologique en 3D</b> : de la Préhistoire à aujourd'hui, chaque station reconstitue un monument emblématique. Navigue d'époque en époque, clique les monuments pour leur histoire, construis une pyramide pierre par pierre.",
+    how:["Utilise les <b>flèches</b> ◀ ▶ ou la frise en bas pour voyager d'une époque à l'autre.","Glisse pour tourner autour de la scène · molette pour zoomer · clique un monument pour sa fiche.","Essaie « Voyage guidé » et « Construire la pyramide ». En mode Cours, relève les défis !"],
+    keys:"◀ ▶ = changer d'époque · glisser = pivoter · molette = zoom.",
+    objectif:"Situer les grandes époques et reconnaître leurs monuments (Antiquité, Moyen Âge, industrie…).",
+    hint:"Repère-toi avec la frise du bas : plus on va à droite, plus on avance dans le temps, jusqu'à aujourd'hui.",
+    why:"L'histoire se lit dans les monuments : chaque pierre raconte une société, ses croyances et ses techniques."
+  },
+  learned:[
+    "La frise du temps : Préhistoire → Antiquité (Égypte, Grèce, Rome) → Moyen Âge → Renaissance → industrie → époque contemporaine.",
+    "Chaque époque a ses monuments : pyramides, temples, Colisée, châteaux forts, cathédrales, usines, gratte-ciel.",
+    "Les techniques progressent : mégalithes, arc romain, arc brisé gothique, machine à vapeur, acier et verre."
+  ],
+  onReady:init, onStart:startMode, onTheme:()=>{}, onRestart:()=>{ if(mode==='cours'){ shell.setScore(0); startQuiz(); } },
+});
+
+/* ================= INIT ================= */
+function init(){ const stage=shell.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene(); scene.fog=new THREE.Fog(ERAS[0].fog,45,175);
+  camera=new THREE.PerspectiveCamera(52, stage.clientWidth/stage.clientHeight,.1,900);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.12; stage.appendChild(renderer.domElement);
+  maxAniso=Math.min(8, renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
+  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) où l'AO écran (GTAO) produit du noir → chaîne robuste (AO bakée seule)
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene,camera));
+  if(!software){
+    // GPU réel : occlusion ambiante espace-écran (GTAO) — creuse les jointures de pierre
+    const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=0.85;
+    try{ gtao.updateGtaoMaterial({ radius:2.2, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao=gtao;
+  }
+  // bloom doux : soleil, feu, vitraux, fenêtres éclairées
+  bloom=new UnrealBloomPass(new THREE.Vector2(W,H),0.28,0.7,0.85); composer.addPass(bloom);
+  composer.addPass(new SMAAPass(W,H));
+  composer.addPass(new OutputPass());
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.07;
+  controls.minDistance=7; controls.maxDistance=60; controls.maxPolarAngle=Math.PI/2.04; controls.autoRotate=REDUCED; controls.autoRotateSpeed=.3;
+
+  hemi=new THREE.HemisphereLight(0xffffff,0x555044,1.0); scene.add(hemi);
+  sunLight=new THREE.DirectionalLight(0xffe8c0,1.3); sunLight.position.set(60,90,40); scene.add(sunLight);
+
+  // Environnement HDRI local (IBL) → reflets & lumière indirecte crédibles
+  try{ const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+    new RGBELoader().load('../assets/3d/env/sky_day_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); pmrem.dispose(); }, undefined, ()=>{});
+  }catch(e){}
+
+  buildSky(); buildStations();
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  buildUI();
+  renderer.domElement.addEventListener('pointermove',onMove); renderer.domElement.addEventListener('pointerdown',onDown);
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
+  window.addEventListener('keydown',onKey);
+  // placement initial de la caméra sur la 1re station
+  const c=ERAS[0].cam; camera.position.set(sx(0)+c[0],c[1],c[2]); controls.target.set(sx(0),c[3],0);
+  ambPos=0; applyAmbient(0); animate();
+}
+
+/* ================= CIEL & SOLEIL ================= */
+function skyGradient(){ const c=document.createElement('canvas'); c.width=8; c.height=256; const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,256); g.addColorStop(0,'#dfeaf5'); g.addColorStop(0.5,'#eef2f3'); g.addColorStop(1,'#f6efe2'); x.fillStyle=g; x.fillRect(0,0,8,256);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t; }
+function glowTex(){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(255,248,225,1)'); g.addColorStop(.28,'rgba(255,222,150,.6)'); g.addColorStop(1,'rgba(255,200,120,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+function buildSky(){
+  skyDome=new THREE.Mesh(new THREE.SphereGeometry(560,32,20), new THREE.MeshBasicMaterial({map:skyGradient(),side:THREE.BackSide,fog:false,depthWrite:false})); scene.add(skyDome);
+  sunSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(),color:0xfff0c0,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})); sunSprite.scale.setScalar(120); sunSprite.position.set(220,240,-140); scene.add(sunSprite);
+}
+
+/* ================= MATÉRIAUX ================= */
+const _mat={};
+function M(color,rough=0.85,metal=0,flat=false){ const k=color+'_'+rough+'_'+metal+'_'+(flat?1:0); if(_mat[k])return _mat[k];
+  const m=new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal,flatShading:flat,envMapIntensity:0.65}); _mat[k]=m; return m; }
+
+/* ---- TEXTURES PBR CC0 (Poly Haven) : pierre / bois / métal réels (gabarit photoréaliste) ---- */
+const PBR_BASE='../assets/3d/pbr2k/';
+const _texLoader=new THREE.TextureLoader();
+let maxAniso=8;
+const _texCache={};
+function loadTex(slug,kind,res,srgb,rep){ const key=slug+kind+res+rep; if(_texCache[key])return _texCache[key];
+  const t=_texLoader.load(PBR_BASE+slug+'/'+slug+'_'+kind+'_'+res+'.jpg',undefined,undefined,()=>{});
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep)t.repeat.set(rep,rep); t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=maxAniso; _texCache[key]=t; return t; }
+// matériau PBR complet (diffuse SRGB + normal + roughness [+ metal] + AO bakée)
+function pbrMat(slug,opt={}){ const res=opt.res||'1k', rep=opt.repeat||1;
+  const m=new THREE.MeshStandardMaterial({ color:opt.color!==undefined?opt.color:0xffffff,
+    roughness:opt.rough!==undefined?opt.rough:0.95, metalness:opt.metal!==undefined?opt.metal:0,
+    envMapIntensity:opt.env!==undefined?opt.env:0.8 });
+  m.map=loadTex(slug,'diff',res,true,rep);
+  m.normalMap=loadTex(slug,'nor_gl',res,false,rep); m.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  m.roughnessMap=loadTex(slug,'rough',res,false,rep);
+  if(opt.metalMap) m.metalnessMap=loadTex(slug,'metal',res,false,rep);
+  m.aoMap=loadTex(slug,'ao',res,false,rep); m.aoMapIntensity=opt.aoInt!==undefined?opt.aoInt:1.0;
+  return m; }
+// recettes par matière (couleur = teinte qui multiplie la carte de pierre/bois)
+const stoneRough =(color,rep=2)   => pbrMat('rock_boulder_dry',{color,repeat:rep,rough:0.98,normal:1.15,env:0.6}); // mégalithes, château, sphinx
+const stoneRock  =(color,rep=3)   => pbrMat('rocky_terrain',{color,repeat:rep,rough:1,normal:1.1,env:0.5});        // terrain, socle brut
+const stoneCut   =(color,rep=3)   => pbrMat('concrete_tiles',{color,repeat:rep,rough:0.72,normal:0.9,env:0.85});   // pierre taillée claire, brique, revêtement
+const stoneSmooth=(color,rep=2)   => pbrMat('concrete_floor_02',{color,repeat:rep,rough:0.6,normal:0.7,env:0.9});  // dalle/parement lisse
+const marbleMat  =(color,rep=2)   => pbrMat('marble_01',{color,repeat:rep,rough:0.42,metal:0.03,normal:0.5,env:1.0}); // marbre grec
+const woodMat    =(color,rep=2)   => pbrMat('worn_planks',{color,repeat:rep,rough:0.9,normal:1.1,env:0.4});        // charpentes, huttes, bûches
+const woodPlank  =(color,rep=2)   => pbrMat('brown_planks_09',{color,repeat:rep,rough:0.88,normal:1,env:0.4});     // planches (pont-levis)
+const metalMat   =(color,rep=2)   => pbrMat('metal_plate',{color,repeat:rep,rough:0.5,metal:0.9,metalMap:true,normal:0.8,env:1.1}); // machine à vapeur
+const ironMat    =(color,rep=2)   => pbrMat('corrugated_iron',{color,repeat:rep,rough:0.55,metal:0.85,metalMap:true,normal:0.9,env:1.0}); // tôle usine
+// duplique le canal UV (uv1) partout où une aoMap est utilisée
+function enableAOall(){ scene.traverse(o=>{ if(o.isMesh && o.material && o.material.aoMap && o.geometry && o.geometry.attributes.uv && !o.geometry.attributes.uv1) o.geometry.setAttribute('uv1', o.geometry.attributes.uv); }); }
+function box(w,h,d,m,x=0,y=0,z=0){ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); b.position.set(x,y,z); return b; }
+function cyl(rt,rb,h,seg,m,x=0,y=0,z=0){ const c=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),m); c.position.set(x,y,z); return c; }
+function cone(r,h,seg,m,x=0,y=0,z=0){ const c=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg),m); c.position.set(x,y,z); return c; }
+function tag(obj,key,era){ obj.traverse(o=>{ o.userData.fiche=key; o.userData.era=era; }); pickables.push(obj); }
+// rangée de créneaux autour d'un rectangle
+function crenels(w,d,y,th,m,parent){ const n=Math.max(3,Math.round(w/1.4));
+  for(let s of [[0,d/2],[0,-d/2]]) for(let i=0;i<n;i++){ const x=-w/2+ (i+0.5)*(w/n); parent.add(box(w/n*0.55,0.7,th,m,x,y,s[1])); }
+  const m2=Math.max(3,Math.round(d/1.4));
+  for(let s of [w/2,-w/2]) for(let i=0;i<m2;i++){ const z=-d/2+(i+0.5)*(d/m2); parent.add(box(th,0.7,d/m2*0.55,m,s,y,z)); }
+}
+
+/* ================= STATIONS ================= */
+const _groundBase=stoneRock(0xffffff,8);   // base terrain partagée (clonée + teintée par époque)
+function buildStations(){
+  ERAS.forEach((e,i)=>{ const g=new THREE.Group(); g.position.x=sx(i); scene.add(g);
+    // plateforme circulaire de l'époque — terrain rocheux réel (PBR), teinté selon l'époque
+    const platMat=_groundBase.clone(); platMat.color.setHex(e.ground);
+    const plat=new THREE.Mesh(new THREE.CylinderGeometry(24,25,1.2,48), platMat); plat.position.y=-0.6; g.add(plat);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(24,0.5,8,48), M(0x6a5a3a,0.8,0.1)); rim.rotation.x=Math.PI/2; rim.position.y=0.02; g.add(rim);
+    if(e.grass){ const gr=new THREE.Mesh(new THREE.CircleGeometry(23.6,40), M(e.ground,1,0)); gr.rotation.x=-Math.PI/2; gr.position.y=0.02; g.add(gr); scatterGreens(g,e); }
+    BUILDERS[e.id](g,e,i);
+    stations.push(g);
+    // maillon de frise vers la station suivante
+    if(i<ERAS.length-1){ const link=box(GAP-48,0.4,2.4, M(0x8a6a3a,0.6,0.2), (GAP)/2,0.05,0); const gl=box(GAP-48,0.12,0.8,new THREE.MeshStandardMaterial({color:0xffcf7a,emissive:0xffb347,emissiveIntensity:0.8,roughness:0.6}),(GAP)/2,0.28,0); g.add(link); g.add(gl); }
+  });
+  applyGrass();
+  enableAOall();   // active l'AO bakée (uv1) sur toutes les pierres/bois/métaux texturés
+}
+function scatterGreens(g,e){ const n=REDUCED?8:16; const m=M(0x4a6a34,0.95); const tm=M(0x5a4326,1);
+  for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2,r=15+Math.random()*8; const x=Math.cos(a)*r,z=Math.sin(a)*r;
+    const t=new THREE.Group(); t.position.set(x,0,z); t.add(cyl(0.18,0.24,1.4,6,tm,0,0.7,0)); t.add(cone(1.1,2.2,7,m,0,2.1,0)); t.scale.setScalar(0.7+Math.random()*0.6); g.add(t); }
+}
+let _grassMat=null;
+function applyGrass(){ new THREE.TextureLoader().load('../assets/3d/pbr/grass_diff_1k.jpg', t=>{ t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(10,10); t.anisotropy=8;
+  ERAS.forEach((e,i)=>{ if(e.grass){ stations[i].children.forEach(ch=>{ if(ch.geometry&&ch.geometry.type==='CircleGeometry'){ ch.material=ch.material.clone(); ch.material.map=t; ch.material.needsUpdate=true; } }); } }); }, undefined, ()=>{}); }
+
+/* ---- 0. PRÉHISTOIRE : Stonehenge + foyer ---- */
+function buildPrehist(g,e,idx){ const s=stoneRough(0xb4ada2,1.6);
+  const R=7; const first=new THREE.Group();
+  for(let i=0;i<6;i++){ const a=(i/6)*Math.PI*2; const t=trilithon(s); t.position.set(Math.cos(a)*R,0,Math.sin(a)*R); t.rotation.y=-a+Math.PI/2; g.add(t); if(i===0){ tag(t,'stonehenge',idx); first.add(t.clone()); } else tag(t,'stonehenge',idx); }
+  // quelques menhirs penchés à l'extérieur
+  for(let i=0;i<5;i++){ const a=Math.random()*Math.PI*2,r=12+Math.random()*6; const mh=box(1+Math.random(),3+Math.random()*2,0.9,s,Math.cos(a)*r,1.5,Math.sin(a)*r); mh.rotation.z=(Math.random()-0.5)*0.3; mh.rotation.y=Math.random()*Math.PI; g.add(mh); }
+  // foyer central
+  const fg=new THREE.Group(); const logM=woodMat(0x7a5230,1);
+  for(let i=0;i<5;i++){ const a=(i/5)*Math.PI*2; const l=cyl(0.14,0.14,1.6,6,logM,Math.cos(a)*0.4,0.4,Math.sin(a)*0.4); l.rotation.z=0.5*Math.cos(a); l.rotation.x=0.5*Math.sin(a); fg.add(l); }
+  const ember=new THREE.Mesh(new THREE.SphereGeometry(0.5,10,8), new THREE.MeshStandardMaterial({color:0xff6a1e,emissive:0xff5a1e,emissiveIntensity:2.2,roughness:0.6})); ember.position.y=0.4; fg.add(ember);
+  firelight=new THREE.PointLight(0xff8a3a,0,14); firelight.position.set(0,1.2,0); fg.add(firelight);
+  fg.userData.ember=ember; fire=fg; tag(fg,'foyer_prehist',idx); g.add(fg);
+  // hutte
+  const hut=new THREE.Group(); hut.position.set(-10,0,7); hut.add(cyl(2.2,2.6,2.2,10,woodMat(0x9a7a4c,3),0,1.1,0)); hut.add(cone(3,2.6,10,woodMat(0x8a6a3c,3),0,3.5,0)); g.add(hut);
+}
+function trilithon(s){ const t=new THREE.Group(); t.add(box(1.3,5,1.1,s,-1.4,2.5,0)); t.add(box(1.3,5,1.1,s,1.4,2.5,0)); t.add(box(4.2,1,1.2,s,0,5.4,0)); return t; }
+
+/* ---- 1. ÉGYPTE : pyramide (assises) + casing + sphinx + obélisque + palmiers ---- */
+function buildEgypte(g,e,idx){
+  const coreM=stoneRough(0xd8bd82,7);
+  const N=REDUCED?12:18, baseW=17, H=13; pyCore=[];
+  for(let i=0;i<N;i++){ const t=i/(N-1); const w=THREE.MathUtils.lerp(baseW,2,t); const h=H/N; const y=i*h+h/2; const layer=box(w,h+0.03,w,coreM,0,y,0); g.add(layer); pyCore.push(layer); }
+  pyCasing=new THREE.Mesh(new THREE.ConeGeometry(baseW*0.72,H+0.6,4), stoneCut(0xe8dcbe,3)); pyCasing.material.transparent=true; pyCasing.rotation.y=Math.PI/4; pyCasing.position.y=(H+0.6)/2; g.add(pyCasing);
+  pyCap=cone(1.4,1.8,4, new THREE.MeshStandardMaterial({color:0xffdf7a,emissive:0xffbf3a,emissiveIntensity:0.5,metalness:0.9,roughness:0.3}),0,H+0.4,0); pyCap.rotation.y=Math.PI/4; g.add(pyCap);
+  tag(pyCasing,'pyramide',idx); pyCore.forEach(l=>{ l.userData.fiche='pyramide'; l.userData.era=idx; }); pickables.push(...pyCore);
+  // Sphinx
+  const sp=new THREE.Group(); sp.position.set(15,0,9); sp.rotation.y=-0.6; const sm=stoneRough(0xcbb17e,2);
+  sp.add(box(7,2,2.6,sm,0,1,0)); // corps
+  sp.add(box(1.6,1.6,1.4,sm,3.6,2.4,0)); // tête
+  const nemes=box(2.2,1.2,2.1,M(0xbf9a55,0.9),3.5,3.1,0); sp.add(nemes);
+  sp.add(box(2.2,0.7,0.6,sm,3.0,0.4,0.9)); sp.add(box(2.2,0.7,0.6,sm,3.0,0.4,-0.9)); // pattes avant
+  tag(sp,'sphinx',idx); g.add(sp);
+  // obélisque
+  const ob=new THREE.Group(); ob.position.set(-13,0,10); ob.add(box(1.3,10,1.3,stoneCut(0xcbb480,3),0,5,0)); ob.add(cone(0.95,1.4,4,M(0xffdf7a,0.4,0.6),0,10.7,0)); g.add(ob);
+  // palmiers
+  for(let i=0;i<4;i++){ const a=-0.4+i*0.5; palm(g, -18+i*2, 11+i*1.5); }
+}
+function palm(g,x,z){ const p=new THREE.Group(); p.position.set(x,0,z); p.add(cyl(0.3,0.45,5.5,7,M(0x6a4a2a,1),0,2.75,0));
+  for(let i=0;i<6;i++){ const a=(i/6)*Math.PI*2; const f=cone(0.5,3.2,4,M(0x3f7a34,0.9),0,0,0); f.position.set(Math.cos(a)*1.4,5.4,Math.sin(a)*1.4); f.rotation.z=Math.cos(a)*0.9; f.rotation.x=-Math.sin(a)*0.9; p.add(f); } g.add(p); }
+
+/* ---- 2. GRÈCE : temple à colonnade + fronton ---- */
+function buildGrece(g,e,idx){ const marble=marbleMat(0xe9e2d2,2);
+  const W=14,D=9;
+  const podium=box(W+2,1.6,D+2,marbleMat(0xdcd4c2,3),0,0.8,0); g.add(podium);
+  for(let i=0;i<4;i++) g.add(box(W+2-i*0.9,0.4,D+2-i*0.9,M(0xd6cdba,0.85),0,-0.2-i*0.4,(D+2)/2+0.5+i*0.5)); // marches façade
+  // colonnade péristyle
+  const cols=new THREE.Group(); const nX=6,nZ=4; const colM=marble;
+  const place=(x,z)=>{ const c=new THREE.Group(); c.position.set(x,1.6,z); c.add(cyl(0.5,0.6,0.4,14,colM,0,0.2,0)); const sh=cyl(0.42,0.48,5,16,colM,0,2.9,0); c.add(sh); c.add(box(1.1,0.5,1.1,colM,0,5.6,0)); cols.add(c); };
+  for(let i=0;i<nX;i++){ const x=-W/2+i*(W/(nX-1)); place(x,-D/2); place(x,D/2); }
+  for(let j=1;j<nZ-1;j++){ const z=-D/2+j*(D/(nZ-1)); place(-W/2,z); place(W/2,z); }
+  tag(cols,'temple_grec',idx); g.add(cols);
+  // entablement + toit
+  g.add(box(W+2,0.9,D+2,marble,0,6.45,0));
+  const roof=box(W+2.4,0.5,D+2.4,marbleMat(0xd0c6b0,3),0,7.9,0); g.add(roof);
+  // fronton (façade avant + arrière)
+  const ped=new THREE.Group(); const ps=new THREE.Shape(); ps.moveTo(-(W/2+1),0); ps.lineTo(W/2+1,0); ps.lineTo(0,2.6); ps.closePath();
+  const pm=new THREE.Mesh(new THREE.ExtrudeGeometry(ps,{depth:1,bevelEnabled:false}),M(0xe4dcc8,0.75)); pm.position.set(0,6.9,(D+2)/2-0.5); ped.add(pm);
+  const pm2=pm.clone(); pm2.position.z=-(D+2)/2-0.5; ped.add(pm2);
+  tag(ped,'fronton_grec',idx); g.add(ped);
+}
+
+/* ---- 3. ROME : Colisée (3 étages d'arcades, elliptique) ---- */
+function buildRome(g,e,idx){ const trav=stoneCut(0xd8c9a0,1.4);
+  const outer=new THREE.Group(); const tiers=3, per=REDUCED?14:18, rx=14, rz=11, th=3.4;
+  for(let k=0;k<tiers;k++){ const scale=1-k*0.045; const y=k*th; const rows=new THREE.Group();
+    for(let j=0;j<per;j++){ const a=(j/per)*Math.PI*2; const px=Math.cos(a)*rx*scale, pz=Math.sin(a)*rz*scale;
+      // on ouvre une brèche (ruine) sur un secteur
+      if(k>0 && a>Math.PI*0.15 && a<Math.PI*0.55 && Math.random()<0.6) continue;
+      const pier=box(1.5,th,1.1,trav,px,y+th/2,pz); pier.lookAt(0,y+th/2,0); rows.add(pier);
+      const arch=new THREE.Mesh(new THREE.TorusGeometry(0.9,0.28,6,10,Math.PI),trav); arch.position.set(px,y+th*0.72,pz); arch.lookAt(0,y+th*0.72,0); arch.rotateY(Math.PI/2); rows.add(arch);
+    }
+    // corniche elliptique
+    const cor=new THREE.Mesh(new THREE.TorusGeometry(rx*scale,0.35,8,per*2),M(0xcabb90,0.8)); cor.rotation.x=Math.PI/2; cor.scale.z=(rz/rx); cor.position.y=y+th-0.1; rows.add(cor);
+    if(k===1) tag(rows,'arcades_rome',idx); else tag(rows,'colisee',idx);
+    outer.add(rows);
+  }
+  g.add(outer);
+  // arène (sol) + gradins suggérés
+  const arena=new THREE.Mesh(new THREE.CircleGeometry(9,40),M(0xb59d6e,1)); arena.rotation.x=-Math.PI/2; arena.scale.y=rz/rx; arena.position.y=0.05; g.add(arena);
+  const bank=new THREE.Mesh(new THREE.CylinderGeometry(13,10,3,per*2,1,true),new THREE.MeshStandardMaterial({color:0xc0ab7c,roughness:0.95,side:THREE.DoubleSide})); bank.scale.z=rz/rx; bank.position.y=1.5; g.add(bank); bank.userData.fiche='colisee'; bank.userData.era=idx; pickables.push(bank);
+}
+
+/* ---- 4. MOYEN ÂGE : château fort (donjon, tours, remparts, douves) ---- */
+function buildMoyenage(g,e,idx){ const st=stoneRough(0xa89c8a,2.4); const slate=M(0x46525e,0.7,0.1);
+  // douves (anneau d'eau)
+  const moat=new THREE.Mesh(new THREE.RingGeometry(15,20,40),new THREE.MeshStandardMaterial({color:0x2f5a6a,roughness:0.25,metalness:0.1,transparent:true,opacity:0.85,side:THREE.DoubleSide})); moat.rotation.x=-Math.PI/2; moat.position.y=0.06; g.add(moat);
+  const W=13;
+  // remparts (4 murs) + créneaux
+  const walls=new THREE.Group();
+  [[0,W/2,0],[0,-W/2,0]].forEach(p=>{ walls.add(box(W,4,1.4,st,p[0],2,p[1])); });
+  [[W/2,0],[-W/2,0]].forEach(p=>{ walls.add(box(1.4,4,W,st,p[0],2,p[1])); });
+  const cren=new THREE.Group(); crenels(W,W,4.35,1.2,st,cren); walls.add(cren);
+  // tours d'angle
+  [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(c=>{ const tw=new THREE.Group(); tw.position.set(c[0]*W/2,0,c[1]*W/2);
+    tw.add(cyl(1.7,1.9,6,12,st,0,3,0));
+    tw.add(cone(2,3,10,slate,0,7.5,0)); tw.add(flag(0,9)); walls.add(tw); });
+  tag(walls,'remparts',idx); g.add(walls);
+  // porte + pont-levis
+  g.add(box(4,3,1.6,stoneRough(0x8a7f70,2),0,1.5,W/2)); const draw=box(3,0.4,6,woodPlank(0x7a5330,2),0,0.2,W/2+4); draw.rotation.x=-0.05; g.add(draw);
+  // donjon central
+  const keep=new THREE.Group(); keep.add(box(6,11,6,st,0,5.5,0)); const kc=new THREE.Group(); crenels(6,6,11.35,1.3,st,kc); keep.add(kc);
+  keep.add(cone(4.6,3.6,4,slate,0,13.2,0)); keep.add(flag(0,15));
+  // fenêtres
+  [[2,7,3.01],[-2,7,3.01],[0,4,3.01]].forEach(p=> keep.add(box(0.9,1.6,0.1,M(0x2a2018,0.6),p[0],p[1],p[2])) );
+  tag(keep,'donjon',idx); g.add(keep);
+}
+function flag(x,y){ const f=new THREE.Group(); f.position.set(x,y,0); f.add(cyl(0.06,0.06,2.4,5,M(0x3a2a1a,0.6),0,0,0)); const cloth=box(1.4,0.8,0.05,new THREE.MeshStandardMaterial({color:0xb02a2a,roughness:0.8,side:THREE.DoubleSide}),0.7,0.7,0); cloth.userData.flag=true; f.add(cloth); flags.push(cloth); return f; }
+
+/* ---- 5. GOTHIQUE : cathédrale (nef, tours, flèche, rosace, arcs-boutants) ---- */
+function buildGothique(g,e,idx){ const st=stoneCut(0xc4bcae,3); const st2=stoneCut(0xb0a89a,3);
+  const cath=new THREE.Group();
+  // nef
+  cath.add(box(8,14,20,st,0,7,0));
+  // toit à deux pentes
+  const roofM=M(0x5a6068,0.7); const r1=box(6,4,20,roofM,0,15.5,0); r1.rotation.z=0; cath.add(box(9,0.5,20,roofM,0,14.3,0));
+  const roof=new THREE.Mesh(new THREE.CylinderGeometry(4.6,4.6,20,3),roofM); roof.rotation.x=Math.PI/2; roof.rotation.z=Math.PI; roof.position.set(0,15.6,0); roof.scale.x=0.9; cath.add(roof);
+  // façade + 2 tours
+  const fz=10.5;
+  cath.add(box(10,16,1.2,st2,0,8,fz));
+  [-3.4,3.4].forEach(x=>{ const tw=new THREE.Group(); tw.add(box(3.2,22,3.2,st,x,11,fz)); tw.add(cone(2.3,4.5,4,st2,x,24.5,fz)); for(let i=0;i<4;i++){ const a=(i/4)*Math.PI*2; tw.add(cone(0.35,1.6,4,st2,x+Math.cos(a)*1.6,22.6,fz+Math.sin(a)*1.6)); } cath.add(tw); });
+  // flèche centrale (croisée)
+  const spire=new THREE.Group(); spire.add(box(4,4,4,st,0,15,-2)); spire.add(cone(2.6,13,8,st2,0,23,-2)); tag(spire,'cathedrale',idx); cath.add(spire);
+  // rosace (vitrail émissif)
+  const rose=new THREE.Mesh(new THREE.CircleGeometry(2.4,24),new THREE.MeshStandardMaterial({color:0x6a3aa0,emissive:0x8a4ad0,emissiveIntensity:1.4,roughness:0.4,metalness:0.1})); rose.position.set(0,12,fz+0.7); cath.add(rose);
+  const roseRim=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.3,8,24),st2); roseRim.position.set(0,12,fz+0.65); cath.add(roseRim);
+  tag(rose,'rosace',idx); rose.userData.fiche='rosace'; rose.userData.era=idx;
+  // portail en arc brisé
+  cath.add(box(3.4,6,0.6,M(0x3a3230,0.6),0,3,fz+0.5)); cath.add(cone(1.9,2.4,3,M(0x3a3230,0.6),0,7.2,fz+0.5));
+  // arcs-boutants
+  [-1,1].forEach(s=>{ for(let i=0;i<3;i++){ const z=-6+i*6; const ab=box(0.6,0.8,5,st2, s*6.2,9,z); ab.rotation.x=0; const arc=box(0.6,4.5,0.6,st2,s*7.5,7,z); arc.rotation.z=s*0.5; cath.add(ab); cath.add(arc); const pin=cone(0.5,2,4,st2,s*8.4,10,z); cath.add(pin); } });
+  // fenêtres hautes émissives
+  [-1,1].forEach(s=>{ for(let i=0;i<4;i++){ const z=-7+i*4; cath.add(box(0.2,5,1.4,new THREE.MeshStandardMaterial({color:0x3a5a8a,emissive:0x4a6aa0,emissiveIntensity:0.5,roughness:0.5}),s*4.05,8,z)); } });
+  g.add(cath);
+}
+
+/* ---- 6. INDUSTRIE : usine + cheminée fumante + volant d'inertie ---- */
+function buildIndustrie(g,e,idx){ const brick=stoneCut(0x9a5040,4); const brick2=stoneCut(0x7c3e30,4); const metal=metalMat(0x707880,2);
+  // corps d'usine
+  const b=box(14,7,9,brick,0,3.5,0); g.add(b); g.userData.fiche='cheminee';
+  // toit en dents de scie (sawtooth) — tôle ondulée métallique
+  const roofIron=ironMat(0x8a8f96,2);
+  for(let i=0;i<4;i++){ const x=-5.2+i*3.4; const tt=box(3,2,9,roofIron,x,8,0); tt.rotation.z=0; g.add(tt); g.add(box(3.2,0.2,9,new THREE.MeshStandardMaterial({color:0x2a3a4a,emissive:0x3a5a7a,emissiveIntensity:0.35,roughness:0.4}),x+0.3,8.6,0)); }
+  // fenêtres à petits carreaux
+  for(let i=0;i<5;i++){ const x=-5.6+i*2.8; const w=box(1.8,3,0.15,new THREE.MeshStandardMaterial({color:0x9ab0b8,emissive:0xb0c8d0,emissiveIntensity:0.25,roughness:0.4,metalness:0.2}),x,3.5,4.55); g.add(w); windows.push(w.material); }
+  // cheminée
+  const chim=new THREE.Group(); chim.position.set(8.5,0,-1); chim.add(cyl(1.1,1.5,17,14,brick2,0,8.5,0)); chim.add(cyl(1.4,1.3,1,14,brick,0,17,0)); tag(chim,'cheminee',idx); g.add(chim);
+  smoke(chim,new THREE.Vector3(0,17.5,0));
+  // volant d'inertie + bielle
+  const mach=new THREE.Group(); mach.position.set(-9.5,0,4);
+  const wheel=new THREE.Group(); wheel.position.set(0,3.4,0); const rim=new THREE.Mesh(new THREE.TorusGeometry(3,0.4,10,28),metal); wheel.add(rim); wheel.add(new THREE.Mesh(new THREE.TorusGeometry(2.4,0.2,8,24),metal));
+  for(let i=0;i<6;i++){ const a=(i/6)*Math.PI*2; wheel.add(box(0.24,5.4,0.24,metal,0,0,0)); wheel.children[wheel.children.length-1].rotation.z=a; }
+  wheel.add(cyl(0.5,0.5,0.8,12,M(0x2a2e33,0.4,0.8),0,0,0.1)); wheel.rotation.x=Math.PI/2; wheel.userData.spin=true; flywheels.push(wheel);
+  mach.add(wheel); mach.add(box(1.4,3.4,1.4,metal,0,1.7,0)); mach.add(cyl(0.8,0.8,4,12,M(0x6a4a2a,0.8),2.5,2,0)); // chaudière
+  tag(mach,'machine_vapeur',idx); g.add(mach);
+  b.userData.era=idx; pickables.push(b);
+}
+function smoke(parent,pos){ const N=REDUCED?24:60; const p=new Float32Array(N*3); const sd=[];
+  for(let i=0;i<N;i++){ sd.push({t:Math.random(),sp:0.5+Math.random()*0.7,off:(Math.random()-0.5)*2}); }
+  const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(p,3));
+  const pts=new THREE.Points(geo,new THREE.PointsMaterial({map:glowTex(),color:0x6a625a,size:5.5,sizeAttenuation:true,transparent:true,opacity:0.34,depthWrite:false})); pts.position.copy(pos); pts.userData.sd=sd; parent.add(pts); smokeSystems.push(pts); }
+
+/* ---- 7. CONTEMPORAIN : gratte-ciel de verre ---- */
+function buildModerne(g,e,idx){ const wtex=winTex();
+  const glass=(h,c)=> new THREE.MeshStandardMaterial({color:c,roughness:0.25,metalness:0.5,emissive:0x223344,emissiveIntensity:0.35,emissiveMap:wtex,map:wtex,envMapIntensity:1.1});
+  const towers=[[0,0,26,3.6,0x9fb8c8],[6,-6,16,3,0x8fb0a8],[-7,-3,20,3.2,0xa8b8c8],[4,7,13,3,0x9fc0c0],[-6,7,17,3,0xb0c4d0],[8,4,11,2.6,0x9fb8c8]];
+  let tall=null;
+  towers.forEach((t,i)=>{ const b=box(t[3],t[2],t[3],glass(t[2],t[4]),t[0],t[2]/2,t[1]); b.material.emissiveIntensity=0.35; g.add(b); windows.push(b.material); if(i===0){ b.add(box(1,4,1,M(0xcfd8e0,0.4,0.6),0,t[2]/2+2,0)); tall=b; } });
+  tag(tall,'gratteciel',idx);
+  // petit parc + arbres
+  const park=new THREE.Mesh(new THREE.CircleGeometry(6,20),M(0x3f7a44,1)); park.rotation.x=-Math.PI/2; park.position.set(-2,0.03,11); g.add(park);
+  for(let i=0;i<4;i++){ const t=new THREE.Group(); t.position.set(-4+i*1.6,0,11); t.add(cyl(0.15,0.2,1.2,6,M(0x5a4326,1),0,0.6,0)); t.add(cone(0.9,1.8,7,M(0x4a8a44,0.9),0,1.9,0)); g.add(t); }
+  // route / passage piéton
+  g.add(box(30,0.05,3,M(0x3a3d42,0.9),0,0.04,17));
+}
+function winTex(){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); x.fillStyle='#20303c'; x.fillRect(0,0,128,128);
+  for(let gy=0;gy<16;gy++) for(let gx=0;gx<12;gx++){ x.fillStyle = Math.random()<0.5 ? 'rgba(255,236,180,'+(0.5+Math.random()*0.5)+')' : 'rgba(120,150,175,0.5)'; x.fillRect(gx*10+2,gy*8+2,7,5); }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(2,4); return t; }
+
+const BUILDERS={ prehist:buildPrehist, egypte:buildEgypte, grece:buildGrece, rome:buildRome, moyenage:buildMoyenage, gothique:buildGothique, industrie:buildIndustrie, moderne:buildModerne };
+
+/* ================= UI ================= */
+function buildUI(){ const stage=shell.stage;
+  // outils
+  const tools=document.createElement('div'); tools.className='hi-tools';
+  tools.innerHTML=`<button class="hi-tb accent" id="hiTour"><span class="ic">🎬</span> Voyage guidé</button>
+    <button class="hi-tb" id="hiBuildBtn"><span class="ic">🏗️</span> Construire la pyramide</button>
+    <button class="hi-tb" id="hiLabels" aria-pressed="true"><span class="ic">🏷️</span> Étiquettes des époques</button>`;
+  stage.appendChild(tools);
+  tools.querySelector('#hiTour').onclick=startTour;
+  tools.querySelector('#hiBuildBtn').onclick=startBuild;
+  tools.querySelector('#hiLabels').onclick=()=>{ labelsOn=!labelsOn; tools.querySelector('#hiLabels').setAttribute('aria-pressed',labelsOn); shell.sound('click'); };
+  // frise / navigation
+  const t=document.createElement('div'); t.className='hi-panel hi-time'; t.id='hiTime';
+  t.innerHTML=`<div class="top"><button class="hi-nav" id="hiPrev" aria-label="Époque précédente">◀</button>
+    <div class="hi-erabox"><div class="era" id="hiEra"></div><div class="yr" id="hiYr"></div></div>
+    <button class="hi-nav" id="hiNext" aria-label="Époque suivante">▶</button></div>
+    <div class="hi-track"><div class="hi-rail"></div><input id="hiSlider" type="range" min="0" max="${ERAS.length-1}" step="1" value="0" aria-label="Frise chronologique"><div class="hi-ticks" id="hiTicks"></div></div>`;
+  stage.appendChild(t);
+  const ticks=t.querySelector('#hiTicks'); ERAS.forEach((e,i)=>{ const b=document.createElement('button'); b.style.left=(i/(ERAS.length-1)*100)+'%'; b.innerHTML='<i></i>'; b.title=e.name; b.setAttribute('aria-label',e.name); b.onclick=()=>goTo(i,true); ticks.appendChild(b); });
+  t.querySelector('#hiPrev').onclick=()=>goTo(cur-1,true);
+  t.querySelector('#hiNext').onclick=()=>goTo(cur+1,true);
+  t.querySelector('#hiSlider').oninput=ev=>goTo(+ev.target.value,true);
+  // fiche
+  const info=document.createElement('div'); info.className='hi-panel hi-info'; info.id='hiInfo'; stage.appendChild(info);
+  // hint
+  const hint=document.createElement('div'); hint.className='hi-hint'; hint.id='hiHint'; hint.textContent="Navigue avec ◀ ▶ · clique un monument"; stage.appendChild(hint);
+  // panneaux flux
+  const bp=document.createElement('div'); bp.className='hi-panel hi-build'; bp.id='hiBuild'; stage.appendChild(bp);
+  const tp=document.createElement('div'); tp.className='hi-panel hi-build'; tp.id='hiTourP'; stage.appendChild(tp);
+  // étiquettes flottantes
+  ERAS.forEach((e,i)=>{ const el=document.createElement('button'); el.className='hi-label on'; el.innerHTML=`<span class="tag">${e.name}</span><span class="yr">${e.yr}</span>`; el.onclick=()=>goTo(i,true); stage.appendChild(el); labelEls.push(el); });
+  goTo(0,false);
+}
+
+/* ================= NAVIGATION ================= */
+function goTo(i,animateCam){ i=Math.max(0,Math.min(ERAS.length-1,i)); cur=i; const e=ERAS[i], c=e.cam;
+  document.getElementById('hiEra').textContent=e.name; document.getElementById('hiYr').textContent=e.yr;
+  const sl=document.getElementById('hiSlider'); if(sl)sl.value=i;
+  document.getElementById('hiPrev').disabled=(i===0); document.getElementById('hiNext').disabled=(i===ERAS.length-1);
+  document.querySelectorAll('#hiTicks button').forEach((b,k)=>b.setAttribute('aria-current',k===i?'true':'false'));
+  const target=[sx(i),c[3],0], camP=[sx(i)+c[0],c[1],c[2]];
+  if(animateCam!==false) moveCam(camP,target,1.3); else { camera.position.set(...camP); controls.target.set(...target); }
+  if(!build && !tour){ shell.say(tourSay(i),'enthousiaste'); shell.sound('pop'); }
+}
+function tourSay(i){ return ERAS[i].tour.say; }
+function moveCam(p,l,dur=1.4){ camAnim={ t:0, dur, p0:camera.position.clone(), l0:controls.target.clone(), p1:new THREE.Vector3(...p), l1:new THREE.Vector3(...l) }; }
+
+/* ================= AMBIANCE (transition d'époque) ================= */
+const _cA=new THREE.Color(),_cB=new THREE.Color(),_cO=new THREE.Color();
+function lerpHex(a,b,f,out){ _cA.setHex(a); _cB.setHex(b); out.copy(_cA).lerp(_cB,f); return out; }
+function applyAmbient(f){ const a=Math.floor(ambPos), b=Math.min(ERAS.length-1,a+1), fr=ambPos-a; const A=ERAS[a],B=ERAS[b];
+  const dark=document.documentElement.getAttribute('data-theme')==='dark'; const dk=dark?0.42:1;
+  scene.fog.color.copy(lerpHex(A.fog,B.fog,fr,_cO)).multiplyScalar(dk); renderer.setClearColor(scene.fog.color,1);
+  if(skyDome){ skyDome.material.color.copy(lerpHex(A.sky,B.sky,fr,_cO)).multiplyScalar(dark?0.5:1); }
+  hemi.color.copy(lerpHex(A.hemiS,B.hemiS,fr,_cO)).multiplyScalar(dk); hemi.groundColor.copy(lerpHex(A.hemiG,B.hemiG,fr,_cO)); hemi.intensity=(0.7+0.3*(1))*(dark?0.6:1);
+  sunLight.color.copy(lerpHex(A.sun,B.sun,fr,_cO)); sunLight.intensity=THREE.MathUtils.lerp(A.sunI,B.sunI,fr)*(dark?0.5:1);
+  if(sunSprite){ sunSprite.material.opacity=THREE.MathUtils.lerp(A.sunOp,B.sunOp,fr)*(dark?0.5:1); sunSprite.material.color.copy(lerpHex(A.sun,B.sun,fr,_cO)); }
+}
+
+/* ================= VOYAGE GUIDÉ ================= */
+function startTour(){ if(tour||build)return; if(quiz){ clearQuiz(); }
+  tour={i:-1}; document.getElementById('hiHint').style.display='none'; document.getElementById('hiInfo').classList.remove('show');
+  document.getElementById('hiTourP').classList.add('show'); controls.autoRotate=true; controls.autoRotateSpeed=0.5;
+  setTourStep(0);
+}
+function setTourStep(i){ if(!tour)return; tour.i=i; const e=ERAS[i]; goTo(i,true);
+  const dots=ERAS.map((_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('');
+  document.getElementById('hiTourP').innerHTML=`<div class="bhd" style="background:linear-gradient(135deg,${e.accent},#3a3020)"><div class="bph">${e.yr} · Voyage dans le temps</div><div class="bti">${e.name}</div><div class="bprog">${dots}</div></div>`+
+    `<div class="bbody"><p>${e.tour.txt}</p><div class="brow"><button class="bnext" id="tNext">${i>=ERAS.length-1?'Terminer ✓':'Époque suivante ▸'}</button><button class="bquit" id="tQuit">Quitter</button></div></div>`;
+  document.getElementById('tNext').onclick=()=>{ if(tour.i>=ERAS.length-1) endTour(); else setTourStep(tour.i+1); };
+  document.getElementById('tQuit').onclick=endTour;
+  shell.say(e.tour.say,i>=ERAS.length-1?'idee':'enthousiaste'); shell.sound('pop'); startAmb();
+}
+function endTour(){ if(!tour)return; tour=null; document.getElementById('hiTourP').classList.remove('show'); document.getElementById('hiHint').style.display=mode==='cours'?'none':''; controls.autoRotate=REDUCED; controls.autoRotateSpeed=0.3; shell.say("Fin du voyage ! Explore librement la frise avec les flèches, ou lance le mode Cours pour te tester.",'fier'); }
+
+/* ================= CONSTRUIRE LA PYRAMIDE ================= */
+const BUILD_STEPS=[
+  { ph:'Étape 1 / 5', ti:'Le chantier', frac:0.16, casing:0, cap:false, txt:"On aplanit le plateau de Gizeh et on pose la <b>première assise</b> : les plus gros blocs, à la base. Des dizaines de milliers d'ouvriers acheminent la pierre depuis les carrières.", say:"On commence par la base : les blocs les plus lourds, parfaitement alignés." },
+  { ph:'Étape 2 / 5', ti:'Les assises montent', frac:0.5, casing:0, cap:false, txt:"Assise après assise, la pyramide s'élève. On pense que des <b>rampes</b> permettaient de hisser les blocs de plusieurs tonnes toujours plus haut.", say:"Les assises s'empilent : chaque niveau est un peu plus petit que le précédent." },
+  { ph:'Étape 3 / 5', ti:'Vers le sommet', frac:0.92, casing:0, cap:false, txt:"Le cœur de la pyramide est presque terminé. À l'intérieur se cachent les <b>chambres funéraires</b> et de longs couloirs destinés au pharaon.", say:"On approche du sommet ! Le noyau de pierre prend sa forme." },
+  { ph:'Étape 4 / 5', ti:'Le pyramidion', frac:1, casing:0, cap:true, txt:"On coiffe la pyramide de son <b>pyramidion</b>, souvent doré, qui capte les premiers rayons du Soleil. Symboliquement, il relie le pharaon au dieu-soleil Rê.", say:"La pointe est posée : c'est le pyramidion, parfois recouvert d'or." },
+  { ph:'Étape 5 / 5', ti:'Le revêtement poli', frac:1, casing:1, cap:true, txt:"Enfin, on habille la pyramide d'un <b>revêtement de calcaire blanc poli</b>. Lisse et éclatante, elle brillait au soleil, visible à des kilomètres. Inauguration !", say:"Et voilà la pyramide dans toute sa splendeur, blanche et éclatante au soleil !" },
+];
+function startBuild(){ if(build||tour)return; if(quiz){ clearQuiz(); }
+  goTo(1,true);
+  build={ idx:-1, target:0, casing:0, cap:false };
+  pyReveal=0; pyCore.forEach(l=>l.visible=false); pyCasing.material.opacity=0; pyCasing.visible=false; pyCap.visible=false;
+  document.getElementById('hiHint').style.display='none'; document.getElementById('hiInfo').classList.remove('show'); document.getElementById('hiTime').style.display='none';
+  document.getElementById('hiBuild').classList.add('show'); controls.autoRotate=true; controls.autoRotateSpeed=0.55; startAmb();
+  setBuildStep(0);
+}
+function setBuildStep(i){ if(!build)return; build.idx=i; const s=BUILD_STEPS[i];
+  build.target=Math.round(s.frac*pyCore.length); build.casing=s.casing; build.cap=s.cap;
+  const dots=BUILD_STEPS.map((_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('');
+  document.getElementById('hiBuild').innerHTML=`<div class="bhd" style="background:linear-gradient(135deg,#c99a4a,#7a5a2a)"><div class="bph">${s.ph}</div><div class="bti">${s.ti}</div><div class="bprog">${dots}</div></div>`+
+    `<div class="bbody"><p>${s.txt}</p><div class="brow"><button class="bnext" id="bNext">${i>=BUILD_STEPS.length-1?'Inaugurer ✓':'Étape suivante ▸'}</button><button class="bquit" id="bQuit">Quitter</button></div></div>`;
+  document.getElementById('bNext').onclick=()=>{ if(build.idx>=BUILD_STEPS.length-1) winBuild(); else setBuildStep(build.idx+1); };
+  document.getElementById('bQuit').onclick=endBuild;
+  shell.say(s.say, i>=BUILD_STEPS.length-1?'celebration':'concentre'); shell.sound('pop');
+}
+function updateBuild(dt){ if(!build)return; const k=Math.min(1,dt*3);
+  pyReveal += (build.target-pyReveal)*k;
+  pyCore.forEach((l,idx)=>{ const on=idx<pyReveal-0.02; l.visible=on; if(on){ const app=Math.min(1,(pyReveal-idx)); l.scale.setScalar(0.85+0.15*app); } });
+  pyCap.visible=build.cap; if(build.cap){ pyCap.position.y=13.4; }
+  if(build.casing){ pyCasing.visible=true; pyCasing.material.transparent=true; pyCasing.material.opacity=Math.min(1,pyCasing.material.opacity+dt*1.5); }
+  else { pyCasing.visible=false; pyCasing.material.opacity=0; }
+}
+function winBuild(){ shell.win({ score:600, stars:3, title:'Pyramide inaugurée !',
+  learned:["Une pyramide s'élève assise par assise, du plus lourd (base) au plus léger (sommet).","Des rampes permettaient sans doute de hisser les blocs de plusieurs tonnes.","Le pyramidion doré et le revêtement de calcaire poli la faisaient briller au soleil.","Tombeau du pharaon, elle mobilisait toute la société égyptienne."],
+  buddy:"Bâtisseur hors pair ! Tu as remonté la pyramide de Khéops pierre par pierre.", onNext:()=>{ endBuild(); startBuild(); }, nextLabel:'Reconstruire' }); }
+function endBuild(){ if(!build)return; build=null; pyReveal=pyCore.length;
+  pyCore.forEach(l=>{ l.visible=true; l.scale.setScalar(1); }); pyCasing.visible=true; pyCasing.material.opacity=1; pyCasing.material.transparent=false; pyCap.visible=true; pyCap.position.y=13.4;
+  document.getElementById('hiBuild').classList.remove('show'); document.getElementById('hiTime').style.display=''; document.getElementById('hiHint').style.display=mode==='cours'?'none':'';
+  controls.autoRotate=REDUCED; controls.autoRotateSpeed=0.3;
+}
+
+/* ================= FICHE ================= */
+function openFiche(key){ const f=FICHES[key]; if(!f)return; const e=ERAS[f.era]; const el=document.getElementById('hiInfo');
+  el.innerHTML=`<div class="hi-hd" style="background:linear-gradient(135deg,${e.accent},#2c2418)"><div class="sub">${f.sub}</div><h2>${f.name}</h2><span class="yr">${e.yr}</span><button class="hi-x" aria-label="Fermer">×</button></div>`+
+    `<div class="hi-body"><div class="lbl">Date</div>${f.date.map(p=>`<p>${p}</p>`).join('')}<div class="lbl">Contexte</div>${f.ctx.map(p=>`<p>${p}</p>`).join('')}<div class="lbl">Pourquoi c'est important</div><div class="imp">${f.imp}</div></div>`;
+  el.classList.add('show'); el.querySelector('.hi-x').onclick=()=>el.classList.remove('show'); shell.sound('pop');
+}
+
+/* ================= INTERACTIONS ================= */
+function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer,camera); const h=raycaster.intersectObjects(pickables,true); if(!h.length)return null; let o=h[0].object; while(o&&o.userData.fiche===undefined)o=o.parent; return o; }
+function onMove(e){ setP(e); renderer.domElement.style.cursor=pick()?'pointer':'grab'; }
+function onDown(e){ if(build)return; setP(e); const o=pick(); if(!o)return; const key=o.userData.fiche, era=o.userData.era;
+  if(era!==undefined && era!==cur) goTo(era,true);
+  if(mode==='cours'){ checkFind(key,era); return; }
+  openFiche(key); const f=FICHES[key]; if(f) shell.say(f.imp,'idee'); shell.sound('pop'); startAmb();
+}
+function onKey(e){ if(build||tour)return; if(e.key==='ArrowRight'){ goTo(cur+1,true); } else if(e.key==='ArrowLeft'){ goTo(cur-1,true); } }
+
+/* ================= MODE COURS (quiz) ================= */
+function startMode(m){ mode=m; startAmb();
+  const bb=document.getElementById('hiBuildBtn'), tb=document.getElementById('hiTour');
+  document.getElementById('hiHint').style.display = m==='cours'?'none':'';
+  if(bb) bb.style.display = m==='cours'?'none':''; if(tb) tb.style.display = m==='cours'?'none':'';
+  if(build) endBuild(); if(tour) endTour();
+  if(m==='cours'){ shell.setScore(0); startQuiz(); } else { clearQuiz(); shell.say("Mode Détente : voyage librement dans le temps et clique les monuments.",'joyeux'); }
+}
+function eraOpts(correct){ const idxs=[correct]; while(idxs.length<4){ const r=Math.floor(Math.random()*ERAS.length); if(!idxs.includes(r)) idxs.push(r); } return idxs.sort(()=>Math.random()-0.5).map(i=>({l:ERAS[i].name, ok:i===correct})); }
+function buildBank(){ const Q=[];
+  ERAS.forEach((e,i)=> Q.push({kind:'era', focus:i, q:'À quelle époque appartient ce monument ?', opts:eraOpts(i)}) );
+  [[1,'la pyramide'],[3,'le Colisée'],[4,'le château fort'],[5,'la cathédrale gothique'],[6,'l\'usine à vapeur'],[7,'un gratte-ciel'],[0,'Stonehenge']].forEach(([i,l])=> Q.push({kind:'find', target:i, q:`Trouve et clique : <b>${l}</b>`}) );
+  Q.push({kind:'mc', focus:1, q:'Lequel est le plus <b>ancien</b> ?', opts:[{l:'Les pyramides d\'Égypte',ok:true},{l:'Le Colisée de Rome',ok:false},{l:'La cathédrale gothique',ok:false}]});
+  Q.push({kind:'mc', focus:1, q:'Qui a fait bâtir les pyramides de Gizeh ?', opts:[{l:'Les pharaons égyptiens',ok:true},{l:'Les empereurs romains',ok:false},{l:'Les rois du Moyen Âge',ok:false}]});
+  Q.push({kind:'mc', focus:3, q:'À quoi servait le Colisée ?', opts:[{l:'Aux combats de gladiateurs',ok:true},{l:'À stocker le grain',ok:false},{l:'De palais du roi',ok:false}]});
+  Q.push({kind:'mc', focus:4, q:'À quoi servait un château fort ?', opts:[{l:'À se défendre et protéger',ok:true},{l:'À produire de l\'acier',ok:false},{l:'À observer les étoiles',ok:false}]});
+  Q.push({kind:'mc', focus:6, q:'Quelle invention lance la Révolution industrielle ?', opts:[{l:'La machine à vapeur',ok:true},{l:'L\'imprimerie',ok:false},{l:'La boussole',ok:false}]});
+  Q.push({kind:'mc', focus:5, q:'La cathédrale gothique se reconnaît à…', opts:[{l:'ses flèches et arcs brisés',ok:true},{l:'ses pyramides de pierre',ok:false},{l:'ses gratte-ciel de verre',ok:false}]});
+  return Q;
+}
+function startQuiz(){ const bank=buildBank().sort(()=>Math.random()-0.5); quiz={ list:bank.slice(0,6), idx:0, score:0, total:6, cur:null, locked:false }; shell.setProgress(0); askQuiz(); }
+function askQuiz(){ if(!quiz)return; if(quiz.idx>=quiz.total){ winQuiz(); return; } const item=quiz.list[quiz.idx]; quiz.cur=item; quiz.locked=false;
+  shell.setLevel((quiz.idx+1)+'/'+quiz.total); shell.setProgress(quiz.idx/quiz.total);
+  if(item.focus!==undefined) goTo(item.focus,true);
+  let bar=document.getElementById('hiQuiz'); if(!bar){ bar=document.createElement('div'); bar.className='hi-panel hi-quiz'; bar.id='hiQuiz'; shell.stage.appendChild(bar); }
+  if(item.kind==='find'){ bar.innerHTML=`<div class="q">${item.q}</div><div class="find">Utilise la frise et clique le bon monument dans la scène.</div>`; shell.say("Retrouve le monument demandé et clique dessus !",'curieux'); }
+  else { const grid=item.opts.length===4?' grid':''; bar.innerHTML=`<div class="q">${item.q}</div><div class="opts${grid}">${item.opts.map((o,k)=>`<button class="qo" data-k="${k}">${o.l}</button>`).join('')}</div>`;
+    bar.querySelectorAll('.qo').forEach(b=> b.onclick=()=>answer(item.opts[+b.dataset.k].ok,b)); shell.say(item.q.replace(/<[^>]+>/g,''),'curieux'); }
+}
+function answer(ok,btn){ if(!quiz||quiz.locked)return; quiz.locked=true; if(ok){ btn.classList.add('good'); shell.sound('good'); shell.addScore(150); quiz.score++; shell.say('Bravo, exact !','celebration'); }
+  else { btn.classList.add('bad'); shell.sound('bad'); const g=[...btn.parentNode.children].find(b=>{ const i=+b.dataset.k; return quiz.cur.opts[i].ok; }); if(g)g.classList.add('good'); shell.say("Presque ! Regarde la bonne réponse en vert.",'rassurant'); }
+  quiz.idx++; shell.setProgress(quiz.idx/quiz.total); setTimeout(()=>{ if(quiz) askQuiz(); },1250);
+}
+function checkFind(key,era){ if(!quiz||!quiz.cur||quiz.cur.kind!=='find'||quiz.locked)return; quiz.locked=true; const ok=era===quiz.cur.target;
+  if(ok){ shell.sound('good'); shell.addScore(150); quiz.score++; shell.say('Bien trouvé !','fier'); openFiche(key); }
+  else { shell.sound('bad'); shell.say("Ce n'était pas celui-là — la bonne époque était : "+ERAS[quiz.cur.target].name+". On continue !",'rassurant'); }
+  quiz.idx++; shell.setProgress(quiz.idx/quiz.total); setTimeout(()=>{ if(quiz) askQuiz(); },1300);
+}
+function winQuiz(){ const bar=document.getElementById('hiQuiz'); if(bar)bar.remove(); const st=quiz.score>=6?3:quiz.score>=4?2:1;
+  shell.win({ score:quiz.score*150, stars:st, title:`${quiz.score}/6 — explorateur du temps !`, learned:shell.cfg.learned,
+    buddy: st===3?"Tu maîtrises la frise du temps du bout des doigts !":"Bien joué — souviens-toi de l'ordre : Antiquité, Moyen Âge, industrie, aujourd'hui.",
+    onNext:()=>{ shell.setScore(0); startQuiz(); }, nextLabel:'Rejouer' }); quiz=null; }
+function clearQuiz(){ quiz=null; const bar=document.getElementById('hiQuiz'); if(bar)bar.remove(); document.getElementById('hiHint').style.display=mode==='cours'?'none':''; }
+
+/* ================= AUDIO AMBIANT ================= */
+function startAmb(){ if(ac||shell.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); const g=ac.createGain(); g.gain.value=0; g.connect(ac.destination); g.gain.setTargetAtTime(0.05,ac.currentTime,1.5);
+  const buf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate); const d=buf.getChannelData(0); for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*0.3; const src=ac.createBufferSource(); src.buffer=buf; src.loop=true; const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=420; bp.Q.value=0.5; src.connect(bp); bp.connect(g); src.start(); ambNode=g; }catch(e){} }
+
+/* ================= BOUCLE ================= */
+function onResize(){ const s=shell.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
+function updateLabels(){ const r=renderer.domElement; for(let i=0;i<ERAS.length;i++){ const el=labelEls[i]; const show=labelsOn&&!build&&!tour&&mode!=='cours';
+    if(!show){ el.classList.remove('on'); continue; } tmpV.set(sx(i),ERAS[i].cam[3]+11,0); tmpV.project(camera);
+    if(tmpV.z>1||tmpV.x<-1.1||tmpV.x>1.1){ el.classList.remove('on'); continue; }
+    el.style.left=((tmpV.x*0.5+0.5)*r.clientWidth)+'px'; el.style.top=((-tmpV.y*0.5+0.5)*r.clientHeight)+'px'; el.classList.add('on'); el.classList.toggle('cur', i===cur); }
+}
+function animate(){ requestAnimationFrame(animate); const dt=Math.min(0.05,clock.getDelta()); const t=clock.elapsedTime;
+  // ambiance lisse vers l'époque courante
+  ambPos += (cur-ambPos)*Math.min(1,dt*2.2); applyAmbient(ambPos);
+  if(camAnim){ camAnim.t=Math.min(1,camAnim.t+dt/camAnim.dur); const e=1-Math.pow(1-camAnim.t,3); camera.position.lerpVectors(camAnim.p0,camAnim.p1,e); controls.target.lerpVectors(camAnim.l0,camAnim.l1,e); if(camAnim.t>=1)camAnim=null; }
+  if(build) updateBuild(dt);
+  // feu de camp
+  if(fire){ const fl=0.6+Math.abs(Math.sin(t*7)+Math.sin(t*11)*0.5)*0.5; if(firelight) firelight.intensity=REDUCED?1.2:fl*1.8; if(fire.userData.ember) fire.userData.ember.material.emissiveIntensity=1.6+fl*0.9; }
+  // fumées
+  if(!REDUCED) smokeSystems.forEach(pt=>{ const p=pt.geometry.attributes.position, sd=pt.userData.sd; for(let i=0;i<sd.length;i++){ sd[i].t+=dt*0.08*sd[i].sp; if(sd[i].t>1)sd[i].t=0; const h=sd[i].t*16; p.setXYZ(i,Math.sin(t*0.5+i)*sd[i].off*(0.5+sd[i].t)+sd[i].t*2, h, Math.cos(t*0.4+i)*sd[i].off*(0.5+sd[i].t)); } p.needsUpdate=true; });
+  // volant d'inertie
+  flywheels.forEach(w=> w.rotation.y+=dt*(REDUCED?0.6:1.8) );
+  // drapeaux
+  flags.forEach((c,i)=> c.rotation.y=Math.sin(t*2+i)*0.25 );
+  updateLabels();
+  controls.update(); composer.render();
+}
+</script>
+</body>
+</html>

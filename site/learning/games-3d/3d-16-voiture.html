@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Voiture</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .ca-panel{ position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  /* mode thermique / électrique */
+  .ca-mode{ top:14px; left:50%; transform:translateX(-50%); padding:6px; display:flex; gap:5px; }
+  .ca-m{ font-family:var(--font-body); font-weight:700; font-size:13px; min-height:40px; padding:0 15px; border-radius:10px; border:none; background:transparent; color:var(--fg-muted); cursor:pointer; transition:.15s; }
+  .ca-m[aria-pressed="true"]{ background:var(--accent); color:#fff; }
+  .ca-m:focus-visible{ outline:none; box-shadow:var(--ring); }
+  /* panneau gauche (vue / options / ouvertures) */
+  .ca-left{ top:66px; left:14px; width:216px; padding:13px; display:flex; flex-direction:column; gap:12px; max-height:calc(100% - 150px); overflow:auto; }
+  .ca-left h3{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 6px; }
+  .ca-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; }
+  .ca-grid.two{ grid-template-columns:1fr 1fr; }
+  .ca-t{ font-family:var(--font-body); font-weight:700; font-size:11px; padding:7px 4px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; min-height:36px; transition:.15s; text-align:center; }
+  .ca-t[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ca-t:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .ca-swatches{ display:flex; flex-wrap:wrap; gap:7px; }
+  .ca-sw{ width:26px; height:26px; border-radius:999px; border:2px solid var(--border); cursor:pointer; padding:0; transition:transform .12s; }
+  .ca-sw:hover{ transform:scale(1.12); }
+  .ca-sw[aria-pressed="true"]{ border-color:var(--fg); box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent); }
+  /* jauges (haut droite) */
+  .ca-gauges{ top:14px; right:14px; padding:12px 15px; display:flex; gap:15px; align-items:center; }
+  .ca-g{ text-align:center; } .ca-g .v{ font-family:var(--font-data); font-weight:800; font-size:21px; line-height:1; } .ca-g .k{ font-size:8.5px; color:var(--fg-muted); text-transform:uppercase; letter-spacing:.05em; margin-top:2px; }
+  .ca-phase{ display:none; text-align:center; padding-left:14px; border-left:1px solid var(--border); }
+  .ca-phase.on{ display:block; }
+  .ca-phase .pv{ font-family:var(--font-body); font-weight:800; font-size:12px; } .ca-phase .pk{ font-size:8.5px; color:var(--fg-muted); text-transform:uppercase; letter-spacing:.05em; }
+  /* barre de conduite (bas) */
+  .ca-drive{ bottom:16px; left:50%; transform:translateX(-50%); padding:11px 15px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center; max-width:94%; }
+  .ca-b{ font-family:var(--font-body); font-weight:700; font-size:13px; min-height:44px; padding:0 15px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; }
+  .ca-b:hover{ transform:translateY(-1px); }
+  .ca-b:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .ca-b.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .ca-b.on{ background:var(--brand-teal); border-color:var(--brand-teal); color:#fff; }
+  .ca-th{ display:flex; flex-direction:column; gap:3px; font-size:10.5px; color:var(--fg-muted); align-items:center; } .ca-th input{ accent-color:var(--accent); width:120px; }
+  /* fiche pédagogique (glisse à droite) */
+  .ca-fiche{ right:14px; top:14px; width:300px; z-index:30; overflow:hidden; transform:translateX(125%); transition:transform .42s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; }
+  .ca-fiche.show{ transform:none; }
+  .ca-fiche-hd{ padding:15px 16px; color:#fff; position:relative; flex:none; }
+  .ca-fiche-hd .sub{ font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em; opacity:.92; }
+  .ca-fiche-hd h2{ font-family:var(--font-title); font-weight:800; font-size:21px; margin:2px 0 0; display:flex; align-items:center; gap:9px; }
+  .ca-fiche-x{ position:absolute; top:12px; right:12px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.24); color:#fff; cursor:pointer; font-size:16px; }
+  .ca-fiche-bd{ padding:14px 16px 18px; overflow:auto; }
+  .ca-fiche-bd p{ font-size:13.5px; line-height:1.55; margin:0 0 10px; color:var(--fg); }
+  .ca-facts{ display:flex; flex-direction:column; gap:6px; margin:0 0 12px; }
+  .ca-facts div{ display:flex; justify-content:space-between; gap:12px; font-size:12.5px; border-bottom:1px dashed var(--border); padding-bottom:4px; }
+  .ca-facts .k{ color:var(--fg-muted); font-family:var(--font-mono); font-size:11px; } .ca-facts .v{ font-family:var(--font-data); font-weight:700; text-align:right; }
+  .ca-fun{ background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:12.5px; line-height:1.5; color:var(--accent-text); }
+  /* étiquettes 3D */
+  .ca-label{ position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 74%,transparent); padding:2px 8px; border-radius:6px; pointer-events:none; z-index:15; border:1px solid var(--border); white-space:nowrap; }
+  /* indice / quiz */
+  .ca-hint{ position:absolute; bottom:78px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; text-align:center; max-width:86vw; }
+  .ca-quiz{ position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:24; background:var(--accent); color:#fff; padding:13px 18px; border-radius:16px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:10px; align-items:center; max-width:94vw; text-align:center; }
+  .ca-quiz .qn{ font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 11px; font-size:12px; }
+  .ca-quiz .qt{ font-weight:800; font-size:15px; } .ca-quiz .qs{ font-size:12.5px; opacity:.95; max-width:520px; line-height:1.4; }
+  .ca-qrow{ display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
+  .ca-qo{ font-family:var(--font-body); font-weight:700; font-size:13px; min-height:42px; padding:0 14px; border-radius:11px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.16); color:#fff; cursor:pointer; transition:.12s; }
+  .ca-qo:hover{ background:rgba(255,255,255,.3); }
+  @media (max-width:720px){ .ca-left{ width:158px; padding:10px; gap:9px; } .ca-fiche{ width:min(300px,86vw); } .ca-gauges{ padding:9px 11px; gap:10px; } .ca-g .v{ font-size:17px; } .ca-drive{ gap:8px; padding:9px 11px; } }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ============ ÉTAT ============ */
+let scene, camera, renderer, composer, controls, clock, raycaster, pointer;
+let car, internals, engineGroup, pistons=[], crank, valveL=[], valveR=[], sparkLight;
+let wheelPivots=[], wheelSpin=[], steerWheels=[];
+let elecGroup, thermGroup, elecMotor=null, energyParts=[], sparkFlash=null;
+let bodyPanels=[], glassPanels=[], paintMats=[], hoodPivot=null, doorPivots=[], suspMeshes=[];
+let mode='thermique', started=false, throttle=0, rpm=0, speed=0, gear=1, crankAngle=0, cyclePhase=0, lastPhase=-1;
+let view='ext', explodeT=0, explodeTarget=0, cutT=0, cutTarget=0, hoodOpen=false, doorsOpen=false;
+let labelsOn=true, hovered=null, focusPoint=null, flying=false;
+let ac=null, engGain=null, engOsc=null, engLp=null;
+const RATIOS=[0,3.4,2.1,1.4,1.05,0.82];
+const parts={};            // key -> { obj, anchor, name }
+const CYCLE=['Admission','Compression','Explosion','Échappement'];
+const CYCLE_COL=['#29B6E0','#F5A623','#E63329','#8A93A6'];
+
+/* ============ PALETTE PEINTURE ============ */
+const PAINTS=[
+  ['#2f6fe0','Bleu océan'],['#E63329','Rouge passion'],['#eef1f6','Blanc nacré'],['#14171f','Noir onyx'],
+  ['#F5A623','Jaune soleil'],['#1E8C7A','Vert émeraude'],['#8a90a0','Gris titane'],['#ff6a2b','Orange lave'],
+];
+let paintHex='#2f6fe0', metallic=true;
+
+/* ============ FICHES PÉDAGOGIQUES ============ */
+const PARTS={
+  carros:{ icon:'🚗', name:'Carrosserie', sub:'Structure & aérodynamisme', color:'#2f6fe0',
+    role:"La carrosserie protège les passagers et fend l'air. Sa forme fuselée réduit la traînée (coefficient Cx) pour gagner en vitesse et en sobriété. Elle intègre des zones de déformation qui absorbent l'énergie d'un choc.",
+    facts:[['Rôle','Protéger & profiler'],['Grandeur','Coefficient Cx'],['Sécurité','Zones de déformation'],['Matériaux','Acier, alu, composites']],
+    fun:"Une bonne aéro peut faire gagner 1 à 2 L/100 km sur autoroute : à 130 km/h, 80 % de l'énergie sert à repousser l'air !" },
+  moteur:{ icon:'⚙️', name:'Moteur thermique', sub:'4 cylindres · cycle 4 temps', color:'#F5A623',
+    role:"Le moteur brûle un mélange air + carburant dans ses cylindres. Chaque explosion pousse un piston, qui fait tourner le vilebrequin. Ce mouvement de rotation est la puissance envoyée aux roues. Mais 60 à 70 % de l'énergie part en chaleur !",
+    facts:[['Rôle','Produire la rotation'],['Cycle','Admission·Compression·Explosion·Échappement'],['Rendement','~30-35 %'],['Régime','800 à 6 500 tr/min']],
+    fun:"Un moteur au ralenti fait déjà 800 tours par minute — plus de 13 explosions chaque seconde dans chaque cylindre !" },
+  boite:{ icon:'🔩', name:'Boîte de vitesses', sub:'5 rapports', color:'#6E6BFF',
+    role:"La boîte adapte le couple du moteur à la vitesse des roues. Un petit rapport (1ʳᵉ) donne beaucoup de force pour démarrer ou grimper ; un grand rapport (5ᵉ) privilégie la vitesse en consommant peu.",
+    facts:[['Rôle','Adapter couple/vitesse'],['1ᵉ rapport','Force (démarrage, côte)'],['5ᵉ rapport','Vitesse (autoroute)'],['Élément','Embrayage']],
+    fun:"Les voitures électriques n'ont presque jamais de boîte : leur moteur a déjà du couple sur toute la plage de régime !" },
+  transmission:{ icon:'🔗', name:'Transmission', sub:'Arbre & différentiel', color:'#29B6E0',
+    role:"La transmission achemine la puissance de la boîte jusqu'aux roues via l'arbre puis le différentiel. Le différentiel laisse les roues tourner à des vitesses différentes en virage : la roue extérieure parcourt plus de chemin que l'intérieure.",
+    facts:[['Rôle','Amener la force aux roues'],['Arbre','Transmet la rotation'],['Différentiel','Vitesses différentes en virage'],['Propulsion','Arrière / avant / 4 roues']],
+    fun:"Sans différentiel, tes roues « chasseraient » en virage : la voiture sauterait comme un caddie bloqué !" },
+  freins:{ icon:'🛑', name:'Freins à disque', sub:'Sécurité active', color:'#E63329',
+    role:"Les freins transforment l'énergie du mouvement (cinétique) en chaleur. Des plaquettes serrent un disque solidaire de la roue : le frottement ralentit la voiture. L'ABS empêche le blocage pour garder le contrôle.",
+    facts:[['Rôle','Ralentir & arrêter'],['Transforme','Mouvement → chaleur'],['Élément','Disque + plaquettes'],['Aide','ABS anti-blocage']],
+    fun:"En freinage d'urgence, un disque peut dépasser 600 °C et rougir : toute la vitesse part en chaleur !" },
+  suspension:{ icon:'🌀', name:'Suspension', sub:'Ressort + amortisseur', color:'#1E8C7A',
+    role:"La suspension relie les roues au châssis. Le ressort encaisse les bosses, l'amortisseur calme les rebonds. Résultat : les roues collent à la route (sécurité) et les passagers ne sont pas secoués (confort).",
+    facts:[['Rôle','Confort & tenue de route'],['Ressort','Absorbe les chocs'],['Amortisseur','Calme les rebonds'],['Contact','Garde les roues au sol']],
+    fun:"Sans amortisseur, après une bosse la voiture rebondirait comme un ballon — impossible à contrôler !" },
+  reservoir:{ icon:'⛽', name:'Réservoir', sub:'Carburant', color:'#c1440e',
+    role:"Le réservoir stocke le carburant (essence ou gazole) qui alimente le moteur. Une pompe l'envoie aux injecteurs, qui le pulvérisent dans les cylindres pour être brûlé. C'est la « batterie » d'une voiture thermique.",
+    facts:[['Rôle','Stocker l\'énergie'],['Contenu','Essence / gazole'],['Capacité','~40 à 60 litres'],['Autonomie','600 à 1000 km']],
+    fun:"1 litre d'essence contient autant d'énergie que ~10 kWh — mais le moteur n'en exploite qu'un tiers." },
+  roue:{ icon:'🛞', name:'Roues & pneus', sub:'Contact au sol', color:'#94A0B4',
+    role:"Les roues transmettent la force au sol et guident la voiture. Le pneu, seul point de contact avec la route, assure l'adhérence : accélérer, tourner et freiner passent par quatre empreintes grandes comme une main.",
+    facts:[['Rôle','Rouler, tourner, freiner'],['Contact sol','4 empreintes ~ paume'],['Pneu','Gomme + carcasse'],['Direction','Roues avant orientables']],
+    fun:"Toute la tenue de route repose sur quatre zones de contact de la taille d'une carte postale chacune !" },
+  batterie:{ icon:'🔋', name:'Batterie', sub:'Voiture électrique', color:'#1E8C7A',
+    role:"La batterie stocke l'énergie électrique (en kWh) qui alimente le moteur. Placée dans le plancher, elle abaisse le centre de gravité. Elle se recharge sur une borne… et aussi au freinage, en récupérant l'énergie (régénératif).",
+    facts:[['Rôle','Stocker l\'électricité'],['Unité','Kilowattheure (kWh)'],['Place','Plancher (skateboard)'],['Recharge','Borne + freinage']],
+    fun:"Une batterie de 60 kWh pèse ~400 kg : c'est le plus lourd d'une voiture électrique, mais tout en bas pour la stabilité." },
+  moteurElec:{ icon:'⚡', name:'Moteur électrique', sub:'Entraînement direct', color:'#29B6E0',
+    role:"Le moteur électrique transforme l'électricité en rotation avec très peu de pertes (~90 %). Il délivre son couple maximal dès l'arrêt : ça pousse fort tout de suite, sans embrayage ni boîte, et presque en silence.",
+    facts:[['Rôle','Électricité → rotation'],['Rendement','~85-90 %'],['Couple','Maximal dès 0 tr/min'],['Bruit','Quasi silencieux']],
+    fun:"Un moteur électrique n'a presque qu'une seule pièce en mouvement : le rotor. D'où sa fiabilité et son silence." },
+  onduleur:{ icon:'🔌', name:'Onduleur', sub:'Électronique de puissance', color:'#8A7BFF',
+    role:"L'onduleur convertit le courant continu de la batterie en courant alternatif pour le moteur, et dose la puissance selon l'accélérateur. C'est le « cerveau » du groupe électrique, entre la batterie et le moteur.",
+    facts:[['Rôle','Piloter la puissance'],['Convertit','Continu → alternatif'],['Commande','Accélérateur'],['Sens inverse','Recharge au freinage']],
+    fun:"L'onduleur bascule le courant des milliers de fois par seconde pour régler finement la vitesse du moteur." },
+};
+
+/* ============ NOTIONS (encyclopédie) ============ */
+const NOTIONS=[
+  ['La chaîne de traction',"L'énergie va de la source (carburant ou batterie) → moteur → transmission → roues. À chaque étape, une part est perdue en chaleur et frottements : c'est le rendement."],
+  ['Le cycle à 4 temps',"Admission (le mélange entre) → Compression (le piston serre) → Explosion (l'étincelle enflamme, ça pousse) → Échappement (les gaz sortent). Quatre courses de piston, deux tours de vilebrequin."],
+  ['Couple & boîte de vitesses',"Le couple est la force de rotation. La boîte l'échange contre de la vitesse : petit rapport = force, grand rapport = vitesse. L'embrayage permet de changer sans casser."],
+  ['Thermique vs électrique',"Thermique : ~30-35 % de rendement, beaucoup de chaleur perdue, longue autonomie. Électrique : ~85-90 %, couple immédiat, silencieux, zéro émission locale."],
+  ['Freinage régénératif',"En électrique, freiner fait tourner le moteur en génératrice : il recharge la batterie. On récupère une énergie qui, en thermique, partirait en chaleur dans les freins."],
+  ['Aérodynamisme (Cx)',"À grande vitesse, l'air freine la voiture : c'est la traînée. Une carrosserie fuselée (faible Cx) réduit la consommation et le bruit, surtout sur autoroute."],
+  ['Suspension & tenue de route',"Ressorts et amortisseurs gardent les roues au contact du sol malgré les bosses : c'est la clé de la sécurité (adhérence) et du confort."],
+  ['Sécurité (ABS, airbags)',"L'ABS évite le blocage des roues au freinage. Zones de déformation, ceintures et airbags absorbent l'énergie d'un choc pour protéger les occupants."],
+];
+
+/* ============ SHELL ============ */
+const shell=window.Konstrio.createGame({
+  id:'3d-16-voiture', code:'3D·16', title:'Voiture : fonctionnement complet', type:'3D',
+  domain:{ label:'Techno & Méca', color:'#1B82E0' },
+  intro:{
+    greet:"Bienvenue à l'atelier auto ! Tourne autour de la voiture, ouvre le capot, passe la carrosserie en coupe ou en vue éclatée, et démarre le moteur pour voir le cycle 4 temps. Bascule même en électrique !",
+    rule:"Découvre comment marche une voiture. Ouvre le <b>capot</b> et les <b>portes</b>, passe en <b>coupe</b> ou <b>vue éclatée</b> pour révéler moteur, boîte, freins, suspension… Démarre et observe le <b>cycle 4 temps</b>. Bascule <b>thermique ↔ électrique</b> et repeins la carrosserie !",
+    how:["Glisse pour tourner · clique une pièce (moteur, boîte, freins…) pour sa fiche.","Vue : Extérieur · Coupe · Éclatée. Ouvre le capot et les portes. Change la couleur.","Démarre, accélère, passe les vitesses. Bascule Thermique ↔ Électrique."],
+    keys:"Glisser = tourner · molette = zoom · clic pièce = fiche · Espace = démarrer.",
+    objectif:"Identifier chaque organe et comprendre la chaîne de traction, le cycle 4 temps et la différence thermique/électrique.",
+    hint:"Passe en vue « Éclatée » ou « Coupe » pour voir l'intérieur : le moteur est à l'avant, la boîte juste derrière, la batterie dans le plancher (en électrique).",
+    why:"L'énergie va du carburant (ou de la batterie) → moteur → boîte → roues. Le moteur thermique gaspille beaucoup de chaleur ; l'électrique en perd très peu."
+  },
+  learned:["La chaîne de traction : énergie → moteur → transmission → roues.","Le cycle 4 temps : admission, compression, explosion, échappement.","Thermique (~30 %) vs électrique (~90 %) : rendement, couple, silence.","Le rôle de chaque organe : freins, suspension, différentiel, réservoir/batterie."],
+  onReady:(api)=>init(api),
+  onStart:(m,api)=>{ if(m==='cours'){ api.setScore(0); startCourse(); } else { setDetente(); } },
+  onRestart:(api)=>{ if(shell.api && shell.api.mode==='cours'){ api.setScore(0); startCourse(); } else setDetente(); },
+  onTheme:()=>applyTheme(),
+  onHint:(api)=>api.hint(shell.cfg.intro.hint),
+  onWhy:(api)=>api.say(shell.cfg.intro.why,'idee'),
+});
+
+/* ============ MATÉRIAUX ============ */
+const mat=(c,metal,rough,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,metalness:metal,roughness:rough,envMapIntensity:1.1},o));
+// Peinture voiture : vernis clearcoat + flocons métallisés (rendu produit)
+function paintMat(){ const m=new THREE.MeshPhysicalMaterial({ color:new THREE.Color(paintHex), metalness:metallic?0.85:0.2, roughness:metallic?0.38:0.55, clearcoat:1.0, clearcoatRoughness:0.06, reflectivity:0.5, envMapIntensity:1.25 });
+  if(flakeNormal){ m.clearcoatNormalMap=flakeNormal; m.clearcoatNormalScale=new THREE.Vector2(0.05,0.05); }
+  paintMats.push(m); return m; }
+function glassMat(){ return new THREE.MeshPhysicalMaterial({ color:0x60768a, metalness:0.0, roughness:0.03, transmission:REDUCED?0:0.92, transparent:true, opacity:REDUCED?0.5:1, thickness:0.35, ior:1.5, clearcoat:1, clearcoatRoughness:0.03, envMapIntensity:1.6, specularIntensity:1, side:THREE.DoubleSide }); }
+function chromeMat(){ return new THREE.MeshPhysicalMaterial({ color:0xf2f5fa, metalness:1.0, roughness:0.06, clearcoat:0.4, envMapIntensity:2.0 }); }
+function rubberMat(){ return mat(0x0c0d10,0.0,0.92,{envMapIntensity:0.5}); }
+
+/* ============ TEXTURES PBR CC0 (Poly Haven) ============ */
+const texLoader=new THREE.TextureLoader();
+const PBR_BASE='../assets/3d/pbr2k/';
+let maxAniso=8, flakeNormal=null;
+function loadTex(url,srgb,rep){ const t=texLoader.load(url,undefined,undefined,()=>{}); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep,rep); t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=maxAniso; return t; }
+// applique diffuse/normal/roughness(+metal,+ao bakée) réels sur un matériau existant
+function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE+slug+'/'+slug+'_';
+  material.map=loadTex(b+'diff_'+res+'.jpg',true,rep);
+  material.normalMap=loadTex(b+'nor_gl_'+res+'.jpg',false,rep); material.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  material.roughnessMap=loadTex(b+'rough_'+res+'.jpg',false,rep);
+  if(opt.metal){ material.metalnessMap=loadTex(b+'metal_'+res+'.jpg',false,rep); }
+  if(opt.ao){ material.aoMap=loadTex(b+'ao_'+res+'.jpg',false,rep); material.aoMapIntensity=opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color);
+  material.needsUpdate=true; return material; }
+// duplique le canal UV pour permettre l'aoMap (utilise uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+// petit bruit normal pour les flocons métallisés du vernis (procédural, local)
+function makeFlakeNormal(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const img=x.createImageData(s,s);
+  for(let i=0;i<s*s;i++){ const dx=(Math.random()-0.5)*40, dy=(Math.random()-0.5)*40; img.data[i*4]=128+dx; img.data[i*4+1]=128+dy; img.data[i*4+2]=255; img.data[i*4+3]=255; }
+  x.putImageData(img,0,0); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(28,28); t.colorSpace=THREE.NoColorSpace; return t; }
+// tache d'ombre de contact douce (occlusion visible même en rendu logiciel)
+function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,10,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.55)'); g.addColorStop(0.55,'rgba(0,0,0,0.28)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
+
+/* ============ INIT ============ */
+function init(api){
+  shell.api=api; const stage=api.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(46, stage.clientWidth/stage.clientHeight,.1,200); camera.position.set(6.5,3.6,7.2);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.92;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; stage.appendChild(renderer.domElement);
+  maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8); flakeNormal=makeFlakeNormal();
+  // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y échoue → chaîne robuste
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer);
+  if(software){
+    // rendu logiciel : pas d'AO écran (produirait du noir) — l'occlusion vient des cartes AO bakées + ombre de contact
+    composer.addPass(new RenderPass(scene,camera));
+  } else {
+    // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu produit
+    const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=1.0;
+    try{ gtao.updateGtaoMaterial({ radius:0.5, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao=gtao;
+  }
+  // bloom léger : phares, étincelle
+  const bp=new UnrealBloomPass(new THREE.Vector2(W,H),0.3,0.7,0.9); composer.addPass(bp); composer.bloom=bp;
+  // anti-aliasing SMAA (le composer court-circuite le MSAA du canvas)
+  composer.addPass(new SMAAPass(W,H));
+  // OutputPass : tone mapping ACES + conversion sRGB en fin de chaîne
+  composer.addPass(new OutputPass());
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.07;
+  controls.minDistance=4.2; controls.maxDistance=22; controls.target.set(0,0.85,0); controls.maxPolarAngle=Math.PI/2.02;
+  controls.autoRotate=REDUCED; controls.autoRotateSpeed=.4;
+
+  // lumières studio — l'IBL (HDRI) fait le gros de l'éclairage ; ces sources sculptent ombres & contours
+  scene.add(new THREE.HemisphereLight(0xdfeaff,0x2a3350,0.28));
+  const key=new THREE.DirectionalLight(0xffffff,1.35); key.position.set(7,12,6); key.castShadow=true;
+  key.shadow.mapSize.set(4096,4096); key.shadow.camera.near=1; key.shadow.camera.far=45; key.shadow.radius=5; key.shadow.blurSamples=16;
+  key.shadow.camera.left=-9; key.shadow.camera.right=9; key.shadow.camera.top=9; key.shadow.camera.bottom=-9; key.shadow.bias=-0.0004; scene.add(key);
+  const fill=new THREE.DirectionalLight(0xbcd0ff,0.35); fill.position.set(-8,5,-6); scene.add(fill);
+  const rim=new THREE.SpotLight(0xffffff,1.2,40,Math.PI/5,0.5); rim.position.set(-6,9,8); rim.castShadow=false; scene.add(rim);
+  sparkLight=new THREE.PointLight(0xffce7a,0,4,2); sparkLight.position.set(1.5,1.15,0); scene.add(sparkLight);
+
+  buildFloor();
+  const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  // HDRI atelier auto réel (Poly Haven CC0) → reflets crédibles sur le vernis + fond doux
+  const rgbe=new RGBELoader();
+  rgbe.load('../assets/3d/hdri/autoshop_01_2k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; scene.background=hdr; scene.backgroundBlurriness=0.55; scene.backgroundIntensity=0.7; },
+    undefined,
+    ()=>{ rgbe.load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); }, undefined, ()=>{}); });
+
+  buildCar();
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  buildUI(); applyTheme(); setMode('thermique',true); setDetente();
+  renderer.domElement.addEventListener('pointermove',onMove);
+  renderer.domElement.addEventListener('pointerdown',onDown);
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
+  document.addEventListener('keydown',onKey);
+  animate();
+}
+
+/* ============ SOL ============ */
+function buildFloor(){
+  // sol de garage/atelier réel (Poly Haven CC0), tuilé + AO bakée
+  const floorMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.85,metalness:0.05,envMapIntensity:0.6});
+  applyPBR(floorMat,'garage_floor','2k',{repeat:9,normal:1.1,ao:true});
+  const fgeo=new THREE.CircleGeometry(40,96); enableAO(fgeo);
+  const floor=new THREE.Mesh(fgeo, floorMat);
+  floor.rotation.x=-Math.PI/2; floor.position.y=-0.001; floor.receiveShadow=true; scene.add(floor);
+  // ombre de contact douce sous la voiture (occlusion lisible même en rendu logiciel)
+  const cs=new THREE.Mesh(new THREE.PlaneGeometry(9,4.4), new THREE.MeshBasicMaterial({map:makeContactShadow(),transparent:true,depthWrite:false,opacity:0.9}));
+  cs.rotation.x=-Math.PI/2; cs.position.y=0.006; scene.add(cs);
+}
+
+/* ============ CONSTRUCTION VOITURE ============ */
+const FRONT_X=1.55, REAR_X=-1.55, TRACK=1.02, WR=0.5;   // essieux, voie, rayon roue
+function reg(obj,key,anchor){ obj.traverse(o=>{ if(o.isMesh) o.userData.part=key; }); obj.userData.part=key; parts[key]={obj,anchor:anchor.clone(),name:PARTS[key]?PARTS[key].name:key}; }
+
+function buildCar(){
+  car=new THREE.Group(); scene.add(car);
+  internals=new THREE.Group(); car.add(internals);
+
+  buildBodyShell();
+  buildGreenhouse();
+  buildHood();
+  buildDoors();
+  buildLights();
+  buildWheels();
+  buildEngineBay();
+  buildDrivetrain();
+  buildFuelSystem();
+  buildElectricSystem();
+  buildEnergyParticles();
+
+  setMode('thermique',true);
+}
+
+/* --- carrosserie peinte (profil extrudé) --- */
+function bodyProfile(){
+  const s=new THREE.Shape();
+  const p=[
+    [-2.28,0.40],[2.28,0.40],           // bas
+    [2.42,0.52],[2.40,0.92],            // museau + capot avant
+    [1.55,0.98],[0.78,1.02],            // capot -> base pare-brise
+    [0.70,1.14],[-1.12,1.14],           // ligne de caisse (base cabine)
+    [-1.55,1.06],[-2.06,0.98],          // malle
+    [-2.42,0.66],[-2.36,0.46]           // arrière
+  ];
+  s.moveTo(p[0][0],p[0][1]); for(let i=1;i<p.length;i++) s.lineTo(p[i][0],p[i][1]); s.closePath();
+  return s;
+}
+function buildBodyShell(){
+  const geo=new THREE.ExtrudeGeometry(bodyProfile(),{depth:TRACK*1.92,bevelEnabled:true,bevelThickness:0.12,bevelSize:0.12,bevelSegments:4,steps:1});
+  geo.translate(0,0,-TRACK*0.96); geo.computeVertexNormals();
+  const body=new THREE.Mesh(geo,paintMat()); body.castShadow=true; body.receiveShadow=true;
+  car.add(body); bodyPanels.push(body); reg(body,'carros',new THREE.Vector3(-2.0,1.2,0));
+  // bas de caisse / plancher sombre
+  const sill=new THREE.Mesh(new THREE.BoxGeometry(4.7,0.18,2.05), mat(0x0e1117,0.3,0.7)); sill.position.set(0,0.34,0); sill.castShadow=true; car.add(sill);
+  // capot arrière (malle) — referme le pont arrière
+  const deck=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.08,1.82), paintMat()); deck.position.set(-1.55,1.03,0); deck.castShadow=true; car.add(deck); bodyPanels.push(deck);
+  // custode / bas de pare-brise (cowl) pour lier capot et vitrage
+  const cowl=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.08,1.7), paintMat()); cowl.position.set(0.74,1.08,0); car.add(cowl); bodyPanels.push(cowl);
+  // calandre avant
+  const grille=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.34,1.3), mat(0x0c0f15,0.6,0.4)); grille.position.set(2.46,0.66,0); car.add(grille);
+  for(let i=0;i<5;i++){ const bar=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.03,1.28), chromeMat()); bar.position.set(2.47,0.54+i*0.06,0); car.add(bar); }
+  // pare-chocs
+  [[2.44,0x1a1e26],[-2.40,0x1a1e26]].forEach(([x,c])=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.22,1.8), mat(c,0.3,0.6)); b.position.set(x,0.5,0); car.add(b); });
+  // rétroviseurs
+  [1.02,-1.02].forEach(z=>{ const arm=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.08,0.18), paintMat()); arm.position.set(0.55,1.16,z*1.05); car.add(arm); bodyPanels.push(arm);
+    const cap=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.16,0.1), chromeMat()); cap.position.set(0.55,1.2,z*1.16); car.add(cap); });
+}
+
+/* --- serre / vitrage (cabine) --- */
+function buildGreenhouse(){
+  const s=new THREE.Shape();
+  const p=[[0.70,1.16],[0.34,1.62],[-0.66,1.63],[-1.10,1.50],[-1.10,1.16]];
+  s.moveTo(p[0][0],p[0][1]); for(let i=1;i<p.length;i++) s.lineTo(p[i][0],p[i][1]); s.closePath();
+  const geo=new THREE.ExtrudeGeometry(s,{depth:TRACK*1.72,bevelEnabled:true,bevelThickness:0.05,bevelSize:0.05,bevelSegments:2,steps:1});
+  geo.translate(0,0,-TRACK*0.86);
+  const glass=new THREE.Mesh(geo,glassMat()); glass.castShadow=true; car.add(glass); glassPanels.push(glass);
+  reg(glass,'carros',new THREE.Vector3(-0.3,1.75,0));
+  // montants (piliers A/C)
+  const pil=paintMat();
+  [[0.55,1.4,0.02],[-0.95,1.34,0.02]].forEach(pp=>{ [1,-1].forEach(sgn=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.5,0.08), pil); m.position.set(pp[0],pp[1],sgn*TRACK*0.9); car.add(m); bodyPanels.push(m); }); });
+}
+
+/* --- capot ouvrant --- */
+function buildHood(){
+  hoodPivot=new THREE.Group(); hoodPivot.position.set(0.74,1.0,0); car.add(hoodPivot);
+  const hood=new THREE.Mesh(new THREE.BoxGeometry(1.62,0.09,1.78), paintMat()); hood.position.set(0.82,0.02,0); hood.castShadow=true; hoodPivot.add(hood); bodyPanels.push(hood);
+  // nervures
+  [-0.5,0.5].forEach(z=>{ const r=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.02,0.06), paintMat()); r.position.set(0.82,0.07,z); hoodPivot.add(r); bodyPanels.push(r); });
+  reg(hoodPivot,'carros',new THREE.Vector3(1.4,1.05,0));
+}
+
+/* --- portes ouvrantes --- */
+function buildDoors(){
+  [1,-1].forEach(sgn=>{
+    const pivot=new THREE.Group(); pivot.position.set(0.66,0.78,sgn*TRACK*0.99); car.add(pivot);
+    const panel=new THREE.Mesh(new THREE.BoxGeometry(1.55,0.78,0.07), paintMat()); panel.position.set(-0.72,0.0,0); panel.castShadow=true; pivot.add(panel); bodyPanels.push(panel);
+    const win=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.34,0.05), glassMat()); win.position.set(-0.66,0.46,0.0); pivot.add(win); glassPanels.push(win);
+    const handle=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.05,0.06), chromeMat()); handle.position.set(-0.95,0.12,sgn*0.05); pivot.add(handle);
+    pivot.userData.sgn=sgn; doorPivots.push(pivot);
+    reg(pivot,'carros',new THREE.Vector3(-0.2,0.9,sgn*1.1));
+  });
+}
+
+/* --- phares & feux --- */
+function buildLights(){
+  const g=new THREE.Group(); car.add(g);
+  [[2.46,0.82],[-2.42,0.86]].forEach(([x,y],idx)=>{ [1,-1].forEach(sgn=>{
+    const isFront=idx===0;
+    const lens=new THREE.Mesh(new THREE.SphereGeometry(0.17,18,12), new THREE.MeshStandardMaterial({color:isFront?0xfff6da:0xff3324, emissive:isFront?0xfff0c0:0xff2414, emissiveIntensity:isFront?1.4:1.0, roughness:0.15, metalness:0.1}));
+    lens.scale.set(0.55,0.8,1.0); lens.position.set(x,y,sgn*0.62); g.add(lens);
+  }); });
+  reg(g,'phares',new THREE.Vector3(2.5,0.9,0.7));
+}
+
+/* --- roues (pneu + jante + disque + suspension) --- */
+function buildWheels(){
+  // matériaux partagés (textures CC0 réelles) : caoutchouc de pneu + métal brossé des jantes
+  const tireMat=rubberMat(); applyPBR(tireMat,'rubber_tiles','2k',{repeat:3,normal:1.2}); tireMat.color.setHex(0x2a2c31); tireMat.roughness=1.0; tireMat.metalness=0.0;
+  const rimMat=new THREE.MeshStandardMaterial({color:0xd6dae2,metalness:1.0,roughness:0.35,envMapIntensity:1.5}); applyPBR(rimMat,'metal_plate_02','1k',{repeat:1,metal:true,normal:0.7});
+  const positions=[[FRONT_X,TRACK,true],[FRONT_X,-TRACK,true],[REAR_X,TRACK,false],[REAR_X,-TRACK,false]];
+  positions.forEach(([x,z,isFront])=>{
+    const pivot=new THREE.Group(); pivot.position.set(x,WR,z); car.add(pivot);
+    const spin=new THREE.Group(); pivot.add(spin);
+    // pneu
+    const tire=new THREE.Mesh(new THREE.CylinderGeometry(WR,WR,0.34,48,1,false), tireMat);
+    tire.rotation.x=Math.PI/2; tire.castShadow=true; tire.userData.part='roue'; spin.add(tire);
+    // flanc/tread
+    const tread=new THREE.Mesh(new THREE.TorusGeometry(WR-0.01,0.09,12,40), rubberMat()); tread.rotation.y=Math.PI/2; spin.add(tread);
+    // jante
+    const rim=new THREE.Mesh(new THREE.CylinderGeometry(0.31,0.31,0.30,40), chromeMat()); rim.rotation.x=Math.PI/2; rim.position.z=(z>0?0.03:-0.03); spin.add(rim);
+    for(let i=0;i<5;i++){ const spoke=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.5,0.09), rimMat); spoke.rotation.z=i*Math.PI*2/5; spoke.position.z=(z>0?0.06:-0.06); spin.add(spoke); }
+    const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,0.36,16), mat(0x6b7280,0.9,0.3)); hub.rotation.x=Math.PI/2; spin.add(hub);
+    // disque de frein (dans spin) + étrier (dans pivot, fixe)
+    const disc=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,0.05,28), mat(0x9aa0ad,0.85,0.35)); disc.rotation.x=Math.PI/2; disc.position.z=(z>0?-0.06:0.06); spin.add(disc);
+    disc.userData.brake=true;
+    const caliper=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.34,0.14), mat(0xE63329,0.4,0.5)); caliper.position.set(0,0.28,(z>0?-0.06:0.06)); pivot.add(caliper); caliper.userData.part='freins'; suspMeshes.push(caliper);
+    // suspension : ressort hélicoïdal + amortisseur (dans pivot)
+    const spring=buildSpring(0.15,0.55,7); spring.position.set(0,0.55,(z>0?-0.02:0.02)); pivot.add(spring); spring.userData.part='suspension'; suspMeshes.push(spring);
+    const damper=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.6,10), mat(0xc9cdd6,0.9,0.25)); damper.position.set(0,0.55,(z>0?-0.02:0.02)); pivot.add(damper); suspMeshes.push(damper);
+    wheelPivots.push(pivot); wheelSpin.push(spin);
+    if(isFront) steerWheels.push(pivot);
+  });
+  // ailes / passages de roue (cachent la suspension en vue extérieure)
+  [[FRONT_X,TRACK],[FRONT_X,-TRACK],[REAR_X,TRACK],[REAR_X,-TRACK]].forEach(([x,z])=>{
+    const arch=new THREE.Mesh(new THREE.TorusGeometry(WR+0.12,0.13,12,24,Math.PI), paintMat());
+    arch.position.set(x,WR,z*1.05); arch.castShadow=true; car.add(arch); bodyPanels.push(arch);
+  });
+  const noop={ traverse:()=>{} };
+  parts.roue={ obj:noop, anchor:new THREE.Vector3(FRONT_X,WR+0.6,-TRACK), name:PARTS.roue.name };
+  parts.freins={ obj:noop, anchor:new THREE.Vector3(REAR_X,WR+0.4,-TRACK), name:PARTS.freins.name };
+  parts.suspension={ obj:noop, anchor:new THREE.Vector3(FRONT_X,WR+0.5,TRACK), name:PARTS.suspension.name };
+}
+function buildSpring(r,h,turns){
+  const pts=[]; const N=turns*14;
+  for(let i=0;i<=N;i++){ const t=i/N, a=t*turns*Math.PI*2; pts.push(new THREE.Vector3(Math.cos(a)*r, t*h-h/2, Math.sin(a)*r)); }
+  const geo=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),N,0.03,7,false);
+  return new THREE.Mesh(geo, mat(0x1E8C7A,0.7,0.35));
+}
+
+/* --- moteur (bloc + 4 cylindres + vilebrequin + soupapes) --- */
+function buildEngineBay(){
+  thermGroup=new THREE.Group(); internals.add(thermGroup);
+  engineGroup=new THREE.Group(); engineGroup.position.set(1.5,0.86,0); thermGroup.add(engineGroup);
+  engineGroup.userData.home=engineGroup.position.clone(); engineGroup.userData.exp=new THREE.Vector3(0,1.4,0);
+  // bloc
+  const block=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.62,1.5), mat(0x4a5468,0.55,0.5)); block.castShadow=true; engineGroup.add(block);
+  const oilpan=new THREE.Mesh(new THREE.BoxGeometry(0.85,0.2,1.3), mat(0x333a49,0.6,0.5)); oilpan.position.y=-0.4; engineGroup.add(oilpan);
+  // culasse + cache-culbuteurs
+  const head=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.22,1.5), mat(0x5a6478,0.55,0.45)); head.position.y=0.42; engineGroup.add(head);
+  // 4 cylindres + pistons
+  for(let i=0;i<4;i++){
+    const z=(i-1.5)*0.33;
+    const cyl=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.5,20,1,true), new THREE.MeshStandardMaterial({color:0x2a3040,metalness:0.6,roughness:0.4,side:THREE.DoubleSide}));
+    cyl.position.set(0,0.28,z); engineGroup.add(cyl);
+    const pis=new THREE.Mesh(new THREE.CylinderGeometry(0.135,0.135,0.18,18), chromeMat()); pis.position.set(0,0.2,z); engineGroup.add(pis); pistons.push({mesh:pis,z, phase:i*Math.PI});
+    const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.3,8), mat(0x9aa0ad,0.9,0.3)); rod.position.set(0,0.02,z); engineGroup.add(rod); pistons[i].rod=rod;
+    // soupapes (admission bleu / échapp. gris)
+    const vin=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.16,8), mat(0x29B6E0,0.6,0.4)); vin.position.set(-0.06,0.52,z); engineGroup.add(vin); valveL.push(vin);
+    const vex=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.16,8), mat(0x8A93A6,0.7,0.4)); vex.position.set(0.06,0.52,z); engineGroup.add(vex); valveR.push(vex);
+    // bougie
+    const plug=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.12,6), mat(0xd8b24a,0.9,0.3)); plug.position.set(0,0.6,z); engineGroup.add(plug);
+  }
+  // vilebrequin
+  crank=new THREE.Group(); crank.position.set(0,-0.28,0); engineGroup.add(crank);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1.5,12), chromeMat()); shaft.rotation.x=Math.PI/2; crank.add(shaft);
+  for(let i=0;i<4;i++){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.24,0.06), mat(0xb8bfca,0.9,0.3)); c.position.set(0,0.1,(i-1.5)*0.33); crank.add(c); }
+  // flash d'explosion (sprite additif)
+  sparkFlash=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(),color:0xffcf6a,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,opacity:0}));
+  sparkFlash.scale.setScalar(1.4); sparkFlash.position.set(1.5,1.15,0); car.add(sparkFlash);
+  reg(engineGroup,'moteur',new THREE.Vector3(1.5,1.5,0));
+  // admission / échappement
+  const intake=new THREE.Mesh(new THREE.TorusGeometry(0.28,0.06,10,20,Math.PI), mat(0x2a3040,0.5,0.5)); intake.position.set(1.5,1.2,0); intake.rotation.z=Math.PI/2; thermGroup.add(intake);
+}
+
+/* --- transmission : embrayage, boîte, arbre, différentiel --- */
+function buildDrivetrain(){
+  // volant moteur / embrayage
+  const fly=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.12,24), mat(0x9aa0ad,0.85,0.3)); fly.rotation.z=Math.PI/2; fly.position.set(0.95,0.75,0); thermGroup.add(fly);
+  // boîte de vitesses
+  const gb=new THREE.Group(); gb.position.set(0.45,0.72,0); thermGroup.add(gb);
+  const gbCase=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.55,0.62), mat(0x6E6BFF,0.5,0.4)); gbCase.castShadow=true; gb.add(gbCase);
+  for(let i=0;i<5;i++){ const gr=new THREE.Mesh(new THREE.CylinderGeometry(0.1+i*0.03,0.1+i*0.03,0.08,16), mat(0xb8bfca,0.9,0.25)); gr.rotation.x=Math.PI/2; gr.position.set(0.1,0.0,-0.22+i*0.11); gb.add(gr); }
+  reg(gb,'boite',new THREE.Vector3(0.45,1.15,0));
+  // arbre de transmission + différentiel + demi-arbres (groupe transmission)
+  const tr=new THREE.Group(); thermGroup.add(tr);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.9,12), chromeMat()); shaft.rotation.z=Math.PI/2; shaft.position.set(-0.55,0.58,0); tr.add(shaft);
+  const diff=new THREE.Mesh(new THREE.SphereGeometry(0.26,18,14), mat(0x8a90a0,0.85,0.35)); diff.position.set(REAR_X,0.58,0); tr.add(diff);
+  [1,-1].forEach(sgn=>{ const ax=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,TRACK-0.26,10), chromeMat()); ax.rotation.x=Math.PI/2; ax.position.set(REAR_X,0.58,sgn*(TRACK/2+0.06)); tr.add(ax); });
+  reg(tr,'transmission',new THREE.Vector3(-0.5,0.95,0));
+  tr.userData.home=new THREE.Vector3(0,0,0); tr.userData.exp=new THREE.Vector3(0,-0.35,0);
+  gb.userData.home=gb.position.clone(); gb.userData.exp=new THREE.Vector3(0,0.5,0);
+}
+
+/* --- réservoir + échappement (thermique) --- */
+function buildFuelSystem(){
+  const tank=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.28,1.4), mat(0xc1440e,0.5,0.45)); tank.position.set(-1.15,0.52,0); thermGroup.add(tank); tank.castShadow=true;
+  reg(tank,'reservoir',new THREE.Vector3(-1.15,0.95,0));
+  tank.userData.home=tank.position.clone(); tank.userData.exp=new THREE.Vector3(0,-0.25,0);
+  // ligne d'échappement
+  const pts=[new THREE.Vector3(1.3,0.55,0.3),new THREE.Vector3(0.5,0.4,0.35),new THREE.Vector3(-1.0,0.36,0.35),new THREE.Vector3(-2.2,0.4,0.4)];
+  const exhaust=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),40,0.05,8), chromeMat()); thermGroup.add(exhaust);
+  const tip=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.09,0.2,16), chromeMat()); tip.position.set(-2.3,0.4,0.4); tip.rotation.z=Math.PI/2; thermGroup.add(tip);
+}
+
+/* --- groupe électrique (batterie plancher + onduleur + moteur) --- */
+function buildElectricSystem(){
+  elecGroup=new THREE.Group(); internals.add(elecGroup); elecGroup.visible=false;
+  // pack batterie (plancher)
+  const pack=new THREE.Group(); pack.position.set(0,0.44,0); elecGroup.add(pack);
+  const base=new THREE.Mesh(new THREE.BoxGeometry(3.0,0.24,1.7), mat(0x1E8C7A,0.5,0.4)); base.castShadow=true; pack.add(base);
+  for(let ix=-1;ix<=1;ix++) for(let iz=-1;iz<=1;iz++){ const cell=new THREE.Mesh(new THREE.BoxGeometry(0.85,0.16,0.48), mat(0x24a58f,0.4,0.45)); cell.position.set(ix*0.95,0.14,iz*0.54); pack.add(cell); }
+  reg(pack,'batterie',new THREE.Vector3(0,0.9,0));
+  pack.userData.home=pack.position.clone(); pack.userData.exp=new THREE.Vector3(0,-0.3,0);
+  // moteur électrique (essieu arrière)
+  const em=new THREE.Group(); em.position.set(REAR_X,0.62,0); elecGroup.add(em);
+  const emSpin=new THREE.Group(); em.add(emSpin); elecMotor=emSpin;
+  const emBody=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.32,0.6,24), mat(0x29B6E0,0.7,0.35)); emBody.rotation.z=Math.PI/2; emBody.castShadow=true; emSpin.add(emBody);
+  for(let i=0;i<10;i++){ const fin=new THREE.Mesh(new THREE.BoxGeometry(0.62,0.05,0.06), mat(0x1f8fb0,0.7,0.4)); fin.position.set(0,0.34,0); fin.rotation.x=i*Math.PI/5; emSpin.add(fin); }
+  [1,-1].forEach(sgn=>{ const ax=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,TRACK-0.3,10), chromeMat()); ax.rotation.x=Math.PI/2; ax.position.set(0,0,sgn*(TRACK/2+0.05)); em.add(ax); });
+  reg(em,'moteurElec',new THREE.Vector3(REAR_X,1.05,0));
+  em.userData.home=em.position.clone(); em.userData.exp=new THREE.Vector3(0,0.45,0);
+  // onduleur
+  const inv=new THREE.Group(); inv.position.set(1.4,0.75,0); elecGroup.add(inv);
+  const invBox=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.4,0.9), mat(0x8A7BFF,0.5,0.4)); invBox.castShadow=true; inv.add(invBox);
+  for(let i=0;i<4;i++){ const r=new THREE.Mesh(new THREE.BoxGeometry(0.72,0.02,0.85), mat(0x6f5fe0,0.6,0.4)); r.position.y=0.2-i*0.1; inv.add(r); }
+  reg(inv,'onduleur',new THREE.Vector3(1.4,1.15,0));
+  inv.userData.home=inv.position.clone(); inv.userData.exp=new THREE.Vector3(0,0.5,0);
+  // câbles orange batterie->onduleur->moteur
+  const cable=(a,b)=>{ const m=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a,b.clone().add(new THREE.Vector3(0,0.15,0)),b]),20,0.03,6), mat(0xff7a1a,0.3,0.5)); elecGroup.add(m); };
+  cable(new THREE.Vector3(0.9,0.5,0.3),new THREE.Vector3(1.35,0.6,0.3));
+  cable(new THREE.Vector3(1.3,0.6,-0.3),new THREE.Vector3(-1.3,0.6,-0.3));
+}
+
+/* --- particules d'énergie --- */
+function buildEnergyParticles(){
+  const geo=new THREE.SphereGeometry(0.07,8,8);
+  for(let i=0;i<20;i++){ const p=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xffd24a})); p.userData.t=i/20; p.visible=false; car.add(p); energyParts.push(p); }
+}
+function energyPath(){
+  return mode==='electrique'
+    ? [new THREE.Vector3(0,0.5,0),new THREE.Vector3(1.4,0.75,0),new THREE.Vector3(0,0.62,0),new THREE.Vector3(REAR_X,0.62,0),new THREE.Vector3(REAR_X,WR,TRACK)]
+    : [new THREE.Vector3(-1.15,0.55,0),new THREE.Vector3(1.5,0.86,0),new THREE.Vector3(0.45,0.72,0),new THREE.Vector3(REAR_X,0.58,0),new THREE.Vector3(REAR_X,WR,TRACK)];
+}
+
+/* ============ TEXTURES ============ */
+function glowTex(){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.4,'rgba(255,210,120,.7)'); g.addColorStop(1,'rgba(255,180,60,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+
+/* ============ UI ============ */
+function buildUI(){
+  const stage=shell.api.stage;
+  // mode thermique/électrique
+  const md=document.createElement('div'); md.className='ca-panel ca-mode';
+  md.innerHTML=`<button class="ca-m" data-m="thermique" aria-pressed="true">⛽ Thermique</button><button class="ca-m" data-m="electrique">⚡ Électrique</button>`;
+  stage.appendChild(md);
+  md.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{ setMode(b.dataset.m); shell.sound('click'); });
+
+  // panneau gauche
+  const left=document.createElement('div'); left.className='ca-panel ca-left';
+  left.innerHTML=`
+    <div><h3>Vue de la voiture</h3>
+      <div class="ca-grid">
+        <button class="ca-t" data-view="ext" aria-pressed="true">🚗 Extérieur</button>
+        <button class="ca-t" data-view="cut">🔍 Coupe</button>
+        <button class="ca-t" data-view="exp">💥 Éclatée</button>
+      </div>
+    </div>
+    <div><h3>Ouvertures</h3>
+      <div class="ca-grid two">
+        <button class="ca-t" id="caHood" aria-pressed="false">🔧 Capot</button>
+        <button class="ca-t" id="caDoors" aria-pressed="false">🚪 Portes</button>
+      </div>
+    </div>
+    <div><h3>Peinture</h3><div class="ca-swatches" id="caSw"></div>
+      <div class="ca-grid two" style="margin-top:8px">
+        <button class="ca-t" id="caMetal" aria-pressed="true">✨ Métallisé</button>
+        <button class="ca-t" id="caLabels" aria-pressed="true">🏷️ Étiquettes</button>
+      </div>
+    </div>
+    <div class="ca-grid two">
+      <button class="ca-t" id="caNot">📚 Notions</button>
+      <button class="ca-t" id="caFit">↺ Vue</button>
+    </div>`;
+  stage.appendChild(left);
+  const sw=left.querySelector('#caSw');
+  PAINTS.forEach(([hex,name],i)=>{ const b=document.createElement('button'); b.className='ca-sw'; b.style.background=hex; b.title=name; b.setAttribute('aria-pressed', i===0?'true':'false'); b.onclick=()=>setPaint(hex,b); sw.appendChild(b); });
+  left.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  left.querySelector('#caHood').onclick=function(){ hoodOpen=!hoodOpen; this.setAttribute('aria-pressed',hoodOpen); shell.sound('pop'); if(hoodOpen)shell.api.say("Capot ouvert ! Voilà le moteur (ou le groupe électrique). Clique-le pour sa fiche.",'curieux'); };
+  left.querySelector('#caDoors').onclick=function(){ doorsOpen=!doorsOpen; this.setAttribute('aria-pressed',doorsOpen); shell.sound('pop'); };
+  left.querySelector('#caMetal').onclick=function(){ metallic=!metallic; this.setAttribute('aria-pressed',metallic); this.textContent=metallic?'✨ Métallisé':'🎨 Mat'; paintMats.forEach(m=>{ m.metalness=metallic?0.9:0.2; m.roughness=metallic?0.32:0.5; }); shell.sound('click'); };
+  left.querySelector('#caLabels').onclick=function(){ labelsOn=!labelsOn; this.setAttribute('aria-pressed',labelsOn); if(!labelsOn) document.querySelectorAll('.ca-label').forEach(e=>e.style.display='none'); shell.sound('click'); };
+  left.querySelector('#caNot').onclick=openNotions;
+  left.querySelector('#caFit').onclick=()=>{ focusPoint=null; flying=false; camera.position.set(6.5,3.6,7.2); controls.target.set(0,0.85,0); shell.sound('click'); };
+
+  // jauges
+  const g=document.createElement('div'); g.className='ca-panel ca-gauges';
+  g.innerHTML=`<div class="ca-g"><div class="v" id="caRpm" style="color:#F5A623">0</div><div class="k">tr/min</div></div>
+    <div class="ca-g"><div class="v" id="caGear" style="color:var(--accent-text)">N</div><div class="k">rapport</div></div>
+    <div class="ca-g"><div class="v" id="caSpeed">0</div><div class="k">km/h</div></div>
+    <div class="ca-phase" id="caPhase"><div class="pv" id="caPhaseV">—</div><div class="pk">cycle 4 temps</div></div>`;
+  stage.appendChild(g);
+
+  // barre de conduite
+  const dv=document.createElement('div'); dv.className='ca-panel ca-drive'; dv.id='caDrive';
+  dv.innerHTML=`<button class="ca-b primary" id="caStart">🔑 Démarrer</button>
+    <div class="ca-th"><span>Accélérateur</span><input id="caThr" type="range" min="0" max="100" value="0" aria-label="Accélérateur"></div>
+    <button class="ca-b" id="caDown">▼ −1</button><button class="ca-b" id="caUp">▲ +1</button>
+    <button class="ca-b" id="caBrake">🛑 Frein</button>`;
+  stage.appendChild(dv);
+  dv.querySelector('#caStart').onclick=function(){ started=!started; this.classList.toggle('on',started); this.textContent=started?'⏹ Couper':'🔑 Démarrer'; if(started){ startEngineSound(); shell.api.say(mode==='electrique'?"Moteur électrique prêt : silencieux ! Accélère, le couple est immédiat.":"Contact ! Écoute le ralenti, puis accélère : regarde les pistons monter et descendre.",'enthousiaste'); } else shell.api.say('Moteur coupé.','concentre'); };
+  dv.querySelector('#caThr').oninput=e=>{ throttle=+e.target.value/100; };
+  dv.querySelector('#caUp').onclick=()=>{ if(mode==='electrique'){ shell.api.say("Pas de boîte en électrique : le moteur couvre toute la plage de vitesse tout seul !",'idee'); return; } if(gear<5){ gear++; updateGears(); shell.sound('click'); } };
+  dv.querySelector('#caDown').onclick=()=>{ if(mode==='electrique')return; if(gear>1){ gear--; updateGears(); shell.sound('click'); shell.api.say("Tu rétrogrades : plus de couple, utile en côte ou pour reprendre.",'concentre'); } };
+  dv.querySelector('#caBrake').onclick=()=>{ throttle=0; speed*=0.35; dv.querySelector('#caThr').value=0; shell.sound('click'); if(mode==='electrique')shell.api.say("Freinage régénératif : l'énergie du freinage recharge la batterie !",'fier'); };
+
+  // fiche
+  const fiche=document.createElement('div'); fiche.className='ca-panel ca-fiche'; fiche.id='caFiche'; stage.appendChild(fiche);
+  // hint
+  const hint=document.createElement('div'); hint.className='ca-hint'; hint.id='caHint'; hint.textContent='Ouvre le capot, passe en Coupe/Éclatée · clique une pièce'; stage.appendChild(hint);
+}
+
+function setPaint(hex,btn){ paintHex=hex; const col=new THREE.Color(hex); paintMats.forEach(m=>m.color.copy(col)); document.querySelectorAll('#caSw .ca-sw').forEach(b=>b.setAttribute('aria-pressed', b===btn)); shell.sound('pop'); shell.api.say("Nouvelle teinte appliquée ! La peinture métallisée réfléchit la lumière du studio.",'joyeux'); }
+
+function updateGears(){ document.getElementById('caGear').textContent=gear; }
+
+function setView(v){
+  view=v; document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.view===v));
+  explodeTarget = v==='exp'?1:0; cutTarget = (v==='cut'||v==='exp')?1:0;
+  shell.sound('click');
+  const say={ ext:"Vue extérieure : admire la carrosserie et ses reflets.", cut:"Vue en coupe : la carrosserie devient translucide pour voir les organes cachés.", exp:"Vue éclatée : chaque organe s'écarte. Clique-les pour comprendre leur rôle !" };
+  shell.api.say(say[v],'curieux');
+}
+
+/* ============ MODE / THERMIQUE-ÉLECTRIQUE ============ */
+function setMode(m,silent){
+  mode=m; const elec=m==='electrique';
+  if(thermGroup) thermGroup.visible=!elec;
+  if(elecGroup) elecGroup.visible=elec;
+  if(sparkFlash){ sparkFlash.visible=!elec; sparkFlash.material.opacity=0; } if(sparkLight){ sparkLight.intensity=0; }
+  document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.m===m));
+  const gearEl=document.getElementById('caGear'); if(gearEl){ gearEl.parentElement.style.opacity=elec?0.35:1; if(elec){ gearEl.textContent='—'; } else { gear=1; updateGears(); } }
+  updateEngineSound();
+  if(!silent) shell.api.say(elec?"Voiture électrique : plus de moteur ni de boîte. À la place, une batterie dans le plancher, un onduleur et un moteur électrique. Rendement ~90 % !":"Voiture thermique : un moteur 4 cylindres brûle du carburant, relié à une boîte de vitesses. Rendement ~30 %.",'idee');
+}
+
+/* ============ FICHES ============ */
+function openFiche(key){ const d=PARTS[key]; if(!d)return; const el=document.getElementById('caFiche');
+  el.innerHTML=`<div class="ca-fiche-hd" style="background:linear-gradient(135deg,${d.color},${shade(d.color,-45)})">
+      <div class="sub">${d.sub}</div><h2>${d.icon} ${d.name}</h2>
+      <button class="ca-fiche-x" aria-label="Fermer">×</button></div>
+    <div class="ca-fiche-bd">
+      <p>${d.role}</p>
+      <div class="ca-facts">${d.facts.map(f=>`<div><span class="k">${f[0]}</span><span class="v">${f[1]}</span></div>`).join('')}</div>
+      <div class="ca-fun">💡 Le savais-tu ? ${d.fun}</div>
+    </div>`;
+  el.classList.add('show'); el.querySelector('.ca-fiche-x').onclick=()=>el.classList.remove('show');
+}
+function shade(hex,p){ const n=parseInt(hex.replace('#',''),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; const f=v=>Math.max(0,Math.min(255,Math.round(v+v*p/100))); return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+
+function openNotions(){ const el=document.getElementById('caFiche');
+  el.innerHTML=`<div class="ca-fiche-hd" style="background:linear-gradient(135deg,#1B82E0,#0a1830)"><div class="sub">Cours · encyclopédie</div><h2>📚 Notions auto</h2><button class="ca-fiche-x" aria-label="Fermer">×</button></div>
+    <div class="ca-fiche-bd">${NOTIONS.map(n=>`<div style="margin-bottom:11px"><b style="font-size:14px">${n[0]}</b><p style="margin:4px 0 0;color:var(--fg-muted)">${n[1]}</p></div>`).join('')}</div>`;
+  el.classList.add('show'); el.querySelector('.ca-fiche-x').onclick=()=>el.classList.remove('show'); shell.sound('click');
+}
+
+/* ============ INTERACTION 3D ============ */
+function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer,camera); const hits=raycaster.intersectObjects(car.children,true); for(const h of hits){ let o=h.object; if(o.material&&o.material.transparent&&o.material.opacity<0.06)continue; while(o&&!o.userData.part)o=o.parent; if(o&&o.userData.part)return o.userData.part; } return null; }
+function onMove(e){ setP(e); const p=pick(); renderer.domElement.style.cursor=p?'pointer':'grab'; hovered=p; }
+function onDown(e){ setP(e); const key=pick(); if(!key)return;
+  if(shell.api.mode==='cours' && course && course.step && course.step.type==='find'){ checkFind(key); return; }
+  openFiche(key); focusOn(key); shell.sound('pop');
+  const d=PARTS[key]; if(d) shell.api.say(d.role.split('.')[0]+'.','concentre');
+}
+function focusOn(key){ const p=parts[key]; if(!p)return; focusPoint=p.anchor.clone().add(car.position); flying=true; }
+
+/* ============ MODE DÉTENTE ============ */
+function setDetente(){ if(course)course=null; const q=document.getElementById('caQuiz'); if(q)q.remove(); const dv=document.getElementById('caDrive'); if(dv)dv.style.display=''; const h=document.getElementById('caHint'); if(h){ h.style.display=''; } shell.api.setLevel('libre'); }
+
+/* ============ MODE COURS ============ */
+let course=null;
+const COURSE=[
+  { type:'find', key:'moteur', mode:'thermique', ask:"Clique le <b>moteur thermique</b>.", say:"Ouvre le capot ou passe en vue Coupe/Éclatée, puis clique le moteur.", ok:"Exact ! Le moteur brûle le carburant pour faire tourner le vilebrequin." },
+  { type:'qcm', ask:"Dans quel ordre se déroule le cycle à 4 temps ?", say:"Souviens-toi : d'abord le mélange entre, puis on le comprime…", options:["Admission → Compression → Explosion → Échappement","Explosion → Admission → Échappement → Compression","Compression → Admission → Explosion → Échappement","Échappement → Explosion → Compression → Admission"], correct:0, ok:"Parfait ! Admission, Compression, Explosion, Échappement : 4 temps, 2 tours de vilebrequin." },
+  { type:'find', key:'boite', mode:'thermique', ask:"Clique la <b>boîte de vitesses</b>.", say:"Juste derrière le moteur : le boîtier violet.", ok:"Oui ! La boîte adapte le couple du moteur à la vitesse des roues." },
+  { type:'qcm', ask:"À quoi servent les freins ?", say:"Que devient l'énergie du mouvement quand on ralentit ?", options:["Transformer le mouvement en chaleur pour ralentir","Produire de l'électricité en continu","Faire tourner le moteur plus vite","Refroidir le moteur"], correct:0, ok:"Bravo ! Les plaquettes serrent le disque : le frottement transforme la vitesse en chaleur." },
+  { type:'find', key:'suspension', mode:'thermique', ask:"Clique la <b>suspension</b> (ressort d'une roue).", say:"Le ressort hélicoïdal vert au-dessus d'une roue.", ok:"Exact ! Ressort + amortisseur = confort et roues collées à la route." },
+  { type:'find', key:'reservoir', mode:'thermique', ask:"Clique le <b>réservoir</b> de carburant.", say:"Le bloc orange sous l'arrière : la réserve d'énergie du thermique.", ok:"Oui ! Le réservoir stocke le carburant, comme la batterie stocke l'électricité." },
+  { type:'find', key:'batterie', mode:'electrique', ask:"Passe en électrique et clique la <b>batterie</b>.", say:"En électrique, la batterie est le grand pack dans le plancher.", ok:"Parfait ! La batterie stocke l'électricité et abaisse le centre de gravité." },
+  { type:'qcm', ask:"Quel moteur a le meilleur rendement ?", say:"Lequel perd le moins d'énergie en chaleur ?", options:["Électrique (~90 %)","Thermique (~30 %)","Les deux pareils","Aucun ne dépasse 10 %"], correct:0, ok:"Exact ! L'électrique convertit ~90 % de l'énergie en mouvement, contre ~30 % pour le thermique." },
+];
+function startCourse(){ setView('exp'); const dv=document.getElementById('caDrive'); if(dv)dv.style.display='none'; const h=document.getElementById('caHint'); if(h)h.style.display='none';
+  course={ idx:0, score:0, total:COURSE.length, step:null }; shell.api.setScore(0); shell.api.setProgress(0); shell.api.setLevel('1/'+COURSE.length);
+  showStep();
+}
+function showStep(){ if(!course)return; if(course.idx>=course.total){ winCourse(); return; } const st=COURSE[course.idx]; course.step=st;
+  if(st.mode && mode!==st.mode) setMode(st.mode,true);
+  shell.api.setLevel((course.idx+1)+'/'+course.total); shell.api.setProgress(course.idx/course.total);
+  let q=document.getElementById('caQuiz'); if(!q){ q=document.createElement('div'); q.className='ca-quiz'; q.id='caQuiz'; shell.api.stage.appendChild(q); }
+  if(st.type==='find'){
+    q.innerHTML=`<span class="qn">${course.idx+1}/${course.total}</span><div class="qt">🎯 Trouve la pièce</div><div class="qs">${st.ask}</div>`;
+    shell.api.say(st.say,'curieux');
+  } else {
+    q.innerHTML=`<span class="qn">${course.idx+1}/${course.total}</span><div class="qt">${st.ask}</div><div class="ca-qrow">${st.options.map((o,i)=>`<button class="ca-qo" data-i="${i}">${o}</button>`).join('')}</div>`;
+    q.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>checkQcm(+b.dataset.i));
+    shell.api.say(st.say,'curieux');
+  }
+}
+function checkFind(key){ const st=course.step; if(key===st.key){ correctStep(st.ok); } else { shell.sound('bad'); openFiche(key); shell.api.say("Pas celle-ci — c'est "+(PARTS[key]?PARTS[key].name.toLowerCase():'une autre pièce')+". Relis la consigne et réessaie.",'rassurant'); } }
+function checkQcm(i){ const st=course.step; if(i===st.correct){ correctStep(st.ok); } else { shell.sound('bad'); shell.api.say("Presque ! Réfléchis encore et retente.",'rassurant'); } }
+function correctStep(msg){ course.score++; shell.sound('good'); shell.api.addScore(150); shell.api.say(msg,'celebration'); shell.api.toast('✅ Bonne réponse !');
+  course.idx++; shell.api.setProgress(course.idx/course.total); setTimeout(showStep,1300); }
+function winCourse(){ const q=document.getElementById('caQuiz'); if(q)q.remove(); const sc=course.score; const st=sc>=course.total?3:sc>=course.total-2?2:1;
+  shell.api.win({ score:sc*150, stars:st, title:`${sc}/${course.total} — mécanique maîtrisée !`, learned:shell.cfg.learned,
+    buddy: st===3?"Sans faute ! Tu connais la voiture de la carrosserie au moindre piston.":"Bien joué — relis les fiches et retente pour le sans-faute !",
+    onNext:()=>{ shell.api.setScore(0); startCourse(); }, nextLabel:'Rejouer' });
+  course=null;
+}
+
+/* ============ SON MOTEUR ============ */
+function startEngineSound(){ if(ac||shell.api.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); engGain=ac.createGain(); engGain.gain.value=0; engGain.connect(ac.destination); engOsc=ac.createOscillator(); engOsc.type=mode==='electrique'?'sine':'sawtooth'; engOsc.frequency.value=60; engLp=ac.createBiquadFilter(); engLp.type='lowpass'; engLp.frequency.value=700; engOsc.connect(engLp); engLp.connect(engGain); engOsc.start(); }catch(e){} }
+function updateEngineSound(){ if(!ac||!engOsc)return; engGain.gain.setTargetAtTime(started&&!shell.api.muted?(mode==='electrique'?0.05:0.13):0,ac.currentTime,.1); engOsc.type=mode==='electrique'?'sine':'sawtooth'; engOsc.frequency.setTargetAtTime(mode==='electrique'?180+speed*5:Math.max(45,rpm/38),ac.currentTime,.08); }
+
+/* ============ THÈME / RESIZE / CLAVIER ============ */
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; if(renderer) renderer.setClearColor(dark?0x0a0e16:0x141a26,1); if(composer&&composer.bloom) composer.bloom.strength=dark?0.58:0.46; }
+function onResize(){ const s=shell.api.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
+function onKey(e){ if(e.target&&e.target.tagName==='INPUT')return; if(e.key===' '||e.key==='Enter'){ const sb=document.getElementById('caStart'); if(sb){ sb.click(); e.preventDefault(); } } }
+
+/* ============ ÉTIQUETTES 3D ============ */
+const LABEL_KEYS={ moteur:'⚙️ Moteur', boite:'🔩 Boîte', transmission:'🔗 Transmission', freins:'🛑 Freins', suspension:'🌀 Suspension', reservoir:'⛽ Réservoir', batterie:'🔋 Batterie', moteurElec:'⚡ Moteur élec.', onduleur:'🔌 Onduleur', roue:'🛞 Roue' };
+const labelEls={};
+function updateLabels(){ const stage=shell.api.stage; const show=labelsOn && (view!=='ext');
+  Object.keys(LABEL_KEYS).forEach(key=>{ const p=parts[key]; if(!p){ return; }
+    const elec=mode==='electrique'; const isElecPart=(key==='batterie'||key==='moteurElec'||key==='onduleur'); const isThermPart=(key==='moteur'||key==='boite'||key==='transmission'||key==='reservoir');
+    const visible=show && !(isElecPart&&!elec) && !(isThermPart&&elec);
+    let el=labelEls[key];
+    if(!visible){ if(el)el.style.display='none'; return; }
+    if(!el){ el=document.createElement('div'); el.className='ca-label'; el.textContent=LABEL_KEYS[key]; stage.appendChild(el); labelEls[key]=el; }
+    const v=p.anchor.clone().add(car.position).project(camera); if(v.z>1){ el.style.display='none'; return; }
+    el.style.display='block'; el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight)+'px';
+  });
+}
+
+/* ============ ANIMATION ============ */
+function animate(){ requestAnimationFrame(animate); const raw=clock.getDelta(); const dt=Math.min(0.05,raw);
+  const approach=(cur,tgt,rate)=>{ const d=tgt-cur; return cur+Math.max(-Math.abs(d),Math.min(Math.abs(d),d>0?raw*rate:-raw*rate)); };
+
+  // caméra focus
+  if(flying && focusPoint){ controls.target.lerp(focusPoint,0.09); const dir=camera.position.clone().sub(controls.target); const want=focusPoint.clone().add(dir.normalize().multiplyScalar(6.5)); camera.position.lerp(want,0.06); if(camera.position.distanceTo(want)<0.35) flying=false; }
+
+  // régime / vitesse
+  const targetRpm=started?(mode==='electrique'?600+throttle*8000:800+throttle*5500):0; rpm+=(targetRpm-rpm)*Math.min(1,dt*3);
+  const ts=started?(mode==='electrique'?throttle*140:Math.max(0,(rpm-800))/5500*(22+gear*13)):0; speed+=(ts-speed)*Math.min(1,dt*1.4); if(!started&&speed<0.15)speed=Math.max(0,speed-dt*12);
+  const rpmEl=document.getElementById('caRpm'); if(rpmEl){ rpmEl.textContent=Math.round(rpm); document.getElementById('caSpeed').textContent=Math.round(speed); }
+
+  // vue éclatée / coupe (transition en temps réel, robuste à tout framerate)
+  explodeT=approach(explodeT,explodeTarget,2.5); cutT=approach(cutT,cutTarget,2.5);
+  applyExplode();
+  const bodyOpacity=1-cutT*0.86; bodyPanels.forEach(m=>{ if(m.material){ m.material.transparent=cutT>0.01; m.material.opacity=cutT>0.01?bodyOpacity:1; } });
+  glassPanels.forEach(m=>{ if(m.material){ m.material.opacity=0.42*(1-cutT*0.8); } });
+  const showInner=cutT>0.05||explodeT>0.05; suspMeshes.forEach(m=>{ m.visible=showInner; });
+  // en vue extérieure capot fermé : on masque les organes internes pour une carrosserie nette
+  const showInternals=showInner||hoodOpen; const activeGrp=mode==='electrique'?elecGroup:thermGroup; if(activeGrp) activeGrp.visible=showInternals;
+
+  // ouverture capot / portes
+  if(hoodPivot){ hoodPivot.rotation.z=approach(hoodPivot.rotation.z, hoodOpen?-0.62:0, 2.5); }
+  doorPivots.forEach(p=>{ p.rotation.y=approach(p.rotation.y, doorsOpen?p.userData.sgn*0.8:0, 3); });
+
+  // direction (léger balayage auto en marche)
+  const steer=started&&!REDUCED?Math.sin(clock.elapsedTime*0.6)*0.18*Math.min(1,speed/40):0; steerWheels.forEach(p=>p.rotation.y+=((steer)-p.rotation.y)*0.1);
+
+  // rotation des roues
+  const wspin=(speed/3.6)/WR*dt; wheelSpin.forEach(s=>s.rotation.z-=wspin);
+
+  // moteur 4 temps
+  if(thermGroup&&thermGroup.visible&&crank){ const w=rpm/60*Math.PI*2*(REDUCED?0.2:1); crankAngle+=w*dt; crank.rotation.z=crankAngle;
+    pistons.forEach(p=>{ p.mesh.position.y=0.2+Math.sin(crankAngle+p.phase)*0.14; if(p.rod)p.rod.position.y=0.02+Math.sin(crankAngle+p.phase)*0.14; });
+    // phase du cylindre 1 (2 tours = 4 temps)
+    const cyc=((crankAngle%(4*Math.PI))+4*Math.PI)%(4*Math.PI); cyclePhase=Math.floor(cyc/Math.PI)%4;
+    // soupapes
+    valveL.forEach((v,i)=>{ v.position.y=0.52-(cyclePhase===0?0.05:0); });
+    valveR.forEach((v,i)=>{ v.position.y=0.52-(cyclePhase===3?0.05:0); });
+    const pEl=document.getElementById('caPhase'); if(pEl){ pEl.classList.toggle('on', started&&rpm>50); const pv=document.getElementById('caPhaseV'); if(pv){ pv.textContent=CYCLE[cyclePhase]; pv.style.color=CYCLE_COL[cyclePhase]; } }
+    // explosion : flash à l'entrée du temps 2
+    if(cyclePhase===2 && lastPhase!==2 && started){ if(sparkFlash){ sparkFlash.material.opacity=0.9; } sparkLight.intensity=2.2; }
+    lastPhase=cyclePhase;
+  } else { const pEl=document.getElementById('caPhase'); if(pEl)pEl.classList.remove('on'); }
+  if(sparkFlash){ sparkFlash.material.opacity*=0.86; } if(sparkLight){ sparkLight.intensity*=0.85; }
+
+  // moteur électrique tourne
+  if(elecGroup&&elecGroup.visible&&elecMotor){ elecMotor.rotation.x+=(rpm/60)*dt*(REDUCED?0.2:1)*0.5; }
+
+  // particules d'énergie
+  const path=energyPath(); const active=started&&throttle>0.02; energyParts.forEach(p=>{ p.visible=active; if(!active)return; p.userData.t=(p.userData.t+dt*(0.25+throttle*0.6))%1; const seg=p.userData.t*(path.length-1); const i=Math.floor(seg), f=seg-i; const a=path[Math.min(i,path.length-1)], b=path[Math.min(i+1,path.length-1)]; p.position.lerpVectors(a,b,f).add(car.position); p.material.color.setHex(mode==='electrique'?0x46e3ff:0xffd24a); });
+
+  // survol : léger surlignage
+  Object.keys(parts).forEach(k=>{ const o=parts[k].obj; if(o&&o.traverse) o.traverse(m=>{ if(m.isMesh&&m.material&&m.material.emissive&&!m.userData.brake){ const target=(k===hovered)?0.25:0; m.material.emissiveIntensity=(m.material.emissiveIntensity||0)*0.85+target*0.15; if(k===hovered)m.material.emissive.setHex(0x222018); } }); });
+
+  updateEngineSound();
+  controls.update(); updateLabels(); composer.render();
+}
+
+/* déplacement des organes en vue éclatée */
+function applyExplode(){
+  const grp=mode==='electrique'?elecGroup:thermGroup; if(!grp)return;
+  grp.traverse(o=>{ if(o.userData&&o.userData.home&&o.userData.exp){ o.position.copy(o.userData.home).addScaledVector(o.userData.exp,explodeT); } });
+}
+</script>
+</body>
+</html>

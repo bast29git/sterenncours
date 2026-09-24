@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Moteur & mécanique</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .mo-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(13px); }
+  /* --- barre de contrôle (bas) --- */
+  .mo-ctrl { bottom:16px; left:50%; transform:translateX(-50%); display:flex; gap:9px; align-items:center; padding:10px 15px; flex-wrap:wrap; justify-content:center; max-width:96%; }
+  .mo-b { font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:44px; padding:0 15px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:6px; }
+  .mo-b:hover { transform:translateY(-1px); }
+  .mo-b:focus-visible { outline:none; box-shadow:var(--ring); }
+  .mo-b.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .mo-b[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .mo-rpm { display:flex; flex-direction:column; gap:2px; font-size:10.5px; color:var(--fg-muted); align-items:center; }
+  .mo-rpm input { accent-color:var(--accent); width:132px; height:22px; }
+  .mo-rpm b { font-family:var(--font-data); color:var(--accent-text); font-size:14px; }
+  /* --- panneau haut-gauche : type moteur + télémétrie --- */
+  .mo-left { top:14px; left:14px; width:214px; padding:12px; display:flex; flex-direction:column; gap:11px; }
+  .mo-left h3 { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 6px; }
+  .mo-seg { display:flex; gap:4px; background:var(--surface-2); border-radius:11px; padding:4px; }
+  .mo-seg button { flex:1; font-family:var(--font-body); font-weight:700; font-size:11px; min-height:38px; padding:0 4px; border-radius:8px; border:none; background:transparent; color:var(--fg-muted); cursor:pointer; transition:.15s; }
+  .mo-seg button[aria-pressed="true"] { background:var(--accent); color:#fff; }
+  .mo-seg button:focus-visible { outline:none; box-shadow:var(--ring); }
+  .mo-tel { display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; }
+  .mo-tel .g .v { font-family:var(--font-data); font-weight:800; font-size:19px; line-height:1; color:var(--fg); }
+  .mo-tel .g .v small { font-size:10px; font-weight:700; color:var(--fg-muted); }
+  .mo-tel .g .k { font-family:var(--font-mono); font-size:8.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--fg-muted); margin-top:2px; }
+  .mo-tach { height:8px; border-radius:5px; background:var(--surface-2); overflow:hidden; margin-top:1px; }
+  .mo-tach i { display:block; height:100%; width:12%; background:linear-gradient(90deg,var(--brand-teal),var(--brand-amber),#E63329); border-radius:5px; transition:width .12s; }
+  /* --- bandeau de phase (haut-centre) --- */
+  .mo-phase { top:14px; left:50%; transform:translateX(-50%); padding:11px 20px; text-align:center; min-width:min(360px,74vw); }
+  .mo-phase .tag { display:inline-block; font-family:var(--font-mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; padding:2px 9px; border-radius:999px; color:#fff; margin-bottom:5px; }
+  .mo-phase .ph { font-family:var(--font-title); font-weight:800; font-size:18px; line-height:1.1; }
+  .mo-phase .d { font-size:11.5px; color:var(--fg-muted); margin-top:3px; line-height:1.35; }
+  .mo-steps { display:flex; gap:5px; justify-content:center; margin-top:8px; }
+  .mo-steps i { width:9px; height:9px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); transition:.2s; }
+  .mo-steps i.done { background:color-mix(in srgb,var(--accent) 55%,transparent); }
+  .mo-steps i.now { background:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent); }
+  /* --- fiche pédagogique (droite) --- */
+  .mo-info { right:14px; top:14px; width:308px; padding:0; overflow:hidden; transform:translateX(130%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; z-index:28; }
+  .mo-info.show { transform:none; }
+  .mo-hd { padding:16px 18px; color:#fff; position:relative; flex:none; }
+  .mo-hd h2 { font-family:var(--font-title); font-weight:800; font-size:21px; margin:2px 0 0; display:flex; align-items:center; gap:9px; }
+  .mo-hd .sub { font-family:var(--font-mono); font-size:10.5px; opacity:.92; text-transform:uppercase; letter-spacing:.05em; }
+  .mo-x { position:absolute; top:12px; right:12px; width:30px; height:30px; border:none; border-radius:8px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:17px; }
+  .mo-body { padding:14px 18px 18px; overflow:auto; }
+  .mo-body p { font-size:13.5px; line-height:1.58; margin:0 0 10px; }
+  .mo-facts { display:flex; flex-direction:column; gap:5px; margin:0 0 12px; }
+  .mo-facts div { display:flex; justify-content:space-between; gap:12px; font-size:12.5px; border-bottom:1px dashed var(--border); padding-bottom:4px; }
+  .mo-facts .k { color:var(--fg-muted); } .mo-facts .v { font-family:var(--font-data); font-weight:700; }
+  .mo-fun { background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.5; color:var(--accent-text); }
+  .mo-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .mo-chips button { font-family:var(--font-body); font-weight:700; font-size:12px; min-height:34px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); border-radius:999px; padding:0 12px; cursor:pointer; }
+  .mo-chips button:hover { background:var(--accent-weak); }
+  /* --- étiquettes 3D flottantes --- */
+  .mo-label { position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 76%,transparent); padding:3px 8px; border-radius:7px; pointer-events:none; z-index:16; border:1px solid var(--border); white-space:nowrap; box-shadow:var(--shadow-sm,0 2px 6px rgba(0,0,0,.2)); }
+  .mo-label::after { content:""; position:absolute; left:50%; bottom:-5px; width:1px; height:5px; background:var(--border); }
+  /* --- indice bas --- */
+  .mo-hint { position:absolute; bottom:78px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; max-width:88%; text-align:center; }
+  /* --- quiz / mode cours --- */
+  .mo-quiz { top:86px; left:50%; transform:translateX(-50%); z-index:24; background:var(--accent); color:#fff; padding:13px 18px; border-radius:16px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:10px; align-items:center; max-width:min(520px,92vw); text-align:center; }
+  .mo-quiz .qn { font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:2px 10px; font-size:11px; }
+  .mo-quiz .qt { font-weight:800; font-size:15px; line-height:1.25; }
+  .mo-qrow { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
+  .mo-qo { font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:42px; padding:0 14px; border-radius:11px; border:none; background:rgba(255,255,255,.18); color:#fff; cursor:pointer; transition:.13s; }
+  .mo-qo:hover { background:rgba(255,255,255,.32); }
+  @media (max-width:720px){
+    .mo-left { width:158px; padding:9px; top:12px; left:10px; }
+    .mo-tel .g .v { font-size:16px; }
+    .mo-info { width:min(320px,90vw); }
+    .mo-phase { padding:9px 13px; min-width:auto; max-width:64vw; }
+    .mo-phase .ph { font-size:15px; } .mo-phase .d { display:none; }
+    .mo-b { font-size:12px; padding:0 12px; }
+  }
+  @media (prefers-reduced-motion: reduce){ .mo-info { transition:none; } }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ============================================================
+   DONNÉES PÉDAGOGIQUES
+   ============================================================ */
+const DOM_COLOR = '#5A6275';
+const HD_BG = 'linear-gradient(135deg,#5A6275,#2a3140)';
+
+/* pièces cliquables → fiche (userData.part) */
+const PARTS = {
+  piston:{ icon:'🔩', name:'Piston', sub:'Cœur du moteur', color:'#c9cede',
+    facts:[['Course (PMH→PMB)','~86 mm'],['Vitesse à 6000 tr/min','~20 m/s'],['Matériau','alliage d\'aluminium']],
+    desc:["Le piston coulisse dans le cylindre. La combustion le pousse vers le bas : c'est lui qui transforme l'explosion en mouvement mécanique.","Il va du <b>Point Mort Haut (PMH)</b> au <b>Point Mort Bas (PMB)</b>, des milliers de fois par minute, guidé par ses segments qui assurent l'étanchéité."],
+    fun:"À 6 000 tr/min, un piston change de sens 200 fois par seconde et subit des accélérations de plus de 2 000 g !" },
+  bielle:{ icon:'🦴', name:'Bielle', sub:'Le bras de levier', color:'#b3b9c8',
+    facts:[['Pied de bielle','relié au piston'],['Tête de bielle','relié au vilebrequin'],['Contrainte','traction + compression']],
+    desc:["La bielle relie le piston au vilebrequin. Elle transmet la force de la combustion et transforme le va-et-vient linéaire en couple de rotation.","Son <b>pied</b> tient l'axe du piston, sa <b>tête</b> enserre le maneton du vilebrequin. À chaque cycle elle subit d'énormes efforts alternés."],
+    fun:"Une bielle qui casse (« couler une bielle ») peut traverser le bloc-moteur : c'est la panne la plus redoutée." },
+  vilebrequin:{ icon:'🌀', name:'Vilebrequin', sub:'Transformateur de mouvement', color:'#9aa0b4',
+    facts:[['Rôle','va-et-vient → rotation'],['Manetons','décalés (calage)'],['Sortie','vers l\'embrayage/boîte']],
+    desc:["Le vilebrequin transforme le mouvement de va-et-vient des pistons en <b>rotation continue</b>, celle qui fera avancer la machine.","Ses manetons sont décalés (calage) pour que les cylindres se relaient : le moteur tourne rond même si un seul temps sur quatre pousse."],
+    fun:"Il faut 2 tours complets de vilebrequin pour réaliser un cycle à 4 temps entier." },
+  arbrecames:{ icon:'📐', name:'Arbre à cames', sub:'Le chef d\'orchestre', color:'#d8a24a',
+    facts:[['Vitesse','½ du vilebrequin'],['Rôle','ouvre les soupapes'],['Entraîné par','la distribution']],
+    desc:["L'arbre à cames porte des bosses (les <b>cames</b>) qui poussent les soupapes au bon moment. Il ouvre l'admission puis l'échappement à chaque cycle.","Il tourne <b>deux fois moins vite</b> que le vilebrequin : une soupape ne s'ouvre qu'une fois tous les deux tours."],
+    fun:"C'est la came, cette bosse excentrée, qui convertit la rotation en poussée — une invention géniale et toute simple." },
+  soupape_adm:{ icon:'🔵', name:'Soupape d\'admission', sub:'La porte d\'entrée', color:'#3f7fd0',
+    facts:[['Ouvre pendant','l\'admission'],['Laisse entrer','air + carburant'],['Nombre','1 à 2 par cylindre']],
+    desc:["La soupape d'admission s'ouvre quand le piston descend : elle laisse entrer le <b>mélange air + carburant</b> (essence) ou l'<b>air seul</b> (diesel).","Refermée, elle scelle le cylindre pour que la compression puis l'explosion soient efficaces."],
+    fun:"Un moteur « multisoupapes » (4 par cylindre) respire mieux : plus d'air = plus de puissance à haut régime." },
+  soupape_ech:{ icon:'🔴', name:'Soupape d\'échappement', sub:'La porte de sortie', color:'#c94a3a',
+    facts:[['Ouvre pendant','l\'échappement'],['Évacue','les gaz brûlés'],['Température','jusqu\'à 800 °C']],
+    desc:["La soupape d'échappement s'ouvre quand le piston remonte après l'explosion : elle laisse <b>sortir les gaz brûlés</b> vers le pot d'échappement.","Elle travaille au rouge : les gaz d'échappement peuvent dépasser 800 °C."],
+    fun:"L'admission et l'échappement s'ouvrent un court instant ensemble (le « croisement ») pour mieux balayer le cylindre." },
+  bougie:{ icon:'⚡', name:'Bougie d\'allumage', sub:'L\'étincelle (essence)', color:'#e8c24a',
+    facts:[['Rôle','allume le mélange'],['Étincelle','~20 000 volts'],['Moteur','essence uniquement']],
+    desc:["La bougie produit une <b>étincelle électrique</b> qui enflamme le mélange comprimé, au tout début du temps moteur.","Sans elle, un moteur essence ne démarre pas. Un moteur diesel, lui, n'en a pas : il s'allume par compression."],
+    fun:"L'étincelle jaillit sous ~20 000 volts, pile au bon millième de seconde, cylindre après cylindre." },
+  injecteur:{ icon:'💉', name:'Injecteur', sub:'Le doseur de carburant', color:'#7ec8a0',
+    facts:[['Rôle','pulvérise le carburant'],['Pression (diesel)','> 2000 bar'],['Précision','au millième de sec.']],
+    desc:["L'injecteur pulvérise le carburant en fine brume dans l'air admis. Il remplace l'ancien carburateur et dose au milligramme près.","En <b>diesel</b>, il injecte le gazole dans l'air très chaud comprimé : le carburant s'enflamme tout seul, sans étincelle."],
+    fun:"En diesel moderne, le gazole est injecté à plus de 2 000 bar — comme 2 tonnes posées sur un ongle !" },
+  distribution:{ icon:'⛓️', name:'Distribution', sub:'Courroie / chaîne', color:'#5b6478',
+    facts:[['Relie','vilebrequin → arbre à cames'],['Rapport','2 : 1'],['Type','courroie ou chaîne']],
+    desc:["La courroie (ou chaîne) de distribution <b>synchronise</b> l'arbre à cames sur le vilebrequin : les soupapes s'ouvrent pile au bon moment.","Un calage parfait est vital : si elle casse, une soupape ouverte peut heurter un piston et détruire le moteur."],
+    fun:"On remplace une courroie de distribution tous les ~120 000 km : c'est l'entretien à ne jamais oublier." },
+  volant:{ icon:'⚙️', name:'Volant moteur', sub:'Le lisseur', color:'#8890a2',
+    facts:[['Rôle','régularise la rotation'],['Effet','inertie / à-coups'],['Porte','la couronne de démarreur']],
+    desc:["Le volant moteur est un disque lourd fixé au vilebrequin. Son <b>inertie</b> emmagasine l'énergie du temps moteur et la restitue pendant les trois temps « passifs ».","Résultat : le moteur tourne rond et ne cale pas entre deux explosions."],
+    fun:"Sans volant, un mono-cylindre avancerait par saccades : c'est lui qui lisse la rotation." },
+  bloc:{ icon:'🧱', name:'Bloc-cylindres', sub:'La carcasse', color:'#4a5266',
+    facts:[['Contient','les cylindres'],['Matériau','fonte ou alu'],['Circuits','huile + refroidissement']],
+    desc:["Le bloc-moteur est la structure principale : il abrite les <b>cylindres</b> dans lesquels coulissent les pistons, ainsi que les canaux d'huile et de liquide de refroidissement.","C'est la pièce la plus massive, qui encaisse toutes les forces."],
+    fun:"Des canaux (les « chemises d'eau ») entourent chaque cylindre pour évacuer la chaleur de la combustion." },
+  culasse:{ icon:'🎩', name:'Culasse', sub:'Le couvercle actif', color:'#586074',
+    facts:[['Ferme','le haut des cylindres'],['Abrite','soupapes, bougies, cames'],['Joint','joint de culasse']],
+    desc:["La culasse coiffe le bloc et referme les cylindres. Elle abrite les <b>soupapes</b>, les <b>bougies/injecteurs</b> et souvent l'arbre à cames.","La chambre de combustion se forme entre la culasse et le sommet du piston."],
+    fun:"Le « joint de culasse » assure l'étanchéité entre bloc et culasse : sa panne est un grand classique." },
+  carter:{ icon:'🛢️', name:'Carter d\'huile', sub:'Réserve de lubrifiant', color:'#3e4658',
+    facts:[['Contient','l\'huile moteur'],['Rôle','lubrifie + refroidit'],['Pompe','pression d\'huile']],
+    desc:["Le carter, en bas du moteur, contient l'<b>huile</b>. Une pompe la distribue sous pression vers les pièces en mouvement (bielles, vilebrequin, cames).","L'huile lubrifie, refroidit et nettoie : sans elle, le métal grippe en quelques minutes."],
+    fun:"Un moteur brûle un peu d'huile : d'où l'importance de vérifier le niveau à la jauge." },
+};
+
+/* notions transverses (encyclopédie) */
+const NOTIONS = [
+  { id:'combustion', name:'Combustion interne', desc:["Un moteur thermique brûle un carburant <b>à l'intérieur</b> de ses cylindres : l'explosion pousse les pistons.","L'énergie chimique du carburant devient énergie mécanique — avec une grosse part perdue en chaleur (60 à 70 %)."] },
+  { id:'otto', name:'Cycle Otto (4 temps)', desc:["Le cycle à 4 temps (Nikolaus Otto, 1876) : admission, compression, explosion, échappement.","Il faut <b>2 tours</b> de vilebrequin pour un cycle complet ; un seul temps sur quatre produit la force motrice."] },
+  { id:'couple', name:'Couple & puissance', desc:["Le <b>couple</b> (N·m) est la force de rotation ; la <b>puissance</b> (ch/kW) = couple × régime.","Beaucoup de couple = de la reprise ; beaucoup de puissance à haut régime = de la vitesse de pointe."] },
+  { id:'compression', name:'Taux de compression', desc:["C'est le rapport entre le volume du cylindre piston en bas et piston en haut (ex. 10:1 en essence, 18:1 en diesel).","Plus il est élevé, meilleur est le rendement — mais trop haut, l'essence s'auto-enflamme (cliquetis)."] },
+  { id:'diesel', name:'Essence vs Diesel', desc:["Essence : une <b>bougie</b> enflamme le mélange. Diesel : la forte compression chauffe l'air, et le gazole injecté s'enflamme <b>sans étincelle</b>.","Le diesel a plus de couple et un meilleur rendement ; l'essence monte plus haut en régime."] },
+  { id:'deuxtemps', name:'2 temps vs 4 temps', desc:["Le <b>2 temps</b> réalise le cycle en <b>un seul tour</b> : il explose à chaque tour, donc plus de puissance pour un même poids… mais pollue et consomme plus.","Le <b>4 temps</b> sépare bien les phases avec des soupapes : plus propre et endurant. C'est le standard automobile."] },
+  { id:'refroid', name:'Refroidissement & huile', desc:["Le liquide de refroidissement évacue la chaleur des cylindres ; l'huile lubrifie pistons, bielles et vilebrequin.","Sans eux, le métal surchaufferait et gripperait en quelques minutes."] },
+  { id:'electrique', name:"Vers l'électrique", desc:["Un moteur électrique remplace explosions et pistons par un champ magnétique tournant : peu de pièces, couple immédiat, zéro émission locale.","Bien plus efficace (~90 % contre ~35 %), mais dépendant de la batterie et de la production d'électricité."] },
+];
+
+/* les 4 temps — description + couleur + gaz */
+const STROKES = [
+  { tag:'Temps 1', n:'Admission', d:"La soupape d'admission s'ouvre, le piston descend et aspire le mélange air + carburant.", c:'#3f7fd0', gas:0x4a9be8 },
+  { tag:'Temps 2', n:'Compression', d:"Soupapes fermées : le piston remonte et comprime fortement le mélange.", c:'#d8a24a', gas:0xf0a83a },
+  { tag:'Temps 3', n:'Explosion / Détente', d:"L'étincelle (ou la compression) enflamme le mélange : l'explosion chasse le piston vers le bas. C'est le seul temps moteur !", c:'#E63329', gas:0xff5a2a },
+  { tag:'Temps 4', n:'Échappement', d:"La soupape d'échappement s'ouvre : le piston remonte et chasse les gaz brûlés.", c:'#7a8294', gas:0x8a8f9c },
+];
+/* 2 temps (un tour) */
+const STROKES_2T = [
+  { tag:'½ tour', n:'Admission + Compression', d:"Sous le piston, le mélange frais entre dans le carter ; au-dessus, il est comprimé. Pas de soupapes : des lumières (ports).", c:'#3f7fd0', gas:0x4a9be8 },
+  { tag:'½ tour', n:'Explosion + Échappement', d:"L'étincelle enflamme le mélange comprimé ; en descendant, le piston découvre les lumières d'échappement et de transfert.", c:'#E63329', gas:0xff5a2a },
+];
+
+const ENGINES = {
+  essence: { label:'Essence', ratio:'10 : 1', ignite:'Bougie (étincelle)', maxRpm:7000, idle:850, hp:0.028, color:'#6E6BFF',
+    note:"Moteur à essence : le mélange air + essence est allumé par une <b>étincelle de bougie</b>. Il monte haut en régime et répond vite." },
+  diesel:  { label:'Diesel', ratio:'18 : 1', ignite:'Auto-allumage (compression)', maxRpm:4800, idle:750, hp:0.034, color:'#1E8C7A',
+    note:"Moteur diesel : pas de bougie. L'air très comprimé devient brûlant et le <b>gazole injecté s'enflamme tout seul</b>. Plus de couple, meilleur rendement." },
+  deuxtemps:{ label:'2 temps', ratio:'8 : 1', ignite:'Bougie · un temps/tour', maxRpm:9000, idle:1200, hp:0.022, color:'#E67E22',
+    note:"Moteur 2 temps : le cycle tient en <b>un seul tour</b>, sans soupapes. Léger et puissant pour son poids, mais plus polluant." },
+};
+
+/* ============================================================
+   ÉTAT
+   ============================================================ */
+let mode='detente';
+let engType='essence';
+let angle=0, rpm=ENGINES.essence.idle, playing=true, slow=false, exploded=false, cutaway=false, labelsOn=false, stepping=false, targetAngle=0;
+let expAmt=0, cutAmt=0;
+let scene,camera,renderer,composer,bloom,controls,clock,raycaster,pointer;
+let engineGroup, crankGroup, camGroup, blockMesh, headMesh, panMesh;
+let pistons=[], valves=[], sparks=[], gasVols=[], puffs=[], parts=[], hovered=null;
+let cyclesDone=0, lastFocusStroke=-1;
+let ac=null, engGain=null, engOsc=null, engLp=null;
+let maxAniso=8;
+
+/* géométrie moteur (constantes) */
+const NC=4, DX=2.15, CRANK_R=0.82, ROD_L=2.7, CRANK_Y=0.0, BASE_TOP=3.4;
+const MOTION_PH=[0,Math.PI,Math.PI,0];      // décalage cinématique piston
+const CYCLE_OFF=[2*Math.PI,3*Math.PI,Math.PI,0]; // décalage 4 temps (ordre 1-3-4-2)
+function cylX(i){ return (i-(NC-1)/2)*DX; }
+
+/* ============================================================
+   SHELL
+   ============================================================ */
+const shell = window.Konstrio.createGame({
+  id:'3d-11-moteur', code:'3D·11', title:'Moteur & mécanique', type:'3D',
+  domain:{ label:'Techno & Méca', color:DOM_COLOR },
+  intro:{
+    greet:"Bienvenue au banc d'essai moteur ! Démarre, regarde les pistons danser au rythme des 4 temps, mets en coupe pour voir l'intérieur des cylindres, et accélère : écoute le régime monter.",
+    rule:"Explore un vrai <b>moteur à 4 cylindres</b> en 3D. Observe le <b>cycle à 4 temps</b> (admission, compression, explosion, échappement), passe le bloc en <b>coupe</b> ou en <b>vue éclatée</b>, change de <b>régime</b> et bascule <b>essence / diesel / 2 temps</b>. Clique chaque pièce pour son rôle.",
+    how:["Glisse pour tourner · molette pour zoomer · clique une pièce (piston, soupape, bougie, arbre à cames…).","Règle le régime (tr/min), passe au ralenti ou en pas-à-pas pour décomposer le cycle.","Active la coupe et les étiquettes, ou compare essence, diesel et 2 temps."],
+    keys:"Glisser = tourner · molette = zoom · Espace = démarrer/arrêter.",
+    objectif:"Comprendre le cycle à 4 temps, le rôle de chaque pièce et la différence essence / diesel.",
+    hint:"Les 4 temps se suivent toujours : Admission (descend) → Compression (monte) → Explosion (descend, ça pousse !) → Échappement (monte).",
+    why:"Un moteur transforme l'énergie chimique du carburant en mouvement, en quatre étapes répétées des milliers de fois par minute."
+  },
+  learned:[
+    "Le cycle à 4 temps : admission, compression, explosion, échappement — 2 tours de vilebrequin.",
+    "Le vilebrequin transforme le va-et-vient des pistons en rotation ; la bielle fait le lien.",
+    "L'arbre à cames ouvre les soupapes au bon moment, synchronisé par la distribution.",
+    "Essence (bougie) vs diesel (auto-allumage par compression) : deux façons d'enflammer le carburant.",
+  ],
+  onReady:init, onStart:startMode, onTheme:()=>applyTheme(),
+});
+
+/* ============================================================
+   INITIALISATION 3D
+   ============================================================ */
+function init(){
+  const stage=shell.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(46, stage.clientWidth/stage.clientHeight, .1, 300);
+  camera.position.set(9.5,6.2,13);
+  renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(stage.clientWidth, stage.clientHeight);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.98;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  stage.appendChild(renderer.domElement);
+  maxAniso=Math.min(8, renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
+
+  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) — l'AO écran (GTAO) y produit du noir.
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render|mesa/i.test(rn); }catch(e){}
+  const CW=stage.clientWidth, CH=stage.clientHeight;
+  composer=new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene,camera));
+  if(!software){
+    // GPU : occlusion ambiante en espace-écran (GTAO) pour creuser les recoins du bloc
+    const g=new GTAOPass(scene,camera,CW,CH); g.blendIntensity=1.0;
+    try{ g.updateGtaoMaterial({ radius:0.6, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(g); composer.gtao=g;
+  }
+  // bloom : étincelle d'allumage, lueur de combustion
+  bloom=new UnrealBloomPass(new THREE.Vector2(CW,CH), 0.62, 0.7, 0.82);
+  composer.addPass(bloom);
+  // anti-aliasing SMAA (le composer court-circuite le MSAA du canvas)
+  composer.addPass(new SMAAPass(CW,CH));
+  // OutputPass : tone mapping ACES + conversion sRGB en fin de chaîne
+  composer.addPass(new OutputPass());
+
+  controls=new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping=true; controls.dampingFactor=.07; controls.minDistance=6.5; controls.maxDistance=42;
+  controls.target.set(0,2.6,0); controls.maxPolarAngle=Math.PI*0.92;
+  controls.autoRotate=REDUCED; controls.autoRotateSpeed=.5;
+
+  // lumières — l'IBL (HDRI studio) fait le gros de l'éclairage ; ces sources sculptent ombres & contours
+  scene.add(new THREE.HemisphereLight(0xdfe7ff, 0x1a1d26, .35));
+  const key=new THREE.DirectionalLight(0xffffff, 1.35); key.position.set(9,14,7);
+  key.castShadow=true; key.shadow.mapSize.set(2048,2048); key.shadow.camera.near=1; key.shadow.camera.far=60; key.shadow.radius=4; key.shadow.blurSamples=12;
+  key.shadow.camera.left=-16; key.shadow.camera.right=16; key.shadow.camera.top=16; key.shadow.camera.bottom=-16; key.shadow.bias=-0.0004;
+  scene.add(key);
+  const rim=new THREE.DirectionalLight(0x9fb4ff, .5); rim.position.set(-8,6,-9); scene.add(rim);
+  const glow=new THREE.PointLight(0xff7a2a, .0, 26, 2); glow.position.set(0,4.4,0); scene.add(glow); window._glow=glow;
+
+  // sol d'atelier béton réel (Poly Haven CC0), tuilé + AO bakée
+  const floorMat=new THREE.MeshStandardMaterial({color:0xb8bcc4, roughness:0.9, metalness:0.05, envMapIntensity:0.55});
+  applyPBR(floorMat,'concrete_floor_02','1k',{repeat:10,normal:1.0,ao:true});
+  const fgeo=new THREE.CircleGeometry(46,80); enableAO(fgeo);
+  const floor=new THREE.Mesh(fgeo, floorMat);
+  floor.rotation.x=-Math.PI/2; floor.position.y=-2.6; floor.receiveShadow=true; scene.add(floor);
+  // ombre de contact douce sous le moteur (occlusion lisible même en rendu logiciel)
+  const cs=new THREE.Mesh(new THREE.PlaneGeometry(13,7), new THREE.MeshBasicMaterial({map:makeContactShadow(),transparent:true,depthWrite:false,opacity:0.85}));
+  cs.rotation.x=-Math.PI/2; cs.position.y=-2.585; scene.add(cs);
+  // établi en bois (planches usées CC0) posé derrière le banc — ancre la scène d'atelier
+  buildWorkbench();
+
+  // IBL studio produit réel (Poly Haven CC0) → reflets crédibles sur le métal usiné
+  const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  const rgbe=new RGBELoader();
+  rgbe.load('../assets/3d/hdri/brown_photostudio_02_1k.hdr', hdr=>{
+    hdr.mapping=THREE.EquirectangularReflectionMapping;
+    scene.environment=pmrem.fromEquirectangular(hdr).texture;
+    scene.background=hdr; scene.backgroundBlurriness=0.5; scene.backgroundIntensity=0.5;
+  }, undefined, ()=>{
+    rgbe.load('../assets/3d/hdri/studio_small_09_1k.hdr', hdr=>{
+      hdr.mapping=THREE.EquirectangularReflectionMapping;
+      scene.environment=pmrem.fromEquirectangular(hdr).texture;
+      scene.background=hdr; scene.backgroundBlurriness=0.5; scene.backgroundIntensity=0.5;
+    }, undefined, ()=>{ scene.background=makeBackdrop(); scene.environment=pmrem.fromEquirectangular(makeBackdrop()).texture; });
+  });
+
+  buildEngine();
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-3,-3);
+  buildUI(); applyTheme();
+
+  renderer.domElement.addEventListener('pointermove', onMove);
+  renderer.domElement.addEventListener('pointerdown', onDown);
+  window.addEventListener('resize', onResize);
+  window.addEventListener('keydown', onKey);
+  new ResizeObserver(onResize).observe(stage);
+  applyEngineType(true);
+  animate();
+}
+
+function makeBackdrop(){ const c=document.createElement('canvas'); c.width=c.height=512; const ctx=c.getContext('2d');
+  const g=ctx.createRadialGradient(256,210,40,256,256,380); g.addColorStop(0,'#242b3a'); g.addColorStop(1,'#0a0d16');
+  ctx.fillStyle=g; ctx.fillRect(0,0,512,512); const t=new THREE.CanvasTexture(c); t.mapping=THREE.EquirectangularReflectionMapping; return t; }
+
+/* ------- matériaux ------- */
+function metal(color, rough=0.32, met=0.95){ return new THREE.MeshStandardMaterial({color, roughness:rough, metalness:met, envMapIntensity:1.3}); }
+function paint(color, rough=0.5){ return new THREE.MeshStandardMaterial({color, roughness:rough, metalness:0.45, envMapIntensity:1.05}); }
+
+/* ------- textures PBR CC0 (Poly Haven) ------- */
+const texLoader=new THREE.TextureLoader();
+const PBR_BASE='../assets/3d/pbr2k/';
+function loadTex(url,srgb,rep){ const t=texLoader.load(url,undefined,undefined,()=>{}); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep,rep); t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=maxAniso; return t; }
+// applique diffuse/normal/roughness(+metal,+ao bakée) réels sur un matériau existant
+function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE+slug+'/'+slug+'_';
+  material.map=loadTex(b+'diff_'+res+'.jpg',true,rep);
+  material.normalMap=loadTex(b+'nor_gl_'+res+'.jpg',false,rep); material.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  material.roughnessMap=loadTex(b+'rough_'+res+'.jpg',false,rep);
+  if(opt.metal){ material.metalnessMap=loadTex(b+'metal_'+res+'.jpg',false,rep); }
+  if(opt.ao){ material.aoMap=loadTex(b+'ao_'+res+'.jpg',false,rep); material.aoMapIntensity=opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color);
+  material.needsUpdate=true; return material; }
+// duplique le canal UV pour permettre l'aoMap (utilise uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+// métal usiné texturé (plaque métal brossé CC0) — bloc, culasse, carter
+function pbrMetal(slug,res,color,opt={}){ const m=new THREE.MeshStandardMaterial({color, roughness:0.5, metalness:0.9, envMapIntensity:1.35});
+  applyPBR(m,slug,res,Object.assign({metal:true,ao:true},opt)); return m; }
+// tache d'ombre de contact douce (occlusion visible même en rendu logiciel)
+function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,14,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.26)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
+// établi en bois usé (planches CC0) — décor d'atelier, hors interaction
+function buildWorkbench(){ const g=new THREE.Group(); g.position.set(0,0,-9.5); scene.add(g);
+  const topMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.8,metalness:0.0,envMapIntensity:0.5});
+  applyPBR(topMat,'worn_planks','1k',{repeat:3,normal:1.1,ao:true});
+  const topGeo=new THREE.BoxGeometry(11,0.35,2.4); enableAO(topGeo);
+  const top=new THREE.Mesh(topGeo, topMat); top.position.y=0.0; top.castShadow=true; top.receiveShadow=true; g.add(top);
+  const legMat=metal(0x2a2f3a,0.55,0.7);
+  [[-5,-1],[5,-1],[-5,1],[5,1]].forEach(([lx,lz])=>{ const leg=new THREE.Mesh(new THREE.BoxGeometry(0.28,2.4,0.28), legMat); leg.position.set(lx,-1.2,lz*0.9); leg.castShadow=true; g.add(leg); });
+  const rail=new THREE.Mesh(new THREE.BoxGeometry(10.4,0.16,0.16), legMat); rail.position.set(0,-2.0,-0.9); g.add(rail); }
+
+/* ============================================================
+   CONSTRUCTION DU MOTEUR
+   ============================================================ */
+function reg(mesh, part, anchor){ mesh.userData.part=part; parts.push(mesh); if(anchor) mesh.userData.anchor=anchor; }
+
+function buildEngine(){
+  engineGroup=new THREE.Group(); scene.add(engineGroup);
+
+  // ---- bloc-cylindres (fonte usinée : plaque métal brossé PBR) ----
+  const blockGeo=new THREE.BoxGeometry(NC*DX+1.0, 3.0, 3.0); enableAO(blockGeo);
+  blockMesh=new THREE.Mesh(blockGeo, pbrMetal('metal_plate','1k',0x5c636f,{repeat:2,normal:0.85,aoInt:0.9}));
+  blockMesh.material.transparent=true; blockMesh.material.opacity=1; blockMesh.position.set(0, 2.1, 0);
+  blockMesh.castShadow=true; blockMesh.receiveShadow=true; engineGroup.add(blockMesh);
+  reg(blockMesh, 'bloc', new THREE.Vector3(-(NC*DX)/2-0.2, 2.1, 1.5));
+  // ailettes latérales (chemises d'eau) déco
+  for(let s=-1;s<=1;s+=2){ const fin=new THREE.Mesh(new THREE.BoxGeometry(NC*DX+1.0,2.4,0.08), metal(0x3a4256,0.6,0.5)); fin.position.set(0,2.1,s*1.53); fin.material.transparent=true; engineGroup.add(fin); fin.userData.blockPart=true; }
+
+  // ---- culasse (alu brossé usiné : plaque métal 02 PBR) ----
+  const headGeo=new THREE.BoxGeometry(NC*DX+1.0, 1.15, 3.0); enableAO(headGeo);
+  headMesh=new THREE.Mesh(headGeo, pbrMetal('metal_plate_02','1k',0x71788a,{repeat:2,normal:0.8}));
+  headMesh.position.set(0, 4.15, 0); headMesh.castShadow=true; engineGroup.add(headMesh);
+  headMesh.material.transparent=true;
+  reg(headMesh, 'culasse', new THREE.Vector3((NC*DX)/2+0.2, 4.15, 0));
+  // cache-culbuteurs (couvercle)
+  const cover=new THREE.Mesh(new THREE.BoxGeometry(NC*DX+0.4, 0.5, 2.2), paint(0x5a637a,0.35));
+  cover.position.set(0,4.95,0); cover.castShadow=true; engineGroup.add(cover); cover.userData.headPart=true;
+
+  // ---- carter d'huile (tôle emboutie : plaque métal 02 PBR) ----
+  const panGeo=new THREE.BoxGeometry(NC*DX+0.2, 1.1, 2.4); enableAO(panGeo);
+  panMesh=new THREE.Mesh(panGeo, pbrMetal('metal_plate_02','1k',0x444c5c,{repeat:2,normal:0.7,aoInt:0.9}));
+  panMesh.position.set(0,0.15,0); panMesh.castShadow=true; engineGroup.add(panMesh);
+  reg(panMesh, 'carter', new THREE.Vector3(0,0.15,-1.5));
+
+  // ---- vilebrequin (groupe tournant) ----
+  crankGroup=new THREE.Group(); crankGroup.position.set(0, CRANK_Y+0.6, 0); engineGroup.add(crankGroup);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.34, NC*DX+1.4, 24), metal(0xb6bccb,0.2,1));
+  shaft.rotation.z=Math.PI/2; crankGroup.add(shaft); reg(shaft,'vilebrequin', new THREE.Vector3(-(NC*DX)/2-0.9, CRANK_Y+0.6, 0));
+  for(let i=0;i<NC;i++){ const x=cylX(i); const a=MOTION_PH[i];
+    // manetons + contrepoids (décalés selon le calage)
+    const pin=new THREE.Group(); pin.rotation.x=a; crankGroup.add(pin);
+    const cw=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,0.4,20,1,false,0,Math.PI), metal(0x9aa0b4,0.35,0.9));
+    cw.rotation.z=Math.PI/2; cw.position.set(x,0,0); pin.add(cw);
+    const throwArm=new THREE.Mesh(new THREE.BoxGeometry(0.5,CRANK_R,0.5), metal(0x8a90a4,0.35,0.9));
+    throwArm.position.set(x, CRANK_R/2, 0); pin.add(throwArm);
+    const journal=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.7,14), metal(0xc2c8d6,0.2,1));
+    journal.rotation.z=Math.PI/2; journal.position.set(x, CRANK_R, 0); pin.add(journal);
+  }
+  // volant moteur (un côté)
+  const fw=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.35,40), metal(0x8f97a9,0.4,0.9));
+  fw.rotation.z=Math.PI/2; fw.position.set(NC*DX/2+0.85, 0, 0); crankGroup.add(fw);
+  // couronne de démarreur
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.5,0.12,10,44), metal(0x6a7182,0.4,0.9));
+  ring.position.copy(fw.position); crankGroup.add(ring);
+  reg(fw,'volant', new THREE.Vector3(NC*DX/2+0.85, 0.6+CRANK_Y, 0));
+
+  // ---- poulie + distribution (courroie) côté opposé ----
+  const cp=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.3,26), metal(0x6a7284,0.4,0.9));
+  cp.rotation.z=Math.PI/2; cp.position.set(-(NC*DX/2+0.85),0,0); crankGroup.add(cp); window._crankPulley=cp;
+
+  // ---- arbre à cames (groupe tournant, ½ régime) ----
+  camGroup=new THREE.Group(); camGroup.position.set(0,4.55,0); engineGroup.add(camGroup);
+  const camShaft=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16, NC*DX+0.8, 16), metal(0xd8a24a,0.28,0.95));
+  camShaft.rotation.z=Math.PI/2; camGroup.add(camShaft);
+  reg(camShaft,'arbrecames', new THREE.Vector3(-(NC*DX)/2-0.2, 4.55, 0));
+  const camLobes=[];
+  for(let i=0;i<NC;i++){ const x=cylX(i);
+    [-0.42,0.42].forEach(dz=>{ const lobe=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.28,0.18,18), metal(0xe0ad55,0.28,0.95));
+      lobe.rotation.z=Math.PI/2; lobe.position.set(x,0,dz); lobe.geometry.translate(0,0.1,0); camGroup.add(lobe); camLobes.push(lobe); });
+  }
+  // poulie de came (côté distribution)
+  const cg=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,0.28,30), metal(0x8a91a3,0.38,0.9));
+  cg.rotation.z=Math.PI/2; cg.position.set(-(NC*DX/2+0.85), 0, 0); camGroup.add(cg); window._camPulley=cg;
+  // courroie de distribution (boucle plate entre les deux poulies)
+  const beltX=-(NC*DX/2+0.85); const c1=new THREE.Vector3(beltX, CRANK_Y+0.6, 0); const c2=new THREE.Vector3(beltX, 4.55, 0);
+  const belt=makeBelt(c1,0.6, c2,1.1); belt.position.x=beltX; engineGroup.add(belt);
+  reg(belt,'distribution', new THREE.Vector3(beltX-0.4, 2.6, 0));
+
+  // ---- cylindres : bore (verre) + piston + bielle + soupapes + bougie/injecteur ----
+  const boreMat=new THREE.MeshStandardMaterial({color:0x9fb0d8, roughness:0.12, metalness:0.1, transparent:true, opacity:0.14, side:THREE.DoubleSide});
+  for(let i=0;i<NC;i++){ const x=cylX(i);
+    const bore=new THREE.Mesh(new THREE.CylinderGeometry(0.82,0.82,2.9,32,1,true), boreMat.clone());
+    bore.position.set(x,3.0,0); engineGroup.add(bore); bore.userData.boreMat=true;
+
+    const pis=new THREE.Mesh(new THREE.CylinderGeometry(0.78,0.78,0.9,28), metal(0xccd2e0,0.24,0.95));
+    pis.position.set(x, BASE_TOP, 0); pis.castShadow=true; engineGroup.add(pis); reg(pis,'piston', new THREE.Vector3(x+1.0, BASE_TOP,0));
+    // segments (déco)
+    for(let s=0;s<3;s++){ const seg=new THREE.Mesh(new THREE.TorusGeometry(0.79,0.03,8,28), metal(0x2a2f3a,0.5,0.8)); seg.rotation.x=Math.PI/2; seg.position.set(x, BASE_TOP+0.32-s*0.16, 0); pis.add(seg); seg.position.sub(pis.position); }
+
+    const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.19, ROD_L, 12), metal(0xbfc5d3,0.3,0.9));
+    rod.userData.baseLen=ROD_L; rod.position.set(x, 1.7, 0); engineGroup.add(rod); reg(rod,'bielle', new THREE.Vector3(x-1.0,1.9,0));
+
+    // gaz dans la chambre (change de couleur selon le temps)
+    const gas=new THREE.Mesh(new THREE.CylinderGeometry(0.74,0.74,1.0,24),
+      new THREE.MeshStandardMaterial({color:0x4a9be8, transparent:true, opacity:0.0, emissive:0x000000, emissiveIntensity:1.4, roughness:1, metalness:0}));
+    gas.position.set(x, BASE_TOP+0.9, 0); engineGroup.add(gas); gasVols.push(gas);
+
+    // soupapes (admission bleu / échappement rouge)
+    const vIn=makeValve(0x3f7fd0); vIn.group.position.set(x-0.34, 4.35, 0.42); engineGroup.add(vIn.group);
+    reg(vIn.stem,'soupape_adm', new THREE.Vector3(x-0.34,4.7,0.42)); valves.push({...vIn, i, type:'in', baseY:4.35});
+    const vEx=makeValve(0xc94a3a); vEx.group.position.set(x+0.34, 4.35, -0.42); engineGroup.add(vEx.group);
+    reg(vEx.stem,'soupape_ech', new THREE.Vector3(x+0.34,4.7,-0.42)); valves.push({...vEx, i, type:'ex', baseY:4.35});
+
+    // bougie (essence) + injecteur (diesel) — l'un ou l'autre visible
+    const plug=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.15,0.7,12), metal(0xe8c24a,0.3,0.9));
+    plug.position.set(x,4.85,0); engineGroup.add(plug); reg(plug,'bougie', new THREE.Vector3(x,5.1,0)); plug.userData.plug=true;
+    const inj=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.12,0.7,12), metal(0x7ec8a0,0.3,0.9));
+    inj.position.set(x,4.85,0); inj.visible=false; engineGroup.add(inj); reg(inj,'injecteur', new THREE.Vector3(x,5.1,0)); inj.userData.inj=true;
+
+    // étincelle / flamme d'allumage
+    const spark=new THREE.Sprite(new THREE.SpriteMaterial({map:sparkTex(), color:0xffd24a, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0}));
+    spark.scale.setScalar(1.5); spark.position.set(x,4.25,0); engineGroup.add(spark); sparks.push({sprite:spark, i});
+
+    // panache d'échappement (sprite fumée)
+    const puff=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex(), color:0x8a8f9c, transparent:true, depthWrite:false, opacity:0}));
+    puff.scale.setScalar(0.9); puff.position.set(x+0.34,4.9,-1.6); engineGroup.add(puff); puffs.push({sprite:puff, i, life:0});
+  }
+
+  // collecteur d'admission (bleu) + échappement (rouge) — pédagogie couleur
+  const intake=makeManifold(0x2f6fc0, 0.55); intake.position.set(0,4.55,1.35); engineGroup.add(intake); intake.userData.manifold='in';
+  const exhaust=makeManifold(0x8a3a2f, -0.55); exhaust.position.set(0,4.4,-1.35); engineGroup.add(exhaust); exhaust.userData.manifold='ex';
+}
+
+function makeValve(color){ const group=new THREE.Group();
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.9,10), metal(0x8a90a0,0.3,0.9)); stem.position.y=0.15; group.add(stem);
+  const head=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.16,0.14,16), metal(color,0.35,0.85)); head.position.y=-0.32; group.add(head);
+  const spring=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.5,10,1,true), new THREE.MeshStandardMaterial({color:0x9aa0b0,roughness:.4,metalness:.8,wireframe:true})); spring.position.y=0.35; group.add(spring);
+  return { group, stem, head }; }
+
+function makeManifold(color, side){ const g=new THREE.Group();
+  const runner=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24, NC*DX+0.4, 16), paint(color,0.45)); runner.rotation.z=Math.PI/2; g.add(runner);
+  for(let i=0;i<NC;i++){ const x=cylX(i); const b=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.15,10,18,Math.PI*0.7), paint(color,0.45)); b.position.set(x,-0.1,0); b.rotation.x=side>0?Math.PI:0; g.add(b); }
+  return g; }
+
+function makeBelt(a, ra, b, rb){
+  // profil plat reliant deux poulies (approx : bande étirée)
+  const shape=new THREE.Shape();
+  shape.moveTo(-0.06, a.y-ra); shape.lineTo(0.06, a.y-ra);
+  shape.lineTo(0.06, b.y+rb); shape.lineTo(-0.06,b.y+rb); shape.lineTo(-0.06,a.y-ra);
+  const geo=new THREE.ExtrudeGeometry(shape, {depth:0.44, bevelEnabled:false});
+  geo.translate(0,0,-0.22);
+  return new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0x1c1e26, roughness:0.75, metalness:0.15}));
+}
+
+function sparkTex(){ const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d');
+  const g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'#fff'); g.addColorStop(.35,'rgba(255,210,90,.75)'); g.addColorStop(1,'rgba(255,150,40,0)');
+  x.fillStyle=g; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); }
+function smokeTex(){ const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d');
+  const g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(180,185,195,.8)'); g.addColorStop(1,'rgba(140,145,155,0)');
+  x.fillStyle=g; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); }
+
+/* ============================================================
+   INTERFACE (panneaux verre)
+   ============================================================ */
+function buildUI(){ const stage=shell.stage;
+  // phase (haut-centre)
+  const ph=document.createElement('div'); ph.className='mo-panel mo-phase';
+  ph.innerHTML='<div class="tag" id="moTag" style="background:#5A6275">—</div><div class="ph" id="moPh">—</div><div class="d" id="moPhD"></div><div class="mo-steps" id="moSteps"></div>';
+  stage.appendChild(ph);
+
+  // panneau gauche : type + télémétrie
+  const left=document.createElement('div'); left.className='mo-panel mo-left';
+  left.innerHTML=`<div>
+      <h3>Type de moteur</h3>
+      <div class="mo-seg" id="moType">
+        <button data-t="essence" aria-pressed="true">Essence</button>
+        <button data-t="diesel" aria-pressed="false">Diesel</button>
+        <button data-t="deuxtemps" aria-pressed="false">2 temps</button>
+      </div>
+    </div>
+    <div>
+      <h3>Télémétrie</h3>
+      <div class="mo-tel">
+        <div class="g"><div class="v" id="moTrpm">850<small> tr/min</small></div><div class="k">Régime</div></div>
+        <div class="g"><div class="v" id="moThp">24<small> ch</small></div><div class="k">Puissance</div></div>
+        <div class="g"><div class="v" id="moTratio">10:1</div><div class="k">Compression</div></div>
+        <div class="g"><div class="v" id="moTcyc">0</div><div class="k">Cycles</div></div>
+      </div>
+      <div class="mo-tach"><i id="moTach"></i></div>
+    </div>`;
+  stage.appendChild(left);
+
+  // barre de contrôle (bas)
+  const c=document.createElement('div'); c.className='mo-panel mo-ctrl';
+  c.innerHTML=`<button class="mo-b primary" id="moPlay">⏸ Arrêter</button>
+    <div class="mo-rpm"><span>Régime <b id="moRpmV">850</b> tr/min</span><input id="moRpm" type="range" min="600" max="7000" step="50" value="850" aria-label="Régime moteur"></div>
+    <button class="mo-b" id="moStep">👣 Pas à pas</button>
+    <button class="mo-b" id="moSlow" aria-pressed="false">🐢 Ralenti</button>
+    <button class="mo-b" id="moCut" aria-pressed="false">✂️ Coupe</button>
+    <button class="mo-b" id="moExp" aria-pressed="false">💥 Éclatée</button>
+    <button class="mo-b" id="moLbl" aria-pressed="false">🏷️ Étiquettes</button>
+    <button class="mo-b" id="moNot">📚 Notions</button>`;
+  stage.appendChild(c);
+
+  // fiche
+  const info=document.createElement('div'); info.className='mo-panel mo-info'; info.id='moInfo'; stage.appendChild(info);
+  // hint
+  const hint=document.createElement('div'); hint.className='mo-hint'; hint.id='moHint'; hint.textContent='Clique une pièce · règle le régime · essaie la Coupe pour voir dedans'; stage.appendChild(hint);
+
+  // events
+  const $=s=>c.querySelector(s);
+  $('#moPlay').onclick=()=>{ playing=!playing; stepping=false; $('#moPlay').textContent=playing?'⏸ Arrêter':'▶ Démarrer'; if(playing){ startEngineSound(); } updateEngineSound(); shell.sound('click'); };
+  $('#moRpm').oninput=e=>{ rpm=+e.target.value; document.getElementById('moRpmV').textContent=rpm; updateEngineSound(); };
+  $('#moStep').onclick=()=>stepOnce();
+  $('#moSlow').onclick=()=>{ slow=!slow; $('#moSlow').setAttribute('aria-pressed',slow); shell.sound('click'); shell.say(slow?"Ralenti activé : suis chaque temps tranquillement.":"Vitesse normale.",'concentre'); };
+  $('#moCut').onclick=()=>{ cutaway=!cutaway; $('#moCut').setAttribute('aria-pressed',cutaway); shell.sound('click'); shell.say(cutaway?"Coupe : le bloc devient transparent, tu vois les pistons dans les cylindres et la couleur du gaz changer à chaque temps.":"Bloc refermé.",'curieux'); };
+  $('#moExp').onclick=()=>{ exploded=!exploded; $('#moExp').setAttribute('aria-pressed',exploded); shell.sound('click'); shell.say(exploded?"Vue éclatée : les organes s'écartent pour montrer comment ils s'emboîtent, de la culasse au vilebrequin.":"Vue assemblée.",'concentre'); };
+  $('#moLbl').onclick=()=>{ labelsOn=!labelsOn; $('#moLbl').setAttribute('aria-pressed',labelsOn); shell.sound('click'); if(!labelsOn) clearLabels(); };
+  $('#moNot').onclick=()=>openNotions();
+
+  // type
+  left.querySelectorAll('#moType button').forEach(b=>b.onclick=()=>{ if(engType===b.dataset.t)return; engType=b.dataset.t; left.querySelectorAll('#moType button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.t===engType)); applyEngineType(); shell.sound('click'); });
+}
+
+/* ============================================================
+   TYPE DE MOTEUR (essence / diesel / 2 temps)
+   ============================================================ */
+function applyEngineType(silent){
+  const E=ENGINES[engType];
+  // borne le régime
+  const slider=document.getElementById('moRpm'); if(slider){ slider.max=E.maxRpm; if(rpm>E.maxRpm){ rpm=E.maxRpm; slider.value=rpm; document.getElementById('moRpmV').textContent=rpm; } }
+  document.getElementById('moTratio') && (document.getElementById('moTratio').textContent=E.ratio);
+  // bougie vs injecteur
+  const diesel=engType==='diesel';
+  parts.forEach(p=>{ if(p.userData.plug) p.visible=!diesel; if(p.userData.inj) p.visible=diesel; });
+  // 2 temps : cache soupapes/cames/culasse haute
+  const twoT=engType==='deuxtemps';
+  valves.forEach(v=>{ v.group.visible=!twoT; });
+  if(camGroup) camGroup.visible=!twoT;
+  updateEngineSound();
+  if(!silent){ const el=document.getElementById('moInfo'); openFiche({ icon:'⚙️', name:E.label, sub:'Type de moteur', color:E.color, descHTML:[E.note], facts:[['Allumage',E.ignite],['Taux de compression',E.ratio],['Régime max','~'+E.maxRpm+' tr/min']], fun:'' }); shell.say(E.note.replace(/<[^>]+>/g,''),'idee'); }
+}
+
+/* ============================================================
+   PAS À PAS
+   ============================================================ */
+function stepOnce(){
+  const period = engType==='deuxtemps' ? Math.PI*2 : Math.PI*4;
+  const seg = engType==='deuxtemps' ? Math.PI : Math.PI; // avance d'un demi-tour = un temps
+  const cyc=((angle % period)+period)%period;
+  const next=Math.ceil((cyc+0.0001)/seg)*seg;
+  targetAngle = angle + (next - cyc);
+  stepping=true; playing=true; document.getElementById('moPlay').textContent='⏸ Arrêter';
+  shell.sound('tick');
+}
+
+/* ============================================================
+   FICHE PÉDAGOGIQUE
+   ============================================================ */
+function openFiche(d){ const el=document.getElementById('moInfo');
+  const facts=(d.facts||[]).map(f=>`<div><span class="k">${f[0]}</span><span class="v">${f[1]}</span></div>`).join('');
+  const body=(d.descHTML||d.desc||[]).map(p=>`<p>${p}</p>`).join('');
+  el.innerHTML=`<div class="mo-hd" style="background:${d.hd||HD_BG}"><div class="sub">${d.sub||''}</div><h2>${d.icon?d.icon+' ':''}${d.name}</h2><button class="mo-x" aria-label="Fermer">×</button></div>
+    <div class="mo-body">${facts?`<div class="mo-facts">${facts}</div>`:''}${body}${d.fun?`<div class="mo-fun">💡 ${d.fun}</div>`:''}</div>`;
+  el.classList.add('show'); el.querySelector('.mo-x').onclick=()=>el.classList.remove('show');
+}
+function openNotions(){ const el=document.getElementById('moInfo');
+  el.innerHTML=`<div class="mo-hd" style="background:${HD_BG}"><div class="sub">Encyclopédie</div><h2>📚 Notions moteur</h2><button class="mo-x" aria-label="Fermer">×</button></div>
+    <div class="mo-body"><div class="mo-chips">${NOTIONS.map(n=>`<button data-id="${n.id}">${n.name}</button>`).join('')}</div></div>`;
+  el.classList.add('show'); el.querySelector('.mo-x').onclick=()=>el.classList.remove('show'); shell.sound('click');
+  el.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{ const n=NOTIONS.find(x=>x.id===b.dataset.id); openFiche({icon:'📖',name:n.name,sub:'Notion moteur',desc:n.desc,fun:''}); shell.sound('pop'); });
+}
+
+/* ============================================================
+   INTERACTION SOURIS
+   ============================================================ */
+function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer,camera); const vis=parts.filter(p=>p.visible!==false); const h=raycaster.intersectObjects(vis,false); if(!h.length)return null; let o=h[0].object; return o.userData.part?o:null; }
+function onMove(e){ setP(e); const o=pick(); renderer.domElement.style.cursor=o?'pointer':'grab'; hovered=o; }
+function onDown(e){ setP(e); const o=pick(); if(!o)return; const k=o.userData.part; const d=PARTS[k]; if(d){ openFiche(d); shell.say(d.desc[0].replace(/<[^>]+>/g,''),'concentre'); shell.sound('pop'); if(course) checkFind(k); } }
+
+/* ============================================================
+   MODES
+   ============================================================ */
+function startMode(m){ mode=m; startEngineSound();
+  if(m==='cours'){ startCourse(); }
+  else { setDetente(); }
+}
+function setDetente(){ clearCourse(); const h=document.getElementById('moHint'); if(h)h.style.display=''; shell.setLevel && shell.setLevel('libre'); }
+
+/* --------- MODE COURS --------- */
+let course=null;
+const COURSE=[
+  { type:'qcm', q:"Dans quel ordre se déroule le cycle à 4 temps ?", say:"Souviens-toi : d'abord le mélange entre, puis on le comprime…",
+    options:["Admission → Compression → Explosion → Échappement","Explosion → Admission → Échappement → Compression","Compression → Admission → Explosion → Échappement","Échappement → Explosion → Compression → Admission"], correct:0,
+    ok:"Parfait ! Admission, Compression, Explosion, Échappement : 4 temps, 2 tours de vilebrequin." },
+  { type:'find', key:'bielle', ask:"Repère et clique la <b>bielle</b>.", say:"La bielle relie le piston au vilebrequin. Passe en coupe si besoin.", ok:"Exact ! La bielle transmet la poussée du piston au vilebrequin." },
+  { type:'qcm', q:"Quelle pièce ouvre les soupapes ?", say:"C'est une pièce qui tourne deux fois moins vite que le vilebrequin.",
+    options:["L'arbre à cames","La bougie","Le volant moteur","Le carter"], correct:0,
+    ok:"Oui ! Les cames de l'arbre à cames poussent les soupapes au bon moment." },
+  { type:'find', key:'vilebrequin', ask:"Clique le <b>vilebrequin</b>.", say:"C'est l'axe horizontal en bas qui transforme le va-et-vient en rotation.", ok:"Bravo ! Le vilebrequin, cœur de la transmission du mouvement." },
+  { type:'qcm', q:"Combien de tours de vilebrequin pour un cycle 4 temps complet ?", say:"Chaque piston monte et descend deux fois durant le cycle.",
+    options:["2 tours","1 tour","4 tours","½ tour"], correct:0,
+    ok:"Exact ! 2 tours de vilebrequin = 4 temps = 1 cycle complet." },
+  { type:'find', key:'bougie', ask:"Clique la <b>bougie d'allumage</b>.", say:"Repasse en essence si besoin : la bougie est au sommet, au centre du cylindre.", ok:"Oui ! La bougie crée l'étincelle qui enflamme le mélange (moteur essence).", mode:'essence' },
+  { type:'qcm', q:"Qu'est-ce qui distingue un diesel d'un moteur essence ?", say:"L'un a une bougie, l'autre s'enflamme grâce à la chaleur de la compression.",
+    options:["Le diesel s'allume par compression, sans bougie","Le diesel a plus de cylindres","Le diesel n'a pas de pistons","Le diesel tourne à l'envers"], correct:0,
+    ok:"Parfait ! Le diesel comprime tellement l'air qu'il devient brûlant : le gazole s'enflamme tout seul." },
+  { type:'find', key:'arbrecames', ask:"Pour finir, clique l'<b>arbre à cames</b>.", say:"L'axe doré tout en haut, avec ses bosses (les cames).", ok:"Excellent ! Tu maîtrises la distribution." },
+];
+function startCourse(){ clearCourse(); cutaway=true; labelsOn=true; document.getElementById('moCut').setAttribute('aria-pressed',true); document.getElementById('moLbl').setAttribute('aria-pressed',true);
+  const h=document.getElementById('moHint'); if(h)h.style.display='none';
+  course={ idx:0, score:0, total:COURSE.length, step:null }; shell.setScore(0); shell.setProgress(0); shell.setLevel('1/'+COURSE.length);
+  showStep();
+}
+function showStep(){ if(!course)return; if(course.idx>=course.total){ winCourse(); return; }
+  const st=COURSE[course.idx]; course.step=st;
+  if(st.mode && st.mode!==engType){ engType=st.mode; document.querySelectorAll('#moType button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.t===engType)); applyEngineType(true); }
+  shell.setLevel((course.idx+1)+'/'+course.total); shell.setProgress(course.idx/course.total);
+  let q=document.getElementById('moQuiz'); if(!q){ q=document.createElement('div'); q.className='mo-panel mo-quiz'; q.id='moQuiz'; shell.stage.appendChild(q); }
+  if(st.type==='find'){
+    q.innerHTML=`<span class="qn">${course.idx+1}/${course.total}</span><div class="qt">🎯 Trouve la pièce</div><div style="font-size:13px">${st.ask}</div>`;
+    shell.say(st.say,'curieux');
+  } else {
+    const opts=st.options.map((o,i)=>`<button class="mo-qo" data-i="${i}">${o}</button>`).join('');
+    q.innerHTML=`<span class="qn">${course.idx+1}/${course.total}</span><div class="qt">${st.q}</div><div class="mo-qrow">${opts}</div>`;
+    q.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>checkQcm(+b.dataset.i));
+    shell.say(st.say,'curieux');
+  }
+}
+function checkFind(key){ if(!course||!course.step||course.step.type!=='find')return; const st=course.step;
+  if(key===st.key){ correctStep(st.ok); } else { shell.sound('bad'); shell.say("Pas celle-ci — c'est "+(PARTS[key]?PARTS[key].name.toLowerCase():'une autre pièce')+". Relis la consigne et réessaie.",'rassurant'); } }
+function checkQcm(i){ if(!course||!course.step)return; const st=course.step;
+  if(i===st.correct){ correctStep(st.ok); } else { shell.sound('bad'); shell.say("Presque ! Réfléchis encore et retente — pas de panique.",'rassurant'); } }
+function correctStep(msg){ course.score++; shell.sound('good'); shell.addScore(150); shell.say(msg,'celebration'); shell.toast('✅ Bonne réponse ! +150');
+  course.idx++; shell.setProgress(course.idx/course.total); setTimeout(showStep,1250); }
+function winCourse(){ const q=document.getElementById('moQuiz'); if(q)q.remove(); const sc=course.score; const st=sc>=course.total?3:sc>=course.total-2?2:1;
+  shell.win({ score:sc*150, stars:st, title:`${sc}/${course.total} — mécanique maîtrisée !`, learned:shell.cfg.learned,
+    buddy: st===3?"Sans faute ! Tu connais le moteur du carter au moindre piston.":"Bien joué — relis les fiches et retente pour le sans-faute !",
+    onNext:()=>{ shell.setScore(0); startCourse(); }, nextLabel:'Rejouer' });
+  course=null;
+}
+function clearCourse(){ const q=document.getElementById('moQuiz'); if(q)q.remove(); course=null; }
+
+/* ============================================================
+   SON MOTEUR (WebAudio)
+   ============================================================ */
+function startEngineSound(){ if(ac||shell.muted)return; try{
+  ac=new (window.AudioContext||window.webkitAudioContext)(); engGain=ac.createGain(); engGain.gain.value=0; engGain.connect(ac.destination);
+  engOsc=ac.createOscillator(); engOsc.type='sawtooth'; engOsc.frequency.value=60;
+  engLp=ac.createBiquadFilter(); engLp.type='lowpass'; engLp.frequency.value=520;
+  engOsc.connect(engLp); engLp.connect(engGain); engOsc.start(); updateEngineSound();
+}catch(e){} }
+function updateEngineSound(){ if(!ac||!engOsc)return;
+  const cylPerRev = engType==='deuxtemps' ? NC : NC/2;
+  const f=Math.max(38, rpm/60*cylPerRev*1.0);
+  engOsc.frequency.setTargetAtTime(f, ac.currentTime, .07);
+  engOsc.type = engType==='diesel' ? 'square' : 'sawtooth';
+  engGain.gain.setTargetAtTime(playing&&!shell.muted?0.16:0, ac.currentTime, .12);
+}
+
+/* ============================================================
+   THÈME / RESIZE / CLAVIER
+   ============================================================ */
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  if(renderer) renderer.setClearColor(dark?0x080b13:0x11151f,1);
+  if(bloom) bloom.strength=dark?0.72:0.55;
+  if(scene) scene.backgroundIntensity=dark?0.4:0.55;
+}
+function onResize(){ const s=shell.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
+function onKey(e){ if(e.target&&e.target.tagName==='INPUT')return; if(e.key===' '){ const b=document.getElementById('moPlay'); if(b){ b.click(); e.preventDefault(); } } }
+
+/* ============================================================
+   ÉTIQUETTES 3D
+   ============================================================ */
+const LABELS={ vilebrequin:'🌀 Vilebrequin', arbrecames:'📐 Arbre à cames', piston:'🔩 Piston', bielle:'🦴 Bielle', bougie:'⚡ Bougie', injecteur:'💉 Injecteur', volant:'⚙️ Volant', distribution:'⛓️ Distribution' };
+const labelEls={};
+function clearLabels(){ Object.values(labelEls).forEach(e=>e.style.display='none'); }
+function updateLabels(){ if(!labelsOn){ clearLabels(); return; } const stage=shell.stage; const seen={};
+  const hidden=p=>p.visible===false||(p.parent&&p.parent.visible===false)||(p.parent&&p.parent.parent&&p.parent.parent.visible===false);
+  parts.forEach(p=>{ const k=p.userData.part; if(!LABELS[k]||seen[k]||hidden(p))return; seen[k]=true;
+    const anc=p.userData.anchor||p.position; const wp=anc.clone(); engineGroup.localToWorld(wp);
+    const v=wp.project(camera);
+    let el=labelEls[k]; if(!el){ el=document.createElement('div'); el.className='mo-label'; stage.appendChild(el); labelEls[k]=el; }
+    el.textContent=LABELS[k];
+    if(v.z>1){ el.style.display='none'; return; }
+    el.style.display='block'; el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight)+'px';
+  });
+  // masque les étiquettes non rafraîchies (pièces cachées par le type de moteur)
+  Object.keys(labelEls).forEach(k=>{ if(!seen[k]) labelEls[k].style.display='none'; });
+}
+
+/* ============================================================
+   BOUCLE D'ANIMATION
+   ============================================================ */
+function animate(){ requestAnimationFrame(animate); const raw=clock.getDelta(); const dt=Math.min(0.05,raw);
+  const E=ENGINES[engType];
+  // avance du vilebrequin
+  if(playing){
+    if(stepping){
+      const d=targetAngle-angle; const spd=dt*7;
+      if(Math.abs(d)<=spd){ angle=targetAngle; stepping=false; playing=false; document.getElementById('moPlay').textContent='▶ Démarrer'; updateEngineSound(); }
+      else angle+=Math.sign(d)*spd;
+    } else {
+      const w=(rpm/60)*Math.PI*2*(slow?0.11:1)*(REDUCED?0.45:1);
+      angle+=dt*w;
+    }
+  }
+  if(angle>1e7) angle=((angle%(Math.PI*4))+Math.PI*4);
+
+  // lerp éclaté / coupe
+  expAmt+=((exploded?1:0)-expAmt)*Math.min(1,dt*5);
+  cutAmt+=((cutaway?1:0)-cutAmt)*Math.min(1,dt*5);
+  applyExplode();
+  applyCut();
+
+  updateEngine(dt);
+  updateLabels();
+  controls.update(); composer.render();
+}
+
+function applyExplode(){ const e=expAmt;
+  headMesh.position.y=4.15+e*2.2;
+  camGroup.position.y=4.55+e*3.4;
+  panMesh.position.y=0.15-e*1.4;
+  crankGroup.position.y=(CRANK_Y+0.6)-e*0.9;
+  // couvercle / ailettes suivent la culasse/bloc
+  engineGroup.children.forEach(ch=>{ if(ch.userData.headPart) ch.position.y=4.95+e*2.6; if(ch.userData.manifold==='in') ch.position.z=1.35+e*1.4; if(ch.userData.manifold==='ex') ch.position.z=-1.35-e*1.4; });
+}
+function applyCut(){ const c=cutAmt;
+  blockMesh.material.opacity=1-0.9*c;
+  headMesh.material.opacity=1-0.72*c;
+  engineGroup.children.forEach(ch=>{ if(ch.userData.headPart&&ch.material){ ch.material.transparent=true; ch.material.opacity=1-0.7*c; } if(ch.userData.blockPart&&ch.material){ ch.material.transparent=true; ch.material.opacity=1-0.85*c; } });
+}
+
+function valveLift(cycle, type){ // cycle in [0,4π)
+  // admission ouvre ~ [ -0.2π , π ] ; échappement ~ [3π-0.15π , 4π+0.2π]
+  const s=Math.PI;
+  if(type==='in'){ const a=cycle; if(a<s*1.05){ return Math.sin(Math.min(1,a/s)*Math.PI)*0.34; } if(a>Math.PI*4-0.15*s){ return Math.sin((a-(4*Math.PI-0.15*s))/(0.15*s)*Math.PI*0.5)*0.12; } return 0; }
+  else { const a=cycle; if(a>3*s-0.1*s){ return Math.sin(Math.min(1,(a-3*s)/s)*Math.PI)*0.34; } return 0; }
+}
+
+function updateEngine(dt){
+  const twoT=engType==='deuxtemps';
+  updatePistons();
+  crankGroup.rotation.x=angle;
+  if(!twoT && camGroup) camGroup.rotation.x=angle/2;
+  updateTelemetry();
+  updatePhase();
+}
+
+/* pistons : on retrouve les meshes via parts (part==='piston' dans l'ordre de création) */
+let _pisMeshes=null, _rodMeshes=null;
+function collectMeshes(){ if(_pisMeshes)return; _pisMeshes=parts.filter(p=>p.userData.part==='piston'); _rodMeshes=parts.filter(p=>p.userData.part==='bielle'); }
+function updatePistons(){ collectMeshes();
+  const up=new THREE.Vector3(0,1,0);
+  const twoT=engType==='deuxtemps'; const period=twoT?Math.PI*2:Math.PI*4;
+  for(let i=0;i<NC;i++){ const x=cylX(i); const th=angle+MOTION_PH[i];
+    const s=CRANK_R*Math.sin(th);
+    const py=(CRANK_Y+0.6)+CRANK_R*Math.cos(th)+Math.sqrt(Math.max(0.0001, ROD_L*ROD_L - s*s)) + 0.55;
+    const pis=_pisMeshes[i]; if(!pis)continue;
+    pis.position.set(x, py, 0);
+    // crank pin (monde local engineGroup)
+    const pinY=(CRANK_Y+0.6)+CRANK_R*Math.cos(th); const pinZ=CRANK_R*Math.sin(th);
+    const a=new THREE.Vector3(x, py-0.5, 0); const b=new THREE.Vector3(x, pinY, pinZ);
+    const rod=_rodMeshes[i]; if(rod){ const dir=new THREE.Vector3().subVectors(a,b); const len=dir.length();
+      rod.position.copy(a).add(b).multiplyScalar(0.5); rod.scale.set(1, len/ROD_L, 1); rod.quaternion.setFromUnitVectors(up, dir.normalize()); }
+    // gaz dans la chambre
+    const gas=gasVols[i]; if(gas){ const cycle=((angle+CYCLE_OFF[i])%period+period)%period;
+      const sIdx = twoStrokeIndex(cycle);
+      const info=(engType==='deuxtemps'?STROKES_2T:STROKES)[sIdx];
+      gas.material.color.setHex(info.gas);
+      const chamberTop=5.05; const topOfPiston=py+0.45; const h=Math.max(0.12, chamberTop-topOfPiston);
+      gas.scale.y=h; gas.position.set(x, (chamberTop+topOfPiston)/2, 0);
+      let op=0.0;
+      if(sIdx=== (engType==='deuxtemps'?1:2)) op=0.42; // explosion
+      else if(sIdx===(engType==='deuxtemps'?0:1)) op=0.22; // compression
+      else op=0.14;
+      gas.material.opacity=op*(0.55+0.45*cutAmt);
+      gas.material.emissiveIntensity = (sIdx===(engType==='deuxtemps'?1:2))?1.8:0.2;
+      gas.material.emissive.setHex((sIdx===(engType==='deuxtemps'?1:2))?info.gas:0x000000);
+    }
+  }
+  // soupapes
+  valves.forEach(v=>{ if(twoT){ return; } const cycle=((angle+CYCLE_OFF[v.i])%(Math.PI*4)+Math.PI*4)%(Math.PI*4);
+    const lift=valveLift(cycle, v.type); v.group.position.y=v.baseY - lift; });
+  // étincelle / auto-allumage
+  const isTwo=engType==='deuxtemps';
+  let anyFire=false;
+  sparks.forEach(sp=>{ const per=isTwo?Math.PI*2:Math.PI*4; const cycle=((angle+CYCLE_OFF[sp.i])%per+per)%per;
+    const fireStart=isTwo?Math.PI:2*Math.PI; const inFire=cycle>=fireStart && cycle<fireStart+0.55;
+    const spr=sp.sprite;
+    if(inFire && playing){ const k=1-(cycle-fireStart)/0.55; spr.material.opacity=Math.max(spr.material.opacity, 0.5+0.5*k*Math.abs(Math.sin(angle*30))); spr.material.color.setHex(engType==='diesel'?0xff8a2a:0xffd24a); anyFire=true;
+      // panache d'échappement au temps suivant
+    } else { spr.material.opacity=Math.max(0, spr.material.opacity-0.08); }
+  });
+  // glow global
+  if(window._glow) window._glow.intensity += ((anyFire&&playing?2.4:0)-window._glow.intensity)*0.3;
+  // panaches échappement
+  puffs.forEach(pf=>{ const per=Math.PI*4; const cycle=((angle+CYCLE_OFF[pf.i])%per+per)%per;
+    if(!isTwo && cycle>3*Math.PI && cycle<3*Math.PI+0.3 && playing && pf.life<=0){ pf.life=1; }
+    const spr=pf.sprite;
+    if(pf.life>0){ pf.life-=0.02; spr.material.opacity=Math.max(0,pf.life*0.5); spr.position.y=4.9+(1-pf.life)*1.2; spr.scale.setScalar(0.7+(1-pf.life)*1.1); }
+    else spr.material.opacity=Math.max(0,spr.material.opacity-0.04);
+  });
+  // survol (surbrillance douce)
+  parts.forEach(p=>{ if(p.material&&p.material.emissive&&!gasVols.includes(p)){ p.material.emissive.setHex(p===hovered?0x2a2410:0x000000); } });
+}
+
+function twoStrokeIndex(cycle){ if(engType==='deuxtemps'){ return Math.floor(cycle/Math.PI)%2; } return Math.floor(cycle/Math.PI)%4; }
+
+function updateTelemetry(){ const E=ENGINES[engType];
+  document.getElementById('moTrpm') && (document.getElementById('moTrpm').innerHTML=(playing?rpm:0)+'<small> tr/min</small>');
+  const hp=Math.round(rpm*E.hp*(playing?1:0)); document.getElementById('moThp') && (document.getElementById('moThp').innerHTML=hp+'<small> ch</small>');
+  const tach=document.getElementById('moTach'); if(tach) tach.style.width=(8+ (rpm/E.maxRpm)*92)+'%';
+  const period=engType==='deuxtemps'?Math.PI*2:Math.PI*4; const nc=Math.floor(angle/period);
+  if(nc!==cyclesDone){ cyclesDone=nc; const el=document.getElementById('moTcyc'); if(el) el.textContent=cyclesDone; }
+}
+
+function updatePhase(){ const twoT=engType==='deuxtemps'; const per=twoT?Math.PI*2:Math.PI*4;
+  const cycle=((angle+CYCLE_OFF[0])%per+per)%per; const arr=twoT?STROKES_2T:STROKES; const idx=Math.floor(cycle/Math.PI)%arr.length; const S=arr[idx];
+  const tag=document.getElementById('moTag'), ph=document.getElementById('moPh'), phd=document.getElementById('moPhD'), steps=document.getElementById('moSteps');
+  if(tag){ tag.textContent=S.tag; tag.style.background=S.c; }
+  if(ph) ph.textContent=S.n;
+  if(phd) phd.textContent=S.d;
+  if(steps){ if(steps.children.length!==arr.length){ steps.innerHTML=arr.map(()=>'<i></i>').join(''); }
+    Array.from(steps.children).forEach((el,k)=>{ el.className=k===idx?'now':(k<idx?'done':''); }); }
+  if(idx!==lastFocusStroke){ lastFocusStroke=idx; if(playing&&!slow){ shell.sound('tick'); } }
+}
+</script>
+</body>
+</html>

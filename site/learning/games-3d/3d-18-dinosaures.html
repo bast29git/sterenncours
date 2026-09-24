@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Dinosaures</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .dn-era { position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:20; width:min(440px,92%); background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); backdrop-filter:blur(10px); padding:12px 16px; }
+  .dn-eralbl { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .dn-eraname { font-family:var(--font-title); font-weight:800; font-size:17px; }
+  .dn-erayear { font-family:var(--font-data); font-size:12px; color:var(--fg-muted); }
+  .dn-eraslider { width:100%; accent-color:var(--brand-amber); }
+  .dn-marks { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--fg-muted); margin-top:2px; }
+  .dn-marks span { cursor:pointer; padding:2px 4px; border-radius:5px; transition:.15s; }
+  .dn-marks span:hover { color:var(--fg); background:var(--accent-weak); }
+  .dn-tools { position:absolute; left:14px; bottom:16px; z-index:20; display:flex; flex-direction:column; gap:8px; }
+  .dn-tb { font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:44px; padding:9px 14px; border-radius:12px; border:1px solid var(--border); background:color-mix(in srgb,var(--surface) 88%,transparent); color:var(--fg); cursor:pointer; backdrop-filter:blur(8px); text-align:left; transition:.15s; }
+  .dn-tb:hover { border-color:var(--accent); }
+  .dn-tb:focus-visible { outline:none; box-shadow:var(--ring); }
+  .dn-tb[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .dn-tb.bone[aria-pressed="true"] { background:#c9bfa6; border-color:#c9bfa6; color:#2a2114; }
+  .dn-tb.danger[aria-pressed="false"] { color:var(--err-fg); }
+  .dn-tb:disabled { opacity:.4; cursor:not-allowed; }
+  .dn-info { position:absolute; right:14px; top:14px; width:300px; max-height:calc(100% - 28px); overflow-y:auto; z-index:20; background:color-mix(in srgb,var(--surface) 94%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-lg); backdrop-filter:blur(10px); transform:translateX(120%); transition:transform .4s cubic-bezier(.22,1,.36,1); }
+  .dn-info.show { transform:none; }
+  .dn-info .hd { padding:14px 16px; color:#fff; position:relative; border-radius:16px 16px 0 0; }
+  .dn-info .hd h2 { font-family:var(--font-title); font-weight:800; font-size:20px; margin:0; text-shadow:0 1px 6px rgba(0,0,0,.4); }
+  .dn-info .hd .s { font-family:var(--font-mono); font-size:11px; opacity:.94; text-shadow:0 1px 4px rgba(0,0,0,.4); display:flex; align-items:center; gap:6px; }
+  .dn-info .x { position:absolute; top:10px; right:10px; width:30px; height:30px; border:none; border-radius:8px; background:rgba(255,255,255,.24); color:#fff; cursor:pointer; font-size:17px; }
+  .dn-info .bd { padding:12px 16px 16px; }
+  .dn-info .row { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; gap:10px; }
+  .dn-info .row .k { color:var(--fg-muted); }
+  .dn-info .row .v { text-align:right; font-weight:600; }
+  .dn-info .bar { height:7px; border-radius:5px; background:var(--surface-2); overflow:hidden; margin:2px 0 10px; }
+  .dn-info .bar i { display:block; height:100%; border-radius:5px; background:linear-gradient(90deg,var(--brand-teal),var(--brand-amber)); }
+  .dn-info .fact { font-size:12.5px; line-height:1.55; border-top:1px solid var(--border); padding-top:10px; margin-top:8px; color:var(--fg-muted); }
+  .dn-diet { display:inline-block; font-family:var(--font-mono); font-size:10px; font-weight:700; padding:3px 9px; border-radius:999px; }
+  .dn-chips { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 8px; }
+  .dn-chip { font-family:var(--font-mono); font-size:10px; font-weight:700; padding:3px 9px; border-radius:999px; background:var(--surface-2); color:var(--fg-muted); border:1px solid var(--border); }
+  .dn-sci { border-top:1px solid var(--border); margin-top:10px; padding-top:10px; }
+  .dn-sci h4 { font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 7px; }
+  .dn-conf { display:flex; gap:8px; font-size:11.5px; line-height:1.4; margin-bottom:7px; }
+  .dn-conf .dot { width:10px; height:10px; border-radius:999px; flex:none; margin-top:3px; box-shadow:0 0 0 3px color-mix(in srgb,currentColor 22%,transparent); }
+  .dn-conf .c1 { color:#2fa46a; } .dn-conf .c2 { color:#d99a2b; } .dn-conf .c3 { color:#8a7bd8; }
+  .dn-conf b { color:var(--fg); }
+  .dn-skelbtn { width:100%; min-height:44px; margin-top:10px; border:1px solid var(--border); border-radius:11px; background:#efe7d4; color:#3a2f1c; font-weight:700; font-size:12.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .dn-skelbtn[data-on="1"] { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .dn-hint { position:absolute; bottom:16px; right:14px; z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 80%,transparent); border:1px solid var(--border); padding:6px 12px; border-radius:999px; pointer-events:none; }
+  .dn-quiz { position:absolute; top:80px; left:50%; transform:translateX(-50%); z-index:22; background:var(--accent); color:#fff; padding:12px 18px; border-radius:14px; box-shadow:var(--shadow-lg); font-weight:700; font-size:14px; display:flex; flex-direction:column; gap:8px; align-items:center; max-width:92%; text-align:center; }
+  .dn-qo { font-family:var(--font-body); font-weight:700; font-size:13px; min-height:44px; padding:0 14px; border-radius:10px; border:none; background:rgba(255,255,255,.2); color:#fff; cursor:pointer; margin:0 3px; transition:.12s; }
+  .dn-qo:hover { background:rgba(255,255,255,.34); }
+  .dn-flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:30; }
+  .dn-tour { position:absolute; left:14px; top:88px; width:300px; max-width:84vw; z-index:21; background:color-mix(in srgb,var(--surface) 92%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-lg); backdrop-filter:blur(10px); overflow:hidden; transform:translateX(-130%); transition:transform .5s cubic-bezier(.22,1,.36,1); }
+  .dn-tour.show { transform:none; }
+  .dn-tour .thd { padding:12px 16px 10px; color:#fff; background:linear-gradient(135deg,#7a5a3a,#3a2818); }
+  .dn-tour .tph { font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; opacity:.9; }
+  .dn-tour .tti { font-family:var(--font-title); font-weight:800; font-size:17px; margin:2px 0 0; }
+  .dn-tour .tbody { padding:11px 16px 13px; } .dn-tour .tbody p { font-size:12.5px; line-height:1.55; margin:0 0 10px; color:var(--fg); }
+  .dn-tour .trow { display:flex; gap:8px; } .dn-tour .tn { flex:1; min-height:44px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer; }
+  .dn-tour .tq { min-height:44px; padding:0 12px; border:1px solid var(--border); border-radius:10px; background:transparent; color:var(--fg-muted); font-size:12px; cursor:pointer; }
+  /* barre de sélection d'espèces (mode Détente) */
+  .dn-species { position:absolute; left:50%; bottom:16px; transform:translateX(-50%); z-index:19; display:flex; gap:7px; max-width:min(680px,94vw); overflow-x:auto; padding:7px 9px; background:color-mix(in srgb,var(--surface) 82%,transparent); border:1px solid var(--border); border-radius:999px; backdrop-filter:blur(8px); box-shadow:var(--shadow-md); scrollbar-width:none; }
+  .dn-species::-webkit-scrollbar { display:none; }
+  .dn-sp { flex:none; min-height:38px; padding:0 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--fg); font-family:var(--font-body); font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px; transition:.14s; }
+  .dn-sp:hover { border-color:var(--accent); }
+  .dn-sp[aria-pressed="true"] { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .dn-sp .pip { width:8px; height:8px; border-radius:999px; }
+  .dn-sp .pip.carn { background:var(--brand-red); } .dn-sp .pip.herb { background:var(--brand-teal); }
+  /* étiquettes 3D flottantes */
+  .dn-label { position:absolute; transform:translate(-50%,-100%); z-index:16; font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 78%,transparent); border:1px solid var(--border); padding:2px 8px 3px; border-radius:999px; pointer-events:none; white-space:nowrap; backdrop-filter:blur(4px); box-shadow:var(--shadow-sm); opacity:0; transition:opacity .25s; display:flex; align-items:center; gap:5px; }
+  .dn-label.on { opacity:1; }
+  .dn-label .pip { width:8px; height:8px; border-radius:999px; flex:none; }
+  .dn-label .pip.carn { background:var(--brand-red); } .dn-label .pip.herb { background:var(--brand-teal); }
+  .dn-legend { position:absolute; right:14px; bottom:56px; z-index:18; display:flex; gap:12px; font-family:var(--font-mono); font-size:10.5px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 80%,transparent); border:1px solid var(--border); padding:6px 12px; border-radius:999px; pointer-events:none; }
+  .dn-legend b { display:inline-flex; align-items:center; gap:5px; font-weight:700; }
+  .dn-legend .d { width:9px; height:9px; border-radius:999px; }
+  @media (max-width:720px){ .dn-info{width:min(290px,86vw)} .dn-legend{display:none} .dn-species{bottom:12px} .dn-tools{bottom:70px} }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+let composer;
+const REDUCED=window.Konstrio.REDUCED;
+
+/* ===== Ères : décor, lumière et ciel crédibles par période ===== */
+const ERAS=[
+  { name:'Trias', year:'−252 à −201 M', groundTint:0xc79a63, rock:0x9a7248, skyTop:0x6f86ac, skyBot:0xe6b978, fog:0xe4c28c, sun:0xffe3b0, sunInt:2.1, hemiSky:0xffe8c6, hemiGround:0x8a6a42, veg:'trias' },
+  { name:'Jurassique', year:'−201 à −145 M', groundTint:0x8fac6e, rock:0x6d7458, skyTop:0x4f8ec6, skyBot:0xd2e7ee, fog:0xccdfe0, sun:0xfff4d8, sunInt:2.4, hemiSky:0xdfeeff, hemiGround:0x476636, veg:'lush' },
+  { name:'Crétacé', year:'−145 à −66 M', groundTint:0x9aab63, rock:0x707a52, skyTop:0x5386bc, skyBot:0xd8e2d2, fog:0xcfd8c6, sun:0xfff0d2, sunInt:2.3, hemiSky:0xe8f0e0, hemiGround:0x59683a, veg:'lush' },
+];
+
+/* ===== Bestiaire : données + transparence scientifique par espèce ===== */
+const DINOS={
+  coelophysis:{ n:'Cœlophysis', era:0, diet:'Carnivore', len:3, w:'25 kg', spd:'40 km/h', col:0xb9995a, build:'biped', scale:0.62, skin:'feather', feather:'light',
+    fact:"Petit théropode agile du Trias, l'un des plus anciens dinosaures connus. Il chassait probablement en groupe.",
+    sci:{ periode:'Trias supérieur (−215 M)', taille:'≈3 m de long, 25 kg', regime:'Carnivore (petites proies)',
+      conf:['Squelette complet connu (des centaines d\'individus, Ghost Ranch).','Chasse en meute et léger duvet : fortement probable.','Couleur et motifs : hypothèse artistique.'] } },
+  plateosaurus:{ n:'Plateosaurus', era:0, diet:'Herbivore', len:8, w:'4 t', spd:'lent', col:0x93a066, build:'sauropod', scale:0.66, skin:'hide',
+    fact:"Un des premiers grands herbivores. Il se dressait sur ses pattes arrière pour brouter en hauteur.",
+    sci:{ periode:'Trias supérieur (−214 M)', taille:'≈8 m, 4 t', regime:'Herbivore',
+      conf:['Anatomie bien connue (nombreux squelettes en Europe).','Posture bipède au repos : probable.','Teinte verte : hypothèse artistique.'] } },
+  brachiosaure:{ n:'Brachiosaure', era:1, diet:'Herbivore', len:23, w:'35 t', spd:'lent', col:0x82936f, build:'sauropod', scale:1.0,
+    fact:"Géant au long cou dressé, il broutait la cime des arbres comme une girafe préhistorique.",
+    sci:{ periode:'Jurassique supérieur (−154 M)', taille:'≈23 m, jusqu\'à 12 m de haut', regime:'Herbivore de canopée',
+      conf:['Membres avant plus longs que l\'arrière : confirmé.','Cou tenu haut : débattu, plutôt probable.','Peau et couleur : hypothèse.'] } },
+  diplodocus:{ n:'Diplodocus', era:1, diet:'Herbivore', len:27, w:'15 t', spd:'lent', col:0x7d8a72, build:'sauropod', scale:0.92, longtail:true,
+    fact:"Cou et queue interminables tenus à l'horizontale. Sa queue-fouet pouvait claquer comme un coup de fouet.",
+    sci:{ periode:'Jurassique supérieur (−152 M)', taille:'≈27 m de long', regime:'Herbivore (broutait bas)',
+      conf:['Squelette très complet : confirmé.','Cou et queue horizontaux : confirmé (biomécanique).','Rangée de piquants dorsaux : probable (empreinte de peau).'] } },
+  stegosaure:{ n:'Stégosaure', era:1, diet:'Herbivore', len:9, w:'3,5 t', spd:'lent', col:0x74915f, build:'stego', scale:0.95,
+    fact:"Ses plaques dorsales régulaient sa température et impressionnaient ; sa queue à pointes (thagomizer) le défendait.",
+    sci:{ periode:'Jurassique supérieur (−150 M)', taille:'≈9 m, 3,5 t', regime:'Herbivore (végétation basse)',
+      conf:['Plaques et pointes caudales : confirmé.','Plaques alternées en 2 rangées : confirmé.','Plaques rougies par le sang : hypothèse.'] } },
+  allosaure:{ n:'Allosaure', era:1, diet:'Carnivore', len:9, w:'2 t', spd:'35 km/h', col:0xba7150, build:'biped', scale:1.0, skin:'scales',
+    fact:"Le grand prédateur du Jurassique, avant le T-Rex. Mâchoires souples, crêtes au-dessus des yeux et griffes acérées.",
+    sci:{ periode:'Jurassique supérieur (−150 M)', taille:'≈9 m, 2 t', regime:'Superprédateur',
+      conf:['Crânes et squelettes abondants : confirmé.','Mâchoire à grande ouverture : confirmé.','Écailles vs plumes : plutôt écailleux (probable).'] } },
+  archaeopteryx:{ n:'Archæopteryx', era:1, diet:'Carnivore', len:0.5, w:'1 kg', spd:'vol court', col:0x2a2f3b, build:'biped', scale:2.4, skin:'feather', feather:'full', fly:true, colB:0x3a4150,
+    fact:"Le fameux « chaînon » entre dinosaures et oiseaux : de vraies plumes d'ailes, mais aussi des dents et une longue queue osseuse.",
+    sci:{ periode:'Jurassique supérieur (−150 M)', taille:'≈50 cm, 1 kg', regime:'Petits animaux / insectes',
+      conf:['Plumes d\'ailes asymétriques : confirmé (fossiles de Solnhofen).','Vol battu limité, surtout planeur : probable.','Plumes noires : indiqué par les mélanosomes (probable).'] } },
+  trex:{ n:'Tyrannosaure', era:2, diet:'Carnivore', len:12, w:'8 t', spd:'25 km/h', col:0x86633f, build:'biped', scale:1.16, big:true, skin:'scales',
+    fact:"Le roi des prédateurs : dents de 20 cm, morsure la plus puissante connue, odorat exceptionnel… mais de petits bras.",
+    sci:{ periode:'Crétacé supérieur (−67 M)', taille:'≈12 m, 8 t', regime:'Superprédateur / charognard',
+      conf:['Anatomie et morsure : confirmé.','Marche à ~20 km/h (pas de course) : probable.','Zones de plumes juvéniles : hypothèse (surtout écailleux).'] } },
+  triceratops:{ n:'Tricératops', era:2, diet:'Herbivore', len:9, w:'9 t', spd:'30 km/h', col:0x96835d, build:'cera', scale:1.0,
+    fact:"Trois cornes et une grande collerette osseuse pour se défendre du T-Rex, se reconnaître et impressionner.",
+    sci:{ periode:'Crétacé supérieur (−67 M)', taille:'≈9 m, 9 t', regime:'Herbivore (plantes basses)',
+      conf:['Cornes et collerette : confirmé.','Écailles larges sur le corps : confirmé (empreintes).','Motifs de la collerette : hypothèse.'] } },
+  velociraptor:{ n:'Vélociraptor', era:2, diet:'Carnivore', len:2, w:'15 kg', spd:'60 km/h', col:0xc39a55, build:'biped', scale:0.9, skin:'feather', feather:'full', colB:0xa87a3a,
+    fact:"Petit, rapide et couvert de plumes ! Griffe rétractable en faucille au 2ᵉ orteil. Taille réelle : celle d'un dindon.",
+    sci:{ periode:'Crétacé supérieur (−74 M)', taille:'≈2 m de long, 15 kg', regime:'Carnivore agile',
+      conf:['Plumes : confirmé (points d\'ancrage sur l\'os du bras).','Griffe en faucille : confirmé.','Robe rousse : hypothèse artistique.'] } },
+  ankylosaure:{ n:'Ankylosaure', era:2, diet:'Herbivore', len:7, w:'6 t', spd:'lent', col:0x6f7358, build:'anky', scale:1.0,
+    fact:"Un char d'assaut vivant : dos couvert d'ostéodermes, flancs à pointes et une massue osseuse au bout de la queue.",
+    sci:{ periode:'Crétacé supérieur (−67 M)', taille:'≈7 m, 6 t', regime:'Herbivore (au ras du sol)',
+      conf:['Armure et massue caudale : confirmé.','Massue capable d\'assommer un prédateur : probable.','Disposition exacte des pointes : partiellement hypothétique.'] } },
+  parasaurolophus:{ n:'Parasaurolophus', era:2, diet:'Herbivore', len:10, w:'4 t', spd:'lent', col:0x9a8552, build:'hadro', scale:1.0, colB:0x6f5f38,
+    fact:"Ce « dinosaure à trombone » avait une longue crête creuse reliée aux narines : elle amplifiait ses cris pour communiquer.",
+    sci:{ periode:'Crétacé supérieur (−75 M)', taille:'≈10 m, 4 t', regime:'Herbivore (bec + batteries dentaires)',
+      conf:['Crête creuse tubulaire : confirmé.','Crête servant de résonateur sonore : probable.','Rayures et couleurs : hypothèse.'] } },
+  spinosaure:{ n:'Spinosaure', era:2, diet:'Carnivore', len:15, w:'7 t', spd:'nage', col:0x5b6a72, build:'spino', scale:1.05, skin:'scales', swim:true, colB:0x40525a,
+    fact:"Plus grand prédateur terrestre connu, semi-aquatique : museau de crocodile, grande voile dorsale, il pêchait de gros poissons.",
+    sci:{ periode:'Crétacé (−99 M)', taille:'≈15 m de long', regime:'Piscivore (poissons)',
+      conf:['Museau et dents coniques de pêcheur : confirmé.','Voile dorsale : confirmé (longues épines).','Mode de vie aquatique et forme de la queue : probable, débattu.'] } },
+  pterosaure:{ n:'Ptérosaure', era:1, diet:'Carnivore', len:3, w:'8 kg', spd:'vol', col:0xa4717e, build:'ptero', scale:1.0, fly:true,
+    fact:"Pas un dinosaure mais un reptile volant cousin : ses ailes étaient de vastes membranes de peau tendues sur un doigt allongé.",
+    sci:{ periode:'Jurassique (−150 M)', taille:'≈3 m d\'envergure', regime:'Poissons / insectes',
+      conf:['Aile membraneuse sur un doigt : confirmé.','Duvet « pycnofibres » sur le corps : probable.','Couleurs : hypothèse.'] } },
+  quetzalcoatlus:{ n:'Quetzalcoatlus', era:2, diet:'Carnivore', len:11, w:'250 kg', spd:'vol', col:0xb59a86, build:'ptero', scale:2.1, fly:true, big:true,
+    fact:"Le plus grand animal volant de tous les temps : envergure d'un petit avion. Au sol, il marchait à quatre pattes, aussi haut qu'une girafe.",
+    sci:{ periode:'Crétacé supérieur (−68 M)', taille:'≈10-11 m d\'envergure', regime:'Carnivore (chassait au sol)',
+      conf:['Taille géante et vol : confirmé.','Décollage en « saut » à 4 appuis : probable.','Grande crête colorée : hypothèse.'] } },
+};
+const ERA_SET=[
+  ['coelophysis','plateosaurus'],
+  ['brachiosaure','diplodocus','stegosaure','allosaure','archaeopteryx','pterosaure'],
+  ['trex','triceratops','velociraptor','ankylosaure','parasaurolophus','spinosaure','quetzalcoatlus'],
+];
+const MAXLEN=27; // Diplodocus — référence pour la jauge de taille
+
+let era=1, scaleHuman=false, labelsOn=true, mode='detente', impacted=false, skeletonOn=false, focusKey=null;
+let scene,camera,renderer,controls,raycaster,pointer,ground,human,volcano,smoke,skyDome,sunSprite,sunLight,hemi,rimLight;
+let vegGroups={}, dinoMeshes={}, clock, quiz=null, hovered=null;
+let tour=null, camAnim=null, ac=null, ambGain=null;
+const U=0.5; // 1 mètre = 0.5 unité
+const tmpV=new THREE.Vector3();
+
+const shell=window.Konstrio.createGame({
+  id:'3d-18-dinosaures', code:'3D·18', title:'Dinosaures : le monde perdu', type:'3D',
+  domain:{ label:'Bio & SVT', color:'#2AA98C' },
+  intro:{
+    greet:"Bienvenue à l'ère des dinosaures ! Fais glisser le curseur des ères, clique une créature pour sa fiche scientifique, et ose le bouton 🦴 pour voir son squelette sous la peau.",
+    rule:"Voyage du <b>Trias</b> au <b>Crétacé</b> : déplace le curseur des ères et observe la faune, le climat et la végétation changer. Clique chaque créature pour sa fiche, révèle son <b>squelette</b>, compare sa taille à un humain, et déclenche l'extinction !",
+    how:["Glisse pour tourner · molette pour zoomer.","Curseur des ères ou barre d'espèces en bas : change de monde et de créature.","Clique un dinosaure : fiche scientifique + bouton « voir le squelette »."],
+    keys:"Glisser = pivoter · molette = zoom.",
+    objectif:"Reconnaître les dinosaures, leur ère et leur régime (herbivore / carnivore).",
+    hint:"Indice régime : les carnivores ont souvent une grande tête et marchent sur 2 pattes ; les herbivores sont massifs, souvent sur 4 pattes.",
+    why:"Les dinosaures ont régné 165 millions d'années. Un astéroïde il y a 66 millions d'années a causé leur extinction — sauf les oiseaux, leurs descendants à plumes !"
+  },
+  learned:["Trois grandes ères : Trias, Jurassique, Crétacé, sur plus de 165 millions d'années.","Certains dinosaures avaient des plumes (Vélociraptor, Archæopteryx) : les oiseaux en descendent.","La science distingue ce qui est confirmé par les fossiles de ce qui reste une hypothèse d'artiste."],
+  onReady:(api)=>init(api),
+  onStart:(m,api)=>{ mode=m; syncSpeciesBar(); if(m==='cours'){ api.setScore(0); startQuiz(); } else api.setLevel('libre'); },
+  onRestart:(api)=>{ if(mode==='cours'){ api.setScore(0); startQuiz(); } },
+});
+
+function init(api){
+  shell.api=api; const stage=api.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene(); scene.fog=new THREE.Fog(ERAS[era].fog, 34, 130);
+  camera=new THREE.PerspectiveCamera(52, stage.clientWidth/stage.clientHeight, .1, 600);
+  camera.position.set(0,10,30);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight); stage.appendChild(renderer.domElement);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+  renderer.shadowMap.enabled=!REDUCED; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  _maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
+  // Garde-fou runtime : détecte un rendu logiciel (SwiftShader/llvmpipe) — l'AO écran (GTAO) y produirait du noir → chaîne robuste sans GTAO (l'occlusion vient des cartes AO bakées)
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render|mesa|microsoft basic/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer);
+  if(software || REDUCED){
+    composer.addPass(new RenderPass(scene,camera));
+  } else {
+    try{ const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=0.8;
+      try{ gtao.updateGtaoMaterial({ radius:2.2, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+      composer.addPass(gtao); composer.gtao=gtao;
+    }catch(e){ composer.addPass(new RenderPass(scene,camera)); }
+  }
+  { const bp=new UnrealBloomPass(new THREE.Vector2(W,H),0.42,0.72,0.85); composer.addPass(bp); composer.bloom=bp; }
+  try{ composer.addPass(new SMAAPass(W,H)); }catch(e){}
+  composer.addPass(new OutputPass());
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.06; controls.maxPolarAngle=Math.PI/2.08; controls.minDistance=2.4; controls.maxDistance=95; controls.target.set(0,4,0); controls.autoRotate=REDUCED; controls.autoRotateSpeed=.25;
+
+  // Éclairage cinématique : ciel/sol + soleil directionnel (ombres douces) + contre-jour bleuté
+  hemi=new THREE.HemisphereLight(0xffffff,0x55503a,0.85); scene.add(hemi);
+  sunLight=new THREE.DirectionalLight(0xfff0d8,2.2); sunLight.position.set(34,46,20); sunLight.castShadow=!REDUCED;
+  sunLight.shadow.mapSize.set(REDUCED?1024:2048,REDUCED?1024:2048); sunLight.shadow.camera.near=6; sunLight.shadow.camera.far=170;
+  const sc=sunLight.shadow.camera; sc.left=-60; sc.right=60; sc.top=60; sc.bottom=-60; sunLight.shadow.bias=-0.0006; sunLight.shadow.normalBias=0.04;
+  scene.add(sunLight); scene.add(sunLight.target);
+  rimLight=new THREE.DirectionalLight(0x9fc0ff,0.55); rimLight.position.set(-32,18,-42); scene.add(rimLight);
+
+  // Environnement HDRI (Poly Haven, CC0) → reflets & lumière indirecte PBR crédibles
+  try{ const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+    new RGBELoader().load('../assets/3d/env/sky_day_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); pmrem.dispose(); }, undefined, ()=>{});
+  }catch(e){}
+
+  buildSky(); buildGround(); buildScenery();
+  human=makeHuman(); human.visible=false; scene.add(human);
+  buildDinos();
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  buildUI(); setEra(1,true);
+  renderer.domElement.addEventListener('pointermove',onMove); renderer.domElement.addEventListener('pointerdown',onDown);
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
+  animate();
+}
+
+/* ================= MATÉRIAUX PBR PREMIUM ================= */
+const _matCache={}, _detail={}; let _featherTex=null;
+// height → normal map (Sobel) pour un relief d'écailles / plumes / cuir
+function normalFromHeight(hc,strength){ const w=hc.width,h=hc.height; const ctx=hc.getContext('2d'); const src=ctx.getImageData(0,0,w,h).data;
+  const out=ctx.createImageData(w,h); const d=out.data; const L=(x,y)=>{ x=(x+w)%w; y=(y+h)%h; return src[(y*w+x)*4]/255; };
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){ const dx=(L(x-1,y)-L(x+1,y))*strength, dy=(L(x,y-1)-L(x,y+1))*strength; let nx=dx,ny=dy,nz=1; const len=Math.hypot(nx,ny,nz)||1; nx/=len;ny/=len;nz/=len; const i=(y*w+x)*4; d[i]=(nx*0.5+0.5)*255; d[i+1]=(ny*0.5+0.5)*255; d[i+2]=(nz*0.5+0.5)*255; d[i+3]=255; }
+  const nc=document.createElement('canvas'); nc.width=w; nc.height=h; nc.getContext('2d').putImageData(out,0,0); return nc; }
+function detailMaps(type){ if(_detail[type]) return _detail[type];
+  const S=256; const hc=document.createElement('canvas'); hc.width=hc.height=S; const x=hc.getContext('2d'); x.fillStyle='#808080'; x.fillRect(0,0,S,S);
+  if(type==='scales'){ const step=17; for(let j=-1;j*step<S+step;j++){ for(let i=-1;i*step<S+step;i++){ const ox=(j&1)*step/2; const cx=i*step+ox+(Math.random()-0.5)*3, cy=j*step+(Math.random()-0.5)*3; const r=step*0.6;
+        const g=x.createRadialGradient(cx-r*0.2,cy-r*0.2,1,cx,cy,r); g.addColorStop(0,'rgba(235,235,235,0.95)'); g.addColorStop(0.65,'rgba(150,150,150,0.45)'); g.addColorStop(1,'rgba(60,60,60,0)'); x.fillStyle=g; x.beginPath(); x.arc(cx,cy,r,0,7); x.fill();
+        x.strokeStyle='rgba(35,35,35,0.28)'; x.lineWidth=1; x.beginPath(); x.arc(cx,cy,r*0.92,0,7); x.stroke(); } } }
+  else if(type==='hide'){ for(let i=0;i<30;i++){ x.strokeStyle='rgba(55,55,55,0.16)'; x.lineWidth=1+Math.random()*2.5; x.beginPath(); let px=Math.random()*S,py=Math.random()*S; x.moveTo(px,py); for(let k=0;k<6;k++){ px+=(Math.random()-0.5)*70; py+=(Math.random()-0.5)*22; x.lineTo(px,py);} x.stroke(); }
+      for(let i=0;i<1600;i++){ const v=Math.random()<0.5?45:225; x.fillStyle='rgba('+v+','+v+','+v+','+(0.03+Math.random()*0.05).toFixed(3)+')'; x.beginPath(); x.arc(Math.random()*S,Math.random()*S,1+Math.random()*2.6,0,7); x.fill(); } }
+  else if(type==='feather'){ for(let i=-4;i<S;i+=5){ x.strokeStyle='rgba(215,215,215,0.5)'; x.lineWidth=2; x.beginPath(); x.moveTo(i,0); x.lineTo(i+20,S); x.stroke(); x.strokeStyle='rgba(55,55,55,0.4)'; x.lineWidth=1; x.beginPath(); x.moveTo(i+3,0); x.lineTo(i+23,S); x.stroke(); } }
+  const nc=normalFromHeight(hc, type==='scales'?2.4:type==='feather'?1.5:1.7);
+  const nt=new THREE.CanvasTexture(nc); nt.wrapS=nt.wrapT=THREE.RepeatWrapping; nt.colorSpace=THREE.NoColorSpace;
+  const hd=x.getImageData(0,0,S,S).data; const rc=document.createElement('canvas'); rc.width=rc.height=S; const rx=rc.getContext('2d'); const ro=rx.createImageData(S,S); const rd=ro.data;
+  for(let i=0;i<S*S;i++){ const v=hd[i*4]/255; const rough=Math.max(0,Math.min(1,0.9-(v-0.5)*0.4)); const c=Math.round(rough*255); rd[i*4]=rd[i*4+1]=rd[i*4+2]=c; rd[i*4+3]=255; }
+  rx.putImageData(ro,0,0); const rt=new THREE.CanvasTexture(rc); rt.wrapS=rt.wrapT=THREE.RepeatWrapping; rt.colorSpace=THREE.NoColorSpace;
+  _detail[type]={ normal:nt, rough:rt }; return _detail[type]; }
+function skinMat(col,type){ type=type||'scales'; const key=col+'_'+type; if(_matCache[key]) return _matCache[key];
+  const base=new THREE.Color(col); const S=256; const c=document.createElement('canvas'); c.width=c.height=S; const x=c.getContext('2d');
+  x.fillStyle='#'+base.getHexString(); x.fillRect(0,0,S,S);
+  const dk=base.clone().multiplyScalar(0.5), lt=base.clone().multiplyScalar(1.4);
+  const hx=(col2,a)=>'rgba('+((col2.r*255)|0)+','+((col2.g*255)|0)+','+((col2.b*255)|0)+','+a+')';
+  for(let i=0;i<90;i++){ const cc=Math.random()<0.62?dk:lt; const cx=Math.random()*S, cy=Math.random()*S, r=6+Math.random()*30; const g=x.createRadialGradient(cx,cy,1,cx,cy,r); g.addColorStop(0,hx(cc,(0.10+Math.random()*0.14).toFixed(3))); g.addColorStop(1,hx(cc,'0')); x.fillStyle=g; x.beginPath(); x.arc(cx,cy,r,0,7); x.fill(); }
+  for(let i=0;i<2400;i++){ const cc=Math.random()<0.5?dk:lt; x.fillStyle=hx(cc,(0.04+Math.random()*0.10).toFixed(3)); const r=0.6+Math.random()*2.1; x.beginPath(); x.arc(Math.random()*S,Math.random()*S,r,0,7); x.fill(); }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping;
+  const rep=type==='feather'?4:3; t.repeat.set(rep,rep);
+  const dm=detailMaps(type); const nm=dm.normal.clone(); nm.repeat.set(rep,rep); nm.needsUpdate=true; const rm=dm.rough.clone(); rm.repeat.set(rep,rep); rm.needsUpdate=true;
+  const m=new THREE.MeshStandardMaterial({ map:t, normalMap:nm, normalScale:new THREE.Vector2(type==='scales'?0.9:0.6,type==='scales'?0.9:0.6), roughnessMap:rm, roughness:1.0, metalness:0.0, envMapIntensity:0.85 });
+  _matCache[key]=m; return m; }
+const flat=(c,r,mt)=>new THREE.MeshStandardMaterial({color:c, roughness:r==null?0.9:r, metalness:mt||0, envMapIntensity:0.5});
+const eyeMat=()=>new THREE.MeshStandardMaterial({color:0x1a1410, roughness:0.12, metalness:0.0, envMapIntensity:1.4});
+
+/* plumes : carte alpha procédurale + fabrique de plume */
+function featherTex(){ if(_featherTex) return _featherTex; const c=document.createElement('canvas'); c.width=48; c.height=96; const x=c.getContext('2d'); x.clearRect(0,0,48,96);
+  x.strokeStyle='rgba(255,255,255,1)'; x.lineWidth=3; x.lineCap='round'; x.beginPath(); x.moveTo(24,94); x.lineTo(24,7); x.stroke();
+  for(let y=10;y<90;y+=3){ const t=(y-10)/80; const w=Math.sin(t*Math.PI)*19; x.strokeStyle='rgba(255,255,255,0.82)'; x.lineWidth=1.5; x.beginPath(); x.moveTo(24,y); x.lineTo(24-w,y-7); x.moveTo(24,y); x.lineTo(24+w,y-7); x.stroke(); }
+  _featherTex=new THREE.CanvasTexture(c); return _featherTex; }
+function featherMat(col){ return new THREE.MeshStandardMaterial({ color:col, alphaMap:featherTex(), transparent:true, alphaTest:0.4, side:THREE.DoubleSide, roughness:0.8, metalness:0.0, envMapIntensity:0.5 }); }
+function mkFeather(len,wid,mat){ const g=new THREE.PlaneGeometry(wid,len); g.translate(0,len/2,0); const m=new THREE.Mesh(g,mat); m.castShadow=false; return m; }
+
+function box(w,h,d,c,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),flat(c)); m.position.set(x,y,z); m.castShadow=true; return m; }
+// tube lissé : sphères aux articulations + troncs coniques → silhouette organique
+function segTube(pts,rad,mat){ const g=new THREE.Object3D();
+  for(let i=0;i<pts.length;i++){ const s=new THREE.Mesh(new THREE.SphereGeometry(rad[i],16,11),mat); s.position.copy(pts[i]); s.castShadow=true; g.add(s);
+    if(i<pts.length-1){ const a=pts[i], b=pts[i+1]; const dir=new THREE.Vector3().subVectors(b,a); const len=dir.length();
+      const cyl=new THREE.Mesh(new THREE.CylinderGeometry(rad[i+1],rad[i],len,16,1,true),mat); cyl.castShadow=true;
+      cyl.position.copy(a).addScaledVector(dir,0.5); cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize()); g.add(cyl); } }
+  return g; }
+function V(x,y,z){ return new THREE.Vector3(x,y,z); }
+function makeLeg(L,rTop,rBot,hip,knee,foot,mat){ const g=new THREE.Object3D();
+  g.add(segTube([V(0,0,0),V(hip.x,-L*0.28,hip.z),V(knee.x,-L*0.55,knee.z)],[rTop,rTop*0.8,rBot],mat));
+  const ft=new THREE.Mesh(new THREE.BoxGeometry(foot,rBot*1.4,rBot*2.4),mat); ft.position.set(knee.x+foot*0.2,-L*0.55+rBot*0.4,knee.z); ft.castShadow=true; g.add(ft);
+  return g; }
+
+function makeHuman(){ const g=new THREE.Object3D(); const c=0x2a3350; const m=flat(c,0.7);
+  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.24,.7,4,10),m); torso.position.y=1.45; torso.castShadow=true; g.add(torso);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.26,16,14),flat(0xe0b48a,0.8)); head.position.y=2.12; head.castShadow=true; g.add(head);
+  [-1,1].forEach(s=>{ const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.11,.8,4,8),m); leg.position.set(s*.14,.5,0); leg.castShadow=true; g.add(leg);
+    const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.07,.6,4,8),m); arm.position.set(s*.34,1.45,0); arm.castShadow=true; g.add(arm); });
+  g.scale.setScalar(U); return g; }
+
+/* ================= SQUELETTE STYLISÉ (mode « sous la peau ») ================= */
+function boneRod(a,b,r,mat){ const dir=new THREE.Vector3().subVectors(b,a); const len=dir.length()||0.001; const rod=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,7),mat); rod.position.copy(a).addScaledVector(dir,0.5); rod.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize()); rod.castShadow=true; return rod; }
+function ribMesh(rad,mat){ const t=new THREE.Mesh(new THREE.TorusGeometry(rad,rad*0.09,5,14,Math.PI*0.95),mat); t.castShadow=true; return t; }
+function boneLeg(len,L,mat){ const g=new THREE.Object3D();
+  g.add(boneRod(V(0,0,0),V(0.03*L,-len*0.28,0),0.03*L,mat));
+  g.add(boneRod(V(0.03*L,-len*0.28,0),V(-0.01*L,-len*0.55,0),0.024*L,mat));
+  const foot=new THREE.Mesh(new THREE.BoxGeometry(0.11*L,0.02*L,0.05*L),mat); foot.position.set(0.03*L,-len*0.55+0.01*L,0); foot.castShadow=true; g.add(foot);
+  [V(0,0,0),V(0.03*L,-len*0.28,0)].forEach(p=>{ const j=new THREE.Mesh(new THREE.SphereGeometry(0.036*L,8,6),mat); j.position.copy(p); g.add(j); });
+  return g; }
+function skullMesh(sk,L,mat,dk,teeth){ const g=new THREE.Object3D(); const l=sk.len;
+  const cran=new THREE.Mesh(new THREE.BoxGeometry(l*0.65,l*0.55,l*0.5),mat); cran.position.set(-l*0.08,l*0.05,0); cran.castShadow=true; g.add(cran);
+  const snout=new THREE.Mesh(new THREE.BoxGeometry(l*(sk.long?1.2:0.75),l*0.3,l*0.34),mat); snout.position.set(l*(sk.long?0.55:0.42),-l*0.03,0); snout.castShadow=true; g.add(snout);
+  const jaw=new THREE.Mesh(new THREE.BoxGeometry(l*(sk.long?1.1:0.85),l*0.11,l*0.32),mat); jaw.position.set(l*0.22,-l*0.22,0); jaw.castShadow=true; g.add(jaw);
+  [-1,1].forEach(s=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(l*0.12,10,8),dk); e.position.set(l*0.02,l*0.09,s*l*0.24); g.add(e); });
+  if(teeth){ for(let i=0;i<6;i++){ [-1,1].forEach(s=>{ const t=new THREE.Mesh(new THREE.ConeGeometry(l*0.03,l*0.13,4),mat); t.position.set(l*0.1+i*l*(sk.long?0.16:0.11),-l*0.13,s*l*0.14); t.rotation.x=Math.PI; g.add(t); }); } }
+  return g; }
+function buildBones(bd,L){ const g=new THREE.Object3D();
+  const mat=new THREE.MeshStandardMaterial({color:0xece3d0,roughness:0.68,metalness:0.0,envMapIntensity:0.6});
+  const dk=new THREE.MeshStandardMaterial({color:0x241a12,roughness:0.5});
+  const sp=bd.spine;
+  for(let i=0;i<sp.length;i++){ const rr=Math.max(0.032*L,(bd.svr?bd.svr[i]:0.055*L)); const vb=new THREE.Mesh(new THREE.SphereGeometry(rr,9,7),mat); vb.position.copy(sp[i]); vb.castShadow=true; g.add(vb);
+    if(bd.neural && i>=bd.neural[0] && i<=bd.neural[1]){ const hgt=(bd.neuralH||2.2)*rr; const ns=new THREE.Mesh(new THREE.ConeGeometry(rr*0.5,hgt,5),mat); ns.position.copy(sp[i]); ns.position.y+=hgt*0.5+rr*0.6; ns.castShadow=true; g.add(ns); }
+    if(i<sp.length-1) g.add(boneRod(sp[i],sp[i+1],Math.max(0.02*L,rr*0.5),mat)); }
+  (bd.ribs||[]).forEach(idx=>{ const c=sp[idx]; if(!c) return; const rl=bd.ribLen||0.24*L; [-1,1].forEach(side=>{ const rib=ribMesh(rl,mat); rib.position.copy(c); rib.rotation.x=Math.PI/2; rib.rotation.z=side>0?-0.5:Math.PI+0.5; g.add(rib); }); });
+  if(bd.skull){ const s=skullMesh(bd.skull,L,mat,dk,bd.teeth); s.position.copy(bd.skull.pos); if(bd.skull.ry!=null) s.rotation.y=bd.skull.ry; g.add(s); }
+  (bd.legs||[]).forEach(l=>{ const lb=boneLeg(l.len,L,mat); lb.position.copy(l.root); g.add(lb); });
+  return g; }
+
+/* ================= PLUMAGE (cœlurosaures) ================= */
+function addPlumage(ud,L,d){ const mat=featherMat(new THREE.Color(d.col).multiplyScalar(1.05)); const matB=featherMat(new THREE.Color(d.colB||d.col).multiplyScalar(0.9)); const feathers=[];
+  const full=d.feather==='full'; const back=ud.backLine||[];
+  const addF=(parent,f)=>{ parent.add(f); feathers.push(f); };
+  // manteau duveteux : plumes croisées (2 plans perpendiculaires) → visibles sous tout angle
+  const coatN=REDUCED?(full?12:7):(full?30:18);
+  for(let i=0;i<coatN;i++){ const t=i/(coatN-1); const p=lerpLine(back,t); const fl=(0.16+Math.random()*0.08)*L*(full?1:0.85); const wid=fl*0.55;
+    [-1,1].forEach(side=>{ const f=mkFeather(fl,wid,(i+ (side>0?1:0))%3?mat:matB); f.position.set(p.x,p.y+0.03*L,side*0.06*L*(0.4+Math.random())); f.rotation.z=-1.0-Math.random()*0.35; f.rotation.x=side*0.5; f.rotation.y=(Math.random()-0.5)*0.7; addF(ud.body,f); }); }
+  // ailes / bras emplumés : éventail de rémiges
+  (ud.arms||[]).forEach((arm,ai)=>{ const side=ai===0?-1:1; const wing=new THREE.Object3D(); arm.add(wing); wing.position.set(0,-0.06*L,0);
+    const pr=full?7:5; for(let i=0;i<pr;i++){ const tt=i/(pr-1); const fl=(0.22+tt*(full?0.22:0.12))*L; const f=mkFeather(fl,fl*0.4,mat); f.position.set(-0.03*L*i,-0.05*L*i,0); f.rotation.z=1.35+tt*0.55; f.rotation.x=Math.PI/2; f.rotation.y=side*0.1; addF(wing,f); } });
+  // éventail de plumes caudales
+  if(ud.tailTip){ const tn=full?11:6; for(let i=0;i<tn;i++){ const tt=i/(tn-1); const fl=(full?0.4:0.2)*L*(0.55+0.45*Math.sin(tt*Math.PI)); const f=mkFeather(fl,fl*0.42,i%2?mat:matB); f.position.set(-0.02*L,0,(tt-0.5)*0.16*L); f.rotation.z=1.5; f.rotation.x=Math.PI/2+(tt-0.5)*0.6; addF(ud.tailTip,f); } }
+  ud.plumage=feathers; }
+function lerpLine(line,t){ if(!line.length) return new THREE.Vector3(); if(line.length===1) return line[0].clone(); const f=t*(line.length-1); const i=Math.min(line.length-2,Math.floor(f)); return line[i].clone().lerp(line[i+1],f-i); }
+
+/* ================= DINOSAURES PROCÉDURAUX ================= */
+function dinoBuilder(d){
+  const root=new THREE.Object3D(); const body=new THREE.Object3D(); root.add(body);
+  const mat=skinMat(d.col,d.skin||'hide'), boneCol=flat(0xe8dcc0,0.6);
+  const L=d.len*U*d.scale; const ud={ legs:[], build:d.build, body:body }; ud.arms=[];
+  const eMat=eyeMat();
+  const eye=(px,py,pz,r)=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),eMat); e.position.set(px,py,pz); return e; };
+  const chest=(pts,rad)=>{ const cg=new THREE.Object3D(); cg.add(segTube(pts,rad,mat)); body.add(cg); ud.chest=cg; return cg; };
+
+  if(d.build==='biped'){
+    const H=L*0.34;
+    const tp=[V(-0.22*L,H*0.92,0),V(-0.04*L,H*1.05,0),V(0.14*L,H*1.06,0),V(0.30*L,H*0.96,0)]; const tr=[0.10*L,0.17*L,0.15*L,0.095*L];
+    chest(tp,tr);
+    const neck=new THREE.Object3D(); neck.position.set(0.30*L,H*0.96,0); ud.neck=neck;
+    const np=[V(0,0,0),V(0.09*L,0.10*L,0),V(0.17*L,0.17*L,0)]; neck.add(segTube(np,[0.085*L,0.07*L,0.058*L],mat));
+    const head=new THREE.Object3D(); head.position.set(0.17*L,0.17*L,0); ud.head=head;
+    const skull=new THREE.Mesh(new THREE.BoxGeometry(0.17*L,0.11*L,0.09*L),mat); skull.position.set(0.075*L,0.01*L,0); skull.castShadow=true; head.add(skull);
+    const jaw=new THREE.Mesh(new THREE.BoxGeometry(0.15*L,0.045*L,0.075*L),mat); jaw.position.set(0.07*L,-0.05*L,0); jaw.castShadow=true; head.add(jaw);
+    head.add(eye(0.04*L,0.03*L,0.045*L,0.017*L)); head.add(eye(0.04*L,0.03*L,-0.045*L,0.017*L));
+    if(d.diet==='Carnivore'&&!d.feather){ for(let i=0;i<5;i++){ const t=new THREE.Mesh(new THREE.ConeGeometry(0.01*L,0.03*L,5),boneCol); t.position.set((0.02+i*0.028)*L,-0.028*L,0.03*L); t.rotation.x=Math.PI; head.add(t); const t2=t.clone(); t2.position.z=-0.03*L; head.add(t2); } }
+    neck.add(head); body.add(neck);
+    const tail=new THREE.Object3D(); tail.position.set(-0.22*L,H*0.92,0); ud.tail=tail;
+    tail.add(segTube([V(0,0,0),V(-0.20*L,-0.02*L,0),V(-0.42*L,-0.03*L,0),V(-0.64*L,0.02*L,0)],[0.10*L,0.068*L,0.038*L,0.012*L],mat));
+    const ttip=new THREE.Object3D(); ttip.position.set(-0.64*L,0.02*L,0); tail.add(ttip); ud.tailTip=ttip; body.add(tail);
+    [-1,1].forEach(side=>{ const lp=new THREE.Object3D(); lp.position.set(0.02*L,H*0.92,side*0.11*L);
+      lp.add(makeLeg(L,0.075*L,0.045*L,{x:0.03*L,z:side*0.01*L},{x:-0.02*L,z:0},0.11*L,mat)); body.add(lp); ud.legs.push({p:lp,ph:side>0?0:Math.PI,type:'hind'}); });
+    [-1,1].forEach(side=>{ const arm=new THREE.Object3D(); arm.position.set(0.24*L,H*0.86,side*0.10*L); arm.rotation.z=-0.5;
+      const a=new THREE.Mesh(new THREE.CapsuleGeometry(0.028*L,0.14*L,4,7),mat); a.castShadow=true; arm.add(a); body.add(arm); ud.arms.push(arm); });
+    ud.top=H*1.6;
+    ud.backLine=[V(0.14*L,H*1.18,0),V(-0.04*L,H*1.16,0),V(-0.20*L,H*1.02,0)];
+    ud.boneData={ spine:[V(0.075*L+0.17*L+0.30*L,H*0.96+0.17*L,0),V(0.47*L,H*0.96+0.17*L,0),V(0.39*L,H*1.06,0),V(0.30*L,H*0.96,0),V(0.14*L,H*1.06,0),V(-0.04*L,H*1.05,0),V(-0.22*L,H*0.92,0),V(-0.42*L,H*0.89,0),V(-0.64*L,H*0.94,0),V(-0.84*L,H*0.98,0)],
+      svr:[0.05*L,0.05*L,0.06*L,0.075*L,0.085*L,0.08*L,0.07*L,0.04*L,0.025*L,0.014*L], neural:[3,6], neuralH:1.9, ribs:[4,5,6], ribLen:0.19*L,
+      legs:[{root:V(0.02*L,H*0.92,0.11*L),len:L},{root:V(0.02*L,H*0.92,-0.11*L),len:L}],
+      skull:{pos:V(0.55*L,H*0.96+0.18*L,0),len:0.17*L,teeth:d.diet==='Carnivore'}, teeth:d.diet==='Carnivore' };
+  } else if(d.build==='sauropod'){
+    const H=L*0.30; const nl=d.longtail?1.25:1.0;
+    chest([V(-0.24*L,H,0),V(-0.05*L,H*1.1,0),V(0.16*L,H*1.12,0),V(0.34*L,H*1.02,0)],[0.10*L,0.19*L,0.18*L,0.12*L]);
+    const neck=new THREE.Object3D(); neck.position.set(0.34*L,H*1.02,0); ud.neck=neck;
+    const hi=d.longtail?0.30:0.58; const np=d.longtail?[V(0,0,0),V(0.16*L,0.10*L,0),V(0.34*L,0.16*L,0),V(0.52*L,0.22*L,0)]:[V(0,0,0),V(0.12*L,0.18*L,0),V(0.22*L,0.38*L,0),V(0.30*L,0.58*L,0)];
+    neck.add(segTube(np,[0.085*L,0.07*L,0.055*L,0.04*L],mat));
+    const hp=np[3]; const head=new THREE.Object3D(); head.position.copy(hp); ud.head=head;
+    const sk=new THREE.Mesh(new THREE.BoxGeometry(0.10*L,0.06*L,0.055*L),mat); sk.position.set(0.04*L,0.02*L,0); sk.castShadow=true; head.add(sk);
+    head.add(eye(0.02*L,0.03*L,0.03*L,0.011*L)); head.add(eye(0.02*L,0.03*L,-0.03*L,0.011*L)); neck.add(head); body.add(neck);
+    const tail=new THREE.Object3D(); tail.position.set(-0.24*L,H,0); ud.tail=tail;
+    tail.add(segTube([V(0,0,0),V(-0.22*L*nl,0.02*L,0),V(-0.46*L*nl,0.03*L,0),V(-0.72*L*nl,0.06*L,0)],[0.09*L,0.06*L,0.033*L,0.01*L],mat)); body.add(tail);
+    [[0.24,1],[0.24,-1],[-0.14,1],[-0.14,-1]].forEach(([fx,side])=>{ const lp=new THREE.Object3D(); lp.position.set(fx*L,H,side*0.15*L);
+      lp.add(makeLeg(L*1.05,0.075*L,0.06*L,{x:0,z:0},{x:0,z:0},0.11*L,mat)); body.add(lp); ud.legs.push({p:lp,ph:(fx>0?0:Math.PI)+(side>0?0:0.5),type:'quad'}); });
+    ud.top=H+hi*L;
+    ud.boneData={ spine:[hp.clone().add(V(0.34*L,H*1.02,0)),V(0.34*L,H*1.02,0),V(0.16*L,H*1.12,0),V(-0.05*L,H*1.1,0),V(-0.24*L,H,0),V(-0.46*L*nl,H+0.03*L,0),V(-0.72*L*nl,H+0.06*L,0),V(-0.96*L*nl,H+0.06*L,0)],
+      svr:[0.045*L,0.07*L,0.09*L,0.09*L,0.075*L,0.04*L,0.02*L,0.01*L], neural:[1,3], neuralH:1.5, ribs:[2,3], ribLen:0.26*L,
+      legs:[[0.24,1],[0.24,-1],[-0.14,1],[-0.14,-1]].map(([fx,side])=>({root:V(fx*L,H,side*0.15*L),len:L*1.05})),
+      skull:{pos:hp.clone().add(V(0.38*L,H*1.02,0)),len:0.1*L} };
+  } else if(d.build==='stego'){
+    const H=L*0.32;
+    chest([V(-0.22*L,H*0.9,0),V(-0.04*L,H*1.05,0),V(0.16*L,H*1.15,0),V(0.34*L,H*0.82,0)],[0.09*L,0.17*L,0.2*L,0.1*L]);
+    const neck=new THREE.Object3D(); neck.position.set(0.34*L,H*0.82,0); ud.neck=neck;
+    neck.add(segTube([V(0,0,0),V(0.10*L,-0.04*L,0),V(0.18*L,-0.06*L,0)],[0.075*L,0.06*L,0.05*L],mat));
+    const head=new THREE.Mesh(new THREE.BoxGeometry(0.13*L,0.07*L,0.07*L),mat); head.position.set(0.22*L,-0.06*L,0); head.castShadow=true; neck.add(head); ud.head=neck; body.add(neck);
+    const tail=new THREE.Object3D(); tail.position.set(-0.22*L,H*0.9,0); ud.tail=tail;
+    tail.add(segTube([V(0,0,0),V(-0.20*L,-0.06*L,0),V(-0.40*L,-0.14*L,0)],[0.09*L,0.055*L,0.03*L],mat));
+    [[-1,1],[-1,-1],[1,1],[1,-1]].forEach(([dx,dz])=>{ const sp=new THREE.Mesh(new THREE.ConeGeometry(0.02*L,0.15*L,6),boneCol); sp.position.set(-0.40*L,-0.10*L,dz*0.03*L); sp.rotation.z=dx>0?0.5:-0.5; sp.castShadow=true; tail.add(sp); }); body.add(tail);
+    for(let i=0;i<7;i++){ const t=(i/6); const px=(-0.18+t*0.5)*L; const ph=(Math.sin(t*Math.PI))*0.13*L; const size=(0.10+Math.sin(t*Math.PI)*0.16)*L;
+      [-1,1].forEach(side=>{ const pl=new THREE.Mesh(new THREE.ConeGeometry(size*0.55,size,4),flat(0xb06a4a,0.7)); pl.position.set(px, H*1.05+ph+size*0.5, side*0.04*L); pl.rotation.y=Math.PI/4; pl.scale.z=0.3; pl.castShadow=true; body.add(pl); }); }
+    [[0.22,1],[0.22,-1],[-0.14,1],[-0.14,-1]].forEach(([fx,side])=>{ const lp=new THREE.Object3D(); const short=fx>0; lp.position.set(fx*L,H*0.9,side*0.16*L);
+      lp.add(makeLeg(L*(short?0.72:1.0),0.075*L,0.058*L,{x:0,z:0},{x:0,z:0},0.11*L,mat)); body.add(lp); ud.legs.push({p:lp,ph:(fx>0?0:Math.PI)+(side>0?0:0.4),type:'quad'}); });
+    ud.top=H*1.05+0.28*L;
+    ud.boneData={ spine:[V(0.5*L,H*0.78,0),V(0.34*L,H*0.82,0),V(0.16*L,H*1.05,0),V(-0.04*L,H*0.98,0),V(-0.22*L,H*0.9,0),V(-0.40*L,H*0.8,0),V(-0.56*L,H*0.74,0)],
+      svr:[0.045*L,0.06*L,0.09*L,0.09*L,0.07*L,0.04*L,0.03*L], neural:[2,3], neuralH:2.6, ribs:[2,3], ribLen:0.24*L,
+      legs:[[0.22,1,0.72],[0.22,-1,0.72],[-0.14,1,1],[-0.14,-1,1]].map(([fx,side,s])=>({root:V(fx*L,H*0.9,side*0.16*L),len:L*s})),
+      skull:{pos:V(0.56*L,H*0.76,0),len:0.1*L} };
+  } else if(d.build==='cera'){
+    const H=L*0.34;
+    chest([V(-0.22*L,H*0.92,0),V(-0.04*L,H*1.04,0),V(0.16*L,H*1.02,0),V(0.32*L,H*0.9,0)],[0.10*L,0.18*L,0.17*L,0.12*L]);
+    const head=new THREE.Object3D(); head.position.set(0.36*L,H*0.86,0); ud.head=head; ud.neck=head;
+    const frill=new THREE.Mesh(new THREE.CylinderGeometry(0.30*L,0.20*L,0.05*L,20),flat(0xa9834f,0.8)); frill.position.set(-0.04*L,0.10*L,0); frill.rotation.x=Math.PI/2; frill.rotation.z=-0.35; frill.castShadow=true; head.add(frill);
+    const sk=new THREE.Mesh(new THREE.BoxGeometry(0.22*L,0.15*L,0.15*L),mat); sk.position.set(0.10*L,0,0); sk.castShadow=true; head.add(sk);
+    const beak=new THREE.Mesh(new THREE.ConeGeometry(0.05*L,0.13*L,7),flat(0x8a7250,0.7)); beak.position.set(0.24*L,-0.03*L,0); beak.rotation.z=-Math.PI/2.2; beak.castShadow=true; head.add(beak);
+    [[0.07,1],[0.07,-1]].forEach(([o,side])=>{ const horn=new THREE.Mesh(new THREE.ConeGeometry(0.028*L,0.26*L,7),boneCol); horn.position.set(0.16*L,0.12*L,side*0.07*L); horn.rotation.z=-0.7; horn.rotation.x=side*0.15; horn.castShadow=true; head.add(horn); });
+    const nose=new THREE.Mesh(new THREE.ConeGeometry(0.03*L,0.14*L,7),boneCol); nose.position.set(0.22*L,0.06*L,0); nose.rotation.z=-Math.PI/2.6; nose.castShadow=true; head.add(nose);
+    head.add(eye(0.09*L,0.03*L,0.075*L,0.014*L)); head.add(eye(0.09*L,0.03*L,-0.075*L,0.014*L)); body.add(head);
+    const tail=new THREE.Object3D(); tail.position.set(-0.22*L,H*0.92,0); ud.tail=tail;
+    tail.add(segTube([V(0,0,0),V(-0.16*L,-0.03*L,0),V(-0.30*L,-0.08*L,0)],[0.09*L,0.05*L,0.02*L],mat)); body.add(tail);
+    [[0.16,1],[0.16,-1],[-0.16,1],[-0.16,-1]].forEach(([fx,side])=>{ const lp=new THREE.Object3D(); lp.position.set(fx*L,H*0.9,side*0.16*L);
+      lp.add(makeLeg(L*0.9,0.085*L,0.065*L,{x:0,z:0},{x:0,z:0},0.12*L,mat)); body.add(lp); ud.legs.push({p:lp,ph:(fx>0?0:Math.PI)+(side>0?0:0.4),type:'quad'}); });
+    ud.top=H*1.1+0.2*L;
+    ud.boneData={ spine:[V(0.46*L,H*0.88,0),V(0.32*L,H*0.9,0),V(0.16*L,H*1.02,0),V(-0.04*L,H*0.98,0),V(-0.22*L,H*0.92,0),V(-0.38*L,H*0.87,0),V(-0.52*L,H*0.82,0)],
+      svr:[0.06*L,0.08*L,0.09*L,0.08*L,0.06*L,0.04*L,0.025*L], neural:[1,3], neuralH:1.5, ribs:[2,3], ribLen:0.22*L,
+      legs:[[0.16,1],[0.16,-1],[-0.16,1],[-0.16,-1]].map(([fx,side])=>({root:V(fx*L,H*0.9,side*0.16*L),len:L*0.9})),
+      skull:{pos:V(0.5*L,H*0.86,0),len:0.16*L} };
+  } else if(d.build==='anky'){
+    const H=L*0.26;
+    chest([V(-0.28*L,H,0),V(-0.10*L,H*1.12,0),V(0.10*L,H*1.14,0),V(0.30*L,H*1.0,0)],[0.13*L,0.24*L,0.24*L,0.15*L]);
+    ud.chest.scale.z=1.35;
+    const head=new THREE.Object3D(); head.position.set(0.38*L,H*0.86,0); ud.head=head; ud.neck=head;
+    const sk=new THREE.Mesh(new THREE.BoxGeometry(0.18*L,0.11*L,0.16*L),mat); sk.castShadow=true; head.add(sk);
+    const snout=new THREE.Mesh(new THREE.BoxGeometry(0.1*L,0.07*L,0.13*L),flat(0x8a7250,0.7)); snout.position.set(0.13*L,-0.02*L,0); snout.castShadow=true; head.add(snout);
+    [-1,1].forEach(s=>{ const h=new THREE.Mesh(new THREE.ConeGeometry(0.03*L,0.09*L,4),boneCol); h.position.set(-0.06*L,0.02*L,s*0.09*L); h.rotation.z=0.4; h.rotation.x=-s*0.6; head.add(h); });
+    head.add(eye(0.05*L,0.01*L,0.08*L,0.012*L)); head.add(eye(0.05*L,0.01*L,-0.08*L,0.012*L)); body.add(head);
+    // ostéodermes dorsaux — plaques d'armure dans le ton du corps
+    const arm=skinMat(0x565a44,'scales'); const kerat=flat(0x5a4c32,0.55);
+    for(let r=0;r<4;r++){ const px=(0.18-r*0.13)*L; const nz=3-r%2; for(let ci=0;ci<nz;ci++){ const cz=(ci-(nz-1)/2); const dome=new THREE.Mesh(new THREE.SphereGeometry(0.055*L*(1-Math.abs(cz)*0.14),9,7,0,7,0,Math.PI/2),arm); dome.position.set(px,H*1.12,cz*0.12*L); dome.castShadow=true; body.add(dome); } }
+    [-1,1].forEach(s=>{ for(let i=0;i<3;i++){ const spk=new THREE.Mesh(new THREE.ConeGeometry(0.035*L,0.13*L,5),kerat); spk.position.set((0.14-i*0.15)*L,H*1.02,s*0.3*L); spk.rotation.z=s>0?-1.0:1.0; spk.rotation.x=s>0?0.25:-0.25; spk.castShadow=true; body.add(spk); } });
+    const tail=new THREE.Object3D(); tail.position.set(-0.28*L,H,0); ud.tail=tail;
+    tail.add(segTube([V(0,0,0),V(-0.18*L,-0.02*L,0),V(-0.34*L,-0.02*L,0),V(-0.48*L,-0.01*L,0)],[0.10*L,0.07*L,0.05*L,0.045*L],mat));
+    const club=new THREE.Mesh(new THREE.SphereGeometry(0.11*L,12,10),skinMat(0x62654c,'scales')); club.scale.set(1.15,0.82,1.05); club.position.set(-0.55*L,0,0); club.castShadow=true; tail.add(club); body.add(tail);
+    [[0.2,1],[0.2,-1],[-0.16,1],[-0.16,-1]].forEach(([fx,side])=>{ const lp=new THREE.Object3D(); lp.position.set(fx*L,H*0.78,side*0.22*L);
+      lp.add(makeLeg(L*0.62,0.085*L,0.075*L,{x:0,z:0},{x:0,z:0},0.13*L,mat)); body.add(lp); ud.legs.push({p:lp,ph:(fx>0?0:Math.PI)+(side>0?0:0.4),type:'quad'}); });
+    ud.top=H*1.3;
+    ud.boneData={ spine:[V(0.42*L,H*0.86,0),V(0.30*L,H*1.0,0),V(0.10*L,H*1.08,0),V(-0.10*L,H*1.06,0),V(-0.28*L,H,0),V(-0.46*L,H*0.98,0),V(-0.6*L,H*0.98,0)],
+      svr:[0.06*L,0.1*L,0.12*L,0.12*L,0.09*L,0.06*L,0.05*L], ribs:[2,3], ribLen:0.28*L,
+      legs:[[0.2,1],[0.2,-1],[-0.16,1],[-0.16,-1]].map(([fx,side])=>({root:V(fx*L,H*0.78,side*0.22*L),len:L*0.62})),
+      skull:{pos:V(0.5*L,H*0.86,0),len:0.15*L} };
+  } else if(d.build==='hadro'){
+    const H=L*0.36;
+    chest([V(-0.24*L,H*0.9,0),V(-0.04*L,H*1.04,0),V(0.16*L,H*1.02,0),V(0.30*L,H*0.94,0)],[0.10*L,0.18*L,0.16*L,0.11*L]);
+    const neck=new THREE.Object3D(); neck.position.set(0.30*L,H*0.94,0); ud.neck=neck;
+    neck.add(segTube([V(0,0,0),V(0.10*L,0.10*L,0),V(0.18*L,0.20*L,0)],[0.08*L,0.065*L,0.05*L],mat));
+    const head=new THREE.Object3D(); head.position.set(0.18*L,0.20*L,0); ud.head=head;
+    const sk=new THREE.Mesh(new THREE.BoxGeometry(0.15*L,0.09*L,0.08*L),mat); sk.castShadow=true; head.add(sk);
+    const bill=new THREE.Mesh(new THREE.BoxGeometry(0.1*L,0.05*L,0.1*L),flat(0x8a7250,0.7)); bill.position.set(0.12*L,-0.02*L,0); bill.castShadow=true; head.add(bill);
+    // crête tubulaire recourbée vers l'arrière
+    const crest=new THREE.Mesh(new THREE.CylinderGeometry(0.03*L,0.045*L,0.34*L,10),flat(new THREE.Color(d.col).multiplyScalar(1.1).getHex(),0.7)); crest.position.set(-0.14*L,0.10*L,0); crest.rotation.z=1.05; crest.castShadow=true; head.add(crest);
+    head.add(eye(0.03*L,0.03*L,0.05*L,0.014*L)); head.add(eye(0.03*L,0.03*L,-0.05*L,0.014*L)); neck.add(head); body.add(neck);
+    const tail=new THREE.Object3D(); tail.position.set(-0.24*L,H*0.9,0); ud.tail=tail;
+    tail.add(segTube([V(0,0,0),V(-0.22*L,-0.02*L,0),V(-0.44*L,-0.04*L,0),V(-0.64*L,-0.02*L,0)],[0.1*L,0.07*L,0.04*L,0.015*L],mat)); body.add(tail);
+    [[0.16,1,1.0],[0.16,-1,1.0],[0.34,1,0.55],[0.34,-1,0.55]].forEach(([fx,side,s])=>{ const lp=new THREE.Object3D(); lp.position.set(fx*L,H*0.9,side*(s<1?0.09:0.16)*L);
+      lp.add(makeLeg(L*s,0.08*L,0.06*L,{x:0,z:0},{x:0,z:0},0.12*L,mat)); body.add(lp); ud.legs.push({p:lp,ph:(fx>0?0:Math.PI)+(side>0?0:0.4),type:'quad'}); });
+    ud.top=H*1.0+0.3*L;
+    ud.boneData={ spine:[V(0.48*L,H*1.1,0),V(0.40*L,H*1.02,0),V(0.30*L,H*0.94,0),V(0.16*L,H*1.02,0),V(-0.04*L,H*1.0,0),V(-0.24*L,H*0.9,0),V(-0.44*L,H*0.86,0),V(-0.64*L,H*0.88,0)],
+      svr:[0.05*L,0.055*L,0.07*L,0.085*L,0.08*L,0.065*L,0.035*L,0.015*L], neural:[3,4], neuralH:1.7, ribs:[3,4], ribLen:0.22*L,
+      legs:[[0.16,1],[0.16,-1],[0.34,1],[0.34,-1]].map(([fx,side])=>({root:V(fx*L,H*0.9,side*0.14*L),len:L*(fx>0.2?0.55:1.0)})),
+      skull:{pos:V(0.5*L,H*1.14,0),len:0.15*L} };
+  } else if(d.build==='spino'){
+    const H=L*0.28;
+    chest([V(-0.26*L,H*0.95,0),V(-0.06*L,H*1.06,0),V(0.14*L,H*1.05,0),V(0.32*L,H*0.98,0)],[0.09*L,0.15*L,0.14*L,0.09*L]);
+    const neck=new THREE.Object3D(); neck.position.set(0.32*L,H*0.98,0); ud.neck=neck;
+    neck.add(segTube([V(0,0,0),V(0.10*L,0.06*L,0),V(0.18*L,0.10*L,0)],[0.07*L,0.06*L,0.05*L],mat));
+    const head=new THREE.Object3D(); head.position.set(0.18*L,0.10*L,0); ud.head=head;
+    const sk=new THREE.Mesh(new THREE.BoxGeometry(0.12*L,0.08*L,0.07*L),mat); sk.castShadow=true; head.add(sk);
+    const snout=new THREE.Mesh(new THREE.BoxGeometry(0.26*L,0.05*L,0.05*L),mat); snout.position.set(0.18*L,-0.01*L,0); snout.castShadow=true; head.add(snout);
+    const crest=new THREE.Mesh(new THREE.ConeGeometry(0.03*L,0.08*L,5),flat(0xc76a5a,0.7)); crest.position.set(0.06*L,0.06*L,0); head.add(crest);
+    for(let i=0;i<7;i++){ const t=new THREE.Mesh(new THREE.ConeGeometry(0.008*L,0.028*L,4),boneCol); t.position.set((0.1+i*0.032)*L,-0.03*L,0.022*L); t.rotation.x=Math.PI; head.add(t); const t2=t.clone(); t2.position.z=-0.022*L; head.add(t2); }
+    head.add(eye(0.04*L,0.03*L,0.035*L,0.013*L)); head.add(eye(0.04*L,0.03*L,-0.035*L,0.013*L)); neck.add(head); body.add(neck);
+    // voile dorsale
+    const sailPts=[[-0.2,0.0],[-0.05,0.55],[0.15,0.7],[0.32,0.4]]; const sh=new THREE.Shape(); sh.moveTo(-0.22*L,0);
+    sailPts.forEach(([px,py])=> sh.lineTo(px*L,py*L)); sh.lineTo(0.32*L,0); sh.closePath();
+    const sail=new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshStandardMaterial({color:0x9a5a4a,side:THREE.DoubleSide,roughness:0.85,metalness:0,envMapIntensity:0.5})); sail.position.set(0,H*1.05,0); sail.castShadow=true; body.add(sail); ud.sail=sail;
+    const tail=new THREE.Object3D(); tail.position.set(-0.26*L,H*0.95,0); ud.tail=tail;
+    tail.add(segTube([V(0,0,0),V(-0.22*L,-0.02*L,0),V(-0.44*L,-0.02*L,0),V(-0.66*L,0,0)],[0.09*L,0.07*L,0.05*L,0.02*L],mat)); body.add(tail);
+    [-1,1].forEach(side=>{ const lp=new THREE.Object3D(); lp.position.set(0.04*L,H*0.95,side*0.1*L);
+      lp.add(makeLeg(L*0.85,0.07*L,0.05*L,{x:0.02*L,z:0},{x:-0.01*L,z:0},0.11*L,mat)); body.add(lp); ud.legs.push({p:lp,ph:side>0?0:Math.PI,type:'hind'}); });
+    [-1,1].forEach(side=>{ const arm=new THREE.Object3D(); arm.position.set(0.22*L,H*0.82,side*0.09*L); arm.rotation.z=-0.6; const a=new THREE.Mesh(new THREE.CapsuleGeometry(0.03*L,0.16*L,4,7),mat); a.castShadow=true; arm.add(a); body.add(arm); ud.arms.push(arm); });
+    ud.top=H*1.05+0.7*L;
+    ud.boneData={ spine:[V(0.5*L,H*1.08,0),V(0.32*L,H*0.98,0),V(0.14*L,H*1.05,0),V(-0.06*L,H*1.06,0),V(-0.26*L,H*0.95,0),V(-0.48*L,H*0.93,0),V(-0.7*L,H*0.95,0),V(-0.9*L,H*0.98,0)],
+      svr:[0.045*L,0.06*L,0.07*L,0.075*L,0.065*L,0.05*L,0.03*L,0.015*L], neural:[1,4], neuralH:6.5, ribs:[2,3], ribLen:0.2*L,
+      legs:[{root:V(0.04*L,H*0.95,0.1*L),len:L*0.85},{root:V(0.04*L,H*0.95,-0.1*L),len:L*0.85}],
+      skull:{pos:V(0.58*L,H*1.06,0),len:0.14*L,long:true,teeth:true}, teeth:true };
+  } else if(d.build==='ptero'){
+    const bodyM=new THREE.Mesh(new THREE.CapsuleGeometry(0.05*L,0.24*L,4,9),mat); bodyM.rotation.x=Math.PI/2; bodyM.castShadow=true; body.add(bodyM); ud.chest=body;
+    const head=new THREE.Mesh(new THREE.ConeGeometry(0.055*L,0.30*L,8),mat); head.position.set(0,0.02*L,0.24*L); head.rotation.x=-Math.PI/2; head.castShadow=true; body.add(head);
+    const crest=new THREE.Mesh(new THREE.ConeGeometry(0.02*L,0.16*L,5),flat(0xc76a5a,0.7)); crest.position.set(0,0.11*L,0.16*L); crest.rotation.z=Math.PI; crest.castShadow=true; body.add(crest);
+    const wingMat=new THREE.MeshStandardMaterial({color:new THREE.Color(d.col).multiplyScalar(0.9).getHex(),side:THREE.DoubleSide,roughness:0.88,metalness:0,transparent:true,opacity:0.97,envMapIntensity:0.4});
+    const mkWing=(side)=>{ const sh=new THREE.Shape(); sh.moveTo(0,0); sh.quadraticCurveTo(side*0.34*L,0.10*L,side*0.62*L,0.02*L); sh.quadraticCurveTo(side*0.5*L,-0.12*L,side*0.2*L,-0.14*L); sh.quadraticCurveTo(side*0.08*L,-0.08*L,0,-0.03*L); sh.closePath(); const w=new THREE.Mesh(new THREE.ShapeGeometry(sh),wingMat); w.castShadow=false; return w; };
+    const wL=mkWing(-1), wR=mkWing(1); body.add(wL); body.add(wR); ud.wings=[wL,wR];
+    ud.top=0.3*L; ud.flyModel=true;
+    ud.boneData={ spine:[V(0,0.02*L,0.2*L),V(0,0,0.05*L),V(0,0,-0.12*L)], svr:[0.03*L,0.04*L,0.025*L], ribs:[1], ribLen:0.12*L,
+      legs:[], skull:{pos:V(0,0.02*L,0.32*L),len:0.1*L,long:true} };
+  }
+
+  // pose au sol
+  root.updateMatrixWorld(true); const bb=new THREE.Box3().setFromObject(body); if(isFinite(bb.min.y)) body.position.y-=bb.min.y;
+  ud.top=(ud.top||L*0.5);
+  // plumage
+  if(d.feather) addPlumage(ud,L,d);
+  // squelette
+  if(ud.boneData){ ud.bones=buildBones(ud.boneData,L); ud.bones.position.copy(body.position); ud.bones.visible=false; root.add(ud.bones); }
+  root.userData.parts=ud; root.userData.species=d; return root;
+}
+
+function buildDinos(){ Object.keys(DINOS).forEach(k=>{ const g=dinoBuilder(DINOS[k]); g.visible=false; g.userData.key=k; scene.add(g); dinoMeshes[k]=g; }); }
+
+function placeEraDinos(){
+  focusKey=null;
+  Object.values(dinoMeshes).forEach(g=>{ g.visible=false; g.userData.focused=false; if(g.userData.label) g.userData.label.classList.remove('on'); if(g.userData.parts.bones) g.userData.parts.bones.visible=false; });
+  const set=ERA_SET[era]; const n=set.length;
+  set.forEach((k,i)=>{ const g=dinoMeshes[k]; const d=DINOS[k];
+    const ang=(i/n)*Math.PI*1.8 - Math.PI*0.9; const rad=13+(d.len>15?6:d.len>8?2:0)+(i%2)*2.5;
+    const cx=Math.sin(ang)*rad, cz=Math.cos(ang)*rad-2;
+    g.userData.center=new THREE.Vector2(cx,cz); g.userData.orbit=d.fly?0:2.5+Math.random()*2.5;
+    g.userData.phase=Math.random()*Math.PI*2; g.userData.speed=d.fly?0.28:(0.12+Math.random()*0.1)*(d.len>15?0.5:1);
+    g.userData.walk=0; g.userData.graze=Math.random()*Math.PI*2;
+    g.position.set(cx,d.fly?9:0,cz); g.rotation.y=-ang+Math.PI; g.visible=true;
+    g.userData.dying=false; g.rotation.z=0;
+    if(g.userData.parts.bones) g.userData.parts.bones.visible=skeletonOn;
+    ensureLabel(k,d);
+  });
+  if(skeletonOn) applyXray(true);
+}
+function ensureLabel(k,d){ let g=dinoMeshes[k]; if(!g.userData.label){ const el=document.createElement('div'); el.className='dn-label'; el.innerHTML=`<span class="pip ${d.diet==='Carnivore'?'carn':'herb'}"></span>${d.n}`; shell.api.stage.appendChild(el); g.userData.label=el; } }
+
+/* ================= DÉCOR : ciel, sol, végétation, volcan ================= */
+function skyTex(top,bot){ const c=document.createElement('canvas'); c.width=8; c.height=256; const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,256); g.addColorStop(0,'#'+new THREE.Color(top).getHexString()); g.addColorStop(0.55,'#'+new THREE.Color(top).clone().lerp(new THREE.Color(bot),0.6).getHexString()); g.addColorStop(1,'#'+new THREE.Color(bot).getHexString());
+  x.fillStyle=g; x.fillRect(0,0,8,256); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t; }
+function buildSky(){ skyDome=new THREE.Mesh(new THREE.SphereGeometry(340,32,20), new THREE.MeshBasicMaterial({side:THREE.BackSide,fog:false,depthWrite:false})); scene.add(skyDome);
+  sunSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(),color:0xfff0c0,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:false})); sunSprite.scale.setScalar(56); sunSprite.position.set(150,150,90); scene.add(sunSprite); }
+function glowTex(){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(255,248,225,1)'); g.addColorStop(.28,'rgba(255,220,150,.65)'); g.addColorStop(1,'rgba(255,200,120,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+
+/* ===== Textures PBR CC0 (Poly Haven) : sol/terrain réel, tuilé large + AO bakée ===== */
+const _texLoader=new THREE.TextureLoader(), _texCache={}, PBR2K='../assets/3d/pbr2k/'; let _maxAniso=8;
+function loadGroundTex(url,srgb,rep){ const key=url+'@'+rep; if(_texCache[key]) return _texCache[key];
+  const t=_texLoader.load(url,undefined,undefined,()=>{}); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep,rep);
+  t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=_maxAniso; _texCache[key]=t; return t; }
+// applique diffuse(sRGB)+normal(GL)+roughness(+ao bakée) réels sur un matériau existant, sans le recréer
+function applyGroundPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR2K+slug+'/'+slug+'_';
+  material.map=loadGroundTex(b+'diff_'+res+'.jpg',true,rep);
+  material.normalMap=loadGroundTex(b+'nor_gl_'+res+'.jpg',false,rep); material.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  material.roughnessMap=loadGroundTex(b+'rough_'+res+'.jpg',false,rep); material.roughness=1.0;
+  if(opt.ao){ material.aoMap=loadGroundTex(b+'ao_'+res+'.jpg',false,rep); material.aoMapIntensity=opt.aoInt!=null?opt.aoInt:1; }
+  material.color.setHex(opt.tint!=null?opt.tint:0xffffff); material.needsUpdate=true; return material; }
+// duplique le canal UV (uv → uv1) pour que l'aoMap fonctionne
+function enableAOuv(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+// choisit le terrain selon l'ère : sol forestier (terre+feuilles) sur les ères luxuriantes, terrain rocheux/aride au Trias
+function setGroundEra(v){ if(!groundMat) return; const E=ERAS[v];
+  if(E.veg==='lush'){ applyGroundPBR(groundMat,'forrest_ground_01','1k',{repeat:36,normal:1.15,ao:true,aoInt:0.9,tint:E.groundTint===0x8fac6e?0xbdc3a4:0xc9c9b2}); }
+  else { applyGroundPBR(groundMat,'rocky_terrain','1k',{repeat:30,normal:1.0,ao:true,aoInt:0.9,tint:0xcaa877}); }
+}
+let groundMat;
+function buildGround(){
+  const geo=new THREE.PlaneGeometry(360,360,90,90); const p=geo.attributes.position;
+  for(let i=0;i<p.count;i++){ const x=p.getX(i), y=p.getY(i); const r=Math.hypot(x,y);
+    let h=Math.sin(x*0.05)*Math.cos(y*0.045)*1.1 + Math.sin(x*0.13+y*0.07)*0.5;
+    if(r>60) h+=(r-60)*0.06; p.setZ(i,h); }
+  geo.computeVertexNormals(); geo.rotateX(-Math.PI/2); enableAOuv(geo);
+  groundMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,metalness:0,envMapIntensity:0.55});
+  ground=new THREE.Mesh(geo,groundMat); ground.receiveShadow=true; scene.add(ground);
+  setGroundEra(era);
+}
+function buildScenery(){
+  const mtG=new THREE.Object3D();
+  for(let i=0;i<22;i++){ const a=(i/22)*Math.PI*2; const r=150+Math.random()*40; const h=18+Math.random()*30;
+    const m=new THREE.Mesh(new THREE.ConeGeometry(h*0.9,h,6), new THREE.MeshStandardMaterial({color:0x5a5750,roughness:1,fog:true,envMapIntensity:0.2}));
+    m.position.set(Math.sin(a)*r,h*0.42,Math.cos(a)*r); mtG.add(m); }
+  scene.add(mtG);
+  volcano=new THREE.Object3D(); volcano.position.set(-88,0,-96);
+  const cone=new THREE.Mesh(new THREE.CylinderGeometry(10,34,42,7,1,true), new THREE.MeshStandardMaterial({color:0x4a3d34,roughness:1,side:THREE.DoubleSide,flatShading:true,envMapIntensity:0.2})); cone.position.y=21; volcano.add(cone);
+  const crater=new THREE.Mesh(new THREE.CircleGeometry(10,16), new THREE.MeshStandardMaterial({color:0x1a0d08,emissive:0xff5a1e,emissiveIntensity:0.8,roughness:1})); crater.rotation.x=-Math.PI/2; crater.position.y=42; volcano.add(crater);
+  scene.add(volcano);
+  const N=REDUCED?60:180; const pos=new Float32Array(N*3); const sd=[];
+  for(let i=0;i<N;i++){ sd.push({t:Math.random(),sp:0.4+Math.random()*0.6,off:(Math.random()-0.5)*6}); pos[i*3]=0;pos[i*3+1]=0;pos[i*3+2]=0; }
+  const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  smoke=new THREE.Points(sg,new THREE.PointsMaterial({map:glowTex(),color:0x8a7a6a,size:16,sizeAttenuation:true,transparent:true,opacity:0.32,depthWrite:false,blending:THREE.NormalBlending})); smoke.userData.sd=sd; volcano.add(smoke); smoke.position.y=42;
+}
+
+function clearVeg(){ Object.values(vegGroups).forEach(m=>{ scene.remove(m); m.geometry&&m.geometry.dispose(); }); vegGroups={}; }
+function inst(geo,mat,count,cast){ const m=new THREE.InstancedMesh(geo,mat,count); m.castShadow=cast; m.receiveShadow=false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); return m; }
+function buildVeg(){ clearVeg(); const E=ERAS[era]; const lush=E.veg==='lush';
+  const dummy=new THREE.Object3D(); const rand=(min,max)=>min+Math.random()*(max-min);
+  const place=(m,count,rMin,rMax,scMin,scMax,yBase)=>{ let idx=0; for(let i=0;i<count;i++){ const a=Math.random()*Math.PI*2, r=rand(rMin,rMax);
+      const x=Math.sin(a)*r, z=Math.cos(a)*r; if(Math.hypot(x,z)<9) continue; const s=rand(scMin,scMax);
+      dummy.position.set(x,yBase,z); dummy.rotation.set(0,Math.random()*Math.PI*2,0); dummy.scale.setScalar(s); dummy.updateMatrix(); m.setMatrixAt(idx++,dummy.matrix); }
+    m.count=idx; m.instanceMatrix.needsUpdate=true; };
+  const coneCount=REDUCED?18:(lush?48:22);
+  const trunkG=new THREE.CylinderGeometry(0.35,0.5,4,6); trunkG.translate(0,2,0);
+  const trunkM=inst(trunkG,flat(0x6a4a2a,1),coneCount,true); scene.add(trunkM); vegGroups.trunk=trunkM;
+  const foliG=lush?new THREE.ConeGeometry(2.4,5.5,8):new THREE.SphereGeometry(1.8,8,6); foliG.translate(0,lush?5.6:4.3,0); if(!lush) foliG.scale(1,0.6,1);
+  const foliM=inst(foliG,flat(lush?0x2f6a2a:0x8a8140,0.95),coneCount,true); scene.add(foliM); vegGroups.foli=foliM;
+  const fernCount=REDUCED?40:(lush?150:60);
+  const fernG=new THREE.ConeGeometry(0.9,2.2,5,1,true); fernG.translate(0,1.1,0);
+  const fernM=inst(fernG,new THREE.MeshStandardMaterial({color:lush?0x3f7a34:0x8a9a4a,roughness:1,side:THREE.DoubleSide,envMapIntensity:0.3}),fernCount,false); scene.add(fernM); vegGroups.fern=fernM;
+  const grassCount=REDUCED?60:(lush?260:120);
+  const grG=new THREE.ConeGeometry(0.5,1.2,4); grG.translate(0,0.6,0);
+  const grM=inst(grG,new THREE.MeshStandardMaterial({color:lush?0x4f7a30:0xa08a4a,roughness:1,envMapIntensity:0.25}),grassCount,false); scene.add(grM); vegGroups.grass=grM;
+  const rockCount=REDUCED?12:(E.veg==='trias'?38:20);
+  const rkG=new THREE.DodecahedronGeometry(1,0); const rkM=inst(rkG,flat(E.rock,1),rockCount,true); scene.add(rkM); vegGroups.rock=rkM;
+  placePair(trunkM,foliM,coneCount,20,150,0.7,1.6);
+  place(fernM,fernCount,12,110,0.6,1.5,0);
+  place(grM,grassCount,10,90,0.5,1.6,0);
+  place(rkM,rockCount,14,150,0.5,2.4,0.2);
+}
+function placePair(a,b,count,rMin,rMax,scMin,scMax){ const dummy=new THREE.Object3D(); let idx=0;
+  for(let i=0;i<count;i++){ const ang=Math.random()*Math.PI*2, r=rMin+Math.random()*(rMax-rMin); const x=Math.sin(ang)*r,z=Math.cos(ang)*r; if(Math.hypot(x,z)<10) continue;
+    const s=scMin+Math.random()*(scMax-scMin); const ry=Math.random()*Math.PI*2;
+    dummy.position.set(x,0,z); dummy.rotation.set(0,ry,0); dummy.scale.setScalar(s); dummy.updateMatrix();
+    a.setMatrixAt(idx,dummy.matrix); b.setMatrixAt(idx,dummy.matrix); idx++; }
+  a.count=b.count=idx; a.instanceMatrix.needsUpdate=b.instanceMatrix.needsUpdate=true; }
+
+/* ================= UI ================= */
+function buildUI(){
+  const stage=shell.api.stage;
+  const eraEl=document.createElement('div'); eraEl.className='dn-era';
+  eraEl.innerHTML=`<div class="dn-eralbl"><span class="dn-eraname" id="dnEraName">Jurassique</span><span class="dn-erayear" id="dnEraYear"></span></div>
+    <input class="dn-eraslider" id="dnEra" type="range" min="0" max="2" step="1" value="1" aria-label="Curseur des ères">
+    <div class="dn-marks"><span data-e="0">Trias</span><span data-e="1">Jurassique</span><span data-e="2">Crétacé</span></div>`;
+  stage.appendChild(eraEl);
+  eraEl.querySelectorAll('.dn-marks span').forEach(s=> s.onclick=()=>setEra(+s.dataset.e));
+  const tools=document.createElement('div'); tools.className='dn-tools';
+  tools.innerHTML=`<button class="dn-tb" id="dnTour">🎬 Voyage dans le temps</button>
+    <button class="dn-tb bone" id="dnSkel" aria-pressed="false">🦴 Voir le squelette</button>
+    <button class="dn-tb" id="dnScale" aria-pressed="false">📏 Comparer à un humain</button>
+    <button class="dn-tb" id="dnLabels" aria-pressed="true">🏷️ Étiquettes</button>
+    <button class="dn-tb danger" id="dnImpact" aria-pressed="false" disabled>☄️ Impact de l'astéroïde</button>`;
+  stage.appendChild(tools);
+  tools.querySelector('#dnTour').onclick=startTour;
+  const info=document.createElement('div'); info.className='dn-info'; info.id='dnInfo'; stage.appendChild(info);
+  const tp=document.createElement('div'); tp.className='dn-tour'; tp.id='dnTourP'; stage.appendChild(tp);
+  const hint=document.createElement('div'); hint.className='dn-hint'; hint.id='dnHint'; hint.textContent='Clique un dinosaure'; stage.appendChild(hint);
+  const legend=document.createElement('div'); legend.className='dn-legend'; legend.innerHTML=`<b><span class="d" style="background:var(--brand-teal)"></span>Herbivore</b><b><span class="d" style="background:var(--brand-red)"></span>Carnivore</b>`; stage.appendChild(legend);
+  const spb=document.createElement('div'); spb.className='dn-species'; spb.id='dnSpecies'; stage.appendChild(spb);
+  const flash=document.createElement('div'); flash.className='dn-flash'; flash.id='dnFlash'; stage.appendChild(flash);
+  eraEl.querySelector('#dnEra').oninput=e=> setEra(+e.target.value);
+  tools.querySelector('#dnScale').onclick=()=>{ scaleHuman=!scaleHuman; tools.querySelector('#dnScale').setAttribute('aria-pressed',scaleHuman); human.visible=scaleHuman; shell.sound('click'); if(scaleHuman) shell.api.say("La silhouette bleue, c'est un humain (1,80 m) à la même échelle. Vois comme certains dinos sont gigantesques !",'surpris'); };
+  tools.querySelector('#dnLabels').onclick=()=>{ labelsOn=!labelsOn; tools.querySelector('#dnLabels').setAttribute('aria-pressed',labelsOn); shell.sound('click'); };
+  tools.querySelector('#dnSkel').onclick=()=>toggleSkeleton();
+  tools.querySelector('#dnImpact').onclick=triggerImpact;
+}
+function syncSpeciesBar(){ const spb=document.getElementById('dnSpecies'); if(!spb) return; spb.style.display=(mode==='cours')?'none':'flex';
+  spb.innerHTML=ERA_SET[era].map(k=>{ const d=DINOS[k]; return `<button class="dn-sp" data-k="${k}" aria-pressed="${focusKey===k}"><span class="pip ${d.diet==='Carnivore'?'carn':'herb'}"></span>${d.n}</button>`; }).join('');
+  spb.querySelectorAll('.dn-sp').forEach(b=> b.onclick=()=>{ const g=dinoMeshes[b.dataset.k]; if(g&&g.visible){ openInfo(g.userData.species,b.dataset.k); focusDino(g); } });
+}
+function toggleSkeleton(){ setSkeleton(!skeletonOn); }
+function setSkeleton(on){ skeletonOn=on; shell.sound('click');
+  const btn=document.getElementById('dnSkel'); if(btn) btn.setAttribute('aria-pressed',on);
+  const sb=document.querySelector('#dnInfo .dn-skelbtn'); if(sb){ sb.dataset.on=on?'1':'0'; sb.innerHTML=on?'🫥 Masquer le squelette':'🦴 Voir le squelette sous la peau'; }
+  Object.values(dinoMeshes).forEach(g=>{ const ud=g.userData.parts; if(ud.bones) ud.bones.visible=on && g.visible; });
+  applyXray(on);
+  if(on) shell.api.say("Radiographie ! Voici le squelette sous la peau : c'est ce que les paléontologues retrouvent réellement en fossile.",'idee');
+}
+function applyXray(on){ Object.values(dinoMeshes).forEach(g=>{ const ud=g.userData.parts; if(!ud||!ud.body) return;
+  ud.body.traverse(o=>{ if(o.material){ const arr=Array.isArray(o.material)?o.material:[o.material]; arr.forEach(m=>{ m.transparent=on|| (m.userData&&m.userData.wasT)||false; m.opacity=on?0.12:1; m.depthWrite=!on; m.needsUpdate=true; }); } }); }); }
+
+function setEra(v,instant){ era=v; const E=ERAS[v];
+  document.getElementById('dnEraName').textContent=E.name; document.getElementById('dnEraYear').textContent=E.year; document.getElementById('dnEra').value=v;
+  setGroundEra(v); scene.fog.color.setHex(E.fog);
+  if(skyDome){ skyDome.material.map=skyTex(E.skyTop,E.skyBot); skyDome.material.needsUpdate=true; }
+  if(sunLight){ sunLight.color.setHex(E.sun); sunLight.intensity=E.sunInt; }
+  if(hemi){ hemi.color.setHex(E.hemiSky); hemi.groundColor.setHex(E.hemiGround); }
+  renderer.setClearColor(E.fog,1);
+  document.getElementById('dnImpact').disabled = v!==2; impacted=false;
+  buildVeg(); placeEraDinos(); syncSpeciesBar();
+  if(shell.api && !instant) shell.api.say(eraMsg(v),'enthousiaste');
+  if(mode==='cours'&&quiz&&!instant) askQuiz();
+}
+function eraMsg(v){ return ["Trias : les premiers dinosaures, plutôt petits, dans un monde aride et chaud.","Jurassique : l'âge des géants ! Brachiosaures, stégosaures et le premier oiseau, Archæopteryx.","Crétacé : règne du T-Rex, du Tricératops et du Spinosaure… jusqu'à l'astéroïde. Essaie ☄️ !"][v]; }
+
+function triggerImpact(){ if(impacted) return; impacted=true; shell.sound('bad'); startAmbient(); rumble();
+  const meteor=new THREE.Mesh(new THREE.SphereGeometry(2.4,18,18),new THREE.MeshStandardMaterial({color:0x331008,emissive:0xff5a1e,emissiveIntensity:1.6,roughness:0.7}));
+  meteor.position.set(60,80,-30); meteor.castShadow=false; scene.add(meteor); const trail=new THREE.PointLight(0xff7a30,4,90); meteor.add(trail);
+  shell.api.say("L'astéroïde s'écrase ! Poussières, incendies, hiver d'impact… 75 % des espèces disparaissent.",'surpris');
+  const t0=performance.now();
+  const step=(t)=>{ const k=Math.min(1,(t-t0)/1500); meteor.position.set(60-60*k,80-79.5*k,-30+30*k); meteor.rotation.x+=0.3;
+    if(k<1) requestAnimationFrame(step); else { scene.remove(meteor); const fl=document.getElementById('dnFlash'); fl.style.transition='opacity .12s'; fl.style.opacity=1; setTimeout(()=>{ fl.style.transition='opacity 1.8s'; fl.style.opacity=0; },120);
+      renderer.setClearColor(0x3a1810,1); scene.fog.color.setHex(0x4a2418); if(skyDome){ skyDome.material.map=skyTex(0x6a2a1a,0x2a1008); skyDome.material.needsUpdate=true; } if(sunLight) sunLight.intensity=0.6;
+      Object.values(dinoMeshes).forEach(g=>{ if(g.visible&&!g.userData.species.fly){ g.userData.dying=true; } });
+      setTimeout(()=>{ shell.api.say("Seuls les petits animaux et les ancêtres des oiseaux survivent. Les oiseaux d'aujourd'hui SONT des dinosaures !",'idee'); },2300);
+    } };
+  requestAnimationFrame(step);
+}
+function onResize(){ const s=shell.api.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); if(composer)composer.setSize(s.clientWidth,s.clientHeight); }
+function setPointer(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pickDino(){ raycaster.setFromCamera(pointer,camera); const vis=Object.values(dinoMeshes).filter(g=>g.visible); const hits=raycaster.intersectObjects(vis,true); if(!hits.length)return null; let o=hits[0].object; while(o.parent && !o.userData.species) o=o.parent; return o.userData.species?o:null; }
+function onMove(e){ setPointer(e); const g=pickDino(); hovered=g?g.userData.key:null; renderer.domElement.style.cursor=g?'pointer':'grab'; }
+function onDown(e){ setPointer(e); const o=pickDino(); if(o){ openInfo(o.userData.species,o.userData.key); focusDino(o); if(scaleHuman){ human.position.set(o.position.x,0,o.position.z+2); } checkQuiz(o.userData.key); } else if(mode==='detente'){ clearFocus(); } }
+// mode inspection : cadrage serré (rayon englobant) + l'animal se fige pour l'admirer
+function focusDino(g){ focusKey=g.userData.key; Object.values(dinoMeshes).forEach(o=>o.userData.focused=false); g.userData.focused=true; syncSpeciesBar();
+  g.updateWorldMatrix(true,true);
+  const box=new THREE.Box3().setFromObject(g.userData.parts.body); const sph=box.getBoundingSphere(new THREE.Sphere());
+  const r=Math.max(1.1,sph.radius), c=sph.center; const fov=camera.fov*Math.PI/180;
+  let dist=(r/Math.sin(fov/2))*1.05; dist=Math.max(dist,r*2.0,controls.minDistance+0.2);
+  tmpV.subVectors(camera.position,c); tmpV.y=0; if(tmpV.lengthSq()<0.04) tmpV.set(0.4,0,1); tmpV.normalize();
+  moveCam([c.x+tmpV.x*dist, c.y+r*0.30+dist*0.26, c.z+tmpV.z*dist],[c.x,c.y,c.z],1.3); }
+function clearFocus(){ if(!focusKey)return; focusKey=null; Object.values(dinoMeshes).forEach(g=>g.userData.focused=false); syncSpeciesBar(); }
+
+function openInfo(d,key){ const el=document.getElementById('dnInfo'); const dietCol=d.diet==='Carnivore'?'var(--brand-red)':'var(--brand-teal)';
+  const sizePct=Math.round(Math.min(1,d.len/MAXLEN)*100); const s=d.sci||{};
+  const skinLabel=d.skin==='feather'||d.feather?'Plumes / duvet':d.build==='ptero'?'Membrane + duvet':'Écailles / cuir';
+  el.innerHTML=`<div class="hd" style="background:linear-gradient(135deg,#${d.col.toString(16).padStart(6,'0')},#2a3320)"><div class="s">${ERAS[d.era].name} · ${d.spd}</div><h2>${d.n}</h2><button class="x" aria-label="Fermer">×</button></div>
+    <div class="bd">
+    <div class="dn-chips"><span class="dn-diet" style="background:${dietCol};color:#fff">${d.diet}</span><span class="dn-chip">🕒 ${s.periode||ERAS[d.era].name}</span><span class="dn-chip">🪶 ${skinLabel}</span></div>
+    <div class="row"><span class="k">Taille</span><span class="v">${d.len} m${d.len<1?' (petit !)':''}</span></div>
+    <div class="bar"><i style="width:${Math.max(4,sizePct)}%"></i></div>
+    <div class="row"><span class="k">Poids</span><span class="v">${d.w}</span></div>
+    <div class="row"><span class="k">Régime</span><span class="v">${s.regime||d.diet}</span></div>
+    <div class="fact">${d.fact}</div>
+    <div class="dn-sci"><h4>Ce que dit la science</h4>
+      <div class="dn-conf"><span class="dot c1"></span><span><b>Confirmé par fossiles :</b> ${s.conf?s.conf[0]:'anatomie générale.'}</span></div>
+      <div class="dn-conf"><span class="dot c2"></span><span><b>Fortement probable :</b> ${s.conf?s.conf[1]:'posture et comportement.'}</span></div>
+      <div class="dn-conf"><span class="dot c3"></span><span><b>Hypothèse artistique :</b> ${s.conf?s.conf[2]:'couleurs et motifs.'}</span></div>
+      <button class="dn-skelbtn" data-on="${skeletonOn?'1':'0'}">${skeletonOn?'🫥 Masquer le squelette':'🦴 Voir le squelette sous la peau'}</button>
+    </div></div>`;
+  el.classList.add('show'); el.querySelector('.x').onclick=()=>{ el.classList.remove('show'); clearFocus(); };
+  el.querySelector('.dn-skelbtn').onclick=()=>setSkeleton(!skeletonOn);
+  shell.sound('pop'); startAmbient(); roar(d.diet==='Carnivore'); shell.api.say(d.fact,'enthousiaste');
+}
+/* ================= Cours (quiz bienveillant) ================= */
+function startQuiz(){ quiz={ asked:0, score:0, total:6 }; shell.api.setProgress(0); askQuiz(); }
+function askQuiz(){ if(!quiz)return; if(quiz.asked>=quiz.total){ winQuiz(); return; }
+  const set=ERA_SET[era]; const k=set[Math.floor(Math.random()*set.length)]; const d=DINOS[k];
+  shell.api.setLevel((quiz.asked+1)+'/'+quiz.total); shell.api.setProgress(quiz.asked/quiz.total);
+  const types=['diet','find','period']; const type=types[Math.floor(Math.random()*types.length)];
+  let bar=document.getElementById('dnQuiz'); if(!bar){ bar=document.createElement('div'); bar.className='dn-quiz'; bar.id='dnQuiz'; shell.api.stage.appendChild(bar); }
+  if(type==='diet'){ quiz.cur={type,ans:d.diet,k}; bar.innerHTML=`<div>Le ${d.n} est…</div><div><button class="dn-qo">Herbivore</button><button class="dn-qo">Carnivore</button></div>`;
+    bar.querySelectorAll('.dn-qo').forEach(b=> b.onclick=()=>resolve(b.textContent===d.diet, `${d.n} est ${d.diet.toLowerCase()}.`)); shell.api.say(`Observe le ${d.n} dans la scène : herbivore ou carnivore ?`,'curieux'); }
+  else if(type==='period'){ const good=ERAS[d.era].name; const others=ERAS.map(e=>e.name).filter(n=>n!==good); const opts=[good,others[Math.floor(Math.random()*others.length)]].sort(()=>Math.random()-0.5);
+    quiz.cur={type,ans:good,k}; bar.innerHTML=`<div>À quelle période vivait le ${d.n} ?</div><div>${opts.map(o=>`<button class="dn-qo">${o}</button>`).join('')}</div>`;
+    bar.querySelectorAll('.dn-qo').forEach(b=> b.onclick=()=>resolve(b.textContent===good, `Le ${d.n} vivait au ${good}.`)); shell.api.say(`Regarde l'indice d'ère en haut : à quelle période appartient le ${d.n} ?`,'curieux'); }
+  else { quiz.cur={type,k}; bar.innerHTML=`<div>Clique le <b>${d.n}</b> dans la scène !</div>`; shell.api.say(`Trouve et clique le ${d.n}.`,'curieux'); }
+}
+function checkQuiz(k){ if(!quiz||!quiz.cur||quiz.cur.type!=='find')return; const ok=k===quiz.cur.k; resolve(ok, ok?'Bien trouvé !':`C'était le ${DINOS[quiz.cur.k].n}. Réessaie sans crainte !`); }
+function resolve(ok,msg){ if(ok){ shell.sound('good'); shell.api.addScore(150); quiz.score++; shell.api.say('✅ '+msg,'fier'); } else { shell.sound('bad'); shell.api.say('❌ '+msg,'rassurant'); }
+  quiz.asked++; shell.api.setProgress(quiz.asked/quiz.total); setTimeout(()=>{ if(quiz) askQuiz(); },1300); }
+function winQuiz(){ const bar=document.getElementById('dnQuiz'); if(bar)bar.remove(); const st=quiz.score>=6?3:quiz.score>=4?2:1;
+  shell.api.win({ score:quiz.score*150, stars:st, title:`${quiz.score}/6 — paléontologue !`, learned:shell.cfg.learned,
+    buddy: st===3?"Tu connais tes dinosaures sur le bout des griffes !":"Bien — souviens-toi : 2 pattes + grande tête = souvent carnivore.",
+    onNext:()=>{ shell.api.setScore(0); startQuiz(); }, nextLabel:'Rejouer' }); quiz=null; }
+
+/* ===== Audio immersif procédural ===== */
+function initAudio(){ if(ac||shell.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+function startAmbient(){ initAudio(); if(!ac||ac._amb||shell.muted)return; const g=ac.createGain(); g.gain.value=0; g.connect(ac.destination); g.gain.setTargetAtTime(0.045,ac.currentTime,2.5); ambGain=g;
+  [55,58.7].forEach(f=>{ const o=ac.createOscillator(); o.type='sawtooth'; o.frequency.value=f; const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=170; const og=ac.createGain(); og.gain.value=0.5; o.connect(lp); lp.connect(og); og.connect(g); o.start(); });
+  const buf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate); const d=buf.getChannelData(0); for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1); const src=ac.createBufferSource(); src.buffer=buf; src.loop=true; const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=380; bp.Q.value=0.4; const ng=ac.createGain(); ng.gain.value=0.22; src.connect(bp); bp.connect(ng); ng.connect(g); src.start();
+  ac._amb=true;
+}
+function roar(carnivore){ initAudio(); if(!ac||shell.muted)return; const now=ac.currentTime; const g=ac.createGain(); g.connect(ac.destination); g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(carnivore?0.5:0.36,now+0.08); g.gain.exponentialRampToValueAtTime(0.0001,now+(carnivore?1.3:1.0));
+  const o=ac.createOscillator(); o.type=carnivore?'sawtooth':'square'; o.frequency.setValueAtTime(carnivore?150:128,now); o.frequency.exponentialRampToValueAtTime(carnivore?46:70,now+(carnivore?1.1:0.85));
+  const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(900,now); lp.frequency.exponentialRampToValueAtTime(300,now+1); lp.Q.value=6;
+  const lfo=ac.createOscillator(); lfo.frequency.value=carnivore?27:17; const lg=ac.createGain(); lg.gain.value=carnivore?42:24; lfo.connect(lg); lg.connect(o.frequency); lfo.start(now); lfo.stop(now+1.4);
+  o.connect(lp); lp.connect(g); o.start(now); o.stop(now+1.4);
+  const buf=ac.createBuffer(1,ac.sampleRate,ac.sampleRate); const dd=buf.getChannelData(0); for(let i=0;i<dd.length;i++)dd[i]=(Math.random()*2-1); const ns=ac.createBufferSource(); ns.buffer=buf; const nf=ac.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=520; const ng2=ac.createGain(); ng2.gain.setValueAtTime(carnivore?0.12:0.06,now); ng2.gain.exponentialRampToValueAtTime(0.0001,now+0.8); ns.connect(nf); nf.connect(ng2); ng2.connect(g); ns.start(now); ns.stop(now+0.9);
+}
+function rumble(){ initAudio(); if(!ac||shell.muted)return; const now=ac.currentTime; const g=ac.createGain(); g.connect(ac.destination); g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(0.6,now+0.12); g.gain.exponentialRampToValueAtTime(0.0001,now+3.6);
+  const o=ac.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(72,now); o.frequency.exponentialRampToValueAtTime(20,now+3); o.connect(g); o.start(now); o.stop(now+3.7);
+  const buf=ac.createBuffer(1,ac.sampleRate*3,ac.sampleRate); const d=buf.getChannelData(0); let last=0; for(let i=0;i<d.length;i++){ last=last+(Math.random()*2-1)*0.02; last=Math.max(-1,Math.min(1,last)); d[i]=last; } const src=ac.createBufferSource(); src.buffer=buf; const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=190; const ng=ac.createGain(); ng.gain.setValueAtTime(0.5,now); ng.gain.exponentialRampToValueAtTime(0.0001,now+3.4); src.connect(lp); lp.connect(ng); ng.connect(g); src.start(now); src.stop(now+3.5);
+}
+/* ===== Voyage dans le temps : documentaire guidé ===== */
+const DTOUR=[
+  { ph:'Il y a 252 millions d\'années', ti:'Le Trias', era:0, cam:[[0,9,28],[0,4,0]], txt:"Après la plus grande extinction de l'histoire, les premiers <b>dinosaures</b> apparaissent : petits, agiles, bipèdes. Le monde est <b>chaud et aride</b>, dominé par un super-continent, la Pangée.", say:"Bienvenue au Trias : les tout premiers dinosaures, dans un monde désertique." },
+  { ph:'Il y a 201 millions d\'années', ti:'Le Jurassique', era:1, cam:[[16,11,25],[0,5,0]], txt:"Le climat devient humide, les forêts explosent. C'est l'<b>âge des géants</b> : les sauropodes comme le <b>Brachiosaure</b> atteignent 25 m. Dans le ciel apparaît <b>Archæopteryx</b>, mi-dino mi-oiseau.", say:"Le Jurassique : l'âge des géants au long cou et du premier oiseau.", roar:false },
+  { ph:'Il y a 145 millions d\'années', ti:'Le Crétacé', era:2, cam:[[-14,10,23],[0,4,0]], txt:"Les premières fleurs apparaissent. C'est le règne du <b>Tyrannosaure</b>, du <b>Tricératops</b> et du <b>Spinosaure</b>. Les dinosaures sont au sommet de leur diversité… mais une catastrophe approche.", say:"Le Crétacé : le roi T-Rex règne… mais pour peu de temps encore.", roar:true },
+  { ph:'Il y a 66 millions d\'années', ti:'L\'extinction', era:2, impact:true, cam:[[0,14,32],[0,4,0]], txt:"Un <b>astéroïde de 10 km</b> percute la Terre (Chicxulub, Mexique). Incendies planétaires, tsunamis et un <b>hiver d'impact</b> qui bloque le Soleil : <b>75 % des espèces disparaissent</b>.", say:"L'astéroïde frappe… c'est la fin du règne des dinosaures." },
+  { ph:'Aujourd\'hui', ti:'Les survivants', era:2, cam:[[0,8,23],[0,4,0]], txt:"Les grands dinosaures ont disparu, mais une lignée a survécu : les petits dinosaures à plumes. Leurs descendants nous entourent — les <b>oiseaux</b> SONT des dinosaures !", say:"Regarde un oiseau : tu observes un dinosaure vivant. La vie continue !" },
+];
+function moveCam(p,l,dur=1.8){ camAnim={ t:0, dur, t0:performance.now(), p0:camera.position.clone(), l0:controls.target.clone(), p1:new THREE.Vector3(...p), l1:new THREE.Vector3(...l) }; }
+function startTour(){ if(tour)return; startAmbient(); tour={i:-1}; controls.autoRotate=false;
+  document.getElementById('dnHint').style.display='none'; document.getElementById('dnInfo').classList.remove('show');
+  document.getElementById('dnTourP').classList.add('show'); setTourStep(0);
+}
+function setTourStep(i){ if(!tour)return; tour.i=i; const s=DTOUR[i]; const dots=DTOUR.map((_,k)=>k<=i?'●':'○').join(' ');
+  if(s.era!==era) setEra(s.era,true);
+  moveCam(s.cam[0],s.cam[1]);
+  if(s.impact) triggerImpact();
+  else if(s.roar!==undefined) setTimeout(()=>roar(s.roar),700);
+  document.getElementById('dnTourP').innerHTML=`<div class="thd"><div class="tph">${s.ph} · ${dots}</div><div class="tti">${s.ti}</div></div><div class="tbody"><p>${s.txt}</p><div class="trow"><button class="tn" id="dtNext">${i>=DTOUR.length-1?'Terminer ✓':'Suivante ▸'}</button><button class="tq" id="dtQuit">Quitter</button></div></div>`;
+  document.getElementById('dtNext').onclick=()=>{ if(tour.i>=DTOUR.length-1) endTour(); else setTourStep(tour.i+1); };
+  document.getElementById('dtQuit').onclick=endTour;
+  shell.api.say(s.say, s.impact?'surpris':i>=DTOUR.length-1?'idee':'enthousiaste'); shell.sound('pop');
+}
+function endTour(){ if(!tour)return; tour=null; document.getElementById('dnTourP').classList.remove('show'); document.getElementById('dnHint').style.display=mode==='cours'?'none':''; controls.autoRotate=REDUCED; shell.api.say("Fin du voyage ! Explore librement les ères avec le curseur du temps.",'fier'); }
+
+/* ================= BOUCLE ================= */
+function updateLabel(g){ const el=g.userData.label; if(!el)return; const show=labelsOn||hovered===g.userData.key;
+  if(!show||g.userData.dying){ el.classList.remove('on'); return; }
+  tmpV.set(g.position.x, g.position.y+g.userData.parts.top+1, g.position.z); tmpV.project(camera);
+  if(tmpV.z>1){ el.classList.remove('on'); return; }
+  const r=renderer.domElement; el.style.left=((tmpV.x*0.5+0.5)*r.clientWidth)+'px'; el.style.top=((-tmpV.y*0.5+0.5)*r.clientHeight)+'px'; el.classList.add('on'); }
+
+let _lastFrame=0;
+function animate(){ requestAnimationFrame(animate); const t=clock.getElapsedTime(); const now=t; const rdt=_lastFrame?Math.min(0.05,now-_lastFrame):0.016; _lastFrame=now; const dt=rdt;
+  if(camAnim){ camAnim.t=Math.min(1,(performance.now()-camAnim.t0)/(camAnim.dur*1000)); const e=1-Math.pow(1-camAnim.t,3); camera.position.lerpVectors(camAnim.p0,camAnim.p1,e); controls.target.lerpVectors(camAnim.l0,camAnim.l1,e); if(camAnim.t>=1)camAnim=null; }
+  if(smoke){ const p=smoke.geometry.attributes.position; const sd=smoke.userData.sd; for(let i=0;i<sd.length;i++){ sd[i].t+=dt*0.06*sd[i].sp; if(sd[i].t>1) sd[i].t=0; const h=sd[i].t*60; p.setXYZ(i, Math.sin(t*0.5+i)*sd[i].off*(0.4+sd[i].t), h, Math.cos(t*0.4+i)*sd[i].off*(0.4+sd[i].t)); } p.needsUpdate=true; }
+  Object.values(dinoMeshes).forEach(g=>{ if(!g.visible)return; const P=g.userData.parts; const sp=g.userData.species;
+    if(P.bones) P.bones.position.set(0,P.body.position.y,0);
+    if(g.userData.dying){ g.rotation.z=Math.min(Math.PI/2, g.rotation.z+0.02); g.position.y=Math.max(-sp.len*U*sp.scale*0.15, g.position.y-0.03); if(g.userData.label) g.userData.label.classList.remove('on'); return; }
+    // respiration (idle) : léger gonflement du thorax
+    if(P.chest && P.chest!==P.body){ const br=Math.sin(t*1.4+g.userData.phase)*0.02; P.chest.scale.set(1+br*0.6,1+br,1+br*0.9); }
+    if(sp.fly){ if(g.userData.focused){ g.position.y+=Math.sin(t*2)*0.004; g.rotation.z=Math.sin(t*1.2)*0.05; }
+      else { const R=sp.big?24:18; const a=t*0.3+g.userData.phase; g.position.set(Math.sin(a)*R, 9+Math.sin(t*1.6)*0.9, Math.cos(a)*R-2); g.rotation.y=-a+Math.PI/2; g.rotation.z=Math.sin(t*1.6)*0.12; }
+      if(P.wings){ const f=Math.sin(t*(sp.big?2.6:4.5))*0.6; P.wings[0].rotation.z=f; P.wings[1].rotation.z=-f; } }
+    else if(g.userData.focused){ // inspection : l'animal se fige et respire
+      g.position.y=0; if(P.tail) P.tail.rotation.y=Math.sin(t*0.7)*0.12;
+      P.legs.forEach(l=> l.p.rotation.z=Math.sin(t*0.5+l.ph)*0.03 );
+      if(P.neck&&P.neck!==P.head){ P.neck.rotation.y=Math.sin(t*0.5)*0.14; P.neck.rotation.z=0; } }
+    else if(!REDUCED){
+      g.userData.phase+=dt*g.userData.speed; const c=g.userData.center, o=g.userData.orbit;
+      const nx=c.x+Math.cos(g.userData.phase)*o, nz=c.y+Math.sin(g.userData.phase)*o;
+      const dx=nx-g.position.x, dz=nz-g.position.z; if(dx*dx+dz*dz>1e-5) g.rotation.y=Math.atan2(dx,dz);
+      g.position.x=nx; g.position.z=nz; g.userData.walk+=dt*g.userData.speed*7;
+      const bob=Math.abs(Math.sin(g.userData.walk))*0.06*sp.len*U*sp.scale*0.3; g.position.y=bob;
+      P.legs.forEach(l=> l.p.rotation.z=Math.sin(g.userData.walk+l.ph)*0.5 );
+      if(P.tail) P.tail.rotation.y=Math.sin(t*1.1+g.userData.phase)*0.22;
+      if(P.neck&&P.neck!==P.head){ g.userData.graze+=dt*0.4; const gr=(sp.diet==='Herbivore')?Math.max(0,Math.sin(g.userData.graze))*0.5:0; P.neck.rotation.z=-gr; P.neck.rotation.y=(sp.diet==='Carnivore')?Math.sin(t*0.6+g.userData.phase)*0.25:0; }
+    } else { g.position.y=Math.sin(t*1.2+g.userData.phase)*0.1; if(P.tail) P.tail.rotation.y=Math.sin(t*0.9)*0.15; }
+    updateLabel(g);
+  });
+  if(hovered&&dinoMeshes[hovered]&&!dinoMeshes[hovered].visible) hovered=null;
+  controls.update(); composer.render();
+}
+</script>
+</body>
+</html>

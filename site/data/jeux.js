@@ -737,5 +737,97 @@ window.JEUX = [
    "histoire-geo:H3"
   ],
   "apprend": "Découverte"
+ },
+ {
+  "id": "3d-02-anatomie",
+  "type": "3d",
+  "url": "learning/games-3d/3d-02-anatomie.html",
+  "titre": "Anatomie humaine",
+  "ico": "🫀",
+  "lecons": [
+   "svt:L05"
+  ],
+  "apprend": "SVT · Santé"
+ },
+ {
+  "id": "3d-06-datacenter",
+  "type": "3d",
+  "url": "learning/games-3d/3d-06-datacenter.html",
+  "titre": "Datacenter & réseau",
+  "ico": "🖥️",
+  "lecons": [
+   "emc:L04"
+  ],
+  "apprend": "Informatique · Réseaux"
+ },
+ {
+  "id": "3d-10-histoire",
+  "type": "3d",
+  "url": "learning/games-3d/3d-10-histoire.html",
+  "titre": "Reconstitution historique",
+  "ico": "🏛️",
+  "lecons": [
+   "histoire-geo:H1",
+   "histoire-geo:H2",
+   "histoire-geo:H5"
+  ],
+  "apprend": "Histoire"
+ },
+ {
+  "id": "3d-11-moteur",
+  "type": "3d",
+  "url": "learning/games-3d/3d-11-moteur.html",
+  "titre": "Moteur & machine",
+  "ico": "⚙️",
+  "lecons": [
+   "physique-chimie:L07"
+  ],
+  "apprend": "Techno · Mécanique"
+ },
+ {
+  "id": "3d-13-data-neurones",
+  "type": "3d",
+  "url": "learning/games-3d/3d-13-data-neurones.html",
+  "titre": "Données & réseau de neurones",
+  "ico": "🧠",
+  "lecons": [
+   "emc:L04",
+   "maths:L12"
+  ],
+  "apprend": "IA · Data"
+ },
+ {
+  "id": "3d-16-voiture",
+  "type": "3d",
+  "url": "learning/games-3d/3d-16-voiture.html",
+  "titre": "Voiture",
+  "ico": "🚗",
+  "lecons": [
+   "physique-chimie:L04"
+  ],
+  "apprend": "Techno · Mécanique"
+ },
+ {
+  "id": "3d-18-dinosaures",
+  "type": "3d",
+  "url": "learning/games-3d/3d-18-dinosaures.html",
+  "titre": "Dinosaures",
+  "ico": "🦖",
+  "lecons": [
+   "svt:L06",
+   "svt:L01"
+  ],
+  "apprend": "SVT · Paléontologie"
+ },
+ {
+  "id": "3d-19-avion",
+  "type": "3d",
+  "url": "learning/games-3d/3d-19-avion.html",
+  "titre": "Avion de ligne",
+  "ico": "✈️",
+  "lecons": [
+   "physique-chimie:L05"
+  ],
+  "apprend": "Aéronautique · Physique"
  }
 ];

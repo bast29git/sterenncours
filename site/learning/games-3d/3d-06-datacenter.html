@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Datacenter & infrastructure cloud</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .dc-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  /* Télémetrie (haut-gauche) */
+  .dc-tel { top:14px; left:14px; width:210px; padding:13px; display:flex; flex-direction:column; gap:11px; }
+  .dc-tel h3 { font-family:var(--font-mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:var(--fg-muted); margin:0; display:flex; align-items:center; gap:6px; }
+  .dc-tel h3 .dot { width:7px; height:7px; border-radius:999px; background:#35E08A; box-shadow:0 0 8px #35E08A; }
+  .dc-metric { display:flex; flex-direction:column; gap:4px; }
+  .dc-mrow { display:flex; justify-content:space-between; align-items:baseline; font-size:12px; }
+  .dc-mrow .k { color:var(--fg-muted); font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; }
+  .dc-mrow .v { font-family:var(--font-data); font-weight:800; font-size:15px; }
+  .dc-gauge { height:6px; border-radius:5px; background:var(--surface-2); overflow:hidden; }
+  .dc-gauge i { display:block; height:100%; width:0; border-radius:5px; transition:width .3s, background .3s; }
+  /* Contrôles (bas-centre) */
+  .dc-ctrl { bottom:16px; left:50%; transform:translateX(-50%); display:flex; gap:10px; align-items:center; padding:11px 15px; flex-wrap:wrap; justify-content:center; max-width:96%; }
+  .dc-b { font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:42px; padding:0 14px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:6px; }
+  .dc-b:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+  .dc-b:focus-visible { outline:none; box-shadow:var(--ring); }
+  .dc-b[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .dc-b.danger { background:linear-gradient(135deg,#E63329,#a01810); border-color:transparent; color:#fff; }
+  .dc-b.danger:hover { box-shadow:0 8px 22px rgba(230,51,41,.4); }
+  .dc-sl { display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--fg-muted); min-width:132px; }
+  .dc-sl label { display:flex; justify-content:space-between; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.04em; font-size:10px; }
+  .dc-sl label b { font-family:var(--font-data); color:var(--accent-text); font-size:12px; }
+  .dc-sl input { accent-color:var(--accent); width:100%; }
+  /* Fiche (droite) */
+  .dc-info { right:14px; top:14px; width:322px; padding:0; overflow:hidden; transform:translateX(130%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; z-index:30; }
+  .dc-info.show { transform:none; }
+  .dc-hd { padding:16px 18px; color:#fff; position:relative; flex:none; display:flex; gap:12px; align-items:center; }
+  .dc-hd .ico { width:46px; height:46px; border-radius:12px; background:rgba(255,255,255,.2); display:grid; place-items:center; font-size:24px; flex:none; }
+  .dc-hd h2 { font-family:var(--font-title); font-weight:800; font-size:20px; margin:0; line-height:1.1; }
+  .dc-hd .sub { font-family:var(--font-mono); font-size:10.5px; opacity:.92; text-transform:uppercase; letter-spacing:.04em; }
+  .dc-x { position:absolute; top:12px; right:12px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:16px; }
+  .dc-body { padding:14px 18px 18px; overflow:auto; }
+  .dc-body p { font-size:13.5px; line-height:1.6; margin:0 0 9px; color:var(--fg); }
+  .dc-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; margin:0 0 12px; }
+  .dc-st .k { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.03em; text-transform:uppercase; color:var(--fg-muted); }
+  .dc-st .v { font-family:var(--font-data); font-weight:700; font-size:13.5px; }
+  .dc-sec { font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:2px 0 8px; }
+  .dc-fun { background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.5; color:var(--accent-text); }
+  .dc-label { position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 76%,transparent); padding:3px 8px; border-radius:7px; pointer-events:none; z-index:15; border:1px solid var(--border); white-space:nowrap; display:flex; align-items:center; gap:5px; }
+  .dc-label .d { width:8px; height:8px; border-radius:999px; flex:none; }
+  .dc-hint { position:absolute; bottom:76px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; max-width:88vw; text-align:center; }
+  .dc-quiz { top:16px; left:50%; transform:translateX(-50%); z-index:22; background:var(--accent); color:#fff; padding:12px 18px; border-radius:14px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:8px; align-items:center; max-width:92%; text-align:center; }
+  .dc-quiz .qn { font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 11px; font-size:12px; }
+  .dc-quiz b { font-size:14.5px; }
+  .dc-quiz .ask { font-size:13px; opacity:.95; }
+  .dc-qrow { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
+  .dc-qo { font-family:var(--font-body); font-weight:700; font-size:13px; min-height:40px; padding:0 14px; border-radius:10px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.18); color:#fff; cursor:pointer; }
+  .dc-qo:hover { background:rgba(255,255,255,.32); }
+  @media (max-width:720px){
+    .dc-tel { width:160px; padding:10px; gap:8px; }
+    .dc-mrow .v { font-size:13px; }
+    .dc-info { width:min(322px,88vw); }
+    .dc-sl { min-width:108px; }
+  }
+  @media (prefers-reduced-motion: reduce){ .dc-info { transition:none; } }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ====== COULEURS ====== */
+const COL = { cold:0x2ea6ff, hot:0xE6633A, ok:0x35E08A, amber:0xF5A623, red:0xE63329, cyan:0x29B6E0, purple:0x8b5be0, net:0x8b5be0 };
+
+/* ====== FICHES PÉDAGOGIQUES ====== */
+const EQUIP = {
+  rack:{ icon:'🖥️', name:'Baie de serveurs', sub:'Rack · puissance de calcul', color:'#1E8C7A',
+    stats:[['Format','42 U (rack standard)'],['Serveurs','~20 lames 1U/2U'],['CPU / lame','2 × 32 cœurs'],['RAM / lame','256–512 Go'],['Disques','NVMe SSD'],['Rôle','calcul & hébergement']],
+    desc:["Une baie (ou « rack ») empile des dizaines de serveurs dans une armoire métallique. Chaque serveur est un ordinateur : processeurs (CPU), mémoire (RAM) et disques.","Les LED vertes clignotent au rythme de l'activité : plus la charge monte, plus elles s'agitent. Un serveur en panne passe au rouge, mais ses voisins prennent le relais."],
+    fun:"Un seul rack moderne peut aligner plus de 1 000 cœurs de calcul et téraoctets de RAM." },
+  storage:{ icon:'💽', name:'Baie de stockage', sub:'Stockage · disques en RAID', color:'#2E7FD6',
+    stats:[['Technologie','RAID (redondance)'],['Disques','24 × SSD / HDD'],['Capacité','plusieurs Po'],['Protection','données dupliquées'],['Accès','très rapide'],['Rôle','conserver les données']],
+    desc:["La baie de stockage garde toutes les données : bases de données, fichiers, sauvegardes. Les disques sont groupés en RAID.","Le RAID duplique l'information sur plusieurs disques : si l'un lâche, aucune donnée n'est perdue et on le remplace à chaud."],
+    fun:"En RAID, on peut retirer un disque en panne sans éteindre la baie : les données restent accessibles." },
+  switch:{ icon:'🔀', name:'Switch (commutateur)', sub:'Réseau local · aiguillage', color:'#29B6E0',
+    stats:[['Rôle','relier les serveurs'],['Adresse lue','MAC'],['Ports','24–48 (souvent)'],['Débit','10–100 Gb/s'],['Redondance','2 switchs (A + B)'],['Emplacement','haut de baie (ToR)']],
+    desc:["Le switch relie les serveurs d'une même rangée et aiguille les paquets vers le bon port grâce à l'adresse MAC.","Ici, deux switchs (A et B) fonctionnent en parallèle : si l'un tombe, le trafic bascule instantanément sur l'autre (failover)."],
+    fun:"Un switch de datacenter peut commuter des milliards de paquets par seconde sans jamais souffler." },
+  router:{ icon:'🧭', name:'Routeur', sub:'Aiguilleur inter-réseaux', color:'#6E6BFF',
+    stats:[['Rôle','choisir le chemin'],['Adresse lue','IP'],['Relie','datacenter ↔ Internet'],['Décision','table de routage'],['Débit','très élevé'],['Protocole','BGP / OSPF']],
+    desc:["Le routeur lit l'adresse IP de destination et choisit le meilleur chemin vers l'extérieur. C'est la porte de sortie du datacenter vers Internet.","Il recalcule un chemin en une fraction de seconde si un lien tombe : c'est ce qui rend Internet résilient."],
+    fun:"Un routeur cœur de réseau prend des milliards de décisions de chemin par seconde." },
+  firewall:{ icon:'🛡️', name:'Pare-feu (firewall)', sub:'Sécurité · filtrage', color:'#E63329',
+    stats:[['Rôle','filtrer le trafic'],['Bloque','connexions dangereuses'],['Laisse passer','trafic légitime'],['Règles','listes de contrôle'],['Position','entre routeur & LAN'],['Type','stateful / IPS']],
+    desc:["Le pare-feu inspecte chaque paquet entrant et sortant. Il laisse passer le trafic légitime et bloque les connexions suspectes ou malveillantes.","C'est le garde du corps du datacenter : sans lui, n'importe qui pourrait tenter d'atteindre les serveurs."],
+    fun:"Un pare-feu peut bloquer des millions de tentatives d'intrusion par jour, en silence." },
+  ups:{ icon:'🔋', name:'Onduleur (UPS)', sub:'Énergie · secours immédiat', color:'#F5A623',
+    stats:[['Rôle','alimentation de secours'],['Réagit en','quelques millisecondes'],['Autonomie','quelques minutes'],['Puis','le générateur prend le relais'],['Protège de','coupures & micro-coupures'],['Sigle','UPS']],
+    desc:["L'onduleur (UPS) contient de grosses batteries. En cas de coupure de courant, il alimente instantanément les serveurs — sans la moindre interruption.","Il tient le temps que le générateur diesel démarre : la chaîne d'énergie ne s'arrête jamais."],
+    fun:"Un datacenter double tout : deux arrivées électriques, deux UPS, deux chemins — c'est la haute disponibilité." },
+  generator:{ icon:'⚡', name:'Générateur', sub:'Énergie · autonomie longue', color:'#94A0B4',
+    stats:[['Rôle','produire de l\'électricité'],['Carburant','diesel / gaz'],['Démarrage','~10–15 s'],['Autonomie','heures → jours'],['Relais de','l\'onduleur'],['Test','démarrage régulier']],
+    desc:["Le générateur prend le relais de l'onduleur lors d'une coupure prolongée. Il produit sa propre électricité tant que dure la panne du réseau.","On le teste régulièrement pour être sûr qu'il démarrera le jour où il faudra."],
+    fun:"Les datacenters stockent assez de carburant pour tenir des jours sans électricité du réseau." },
+  crac:{ icon:'❄️', name:'Groupe froid (CRAC)', sub:'Climatisation · refroidissement', color:'#3AC7C7',
+    stats:[['Rôle','évacuer la chaleur'],['Principe','allée froide / chaude'],['Souffle','air froid sous le plancher'],['Mesure','PUE (efficacité)'],['Cible','~22 °C côté froid'],['Sigle','CRAC / CRAH']],
+    desc:["Les serveurs chauffent énormément. Le groupe froid (CRAC) souffle de l'air frais dans l'allée froide ; l'air chaud rejeté est aspiré dans l'allée chaude et refroidi.","Bien refroidir coûte de l'énergie : c'est ce que mesure le PUE. Plus il est proche de 1, plus le datacenter est efficace."],
+    fun:"Certains datacenters se refroidissent gratuitement avec l'air extérieur ou de l'eau froide (free cooling)." },
+  net:{ icon:'🌐', name:'Internet', sub:'Réseau mondial', color:'#8b5be0',
+    stats:[['Rôle','relier le monde'],['Accès via','le routeur'],['Composé de','millions de réseaux'],['Langage','TCP/IP'],['Résilience','chemins multiples'],['Portée','planétaire']],
+    desc:["Internet est la destination finale : tout le trafic qui sort du datacenter y voyage pour rejoindre les utilisateurs partout dans le monde.","C'est un réseau de réseaux : si un chemin tombe, les données en empruntent un autre. Rien ne l'arrête vraiment."],
+    fun:"Un « clic » qui charge une page peut traverser des milliers de kilomètres et plusieurs continents en quelques millisecondes." },
+};
+
+const NOTIONS = [
+  ['Datacenter & cloud',"Un datacenter regroupe des milliers de serveurs dans une salle refroidie et sécurisée. Le « cloud » loue cette puissance à la demande, sans que tu voies la machine."],
+  ['Serveur',"Un serveur est un ordinateur puissant qui héberge sites, applications ou données. On en empile des dizaines dans une baie (rack)."],
+  ['Switch & routeur',"Le switch relie les machines d'un même réseau (adresse MAC). Le routeur relie des réseaux différents et choisit le chemin vers Internet (adresse IP)."],
+  ['Pare-feu',"Le pare-feu filtre le trafic selon des règles pour protéger les serveurs des attaques. C'est la première ligne de sécurité."],
+  ['RAID & stockage',"Le RAID répartit les données sur plusieurs disques avec de la redondance : un disque peut tomber sans qu'on perde de données."],
+  ['Redondance & failover',"On double les équipements et les chemins (switch A + B, deux alimentations…). Si l'un tombe, le trafic bascule sur l'autre : c'est le failover."],
+  ['Disponibilité (SLA)',"On vise « 99,99 % » de disponibilité : quelques minutes d'arrêt par an au maximum. La redondance rend cet objectif possible."],
+  ['Refroidissement & allées',"Les serveurs chauffent. On sépare l'allée froide (air frais soufflé) et l'allée chaude (air rejeté) pour évacuer la chaleur efficacement."],
+  ['PUE (efficacité)',"Le PUE compare l'énergie totale à celle réellement utile aux serveurs. Proche de 1 = très efficace ; 2 = autant d'énergie perdue que d'énergie utile."],
+  ['Énergie de secours',"Onduleur (UPS) puis générateur : une chaîne pour qu'une coupure de courant n'arrête jamais les serveurs."],
+  ['Latence & bande passante',"La bande passante est le débit (Go/s) ; la latence est le délai (ms). Un bon datacenter offre beaucoup de débit et très peu de latence."],
+  ['Scaling (montée en charge)',"Quand le trafic augmente, on allume ou on ajoute des serveurs pour absorber la charge. Le cloud fait ça automatiquement (auto-scaling)."],
+];
+
+/* ====== ÉTAT ====== */
+let scene, camera, renderer, composer, controls, clock, raycaster, pointer;
+let load = 45, cooling = 55, temp = 26, pue = 1.4, avail = 99.99;
+let racks = [], leds = [], clickMeshes = [], labels = {}, hovered = null;
+let cracFans = [], genFan = null, ceilingMats = [], internetNode = null, internetWire = null;
+let nodes = {}, edges = {}, deadNodes = new Set();
+let packets = [], packetPool = [], packetAcc = 0;
+let ac = null, fanGain = null;
+let mode = 'detente', labelsOn = true;
+let challenge = null;                 // mode Cours
+
+const shell = window.Konstrio.createGame({
+  id:'3d-06-datacenter', code:'3D·06', title:'Datacenter & infrastructure cloud', type:'3D',
+  domain:{ label:'Réseaux & Systèmes', color:'#29B6E0' },
+  intro:{
+    greet:"Bienvenue dans la salle serveur ! Balade-toi dans les allées, clique un équipement pour son rôle, monte la charge, coupe le froid, déclenche une panne et observe le trafic se rerouter tout seul.",
+    rule:"Un datacenter, c'est des <b>baies de serveurs</b>, un réseau (<b>switch → routeur → Internet</b>), un <b>pare-feu</b>, du <b>stockage</b>, de l'<b>énergie de secours</b> et du <b>froid</b>. Observe les paquets lumineux circuler, joue avec la <b>charge</b> et le <b>refroidissement</b>, et déclenche un <b>failover</b>.",
+    how:[
+      "Glisse pour tourner · molette pour zoomer · clique un équipement pour sa fiche.",
+      "Règle la charge : plus elle monte, plus de serveurs s'allument et de paquets circulent (et ça chauffe).",
+      "Baisse le refroidissement pour voir la température et le PUE bouger.",
+      "Clique « Panne » : un switch tombe, le trafic bascule sur le switch redondant (failover). « Réparer » remet tout.",
+    ],
+    keys:"Glisser = tourner · molette = zoom · clic équipement = fiche.",
+    objectif:"Comprendre une infra cloud : serveurs, réseau, sécurité, stockage, énergie, refroidissement et redondance.",
+    hint:"Les paquets partent des baies, passent par un switch, le routeur, le pare-feu, puis Internet. Un switch en panne ? Le trafic prend l'autre.",
+    why:"Un datacenter double tout (serveurs, switchs, alims, chemins) : si un élément tombe, un autre prend le relais. C'est la haute disponibilité.",
+  },
+  learned:[
+    "Un datacenter relie serveurs, stockage, réseau, sécurité, énergie et refroidissement.",
+    "Les données voyagent en paquets : serveur → switch → routeur → pare-feu → Internet.",
+    "La redondance (switch A/B, UPS + générateur) permet le failover : rien ne s'arrête.",
+    "Refroidir coûte de l'énergie : le PUE mesure l'efficacité du datacenter.",
+  ],
+  onReady: init, onStart: startMode, onTheme: ()=>applyTheme(),
+  onHint: ()=>shell.say(shell.cfg.intro.hint,'curieux'),
+  onWhy: ()=>shell.say(shell.cfg.intro.why,'idee'),
+});
+
+/* ====== INIT ====== */
+function init(){
+  const stage = shell.stage; clock = new THREE.Clock();
+  scene = new THREE.Scene(); scene.fog = new THREE.Fog(0x070d18, 30, 70);
+  camera = new THREE.PerspectiveCamera(52, stage.clientWidth/stage.clientHeight, 0.1, 220);
+  camera.position.set(13, 8, 17);
+  renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(stage.clientWidth, stage.clientHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.appendChild(renderer.domElement);
+  maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 8);
+  initMaterials();
+
+  // Détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y rend noir → chaîne robuste
+  let software = false;
+  try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : ''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W = stage.clientWidth, H = stage.clientHeight;
+  composer = new EffectComposer(renderer);
+  if(software){
+    // rendu logiciel : pas de GTAO écran (produirait du noir) — l'occlusion vient des cartes AO bakées + ombres
+    composer.addPass(new RenderPass(scene, camera));
+  } else {
+    // GPU : occlusion ambiante espace-écran (GTAO) pour creuser les baies/câbles
+    const gtao = new GTAOPass(scene, camera, W, H); gtao.blendIntensity = 1.0;
+    try{ gtao.updateGtaoMaterial({ radius:0.45, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao = gtao;
+  }
+  const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.72, 0.62, 0.72);
+  composer.addPass(bloom); composer.bloom = bloom;
+  composer.addPass(new SMAAPass(W, H));
+  composer.addPass(new OutputPass());
+
+  controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = .07;
+  controls.minDistance = 6; controls.maxDistance = 46; controls.maxPolarAngle = Math.PI * 0.495;
+  controls.target.set(0, 2, -2); controls.autoRotate = REDUCED; controls.autoRotateSpeed = .35;
+
+  // Lumières : IBL + hémisphère + clé + néons
+  scene.add(new THREE.HemisphereLight(0xbcd2ff, 0x1a2236, 0.65));
+  const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(10, 18, 8); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.camera.near = 1; key.shadow.camera.far = 60;
+  key.shadow.camera.left = -22; key.shadow.camera.right = 22; key.shadow.camera.top = 22; key.shadow.camera.bottom = -22;
+  key.shadow.bias = -0.0004; scene.add(key);
+  const fill = new THREE.DirectionalLight(0x6f8bff, 0.3); fill.position.set(-9, 6, -8); scene.add(fill);
+
+  const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  // IBL HDRI réel (Poly Haven CC0) → reflets crédibles sur le métal des baies & câbles.
+  // On garde le fond sombre (murs + brouillard) : l'HDRI ne sert que d'environnement (reflets/ambiance).
+  const rgbe = new RGBELoader();
+  rgbe.load('../assets/3d/hdri/brown_photostudio_02_1k.hdr', hdr=>{
+    hdr.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = pmrem.fromEquirectangular(hdr).texture; hdr.dispose();
+  }, undefined, ()=>{
+    rgbe.load('../assets/3d/env/workshop_1k.hdr', hdr=>{ hdr.mapping = THREE.EquirectangularReflectionMapping; scene.environment = pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); }, undefined, ()=>{});
+  });
+
+  buildRoom();
+  buildRacks();
+  buildInfrastructure();
+  buildNetworkCore();
+  buildInternet();
+  buildCables();
+  buildFlowGraph();
+  buildPacketPool();
+
+  raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = 0.3;
+  pointer = new THREE.Vector2(-2, -2);
+  buildUI(); applyTheme(); refreshTelemetry();
+
+  renderer.domElement.addEventListener('pointermove', onMove);
+  renderer.domElement.addEventListener('pointerdown', onDown);
+  window.addEventListener('resize', onResize); new ResizeObserver(onResize).observe(stage);
+  animate();
+}
+
+/* ====== MATÉRIAUX & TEXTURES ====== */
+const mat = (c, metal, rough, o={}) => new THREE.MeshStandardMaterial(Object.assign({ color:c, metalness:metal, roughness:rough, envMapIntensity:1.0 }, o));
+function emiss(c){ return new THREE.MeshBasicMaterial({ color:c }); }
+
+/* ---- Textures PBR CC0 réelles (Poly Haven), tuilées + AO bakée ---- */
+const texLoader = new THREE.TextureLoader();
+const PBR_BASE = '../assets/3d/pbr2k/';
+let maxAniso = 8;
+let floorPBRMat = null, rackMetalMat = null, cabinetMetalMat = null, panelMetalMat = null, genMetalMat = null;
+function loadTex(url, srgb, rep){ const t = texLoader.load(url, undefined, undefined, ()=>{}); t.wrapS = t.wrapT = THREE.RepeatWrapping; if(rep) t.repeat.set(rep, rep); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = maxAniso; return t; }
+// applique diffuse/normal/roughness(+metal,+ao bakée) réels sur un matériau existant
+function applyPBR(material, slug, res, opt={}){ const rep = opt.repeat||1, b = PBR_BASE+slug+'/'+slug+'_';
+  material.map = loadTex(b+'diff_'+res+'.jpg', true, rep);
+  material.normalMap = loadTex(b+'nor_gl_'+res+'.jpg', false, rep); material.normalScale = new THREE.Vector2(opt.normal||1, opt.normal||1);
+  material.roughnessMap = loadTex(b+'rough_'+res+'.jpg', false, rep);
+  if(opt.metal){ material.metalnessMap = loadTex(b+'metal_'+res+'.jpg', false, rep); }
+  if(opt.ao){ material.aoMap = loadTex(b+'ao_'+res+'.jpg', false, rep); material.aoMapIntensity = opt.aoInt!=null?opt.aoInt:1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color);
+  material.needsUpdate = true; return material; }
+// duplique le canal UV pour permettre l'aoMap (utilise uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+// matériaux partagés texturés (créés une fois le renderer prêt, pour l'anisotropie)
+function initMaterials(){
+  // Sol technique : dalles de béton réelles (raised floor), AO bakée + relief
+  floorPBRMat = new THREE.MeshStandardMaterial({ color:0xbfc6d2, roughness:0.85, metalness:0.15, envMapIntensity:0.55 });
+  applyPBR(floorPBRMat, 'concrete_tiles', '1k', { repeat:14, normal:1.0, ao:true, aoInt:1.0 });
+  // Baies serveurs : acier peint charcoal (semi-métal → le grain de la tôle + l'AO restent lisibles,
+  // au lieu d'un miroir noir qui « avale » la lumière de la salle sombre)
+  rackMetalMat = mat(0x3a4353, 0.45, 0.52, { envMapIntensity:1.35 });
+  applyPBR(rackMetalMat, 'metal_plate_02', '1k', { repeat:2, normal:0.9, ao:true, aoInt:1.0, color:0x3a4353 });
+  // Cœur réseau / stockage : acier peint bleuté
+  cabinetMetalMat = mat(0x3e4a63, 0.45, 0.5, { envMapIntensity:1.4 });
+  applyPBR(cabinetMetalMat, 'metal_plate', '1k', { repeat:2, normal:0.85, ao:true, aoInt:1.0, color:0x3e4a63 });
+  // Panneaux techniques (UPS, CRAC) : tôle claire
+  panelMetalMat = mat(0x49596e, 0.5, 0.5, { envMapIntensity:1.3 });
+  applyPBR(panelMetalMat, 'metal_plate', '1k', { repeat:1.4, normal:0.85, ao:true, aoInt:0.9, color:0x49596e });
+  // Générateur : tôle ondulée galvanisée (garde son côté métal brut)
+  genMetalMat = mat(0x525c6d, 0.7, 0.5, { envMapIntensity:1.2 });
+  applyPBR(genMetalMat, 'corrugated_iron', '1k', { repeat:1.5, normal:1.2, metal:true, ao:true, aoInt:0.95, color:0x525c6d });
+}
+
+function floorTex(perforated){
+  const c = document.createElement('canvas'); c.width = c.height = 512; const x = c.getContext('2d');
+  x.fillStyle = perforated ? '#1a2740' : '#232a38'; x.fillRect(0,0,512,512);
+  const tile = 128;
+  for(let gx=0; gx<512; gx+=tile) for(let gy=0; gy<512; gy+=tile){
+    x.fillStyle = perforated ? '#20304e' : '#2a3242'; x.fillRect(gx+3, gy+3, tile-6, tile-6);
+    x.strokeStyle = 'rgba(120,150,200,.28)'; x.lineWidth = 2; x.strokeRect(gx+3, gy+3, tile-6, tile-6);
+    if(perforated){ x.fillStyle = 'rgba(46,166,255,.22)'; for(let i=0;i<6;i++)for(let j=0;j<6;j++){ x.beginPath(); x.arc(gx+18+i*17, gy+18+j*17, 4, 0, 7); x.fill(); } }
+    else { x.fillStyle='rgba(255,255,255,.03)'; x.fillRect(gx+10,gy+10,tile-20,4); }
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
+}
+
+function buildRoom(){
+  // Plancher technique : dalles de béton réelles (PBR + AO bakée)
+  const fgeo = new THREE.PlaneGeometry(60, 60); enableAO(fgeo);
+  const floor = new THREE.Mesh(fgeo, floorPBRMat || new THREE.MeshStandardMaterial({ color:0x8a95aa, roughness:0.75, metalness:0.15 }));
+  floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+  // Allée froide (perforée, bleutée) sous les baies
+  const ctex = floorTex(true); ctex.repeat.set(1, 6);
+  const cold = new THREE.Mesh(new THREE.PlaneGeometry(7, 30), new THREE.MeshStandardMaterial({ map:ctex, color:0x9fbfff, roughness:0.6, metalness:0.4, emissive:COL.cold, emissiveIntensity:0.14 }));
+  cold.rotation.x = -Math.PI/2; cold.position.set(0, 0.01, -1); cold.receiveShadow = true; scene.add(cold);
+  // Murs
+  const wallMat = new THREE.MeshStandardMaterial({ color:0x141b2a, roughness:0.9, metalness:0.1, side:THREE.BackSide });
+  const walls = new THREE.Mesh(new THREE.BoxGeometry(60, 24, 60), wallMat); walls.position.y = 11; scene.add(walls);
+  // Plafond + néons
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color:0x0d1422, roughness:1 }));
+  ceil.rotation.x = Math.PI/2; ceil.position.y = 12; scene.add(ceil);
+  for(let i=0; i<5; i++){
+    const m = new THREE.MeshBasicMaterial({ color:0xcfe6ff });
+    const neon = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 12), m);
+    neon.position.set(-8 + i*4, 11.8, -1); scene.add(neon); ceilingMats.push(m);
+    const pl = new THREE.PointLight(0xbcd6ff, 0.5, 26, 2); pl.position.set(-8 + i*4, 11, -1); scene.add(pl);
+  }
+}
+
+/* ====== BAIES DE SERVEURS ====== */
+const RACK_ROWS = [ { x:-5.2, rot:Math.PI/2 }, { x:5.2, rot:-Math.PI/2 } ]; // fronts face l'allée (centre)
+const RACK_Z = [-7, -3.5, 0, 3.5, 7];
+function buildRackMesh(){
+  const g = new THREE.Group();
+  // Armoire (cabinet) — tôle métallique réelle (PBR + AO)
+  const bgeo = new THREE.BoxGeometry(1.7, 4.4, 2.2); enableAO(bgeo);
+  const body = new THREE.Mesh(bgeo, rackMetalMat || mat(0x1a2130, 0.7, 0.42, { envMapIntensity:1.2 }));
+  body.position.y = 2.2; body.castShadow = true; body.receiveShadow = true; g.add(body);
+  // Ouverture avant (creux sombre)
+  const cavity = new THREE.Mesh(new THREE.BoxGeometry(0.2, 4.0, 1.9), mat(0x080b12, 0.3, 0.9));
+  cavity.position.set(0.78, 2.2, 0); g.add(cavity);
+  return { group:g, body };
+}
+function buildRacks(){
+  let idx = 0;
+  RACK_ROWS.forEach(row=>{
+    RACK_Z.forEach(z=>{
+      const { group, body } = buildRackMesh();
+      group.position.set(row.x, 0, z); group.rotation.y = row.rot;
+      const rack = { id:'rack', ni:'r'+idx, group, x:row.x, z, failed:false, servers:[], anchor:new THREE.Vector3(row.x, 4.9, z) };
+      // Serveurs (lames) sur la face avant (+x local)
+      const N = 9;
+      for(let i=0; i<N; i++){
+        const y = 0.7 + i*0.42;
+        const face = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.36, 1.8), mat(0x2b333f, 0.6, 0.5));
+        face.position.set(0.84, y, 0); group.add(face);
+        // deux LED d'activité par serveur
+        const l1 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.09, 0.09), emiss(COL.ok)); l1.position.set(0.92, y, 0.62);
+        const l2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.09, 0.09), emiss(COL.ok)); l2.position.set(0.92, y, 0.42);
+        group.add(l1, l2);
+        const srv = { face, leds:[l1, l2], phase:Math.random()*6.28, lit:false };
+        rack.servers.push(srv); leds.push(l1, l2);
+      }
+      scene.add(group);
+      group.traverse(o=>{ if(o.isMesh) o.userData.equip = 'rack'; group.userData.rack = rack; });
+      group.userData.rack = rack;
+      clickMeshes.push(body); body.userData.equip = 'rack'; body.userData.rack = rack;
+      racks.push(rack); idx++;
+    });
+  });
+}
+
+/* ====== INFRASTRUCTURE (mur gauche) ====== */
+function unitBox(w,h,d,c,rough){ const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat(c,0.6,rough||0.5,{envMapIntensity:1.1})); m.castShadow=true; m.receiveShadow=true; return m; }
+function ventGrille(w,h){
+  const g = new THREE.Group();
+  for(let i=0;i<6;i++){ const s=new THREE.Mesh(new THREE.BoxGeometry(w,0.05,0.04), mat(0x0c1018,0.4,0.8)); s.position.y=-h/2+0.15+i*(h-0.3)/5; g.add(s); }
+  return g;
+}
+function buildInfrastructure(){
+  const wallX = -12.5;
+  // Onduleur (UPS)
+  const ups = new THREE.Group(); ups.position.set(wallX, 0, -3.5);
+  const ub = unitBox(2.4, 3.2, 1.6, 0x2a2f3c); ub.position.y = 1.6; if(panelMetalMat){ ub.material = panelMetalMat; enableAO(ub.geometry); } ups.add(ub);
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.5), emiss(COL.amber)); scr.position.set(1.21, 2.4, 0); scr.rotation.y = Math.PI/2; scr.userData.glow = 'ups'; ups.add(scr);
+  for(let i=0;i<3;i++){ const led=new THREE.Mesh(new THREE.CircleGeometry(0.07,12), emiss(COL.ok)); led.position.set(1.21, 1.7-i*0.25, -0.4); led.rotation.y=Math.PI/2; ups.add(led); }
+  registerEquip(ups, 'ups'); scene.add(ups); addAnchor('ups', wallX+1.4, 3.4, -3.5);
+
+  // Générateur
+  const gen = new THREE.Group(); gen.position.set(wallX, 0, 4.5);
+  const gb = unitBox(2.6, 2.6, 2.0, 0x3a4150, 0.6); gb.position.y = 1.3; if(genMetalMat){ gb.material = genMetalMat; enableAO(gb.geometry); } gen.add(gb);
+  const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,1.6,14), mat(0x1a1d24,0.8,0.4)); exhaust.position.set(-0.6, 3.0, -0.6); gen.add(exhaust);
+  genFan = new THREE.Group(); genFan.position.set(1.31, 1.6, 0); genFan.rotation.y = Math.PI/2;
+  for(let i=0;i<5;i++){ const bl=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.06,0.18), mat(0x9aa0ad,0.8,0.4)); const h=new THREE.Group(); h.rotation.z=i*Math.PI*2/5; bl.position.x=0.42; h.add(bl); genFan.add(h); }
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.72,0.05,8,24), mat(0x6b7382,0.7,0.5)); guard.position.set(1.32,1.6,0); guard.rotation.y=Math.PI/2; gen.add(genFan, guard);
+  registerEquip(gen, 'generator'); scene.add(gen); addAnchor('generator', wallX+1.4, 2.8, 4.5);
+
+  // Groupe froid (CRAC) x2
+  [ -9.5, -1.5 ].forEach((z, k)=>{
+    const crac = new THREE.Group(); crac.position.set(-12.8, 0, z);
+    const cb = unitBox(1.8, 4.2, 2.2, 0x223344, 0.45); cb.position.y = 2.1; if(panelMetalMat){ cb.material = panelMetalMat; enableAO(cb.geometry); } crac.add(cb);
+    // logo froid
+    const badge = new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.7), emiss(COL.cyan)); badge.position.set(0.92, 3.2, 0); badge.rotation.y=Math.PI/2; crac.add(badge);
+    crac.add(ventGrille(1.6, 3.2)); crac.children[crac.children.length-1].position.set(0.92, 1.8, 0); crac.children[crac.children.length-1].rotation.y = Math.PI/2;
+    // ventilateur soufflant
+    const fan = new THREE.Group(); fan.position.set(0.93, 0.9, 0); fan.rotation.y=Math.PI/2;
+    for(let i=0;i<6;i++){ const bl=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.05,0.14), mat(0x4de3ff,0.3,0.5,{emissive:0x0a3a4a})); const h=new THREE.Group(); h.rotation.z=i*Math.PI*2/6; bl.position.x=0.3; h.add(bl); fan.add(h); }
+    crac.add(fan); cracFans.push(fan);
+    registerEquip(crac, 'crac'); scene.add(crac);
+    if(k===0) addAnchor('crac', -11.6, 4.4, z);
+  });
+}
+
+/* ====== CŒUR RÉSEAU (bout d'allée) ====== */
+function netPanel(parent, y, color, id){
+  const p = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.5), mat(0x232b3a, 0.6, 0.45));
+  p.position.set(0, y, 1.15); parent.add(p);
+  // bande lumineuse + ports
+  const strip = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 0.04), emiss(color)); strip.position.set(0, y+0.22, 1.42); parent.add(strip);
+  const ports = [];
+  for(let i=0;i<8;i++){ const pt = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.1,0.04), emiss(COL.ok)); pt.position.set(-0.9+i*0.26, y-0.1, 1.42); parent.add(pt); ports.push(pt); }
+  p.userData.equip = id; p.userData.netports = ports; strip.userData.netstrip = true;
+  clickMeshes.push(p);
+  return { panel:p, strip, ports };
+}
+let switchAObj, switchBObj, routerObj, firewallObj;
+function buildNetworkCore(){
+  const g = new THREE.Group(); g.position.set(0, 0, -11.2); g.rotation.y = 0;
+  const cabGeo = new THREE.BoxGeometry(2.9, 5.0, 1.5); enableAO(cabGeo);
+  const cab = new THREE.Mesh(cabGeo, cabinetMetalMat || mat(0x161c29, 0.72, 0.4, {envMapIntensity:1.2}));
+  cab.position.y = 2.5; cab.castShadow = true; cab.receiveShadow = true; g.add(cab);
+  firewallObj = netPanel(g, 4.1, COL.red, 'firewall');
+  routerObj   = netPanel(g, 3.2, COL.purple, 'router');
+  switchAObj  = netPanel(g, 2.3, COL.cyan, 'switch');
+  switchBObj  = netPanel(g, 1.4, COL.cyan, 'switch');
+  switchAObj.panel.userData.swid = 'swA'; switchBObj.panel.userData.swid = 'swB';
+  g.traverse(o=>{ if(o.isMesh) o.userData.core = true; });
+  scene.add(g);
+  addAnchor('firewall', 0, 4.55, -10.0);
+  addAnchor('router', 1.8, 3.5, -10.4);
+  addAnchor('switch', -1.9, 2.0, -10.4);
+  // Baie de stockage à côté du cœur
+  const st = new THREE.Group(); st.position.set(-6.5, 0, -11.2);
+  const sbGeo = new THREE.BoxGeometry(2.2, 5.0, 1.6); enableAO(sbGeo);
+  const sb = new THREE.Mesh(sbGeo, cabinetMetalMat || mat(0x1a2338, 0.68, 0.4)); sb.position.y = 2.5; sb.castShadow = true; sb.receiveShadow = true; st.add(sb);
+  for(let r=0;r<10;r++) for(let c2=0;c2<3;c2++){
+    const tray = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.34, 0.12), mat(0x2e3a52, 0.6, 0.5)); tray.position.set(-0.66+c2*0.66, 0.7+r*0.42, 0.82); st.add(tray);
+    const led = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.07,0.06), emiss(COL.cold)); led.position.set(-0.66+c2*0.66, 0.7+r*0.42, 0.9); st.add(led); led.userData.storageLed = true;
+  }
+  registerEquip(st, 'storage'); scene.add(st); addAnchor('storage', -6.5, 5.2, -11.2);
+}
+
+/* ====== INTERNET ====== */
+function buildInternet(){
+  const g = new THREE.Group(); g.position.set(0, 8.2, -14.5);
+  const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1.0, 1), new THREE.MeshStandardMaterial({ color:COL.purple, emissive:COL.purple, emissiveIntensity:0.6, roughness:0.4 }));
+  g.add(core);
+  internetWire = new THREE.Mesh(new THREE.IcosahedronGeometry(1.35, 1), new THREE.MeshBasicMaterial({ color:0xc9a6ff, wireframe:true, transparent:true, opacity:0.45 }));
+  g.add(internetWire);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex(0xb18bff), transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.8 })); halo.scale.setScalar(6); g.add(halo);
+  internetNode = g; registerEquip(g, 'net'); g.traverse(o=>{ if(o.isMesh) o.userData.equip='net'; }); scene.add(g);
+  addAnchor('net', 0, 9.6, -14.5);
+}
+function glowTex(hex){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const col=new THREE.Color(hex); const g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.35,`rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},.7)`); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+
+/* ====== CÂBLAGE RÉSEAU (patch cables colorés) ====== */
+function buildCables(){
+  const cols = [0x2ea6ff, 0xF5A623, 0x35E08A, 0xE63329, 0x8b5be0];
+  const netTop = new THREE.Vector3(0, 4.4, -10.5);
+  racks.forEach((rack, i)=>{
+    const from = new THREE.Vector3(rack.x, 4.3, rack.z);
+    const via = new THREE.Vector3((rack.x + netTop.x)/2, 3.2, (rack.z + netTop.z)/2 + 0.3);
+    const curve = new THREE.CatmullRomCurve3([from, via, netTop.clone().add(new THREE.Vector3((i%2?0.5:-0.5),0,0))]);
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 26, 0.045, 6, false), mat(cols[i%cols.length], 0.2, 0.5, { emissive:cols[i%cols.length], emissiveIntensity:0.12 }));
+    scene.add(tube);
+  });
+}
+
+/* ====== GRAPHE DE FLUX (routage + failover) ====== */
+function buildFlowGraph(){
+  nodes = {};
+  racks.forEach(rack=>{ nodes[rack.ni] = new THREE.Vector3(rack.x, 4.2, rack.z); });
+  nodes.swA = new THREE.Vector3(-0.4, 2.5, -10.2);
+  nodes.swB = new THREE.Vector3(0.4, 1.6, -10.2);
+  nodes.rt  = new THREE.Vector3(0, 3.4, -10.2);
+  nodes.fw  = new THREE.Vector3(0, 4.3, -10.2);
+  nodes.net = new THREE.Vector3(0, 8.2, -14.5);
+  edges = {}; Object.keys(nodes).forEach(k=>edges[k]=[]);
+  const link = (a,b)=>{ edges[a].push(b); edges[b].push(a); };
+  racks.forEach(rack=>{ link(rack.ni, 'swA'); link(rack.ni, 'swB'); });
+  link('swA','rt'); link('swB','rt'); link('rt','fw'); link('fw','net');
+}
+function bfsPath(s, t){
+  const prev = {}, seen = new Set([s]), q = [s];
+  while(q.length){ const u = q.shift(); if(u===t) break; (edges[u]||[]).forEach(v=>{ if(!seen.has(v) && !deadNodes.has(v)){ seen.add(v); prev[v]=u; q.push(v); } }); }
+  if(!seen.has(t)) return null;
+  const p=[t]; let c=t; while(c!==s){ c=prev[c]; if(c==null) return null; p.unshift(c); } return p;
+}
+
+/* ====== PAQUETS ====== */
+function buildPacketPool(){
+  const n = REDUCED ? 14 : 42;
+  const geo = new THREE.SphereGeometry(0.14, 10, 10);
+  for(let i=0;i<n;i++){ const m = new THREE.Mesh(geo, emiss(0x9fe8ff)); m.visible = false; scene.add(m); packetPool.push({ mesh:m, active:false }); }
+}
+function spawnPacket(){
+  const live = racks.filter(r=>!r.failed && r.servers.some(s=>s.lit));
+  if(!live.length) return;
+  const src = live[Math.floor(Math.random()*live.length)];
+  const path = bfsPath(src.ni, 'net'); if(!path || path.length < 2) return;
+  const slot = packetPool.find(p=>!p.active); if(!slot) return;
+  slot.active = true; slot.mesh.visible = true; slot.path = path.map(k=>nodes[k]); slot.t = 0;
+  slot.speed = 0.55 + load/220; slot.mesh.material.color.setHex(0x9fe8ff);
+  packets.push(slot);
+}
+function updatePackets(dt){
+  packets.forEach(p=>{
+    p.t += dt * p.speed;
+    const seg = Math.floor(p.t);
+    if(seg >= p.path.length - 1){ p.dead = true; return; }
+    const f = p.t - seg; p.mesh.position.lerpVectors(p.path[seg], p.path[seg+1], f);
+  });
+  packets = packets.filter(p=>{ if(p.dead){ p.mesh.visible = false; p.active = false; return false; } return true; });
+}
+
+/* ====== ÉQUIPEMENTS : enregistrement & clic ====== */
+function registerEquip(group, id){ group.traverse(o=>{ if(o.isMesh){ o.userData.equip = id; } }); group.userData.equip = id;
+  group.traverse(o=>{ if(o.isMesh) clickMeshes.push(o); }); }
+function addAnchor(id, x, y, z){ labels[id] = { anchor:new THREE.Vector3(x,y,z), el:null }; }
+
+/* ====== UI ====== */
+function buildUI(){
+  const stage = shell.stage;
+  // Télémétrie
+  const tel = document.createElement('div'); tel.className = 'dc-panel dc-tel';
+  tel.innerHTML = `
+    <h3><span class="dot" id="dcDot"></span> Salle · temps réel</h3>
+    ${metricRow('charge','Charge','%')}
+    ${metricRow('temp','Allée chaude','°C')}
+    ${metricRow('pue','PUE','')}
+    ${metricRow('avail','Disponibilité','%')}
+    <div id="dcStatus" style="font-size:11px;color:var(--fg-muted);line-height:1.4;font-family:var(--font-mono)"></div>`;
+  stage.appendChild(tel);
+  // Contrôles
+  const c = document.createElement('div'); c.className = 'dc-panel dc-ctrl';
+  c.innerHTML = `
+    <div class="dc-sl"><label>Charge <b id="dcLoadV">45%</b></label><input id="dcLoad" type="range" min="5" max="100" value="45"></div>
+    <div class="dc-sl"><label>Refroidissement <b id="dcCoolV">55%</b></label><input id="dcCool" type="range" min="10" max="100" value="55"></div>
+    <button class="dc-b danger" id="dcFail">⚠️ Panne</button>
+    <button class="dc-b" id="dcRepair">🛠️ Réparer</button>
+    <button class="dc-b" id="dcNot">📚 Notions</button>
+    <button class="dc-b" id="dcLabels" aria-pressed="true">🏷️ Étiquettes</button>
+    <button class="dc-b" id="dcView">↺ Vue</button>`;
+  stage.appendChild(c);
+  c.querySelector('#dcLoad').oninput = e=>{ load = +e.target.value; document.getElementById('dcLoadV').textContent = load+'%'; updateFan(); if(mode==='cours') evalChallenge(); };
+  c.querySelector('#dcCool').oninput = e=>{ cooling = +e.target.value; document.getElementById('dcCoolV').textContent = cooling+'%'; };
+  c.querySelector('#dcFail').onclick = triggerFailure;
+  c.querySelector('#dcRepair').onclick = repairAll;
+  c.querySelector('#dcNot').onclick = openNotions;
+  c.querySelector('#dcLabels').onclick = e=>{ labelsOn = !labelsOn; e.currentTarget.setAttribute('aria-pressed', labelsOn); shell.sound('click'); };
+  c.querySelector('#dcView').onclick = ()=>{ camera.position.set(13,8,17); controls.target.set(0,2,-2); shell.sound('click'); };
+  // Fiche
+  const info = document.createElement('div'); info.className = 'dc-panel dc-info'; info.id = 'dcInfo'; stage.appendChild(info);
+  // Hint
+  const hint = document.createElement('div'); hint.className = 'dc-hint'; hint.id = 'dcHint';
+  hint.textContent = 'Clique un équipement pour sa fiche · règle charge & froid · déclenche une panne';
+  stage.appendChild(hint);
+}
+function metricRow(id, label, unit){
+  return `<div class="dc-metric"><div class="dc-mrow"><span class="k">${label}</span><span class="v" id="dcm-${id}">–</span></div><div class="dc-gauge"><i id="dcg-${id}"></i></div></div>`;
+}
+
+/* ====== TÉLÉMÉTRIE ====== */
+function computeTelemetry(){
+  const targetTemp = 18 + load*0.20 - (cooling-50)*0.16;
+  temp += (targetTemp - temp) * 0.05;
+  pue = 1.08 + (cooling/100)*0.72 + Math.max(0,(temp-30))*0.015;
+  const swDown = deadNodes.has('swA') || deadNodes.has('swB');
+  const bothSw = deadNodes.has('swA') && deadNodes.has('swB');
+  const rackFail = racks.filter(r=>r.failed).length;
+  if(bothSw) avail = 41.0;
+  else avail = 99.99 - (swDown?0.01:0) - rackFail*0.002 - Math.max(0,(temp-38))*0.4;
+  avail = Math.max(41, Math.min(99.999, avail));
+}
+function refreshTelemetry(){
+  const set = (id, v, gv, gcol)=>{ const m=document.getElementById('dcm-'+id), g=document.getElementById('dcg-'+id); if(m)m.textContent=v; if(g){ g.style.width=Math.max(2,Math.min(100,gv))+'%'; g.style.background=gcol; } };
+  set('charge', Math.round(load)+' %', load, `linear-gradient(90deg,#29B6E0,#6E6BFF)`);
+  const tcol = temp>36 ? '#E63329' : temp>30 ? '#F5A623' : '#35E08A';
+  set('temp', temp.toFixed(1)+' °C', (temp-14)/30*100, tcol);
+  const pcol = pue<1.4 ? '#35E08A' : pue<1.7 ? '#F5A623' : '#E63329';
+  set('pue', pue.toFixed(2), (pue-1)/1.2*100, pcol);
+  const acol = avail>99 ? '#35E08A' : '#E63329';
+  set('avail', avail>=99 ? avail.toFixed(2)+' %' : Math.round(avail)+' %', avail, acol);
+  const dot = document.getElementById('dcDot'); const status = document.getElementById('dcStatus');
+  let st = '● Nominal', dc = '#35E08A';
+  if(deadNodes.has('swA') && deadNodes.has('swB')){ st = '✖ Panne totale réseau'; dc = '#E63329'; }
+  else if(deadNodes.has('swA') || deadNodes.has('swB')){ st = '⇄ Failover actif (switch redondant)'; dc = '#F5A623'; }
+  else if(temp>36){ st = '▲ Surchauffe — augmente le froid'; dc = '#F5A623'; }
+  else if(racks.some(r=>r.failed)){ st = '⇄ Serveur en panne — voisins actifs'; dc = '#F5A623'; }
+  if(dot){ dot.style.background = dc; dot.style.boxShadow = '0 0 8px '+dc; }
+  if(status) status.textContent = st;
+}
+
+/* ====== FICHE ====== */
+function openFiche(id){
+  const d = EQUIP[id]; if(!d) return;
+  const el = document.getElementById('dcInfo');
+  const hex = d.color;
+  el.innerHTML = `
+    <div class="dc-hd" style="background:linear-gradient(135deg,${hex},#0a1424)">
+      <div class="ico">${d.icon}</div>
+      <div><div class="sub">${d.sub}</div><h2>${d.name}</h2></div>
+      <button class="dc-x" aria-label="Fermer">×</button>
+    </div>
+    <div class="dc-body">
+      <div class="dc-sec">Caractéristiques</div>
+      <div class="dc-stats">${d.stats.map(s=>`<div class="dc-st"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('')}</div>
+      <div class="dc-sec">Son rôle</div>
+      ${d.desc.map(p=>`<p>${p}</p>`).join('')}
+      ${d.fun?`<div class="dc-fun">💡 ${d.fun}</div>`:''}
+    </div>`;
+  el.classList.add('show');
+  el.querySelector('.dc-x').onclick = ()=>el.classList.remove('show');
+}
+function openNotions(){
+  const el = document.getElementById('dcInfo');
+  el.innerHTML = `
+    <div class="dc-hd" style="background:linear-gradient(135deg,#29B6E0,#0a2230)">
+      <div class="ico">📚</div><div><div class="sub">Cours · encyclopédie</div><h2>Datacenter & cloud</h2></div>
+      <button class="dc-x" aria-label="Fermer">×</button>
+    </div>
+    <div class="dc-body" style="max-height:64vh;overflow:auto">${NOTIONS.map(n=>`<div style="margin-bottom:11px"><b style="font-size:13.5px">${n[0]}</b><p style="margin:4px 0 0">${n[1]}</p></div>`).join('')}</div>`;
+  el.classList.add('show'); el.querySelector('.dc-x').onclick = ()=>el.classList.remove('show'); shell.sound('click');
+}
+
+/* ====== SIMULATIONS : panne / failover / réparation ====== */
+function setSwitchVisual(obj, down){
+  const c = down ? COL.red : COL.cyan;
+  obj.strip.material.color.setHex(c);
+  obj.ports.forEach(p=>p.material.color.setHex(down ? COL.red : COL.ok));
+}
+function triggerFailure(){
+  if(deadNodes.has('swA')){ shell.say("Un switch est déjà en panne — clique « Réparer » d'abord, ou observe le trafic sur le switch B.",'rassurant'); return; }
+  deadNodes.add('swA'); setSwitchVisual(switchAObj, true);
+  shell.sound('bad'); shell.toast('⚠️ Panne du Switch A — bascule en cours…');
+  shell.say("Le switch A tombe en panne ! Regarde : les paquets se reroutent aussitôt par le switch B redondant. Le service continue — c'est le failover.", 'surpris');
+  if(mode==='cours') evalChallenge('fail');
+}
+function repairAll(){
+  deadNodes.clear(); setSwitchVisual(switchAObj, false); setSwitchVisual(switchBObj, false);
+  racks.forEach(r=>{ r.failed = false; });
+  shell.sound('good'); shell.say("Tout est rétabli : switchs, serveurs et chemins sont de nouveau opérationnels.", 'fier'); shell.toast('🛠️ Infrastructure rétablie');
+}
+function toggleRack(rack){
+  rack.failed = !rack.failed;
+  if(rack.failed){ shell.sound('bad'); shell.say("Ce serveur tombe en panne (LED rouges). Ses voisins absorbent la charge : aucune donnée perdue, service maintenu.", 'surpris'); }
+  else { shell.sound('pop'); shell.say("Serveur redémarré : il reprend du service.", 'joyeux'); }
+}
+
+/* ====== SON D'AMBIANCE ====== */
+function startFan(){ if(ac || shell.muted) return; try{
+  ac = new (window.AudioContext||window.webkitAudioContext)();
+  fanGain = ac.createGain(); fanGain.gain.value = 0; fanGain.connect(ac.destination); fanGain.gain.setTargetAtTime(0.10, ac.currentTime, .6);
+  const buf = ac.createBuffer(1, ac.sampleRate*2, ac.sampleRate); const dt = buf.getChannelData(0);
+  for(let i=0;i<dt.length;i++) dt[i] = (Math.random()*2-1)*0.4;
+  const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+  const bp = ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=190; bp.Q.value=0.7;
+  src.connect(bp); bp.connect(fanGain); src.start();
+}catch(e){} }
+function updateFan(){ if(fanGain && ac) fanGain.gain.setTargetAtTime(shell.muted?0:0.06+load*0.0009, ac.currentTime, .3); }
+
+/* ====== POINTER ====== */
+function setP(e){ const r = renderer.domElement.getBoundingClientRect(); pointer.x = ((e.clientX-r.left)/r.width)*2-1; pointer.y = -((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer, camera); return raycaster.intersectObjects(clickMeshes, false); }
+function onMove(e){ setP(e); const h = pick(); renderer.domElement.style.cursor = h.length ? 'pointer' : 'grab';
+  let g = null; if(h.length){ let o = h[0].object; if(o.userData.rack) g = o.userData.rack.group; else { let p=o; while(p && !p.userData.equip) p=p.parent; g = p; } }
+  hovered = g; }
+function onDown(e){ setP(e); const h = pick(); if(!h.length) return;
+  let o = h[0].object;
+  // baie de serveurs : clic simple = fiche ; double = bascule panne
+  if(o.userData.rack){ const rack = o.userData.rack; openFiche('rack'); shell.sound('pop'); if(mode==='cours') checkClick('rack');
+    if(o.userData.rack._t && Date.now()-o.userData.rack._t < 400) toggleRack(rack); o.userData.rack._t = Date.now(); return; }
+  let p = o; while(p && !p.userData.equip) p = p.parent;
+  const id = p ? p.userData.equip : (o.userData.equip || null);
+  if(id){ openFiche(id); shell.sound('pop'); if(mode==='cours') checkClick(id); }
+}
+
+/* ====== MODE COURS ====== */
+const CHALLS = [
+  { type:'click', target:'crac', tier:0, title:'Le refroidissement', ask:"Clique l'équipement qui REFROIDIT la salle.", done:"Oui ! Le groupe froid (CRAC) évacue la chaleur des serveurs." },
+  { type:'click', target:'net', tier:0, title:'Où va le paquet ?', ask:"Un paquet quitte le datacenter : clique sa destination finale.", done:"Exact — il part vers Internet, le réseau mondial." },
+  { type:'click', target:'router', tier:0, title:"L'aiguilleur", ask:"Clique le ROUTEUR, qui choisit le chemin vers Internet.", done:"Bien vu ! Le routeur relie le datacenter au monde extérieur." },
+  { type:'click', target:'firewall', tier:0, title:'La sécurité', ask:"Clique le PARE-FEU, le gardien qui filtre le trafic.", done:"Parfait — le pare-feu bloque les connexions dangereuses." },
+  { type:'fail', tier:1, title:'Panne & failover', ask:"Déclenche une PANNE (bouton ⚠️) et observe le trafic se rerouter.", done:"Bravo ! Un switch tombe, le trafic bascule sur le switch redondant : c'est le failover." },
+  { type:'click', target:'ups', tier:1, title:"L'énergie de secours", ask:"Clique l'ONDULEUR (UPS), qui prend le relais en cas de coupure.", done:"Oui ! L'UPS alimente les serveurs le temps que le générateur démarre." },
+  { type:'click', target:'storage', tier:2, title:'Le stockage', ask:"Clique la BAIE DE STOCKAGE (disques en RAID).", done:"Exact — les données y sont dupliquées (RAID) pour ne rien perdre." },
+  { type:'load', tier:2, title:'Montée en charge', ask:"Monte la CHARGE au-dessus de 80 % : plus de serveurs s'allument.", done:"Le datacenter scale : il allume des serveurs pour absorber la charge." },
+];
+let quizTier = 'debutant';
+function startMode(m){
+  mode = m; startFan();
+  document.getElementById('dcHint').style.display = (m==='cours') ? 'none' : '';
+  const info = document.getElementById('dcInfo'); if(info) info.classList.remove('show');
+  if(m==='cours'){ shell.setScore(0); chooseDifficulty(); } else { clearQuiz(); shell.setLevel('libre'); }
+}
+function chooseDifficulty(){
+  clearQuiz(); let b = document.getElementById('dcQuiz');
+  if(!b){ b = document.createElement('div'); b.className = 'dc-panel dc-quiz'; b.id = 'dcQuiz'; shell.stage.appendChild(b); }
+  b.innerHTML = `<b>🎓 Choisis ta difficulté</b><div class="dc-qrow">
+    <button class="dc-qo" data-t="debutant">Débutant · 4</button>
+    <button class="dc-qo" data-t="inter">Confirmé · 6</button>
+    <button class="dc-qo" data-t="expert">Expert · 8</button></div>`;
+  b.querySelectorAll('[data-t]').forEach(x=>x.onclick = ()=>{ shell.sound('click'); quizTier = x.dataset.t; startQuiz(); });
+  shell.say("Trois parcours de défis pour comprendre l'infra du datacenter. Choisis ton niveau !", 'curieux');
+}
+function startQuiz(){
+  const len = quizTier==='expert' ? 8 : quizTier==='inter' ? 6 : 4;
+  const maxTier = quizTier==='expert' ? 2 : quizTier==='inter' ? 1 : 0;
+  const pool = CHALLS.filter(c=>c.tier <= maxTier).sort(()=>Math.random()-.5).slice(0, len);
+  challenge = { list:pool, idx:0, score:0, total:pool.length };
+  shell.setScore(0); shell.setProgress(0); askChallenge();
+}
+function askChallenge(){
+  if(!challenge) return;
+  if(challenge.idx >= challenge.total){ winQuiz(); return; }
+  const ch = challenge.list[challenge.idx];
+  challenge.done = false;
+  let b = document.getElementById('dcQuiz');
+  if(!b){ b = document.createElement('div'); b.className = 'dc-panel dc-quiz'; b.id = 'dcQuiz'; shell.stage.appendChild(b); }
+  b.innerHTML = `<span class="qn">${challenge.idx+1}/${challenge.total}</span><b>${ch.title}</b><div class="ask">${ch.ask}</div>`;
+  shell.setLevel((challenge.idx+1)+'/'+challenge.total); shell.setProgress(challenge.idx/challenge.total);
+  shell.say(ch.ask, 'concentre');
+}
+function passChallenge(){
+  const ch = challenge.list[challenge.idx]; if(challenge.done) return; challenge.done = true;
+  challenge.score++; shell.addScore(150); shell.sound('good'); shell.say(ch.done, 'celebration'); shell.toast('✅ '+ch.title);
+  setTimeout(()=>{ challenge.idx++; shell.setProgress(challenge.idx/challenge.total); askChallenge(); }, 1250);
+}
+function checkClick(id){ if(!challenge || challenge.done) return; const ch = challenge.list[challenge.idx];
+  if(ch.type==='click'){ if(id===ch.target) passChallenge(); else { shell.sound('bad'); shell.say("Pas celui-ci. "+ch.ask, 'rassurant'); } } }
+function evalChallenge(kind){ if(!challenge || challenge.done) return; const ch = challenge.list[challenge.idx];
+  if(ch.type==='fail' && kind==='fail') passChallenge();
+  if(ch.type==='load' && load>=80) passChallenge(); }
+function winQuiz(){
+  clearQuiz(); const sc = challenge.score, tot = challenge.total;
+  const st = sc>=tot ? 3 : sc>=Math.ceil(tot*0.6) ? 2 : 1;
+  shell.setProgress(1);
+  shell.win({
+    score: sc*150, stars: st, title: sc+'/'+tot+' défis réussis',
+    learned: shell.cfg.learned,
+    buddy: st===3 ? "Sans faute ! Tu comprends l'architecture d'un datacenter : réseau, sécurité, énergie, froid et redondance." : "Bien joué — relis les fiches des équipements et retente pour le sans-faute.",
+    onNext: ()=>{ shell.setScore(0); chooseDifficulty(); }, nextLabel:'Rejouer',
+  });
+  challenge = null;
+}
+function clearQuiz(){ const b = document.getElementById('dcQuiz'); if(b) b.remove(); challenge = null; }
+
+/* ====== THÈME / RESIZE ====== */
+function applyTheme(){ const dark = document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x05090f:0x0a1120, 1); if(scene.fog) scene.fog.color.setHex(dark?0x05090f:0x0a1120); }
+function onResize(){ const s = shell.stage; if(!s.clientWidth) return; camera.aspect = s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth, s.clientHeight); composer.setSize(s.clientWidth, s.clientHeight); }
+
+/* ====== ÉTIQUETTES ====== */
+const LABEL_DEF = { switch:['Switch','#29B6E0'], router:['Routeur','#6E6BFF'], firewall:['Pare-feu','#E63329'], storage:['Stockage','#2E7FD6'], ups:['Onduleur','#F5A623'], generator:['Générateur','#94A0B4'], crac:['Groupe froid','#3AC7C7'], net:['Internet','#8b5be0'] };
+function updateLabels(){
+  const stage = shell.stage;
+  Object.keys(LABEL_DEF).forEach(id=>{
+    const L = labels[id]; if(!L) return;
+    if(!labelsOn){ if(L.el) L.el.style.display='none'; return; }
+    if(!L.el){ const e = document.createElement('div'); e.className='dc-label'; e.innerHTML = `<span class="d" style="background:${LABEL_DEF[id][1]}"></span>${LABEL_DEF[id][0]}`; stage.appendChild(e); L.el = e; }
+    const v = L.anchor.clone().project(camera);
+    if(v.z > 1){ L.el.style.display='none'; return; } L.el.style.display='flex';
+    L.el.style.left = ((v.x*.5+.5)*stage.clientWidth)+'px'; L.el.style.top = ((-v.y*.5+.5)*stage.clientHeight)+'px';
+  });
+}
+
+/* ====== ANIMATION ====== */
+let telAcc = 0;
+function animate(){
+  requestAnimationFrame(animate); const dt = Math.min(0.05, clock.getDelta()); const t = clock.elapsedTime;
+
+  // Serveurs allumés selon la charge
+  racks.forEach(rack=>{
+    const litCount = Math.round(rack.servers.length * load/100);
+    rack.servers.forEach((s, i)=>{ s.lit = !rack.failed && i < litCount; });
+  });
+  // LED d'activité (clignotement) + couleur selon température
+  const tempCol = temp>37 ? 0xE63329 : temp>31 ? 0xF5A623 : 0x35E08A;
+  const blinkRate = REDUCED ? 1.2 : 4.5 + load*0.05;
+  racks.forEach(rack=>{
+    rack.servers.forEach(s=>{
+      const on = s.lit;
+      const c = rack.failed ? 0xE63329 : tempCol;
+      s.leds.forEach((led, k)=>{
+        if(!on && !rack.failed){ led.material.color.setHex(0x0b2016); return; }
+        const b = rack.failed ? (0.5+0.5*Math.abs(Math.sin(t*3))) : (REDUCED ? 1 : 0.35+0.65*Math.abs(Math.sin(t*blinkRate + s.phase + k)));
+        led.material.color.setHex(c);
+        led.material.color.multiplyScalar(b);
+      });
+    });
+  });
+
+  // Ventilateurs (vitesse liée à charge & froid)
+  const fanSpeed = 0.6 + (cooling/100)*3 + load*0.01;
+  cracFans.forEach(f=>{ f.rotation.z += dt*fanSpeed; });
+  if(genFan) genFan.rotation.z += dt*0.6;
+  if(internetNode){ internetNode.rotation.y += dt*0.3; if(internetWire) internetWire.rotation.y -= dt*0.5; }
+
+  // Néons : léger vacillement
+  if(!REDUCED){ const flick = 0.9 + 0.1*Math.sin(t*30); ceilingMats.forEach(m=>m.color.setRGB(0.81*flick, 0.9*flick, flick)); }
+
+  // Paquets
+  packetAcc += dt;
+  const spawnEvery = Math.max(0.12, 1.1 - load/110);
+  if(packetAcc > spawnEvery){ packetAcc = 0; spawnPacket(); }
+  updatePackets(dt);
+
+  // Hover highlight
+  racks.forEach(rack=>{ const lit = hovered===rack.group; rack.group.scale.lerp(new THREE.Vector3(lit?1.03:1, lit?1.03:1, lit?1.03:1), 0.15); });
+
+  // Télémétrie
+  computeTelemetry();
+  telAcc += dt; if(telAcc > 0.2){ telAcc = 0; refreshTelemetry(); }
+
+  controls.update(); updateLabels(); composer.render();
+}
+</script>
+</body>
+</html>

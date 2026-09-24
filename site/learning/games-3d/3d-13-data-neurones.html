@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Données & réseau de neurones</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .aiw-panel { position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 84%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); backdrop-filter:blur(14px); }
+  /* ---- panneau réglages (gauche) ---- */
+  .aiw-left { top:70px; left:14px; width:236px; max-height:calc(100% - 150px); display:flex; flex-direction:column; overflow:hidden; }
+  .aiw-hd { display:flex; align-items:center; gap:8px; padding:12px 14px 10px; cursor:pointer; user-select:none; }
+  .aiw-hd h3 { font-family:var(--font-title); font-weight:800; font-size:13.5px; margin:0; color:var(--fg); flex:1; }
+  .aiw-hd .chev { font-size:12px; color:var(--fg-muted); transition:transform .3s; }
+  .aiw-panel.collapsed .chev { transform:rotate(-90deg); }
+  .aiw-panel.collapsed .aiw-body { display:none; }
+  .aiw-body { padding:0 14px 14px; overflow:auto; display:flex; flex-direction:column; gap:13px; }
+  .aiw-lbl { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 6px; display:flex; justify-content:space-between; }
+  .aiw-lbl b { color:var(--accent-text); font-family:var(--font-data); }
+  .aiw-chips { display:flex; flex-wrap:wrap; gap:5px; }
+  .aiw-chip { font-family:var(--font-body); font-weight:700; font-size:11.5px; padding:7px 10px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; min-height:34px; flex:1; }
+  .aiw-chip[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .aiw-chip:focus-visible { outline:none; box-shadow:var(--ring); }
+  .aiw-slider { width:100%; accent-color:var(--accent); height:22px; }
+  .aiw-note { font-size:11px; line-height:1.5; color:var(--fg-muted); background:var(--accent-weak); border-radius:10px; padding:9px 11px; }
+  /* ---- panneau entraînement (droite) ---- */
+  .aiw-right { top:70px; right:14px; width:246px; max-height:calc(100% - 150px); display:flex; flex-direction:column; overflow:hidden; }
+  .aiw-ep { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); margin-bottom:2px; }
+  .aiw-met { display:flex; gap:8px; margin-bottom:4px; }
+  .aiw-met .c { flex:1; text-align:center; padding:7px 4px; border-radius:10px; background:color-mix(in srgb,var(--accent) 9%,transparent); border:1px solid var(--border); }
+  .aiw-met .c b { display:block; font-family:var(--font-data); font-weight:700; font-size:18px; color:var(--fg); line-height:1; }
+  .aiw-met .c span { font-size:9.5px; color:var(--fg-muted); text-transform:uppercase; letter-spacing:.04em; }
+  .aiw-met .c.acc b { color:var(--brand-teal,#29B6E0); }
+  .aiw-canvas-lbl { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:2px 0 5px; }
+  canvas.aiw-cv { width:100%; display:block; border-radius:10px; background:color-mix(in srgb,var(--surface-2,var(--surface)) 80%,transparent); border:1px solid var(--border); }
+  #aiwPad { cursor:crosshair; touch-action:none; aspect-ratio:1; }
+  .aiw-pred { font-size:11.5px; line-height:1.45; color:var(--fg); min-height:32px; }
+  .aiw-pred .dot { display:inline-block; width:10px; height:10px; border-radius:999px; vertical-align:-1px; margin-right:5px; }
+  .aiw-legend { display:flex; gap:12px; font-family:var(--font-mono); font-size:10px; color:var(--fg-muted); }
+  .aiw-legend i { display:inline-block; width:9px; height:9px; border-radius:999px; margin-right:4px; vertical-align:0; }
+  /* ---- barre de contrôle (bas) ---- */
+  .aiw-ctrl { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:22; display:flex; gap:8px; align-items:center; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:999px; padding:7px 12px; backdrop-filter:blur(12px); box-shadow:var(--shadow-md); max-width:94vw; flex-wrap:wrap; justify-content:center; }
+  .aiw-b { font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:42px; padding:0 15px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:transform .12s, box-shadow .2s; white-space:nowrap; }
+  .aiw-b:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+  .aiw-b:focus-visible { outline:none; box-shadow:var(--ring); }
+  .aiw-b.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .aiw-b.go { background:linear-gradient(135deg,#29B6E0,#6E6BFF); border:none; color:#fff; }
+  /* ---- statut (haut) ---- */
+  .aiw-status { position:absolute; top:60px; left:50%; transform:translateX(-50%); z-index:18; font-family:var(--font-mono); font-size:11.5px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 82%,transparent); border:1px solid var(--border); padding:6px 14px; border-radius:999px; max-width:80vw; text-align:center; pointer-events:none; }
+  .aiw-status b { color:var(--fg); }
+  /* ---- étiquettes de couche projetées ---- */
+  .aiw-tag { position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 74%,transparent); padding:2px 8px; border-radius:7px; pointer-events:none; z-index:15; border:1px solid var(--border); white-space:nowrap; }
+  /* ---- fiche neurone ---- */
+  .aiw-fiche { left:14px; bottom:78px; width:250px; padding:0; overflow:hidden; z-index:24; transform:translateY(140%); transition:transform .4s cubic-bezier(.22,1,.36,1); }
+  .aiw-fiche.show { transform:none; }
+  .aiw-fiche-hd { padding:13px 15px; color:#fff; position:relative; }
+  .aiw-fiche-hd h4 { font-family:var(--font-title); font-weight:800; font-size:15px; margin:0; }
+  .aiw-fiche-hd .sub { font-family:var(--font-mono); font-size:10px; opacity:.92; text-transform:uppercase; letter-spacing:.05em; }
+  .aiw-fiche-x { position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:7px; border:none; background:rgba(255,255,255,.24); color:#fff; cursor:pointer; font-size:15px; }
+  .aiw-fiche-bd { padding:12px 15px 14px; font-size:12.5px; line-height:1.55; color:var(--fg); }
+  .aiw-fiche-bd .kv { display:flex; justify-content:space-between; gap:10px; padding:3px 0; border-bottom:1px dashed var(--border); }
+  .aiw-fiche-bd .kv:last-of-type { border-bottom:none; }
+  .aiw-fiche-bd .kv span { color:var(--fg-muted); font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; }
+  .aiw-fiche-bd .kv b { font-family:var(--font-data); }
+  .aiw-fiche-bd .desc { margin-top:9px; color:var(--fg); }
+  .aiw-chipset { display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; }
+  .aiw-chipset span { font-family:var(--font-mono); font-size:10px; background:var(--accent-weak); color:var(--accent-text); border-radius:999px; padding:3px 9px; }
+  /* ---- quiz mode Cours ---- */
+  .aiw-quiz { position:absolute; top:94px; left:50%; transform:translateX(-50%); z-index:26; background:var(--accent); color:#fff; border-radius:15px; padding:13px 17px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:9px; align-items:center; max-width:min(440px,92vw); }
+  .aiw-quiz .qn { font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 11px; font-size:11.5px; align-self:flex-start; }
+  .aiw-quiz .qt { font-weight:800; font-size:14.5px; text-align:center; line-height:1.35; }
+  .aiw-quiz .qask { font-size:12.5px; text-align:center; opacity:.95; line-height:1.4; }
+  .aiw-quiz .qrow { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .aiw-qo { font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:40px; padding:0 13px; border-radius:10px; border:none; background:rgba(255,255,255,.2); color:#fff; cursor:pointer; }
+  .aiw-qo:hover { background:rgba(255,255,255,.32); }
+  /* ---- glossaire ---- */
+  .aiw-gloss { position:absolute; inset:0; z-index:45; display:none; place-items:center; padding:20px; background:color-mix(in srgb,var(--bg) 80%,transparent); backdrop-filter:blur(8px); }
+  .aiw-gloss.show { display:grid; }
+  .aiw-gloss-card { width:min(520px,94vw); max-height:82vh; overflow:auto; background:var(--surface); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-lg); padding:22px 24px; }
+  .aiw-gloss-card h3 { font-family:var(--font-title); font-weight:800; font-size:19px; margin:0 0 4px; }
+  .aiw-gloss-card p.lead { color:var(--fg-muted); font-size:13px; margin:0 0 16px; }
+  .aiw-gterm { padding:9px 0; border-bottom:1px solid var(--border); }
+  .aiw-gterm b { font-family:var(--font-title); font-size:13.5px; color:var(--accent-text); }
+  .aiw-gterm p { margin:3px 0 0; font-size:13px; line-height:1.5; color:var(--fg); }
+  @media (prefers-reduced-motion: reduce){ .aiw-fiche,.aiw-hd .chev { transition:none; } }
+  @media (max-width:760px){
+    .aiw-left,.aiw-right { width:180px; }
+    .aiw-left { max-height:44%; } .aiw-right { max-height:52%; }
+    .aiw-fiche { width:min(250px,84vw); bottom:84px; }
+    .aiw-status { font-size:10.5px; }
+  }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ====================== ÉTAT ====================== */
+let scene, camera, renderer, controls, composer, clock, raycaster, pointer;
+let netGroup, floorGrid, motePool = [], moteIdx = 0, dataMotes = null;
+let mode = 'detente';
+let hovered = null;
+
+/* réseau + données + réglages pédagogiques */
+const ARCH = { dataset:'moons', hidden:2, perLayer:5, activation:'tanh', lr:0.05 };
+let sizes = [], net = null, data = [];
+let neurons = [], edges = [], layerX = [], wMax = 1;
+
+/* entraînement */
+let train = { epoch:0, running:false, t:0, loss:0.7, acc:50, best:50, history:[] };
+
+/* propagation (forward pass visuel) */
+let wave = null;      // { input, acts, dur, t, litLayers:Set }
+let lastActs = null;  // activations de la dernière propagation (pour la fiche)
+let predClass = null, predConf = 0;
+let queryPoint = null; // point 2D placé par l'utilisateur
+
+/* palettes */
+const COL = {
+  n0:0x2b3557, edge:0x4b5072, hi:0x8f8dff,
+  pos:0x29B6E0, neg:0xF5A623,
+  c0:0x29B6E0, c1:0xF5A623,           // classes (turquoise / ambre)
+  out0:0x1fb6d6, out1:0xf59a1e,
+};
+const CLASS_HEX = ['#29B6E0','#F5A623'];
+const CLASS_NAME = ['Classe A','Classe B'];
+const ACT_LABEL = { relu:'ReLU', tanh:'tanh', sigmoid:'sigmoïde' };
+
+/* ====================== SHELL ====================== */
+const shell = window.Konstrio.createGame({
+  id:'3d-13-data-neurones', code:'3D·13', title:'Données & réseau de neurones', type:'3D',
+  domain:{ label:'IA & Data', color:'#8B5BE0' },
+  intro:{
+    greet:"Bienvenue dans l'atelier d'IA ! Ici tu construis un vrai réseau de neurones, tu le regardes penser, puis tu l'entraînes à reconnaître des formes. Curieux de voir comment une machine « apprend » ?",
+    rule:"Un <b>réseau de neurones</b> transforme une donnée d'entrée en une décision, couche après couche. Les liens (les <b>poids</b>) se règlent pendant l'<b>entraînement</b> pour réduire l'erreur : c'est l'apprentissage automatique.",
+    how:[
+      "Clique <b>Propager le signal</b> : suis l'onde lumineuse traverser les couches jusqu'à la décision.",
+      "Clique <b>Entraîner</b> : la perte descend, la précision monte, et la frontière de décision se dessine (panneau droit).",
+      "Clique un <b>neurone</b> pour ouvrir sa fiche, ou clique dans le plan 2D pour faire classer un point en direct.",
+    ],
+    keys:"Glisser = tourner · molette = zoom · clic sur un neurone = fiche.",
+    objectif:"Comprendre comment un réseau de neurones propage un signal puis apprend en ajustant ses poids.",
+    hint:"Un neurone additionne ses entrées pondérées, ajoute un biais, puis applique une fonction d'activation. Empile des couches et le réseau peut apprendre des formes complexes.",
+    why:"Une IA ne « comprend » pas : elle calcule. L'entraînement cherche les poids qui minimisent l'erreur, guidé par le gradient — un peu comme descendre une pente vers le point le plus bas."
+  },
+  learned:[
+    "Un réseau de neurones propage un signal de la couche d'entrée vers la sortie.",
+    "Chaque lien porte un poids ; chaque neurone a un biais et une fonction d'activation.",
+    "L'entraînement ajuste les poids par descente de gradient pour réduire la perte.",
+    "La couche de sortie la plus active donne la classe prédite.",
+  ],
+  onReady:(api)=>init(api),
+  onStart:(m,api)=>{ mode=m; api.mode=m; if(m==='cours'){ api.setScore(0); startCours(); } else { clearQuiz(); api.setLevel('libre'); shell.api.say("Mode Détente : explore, propage un signal, entraîne, change les réglages… à toi de jouer !",'joyeux'); } },
+  onRestart:(api)=>{ if(mode==='cours'){ api.setScore(0); startCours(); } },
+  onTheme:()=>{ applyTheme(); drawLoss(); drawPad(); },
+});
+
+/* ====================== INIT ====================== */
+function init(api){
+  shell.api = api;
+  const stage = api.stage;
+  scene = new THREE.Scene(); clock = new THREE.Clock();
+  camera = new THREE.PerspectiveCamera(50, stage.clientWidth/stage.clientHeight, .1, 300);
+  camera.position.set(0.5, 3.5, 17);
+  renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(stage.clientWidth, stage.clientHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+  stage.appendChild(renderer.domElement);
+
+  // Chaîne cinématique : RenderPass → (GTAO si GPU réel) → Bloom calé → SMAA → OutputPass (ACES + sRGB)
+  // GARDE-FOU : rendu logiciel (SwiftShader/llvmpipe) ou mode réduit → PAS d'AO écran (produirait du noir)
+  let software = false;
+  try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : ''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){ software = true; }
+  const W = stage.clientWidth, H = stage.clientHeight;
+  composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
+  if(!software && !REDUCED){
+    const gtao = new GTAOPass(scene, camera, W, H); gtao.blendIntensity = 0.85;
+    try{ gtao.updateGtaoMaterial({ radius:0.5, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao = gtao;
+  }
+  const bp = new UnrealBloomPass(new THREE.Vector2(W, H), REDUCED?0.5:0.85, 0.5, 0.62);
+  composer.addPass(bp); composer.bloom = bp;
+  composer.addPass(new SMAAPass(W, H));
+  composer.addPass(new OutputPass());
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = .08;
+  controls.autoRotate = !REDUCED; controls.autoRotateSpeed = .45;
+  controls.minDistance = 9; controls.maxDistance = 42; controls.maxPolarAngle = Math.PI*0.9;
+  controls.target.set(0, 0, 0);
+  controls.addEventListener('start', ()=>{ controls.autoRotate = false; });
+
+  // lumières
+  scene.add(new THREE.HemisphereLight(0xbcd2ff, 0x141a30, 0.85));
+  const key = new THREE.DirectionalLight(0xffffff, 0.75); key.position.set(6, 10, 8); scene.add(key);
+  const fill = new THREE.DirectionalLight(0x8f8dff, 0.35); fill.position.set(-8, 4, -6); scene.add(fill);
+
+  // IBL (reflets glossy sur les neurones)
+  const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  new RGBELoader().load('../assets/3d/env/studio_1k.hdr', hdr=>{
+    hdr.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = pmrem.fromEquirectangular(hdr).texture; hdr.dispose();
+  }, undefined, ()=>{});
+
+  buildEnvironment();
+  buildMotePool();
+  buildNet();          // construit réseau + données + visuel 3D
+  raycaster = new THREE.Raycaster(); pointer = new THREE.Vector2(-2,-2);
+  buildUI(); applyTheme(); refreshMetrics(); updateStatus();
+
+  renderer.domElement.addEventListener('pointermove', onMove);
+  renderer.domElement.addEventListener('pointerdown', onDown);
+  window.addEventListener('resize', onResize); new ResizeObserver(onResize).observe(stage);
+  animate();
+}
+
+/* ====================== DÉCOR ====================== */
+function gradientTexture(top, bot){
+  const c = document.createElement('canvas'); c.width = 8; c.height = 256; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0,0,0,256); g.addColorStop(0, top); g.addColorStop(1, bot);
+  x.fillStyle = g; x.fillRect(0,0,8,256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+function buildEnvironment(){
+  // grille de sol subtile (« plan de données »)
+  floorGrid = new THREE.GridHelper(80, 40, 0x3a4270, 0x252c46);
+  floorGrid.position.y = -7.2; floorGrid.material.transparent = true; floorGrid.material.opacity = 0.28;
+  scene.add(floorGrid);
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(30, 48),
+    new THREE.MeshBasicMaterial({ color:0x1a2140, transparent:true, opacity:0.5 })
+  );
+  glow.rotation.x = -Math.PI/2; glow.position.y = -7.25; scene.add(glow);
+
+  // nuage de « données » qui dérive doucement (désactivé si REDUCED)
+  if(!REDUCED){
+    const N = 220, pos = new Float32Array(N*3), col = new Float32Array(N*3);
+    const c0 = new THREE.Color(COL.c0), c1 = new THREE.Color(COL.c1), tmp = new THREE.Color();
+    for(let i=0;i<N;i++){
+      pos[i*3] = (Math.random()-.5)*44; pos[i*3+1] = (Math.random()-.5)*22; pos[i*3+2] = (Math.random()-.5)*30 - 6;
+      tmp.copy(Math.random()<.5?c0:c1); col[i*3]=tmp.r; col[i*3+1]=tmp.g; col[i*3+2]=tmp.b;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    g.setAttribute('color', new THREE.BufferAttribute(col,3));
+    dataMotes = new THREE.Points(g, new THREE.PointsMaterial({ size:0.13, vertexColors:true, transparent:true, opacity:0.5, depthWrite:false, blending:THREE.AdditiveBlending }));
+    scene.add(dataMotes);
+  }
+}
+function buildMotePool(){
+  const geo = new THREE.SphereGeometry(0.13, 8, 8);
+  for(let i=0;i<40;i++){
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false }));
+    m.visible = false; scene.add(m);
+    motePool.push({ mesh:m, a:new THREE.Vector3(), b:new THREE.Vector3(), t:0, dur:0.5, active:false });
+  }
+}
+
+/* ====================== MOTEUR MLP (vrai) ====================== */
+function makeMLP(sz, activation){
+  const W=[], B=[];
+  for(let l=1;l<sz.length;l++){
+    const nin=sz[l-1], nout=sz[l], scale=Math.sqrt(2/nin), w=[], b=[];
+    for(let o=0;o<nout;o++){ const row=[]; for(let i=0;i<nin;i++) row.push((Math.random()*2-1)*scale); w.push(row); b.push((Math.random()*2-1)*0.1); }
+    W.push(w); B.push(b);
+  }
+  return { sizes:sz.slice(), W, B, activation };
+}
+function actFn(name,x){ if(name==='relu') return Math.max(0,x); if(name==='tanh') return Math.tanh(x); return 1/(1+Math.exp(-x)); }
+function actDer(name,x,a){ if(name==='relu') return x>0?1:0; if(name==='tanh') return 1-a*a; return a*(1-a); }
+function argmax(v){ let bi=0; for(let i=1;i<v.length;i++) if(v[i]>v[bi]) bi=i; return bi; }
+function forward(n, input){
+  const acts=[input.slice()], zs=[]; let a=input.slice();
+  for(let l=0;l<n.W.length;l++){
+    const w=n.W[l], b=n.B[l], isOut=l===n.W.length-1, z=[], na=[];
+    for(let o=0;o<w.length;o++){ let s=b[o]; for(let i=0;i<a.length;i++) s+=w[o][i]*a[i]; z.push(s); }
+    if(isOut){ const m=Math.max(...z); let sum=0; const ex=z.map(v=>{ const e=Math.exp(v-m); sum+=e; return e; }); for(let o=0;o<z.length;o++) na.push(ex[o]/sum); }
+    else { for(let o=0;o<z.length;o++) na.push(actFn(n.activation, z[o])); }
+    zs.push(z); acts.push(na); a=na;
+  }
+  return { acts, zs };
+}
+function sgdStep(n, x, y, lr){
+  const { acts, zs } = forward(n, x), L = n.W.length;
+  let delta = acts[L].slice(); delta[y] -= 1;
+  for(let l=L-1;l>=0;l--){
+    const aPrev = acts[l];
+    const gb = delta.slice();
+    const gw = [];
+    for(let o=0;o<n.W[l].length;o++){ const row=[]; for(let i=0;i<aPrev.length;i++) row.push(delta[o]*aPrev[i]); gw.push(row); }
+    let newDelta = null;
+    if(l>0){
+      newDelta = new Array(aPrev.length).fill(0);
+      for(let i=0;i<aPrev.length;i++){ let s=0; for(let o=0;o<n.W[l].length;o++) s+=n.W[l][o][i]*delta[o]; newDelta[i]=s*actDer(n.activation, zs[l-1][i], acts[l][i]); }
+    }
+    for(let o=0;o<n.W[l].length;o++){ n.B[l][o]-=lr*gb[o]; for(let i=0;i<n.W[l][o].length;i++) n.W[l][o][i]-=lr*gw[o][i]; }
+    if(newDelta) delta = newDelta;
+  }
+}
+function evalNet(n, ds){
+  let loss=0, correct=0;
+  for(const d of ds){ const p = forward(n, d.x).acts.slice(-1)[0]; loss += -Math.log(Math.max(1e-9, p[d.y])); if(argmax(p)===d.y) correct++; }
+  return { loss:loss/ds.length, acc:100*correct/ds.length };
+}
+
+/* ====================== DATASETS jouets ====================== */
+function randn(){ return (Math.random()+Math.random()+Math.random()-1.5); }
+function makeData(kind){
+  const out=[], N=150;
+  if(kind==='moons'){
+    for(let i=0;i<N;i++){ const c=i%2, ang=Math.PI*Math.random(), r=1.55+randn()*0.10;
+      out.push(c===0 ? { x:[r*Math.cos(ang)-0.55, r*Math.sin(ang)-0.28+randn()*0.06], y:0 }
+                     : { x:[r*Math.cos(ang)+0.55, -r*Math.sin(ang)+0.28+randn()*0.06], y:1 }); }
+  } else if(kind==='xor'){
+    for(let i=0;i<N;i++){ const qx=Math.random()<.5?-1:1, qy=Math.random()<.5?-1:1, c=(qx>0)!==(qy>0)?1:0;
+      out.push({ x:[qx*1.25+randn()*0.30, qy*1.25+randn()*0.30], y:c }); }
+  } else { // blobs
+    for(let i=0;i<N;i++){ const c=i%2, cx=c===0?-1.15:1.15, cy=c===0?-0.7:0.7;
+      out.push({ x:[cx+randn()*0.42, cy+randn()*0.42], y:c }); }
+  }
+  return out;
+}
+
+/* ====================== CONSTRUCTION 3D DU RÉSEAU ====================== */
+const UP = new THREE.Vector3(0,1,0);
+const NEURON_GEO = new THREE.SphereGeometry(0.42, 26, 26);
+const OUT_GEO = new THREE.SphereGeometry(0.5, 28, 28);
+const EDGE_GEO = new THREE.CylinderGeometry(1, 1, 1, 7, 1, true);
+
+function disposeNet(){
+  if(!netGroup) return;
+  netGroup.traverse(o=>{ if(o.isMesh){ if(o.material) o.material.dispose(); } });
+  scene.remove(netGroup);
+}
+function neuronPos(li, i, n){
+  const gap = n>1 ? Math.min(2.35, 9.5/(n-1)) : 0;
+  return new THREE.Vector3(layerX[li], (i-(n-1)/2)*gap, 0);
+}
+function buildNet(){
+  disposeNet();
+  neurons = []; edges = [];
+  wave = null; lastActs = null; predClass = null; predConf = 0; pendingPass = null;
+  motePool.forEach(p=>{ p.active = false; p.mesh.visible = false; });
+  sizes = [2].concat(Array(ARCH.hidden).fill(ARCH.perLayer)).concat([2]);
+  data = makeData(ARCH.dataset);
+  net = makeMLP(sizes, ARCH.activation);
+
+  const L = sizes.length, span = (L-1)*4.7;
+  layerX = sizes.map((_,li)=> -span/2 + li*4.7);
+  netGroup = new THREE.Object3D(); scene.add(netGroup);
+
+  // neurones
+  sizes.forEach((n, li)=>{
+    for(let i=0;i<n;i++){
+      const isOut = li===L-1, isIn = li===0;
+      const mat = new THREE.MeshStandardMaterial({ color:COL.n0, emissive:0x000000, metalness:0.35, roughness:0.32, envMapIntensity:1.1 });
+      const m = new THREE.Mesh(isOut?OUT_GEO:NEURON_GEO, mat);
+      m.position.copy(neuronPos(li,i,n));
+      m.userData = { layer:li, idx:i, isOut, isIn, role: isIn?'entrée':(isOut?'sortie':'cachée'), glow:0, base:new THREE.Color(COL.n0) };
+      netGroup.add(m); neurons.push(m);
+    }
+  });
+  // synapses (cylindres : épaisseur = |poids|, couleur = signe)
+  for(let li=0;li<L-1;li++){
+    const nA=sizes[li], nB=sizes[li+1];
+    for(let i=0;i<nA;i++) for(let j=0;j<nB;j++){
+      const a=neuronPos(li,i,nA), b=neuronPos(li+1,j,nB);
+      const mat = new THREE.MeshStandardMaterial({ color:COL.edge, emissive:COL.edge, emissiveIntensity:0.15, metalness:0.3, roughness:0.45, transparent:true, opacity:0.85 });
+      const m = new THREE.Mesh(EDGE_GEO, mat);
+      orientCyl(m, a, b, 0.03);
+      netGroup.add(m);
+      edges.push({ mesh:m, li, i, j, a, b });
+    }
+  }
+  syncEdges();
+  resetTraining(false);
+  buildLayerTags();
+}
+function orientCyl(mesh, a, b, radius){
+  const dir = new THREE.Vector3().subVectors(b, a), len = dir.length();
+  mesh.position.copy(a).addScaledVector(dir, 0.5);
+  mesh.quaternion.setFromUnitVectors(UP, dir.clone().normalize());
+  mesh.scale.set(radius, len, radius);
+}
+function syncEdges(){
+  wMax = 0.001;
+  edges.forEach(e=>{ wMax = Math.max(wMax, Math.abs(net.W[e.li][e.j][e.i])); });
+  edges.forEach(e=>{
+    const w = net.W[e.li][e.j][e.i], mag = Math.min(1, Math.abs(w)/wMax);
+    orientCyl(e.mesh, e.a, e.b, 0.018 + 0.085*mag);
+    const col = new THREE.Color(w>=0 ? COL.pos : COL.neg);
+    e.mesh.material.color.copy(col).multiplyScalar(0.35 + 0.65*mag);
+    e.mesh.material.emissive.copy(col);
+    e.mesh.material.emissiveIntensity = 0.08 + 0.35*mag;
+    e.mesh.material.opacity = 0.35 + 0.5*mag;
+    e.mesh.userData.mag = mag;
+  });
+}
+
+/* étiquettes de couche (DOM projeté) */
+let layerTags = [];
+function buildLayerTags(){
+  layerTags.forEach(t=>t.remove()); layerTags = [];
+  const L = sizes.length;
+  sizes.forEach((n, li)=>{
+    const el = document.createElement('div'); el.className = 'aiw-tag';
+    el.textContent = li===0 ? 'Entrée' : (li===L-1 ? 'Sortie' : 'Cachée '+li);
+    el.dataset.li = li; shell.api.stage.appendChild(el); layerTags.push(el);
+  });
+}
+function updateLayerTags(){
+  const stage = shell.api.stage, w = stage.clientWidth, h = stage.clientHeight;
+  layerTags.forEach(el=>{
+    const li = +el.dataset.li, n = sizes[li];
+    const top = neuronPos(li, 0, n).clone(); top.y += 1.5;
+    top.project(camera);
+    if(top.z > 1){ el.style.display='none'; return; }
+    el.style.display=''; el.style.left = ((top.x*0.5+0.5)*w)+'px'; el.style.top = ((-top.y*0.5+0.5)*h)+'px';
+  });
+}
+
+/* ====================== PROPAGATION VISUELLE ====================== */
+function startPropagate(useQuery){
+  if(wave) return;
+  let input;
+  if(useQuery && queryPoint) input = queryPoint.slice();
+  else if(queryPoint) input = queryPoint.slice();
+  else { const d = data[Math.floor(Math.random()*data.length)]; input = d.x.slice(); }
+  const { acts } = forward(net, input);
+  lastActs = acts; predClass = argmax(acts[acts.length-1]); predConf = acts[acts.length-1][predClass];
+  wave = { input, acts, dur: REDUCED?0.9:2.2, t:0, lit:new Set() };
+  // réinitialise les lueurs
+  neurons.forEach(nm=>{ nm.userData.glow = 0; });
+  shell.api.say("Un exemple entre à gauche et traverse le réseau : chaque couche s'illumine selon son activation…", 'concentre');
+  shell.sound('pop');
+  updateStatus();
+  if(mode==='cours') evalAction('propagate');
+}
+function normLayerActs(acts, li){
+  const arr = acts[li]; let mx = 0.001; for(const v of arr) mx = Math.max(mx, Math.abs(v));
+  return arr.map(v=> Math.min(1, Math.abs(v)/mx));
+}
+function lightLayer(li){
+  const glows = normLayerActs(wave.acts, li), n = sizes[li];
+  for(let i=0;i<n;i++){ const nm = neuronByLayer(li,i); if(nm) nm.userData.glow = 0.25 + 0.75*glows[i]; }
+  // motes vers la couche suivante sur les liens forts des neurones actifs
+  if(!REDUCED && li < sizes.length-1){
+    const nB = sizes[li+1];
+    for(let i=0;i<n;i++){
+      if(glows[i] < 0.35) continue;
+      // top 2 liens sortants par |poids|
+      const outs = [];
+      for(let j=0;j<nB;j++) outs.push({ j, m:Math.abs(net.W[li][j][i]) });
+      outs.sort((p,q)=>q.m-p.m);
+      for(let k=0;k<Math.min(2,outs.length);k++){
+        const j = outs[k].j, w = net.W[li][j][i];
+        spawnMote(neuronPos(li,i,n), neuronPos(li+1,j,nB), w>=0?COL.pos:COL.neg, k*0.06);
+      }
+    }
+  }
+  shell.sound('tick');
+}
+function neuronByLayer(li, i){ return neurons.find(nm=> nm.userData.layer===li && nm.userData.idx===i); }
+function spawnMote(a, b, colHex, delay){
+  const p = motePool[moteIdx]; moteIdx = (moteIdx+1)%motePool.length;
+  p.a.copy(a); p.b.copy(b); p.t = -delay; p.dur = 0.5; p.active = true;
+  p.mesh.material.color.setHex(colHex); p.mesh.visible = false;
+}
+function finishPropagate(){
+  // met en évidence le neurone de sortie gagnant
+  const L = sizes.length-1;
+  for(let i=0;i<sizes[L];i++){ const nm = neuronByLayer(L,i); if(!nm) continue; const win = i===predClass; nm.userData.glow = win?1:0.15; nm.userData.winCol = win?CLASS_HEX[i]:null; }
+  shell.api.say(`Décision : « ${CLASS_NAME[predClass]} » à ${Math.round(predConf*100)} % — c'est le neurone de sortie le plus actif qui l'emporte.`, 'celebration');
+  shell.sound('good');
+  updateStatus();
+}
+
+/* ====================== ENTRAÎNEMENT ====================== */
+function resetTraining(say){
+  train = { epoch:0, running:false, t:0, loss:0.7, acc:50, best:50, history:[{e:0,loss:0.7}] };
+  net = makeMLP(sizes, ARCH.activation);
+  const ev = evalNet(net, data); train.loss = ev.loss; train.acc = ev.acc; train.best = ev.acc;
+  train.history = [{ e:0, loss:ev.loss }];
+  syncEdges();
+  neurons.forEach(nm=>{ nm.userData.glow=0; nm.userData.winCol=null; });
+  refreshMetrics(); drawLoss(); drawPad();
+  const btn = document.getElementById('aiwTrain'); if(btn) btn.innerHTML = '🎓 Entraîner';
+  if(say) shell.api.say("Réseau réinitialisé : poids aléatoires, il répond presque au hasard (~50 %).", 'neutre');
+}
+function toggleTraining(){
+  train.running = !train.running;
+  const btn = document.getElementById('aiwTrain'); if(btn) btn.innerHTML = train.running ? '⏸ Pause' : '🎓 Entraîner';
+  if(train.running){ controls.autoRotate = false; shell.api.say("Entraînement lancé : à chaque exemple le réseau prédit, mesure son erreur (la perte) et corrige ses poids par rétropropagation.", 'concentre'); shell.sound('pop'); }
+}
+function trainEpoch(){
+  const idx = data.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+  for(const k of idx){ sgdStep(net, data[k].x, data[k].y, ARCH.lr); }
+  train.epoch++;
+  const ev = evalNet(net, data); train.loss = ev.loss; train.acc = ev.acc; train.best = Math.max(train.best, ev.acc);
+  train.history.push({ e:train.epoch, loss:ev.loss }); if(train.history.length>240) train.history.shift();
+  syncEdges();
+  refreshMetrics(); drawLoss();
+  if(train.epoch % 3 === 0) drawPad();
+  // lueur douce « shimmer » d'apprentissage sur les cachées
+  if(!wave){ neurons.forEach(nm=>{ if(!nm.userData.isOut && !nm.userData.isIn) nm.userData.glow = 0.12 + Math.random()*0.18; }); }
+  // messages pédagogiques
+  if(train.epoch === 6) shell.api.say("La perte chute : le réseau repère les motifs. Chaque poids se règle un peu mieux.", 'enthousiaste');
+  if(train.acc >= 90 && !train._h90){ train._h90 = true; shell.api.say(`Précision ${Math.round(train.acc)} % ! Regarde la frontière de décision épouser les données.`, 'fier'); }
+  if(mode==='cours') evalAction('trainAcc');
+}
+function refreshMetrics(){
+  const e = document.getElementById('aiwEp'); if(e) e.textContent = train.epoch>0 ? `Époque ${train.epoch}` : 'Réseau non entraîné';
+  const l = document.getElementById('aiwLoss'); if(l) l.textContent = train.loss.toFixed(3);
+  const a = document.getElementById('aiwAcc'); if(a) a.textContent = Math.round(train.acc)+'%';
+}
+
+/* ====================== CANVAS : courbe de perte ====================== */
+function drawLoss(){
+  const cv = document.getElementById('aiwCurve'); if(!cv) return;
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = dark?'#262A47':'#E7E9F3'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(4,H-6); ctx.lineTo(W-4,H-6); ctx.stroke();
+  const h = train.history; if(!h.length) return;
+  const maxE = Math.max(10, h[h.length-1].e), maxL = 0.75;
+  ctx.strokeStyle = '#7C79FF'; ctx.lineWidth = 2; ctx.beginPath();
+  h.forEach((p,i)=>{ const x=4+(p.e/maxE)*(W-8), y=6+(1-Math.min(1,p.loss/maxL))*(H-14); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+  const p = h[h.length-1], x=4+(p.e/maxE)*(W-8), y=6+(1-Math.min(1,p.loss/maxL))*(H-14);
+  ctx.fillStyle = '#29B6E0'; ctx.beginPath(); ctx.arc(x,y,3,0,7); ctx.fill();
+  ctx.fillStyle = dark?'#71759A':'#888DA6'; ctx.font='9px monospace'; ctx.fillText('perte',6,12);
+}
+
+/* ====================== CANVAS : frontière de décision ====================== */
+const PAD_R = 2.8;
+function drawPad(){
+  const cv = document.getElementById('aiwPad'); if(!cv || !net) return;
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, G = 30;
+  const c0 = new THREE.Color(COL.c0), c1 = new THREE.Color(COL.c1), tmp = new THREE.Color();
+  for(let gx=0; gx<G; gx++) for(let gy=0; gy<G; gy++){
+    const dx = -PAD_R + (gx+0.5)/G*2*PAD_R, dy = PAD_R - (gy+0.5)/G*2*PAD_R;
+    const p1 = forward(net, [dx,dy]).acts.slice(-1)[0][1];
+    tmp.copy(c0).lerp(c1, p1);
+    ctx.fillStyle = `rgba(${Math.round(tmp.r*255)},${Math.round(tmp.g*255)},${Math.round(tmp.b*255)},0.5)`;
+    ctx.fillRect(Math.floor(gx/G*W), Math.floor(gy/G*H), Math.ceil(W/G)+1, Math.ceil(H/G)+1);
+  }
+  // points de données
+  for(const d of data){
+    const px = (d.x[0]+PAD_R)/(2*PAD_R)*W, py = (PAD_R-d.x[1])/(2*PAD_R)*H;
+    ctx.beginPath(); ctx.arc(px, py, 2.4, 0, 7);
+    ctx.fillStyle = CLASS_HEX[d.y]; ctx.fill();
+    ctx.lineWidth = 0.8; ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.stroke();
+  }
+  // point requête
+  if(queryPoint){
+    const px = (queryPoint[0]+PAD_R)/(2*PAD_R)*W, py = (PAD_R-queryPoint[1])/(2*PAD_R)*H;
+    ctx.beginPath(); ctx.arc(px, py, 6, 0, 7); ctx.fillStyle = predClass!=null?CLASS_HEX[predClass]:'#fff'; ctx.fill();
+    ctx.lineWidth = 2.4; ctx.strokeStyle = '#fff'; ctx.stroke();
+  }
+}
+function onPadClick(e){
+  const cv = document.getElementById('aiwPad'); if(!cv) return;
+  const r = cv.getBoundingClientRect();
+  const fx = (e.clientX - r.left)/r.width, fy = (e.clientY - r.top)/r.height;
+  const dx = -PAD_R + fx*2*PAD_R, dy = PAD_R - fy*2*PAD_R;
+  queryPoint = [dx, dy];
+  drawPad();
+  startPropagate(true);
+  shell.sound('click');
+  if(mode==='cours') evalAction('classify');
+}
+
+/* ====================== UI ====================== */
+function buildUI(){
+  const stage = shell.api.stage;
+
+  // statut
+  const st = document.createElement('div'); st.className='aiw-status'; st.id='aiwStatus'; stage.appendChild(st);
+
+  // panneau gauche : réglages
+  const left = document.createElement('div'); left.className='aiw-panel aiw-left';
+  left.innerHTML = `
+    <div class="aiw-hd" id="aiwLeftHd"><h3>⚙️ Réseau &amp; réglages</h3><span class="chev">▾</span></div>
+    <div class="aiw-body">
+      <div>
+        <div class="aiw-lbl">Jeu de données</div>
+        <div class="aiw-chips" id="aiwDs">
+          <button class="aiw-chip" data-v="moons" aria-pressed="true">Lunes</button>
+          <button class="aiw-chip" data-v="xor">XOR</button>
+          <button class="aiw-chip" data-v="blobs">Blobs</button>
+        </div>
+      </div>
+      <div>
+        <div class="aiw-lbl">Couches cachées</div>
+        <div class="aiw-chips" id="aiwLayers">
+          <button class="aiw-chip" data-v="1">1</button>
+          <button class="aiw-chip" data-v="2" aria-pressed="true">2</button>
+        </div>
+      </div>
+      <div>
+        <div class="aiw-lbl">Neurones / couche <b id="aiwPerV">5</b></div>
+        <input class="aiw-slider" type="range" id="aiwPer" min="3" max="8" step="1" value="5" aria-label="Neurones par couche">
+      </div>
+      <div>
+        <div class="aiw-lbl">Fonction d'activation</div>
+        <div class="aiw-chips" id="aiwAct">
+          <button class="aiw-chip" data-v="relu">ReLU</button>
+          <button class="aiw-chip" data-v="tanh" aria-pressed="true">tanh</button>
+          <button class="aiw-chip" data-v="sigmoid">sigmoïde</button>
+        </div>
+      </div>
+      <div>
+        <div class="aiw-lbl">Taux d'apprentissage <b id="aiwLrV">0.05</b></div>
+        <input class="aiw-slider" type="range" id="aiwLr" min="0.01" max="0.30" step="0.01" value="0.05" aria-label="Taux d'apprentissage">
+      </div>
+      <div class="aiw-note">Change un réglage et le réseau se reconstruit : observe l'effet sur l'apprentissage et la frontière de décision.</div>
+    </div>`;
+  stage.appendChild(left);
+
+  // panneau droit : entraînement + frontière
+  const right = document.createElement('div'); right.className='aiw-panel aiw-right';
+  right.innerHTML = `
+    <div class="aiw-hd" id="aiwRightHd"><h3>📈 Entraînement</h3><span class="chev">▾</span></div>
+    <div class="aiw-body">
+      <div class="aiw-ep" id="aiwEp">Réseau non entraîné</div>
+      <div class="aiw-met">
+        <div class="c"><b id="aiwLoss">0.700</b><span>Perte</span></div>
+        <div class="c acc"><b id="aiwAcc">50%</b><span>Précision</span></div>
+      </div>
+      <canvas class="aiw-cv" id="aiwCurve" width="216" height="66"></canvas>
+      <div class="aiw-canvas-lbl">Frontière de décision · clique pour classer un point</div>
+      <canvas class="aiw-cv" id="aiwPad" width="200" height="200"></canvas>
+      <div class="aiw-legend"><span><i style="background:${CLASS_HEX[0]}"></i>Classe A</span><span><i style="background:${CLASS_HEX[1]}"></i>Classe B</span></div>
+      <div class="aiw-pred" id="aiwPred">Clique un point du plan pour voir le réseau le classer en direct.</div>
+    </div>`;
+  stage.appendChild(right);
+
+  // fiche neurone
+  const fiche = document.createElement('div'); fiche.className='aiw-panel aiw-fiche'; fiche.id='aiwFiche'; stage.appendChild(fiche);
+
+  // barre de contrôle
+  const ctrl = document.createElement('div'); ctrl.className='aiw-ctrl';
+  ctrl.innerHTML = `
+    <button class="aiw-b go" id="aiwProp">▸ Propager le signal</button>
+    <button class="aiw-b primary" id="aiwTrain">🎓 Entraîner</button>
+    <button class="aiw-b" id="aiwStep">⏭ Pas à pas</button>
+    <button class="aiw-b" id="aiwReset">↺ Réinitialiser</button>
+    <button class="aiw-b" id="aiwGloss">📘 Notions</button>`;
+  stage.appendChild(ctrl);
+
+  // glossaire
+  const gloss = document.createElement('div'); gloss.className='aiw-gloss'; gloss.id='aiwGlossWrap';
+  gloss.innerHTML = `<div class="aiw-gloss-card">
+    <h3>📘 Le vocabulaire de l'IA</h3>
+    <p class="lead">Les notions clés pour comprendre un réseau de neurones.</p>
+    ${GLOSSARY.map(g=>`<div class="aiw-gterm"><b>${g.t}</b><p>${g.d}</p></div>`).join('')}
+    <div style="text-align:right;margin-top:14px"><button class="aiw-b primary" id="aiwGlossClose">Compris !</button></div>
+  </div>`;
+  stage.appendChild(gloss);
+
+  // handlers
+  document.getElementById('aiwProp').onclick = ()=> startPropagate(false);
+  document.getElementById('aiwTrain').onclick = toggleTraining;
+  document.getElementById('aiwStep').onclick = ()=>{ if(!wave){ trainEpoch(); shell.sound('tick'); } };
+  document.getElementById('aiwReset').onclick = ()=> resetTraining(true);
+  document.getElementById('aiwGloss').onclick = ()=>{ document.getElementById('aiwGlossWrap').classList.add('show'); shell.sound('click'); };
+  document.getElementById('aiwGlossClose').onclick = ()=> document.getElementById('aiwGlossWrap').classList.remove('show');
+  gloss.addEventListener('click', e=>{ if(e.target===gloss) gloss.classList.remove('show'); });
+
+  document.getElementById('aiwLeftHd').onclick = ()=> left.classList.toggle('collapsed');
+  document.getElementById('aiwRightHd').onclick = ()=> right.classList.toggle('collapsed');
+
+  chipGroup('aiwDs', v=>{ ARCH.dataset=v; buildNet(); refreshMetrics(); updateStatus(); shell.api.say(dsHint(v),'curieux'); });
+  chipGroup('aiwLayers', v=>{ ARCH.hidden=+v; buildNet(); refreshMetrics(); updateStatus(); });
+  chipGroup('aiwAct', v=>{ ARCH.activation=v; buildNet(); refreshMetrics(); updateStatus(); if(mode==='cours') evalAction('changeAct'); shell.api.say(actHint(v),'idee'); });
+
+  const per = document.getElementById('aiwPer');
+  per.oninput = ()=>{ document.getElementById('aiwPerV').textContent = per.value; };
+  per.onchange = ()=>{ ARCH.perLayer=+per.value; buildNet(); refreshMetrics(); updateStatus(); };
+  const lr = document.getElementById('aiwLr');
+  lr.oninput = ()=>{ ARCH.lr=+lr.value; document.getElementById('aiwLrV').textContent = (+lr.value).toFixed(2); };
+
+  document.getElementById('aiwPad').addEventListener('pointerdown', onPadClick);
+}
+function chipGroup(id, cb){
+  const wrap = document.getElementById(id); if(!wrap) return;
+  wrap.querySelectorAll('.aiw-chip').forEach(b=> b.onclick = ()=>{
+    wrap.querySelectorAll('.aiw-chip').forEach(x=> x.setAttribute('aria-pressed', x===b));
+    shell.sound('click'); cb(b.dataset.v);
+  });
+}
+function dsHint(v){ return v==='moons'?"Deux « lunes » entrelacées : il faut une frontière courbe — un réseau à couches cachées y arrive.":v==='xor'?"XOR : quatre paquets en damier. Un seul neurone n'y arrive pas ; il faut des couches cachées !":"Deux blobs bien séparés : un problème facile, presque linéaire."; }
+function actHint(v){ return v==='relu'?"ReLU garde les valeurs positives, met le reste à zéro : simple et rapide, le standard du deep learning.":v==='tanh'?"tanh écrase les valeurs entre -1 et 1 : lisse et centré.":"La sigmoïde comprime tout entre 0 et 1 : historique, mais sature vite."; }
+function updateStatus(){
+  const st = document.getElementById('aiwStatus'); if(!st) return;
+  const arch = sizes.join('·');
+  let s = `Réseau <b>${arch}</b> · ${ACT_LABEL[ARCH.activation]} · η=${ARCH.lr.toFixed(2)}`;
+  if(predClass!=null) s += ` — prédiction <b>${CLASS_NAME[predClass]}</b> (${Math.round(predConf*100)}%)`;
+  st.innerHTML = s;
+  const pr = document.getElementById('aiwPred');
+  if(pr && predClass!=null && queryPoint) pr.innerHTML = `<span class="dot" style="background:${CLASS_HEX[predClass]}"></span>Point (${queryPoint[0].toFixed(2)}, ${queryPoint[1].toFixed(2)}) → <b>${CLASS_NAME[predClass]}</b> à ${Math.round(predConf*100)} %.`;
+}
+
+/* ====================== FICHE NEURONE ====================== */
+const NOTE = {
+  entrée:"Reçoit une valeur brute de la donnée (ici une coordonnée). Il ne calcule rien : il distribue son signal aux couches suivantes.",
+  cachée:"Combine ses entrées pondérées, ajoute son biais, puis applique la fonction d'activation. C'est là que le réseau construit des motifs.",
+  sortie:"Produit un score par classe (via softmax). Le plus élevé donne la prédiction du réseau."
+};
+function openFiche(nm){
+  const li = nm.userData.layer, i = nm.userData.idx, role = nm.userData.role;
+  const isIn = nm.userData.isIn, isOut = nm.userData.isOut;
+  const color = isOut ? CLASS_HEX[i] : (isIn ? '#6E6BFF' : '#8f8dff');
+  const bias = isIn ? '—' : net.B[li-1][i].toFixed(2);
+  const actName = isOut ? 'softmax' : (isIn ? 'aucune' : ACT_LABEL[ARCH.activation]);
+  const actVal = lastActs ? lastActs[li][i].toFixed(2) : '—';
+  const title = isIn ? `Entrée x${i+1}` : (isOut ? CLASS_NAME[i] : `Neurone ${i+1}`);
+  const sub = isIn ? 'Couche d\'entrée' : (isOut ? 'Couche de sortie' : 'Couche cachée '+li);
+  const chips = isIn ? ['donnée','entrée'] : (isOut ? ['sortie','softmax','classe'] : ['poids','biais','activation']);
+  const f = document.getElementById('aiwFiche');
+  f.innerHTML = `
+    <div class="aiw-fiche-hd" style="background:linear-gradient(135deg,${color},color-mix(in srgb,${color} 55%,#111))">
+      <h4>${title}</h4><div class="sub">${sub}</div>
+      <button class="aiw-fiche-x" aria-label="Fermer">×</button>
+    </div>
+    <div class="aiw-fiche-bd">
+      <div class="kv"><span>Rôle</span><b>${role}</b></div>
+      <div class="kv"><span>Biais</span><b>${bias}</b></div>
+      <div class="kv"><span>Activation</span><b>${actName}</b></div>
+      <div class="kv"><span>Valeur actuelle</span><b>${actVal}</b></div>
+      <div class="desc">${NOTE[role]}</div>
+      <div class="aiw-chipset">${chips.map(c=>`<span>${c}</span>`).join('')}</div>
+    </div>`;
+  f.classList.add('show');
+  f.querySelector('.aiw-fiche-x').onclick = ()=> f.classList.remove('show');
+  shell.sound('pop');
+}
+
+/* ====================== GLOSSAIRE (données) ====================== */
+const GLOSSARY = [
+  { t:'Neurone', d:"Unité de calcul : il additionne ses entrées pondérées, ajoute un biais, puis applique une fonction d'activation." },
+  { t:'Couche', d:"Un étage de neurones. On empile entrée → couches cachées → sortie ; plus il y en a, plus le réseau peut apprendre de formes complexes." },
+  { t:'Poids', d:"L'importance d'un lien entre deux neurones. C'est ce que le réseau ajuste pour apprendre. Ici l'épaisseur du lien = |poids|." },
+  { t:'Biais', d:"Un décalage propre à chaque neurone : il déplace le seuil de déclenchement, indépendamment des entrées." },
+  { t:'Activation', d:"La fonction qui décide de la « réponse » d'un neurone (ReLU, tanh, sigmoïde). Sans elle, le réseau ne saurait que tracer des droites." },
+  { t:'Perte (loss)', d:"Une mesure de l'erreur : plus le réseau se trompe, plus elle est élevée. L'entraînement cherche à la faire descendre." },
+  { t:'Gradient', d:"La pente de la perte : elle indique dans quel sens ajuster chaque poids pour réduire l'erreur (descente de gradient)." },
+  { t:'Époque (epoch)', d:"Un passage complet sur tout le jeu de données pendant l'entraînement." },
+  { t:'Jeu de données', d:"Les exemples étiquetés (ici des points 2D d'une classe A ou B) sur lesquels le réseau s'entraîne." },
+  { t:'Surapprentissage', d:"Quand le réseau mémorise les exemples par cœur au lieu de généraliser : parfait à l'entraînement, mauvais sur du nouveau." },
+];
+
+/* ====================== MODE COURS ====================== */
+const CHALLS = [
+  { type:'propagate', title:'Fais propager le signal', ask:'Clique « Propager le signal » et regarde-le traverser le réseau jusqu\'à la décision.', done:"Bravo ! Le signal a traversé les couches et le neurone de sortie le plus actif a décidé." },
+  { type:'clickLayer', target:'sortie', title:'Repère la couche de sortie', ask:'Clique un neurone de la couche de SORTIE (à droite).', done:"Exact — la sortie produit un score par classe ; le plus élevé gagne." },
+  { type:'clickLayer', target:'cachée', title:'Une couche cachée', ask:'Clique un neurone d\'une couche CACHÉE (au milieu).', done:"Oui ! Les couches cachées combinent les signaux pour construire des motifs." },
+  { type:'quiz', title:'Le rôle du biais', q:'À quoi sert le BIAIS d\'un neurone ?', o:['Décaler son seuil de déclenchement','Compter les couches','Effacer les données'], a:'Décaler son seuil de déclenchement', done:"Exact — le biais déplace le seuil, indépendamment des entrées." },
+  { type:'trainAcc', target:90, title:'Entraîne l\'IA', ask:'Lance l\'entraînement et atteins 90 % de précision.', done:"Superbe ! La perte a chuté et la frontière de décision épouse les données." },
+  { type:'quiz', title:'La courbe qui descend', q:'Pendant l\'apprentissage, quelle grandeur DESCEND ?', o:['La perte','La précision','Le nombre de neurones'], a:'La perte', done:"Oui — la perte (l'erreur) diminue tandis que la précision monte." },
+  { type:'classify', title:'Classe un point', ask:'Clique dans le plan 2D (panneau droit) pour faire classer un point par le réseau.', done:"Parfait — le réseau a placé le point d'un côté de sa frontière de décision." },
+  { type:'quiz', title:'Le surapprentissage', q:'Un réseau qui « apprend par cœur » et généralise mal fait du…', o:['surapprentissage','clustering','refroidissement'], a:'surapprentissage', done:"Exact — c'est le surapprentissage (overfitting)." },
+];
+let cours = null;
+function startCours(){
+  cours = { list: CHALLS.slice(), idx:0, score:0, total:CHALLS.length };
+  shell.api.setScore(0); shell.api.setProgress(0);
+  askChallenge();
+}
+function askChallenge(){
+  if(!cours) return;
+  if(cours.idx >= cours.total){ winCours(); return; }
+  const ch = cours.list[cours.idx]; cours.done = false;
+  shell.api.setLevel((cours.idx+1)+'/'+cours.total); shell.api.setProgress(cours.idx/cours.total);
+  let bar = document.getElementById('aiwQuiz');
+  if(!bar){ bar = document.createElement('div'); bar.className='aiw-quiz'; bar.id='aiwQuiz'; shell.api.stage.appendChild(bar); }
+  if(ch.type==='quiz'){
+    const opts = ch.o.slice().sort(()=>Math.random()-.5);
+    bar.innerHTML = `<span class="qn">${cours.idx+1}/${cours.total}</span><div class="qt">${ch.q}</div><div class="qrow">${opts.map(o=>`<button class="aiw-qo">${o}</button>`).join('')}</div>`;
+    bar.querySelectorAll('.aiw-qo').forEach(b=> b.onclick = ()=>{
+      if(b.textContent===ch.a){ shell.sound('good'); shell.api.say('Exact ! '+ch.done,'fier'); passChallenge(); }
+      else { shell.sound('bad'); shell.api.say('Pas tout à fait — réfléchis encore. Indice : '+ch.a.slice(0,1)+'…','rassurant'); }
+    });
+    shell.api.say(ch.q, 'concentre');
+  } else {
+    bar.innerHTML = `<span class="qn">${cours.idx+1}/${cours.total}</span><div class="qt">${ch.title}</div><div class="qask">${ch.ask}</div>`;
+    shell.api.say(ch.ask, 'concentre');
+  }
+}
+function passChallenge(){
+  if(!cours || cours.done) return; cours.done = true;
+  cours.score++; shell.api.addScore(130); shell.toast('✅ '+cours.list[cours.idx].title);
+  setTimeout(()=>{ if(!cours) return; cours.idx++; shell.api.setProgress(cours.idx/cours.total); askChallenge(); }, 1150);
+}
+function evalAction(kind){
+  if(!cours || cours.done) return; const ch = cours.list[cours.idx];
+  if(ch.type==='propagate' && kind==='propagate') passOnFinish('propagate');
+  else if(ch.type==='classify' && kind==='classify') passChallenge();
+  else if(ch.type==='trainAcc' && kind==='trainAcc' && train.acc >= ch.target){ shell.sound('good'); shell.api.say(ch.done,'celebration'); passChallenge(); }
+}
+let pendingPass = null;
+function passOnFinish(k){ pendingPass = k; } // validé quand la propagation se termine
+function checkClickChallenge(nm){
+  if(!cours || cours.done) return; const ch = cours.list[cours.idx];
+  if(ch.type==='clickLayer'){
+    if(nm.userData.role===ch.target){ shell.sound('good'); shell.api.say(ch.done,'celebration'); passChallenge(); }
+    else { shell.sound('bad'); shell.api.say("Pas cette couche-là. "+ch.ask,'rassurant'); }
+  }
+}
+function clearQuiz(){ const b = document.getElementById('aiwQuiz'); if(b) b.remove(); cours = null; }
+function winCours(){
+  const b = document.getElementById('aiwQuiz'); if(b) b.remove();
+  const sc = cours.score, stars = sc>=cours.total ? 3 : sc>=Math.ceil(cours.total*0.6) ? 2 : 1;
+  const finalScore = sc*130;
+  shell.api.win({
+    score: finalScore, stars,
+    title: `${sc}/${cours.total} · Comment l'IA apprend`,
+    learned: shell.cfg.learned,
+    buddy: stars===3 ? "Tu maîtrises le cycle complet : propager, mesurer l'erreur, corriger les poids. C'est ça, l'apprentissage automatique !" : "Bien joué — propager le signal, puis entraîner pour réduire la perte : tu as l'essentiel.",
+    onNext: ()=>{ shell.api.setScore(0); startCours(); }, nextLabel:'Rejouer',
+  });
+  cours = null;
+}
+
+/* ====================== PICKING ====================== */
+function setP(e){ const r = renderer.domElement.getBoundingClientRect(); pointer.x = ((e.clientX-r.left)/r.width)*2-1; pointer.y = -((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer, camera); return raycaster.intersectObjects(neurons, false); }
+function onMove(e){ setP(e); const h = pick(); renderer.domElement.style.cursor = h.length ? 'pointer' : 'grab'; hovered = h.length ? h[0].object : null; }
+function onDown(e){ setP(e); const h = pick(); if(!h.length) return; const nm = h[0].object; openFiche(nm); if(mode==='cours') checkClickChallenge(nm); }
+
+/* ====================== THÈME / RESIZE ====================== */
+function applyTheme(){
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  scene.background = gradientTexture(dark?'#0b0f22':'#141a33', dark?'#04050c':'#080b18');
+  renderer.setClearColor(dark?0x04050c:0x080b18, 1);
+  if(floorGrid) floorGrid.material.opacity = dark?0.28:0.22;
+}
+function onResize(){ const s = shell.api.stage; if(!s.clientWidth) return; camera.aspect = s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth, s.clientHeight); if(composer) composer.setSize(s.clientWidth, s.clientHeight); }
+
+/* ====================== BOUCLE ====================== */
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.05, clock.getDelta());
+
+  // entraînement (cadence)
+  if(train.running && !wave){ train.t += dt; if(train.t >= 0.16){ train.t = 0; trainEpoch(); } }
+
+  // propagation
+  if(wave){
+    wave.t += dt;
+    const prog = Math.min(1, wave.t/wave.dur);
+    const front = layerX[0] + (layerX[layerX.length-1]-layerX[0])*prog;
+    sizes.forEach((n, li)=>{ if(front >= layerX[li]-0.2 && !wave.lit.has(li)){ wave.lit.add(li); lightLayer(li); } });
+    // liens actifs le long du front
+    edges.forEach(e=>{ const x = layerX[e.li]; const on = front>=x && front<x+4.7; e.mesh.material.emissiveIntensity = on ? 1.1 : (0.08 + 0.35*(e.mesh.userData.mag||0)); });
+    if(prog >= 1){ wave = null; edges.forEach(e=>{ e.mesh.material.emissiveIntensity = 0.08 + 0.35*(e.mesh.userData.mag||0); }); finishPropagate(); if(pendingPass){ pendingPass=null; if(mode==='cours'){ shell.sound('good'); const ch = cours&&cours.list[cours.idx]; if(ch&&ch.type==='propagate'){ shell.api.say(ch.done,'celebration'); passChallenge(); } } } }
+  }
+
+  // motes
+  if(!REDUCED){
+    for(const p of motePool){ if(!p.active) continue; p.t += dt; if(p.t < 0){ continue; } const t = p.t/p.dur; if(t>=1){ p.active=false; p.mesh.visible=false; continue; } p.mesh.visible=true; p.mesh.position.lerpVectors(p.a, p.b, t); p.mesh.material.opacity = Math.sin(t*Math.PI); const s = 0.7+Math.sin(t*Math.PI)*0.8; p.mesh.scale.setScalar(s); }
+  }
+
+  // neurones : lueur douce vers glow
+  const tmp = new THREE.Color();
+  neurons.forEach(nm=>{
+    const g = nm.userData.glow || 0;
+    const target = nm.userData.winCol ? new THREE.Color(nm.userData.winCol) : (nm.userData.isIn ? new THREE.Color(0x6E6BFF) : new THREE.Color(COL.hi));
+    nm.material.emissive.lerp(target, 0.12);
+    nm.material.emissiveIntensity += (g*1.7 - nm.material.emissiveIntensity)*0.12;
+    const sc = 1 + g*0.35; nm.scale.setScalar(nm.scale.x + (sc - nm.scale.x)*0.15);
+    // décroissance douce des lueurs cachées quand rien ne se passe
+    if(!wave && !train.running && !nm.userData.winCol) nm.userData.glow *= 0.94;
+    if(nm===hovered){ nm.material.emissiveIntensity = Math.max(nm.material.emissiveIntensity, 0.5); }
+  });
+
+  // ambiance
+  if(dataMotes && !REDUCED){ dataMotes.rotation.y += dt*0.02; }
+  updateLayerTags();
+  controls.update();
+  composer.render();
+}
+</script>
+</body>
+</html>

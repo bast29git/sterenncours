@@ -254,9 +254,9 @@ function buildBackdrop(){
   sky.name='sky'; scene.add(sky);
 }
 function buildTray(){
-  // sol : plateau/atelier réel (Poly Haven CC0 « concrete_floor_02 »), tuilé + AO bakée
+  // sol : plateau/atelier réel (Poly Haven CC0 « garage_floor »), tuilé + AO bakée
   const gmat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9,metalness:.05,envMapIntensity:.55});
-  applyPBR(gmat,'concrete_floor_02','2k',{repeat:6,normal:1.05,ao:true});
+  applyPBR(gmat,'garage_floor','2k',{repeat:6,normal:1.05,ao:true});
   const ggeo=new THREE.BoxGeometry(40,0.6,18); enableAO(ggeo);
   ground=new THREE.Mesh(ggeo, gmat); ground.position.y=-0.3; ground.receiveShadow=true; scene.add(ground);
   const grid=new THREE.GridHelper(40,40,0x4a5878,0x303a54); grid.position.y=0.014; grid.material.opacity=.22; grid.material.transparent=true; scene.add(grid);

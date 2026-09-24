@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Anatomie humaine 3D</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .an-panel{ position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 90%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); backdrop-filter:blur(14px); }
+  /* ---- barre des systèmes (haut) ---- */
+  .an-sys{ top:14px; left:50%; transform:translateX(-50%); padding:7px; display:flex; gap:5px; flex-wrap:wrap; justify-content:center; max-width:96%; }
+  .an-s{ font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:8px 12px; border-radius:10px; border:1px solid transparent; background:transparent; color:var(--fg-muted); cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:5px; min-height:36px; }
+  .an-s:hover{ background:var(--surface-2); color:var(--fg); }
+  .an-s[aria-pressed="true"]{ background:var(--accent); color:#fff; box-shadow:0 4px 14px rgba(110,107,255,.35); }
+  .an-s.alt{ background:var(--surface-2); color:var(--fg); border-color:var(--border); }
+  .an-s.alt:hover{ background:var(--surface-3); }
+  .an-s:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .an-s .sw{ width:11px; height:11px; border-radius:999px; flex:none; box-shadow:inset 0 0 0 1px rgba(0,0,0,.12); }
+  /* ---- panneau gauche : affichage + liste organes ---- */
+  .an-left{ top:70px; left:14px; width:198px; padding:13px; display:flex; flex-direction:column; gap:9px; max-height:calc(100% - 150px); }
+  .an-left h3{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0; }
+  .an-tgrow{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .an-tg{ font-family:var(--font-body); font-weight:700; font-size:11.5px; padding:8px 7px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; text-align:center; transition:.15s; min-height:38px; }
+  .an-tg:hover{ background:var(--surface-3); }
+  .an-tg[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .an-tg:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .an-skinrow{ display:flex; align-items:center; gap:8px; font-size:11px; color:var(--fg-muted); }
+  .an-skinrow input{ flex:1; accent-color:var(--accent); }
+  .an-list{ display:flex; flex-direction:column; gap:3px; overflow:auto; margin:2px -4px -2px; padding:0 4px 2px; }
+  .an-oi{ display:flex; align-items:center; gap:8px; font-family:var(--font-body); font-weight:600; font-size:12px; padding:7px 8px; border-radius:9px; border:none; background:transparent; color:var(--fg); cursor:pointer; text-align:left; width:100%; transition:.12s; }
+  .an-oi:hover{ background:var(--accent-weak); }
+  .an-oi[aria-current="true"]{ background:var(--accent); color:#fff; }
+  .an-oi .sw{ width:12px; height:12px; border-radius:4px; flex:none; box-shadow:inset 0 0 0 1px rgba(0,0,0,.15); }
+  /* ---- fiche organe (droite) ---- */
+  .an-info{ right:14px; top:14px; width:322px; padding:0; overflow:hidden; transform:translateX(130%); transition:transform .45s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 28px); display:flex; flex-direction:column; }
+  .an-info.show{ transform:none; }
+  @media (prefers-reduced-motion: reduce){ .an-info{ transition:transform .16s ease; } }
+  .an-hd{ padding:16px 18px; color:#fff; position:relative; flex:none; }
+  .an-hd h2{ font-family:var(--font-title); font-weight:800; font-size:21px; margin:0; line-height:1.15; }
+  .an-hd .sub{ font-family:var(--font-mono); font-size:10.5px; opacity:.92; text-transform:uppercase; letter-spacing:.05em; }
+  .an-x{ position:absolute; top:12px; right:12px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.24); color:#fff; cursor:pointer; font-size:17px; line-height:1; }
+  .an-x:hover{ background:rgba(255,255,255,.38); }
+  .an-body{ padding:14px 18px 18px; overflow:auto; }
+  .an-body p{ font-size:13.5px; line-height:1.58; margin:0 0 9px; color:var(--fg); }
+  .an-sec{ font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-text); margin:12px 0 7px; }
+  .an-sec:first-child{ margin-top:0; }
+  .an-fun{ background:var(--accent-weak); border-radius:11px; padding:11px 13px; font-size:13px; line-height:1.5; color:var(--accent-text); }
+  .an-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+  .an-chips button{ font-family:var(--font-mono); font-size:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); border-radius:999px; padding:5px 11px; cursor:pointer; }
+  .an-chips button:hover{ background:var(--accent-weak); }
+  /* ---- HUD divers ---- */
+  .an-hint{ position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:18; font-size:13px; color:var(--fg); background:color-mix(in srgb,var(--surface) 92%,transparent); border:1px solid var(--border); padding:9px 16px; border-radius:999px; text-align:center; max-width:88%; box-shadow:var(--shadow-sm); }
+  .an-hint b{ color:var(--accent-text); }
+  .an-vitals{ bottom:16px; right:14px; padding:10px 14px; display:flex; gap:16px; align-items:center; }
+  .an-vitals .grp{ text-align:center; }
+  .an-vitals .v{ font-family:var(--font-data); font-weight:700; font-size:19px; line-height:1; }
+  .an-vitals .v.heart{ color:var(--brand-red); }
+  .an-vitals .v.breath{ color:var(--brand-cyan); }
+  .an-vitals .k{ font-size:9.5px; color:var(--fg-muted); text-transform:uppercase; letter-spacing:.04em; }
+  .an-lbl{ position:absolute; font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 90%,transparent); padding:3px 8px; border-radius:7px; border:1px solid var(--border); pointer-events:none; z-index:14; transform:translate(-50%,-160%); white-space:nowrap; box-shadow:var(--shadow-sm); }
+  /* ---- overlay de chargement ---- */
+  .an-load{ position:absolute; inset:0; z-index:24; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:color-mix(in srgb,var(--bg) 82%,transparent); backdrop-filter:blur(6px); transition:opacity .4s; }
+  .an-load.gone{ opacity:0; pointer-events:none; }
+  .an-load .beat{ font-size:46px; animation:anBeat 1s ease-in-out infinite; }
+  @keyframes anBeat{ 0%,100%{ transform:scale(1); } 18%{ transform:scale(1.22); } 40%{ transform:scale(.97); } }
+  .an-load .txt{ font-family:var(--font-body); font-weight:700; font-size:14px; color:var(--fg); }
+  .an-load .bar{ width:180px; height:7px; border-radius:999px; background:var(--surface-3); overflow:hidden; }
+  .an-load .bar i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--brand-red),var(--accent)); border-radius:999px; transition:width .3s; }
+  @media (prefers-reduced-motion: reduce){ .an-load .beat{ animation:none; } }
+  /* ---- visite guidée (phases) ---- */
+  .an-tour{ position:absolute; inset:0; z-index:34; pointer-events:none; display:none; }
+  .an-tour.on{ display:block; }
+  .an-tour-card{ position:absolute; bottom:78px; left:50%; transform:translateX(-50%); width:min(540px,92vw); pointer-events:auto; background:color-mix(in srgb,var(--surface) 95%,transparent); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-lg); padding:16px 18px; }
+  .an-tour-phase{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent-text); margin-bottom:5px; }
+  .an-tour-title{ font-family:var(--font-title); font-weight:800; font-size:20px; margin:0 0 5px; display:flex; align-items:center; gap:9px; }
+  .an-tour-cap{ font-size:14px; line-height:1.5; color:var(--fg-muted); margin:0 0 13px; }
+  .an-tour-steps{ display:flex; gap:5px; margin:0 0 13px; }
+  .an-tour-steps i{ flex:1; height:6px; border-radius:999px; background:var(--surface-3); transition:.2s; }
+  .an-tour-steps i.done{ background:var(--accent); } .an-tour-steps i.now{ background:var(--brand-red); }
+  .an-tour-row{ display:flex; gap:9px; }
+  .an-tour-row button{ font-family:var(--font-body); font-weight:700; font-size:14px; padding:11px 18px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; }
+  .an-tour-row .go{ flex:1; border:none; background:var(--accent); color:#fff; }
+  .an-tour-row button:focus-visible{ outline:none; box-shadow:var(--ring); }
+  /* ---- barre de quiz (mode Cours) ---- */
+  .an-quiz{ position:absolute; top:70px; left:50%; transform:translateX(-50%); z-index:22; background:var(--accent); color:#fff; border-radius:15px; padding:12px 18px; box-shadow:var(--shadow-lg); font-weight:700; font-size:15px; display:none; align-items:center; gap:12px; max-width:92%; text-align:center; }
+  .an-quiz.on{ display:flex; }
+  .an-quiz.good{ background:var(--brand-teal); } .an-quiz.bad{ background:#c85a4a; }
+  .an-quiz .qn{ font-family:var(--font-data); background:rgba(255,255,255,.24); border-radius:999px; padding:3px 11px; font-size:12.5px; flex:none; }
+  .an-flash{ position:absolute; inset:0; z-index:10; pointer-events:none; opacity:0; transition:opacity .3s; }
+  @media (max-width:760px){
+    .an-left{ width:150px; padding:10px; max-height:calc(100% - 210px); }
+    .an-tgrow{ grid-template-columns:1fr; }
+    .an-info{ width:min(322px,88vw); }
+    .an-vitals{ padding:8px 11px; gap:11px; }
+  }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+const REDUCED = window.Konstrio.REDUCED;
+const MOBILE = Math.min(window.innerWidth, window.innerHeight) < 760;
+
+/* ============================================================
+   DONNÉES PÉDAGOGIQUES — fiches organes (primaire → lycée)
+   ============================================================ */
+const SYSCOL = { squelette:0xf0ead9, muscles:0xc0533f, circulatoire:0xE63329, respiratoire:0xE89ab0, nerveux:0xd6a6dc, organes:0xd88a5a };
+const PARTS = {
+  crane:{n:'Crâne',s:'Système squelettique',sys:'squelette',col:0xe9e4d4,role:"Il protège le cerveau comme un casque.",info:["Le crâne est formé de 22 os soudés qui protègent l'encéphale et soutiennent la face.","Sa boîte crânienne abrite et protège le cerveau."],fun:"À la naissance, les os du crâne ne sont pas soudés : les « fontanelles » laissent le cerveau grandir."},
+  mandibule:{n:'Mandibule',s:'Système squelettique',sys:'squelette',col:0xe5dfcd,role:"La mâchoire, le seul os mobile de la tête.",info:["La mandibule porte les dents inférieures et permet de mâcher.","Elle s'articule avec l'os temporal à l'articulation temporo-mandibulaire."]},
+  rachis:{n:'Colonne vertébrale',s:'Système squelettique',sys:'squelette',col:0xe9e4d4,role:"L'axe du corps qui protège la moelle épinière.",info:["La colonne compte 33 vertèbres (7 cervicales, 12 thoraciques, 5 lombaires, sacrum, coccyx).","Elle soutient le corps et protège la moelle épinière en son centre."],fun:"Ses courbures amortissent les chocs comme un ressort."},
+  cage:{n:'Cage thoracique',s:'Système squelettique',sys:'squelette',col:0xeae5d6,role:"Une cage d'os qui protège le cœur et les poumons.",info:["12 paires de côtes protègent le cœur et les poumons.","Elle s'ouvre et se ferme à chaque respiration."]},
+  sternum:{n:'Sternum & clavicules',s:'Système squelettique',sys:'squelette',col:0xeae5d6,role:"L'os plat du milieu de la poitrine.",info:["Os plat central sur lequel s'attachent les côtes ; les clavicules relient les bras au tronc.","C'est là qu'on comprime lors d'un massage cardiaque."]},
+  bassin:{n:'Bassin',s:'Système squelettique',sys:'squelette',col:0xe9e4d4,role:"Il relie le tronc aux jambes.",info:["Le bassin supporte le poids du corps quand tu es debout.","Il protège la vessie et les organes du bas-ventre."]},
+  femur:{n:'Fémur',s:'Système squelettique',sys:'squelette',col:0xeae5d6,role:"L'os de la cuisse, le plus long du corps.",info:["Le fémur est l'os le plus long et le plus solide ; il forme la cuisse.","Il s'articule à la hanche et au genou."],fun:"Le fémur peut supporter jusqu'à 30 fois le poids du corps."},
+  tibia:{n:'Tibia & péroné',s:'Système squelettique',sys:'squelette',col:0xe5dfcd,role:"Les deux os de la jambe, sous le genou.",info:["Le tibia (gros) supporte le poids, le péroné (fin) stabilise ; ils forment la jambe."]},
+  humerus:{n:'Humérus',s:'Système squelettique',sys:'squelette',col:0xeae5d6,role:"L'os du bras, entre l'épaule et le coude.",info:["L'humérus est l'os du bras ; sa tête ronde donne une grande mobilité à l'épaule."]},
+  avantbras:{n:'Radius & cubitus',s:'Système squelettique',sys:'squelette',col:0xe5dfcd,role:"Les deux os de l'avant-bras.",info:["Radius et cubitus (ulna) forment l'avant-bras et permettent de tourner la main."]},
+  main:{n:'Os de la main',s:'Système squelettique',sys:'squelette',col:0xe5dfcd,role:"27 petits os pour saisir avec précision.",info:["La main compte 27 os (carpe, métacarpe, phalanges) : c'est l'un des outils les plus précis du corps."]},
+  pied:{n:'Os du pied',s:'Système squelettique',sys:'squelette',col:0xe5dfcd,role:"26 os qui portent tout ton poids.",info:["Le pied compte 26 os ; il supporte tout le poids du corps et amortit la marche."]},
+  pectoraux:{n:'Pectoraux',s:'Système musculaire',sys:'muscles',col:0xb24a3a,role:"Les muscles de la poitrine.",info:["Les grands pectoraux couvrent le thorax et ramènent les bras vers l'avant.","Muscles squelettiques striés, que tu commandes."]},
+  deltoides:{n:'Deltoïdes',s:'Système musculaire',sys:'muscles',col:0xb84e3e,role:"Les muscles ronds des épaules.",info:["Les deltoïdes recouvrent l'épaule et lèvent le bras."]},
+  biceps:{n:'Biceps & triceps',s:'Système musculaire',sys:'muscles',col:0xc0533f,role:"Ils plient et déplient le bras.",info:["Le biceps fléchit le coude, le triceps l'étend : un couple qui travaille à l'inverse.","Quand l'un se contracte, l'autre se relâche."],fun:"Un muscle ne peut que tirer en se raccourcissant, jamais pousser."},
+  abdominaux:{n:'Abdominaux',s:'Système musculaire',sys:'muscles',col:0xbe5141,role:"Les muscles du ventre.",info:["Grand droit et obliques gainent le ventre, penchent le tronc et protègent les organes."]},
+  quadriceps:{n:'Quadriceps',s:'Système musculaire',sys:'muscles',col:0xc0533f,role:"Les gros muscles de l'avant de la cuisse.",info:["À l'avant de la cuisse, ils tendent le genou pour marcher et sauter."]},
+  ischios:{n:'Ischio-jambiers',s:'Système musculaire',sys:'muscles',col:0xab463a,role:"Les muscles de l'arrière de la cuisse.",info:["À l'arrière de la cuisse, ils plient le genou et tendent la hanche."]},
+  mollets:{n:'Mollets',s:'Système musculaire',sys:'muscles',col:0xbe5141,role:"Les muscles de l'arrière de la jambe.",info:["Le triceps sural te permet de te mettre sur la pointe des pieds."]},
+  trapezes:{n:'Trapèzes',s:'Système musculaire',sys:'muscles',col:0xb24a3a,role:"Les muscles du cou et du haut du dos.",info:["Du cou aux épaules, ils tiennent la tête et haussent les épaules."]},
+  muscle:{n:'Muscles superficiels',s:'Système musculaire',sys:'muscles',col:0xb33a30,role:"L'ensemble des muscles sous la peau.",info:["Les muscles squelettiques (striés, volontaires) recouvrent le squelette et permettent tous les mouvements.","Ils travaillent par paires opposées et ne peuvent que tirer en se contractant."],fun:"Le corps compte ~600 muscles ; ils font ~40 % de ton poids."},
+  coeur:{n:'Cœur',s:'Système circulatoire',sys:'circulatoire',col:0xE63329,role:"La pompe qui envoie le sang partout.",info:["Pompe musculaire à 4 cavités qui propulse le sang sans jamais s'arrêter.","Le côté droit envoie le sang aux poumons, le gauche au reste du corps."],fun:"Le cœur bat ~100 000 fois par jour et pompe ~7 000 L de sang chaque 24 h."},
+  aorte:{n:'Aorte',s:'Système circulatoire',sys:'circulatoire',col:0xd02a2a,role:"La plus grosse artère du corps.",info:["Elle part du cœur (ventricule gauche) et distribue le sang riche en oxygène à tout le corps.","Sa crosse irrigue la tête et les bras."]},
+  arteres:{n:'Artères',s:'Système circulatoire',sys:'circulatoire',col:0xe03333,role:"Elles portent le sang du cœur vers le corps.",info:["Elles transportent le sang du cœur vers les organes, sous pression (d'où le pouls).","Leur paroi est épaisse et élastique."]},
+  veines:{n:'Veines',s:'Système circulatoire',sys:'circulatoire',col:0x2a55c0,role:"Elles ramènent le sang vers le cœur.",info:["Elles ramènent le sang vers le cœur, à basse pression.","Leurs valvules empêchent le sang de redescendre dans les jambes."]},
+  cerveau:{n:'Cerveau',s:'Système nerveux',sys:'nerveux',col:0xd6a6dc,role:"Le chef d'orchestre du corps.",info:["Deux hémisphères commandent la pensée, le mouvement, les sens, le langage et la mémoire.","Son écorce plissée augmente la surface de matière grise."],fun:"Le cerveau pèse ~2 % de ton poids mais utilise ~20 % de ton énergie."},
+  cervelet:{n:'Cervelet',s:'Système nerveux',sys:'nerveux',col:0xc792cf,role:"Il gère l'équilibre et la précision.",info:["À l'arrière du crâne, il coordonne l'équilibre et la précision des mouvements."]},
+  moelle:{n:'Moelle épinière',s:'Système nerveux',sys:'nerveux',col:0xe0c060,role:"L'autoroute des messages entre cerveau et corps.",info:["Protégée par la colonne, elle relie le cerveau au corps et gère les réflexes."]},
+  nerfs:{n:'Nerfs',s:'Système nerveux',sys:'nerveux',col:0xf0d24a,role:"Les câbles qui transmettent les ordres.",info:["Ils portent les ordres aux muscles et les informations des sens au cerveau.","Le message file jusqu'à ~120 m/s, plus vite qu'une voiture de course."]},
+  poumons:{n:'Poumons',s:'Système respiratoire',sys:'respiratoire',col:0xE89ab0,role:"Ils prennent l'oxygène de l'air.",info:["Ils captent l'oxygène (O₂) et rejettent le gaz carbonique (CO₂) grâce à ~300 millions d'alvéoles.","Le poumon droit a 3 lobes, le gauche 2 (place au cœur)."],fun:"Dépliée, leur surface d'échange couvrirait un court de tennis (~70 m²)."},
+  trachee:{n:'Trachée & bronches',s:'Système respiratoire',sys:'respiratoire',col:0xd9b8c4,role:"Le tuyau qui conduit l'air aux poumons.",info:["La trachée conduit l'air aux deux bronches, qui se ramifient dans chaque poumon."]},
+  foie:{n:'Foie',s:'Système digestif',sys:'organes',col:0x9a4a2a,role:"L'usine de nettoyage du corps.",info:["Il filtre le sang, stocke l'énergie et fabrique la bile pour digérer les graisses.","C'est la plus grosse glande du corps."],fun:"Le foie peut repousser après qu'on en ait enlevé une partie."},
+  estomac:{n:'Estomac',s:'Système digestif',sys:'organes',col:0xE3A06b,role:"Il mélange et digère les aliments.",info:["Il brasse les aliments et les digère avec un acide très puissant (pH ~2)."]},
+  intestin:{n:'Intestin grêle',s:'Système digestif',sys:'organes',col:0xE8b894,role:"Il absorbe les nutriments dans le sang.",info:["Long de ~6 m, il absorbe la plupart des nutriments grâce à ses villosités."]},
+  colon:{n:'Gros intestin',s:'Système digestif',sys:'organes',col:0xcf9a6a,role:"Il récupère l'eau et abrite le microbiote.",info:["Le côlon récupère l'eau et héberge le microbiote (des milliards de bactéries utiles)."]},
+  reins:{n:'Reins',s:'Système urinaire',sys:'organes',col:0x8a3a4a,role:"Ils filtrent le sang et font l'urine.",info:["Ils filtrent le sang et fabriquent l'urine, en réglant l'eau et les sels.","~180 L de sang filtrés par jour."]},
+  rate:{n:'Rate',s:'Système immunitaire',sys:'organes',col:0x7a2a3a,role:"Elle nettoie le sang et défend le corps.",info:["Elle filtre le sang, recycle les vieux globules rouges et aide l'immunité."]},
+  pancreas:{n:'Pancréas',s:'Système digestif',sys:'organes',col:0xd8b878,role:"Il règle le sucre et aide à digérer.",info:["Le pancréas fabrique des sucs digestifs et l'insuline qui règle le sucre du sang."]},
+  vessie:{n:'Vessie',s:'Système urinaire',sys:'organes',col:0xd8c84a,role:"Le réservoir d'urine.",info:["La vessie stocke l'urine produite par les reins avant de l'évacuer."]},
+  oesophage:{n:'Œsophage',s:'Système digestif',sys:'organes',col:0xd9b8c4,role:"Le tuyau de la bouche à l'estomac.",info:["L'œsophage pousse les aliments de la bouche vers l'estomac par des vagues (péristaltisme)."]},
+  peau:{n:'Peau',s:'Système tégumentaire',sys:'organes',col:0xd8a482,role:"Le plus grand organe : ta protection.",info:["La peau est le plus grand organe du corps (~2 m²). Elle protège, règle la température et sent le toucher.","Trois couches : épiderme, derme, hypoderme."],fun:"La peau se renouvelle en entier en ~1 mois."},
+};
+
+const NOTIONS = [
+  {id:'org',name:'Cellules → tissus → organes',desc:["Le corps s'organise en niveaux : ~37 000 milliards de <b>cellules</b> → <b>tissus</b> → <b>organes</b> → <b>systèmes</b>.","Onze grands systèmes assurent ensemble la vie."]},
+  {id:'sque',name:'Système squelettique',desc:["206 os soutiennent le corps, protègent les organes et permettent le mouvement avec les muscles.","La moelle osseuse rouge fabrique les cellules du sang."]},
+  {id:'musc',name:'Système musculaire',desc:["~600 muscles : squelettiques (volontaires), lisses (organes), et le myocarde (cœur).","Ils travaillent par paires opposées et ne peuvent que tirer."]},
+  {id:'circ',name:'Système circulatoire',desc:["Petite circulation : cœur → poumons → cœur. Grande circulation : cœur → corps → cœur.","Le sang transporte l'oxygène, les nutriments, les hormones et les déchets."]},
+  {id:'resp',name:'Système respiratoire',desc:["Les échanges de gaz O₂/CO₂ se font dans les alvéoles.","Le diaphragme, en se contractant, fait entrer l'air."]},
+  {id:'nerv',name:'Système nerveux',desc:["Central (cerveau + moelle) et périphérique (nerfs) : il perçoit, décide et commande.","Neurones et synapses forment de vastes réseaux."]},
+  {id:'dig',name:'Système digestif',desc:["Bouche → œsophage → estomac → intestin grêle → côlon. Foie et pancréas aident.","Les nutriments passent dans le sang, les déchets sont éliminés."]},
+  {id:'homeo',name:'Homéostasie',desc:["Le corps garde un milieu stable : 37 °C, sucre, pH 7,4, hydratation.","Des boucles de régulation corrigent les écarts en permanence."]},
+];
+
+/* système → liste d'organes (pour la liste latérale + quiz) */
+const SYS_PARTS = {
+  organes:['coeur','poumons','foie','estomac','intestin','colon','reins','rate','pancreas','vessie'],
+  squelette:['crane','mandibule','rachis','cage','sternum','bassin','femur','tibia','humerus','avantbras','main','pied'],
+  muscles:['pectoraux','deltoides','biceps','abdominaux','quadriceps','ischios','mollets','trapezes'],
+  circulatoire:['coeur','aorte','arteres','veines'],
+  respiratoire:['poumons','trachee'],
+  nerveux:['cerveau','cervelet','moelle','nerfs'],
+  complet:['crane','rachis','cage','coeur','poumons','foie','reins','cerveau'],
+};
+const SYS_LABEL = { organes:'Organes', squelette:'Squelette', muscles:'Muscles', circulatoire:'Circulatoire', respiratoire:'Respiratoire', nerveux:'Nerveux', complet:'Corps complet' };
+
+/* ============================================================
+   ÉTAT GLOBAL
+   ============================================================ */
+let scene, camera, renderer, composer, controls, clock, raycaster, pointer, outline, bloom;
+let SYS = {}, skin, sys = 'organes', hovered = null, selected = null, showLabels = false, skinOpacity = 0.14;
+let blood = [], bpm = 72, breath = 15, heart = null, cutaway = false, clipPlane = null;
+let labels = {}, breathers = [], loadCount = 0, loadTotal = 0;
+let camTarget = null, camDist = 0, camMove = false;
+let vhAll = null, vhReady = false, vhVessels = [], bpGroup = null, bpReady = false;
+let BPXF = null, tour = null, quiz = null, quizTier = 'debutant';
+const homeTarget = new THREE.Vector3(0, 2.6, 0), homePos = new THREE.Vector3(0, 3.2, 15.5);
+
+function applyBPXF(g){ if(!g||!BPXF) return; g.rotation.set(-Math.PI/2,0,0); g.scale.setScalar(BPXF.sc); g.position.copy(BPXF.pos); }
+function alignBody(){ if(!BPXF) return; if(skin) applyBPXF(skin); if(vhAll) applyBPXF(vhAll); }
+
+/* ============================================================
+   COQUILLE DE JEU
+   ============================================================ */
+const shell = window.Konstrio.createGame({
+  id:'3d-02-anatomie', code:'3D·02', title:'Anatomie humaine 3D', type:'3D',
+  domain:{ label:'SVT & Santé', color:'#E63329' },
+  intro:{
+    greet:"Bienvenue dans le corps humain ! Choisis un système — squelette, muscles, cœur, poumons, cerveau, organes — et clique une structure pour découvrir son rôle. Tout en douceur, à ton rythme.",
+    rule:"Un atlas 3D vivant : superpose les <b>systèmes</b>, clique une structure pour sa fiche, regarde le <b>cœur battre</b> et les <b>poumons respirer</b>. Coupe la vue pour voir l'intérieur.",
+    how:[
+      "Glisse pour tourner · molette (ou pincer) pour zoomer · clique une structure.",
+      "Change de système en haut ; à gauche, choisis un organe dans la liste, règle la peau, la coupe et les étiquettes.",
+      "Mode Cours : « Trouve l'organe » à 3 niveaux. Aucune faute punie — on t'encourage toujours !"
+    ],
+    keys:"Glisser = tourner · molette = zoom · 1-7 = systèmes · L = étiquettes · C = coupe · P = peau.",
+    objectif:"Repérer les organes et comprendre les grands systèmes qui te maintiennent en vie.",
+    hint:"Le cœur est entre les poumons, un peu à gauche ; les reins sont dans le bas du dos ; le cerveau, dans la tête.",
+    why:"Chaque système a un rôle. Ensemble, ils forment une équipe qui te garde en bonne santé."
+  },
+  learned:[
+    "Les grands systèmes du corps et leurs organes principaux.",
+    "Squelette, muscles, circulation, respiration, système nerveux et digestion coopèrent.",
+    "Le cœur pompe le sang sans s'arrêter ; les nerfs transmettent les ordres à plus de 100 m/s."
+  ],
+  onReady:init, onStart:startMode, onTheme:()=>applyTheme(),
+  onHint:()=>{ shell.say(shell.cfg.intro.hint,'curieux'); if(!tour&&!quiz) pulseHintFind(); },
+});
+
+/* ============================================================
+   INITIALISATION SCÈNE — éclairage médical doux + PBR
+   ============================================================ */
+function init(){
+  const stage = shell.stage; clock = new THREE.Clock();
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(44, stage.clientWidth/stage.clientHeight, 0.1, 200);
+  camera.position.copy(homePos);
+
+  renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE?1.5:2));
+  renderer.setSize(stage.clientWidth, stage.clientHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
+  renderer.shadowMap.enabled = !MOBILE; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.localClippingEnabled = true;
+  stage.appendChild(renderer.domElement);
+
+  // garde-fou : rendu logiciel (SwiftShader/llvmpipe) ou mode réduit/mobile → pas de GTAO (l'AO écran y échoue / coûte trop cher). Jamais de rendu cassé.
+  let software = false; try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W = stage.clientWidth, H = stage.clientHeight;
+  // pipeline post : rendu → (AO écran si GPU réel, creux organiques) → contour de sélection → bloom doux → SMAA (bords nets des STL) → sortie ACES/sRGB
+  composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  if(!software && !REDUCED && !MOBILE){
+    const gtao = new GTAOPass(scene, camera, W, H); gtao.blendIntensity = 0.85;
+    try{ gtao.updateGtaoMaterial({ radius:0.35, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao = gtao;
+  }
+  outline = new OutlinePass(new THREE.Vector2(W, H), scene, camera);
+  outline.edgeStrength = 3.2; outline.edgeGlow = MOBILE?0:0.4; outline.edgeThickness = 1.4;
+  outline.visibleEdgeColor.set('#ffffff'); outline.hiddenEdgeColor.set('#6E6BFF');
+  composer.addPass(outline);
+  bloom = new UnrealBloomPass(new THREE.Vector2(W, H), MOBILE?0.10:0.16, 0.55, 0.86);
+  composer.addPass(bloom);
+  composer.addPass(new SMAAPass(W, H));
+  composer.addPass(new OutputPass());
+
+  setupControlsDefaults();
+
+  // éclairage : hémisphérique + clé (ombre) + contre-jour bleuté + rebond
+  scene.add(new THREE.HemisphereLight(0xf4f8ff, 0x2a2438, 0.9));
+  const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(6, 13, 9);
+  if(!MOBILE){ key.castShadow = true; key.shadow.mapSize.set(1024,1024); key.shadow.camera.near = 4; key.shadow.camera.far = 40; key.shadow.camera.left=-9; key.shadow.camera.right=9; key.shadow.camera.top=12; key.shadow.camera.bottom=-8; key.shadow.bias=-0.0006; key.shadow.radius=6; }
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x88aaff, 0.55); rim.position.set(-8, 6, -7); scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xffe8e0, 0.35); fill.position.set(3, 2, 10); scene.add(fill);
+
+  // environnement réfléchissant (studio) — donne le côté « organe humide »
+  const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  new RGBELoader().load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping = THREE.EquirectangularReflectionMapping; scene.environment = pmrem.fromEquirectangular(hdr).texture; }, undefined, ()=>{});
+
+  scene.add(makeBackdrop());
+  scene.add(makePodium());
+
+  clipPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0.15); // coupe sagittale
+
+  buildAll(); loadRealModels();
+  raycaster = new THREE.Raycaster(); pointer = new THREE.Vector2(-2,-2);
+  buildUI(); applyTheme(); setSys('organes');
+
+  renderer.domElement.addEventListener('pointermove', onMove);
+  renderer.domElement.addEventListener('pointerdown', onDown);
+  window.addEventListener('keydown', onKey);
+  window.addEventListener('resize', onResize);
+  new ResizeObserver(onResize).observe(stage);
+  animate();
+}
+
+function makeBackdrop(){
+  const c = document.createElement('canvas'); c.width = c.height = 512; const ctx = c.getContext('2d');
+  const gr = ctx.createRadialGradient(256, 200, 40, 256, 300, 460);
+  gr.addColorStop(0, '#20243c'); gr.addColorStop(0.55, '#12142a'); gr.addColorStop(1, '#080810');
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, 512, 512);
+  const t = new THREE.CanvasTexture(c);
+  const m = new THREE.Mesh(new THREE.SphereGeometry(120, 32, 20), new THREE.MeshBasicMaterial({ map:t, side:THREE.BackSide }));
+  m.userData.backdrop = true; return m;
+}
+function makePodium(){
+  // disque + ombre de contact douce (dégradé radial) sous la figure
+  const grp = new THREE.Group();
+  const c = document.createElement('canvas'); c.width = c.height = 256; const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(128,128,10,128,128,128);
+  g.addColorStop(0,'rgba(0,0,0,.42)'); g.addColorStop(0.6,'rgba(0,0,0,.18)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,256,256);
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(11,11), new THREE.MeshBasicMaterial({ map:new THREE.CanvasTexture(c), transparent:true, depthWrite:false }));
+  shadow.rotation.x = -Math.PI/2; shadow.position.y = -3.02; grp.add(shadow);
+  const ring = new THREE.Mesh(new THREE.CylinderGeometry(3.4,3.6,0.14,64), new THREE.MeshStandardMaterial({ color:0x2b2f45, roughness:0.35, metalness:0.6, envMapIntensity:0.8 }));
+  ring.position.y = -3.1; if(!MOBILE) ring.receiveShadow = true; grp.add(ring);
+  const glow = new THREE.Mesh(new THREE.CylinderGeometry(3.1,3.1,0.02,64), new THREE.MeshBasicMaterial({ color:0x6E6BFF, transparent:true, opacity:0.18 }));
+  glow.position.y = -3.0; grp.add(glow);
+  return grp;
+}
+
+/* ============================================================
+   MATÉRIAUX PBR
+   ============================================================ */
+const boneMat = ()=> new THREE.MeshPhysicalMaterial({ color:0xefe8d6, roughness:0.62, metalness:0.0, clearcoat:0.15, clearcoatRoughness:0.7, envMapIntensity:0.75, sheen:0.3, sheenColor:new THREE.Color(0xfff6e0) });
+const muscleMat = (c)=> new THREE.MeshPhysicalMaterial({ color:c, roughness:0.46, clearcoat:0.35, clearcoatRoughness:0.5, sheen:0.6, sheenColor:new THREE.Color(0xff8f7a), envMapIntensity:0.7 });
+const organMat = (c)=> new THREE.MeshPhysicalMaterial({ color:c, roughness:0.36, clearcoat:0.6, clearcoatRoughness:0.34, envMapIntensity:1.0, sheen:0.5, sheenColor:new THREE.Color(c), emissive:new THREE.Color(c), emissiveIntensity:0.04 });
+const tubeMat = (c)=> new THREE.MeshStandardMaterial({ color:c, roughness:0.4, metalness:0.05, emissive:new THREE.Color(c), emissiveIntensity:0.14 });
+const skinMat = ()=> new THREE.MeshPhysicalMaterial({ color:0xe7b793, roughness:0.5, clearcoat:0.55, clearcoatRoughness:0.42, sheen:1.0, sheenColor:new THREE.Color(0xd89a76), sheenRoughness:0.45, specularIntensity:0.55, envMapIntensity:0.95, transparent:true, opacity:skinOpacity, depthWrite:false, side:THREE.DoubleSide });
+
+function tag(o,k){ o.userData.part = k; o.traverse && o.traverse(c=>c.userData.part = k); return o; }
+function bone(r1,r2,len){ return new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,len,14), boneMat()); }
+function tube(p1,p2,r,mat){ const v = new THREE.Vector3().subVectors(p2,p1); const m = new THREE.Mesh(new THREE.CylinderGeometry(r,r,v.length(),10), mat); m.position.copy(p1).add(p2).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), v.clone().normalize()); return m; }
+function shad(m){ if(!MOBILE){ m.castShadow = true; } return m; }
+
+/* ============================================================
+   CONSTRUCTION PROCÉDURALE (repli + attente du STL)
+   ============================================================ */
+function buildAll(){
+  skin = new THREE.Group(); scene.add(skin);
+  SYS.squelette = buildSkeleton(); SYS.muscles = buildMuscles(); SYS.organes = buildOrgans();
+  SYS.respiratoire = buildRespiratory(); SYS.circulatoire = buildCirculatory(); SYS.nerveux = buildNervous();
+  Object.values(SYS).forEach(g=>{ g.visible = false; scene.add(g); });
+}
+function buildSkeleton(){ const g = new THREE.Group();
+  const crane = shad(tag(new THREE.Mesh(new THREE.SphereGeometry(0.55,22,18), boneMat()),'crane')); crane.position.y = 6.0; crane.scale.set(1,1.12,1.05); g.add(crane);
+  const jaw = new THREE.Mesh(new THREE.TorusGeometry(0.34,0.09,10,18,Math.PI), boneMat()); jaw.position.set(0,5.55,0.18); jaw.rotation.x = Math.PI/2; g.add(tag(shad(jaw),'mandibule'));
+  const rachis = new THREE.Group(); for(let i=0;i<22;i++){ const v = new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.14,12), boneMat()); v.position.set(0, 5.0-i*0.165, -0.05); rachis.add(shad(v)); } g.add(tag(rachis,'rachis'));
+  const cage = new THREE.Group(); for(let i=0;i<7;i++){ const rr = 0.85-i*0.04; [1,-1].forEach(s=>{ const rib = new THREE.Mesh(new THREE.TorusGeometry(rr,0.05,8,20,Math.PI*0.92), boneMat()); rib.position.set(0, 4.55-i*0.24, 0); rib.rotation.x = Math.PI/2; rib.rotation.z = s>0?-Math.PI*0.04:Math.PI*1.04; cage.add(shad(rib)); }); } g.add(tag(cage,'cage'));
+  const stern = new THREE.Mesh(new THREE.BoxGeometry(0.18,1.2,0.08), boneMat()); stern.position.set(0,4.2,0.78); g.add(tag(shad(stern),'sternum'));
+  [1,-1].forEach(s=>{ g.add(tag(shad(tube(new THREE.Vector3(0,4.85,0.5), new THREE.Vector3(s*1.1,4.8,0.35), 0.06, boneMat())),'sternum')); });
+  const pel = new THREE.Mesh(new THREE.TorusGeometry(0.6,0.19,12,20,Math.PI*1.1), boneMat()); pel.position.set(0,1.5,0); pel.rotation.x = Math.PI*0.5; pel.rotation.z = Math.PI; g.add(tag(shad(pel),'bassin'));
+  [1,-1].forEach(s=>{
+    const hum = bone(0.1,0.12,1.6); hum.position.set(s*1.25,3.5,0); hum.rotation.z = s*0.32; g.add(tag(shad(hum),'humerus'));
+    const fa = bone(0.08,0.1,1.4); fa.position.set(s*1.6,1.7,0); fa.rotation.z = s*0.15; g.add(tag(shad(fa),'avantbras'));
+    const fem = bone(0.16,0.2,2.0); fem.position.set(s*0.5,0.2,0); g.add(tag(shad(fem),'femur'));
+    const tib = bone(0.12,0.15,1.8); tib.position.set(s*0.5,-2.0,0); g.add(tag(shad(tib),'tibia'));
+  });
+  return g;
+}
+function buildMuscles(){ const g = new THREE.Group();
+  const M = (x,y,z,sx,sy,sz,c,k,rz)=>{ const m = new THREE.Mesh(new THREE.SphereGeometry(0.4,18,16), muscleMat(c)); m.position.set(x,y,z); m.scale.set(sx,sy,sz); if(rz)m.rotation.z = rz; g.add(tag(shad(m),k)); };
+  M(0,4.1,0.62,1.5,0.7,0.45,0xb24a3a,'pectoraux');
+  [1,-1].forEach(s=>{ M(s*1.15,4.55,0.2,0.7,0.8,0.7,0xb84e3e,'deltoides'); M(s*1.2,3.5,0.15,0.5,1.1,0.5,0xc0533f,'biceps',s*0.32); M(s*1.6,1.8,0.1,0.4,1.0,0.4,0xc0533f,'biceps',s*0.15); M(s*0.5,0.5,0.25,0.7,1.6,0.6,0xc0533f,'quadriceps'); M(s*0.5,0.5,-0.25,0.6,1.5,0.5,0xab463a,'ischios'); M(s*0.5,-1.9,0.2,0.55,1.2,0.5,0xbe5141,'mollets'); });
+  M(0,2.6,0.6,1.0,1.3,0.4,0xbe5141,'abdominaux');
+  M(0,4.8,-0.3,1.3,0.6,0.5,0xb24a3a,'trapezes');
+  return g;
+}
+function buildHeart(x,y,z){ const grp = new THREE.Group(); const mat = organMat(0xE63329);
+  const l1 = new THREE.Mesh(new THREE.SphereGeometry(0.26,22,18), mat); l1.position.set(-0.13,0.08,0);
+  const l2 = l1.clone(); l2.position.set(0.13,0.08,0);
+  const apex = new THREE.Mesh(new THREE.ConeGeometry(0.36,0.5,22), mat); apex.position.y = -0.24; apex.rotation.x = Math.PI;
+  const ao = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.4,12), mat); ao.position.y = 0.3;
+  grp.add(l1,l2,apex,ao); grp.position.set(x,y,z); grp.traverse(o=>shad(o)); heart = grp; return grp;
+}
+function buildOrgans(){ const g = new THREE.Group();
+  g.add(tag(buildHeart(0.25,4.05,0.45),'coeur'));
+  [-0.6,0.6].forEach(x=>{ const lung = new THREE.Mesh(new THREE.SphereGeometry(0.5,20,16), organMat(0xE89ab0)); lung.position.set(x,4.05,0.25); lung.scale.set(0.78,1.25,0.8); g.add(tag(shad(lung),'poumons')); });
+  const liver = new THREE.Mesh(new THREE.SphereGeometry(0.5,20,16), organMat(0x9a4a2a)); liver.position.set(0.5,3.0,0.4); liver.scale.set(1.3,0.7,0.7); g.add(tag(shad(liver),'foie'));
+  const stom = new THREE.Mesh(new THREE.SphereGeometry(0.28,20,16), organMat(0xc98a5a)); stom.position.set(-0.4,3.0,0.0); stom.scale.set(0.9,1.25,0.7); g.add(tag(shad(stom),'estomac'));
+  const si = new THREE.Mesh(new THREE.TorusKnotGeometry(0.36,0.14,100,14), organMat(0xd8a878)); si.position.set(0,2.5,0.0); si.scale.setScalar(0.85); g.add(tag(shad(si),'intestin'));
+  const colon = new THREE.Mesh(new THREE.TorusGeometry(0.52,0.12,14,36,Math.PI*1.7), organMat(0xc99a6a)); colon.position.set(0,2.6,0.0); colon.rotation.x = Math.PI/2; g.add(tag(shad(colon),'colon'));
+  [-0.55,0.55].forEach(x=>{ const k = new THREE.Mesh(new THREE.SphereGeometry(0.24,18,14), organMat(0x8a3a4a)); k.position.set(x,2.5,-0.45); k.scale.set(0.7,1.2,0.6); g.add(tag(shad(k),'reins')); });
+  const spleen = new THREE.Mesh(new THREE.SphereGeometry(0.2,16,14), organMat(0x8a3a48)); spleen.position.set(-0.55,3.2,-0.1); spleen.scale.set(0.8,1.05,0.6); g.add(tag(shad(spleen),'rate'));
+  const panc = new THREE.Mesh(new THREE.CapsuleGeometry(0.1,0.5,6,12), organMat(0xd8b878)); panc.position.set(-0.1,2.85,-0.1); panc.rotation.z = 0.5; g.add(tag(shad(panc),'pancreas'));
+  const bl = new THREE.Mesh(new THREE.SphereGeometry(0.2,16,14), organMat(0xd8c84a)); bl.position.set(0,1.7,0.25); bl.scale.set(1,0.85,0.9); g.add(tag(shad(bl),'vessie'));
+  return g;
+}
+function buildRespiratory(){ const g = new THREE.Group();
+  [-0.6,0.6].forEach(x=>{ const lung = new THREE.Mesh(new THREE.SphereGeometry(0.55,22,18), organMat(0xE89ab0)); lung.position.set(x,4.05,0.2); lung.scale.set(0.82,1.35,0.85); lung.material.transparent = true; lung.material.opacity = 0.94; g.add(tag(shad(lung),'poumons')); });
+  const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,1.0,14), organMat(0xd9b8c4)); tr.position.set(0,4.75,0.2); g.add(tag(shad(tr),'trachee'));
+  [1,-1].forEach(s=>{ g.add(tag(shad(tube(new THREE.Vector3(0,4.3,0.2), new THREE.Vector3(s*0.5,3.9,0.2), 0.06, organMat(0xd9b8c4))),'trachee')); });
+  const dia = new THREE.Mesh(new THREE.SphereGeometry(0.95,22,10,0,Math.PI*2,0,Math.PI/2), muscleMat(0xc06a5a)); dia.position.set(0,3.2,0); dia.scale.y = -0.4; dia.material.transparent = true; dia.material.opacity = 0.7; g.add(tag(dia,'poumons'));
+  return g;
+}
+function buildCirculatory(){ const g = new THREE.Group();
+  g.add(tag(buildHeart(0.2,4.05,0.5),'coeur'));
+  const aMat = tubeMat(0xd02a2a);
+  g.add(tag(tube(new THREE.Vector3(0.2,4.35,0.5), new THREE.Vector3(0.2,4.9,0.3), 0.09, aMat),'aorte'));
+  g.add(tag(new THREE.Mesh(new THREE.TorusGeometry(0.3,0.08,10,18,Math.PI), aMat).translateY(4.9).translateX(-0.1).translateZ(0.3),'aorte'));
+  g.add(tag(tube(new THREE.Vector3(-0.1,4.9,0.3), new THREE.Vector3(-0.1,1.6,0), 0.07, aMat),'aorte'));
+  const art = tubeMat(0xe03333), vei = tubeMat(0x2a55c0);
+  [1,-1].forEach(s=>{
+    g.add(tag(tube(new THREE.Vector3(0.1,4.7,0.3), new THREE.Vector3(s*1.6,1.7,0), 0.05, art),'arteres'));
+    g.add(tag(tube(new THREE.Vector3(-0.1,1.5,0), new THREE.Vector3(s*0.5,-3.5,0), 0.05, art),'arteres'));
+    g.add(tag(tube(new THREE.Vector3(s*1.6,1.7,-0.12), new THREE.Vector3(0.3,4.2,0.3), 0.045, vei),'veines'));
+    g.add(tag(tube(new THREE.Vector3(s*0.5,-3.5,-0.12), new THREE.Vector3(0.3,4.0,0.2), 0.045, vei),'veines'));
+  });
+  for(let i=0;i<46;i++){ const b = new THREE.Mesh(new THREE.SphereGeometry(0.055,8,8), new THREE.MeshStandardMaterial({ color:0xff3344, emissive:0xff2233, emissiveIntensity:0.6 })); b.userData.t = Math.random(); b.userData.noclick = true; g.add(b); blood.push(b); }
+  return g;
+}
+function buildNervous(){ const g = new THREE.Group();
+  const br = new THREE.Mesh(new THREE.SphereGeometry(0.5,30,24), organMat(0xd6a6dc)); const p = br.geometry.attributes.position;
+  for(let i=0;i<p.count;i++){ const n = Math.sin(p.getX(i)*10)*Math.sin(p.getY(i)*10)*Math.sin(p.getZ(i)*10); const v = new THREE.Vector3(p.getX(i),p.getY(i),p.getZ(i)).multiplyScalar(1+n*0.07); p.setXYZ(i,v.x,v.y,v.z); }
+  br.geometry.computeVertexNormals(); br.position.set(0,6.0,0.05); g.add(tag(shad(br),'cerveau'));
+  const cb = new THREE.Mesh(new THREE.SphereGeometry(0.26,20,16), organMat(0xc792cf)); cb.position.set(0,5.7,-0.32); cb.scale.set(1,0.7,0.8); g.add(tag(shad(cb),'cervelet'));
+  const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,3.6,12), tubeMat(0xe0c060)); cord.position.set(0,3.6,-0.05); g.add(tag(cord,'moelle'));
+  const nMat = tubeMat(0xf0d24a);
+  [1,-1].forEach(s=>{ g.add(tag(tube(new THREE.Vector3(0,4.2,0), new THREE.Vector3(s*1.7,1.7,0), 0.03, nMat),'nerfs')); g.add(tag(tube(new THREE.Vector3(0,1.9,0), new THREE.Vector3(s*0.5,-3.6,0), 0.035, nMat),'nerfs')); });
+  return g;
+}
+
+/* ============================================================
+   MODÈLES RÉELS (STL) — organes, squelette, peau
+   ============================================================ */
+const VH = [
+  {f:'bp-coeur.stl',part:'coeur',lay:['organes','circulatoire','complet'],col:0xc0392b,op:1},
+  {f:'bp-poumon-g.stl',part:'poumons',lay:['organes','respiratoire','complet'],col:0xe39aa6,op:0.82,breathe:1},
+  {f:'bp-poumon-d.stl',part:'poumons',lay:['organes','respiratoire','complet'],col:0xe39aa6,op:0.82,breathe:1},
+  {f:'bp-foie.stl',part:'foie',lay:['organes','complet'],col:0x8a3a22,op:1},
+  {f:'bp-estomac.stl',part:'estomac',lay:['organes','complet'],col:0xcf9a5a,op:1},
+  {f:'bp-intestin.stl',part:'intestin',lay:['organes','complet'],col:0xd8a878,op:1},
+  {f:'bp-colon.stl',part:'colon',lay:['organes','complet'],col:0xc99a6a,op:1},
+  {f:'bp-rein-g.stl',part:'reins',lay:['organes','complet'],col:0x8a3a48,op:1},
+  {f:'bp-rein-d.stl',part:'reins',lay:['organes','complet'],col:0x8a3a48,op:1},
+  {f:'bp-pancreas.stl',part:'pancreas',lay:['organes','complet'],col:0xd8b878,op:1},
+  {f:'bp-vessie.stl',part:'vessie',lay:['organes','complet'],col:0xd8c84a,op:1},
+  {f:'bp-oesophage.stl',part:'oesophage',lay:['organes','complet'],col:0xd9b8c4,op:1},
+  {f:'bp-trachee.stl',part:'trachee',lay:['respiratoire','complet'],col:0xd9b8c4,op:1},
+  {f:'bp-cerveau.stl',part:'cerveau',lay:['nerveux','complet'],col:0xd6a6dc,op:1,brain:1},
+  {f:'bp-cervelet.stl',part:'cervelet',lay:['nerveux','complet'],col:0xc792cf,op:1},
+  {f:'bp-vasculaire.stl',part:'arteres',lay:['circulatoire'],col:0xc0302a,op:1,vessel:true},
+  {f:'bp-muscles.stl',part:'muscle',lay:['muscles'],col:0xb33a30,op:1},
+];
+const SK = [ {f:'sk-skull-full',part:'crane'},{f:'sk-mandible',part:'mandibule'},{f:'sk-spine',part:'rachis'},{f:'sk-ribcage',part:'cage'},{f:'sk-sternum',part:'sternum'},{f:'sk-pelvis',part:'bassin'},{f:'sk-scapula',part:'sternum',mir:1},{f:'sk-clavicle',part:'sternum',mir:1},{f:'sk-humerus',part:'humerus',mir:1},{f:'sk-femur',part:'femur',mir:1},{f:'sk-tibia',part:'tibia',mir:1},{f:'sk-fibula',part:'tibia',mir:1},{f:'sk-hand',part:'main',mir:1},{f:'sk-foot',part:'pied',mir:1} ];
+const BPTRANSFORM = { rotX:-Math.PI/2, targetH:9.2, cx:0, cy:2.0, cz:0 };
+const VH_SYS = ['organes','respiratoire','circulatoire','nerveux','muscles'];
+
+function bump(){ loadCount++; const el = document.getElementById('anLoadBar'); if(el) el.style.width = Math.min(100, loadCount/Math.max(1,loadTotal)*100)+'%'; if(loadCount>=loadTotal){ const ov = document.getElementById('anLoad'); if(ov){ ov.classList.add('gone'); setTimeout(()=>ov.remove(), 500); } } }
+
+function loadRealModels(){ loadTotal = VH.length + SK.length + 1; loadVHOrgans(); loadSkeleton(); loadSkin(); }
+
+function loadSkin(){ new STLLoader().load('../assets/3d/models/bp-skin.stl', g=>{ g.computeVertexNormals(); const m = new THREE.Mesh(g, skinMat()); m.userData.part = 'peau'; skin.add(m); applyBPXF(skin); bump(); }, undefined, ()=>bump()); }
+
+function loadVHOrgans(){ const L = new STLLoader(); vhAll = new THREE.Group(); scene.add(vhAll);
+  VH.forEach(spec=>{ L.load('../assets/3d/models/'+spec.f, g=>{ g.computeVertexNormals();
+    const mat = spec.vessel
+      ? new THREE.MeshStandardMaterial({ color:spec.col, roughness:0.4, metalness:0.1, emissive:new THREE.Color(0xb02018), emissiveIntensity:0.4, side:THREE.DoubleSide })
+      : new THREE.MeshPhysicalMaterial({ color:spec.col, roughness:0.36, clearcoat:0.6, clearcoatRoughness:0.34, envMapIntensity:1.0, sheen:0.5, sheenColor:new THREE.Color(spec.col), emissive:new THREE.Color(spec.col), emissiveIntensity:0.05, transparent:spec.op<1, opacity:spec.op, side:THREE.DoubleSide });
+    const m = new THREE.Mesh(g, mat); m.userData.part = spec.part; m.userData.layers = spec.lay; if(!MOBILE) m.castShadow = true;
+    if(spec.vessel) vhVessels.push(m);
+    if(spec.breathe){ m.userData.breathe = 1; }
+    if(spec.brain){ m.userData.brain = 1; }
+    if(spec.part==='coeur'){
+      // Le cœur bat par mise à l'échelle : on recentre sa géométrie sur son
+      // propre centre (l'origine STL est déloignée du centroïde), sinon le
+      // battement le fait « bondir » hors du thorax au lieu de pulser sur place.
+      g.computeBoundingBox(); const hc = new THREE.Vector3(); g.boundingBox.getCenter(hc);
+      g.translate(-hc.x,-hc.y,-hc.z); m.position.copy(hc);
+      heart = m;
+    }
+    vhAll.add(m); bump();
+  }, undefined, ()=>bump()); });
+}
+function placeVH(){ if(!vhAll||!vhAll.children.length) return; applyBPXF(vhAll); vhReady = true; setSys(sys); }
+
+function loadSkeleton(){ const L = new STLLoader(); bpGroup = new THREE.Group(); scene.add(bpGroup); let n = 0; const pend = [];
+  SK.forEach(spec=>{ L.load('../assets/3d/models/'+spec.f+'.stl', g=>{ g.computeVertexNormals(); const m = new THREE.Mesh(g, boneMat()); m.userData.part = spec.part; m.userData.mir = spec.mir; if(!MOBILE) m.castShadow = true; bpGroup.add(m); pend.push(m); bump(); if(++n>=SK.length) placeBP(pend); }, undefined, ()=>{ bump(); if(++n>=SK.length) placeBP(pend); }); });
+}
+function placeBP(meshes){ if(!bpGroup||!bpGroup.children.length) return;
+  bpGroup.rotation.set(BPTRANSFORM.rotX,0,0); bpGroup.scale.setScalar(1); bpGroup.position.set(0,0,0); bpGroup.updateMatrixWorld(true);
+  let box = new THREE.Box3().setFromObject(bpGroup); const size = new THREE.Vector3(); box.getSize(size); const sc = BPTRANSFORM.targetH/(size.y||1); bpGroup.scale.setScalar(sc); bpGroup.updateMatrixWorld(true);
+  box = new THREE.Box3().setFromObject(bpGroup); const c = new THREE.Vector3(); box.getCenter(c); bpGroup.position.set(BPTRANSFORM.cx-c.x, BPTRANSFORM.cy-c.y, BPTRANSFORM.cz-c.z);
+  const axial = meshes.filter(m=>!m.userData.mir); const ab = new THREE.Box3(); axial.forEach(m=>ab.expandByObject(m)); const mid = axial.length? (ab.min.x+ab.max.x)/2 : 0;
+  meshes.filter(m=>m.userData.mir).forEach(m=>{ const cl = new THREE.Mesh(m.geometry, boneMat()); cl.userData.part = m.userData.part; cl.scale.x = -1; cl.position.x = 2*mid; cl.material.side = THREE.DoubleSide; m.material.side = THREE.DoubleSide; if(!MOBILE) cl.castShadow = true; bpGroup.add(cl); });
+  BPXF = { sc:bpGroup.scale.x, pos:bpGroup.position.clone() }; alignBody();
+  bpReady = true; if(vhAll && !vhReady) placeVH(); setSys(sys);
+}
+
+/* ============================================================
+   INTERFACE
+   ============================================================ */
+function buildUI(){ const stage = shell.stage;
+  // overlay de chargement
+  const load = document.createElement('div'); load.className = 'an-load'; load.id = 'anLoad';
+  load.innerHTML = `<div class="beat">❤️</div><div class="txt">Préparation du corps humain…</div><div class="bar"><i id="anLoadBar"></i></div>`;
+  stage.appendChild(load);
+
+  // barre des systèmes
+  const sy = document.createElement('div'); sy.className = 'an-panel an-sys'; sy.setAttribute('role','tablist'); sy.setAttribute('aria-label','Systèmes du corps');
+  const sw = c=>`<span class="sw" style="background:#${c.toString(16).padStart(6,'0')}"></span>`;
+  sy.innerHTML = `
+    <button class="an-s" data-s="organes" aria-pressed="true">${sw(SYSCOL.organes)} Organes</button>
+    <button class="an-s" data-s="squelette">${sw(SYSCOL.squelette)} Squelette</button>
+    <button class="an-s" data-s="muscles">${sw(SYSCOL.muscles)} Muscles</button>
+    <button class="an-s" data-s="circulatoire">${sw(SYSCOL.circulatoire)} Circulatoire</button>
+    <button class="an-s" data-s="respiratoire">${sw(SYSCOL.respiratoire)} Respiratoire</button>
+    <button class="an-s" data-s="nerveux">${sw(SYSCOL.nerveux)} Nerveux</button>
+    <button class="an-s" data-s="complet">🧍 Complet</button>
+    <button class="an-s alt" id="anTour">🧭 Visite guidée</button>
+    <button class="an-s alt" id="anNot">📚 Cours</button>`;
+  stage.appendChild(sy);
+  sy.querySelectorAll('[data-s]').forEach(b=> b.onclick = ()=>{ setSys(b.dataset.s); shell.sound('click'); });
+  sy.querySelector('#anTour').onclick = ()=> startTour();
+  sy.querySelector('#anNot').onclick = ()=> openNotions();
+
+  // panneau gauche
+  const left = document.createElement('div'); left.className = 'an-panel an-left';
+  left.innerHTML = `
+    <h3>Affichage</h3>
+    <div class="an-tgrow">
+      <button class="an-tg" id="anLbl" aria-pressed="false">🏷 Étiquettes</button>
+      <button class="an-tg" id="anCut" aria-pressed="false">✂️ Coupe</button>
+      <button class="an-tg" id="anRot" aria-pressed="false">↻ Rotation</button>
+      <button class="an-tg" id="anReset">🎯 Recentrer</button>
+    </div>
+    <div class="an-skinrow">👤 Peau <input type="range" id="anSkin" min="0" max="70" value="14" aria-label="Transparence de la peau"></div>
+    <h3 id="anListTitle">Organes</h3>
+    <div class="an-list" id="anList" role="listbox" aria-label="Structures du système"></div>`;
+  stage.appendChild(left);
+  left.querySelector('#anLbl').onclick = function(){ showLabels = this.getAttribute('aria-pressed')!=='true'; this.setAttribute('aria-pressed', showLabels); shell.sound('click'); if(!showLabels) Object.values(labels).forEach(e=>e.style.display='none'); };
+  left.querySelector('#anCut').onclick = function(){ cutaway = this.getAttribute('aria-pressed')!=='true'; this.setAttribute('aria-pressed', cutaway); shell.sound('click'); renderer.clippingPlanes = cutaway ? [clipPlane] : []; shell.say(cutaway?"Vue en coupe : on regarde à l'intérieur du corps, comme une tranche.":"Vue entière rétablie.",'curieux'); };
+  left.querySelector('#anRot').onclick = function(){ controls.autoRotate = this.getAttribute('aria-pressed')!=='true'; this.setAttribute('aria-pressed', controls.autoRotate); };
+  left.querySelector('#anReset').onclick = ()=>{ resetView(); shell.sound('click'); };
+  left.querySelector('#anSkin').oninput = function(){ skinOpacity = (+this.value)/100; skin.traverse(m=>{ if(m.material){ m.material.opacity = skinOpacity; m.visible = skinOpacity>0.01; } }); };
+
+  // fiche info (droite)
+  const info = document.createElement('div'); info.className = 'an-panel an-info'; info.id = 'anInfo'; info.setAttribute('role','dialog'); info.setAttribute('aria-label','Fiche organe'); stage.appendChild(info);
+
+  // barre de quiz
+  const quizBar = document.createElement('div'); quizBar.className = 'an-quiz'; quizBar.id = 'anQuiz'; stage.appendChild(quizBar);
+
+  // signes vitaux
+  const vit = document.createElement('div'); vit.className = 'an-panel an-vitals';
+  vit.innerHTML = `<div class="grp"><div class="v heart" id="anBpm">72</div><div class="k">❤️ pouls/min</div></div><div class="grp"><div class="v breath" id="anBr">15</div><div class="k">🫁 resp./min</div></div>`;
+  stage.appendChild(vit);
+
+  // indice bas
+  const hint = document.createElement('div'); hint.className = 'an-hint'; hint.id = 'anHint'; hint.setAttribute('aria-live','polite');
+  hint.innerHTML = 'Clique une structure ou choisis-la dans la liste · change de <b>système</b> en haut'; stage.appendChild(hint);
+
+  // visite guidée (overlay)
+  const tourEl = document.createElement('div'); tourEl.className = 'an-tour'; tourEl.id = 'anTourEl'; stage.appendChild(tourEl);
+
+  // flash bienveillant
+  const flash = document.createElement('div'); flash.className = 'an-flash'; flash.id = 'anFlash'; stage.appendChild(flash);
+}
+
+function rebuildList(){ const list = document.getElementById('anList'); const title = document.getElementById('anListTitle'); if(!list) return;
+  const s = (sys==='complet') ? 'complet' : sys; title.textContent = SYS_LABEL[s] || 'Structures';
+  const keys = SYS_PARTS[s] || [];
+  list.innerHTML = keys.map(k=>{ const d = PARTS[k]; if(!d) return ''; return `<button class="an-oi" data-k="${k}" role="option"><span class="sw" style="background:#${d.col.toString(16).padStart(6,'0')}"></span>${d.n}</button>`; }).join('');
+  list.querySelectorAll('[data-k]').forEach(b=> b.onclick = ()=>{ selectPart(b.dataset.k, true); });
+}
+
+/* ============================================================
+   BASCULE DE SYSTÈME
+   ============================================================ */
+function setSys(s){ sys = s; const comp = (s==='complet');
+  document.querySelectorAll('[data-s]').forEach(x=> x.setAttribute('aria-pressed', x.dataset.s===s));
+  const VH_REPLACED = ['coeur','poumons','foie','reins','cerveau','cervelet','trachee','estomac','intestin','colon','aorte','arteres','veines','moelle','nerfs','pectoraux','deltoides','biceps','abdominaux','quadriceps','ischios','mollets','trapezes','pancreas','vessie','oesophage'];
+  Object.entries(SYS).forEach(([k,g])=>{
+    if(k==='squelette'){ g.visible = (k===s) && !bpReady; return; }
+    if(vhReady && VH_SYS.includes(k)){ g.visible = (k===s||comp); g.traverse(oo=>{ if(oo.isMesh && oo.userData.part) oo.visible = !VH_REPLACED.includes(oo.userData.part); }); return; }
+    g.visible = (k===s);
+  });
+  if(bpGroup) bpGroup.visible = bpReady && (s==='squelette'||comp);
+  if(vhAll) vhAll.children.forEach(m=> m.visible = vhReady && (m.userData.layers.includes(s) || (comp && ['coeur','poumons','foie','reins','cerveau'].includes(m.userData.part))));
+  blood.forEach(b=> b.visible = (s==='circulatoire' && !vhReady));
+  Object.values(labels).forEach(e=> e.style.display='none');
+  rebuildList(); refreshBreathers(); clearSelection();
+  const msg = { organes:"Les organes vitaux logés dans le tronc.", squelette:"206 os : le squelette te soutient et te protège.", muscles:"~600 muscles pour bouger et tenir debout.", circulatoire:"Le cœur, les artères (rouge) et les veines (bleu).", respiratoire:"Trachée, bronches, poumons et diaphragme.", nerveux:"Cerveau, cervelet, moelle et nerfs commandent tout.", complet:"Le corps au complet : tous les systèmes réunis." }[s];
+  if(msg && !tour) shell.say(msg,'concentre');
+}
+
+function refreshBreathers(){ breathers = []; const collect = root=>{ if(!root) return; root.traverse(o=>{ if(o.isMesh && o.visible!==false && (o.userData.part==='poumons')){ if(!o.userData.baseScale) o.userData.baseScale = o.scale.clone(); breathers.push({m:o, base:o.userData.baseScale}); } }); };
+  collect(SYS.organes); collect(SYS.respiratoire); collect(vhAll);
+}
+
+/* ============================================================
+   SÉLECTION / RAYCAST / SURVOL
+   ============================================================ */
+function visibleParts(){ const out = []; const push = o=>{ if(o.isMesh && o.visible!==false && !o.userData.noclick) out.push(o); };
+  const g = SYS[sys]; if(g && g.visible) g.traverse(push);
+  if(sys==='complet'){ ['organes','respiratoire','circulatoire','nerveux','muscles'].forEach(k=>{ if(SYS[k]) SYS[k].traverse(push); }); }
+  if(vhAll) vhAll.children.forEach(m=>{ if(m.visible) push(m); });
+  if(bpGroup && bpGroup.visible) bpGroup.traverse(push);
+  return out;
+}
+function partMeshes(k){ const out = []; visibleParts().forEach(o=>{ let p = o; while(p && !p.userData.part) p = p.parent; if(p && p.userData.part===k) out.push(o); }); return out; }
+function partCenter(k){ const ms = partMeshes(k); if(!ms.length) return null; const box = new THREE.Box3(); ms.forEach(m=>box.expandByObject(m)); const c = new THREE.Vector3(); box.getCenter(c); const sz = new THREE.Vector3(); box.getSize(sz); return { c, r:Math.max(0.4, sz.length()*0.5) }; }
+
+function setP(e){ const r = renderer.domElement.getBoundingClientRect(); pointer.x = ((e.clientX-r.left)/r.width)*2-1; pointer.y = -((e.clientY-r.top)/r.height)*2+1; }
+function hit(){ raycaster.setFromCamera(pointer, camera); const h = raycaster.intersectObjects(visibleParts(), false); if(!h.length) return null; let o = h[0].object; while(o && !o.userData.part) o = o.parent; return o; }
+function onMove(e){ setP(e); const o = hit(); renderer.domElement.style.cursor = o?'pointer':'grab';
+  const k = o ? o.userData.part : null; if(k!==hovered){ hovered = k; updateOutline(); } }
+function onDown(e){ setP(e); const o = hit(); if(!o) return; const k = o.userData.part; if(PARTS[k]) selectPart(k, false); }
+
+function selectPart(k, fromList){ const d = PARTS[k]; if(!d) return; selected = k;
+  openFiche(k, d); updateOutline();
+  const ctr = partCenter(k); if(ctr) focusOn(ctr.c, ctr.r);
+  document.querySelectorAll('#anList .an-oi').forEach(b=> b.setAttribute('aria-current', b.dataset.k===k));
+  shell.say(d.role || d.info[0].replace(/<[^>]+>/g,''),'concentre'); shell.sound('pop');
+  if(quiz) checkQuiz(k);
+}
+function clearSelection(){ selected = null; document.querySelectorAll('#anList .an-oi').forEach(b=> b.removeAttribute('aria-current')); updateOutline(); }
+function updateOutline(){ if(!outline) return; const set = new Set(); if(selected) partMeshes(selected).forEach(m=>set.add(m)); if(hovered && hovered!==selected) partMeshes(hovered).forEach(m=>set.add(m)); outline.selectedObjects = [...set]; }
+
+/* ---- zoom doux vers un organe ---- */
+function focusOn(pos, radius){ camTarget = pos.clone(); camDist = Math.min(controls.maxDistance, Math.max(5.5, radius*4.4)); camMove = true; }
+function resetView(){ camTarget = homeTarget.clone(); camDist = homePos.distanceTo(homeTarget); camMove = true; clearSelection(); document.getElementById('anInfo').classList.remove('show'); }
+
+/* ============================================================
+   FICHES
+   ============================================================ */
+function openFiche(k, d){ const el = document.getElementById('anInfo'); const hex = '#'+(d.col||0xE63329).toString(16).padStart(6,'0');
+  const others = (SYS_PARTS[d.sys]||[]).filter(x=>x!==k && PARTS[x]).slice(0,4);
+  el.innerHTML = `
+    <div class="an-hd" style="background:linear-gradient(135deg,${hex},#1a1020)">
+      <div class="sub">${d.s}</div><h2>${d.n}</h2>
+      <button class="an-x" aria-label="Fermer la fiche">×</button>
+    </div>
+    <div class="an-body">
+      ${d.role?`<div class="an-sec">En un mot</div><p style="font-weight:700">${d.role}</p>`:''}
+      <div class="an-sec">Comment ça marche</div>${d.info.map(p=>`<p>${p}</p>`).join('')}
+      ${d.fun?`<div class="an-fun">💡 ${d.fun}</div>`:''}
+      ${others.length?`<div class="an-sec">À côté, il y a…</div><div class="an-chips">${others.map(x=>`<button data-k="${x}">${PARTS[x].n}</button>`).join('')}</div>`:''}
+    </div>`;
+  el.classList.add('show');
+  el.querySelector('.an-x').onclick = ()=> el.classList.remove('show');
+  el.querySelectorAll('.an-chips [data-k]').forEach(b=> b.onclick = ()=> selectPart(b.dataset.k, true));
+}
+function openNotions(){ const el = document.getElementById('anInfo');
+  el.innerHTML = `
+    <div class="an-hd" style="background:linear-gradient(135deg,#E63329,#221018)"><div class="sub">Cours · encyclopédie</div><h2>📚 Les systèmes du corps</h2><button class="an-x" aria-label="Fermer">×</button></div>
+    <div class="an-body"><p style="color:var(--fg-muted)">Choisis une notion pour la lire, puis lance « Trouve l'organe » via le bouton Cours du bandeau du jeu.</p><div class="an-chips">${NOTIONS.map(n=>`<button data-id="${n.id}">${n.name}</button>`).join('')}</div></div>`;
+  el.classList.add('show');
+  el.querySelector('.an-x').onclick = ()=> el.classList.remove('show');
+  el.querySelectorAll('[data-id]').forEach(b=> b.onclick = ()=>{ const n = NOTIONS.find(x=>x.id===b.dataset.id); openFiche(null, {n:n.name, s:'Cours', info:n.desc, col:0xE63329}); shell.sound('pop'); });
+  shell.sound('click');
+}
+
+/* ============================================================
+   VISITE GUIDÉE (phases guidées)
+   ============================================================ */
+const TOUR = [
+  {sys:'squelette', icon:'🦴', title:'Le squelette', cap:"206 os te tiennent debout et protègent tes organes. C'est la charpente du corps.", focus:'crane'},
+  {sys:'muscles', icon:'💪', title:'Les muscles', cap:"~600 muscles s'accrochent au squelette. Ils se contractent pour te faire bouger.", focus:'pectoraux'},
+  {sys:'circulatoire', icon:'❤️', title:'Le cœur et le sang', cap:"Le cœur pompe le sang jour et nuit. Regarde-le battre : rouge pour l'aller, bleu pour le retour !", focus:'coeur'},
+  {sys:'respiratoire', icon:'🫁', title:'La respiration', cap:"Les poumons gonflent et se vident pour capter l'oxygène de l'air. Observe-les respirer.", focus:'poumons'},
+  {sys:'nerveux', icon:'🧠', title:'Le cerveau', cap:"Le cerveau est le chef : il envoie des messages par les nerfs, plus vite qu'une voiture de course.", focus:'cerveau'},
+  {sys:'organes', icon:'🍽️', title:'La digestion', cap:"Estomac, foie et intestins transforment les aliments en énergie pour tout le corps.", focus:'estomac'},
+];
+function startTour(){ tour = { i:0 }; shell.sound('click'); document.getElementById('anTourEl').classList.add('on'); renderTour(); }
+function renderTour(){ const el = document.getElementById('anTourEl'); const ph = TOUR[tour.i];
+  setSys(ph.sys); const ctr = partCenter(ph.focus); if(ctr) focusOn(ctr.c, ctr.r*1.3);
+  shell.say(ph.cap, tour.i===0?'enthousiaste':'concentre');
+  const dots = TOUR.map((p,i)=>`<i class="${i<tour.i?'done':i===tour.i?'now':''}"></i>`).join('');
+  const last = tour.i===TOUR.length-1;
+  el.innerHTML = `<div class="an-tour-card" role="dialog" aria-label="Visite guidée">
+    <div class="an-tour-phase">Visite guidée · étape ${tour.i+1} / ${TOUR.length}</div>
+    <h3 class="an-tour-title">${ph.icon} ${ph.title}</h3>
+    <p class="an-tour-cap">${ph.cap}</p>
+    <div class="an-tour-steps">${dots}</div>
+    <div class="an-tour-row">
+      <button id="anTourQuit">Quitter</button>
+      <button class="go" id="anTourNext">${last?'Terminer ✓':'Suivant ▸'}</button>
+    </div></div>`;
+  el.querySelector('#anTourQuit').onclick = ()=> endTour();
+  el.querySelector('#anTourNext').onclick = ()=>{ shell.sound('good'); if(last){ endTour(true); } else { tour.i++; renderTour(); } };
+}
+function endTour(done){ tour = null; document.getElementById('anTourEl').classList.remove('on'); document.getElementById('anTourEl').innerHTML = '';
+  if(done){ shell.say("Bravo, tu as fait le tour du corps humain ! Explore maintenant à ton rythme, ou lance le mode Cours.",'celebration'); shell.sound('win'); }
+  else shell.say("Pas de souci, explore librement quand tu veux.",'rassurant');
+  setSys('organes');
+}
+
+/* ============================================================
+   MODE COURS — « Trouve l'organe » (3 niveaux, bienveillant)
+   ============================================================ */
+const QUIZ_TIERS = {
+  debutant:{ label:'Découverte', clue:d=>`Trouve : <b>${d.n}</b>`, say:d=>`Clique sur : ${d.n}.` },
+  inter:{ label:'Curieux', clue:d=>`Clique l'organe du <b>${d.s.replace('Système ','').toLowerCase()}</b> qui : « ${short(d)} »`, say:d=>`Indice : ${d.s}. À toi de le repérer !` },
+  expert:{ label:'Expert', clue:d=>`Quel organe : « <b>${short(d)}</b> » ?`, say:d=>`D'après son rôle, retrouve-le.` },
+};
+function short(d){ return (d.role || d.info[0]).replace(/<[^>]+>/g,'').split(/[.:;]/)[0]; }
+
+function startMode(m){ startVitals(); if(m==='cours'){ shell.setScore(0); chooseDifficulty(); } else { clearQuiz(); } }
+function chooseDifficulty(){ clearQuiz(); const b = document.getElementById('anHint');
+  b.innerHTML = '🎯 Choisis ton niveau : ' + Object.keys(QUIZ_TIERS).map(k=>`<button class="an-s alt" data-t="${k}" style="padding:6px 12px;margin:0 3px">${QUIZ_TIERS[k].label}</button>`).join('');
+  b.querySelectorAll('[data-t]').forEach(x=> x.onclick = ()=>{ shell.sound('click'); quizTier = x.dataset.t; startQuiz(); });
+  shell.say('Découverte : on te donne le nom. Curieux : par le système + un indice. Expert : uniquement le rôle.','curieux');
+}
+function startQuiz(){ const pool = Object.keys(PARTS).filter(k=> k!=='peau' && k!=='muscle'); const order = pool.sort(()=>Math.random()-.5).slice(0,6);
+  quiz = { order, idx:0, score:0, total:6 }; shell.setProgress(0); shell.setStars(0);
+  const b = document.getElementById('anHint'); b.innerHTML = 'Regarde la question en haut, puis clique le bon organe. On t\'encourage à chaque essai !';
+  askQuiz();
+}
+function askQuiz(){ if(!quiz) return; if(quiz.idx>=quiz.total){ winQuiz(); return; }
+  const k = quiz.order[quiz.idx]; const d = PARTS[k]; const target = d.sys;
+  if(sys!==target && !(sys==='complet' && SYS_PARTS.complet.includes(k))) setSys(target);
+  const T = QUIZ_TIERS[quizTier]; const bar = document.getElementById('anQuiz'); bar.className = 'an-quiz on';
+  bar.innerHTML = `<span class="qn">${quiz.idx+1}/${quiz.total}</span><span>${T.clue(d)}</span>`;
+  shell.say(T.say(d),'curieux');
+}
+function checkQuiz(k){ if(!quiz) return; const want = quiz.order[quiz.idx]; const bar = document.getElementById('anQuiz');
+  if(k===want){ quiz.score++; quiz.idx++; shell.addScore(150); shell.sound('good'); shell.setProgress(quiz.idx/quiz.total); shell.setStars(Math.min(3, Math.round(quiz.score/quiz.total*3)));
+    bar.className = 'an-quiz on good'; bar.innerHTML = `✅ Bravo ! C'est bien le/la ${PARTS[want].n}.`; flashScreen('rgba(30,140,122,.28)');
+    shell.say('Exact, bien joué !','celebration'); setTimeout(askQuiz, 1050);
+  } else {
+    shell.sound('pop'); bar.className = 'an-quiz on bad'; bar.innerHTML = `🙂 Ce n'est pas ${PARTS[k].n}. Regarde encore : on cherche « ${short(PARTS[want])} ». Réessaie !`;
+    flashScreen('rgba(230,120,60,.22)'); shell.say("Pas grave, tu apprends ! Cherche encore, tu vas trouver.",'rassurant');
+    setTimeout(()=>{ if(quiz){ const T = QUIZ_TIERS[quizTier]; bar.className = 'an-quiz on'; bar.innerHTML = `<span class="qn">${quiz.idx+1}/${quiz.total}</span><span>${T.clue(PARTS[want])}</span>`; } }, 2100);
+  }
+}
+function winQuiz(){ const bar = document.getElementById('anQuiz'); bar.className = 'an-quiz'; const st = quiz.score>=6?3:quiz.score>=4?2:1; const sc = quiz.score*150;
+  shell.win({ score:sc, stars:st, title:`${quiz.score}/6 organes localisés !`, learned:shell.cfg.learned,
+    buddy:"Tu connais de mieux en mieux ton corps. Bravo, apprenti·e médecin !",
+    onNext:()=>{ window.location.href = '/learning/hub'; }, nextLabel:'Explorer d\'autres mondes' });
+  quiz = null;
+}
+function clearQuiz(){ quiz = null; const bar = document.getElementById('anQuiz'); if(bar) bar.className = 'an-quiz'; const b = document.getElementById('anHint'); if(b) b.innerHTML = 'Clique une structure ou choisis-la dans la liste · change de <b>système</b> en haut'; }
+
+/* ============================================================
+   RETOURS SENSORIELS DOUX
+   ============================================================ */
+function flashScreen(color){ if(REDUCED) return; const f = document.getElementById('anFlash'); if(!f) return; f.style.background = `radial-gradient(circle at 50% 60%, ${color}, transparent 70%)`; f.style.opacity = '1'; setTimeout(()=>f.style.opacity = '0', 260); }
+function pulseHintFind(){ const h = document.getElementById('anHint'); if(!h||REDUCED) return; h.animate([{transform:'translateX(-50%) scale(1)'},{transform:'translateX(-50%) scale(1.06)'},{transform:'translateX(-50%) scale(1)'}], {duration:600}); }
+
+/* ---- battement cardiaque audible (doux) ---- */
+let vitalsAC = null;
+function startVitals(){ if(vitalsAC || shell.muted) return; try{ vitalsAC = new (window.AudioContext||window.webkitAudioContext)();
+  window._beat = setInterval(()=>{ if(!vitalsAC || shell.muted || sys==='squelette') return; [0,0.16].forEach((off,i)=>{ const o = vitalsAC.createOscillator(), gg = vitalsAC.createGain(); o.type = 'sine'; o.frequency.value = i?62:48; gg.gain.setValueAtTime(0, vitalsAC.currentTime+off); gg.gain.linearRampToValueAtTime(0.12, vitalsAC.currentTime+off+0.02); gg.gain.exponentialRampToValueAtTime(0.0001, vitalsAC.currentTime+off+0.2); o.connect(gg); gg.connect(vitalsAC.destination); o.start(vitalsAC.currentTime+off); o.stop(vitalsAC.currentTime+off+0.22); }); }, 60000/bpm);
+}catch(e){} }
+
+/* ============================================================
+   CLAVIER
+   ============================================================ */
+function onKey(e){ const map = {'1':'organes','2':'squelette','3':'muscles','4':'circulatoire','5':'respiratoire','6':'nerveux','7':'complet'};
+  if(map[e.key]){ setSys(map[e.key]); shell.sound('click'); return; }
+  const k = e.key.toLowerCase();
+  if(k==='l'){ const b = document.getElementById('anLbl'); if(b) b.click(); }
+  else if(k==='c'){ const b = document.getElementById('anCut'); if(b) b.click(); }
+  else if(k==='p'){ const s = document.getElementById('anSkin'); if(s){ s.value = (+s.value>7)?'0':'40'; s.dispatchEvent(new Event('input')); } }
+  else if(k==='r'){ resetView(); }
+}
+
+/* ============================================================
+   THÈME / RESIZE
+   ============================================================ */
+function applyTheme(){ const dark = document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x06060c:0x0a0a16, 1); const bd = scene.children.find(o=>o.userData && o.userData.backdrop); if(bd) bd.material.opacity = 1; }
+function onResize(){ const s = shell.stage; if(!s.clientWidth) return; camera.aspect = s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth, s.clientHeight); composer.setSize(s.clientWidth, s.clientHeight); if(outline) outline.setSize(s.clientWidth, s.clientHeight); }
+
+/* ============================================================
+   BOUCLE
+   ============================================================ */
+function animate(){ requestAnimationFrame(animate); const dt = clock.getDelta(); const t = clock.elapsedTime;
+  // cœur qui bat
+  const amp = REDUCED?0.05:0.16; const beat = Math.pow(Math.abs(Math.sin(t*bpm/60*Math.PI)), 6); const sc = 1+beat*amp;
+  if(heart && heart.parent && heart.parent.visible!==false){ if(heart.userData.baseScale===undefined) heart.userData.baseScale = heart.scale.x; const b = heart.userData.baseScale||1; heart.scale.setScalar(b*sc); heart.traverse(c=>{ if(c.material && c.material.emissive) c.material.emissiveIntensity = 0.06+beat*0.45; }); }
+  // poumons qui respirent
+  if(breathers.length){ const br = (Math.sin(t*breath/60*Math.PI*2)*0.5+0.5); const f = 1+(REDUCED?0.02:0.07)*br; breathers.forEach(o=>{ o.m.scale.set(o.base.x*(1+(f-1)*0.5), o.base.y*f, o.base.z*(1+(f-1)*0.5)); }); }
+  // cerveau : légère pulsation d'émission
+  if(vhAll && sys==='nerveux' && !REDUCED){ vhAll.children.forEach(m=>{ if(m.userData.brain && m.material) m.material.emissiveIntensity = 0.05+ (Math.sin(t*1.4)*0.5+0.5)*0.12; }); }
+  // vaisseaux qui pulsent avec le cœur
+  if(vhVessels.length && sys==='circulatoire'){ const pulse = 0.3+beat*0.9; vhVessels.forEach(v=>{ v.material.emissiveIntensity = pulse; }); }
+  // sang procédural (repli)
+  if(sys==='circulatoire' && !vhReady){ blood.forEach((b,i)=>{ b.userData.t = (b.userData.t+dt*0.16)%1; const tt = b.userData.t; const ang = tt*Math.PI*2+i; b.position.set(Math.sin(ang)*0.7*Math.sin(tt*Math.PI)+0.1, 1.0+tt*3.4, Math.cos(ang)*0.35+0.2); }); }
+  // zoom doux
+  if(camMove && camTarget){ controls.target.lerp(camTarget, 0.08); const dir = camera.position.clone().sub(controls.target).normalize(); const want = camTarget.clone().add(dir.multiplyScalar(camDist)); camera.position.lerp(want, 0.06); if(camera.position.distanceTo(want)<0.35) camMove = false; }
+  if(showLabels) updateLabels();
+  controls.update(); composer.render();
+}
+function updateLabels(){ const stage = shell.stage; const seen = {}; const items = [];
+  visibleParts().forEach(o=>{ let p = o; while(p && !p.userData.part) p = p.parent; const k = p && p.userData.part; if(k && PARTS[k] && !seen[k]){ seen[k] = 1; items.push([k,o]); } });
+  // masque les anciennes
+  Object.keys(labels).forEach(k=>{ if(!seen[k] && labels[k]) labels[k].style.display = 'none'; });
+  items.forEach(([k,o])=>{ let el = labels[k]; if(!el){ el = document.createElement('div'); el.className = 'an-lbl'; el.textContent = PARTS[k].n; stage.appendChild(el); labels[k] = el; }
+    const wp = new THREE.Vector3(); o.getWorldPosition(wp); const v = wp.clone().project(camera);
+    if(v.z>1){ el.style.display = 'none'; return; } el.style.display = 'block';
+    el.style.left = ((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top = ((-v.y*.5+.5)*stage.clientHeight)+'px'; });
+}
+
+/* controls après création dans init : réglages doux */
+function setupControlsDefaults(){ controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.08; controls.minDistance = 5; controls.maxDistance = 30; controls.target.copy(homeTarget); controls.autoRotate = REDUCED; controls.autoRotateSpeed = 0.4; controls.enablePan = false; controls.rotateSpeed = 0.85; }
+</script>
+</body>
+</html>

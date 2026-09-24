@@ -65,7 +65,7 @@ C'est la principale différence avec le roman, et c'est elle qui rend le théât
 :::
 
 ::: exemple Une héroïne de manga face aux attentes des autres
-Dans *The Ogre's Bride*, une jeune fille est donnée en mariage à un ogre : la décision vient de sa communauté, pas d'elle. Tout le récit tient dans l'écart entre ce que les autres attendent d'elle et ce qu'elle veut réellement, et dans la manière dont elle finit par décider par elle-même. C'est exactement la **confrontation de valeurs** que ce chapitre étudie chez Antigone face à Créon : une règle collective d'un côté, une conviction personnelle de l'autre, et un personnage qui doit choisir.
+Dans *The Ogre's Bride*, Yuzu est une lycéenne que sa famille compare sans cesse à sa sœur aînée, devenue l'épouse d'un renard ayakashi, et qu'elle traite comme si elle ne valait rien. Le jour où un ogre la choisit comme épouse, elle doit décider ce qu'elle vaut à ses propres yeux, et non plus au regard des siens. C'est la **confrontation de valeurs** que ce chapitre étudie avec Antigone face à Créon : d'un côté ce qu'un groupe attend d'une personne, de l'autre ce qu'elle décide d'être. La différence est que Yuzu ne se dresse pas contre une loi, mais contre un jugement : la question posée est la même, qui décide de ce que je vaux ?
 :::
 
 ## 2. Le vocabulaire de la pièce

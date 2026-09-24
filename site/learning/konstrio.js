@@ -15,7 +15,7 @@
   const synth = window.speechSynthesis || null;
 
   function eyes(e) {
-    const L = 44, R = 76, Y = 60, cyan = '#46E3FF', glow = 'filter:drop-shadow(0 0 5px rgba(64,224,255,.95));';
+    const L = 56, R = 94, Y = 74, cyan = '#0B1A3A', glow = 'filter:drop-shadow(0 0 2px rgba(255,255,255,.9));';
     const arc = (cx) => `<path d="M${cx-11} ${Y-2} Q${cx} ${Y+9} ${cx+11} ${Y-2}" fill="none" stroke="${cyan}" stroke-width="5" stroke-linecap="round" style="${glow}"/>`;
     const dot = (cx, r=6) => `<circle cx="${cx}" cy="${Y}" r="${r}" fill="${cyan}" style="${glow}"/>`;
     const oval = (cx, rx=6, ry=9) => `<ellipse cx="${cx}" cy="${Y}" rx="${rx}" ry="${ry}" fill="${cyan}" style="${glow}"/>`;
@@ -41,36 +41,38 @@
   const ledColor = { celebration:'#F5A623', fier:'#29B6E0', surpris:'#E63329', curieux:'#9B2BB0', idle:'#465', enthousiaste:'#29B6E0', amour:'#E63329', idee:'#FFD24A' };
 
   function avatarSVG(e, speaking) {
+    // Opale : une opale taillée, aux reflets d'aurore boréale, avec de grands
+    // yeux de manga et une étincelle. Même API que l'ancien avatar.
     const led = ledColor[e] || '#46E3FF';
     const mouth = speaking
-      ? `<g class="kb-mouth"><rect x="62" y="86" width="4" height="8" rx="2" fill="#46E3FF"/><rect x="69" y="82" width="4" height="14" rx="2" fill="#46E3FF"/><rect x="76" y="84" width="4" height="11" rx="2" fill="#46E3FF"/><rect x="83" y="82" width="4" height="14" rx="2" fill="#46E3FF"/></g>`
-      : '';
+      ? `<g class="kb-mouth"><rect x="62" y="96" width="4" height="7" rx="2" fill="#0B1A3A" opacity=".8"/><rect x="69" y="93" width="4" height="12" rx="2" fill="#0B1A3A" opacity=".8"/><rect x="76" y="95" width="4" height="9" rx="2" fill="#0B1A3A" opacity=".8"/><rect x="83" y="97" width="4" height="6" rx="2" fill="#0B1A3A" opacity=".8"/></g>`
+      : `<path d="M66 97 Q75 104 84 97" fill="none" stroke="#0B1A3A" stroke-width="3" stroke-linecap="round" opacity=".75"/>`;
     return `
     <svg class="kb-svg" viewBox="0 0 150 168" width="100%" height="100%" aria-hidden="true">
       <defs>
-        <linearGradient id="kb-head" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2C6FF0"/><stop offset="1" stop-color="#1B57D8"/></linearGradient>
-        <radialGradient id="kb-screen" cx="0.5" cy="0.42" r="0.75"><stop offset="0" stop-color="#1B2347"/><stop offset="1" stop-color="#0C1230"/></radialGradient>
+        <linearGradient id="kb-opale" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7FF0C8"/><stop offset=".45" stop-color="#2BB5A0"/><stop offset=".75" stop-color="#2A7FA6"/><stop offset="1" stop-color="#C79CE6"/></linearGradient>
+        <linearGradient id="kb-facette" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".85"/><stop offset="1" stop-color="#ffffff" stop-opacity=".15"/></linearGradient>
+        <radialGradient id="kb-halo" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="${led}" stop-opacity=".55"/><stop offset="1" stop-color="${led}" stop-opacity="0"/></radialGradient>
       </defs>
+      <circle cx="75" cy="88" r="72" fill="url(#kb-halo)"/>
       <g class="kb-body">
-        <rect x="40" y="120" width="30" height="30" rx="8" fill="#2C6FF0"/><rect x="71" y="120" width="30" height="30" rx="8" fill="#E63329"/>
-        <rect x="22" y="126" width="20" height="24" rx="7" fill="#2A3350"/><rect x="99" y="126" width="20" height="24" rx="7" fill="#2A3350"/>
-        <rect x="55" y="148" width="22" height="16" rx="6" fill="#29B6E0"/><rect x="64" y="148" width="22" height="16" rx="6" fill="#1E8C7A"/>
+        <path d="M75 8 L132 66 L75 160 L18 66 Z" fill="url(#kb-opale)"/>
+        <path d="M75 8 L132 66 L18 66 Z" fill="url(#kb-facette)"/>
+        <path d="M18 66 L75 76 L75 160 Z" fill="#0B1A3A" opacity=".18"/>
+        <path d="M30 60 C 50 40, 64 70, 82 52 S 112 38, 122 50" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity=".45"/>
       </g>
-      <line x1="75" y1="14" x2="75" y2="2" stroke="#2A3350" stroke-width="3" stroke-linecap="round"/>
-      <circle class="kb-led" cx="75" cy="6" r="5" fill="${led}"/>
-      <rect x="22" y="12" width="106" height="100" rx="22" fill="url(#kb-head)"/>
-      <rect x="30" y="20" width="90" height="84" rx="16" fill="url(#kb-screen)"/>
       <g class="kb-eyes">${eyes(e)}</g>
       ${mouth}
-      <rect x="63" y="108" width="24" height="16" rx="5" fill="#161B30"/>
+      <path class="kb-led" fill="${led}" d="M126 6c.6 4 1.6 6.2 3.4 7.5 1.4 1.1 3.4 1.7 6.7 2.3-3.3.6-5.3 1.2-6.7 2.3-1.8 1.3-2.8 3.5-3.4 7.5-.6-4-1.6-6.2-3.4-7.5-1.4-1.1-3.4-1.7-6.7-2.3 3.3-.6 5.3-1.2 6.7-2.3 1.8-1.3 2.8-3.5 3.4-7.5Z"/>
+      <circle cx="22" cy="130" r="3" fill="#fff" opacity=".7"/><circle cx="134" cy="112" r="2" fill="#fff" opacity=".6"/>
     </svg>`;
   }
 
   const CONTEXT_INTRO = {
-    espace:"Salut ! Je suis Konstrio, ton copilote de l'espace. Demande-moi tout sur les planètes, étoiles et galaxies.",
-    sciences:"Salut ! Konstrio à ton service pour explorer le vivant et les sciences.",
-    learning:"Salut ! Moi c'est Konstrio, ton tuteur. Choisis un jeu et je t'accompagne pas à pas.",
-    default:"Salut ! Moi c'est Konstrio. Pose-moi une question quand tu veux !"
+    espace:"Salut ! Je suis Opale, ta copilote de l'espace. Demande-moi tout sur les planètes, étoiles et galaxies.",
+    sciences:"Salut ! Opale à ton service pour explorer le vivant et les sciences.",
+    learning:"Salut ! Moi c'est Opale, ta tutrice. Choisis un jeu et je t'accompagne pas à pas.",
+    default:"Salut ! Moi c'est Opale. Pose-moi une question quand tu veux !"
   };
 
   const css = `
@@ -163,7 +165,7 @@
     toggle(){ if(this.hasAttribute('collapsed')) this.removeAttribute('collapsed'); else this.setAttribute('collapsed',''); }
     say(text, emotion, opts){ opts=opts||{}; if(emotion) this.setAttribute('emotion',emotion); this.setAttribute('message',text); this.removeAttribute('collapsed'); if(this._voice && (opts.speak!==false)) this.speak(text); }
     speak(text){ if(!synth||this._muted)return; try{ synth.cancel(); const u=new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,'').replace(/&[a-z]+;/g,' ')); u.lang='fr-FR'; if(this._frVoice)u.voice=this._frVoice; u.rate=1.02; u.pitch=1.05; u.onstart=()=>{ this._speaking=true; this.update(); }; u.onend=()=>{ this._speaking=false; this.update(); }; synth.speak(u); }catch(e){} }
-    _ctxPrompt(p){ const role="Tu es Konstrio, un tuteur pédagogique bienveillant pour l'espace de cours Opaline. Réponds en français, de façon claire, courte et adaptée à un élève. "; const z=this.context!=='default'?("Contexte/zone : "+this.context+". "):''; return role+z+"Question : "+p; }
+    _ctxPrompt(p){ const role="Tu es Opale, une tutrice pédagogique bienveillante pour l'espace de cours Opaline. Réponds en français, de façon claire, courte et adaptée à un élève. "; const z=this.context!=='default'?("Contexte/zone : "+this.context+". "):''; return role+z+"Question : "+p; }
     async ask(prompt){
       this.say('Hmm, laisse-moi réfléchir…','concentre',{speak:false});
       let answer;

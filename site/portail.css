@@ -24,7 +24,7 @@ body.corps-portail { background: #0b1a3a; overflow: hidden; }
   width: 100%;
   height: 100%;
   color: #ffffff;
-  opacity: 0.11;
+  opacity: 0.07;
   pointer-events: none;
 }
 /* Les bords de case sont à l'encre pleine, le dessin au trait fin. */
@@ -53,8 +53,8 @@ body.corps-portail { background: #0b1a3a; overflow: hidden; }
   position: absolute;
   inset: 0;
   background: radial-gradient(ellipse at 50% 50%,
-    rgba(11, 26, 58, 0.82) 0%, rgba(11, 26, 58, 0.5) 32%,
-    rgba(11, 26, 58, 0.12) 62%, rgba(11, 26, 58, 0) 100%);
+    rgba(11, 26, 58, 0.72) 0%, rgba(11, 26, 58, 0.38) 32%,
+    rgba(11, 26, 58, 0.08) 62%, rgba(11, 26, 58, 0) 100%);
   pointer-events: none;
 }
 
@@ -161,4 +161,11 @@ body.corps-portail { background: #0b1a3a; overflow: hidden; }
   .entree { padding: 1.6rem 1.4rem 1.5rem; }
   .entree::before { width: 2rem; height: 2rem; }
   .entree-titre { font-size: 1.5rem; }
+}
+
+/* ---------- Crédit de la photographie de fond ---------------------------- */
+.portail-credit {
+  position: absolute; left: 0; right: 0; bottom: 0.6rem; z-index: 1;
+  margin: 0; text-align: center; font-size: 0.68rem; letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.55);
 }

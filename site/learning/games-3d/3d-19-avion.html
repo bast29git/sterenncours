@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Konstrio · Avion de ligne</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">
+{ "imports": {
+  "three": "/learning/vendor/three.module.js",
+  "three/addons/": "/learning/vendor/jsm/"
+} }
+</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+<style>
+  .av-panel{ position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
+  /* panneau gauche : vue + gouvernes + affichage */
+  .av-left{ top:14px; left:14px; width:222px; padding:13px; display:flex; flex-direction:column; gap:12px; max-height:calc(100% - 130px); overflow:auto; }
+  .av-left h3{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); margin:0 0 6px; }
+  .av-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; }
+  .av-grid.two{ grid-template-columns:1fr 1fr; }
+  .av-t{ font-family:var(--font-body); font-weight:700; font-size:11px; padding:7px 4px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; min-height:36px; transition:.15s; text-align:center; }
+  .av-t[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .av-t:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .av-sl{ display:flex; flex-direction:column; gap:3px; font-size:11.5px; }
+  .av-sl label{ display:flex; justify-content:space-between; align-items:center; }
+  .av-sl b{ font-family:var(--font-data); color:var(--accent-text); }
+  .av-sl input{ accent-color:var(--accent); width:100%; }
+  .av-sl .mini{ font-family:var(--font-mono); font-size:8.5px; color:var(--fg-muted); letter-spacing:.03em; }
+  /* jauges haut-droite */
+  .av-gauges{ top:14px; right:14px; padding:12px 15px; display:flex; gap:15px; align-items:center; }
+  .av-g{ text-align:center; min-width:44px; } .av-g .v{ font-family:var(--font-data); font-weight:800; font-size:21px; line-height:1; } .av-g .k{ font-size:8.5px; color:var(--fg-muted); text-transform:uppercase; letter-spacing:.04em; margin-top:2px; }
+  /* barre de vol (bas) */
+  .av-drive{ bottom:16px; left:50%; transform:translateX(-50%); padding:10px 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; max-width:94%; }
+  .av-b{ font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:42px; padding:0 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; transition:.15s; }
+  .av-b:hover{ transform:translateY(-1px); }
+  .av-b:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .av-b.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .av-b.on{ background:var(--brand-teal); border-color:var(--brand-teal); color:#fff; }
+  .av-th{ display:flex; flex-direction:column; gap:3px; font-size:10px; color:var(--fg-muted); align-items:center; } .av-th input{ accent-color:var(--accent); width:120px; }
+  .av-phases{ display:flex; gap:4px; }
+  .av-ph{ font-family:var(--font-body); font-weight:700; font-size:11px; min-height:40px; padding:0 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; }
+  .av-ph[aria-pressed="true"]{ background:var(--brand-amber); border-color:var(--brand-amber); color:#241a00; }
+  /* fiche pédagogique (droite) */
+  .av-fiche{ right:14px; top:70px; width:298px; z-index:30; overflow:hidden; transform:translateX(125%); transition:transform .42s cubic-bezier(.22,1,.36,1); max-height:calc(100% - 180px); display:flex; flex-direction:column; }
+  .av-fiche.show{ transform:none; }
+  .av-fiche-hd{ padding:15px 16px; color:#fff; position:relative; flex:none; }
+  .av-fiche-hd .sub{ font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em; opacity:.92; }
+  .av-fiche-hd h2{ font-family:var(--font-title); font-weight:800; font-size:20px; margin:2px 0 0; display:flex; align-items:center; gap:9px; }
+  .av-fiche-x{ position:absolute; top:12px; right:12px; width:28px; height:28px; border:none; border-radius:8px; background:rgba(255,255,255,.24); color:#fff; cursor:pointer; font-size:16px; }
+  .av-fiche-bd{ padding:14px 16px 18px; overflow:auto; }
+  .av-fiche-bd p{ font-size:13px; line-height:1.55; margin:0 0 10px; color:var(--fg); }
+  .av-facts{ display:flex; flex-direction:column; gap:6px; margin:0 0 12px; }
+  .av-facts div{ display:flex; justify-content:space-between; gap:12px; font-size:12px; border-bottom:1px dashed var(--border); padding-bottom:4px; }
+  .av-facts .k{ color:var(--fg-muted); font-family:var(--font-mono); font-size:10.5px; } .av-facts .v{ font-family:var(--font-data); font-weight:700; text-align:right; }
+  .av-fun{ background:var(--accent-weak); border-radius:10px; padding:11px 13px; font-size:12.5px; line-height:1.5; color:var(--accent-text); }
+  .av-note button{ font-family:var(--font-body); font-weight:600; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; margin:0 4px 5px 0; }
+  /* cockpit / instruments (bas gauche) */
+  .av-cockpit{ left:14px; bottom:80px; width:210px; padding:11px 12px; display:none; gap:11px; align-items:center; }
+  .av-cockpit.show{ display:flex; }
+  .av-adi-svg{ width:82px; height:82px; flex:none; }
+  .av-inst{ display:flex; flex-direction:column; gap:7px; flex:1; }
+  .av-inst .r{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .av-inst .r b{ font-family:var(--font-data); font-weight:800; font-size:16px; } .av-inst .r span{ font-family:var(--font-mono); font-size:8.5px; color:var(--fg-muted); text-transform:uppercase; letter-spacing:.04em; }
+  /* étiquettes 3D */
+  .av-label{ position:absolute; transform:translate(-50%,-50%); font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:var(--fg); background:color-mix(in srgb,var(--surface) 74%,transparent); padding:2px 8px; border-radius:6px; pointer-events:none; z-index:15; border:1px solid var(--border); white-space:nowrap; }
+  /* indice / quiz */
+  .av-hint{ position:absolute; bottom:76px; left:50%; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 85%,transparent); border:1px solid var(--border); padding:7px 14px; border-radius:999px; pointer-events:none; text-align:center; max-width:86vw; }
+  .av-quiz{ position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:24; background:var(--accent); color:#fff; padding:13px 18px; border-radius:16px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; gap:10px; align-items:center; max-width:94vw; text-align:center; }
+  .av-quiz .qn{ font-family:var(--font-data); background:rgba(255,255,255,.22); border-radius:999px; padding:3px 11px; font-size:12px; }
+  .av-quiz .qt{ font-weight:800; font-size:15px; } .av-quiz .qs{ font-size:12.5px; opacity:.95; max-width:520px; line-height:1.4; }
+  .av-qrow{ display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
+  .av-qo{ font-family:var(--font-body); font-weight:700; font-size:13px; min-height:42px; padding:0 14px; border-radius:11px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.16); color:#fff; cursor:pointer; transition:.12s; }
+  .av-qo:hover{ background:rgba(255,255,255,.3); }
+  .av-stall{ position:absolute; top:70px; left:50%; transform:translateX(-50%); z-index:26; background:var(--brand-red); color:#fff; padding:9px 18px; border-radius:999px; font-weight:800; font-size:14px; display:none; letter-spacing:.04em; box-shadow:0 8px 24px rgba(230,51,41,.5); }
+  @media (max-width:720px){ .av-left{ width:164px; padding:10px; gap:9px; } .av-fiche{ width:min(290px,86vw); } .av-gauges{ padding:9px 11px; gap:10px; } .av-g .v{ font-size:17px; } .av-drive{ gap:7px; padding:9px 11px; } .av-cockpit{ display:none !important; } }
+</style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const REDUCED = window.Konstrio.REDUCED;
+
+/* ============ ÉTAT ============ */
+let scene, camera, renderer, composer, controls, clock, raycaster, pointer;
+let plane, internals, flowGrp;
+let gWingR, gWingL, gTail, gEngR, gEngL, gNose, gGear;
+let fanR=null, fanL=null, turbR=null, turbL=null;
+let aileronR=null, aileronL=null, flapR=null, flapL=null, slatMeshes=[], elevGrp=null, rudderGrp=null;
+let gearPivots=[], gearWheels=[];
+const arrows={}, flow=[];
+const parts={};            // key -> { obj, anchor, name }
+const bodyPanels=[], glassPanels=[], paintMats=[];
+
+let view='ext', explodeT=0, explodeTarget=0, cutT=0, cutTarget=0;
+let throttle=0.06, aileronIn=0, elevIn=0, rudderIn=0, flaps=false, slats=false, gearDown=true;
+let showForces=true, showFlow=true, labelsOn=true;
+let speed=0, alt=0, aoa=2, lift=0, vs=0, roll=0, pitchAtt=0, yawAtt=0;
+let stalled=false, hovered=null, focusPoint=null, flying=false;
+let phaseAnim=false, phaseIdx=0, phaseT=0, autoCycle=false, autoTimer=0;
+let ac=null, jetGain=null, jetOsc=null, jetLp=null, windGain=null;
+let course=null, actArmed=true;
+
+const DEFL=0.55; // déflexion max des gouvernes (rad)
+const WEIGHT=100;
+
+/* ============ PHASES DE VOL ============ */
+const PHASES=[
+  { id:'sol',       name:'Au sol',        thr:0.06, aoa:0,  flaps:true,  slats:true,  gear:true,  alt:0,     spd:0,   tip:"Avion au parking, prêt à rouler. Volets sortis pour le décollage." },
+  { id:'deco',      name:'Décollage',     thr:1.0,  aoa:10, flaps:true,  slats:true,  gear:true,  alt:120,   spd:290, tip:"Plein gaz ! Les volets portent à basse vitesse. Rotation : le nez se lève et l'avion quitte la piste." },
+  { id:'montee',    name:'Montée',        thr:0.9,  aoa:8,  flaps:false, slats:false, gear:false, alt:4000,  spd:420, tip:"Train et volets rentrés (configuration lisse). L'avion grimpe vers son altitude de croisière." },
+  { id:'croisiere', name:'Croisière',     thr:0.55, aoa:3,  flaps:false, slats:false, gear:false, alt:11000, spd:880, tip:"À 11 000 m et Mach 0,8 : portance = poids et poussée = traînée, tout s'équilibre." },
+  { id:'descente',  name:'Descente',      thr:0.22, aoa:1,  flaps:false, slats:false, gear:false, alt:3000,  spd:560, tip:"Gaz réduits : l'avion descend en douceur, la traînée le ralentit." },
+  { id:'attero',    name:'Atterrissage',  thr:0.2,  aoa:6,  flaps:true,  slats:true,  gear:true,  alt:0,     spd:250, tip:"Volets et train sortis, faible vitesse : les volets maintiennent la portance jusqu'au toucher." },
+];
+
+/* ============ FICHES PÉDAGOGIQUES ============ */
+const PARTS={
+  fuselage:{ icon:'🛩️', name:'Fuselage', sub:'Structure & cabine', color:'#5B76A8',
+    role:"Le fuselage est le « tube » qui porte passagers, équipage et fret. Il relie les ailes et l'empennage. Pressurisé, il conserve une atmosphère respirable en altitude, malgré l'air raréfié à l'extérieur.",
+    facts:[['Rôle','Porter la charge utile'],['Forme','Profilée (faible traînée)'],['Pression','~2 400 m ressenti à 11 000 m'],['Structure','Cadres + lisses + peau']],
+    fun:"À 11 000 m, il fait −55 °C dehors : le fuselage doit tenir un écart de pression comme un ballon gonflé." },
+  aile:{ icon:'🪽', name:'Aile & profil', sub:'Génère la portance', color:'#29B6E0',
+    role:"L'aile a un profil courbé (bombé sur le dessus). En avançant, elle dévie l'air vers le bas ; par réaction (3ᵉ loi de Newton) l'air la pousse vers le haut : c'est la portance. L'air accéléré sur l'extrados y crée une dépression qui aspire l'aile vers le haut.",
+    facts:[['Rôle','Créer la portance'],['Extrados','Air accéléré → dépression'],['Grandeur','Portance ∝ vitesse²'],['Longerons','Encaissent la flexion']],
+    fun:"L'aile d'un A320 peut fléchir de plus de 3 m en bout sans casser : elle « respire » avec les turbulences." },
+  aileron:{ icon:'↻', name:'Ailerons', sub:'Axe de roulis', color:'#6E6BFF',
+    role:"Les ailerons sont en bout d'aile, au bord de fuite. Ils se braquent en sens opposé : l'un monte, l'autre descend. L'aile qui gagne de la portance monte, l'autre descend : l'avion s'incline (roulis) et amorce le virage.",
+    facts:[['Rôle','Incliner l\'avion (roulis)'],['Axe','Longitudinal (nez↔queue)'],['Action','Braquage opposé G/D'],['Usage','Amorcer les virages']],
+    fun:"Pour tourner, un avion s'incline d'abord : c'est la portance inclinée qui le fait virer, pas la gouverne de direction seule." },
+  volet:{ icon:'🛬', name:'Volets & becs', sub:'Hypersustentation', color:'#1E8C7A',
+    role:"Volets (bord de fuite) et becs (bord d'attaque) augmentent la courbure et la surface de l'aile. Résultat : beaucoup plus de portance à basse vitesse. Indispensables au décollage et surtout à l'atterrissage, ils permettent de voler lentement sans décrocher.",
+    facts:[['Rôle','Portance à basse vitesse'],['Volets','Au bord de fuite'],['Becs','Au bord d\'attaque'],['Usage','Décollage & atterrissage']],
+    fun:"Volets et becs sortis, un gros porteur peut se poser à ~250 km/h au lieu de ~350 : la piste suffit !" },
+  profondeur:{ icon:'↕', name:'Gouverne de profondeur', sub:'Axe de tangage', color:'#F5A623',
+    role:"La gouverne de profondeur est articulée au bord de fuite du plan horizontal (empennage). En se braquant, elle fait piquer ou cabrer l'avion : c'est le tangage. Tirer sur le manche lève le nez ; pousser l'abaisse.",
+    facts:[['Rôle','Monter / descendre (tangage)'],['Axe','Transversal (aile↔aile)'],['Situé','Plan horizontal arrière'],['Commande','Manche avant/arrière']],
+    fun:"C'est la profondeur qui, au décollage, fait « lever le nez » : la fameuse rotation à la vitesse de décollage." },
+  derive:{ icon:'⇋', name:'Gouverne de direction', sub:'Axe de lacet', color:'#E63329',
+    role:"La dérive (empennage vertical) stabilise l'avion dans l'axe, comme l'empennage d'une flèche. Sa gouverne de direction, braquée à gauche ou à droite, fait pivoter le nez horizontalement : c'est le lacet, utilisé pour coordonner le virage.",
+    facts:[['Rôle','Orienter le nez (lacet)'],['Axe','Vertical'],['Situé','Empennage vertical'],['Commande','Palonnier (pieds)']],
+    fun:"Le pilote actionne la direction avec les pieds (le palonnier), pas avec les mains : chaque axe a sa commande." },
+  reacteur:{ icon:'🔥', name:'Réacteur', sub:'Génère la poussée', color:'#8A7BFF',
+    role:"Le turboréacteur aspire l'air par sa grande soufflante (fan), le comprime, y brûle du kérosène puis éjecte les gaz vers l'arrière à grande vitesse. Par réaction, l'avion est propulsé vers l'avant : c'est la poussée, qui vainc la traînée.",
+    facts:[['Rôle','Produire la poussée'],['Principe','Action-réaction'],['Fan','Fournit ~80 % de la poussée'],['Carburant','Kérosène']],
+    fun:"La soufflante d'un réacteur moderne avale plus d'une tonne d'air par seconde — de quoi vider une pièce en un clin d'œil." },
+  train:{ icon:'🛞', name:'Train d\'atterrissage', sub:'Roulage & toucher', color:'#94A0B4',
+    role:"Le train supporte l'avion au sol, encaisse le choc de l'atterrissage et permet le roulage. En vol, il se rétracte dans le fuselage et les ailes pour effacer sa traînée. Le train avant est orientable pour diriger l'avion au sol.",
+    facts:[['Rôle','Rouler & amortir'],['En vol','Rentré (moins de traînée)'],['Avant','Orientable'],['Amortisseur','Oléopneumatique']],
+    fun:"Les pneus d'un gros porteur touchent la piste à ~250 km/h et passent de 0 à pleine vitesse en une fraction de seconde." },
+  cockpit:{ icon:'🎛️', name:'Cockpit', sub:'Poste de pilotage', color:'#29B6E0',
+    role:"Le cockpit rassemble les commandes et les instruments : badin (vitesse), altimètre, horizon artificiel (assiette), variomètre… Le pilote y surveille les paramètres du vol et commande les gouvernes et les moteurs.",
+    facts:[['Badin','Vitesse air'],['Altimètre','Altitude'],['Horizon','Assiette (roulis/tangage)'],['Variomètre','Vitesse verticale']],
+    fun:"L'horizon artificiel fonctionne même sans visibilité : c'est lui qui « remplace » l'horizon dans les nuages." },
+};
+
+/* ============ NOTIONS (encyclopédie) ============ */
+const NOTIONS=[
+  ['Les 4 forces du vol',"Portance (haut) ⇄ Poids (bas) ; Poussée (avant) ⇄ Traînée (arrière). En vol stabilisé, elles s'équilibrent deux à deux : portance = poids, poussée = traînée."],
+  ['La portance',"L'aile dévie l'air vers le bas ; par réaction l'air la pousse vers le haut. L'air va plus vite sur le dessus (extrados) : la pression y baisse et « aspire » l'aile. La portance croît avec le carré de la vitesse et l'angle d'incidence."],
+  ['La traînée',"La traînée est la résistance de l'air à l'avancement. Elle augmente avec la vitesse et l'angle d'incidence. Le réacteur doit fournir une poussée suffisante pour la vaincre."],
+  ['Le décrochage',"Au-delà d'environ 16° d'incidence, l'air ne suit plus le dessus de l'aile : les filets se décollent, la portance s'effondre. On en sort en réduisant l'angle pour recoller le flux."],
+  ['Hypersustentation (volets & becs)',"Volets et becs augmentent la courbure et la surface de l'aile. Ils procurent une forte portance à basse vitesse : c'est ce qui permet de décoller et d'atterrir sur des pistes raisonnables."],
+  ['Les 3 axes de vol',"Roulis (ailerons, axe nez-queue), tangage (profondeur, monter/descendre) et lacet (direction, tourner le nez). Trois axes, trois gouvernes : le pilote combine les trois."],
+  ['La poussée & le réacteur',"Le turboréacteur éjecte des gaz vers l'arrière ; par réaction l'avion avance. Plus de gaz = plus de poussée = plus de vitesse = plus de portance."],
+  ['La finesse (plané)',"La finesse est le rapport portance/traînée. Un avion de ligne de finesse ~17 parcourt 17 km en perdant 1 km d'altitude : réacteurs coupés, il plane encore longtemps."],
+  ['La vitesse & le Mach',"Mach 1 = vitesse du son (~1 235 km/h au sol). Les avions de ligne croisent vers Mach 0,8. Près de Mach 1 apparaissent des ondes de choc : c'est le domaine transsonique."],
+];
+
+/* ============ SHELL ============ */
+const shell=window.Konstrio.createGame({
+  id:'3d-19-avion', code:'3D·19', title:'Avion de ligne : comment ça vole', type:'3D',
+  domain:{ label:'Espace & Astro', color:'#29B6E0' },
+  intro:{
+    greet:"Bienvenue à bord ! Fais tourner l'avion, braque les gouvernes, sors les volets, joue les phases du vol — et découvre pourquoi 80 tonnes tiennent en l'air.",
+    rule:"Comprends le vol grâce aux <b>4 forces</b> : portance (haut), poids (bas), poussée (avant), traînée (arrière). Braque les <b>gouvernes</b> (ailerons = roulis, profondeur = tangage, direction = lacet), sors les <b>volets</b>, enchaîne les <b>phases de vol</b>, et passe l'avion en <b>coupe</b> ou <b>vue éclatée</b> pour explorer sa structure.",
+    how:["Glisse pour tourner · clique une pièce (aile, réacteur, gouverne…) pour sa fiche.","Braque les gouvernes et regarde l'avion réagir sur les 3 axes. Sors les volets, rentre le train.","Joue une phase (Décollage → Croisière → Atterrissage) et observe forces & filets d'air."],
+    keys:"Glisser = tourner · molette = zoom · clic pièce = fiche.",
+    objectif:"Identifier chaque gouverne et comprendre les 4 forces, la portance, le décrochage et le rôle des volets.",
+    hint:"Passe en vue « Éclatée » ou « Coupe » pour voir les longerons et l'intérieur du réacteur. Braque une gouverne pour repérer son axe.",
+    why:"L'aile dévie l'air vers le bas et l'accélère sur le dessus : la dépression de l'extrados « aspire » l'aile vers le haut, c'est la portance. Les volets l'augmentent à basse vitesse."
+  },
+  learned:["Les 4 forces du vol : portance, poids, poussée, traînée.","La portance vient de la déviation de l'air et de la dépression sur l'extrados.","Les 3 axes : roulis (ailerons), tangage (profondeur), lacet (direction).","Volets & becs = portance à basse vitesse ; trop d'incidence = décrochage."],
+  onReady:(api)=>init(api),
+  onStart:(m,api)=>{ if(m==='cours'){ api.setScore(0); startCourse(); } else { setDetente(); } },
+  onRestart:(api)=>{ if(shell.api && shell.api.mode==='cours'){ api.setScore(0); startCourse(); } else setDetente(); },
+  onTheme:()=>applyTheme(),
+  onHint:(api)=>api.hint(shell.cfg.intro.hint),
+  onWhy:(api)=>api.say(shell.cfg.intro.why,'idee'),
+});
+
+/* ============ MATÉRIAUX ============ */
+const mat=(c,metal,rough,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,metalness:metal,roughness:rough,envMapIntensity:1.15},o));
+// Peinture fuselage : tôle peinte (metal_plate) + vernis clearcoat pour la livrée (rendu produit)
+function paintMat(hex){ const m=new THREE.MeshPhysicalMaterial({ color:new THREE.Color(hex||0xeef2f8), metalness:0.55, roughness:0.36, clearcoat:1.0, clearcoatRoughness:0.08, reflectivity:0.5, envMapIntensity:1.4 }); paintMats.push(m); return m; }
+// Fuselage principal : PBR tôle rivetée peinte blanc nacré
+function fuselageMat(){ const m=paintMat(0xeef2f8); applyPBR(m,'metal_plate','1k',{repeat:6,normal:0.7,metal:true,ao:true,aoInt:0.85,color:0xeef2f8}); m.metalness=0.55; m.roughness=0.4; return m; }
+// Livrée accent : tôle peinte bleue (blue_metal_plate)
+function liveryMat(hex){ const m=paintMat(hex||0x29B6E0); applyPBR(m,'blue_metal_plate','1k',{repeat:4,normal:0.7,color:hex||0x29B6E0}); m.metalness=0.5; m.roughness=0.4; return m; }
+function metalMat(){ const m=mat(0xcfd6e2,0.9,0.32,{envMapIntensity:1.5}); applyPBR(m,'metal_plate_02','1k',{repeat:2,normal:0.7,metal:true,ao:true}); m.color.setHex(0xcfd6e2); m.metalness=0.95; return m; }   // réacteurs : métal brossé
+function darkMat(){ return mat(0x2a3040,0.65,0.4); }
+function glassMat(){ return new THREE.MeshPhysicalMaterial({ color:0x2b3a4a, metalness:0.1, roughness:0.04, transmission:REDUCED?0:0.72, transparent:true, opacity:REDUCED?0.5:1, thickness:0.4, ior:1.45, clearcoat:1, clearcoatRoughness:0.03, reflectivity:0.6, envMapIntensity:1.6, specularIntensity:1, side:THREE.DoubleSide }); }
+function surfMat(){ return mat(0xdbe1ec,0.45,0.4); }   // gouvernes (repérables)
+
+/* ============ TEXTURES PBR CC0 (Poly Haven) ============ */
+const texLoader=new THREE.TextureLoader();
+const PBR_BASE='../assets/3d/pbr2k/';
+let maxAniso=8;
+function loadTex(url,srgb,rep){ const t=texLoader.load(url,undefined,undefined,()=>{}); t.wrapS=t.wrapT=THREE.RepeatWrapping; if(rep) t.repeat.set(rep,rep); t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=maxAniso; return t; }
+// applique diffuse/normal/roughness(+metal,+ao bakée) réels sur un matériau existant
+function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE+slug+'/'+slug+'_';
+  material.map=loadTex(b+'diff_'+res+'.jpg',true,rep);
+  material.normalMap=loadTex(b+'nor_gl_'+res+'.jpg',false,rep); material.normalScale=new THREE.Vector2(opt.normal||1,opt.normal||1);
+  material.roughnessMap=loadTex(b+'rough_'+res+'.jpg',false,rep);
+  if(opt.metal){ material.metalnessMap=loadTex(b+'metal_'+res+'.jpg',false,rep); }
+  if(opt.ao){ material.aoMap=loadTex(b+'ao_'+res+'.jpg',false,rep); material.aoMapIntensity=opt.aoInt||1; }
+  if(opt.color!==undefined) material.color.setHex(opt.color);
+  material.needsUpdate=true; return material; }
+// duplique le canal UV pour permettre l'aoMap (utilise uv1)
+function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
+// tache d'ombre de contact douce (occlusion visible même en rendu logiciel)
+function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,10,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.25)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
+// marquages de piste procéduraux (ligne d'axe pointillée + bandes de bord + seuil) — transparent sur l'asphalte
+function makeRunwayMarks(){ const w=128,h=1024,c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); x.clearRect(0,0,w,h);
+  x.fillStyle='rgba(240,244,250,0.92)';
+  // ligne d'axe pointillée
+  for(let y=40;y<h-40;y+=90){ x.fillRect(w/2-5,y,10,54); }
+  // bandes de bord continues
+  x.fillRect(14,20,7,h-40); x.fillRect(w-21,20,7,h-40);
+  // marques de seuil (piano)
+  for(let i=0;i<6;i++){ const bx=22+i*16; x.fillRect(bx,h-120,9,80); x.fillRect(bx,40,9,80); }
+  const t=new THREE.CanvasTexture(c); t.wrapS=THREE.ClampToEdgeWrapping; t.wrapT=THREE.RepeatWrapping; t.repeat.set(1,4); t.anisotropy=maxAniso; t.colorSpace=THREE.SRGBColorSpace; return t; }
+
+/* ============ INIT ============ */
+function init(api){
+  shell.api=api; const stage=api.stage; clock=new THREE.Clock();
+  scene=new THREE.Scene(); scene.fog=new THREE.Fog(0x9fc4e0,55,150);
+  camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight,.1,600); camera.position.set(9.5,4.2,11);
+  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.0;
+  renderer.shadowMap.enabled=!REDUCED; renderer.shadowMap.type=THREE.PCFSoftShadowMap; stage.appendChild(renderer.domElement);
+  maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
+  // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y échoue → chaîne robuste (jamais noir)
+  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const W=stage.clientWidth, H=stage.clientHeight;
+  composer=new EffectComposer(renderer);
+  if(software || REDUCED){
+    // rendu logiciel : pas d'AO écran (produirait du noir) — l'occlusion vient des cartes AO bakées + ombre de contact
+    composer.addPass(new RenderPass(scene,camera));
+  } else {
+    // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu produit
+    const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=1.0;
+    try{ gtao.updateGtaoMaterial({ radius:0.5, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
+    composer.addPass(gtao); composer.gtao=gtao;
+  }
+  // bloom léger : réacteurs incandescents, reflets spéculaires
+  const bp=new UnrealBloomPass(new THREE.Vector2(W,H),0.3,0.6,0.9); composer.addPass(bp); composer.bloom=bp;
+  // anti-aliasing SMAA (le composer court-circuite le MSAA du canvas)
+  composer.addPass(new SMAAPass(W,H));
+  // OutputPass : tone mapping ACES + conversion sRGB en fin de chaîne
+  composer.addPass(new OutputPass());
+  controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.07;
+  controls.minDistance=6; controls.maxDistance=34; controls.target.set(0,0.4,0); controls.maxPolarAngle=Math.PI/1.9;
+  controls.autoRotate=REDUCED; controls.autoRotateSpeed=.3;
+
+  scene.add(new THREE.HemisphereLight(0xdfeeff,0x33405a,0.9));
+  const key=new THREE.DirectionalLight(0xfff4e0,1.35); key.position.set(9,14,7);
+  if(!REDUCED){ key.castShadow=true; key.shadow.mapSize.set(2048,2048); key.shadow.camera.near=1; key.shadow.camera.far=60; key.shadow.camera.left=-12; key.shadow.camera.right=12; key.shadow.camera.top=12; key.shadow.camera.bottom=-12; key.shadow.bias=-0.0004; }
+  scene.add(key);
+  const fill=new THREE.DirectionalLight(0xbcd0ff,0.4); fill.position.set(-8,6,-7); scene.add(fill);
+
+  const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  new RGBELoader().load('../assets/3d/env/sky_day_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; scene.background=hdr; scene.backgroundBlurriness=0.35; }, undefined, ()=>{ scene.add(makeSky()); });
+
+  buildTarmac();
+  buildClouds();
+  buildPlane(); buildForces(); buildFlow();
+  raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  buildUI(); applyTheme(); applyPhaseConfig(PHASES[0],true);
+  renderer.domElement.addEventListener('pointermove',onMove);
+  renderer.domElement.addEventListener('pointerdown',onDown);
+  window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
+  animate();
+}
+
+function makeSky(){ const c=document.createElement('canvas'); c.width=c.height=512; const ctx=c.getContext('2d'); const gr=ctx.createLinearGradient(0,0,0,512); gr.addColorStop(0,'#3a7fc0'); gr.addColorStop(.6,'#9fc4e0'); gr.addColorStop(1,'#e0eef5'); ctx.fillStyle=gr; ctx.fillRect(0,0,512,512); const t=new THREE.CanvasTexture(c); return new THREE.Mesh(new THREE.SphereGeometry(300,24,16),new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide})); }
+function buildClouds(){ if(REDUCED)return; const g=new THREE.Group(); const tex=cloudTex(); for(let i=0;i<18;i++){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0.5,depthWrite:false})); const a=Math.random()*Math.PI*2, r=55+Math.random()*70; s.position.set(Math.cos(a)*r,8+Math.random()*26,Math.sin(a)*r); s.scale.setScalar(18+Math.random()*24); g.add(s); } scene.add(g); }
+
+/* ============ TARMAC / PISTE ============ */
+const FLOOR_Y=-1.15;
+function buildTarmac(){
+  // aire de tarmac réelle (Poly Haven CC0 asphalt_02), tuilée + AO bakée
+  const tarMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.95,metalness:0.02,envMapIntensity:0.55});
+  applyPBR(tarMat,'asphalt_02','1k',{repeat:16,normal:1.0,ao:true,aoInt:0.9,color:0x9aa1ab});
+  const fgeo=new THREE.CircleGeometry(70,96); enableAO(fgeo);
+  const floor=new THREE.Mesh(fgeo, tarMat); floor.rotation.x=-Math.PI/2; floor.position.y=FLOOR_Y; floor.receiveShadow=!REDUCED; scene.add(floor);
+  // piste : marquages procéduraux (axe pointillé + bords + seuils) sur un ruban le long de l'axe fuselage
+  const marks=new THREE.Mesh(new THREE.PlaneGeometry(120,9), new THREE.MeshStandardMaterial({map:makeRunwayMarks(),transparent:true,roughness:0.85,metalness:0.0,polygonOffset:true,polygonOffsetFactor:-2,depthWrite:false}));
+  marks.rotation.x=-Math.PI/2; marks.rotation.z=Math.PI/2; marks.position.set(0,FLOOR_Y+0.012,0); marks.receiveShadow=false; scene.add(marks);
+  // ombre de contact douce sous l'avion (occlusion lisible même en rendu logiciel)
+  const cs=new THREE.Mesh(new THREE.PlaneGeometry(9.5,7.5), new THREE.MeshBasicMaterial({map:makeContactShadow(),transparent:true,depthWrite:false,opacity:0.85}));
+  cs.rotation.x=-Math.PI/2; cs.position.set(0,FLOOR_Y+0.02,0); scene.add(cs);
+}
+function cloudTex(){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const g=x.createRadialGradient(64,64,4,64,64,64); g.addColorStop(0,'rgba(255,255,255,.9)'); g.addColorStop(.5,'rgba(255,255,255,.4)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+
+/* ============ AILE : PROFIL NACA ============ */
+function airfoilPts(n){ const m=0.045,p=0.4,t=0.12; const up=[],lo=[];
+  for(let i=0;i<=n;i++){ const x=i/n;
+    const yt=5*t*(0.2969*Math.sqrt(x)-0.1260*x-0.3516*x*x+0.2843*x*x*x-0.1015*x*x*x*x);
+    let yc,dyc; if(x<p){ yc=m/(p*p)*(2*p*x-x*x); dyc=2*m/(p*p)*(p-x); } else { yc=m/((1-p)*(1-p))*((1-2*p)+2*p*x-x*x); dyc=2*m/((1-p)*(1-p))*(p-x); }
+    const th=Math.atan(dyc);
+    up.push([x-yt*Math.sin(th), yc+yt*Math.cos(th)]); lo.push([x+yt*Math.sin(th), yc-yt*Math.cos(th)]);
+  }
+  const pts=[]; for(let i=n;i>=0;i--)pts.push(up[i]); for(let i=1;i<=n;i++)pts.push(lo[i]); return pts;
+}
+function airfoilShape(chord){ const pts=airfoilPts(26); const s=new THREE.Shape(); const map=(pp)=>[(0.5-pp[0])*chord, pp[1]*chord];
+  const p0=map(pts[0]); s.moveTo(p0[0],p0[1]); for(let i=1;i<pts.length;i++){ const p=map(pts[i]); s.lineTo(p[0],p[1]); } s.closePath(); return s; }
+function buildWing(sign){
+  const span=4.0, rootC=1.75;
+  const g=new THREE.ExtrudeGeometry(airfoilShape(rootC),{depth:span,bevelEnabled:false,steps:20});
+  const pos=g.attributes.position;
+  for(let i=0;i<pos.count;i++){ let x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i); const f=z/span;
+    const taper=1-0.6*f; x*=taper; y*=taper; x-=f*0.9; y+=f*0.42; if(sign<0)z=-z;
+    pos.setX(i,x); pos.setY(i,y); pos.setZ(i,z);
+  }
+  g.computeVertexNormals();
+  const w=new THREE.Mesh(g,surfMat()); w.castShadow=!REDUCED; w.receiveShadow=!REDUCED; w.userData.part='aile';
+  return w;
+}
+
+/* ============ CONSTRUCTION AVION ============ */
+function reg(obj,key,anchor){ obj.traverse(o=>{ if(o.isMesh) o.userData.part=key; }); obj.userData.part=key; parts[key]={obj,anchor:anchor.clone(),name:PARTS[key]?PARTS[key].name:key}; }
+
+function buildPlane(){
+  plane=new THREE.Group(); scene.add(plane);
+  internals=new THREE.Group(); plane.add(internals);
+  buildFuselage(); buildWings(); buildTail(); buildEngines(); buildGear(); buildInternals();
+}
+
+function buildFuselage(){
+  const g=new THREE.Group(); plane.add(g); gNose=g; g.userData.home=new THREE.Vector3(); g.userData.exp=new THREE.Vector3();
+  // corps (lathe : profil effilé nez + queue)
+  const prof=[]; const L=6.6, R=0.56;
+  for(let i=0;i<=32;i++){ const t=i/32; const x=-3.3+t*L; let r; const nz=(x+3.3)/L; // 0 queue .. 1 nez? on paramètre par position
+    // rayon : effilé aux deux bouts
+    const s=Math.min(1, (x+3.3)/1.2) * Math.min(1,(3.3-x)/1.6); r=R*Math.pow(Math.max(0,s),0.5); prof.push(new THREE.Vector2(Math.max(0.02,r),x)); }
+  const lg=new THREE.LatheGeometry(prof.map(p=>new THREE.Vector2(p.x,p.y)),36); lg.rotateZ(Math.PI/2); enableAO(lg);
+  const body=new THREE.Mesh(lg, fuselageMat()); body.castShadow=!REDUCED; body.receiveShadow=!REDUCED; g.add(body); bodyPanels.push(body); reg(body,'fuselage',new THREE.Vector3(-1.4,0.7,0));
+  // livrée : bandeau accent (tôle peinte bleue)
+  const stripe=new THREE.Mesh(new THREE.CylinderGeometry(R+0.01,R+0.01,5.6,32,1,true,0,Math.PI*2), liveryMat(0x29B6E0)); stripe.scale.set(1,0.09,1); stripe.rotation.z=Math.PI/2; stripe.position.set(0,0.12,0); g.add(stripe); bodyPanels.push(stripe);
+  // hublots
+  const winMat=mat(0x0a1420,0.3,0.4,{emissive:0x11202e,emissiveIntensity:0.4});
+  for(let i=0;i<20;i++){ const x=2.0-i*0.28; [1,-1].forEach(s=>{ const w=new THREE.Mesh(new THREE.CircleGeometry(0.055,12), winMat); w.position.set(x,0.16,s*(R-0.02)); w.lookAt(x,0.16,s*3); g.add(w); }); }
+  // cockpit vitrage
+  const cg=new THREE.Group(); g.add(cg);
+  const glass=new THREE.Mesh(new THREE.SphereGeometry(0.42,20,16,0,Math.PI*2,0,Math.PI*0.55), glassMat()); glass.scale.set(1.5,0.8,1.0); glass.position.set(2.55,0.28,0); glass.rotation.z=-0.25; cg.add(glass); glassPanels.push(glass);
+  reg(cg,'cockpit',new THREE.Vector3(2.7,0.7,0));
+  // nez radome
+  const nose=new THREE.Mesh(new THREE.SphereGeometry(0.5,20,16), mat(0x1a2230,0.4,0.45)); nose.scale.set(1.3,0.9,0.9); nose.position.set(3.15,0,0); g.add(nose); bodyPanels.push(nose);
+  // empennage cône de queue
+  const tailcone=new THREE.Mesh(new THREE.ConeGeometry(0.34,1.1,20), paintMat(0xeef2f8)); tailcone.rotation.z=Math.PI/2; tailcone.position.set(-3.55,0.18,0); g.add(tailcone); bodyPanels.push(tailcone);
+}
+
+function buildWings(){
+  gWingR=new THREE.Group(); gWingL=new THREE.Group(); plane.add(gWingR); plane.add(gWingL);
+  gWingR.position.set(0.2,-0.18,0); gWingL.position.set(0.2,-0.18,0);
+  gWingR.userData.home=gWingR.position.clone(); gWingR.userData.exp=new THREE.Vector3(0,0,1.6);
+  gWingL.userData.home=gWingL.position.clone(); gWingL.userData.exp=new THREE.Vector3(0,0,-1.6);
+  const wr=buildWing(1); gWingR.add(wr); const wl=buildWing(-1); gWingL.add(wl);
+  parts.aile={ obj:{traverse:(f)=>{wr.traverse(f);wl.traverse(f);}}, anchor:new THREE.Vector3(0.1,0.4,2.2), name:PARTS.aile.name };
+  // volets (inboard) + ailerons (outboard) : groupes pivot
+  const mkSurf=(len,chord)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(chord,0.05,len), mat(0xc7cede,0.4,0.42)); m.position.set(-chord/2,0,0); m.castShadow=!REDUCED; return m; };
+  // droite
+  { const fp=new THREE.Group(); fp.position.set(-0.62,-0.02,1.4); const fm=mkSurf(1.05,0.36); fm.userData.part='volet'; fp.add(fm); gWingR.add(fp); flapR=fp; flapR.userData.km='volet';
+    const ap=new THREE.Group(); ap.position.set(-0.9,0.14,3.0); const am=mkSurf(0.95,0.3); am.userData.part='aileron'; ap.add(am); gWingR.add(ap); aileronR=ap; }
+  // gauche (miroir z)
+  { const fp=new THREE.Group(); fp.position.set(-0.62,-0.02,-1.4); const fm=mkSurf(1.05,0.36); fm.userData.part='volet'; fp.add(fm); gWingL.add(fp); flapL=fp;
+    const ap=new THREE.Group(); ap.position.set(-0.9,0.14,-3.0); const am=mkSurf(0.95,0.3); am.userData.part='aileron'; ap.add(am); gWingL.add(ap); aileronL=ap; }
+  parts.volet={ obj:{traverse:(f)=>{flapR.traverse(f);flapL.traverse(f);}}, anchor:new THREE.Vector3(-0.6,0.2,1.4), name:PARTS.volet.name };
+  parts.aileron={ obj:{traverse:(f)=>{aileronR.traverse(f);aileronL.traverse(f);}}, anchor:new THREE.Vector3(-0.9,0.55,3.0), name:PARTS.aileron.name };
+  // becs (bord d'attaque) : petites lames repliables
+  [1,-1].forEach(s=>{ const bec=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.06,2.4), mat(0xb9c0d0,0.4,0.45)); bec.position.set(0.55-Math.abs(0)*0,0.02,s*2.0); bec.rotation.y=s>0?-0.32:0.32; (s>0?gWingR:gWingL).add(bec); slatMeshes.push(bec); });
+}
+
+function buildTail(){
+  gTail=new THREE.Group(); plane.add(gTail); gTail.userData.home=new THREE.Vector3(); gTail.userData.exp=new THREE.Vector3(-1.4,0,0);
+  // plan horizontal (2 demi-ailes)
+  [1,-1].forEach(s=>{ const g=new THREE.ExtrudeGeometry(airfoilShape(0.8),{depth:1.35,bevelEnabled:false,steps:6}); const pos=g.attributes.position;
+    for(let i=0;i<pos.count;i++){ let x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i); const f=z/1.35; const tp=1-0.4*f; x*=tp; y*=tp; x-=f*0.4; if(s<0)z=-z; pos.setX(i,x); pos.setY(i,y); pos.setZ(i,z); } g.computeVertexNormals();
+    const hs=new THREE.Mesh(g,surfMat()); hs.position.set(-2.85,0.2,0); hs.castShadow=!REDUCED; gTail.add(hs); bodyPanels.push(hs);
+  });
+  // gouverne de profondeur (bord de fuite du plan H)
+  elevGrp=new THREE.Group(); elevGrp.position.set(-3.15,0.2,0); const elev=new THREE.Mesh(new THREE.BoxGeometry(0.34,0.05,2.4), mat(0xf0d9a8,0.4,0.42)); elev.position.set(-0.17,0,0); elev.userData.part='profondeur'; elevGrp.add(elev); gTail.add(elevGrp);
+  parts.profondeur={ obj:{traverse:(f)=>elevGrp.traverse(f)}, anchor:new THREE.Vector3(-3.3,0.55,0), name:PARTS.profondeur.name };
+  // dérive (empennage vertical)
+  const vshape=new THREE.Shape(); vshape.moveTo(0,0); vshape.lineTo(-1.3,0); vshape.lineTo(-1.15,1.55); vshape.lineTo(-0.35,1.55); vshape.lineTo(0,0);
+  const vg=new THREE.ExtrudeGeometry(vshape,{depth:0.12,bevelEnabled:false}); vg.translate(0,0,-0.06);
+  const fin=new THREE.Mesh(vg, liveryMat(0x29B6E0)); fin.position.set(-2.7,0.4,0); fin.castShadow=!REDUCED; gTail.add(fin); bodyPanels.push(fin);
+  // gouverne de direction
+  rudderGrp=new THREE.Group(); rudderGrp.position.set(-3.85,0.4,0); const rud=new THREE.Mesh(new THREE.BoxGeometry(0.28,1.5,0.1), mat(0xef8a80,0.4,0.42)); rud.position.set(-0.14,0.78,0); rud.userData.part='derive'; rudderGrp.add(rud); gTail.add(rudderGrp);
+  parts.derive={ obj:{traverse:(f)=>rudderGrp.traverse(f)}, anchor:new THREE.Vector3(-3.7,1.4,0), name:PARTS.derive.name };
+}
+
+function buildEngines(){
+  [1,-1].forEach(s=>{
+    const g=new THREE.Group(); g.position.set(0.55,-0.62,s*2.0); plane.add(g);
+    if(s>0){ gEngR=g; } else { gEngL=g; }
+    g.userData.home=g.position.clone(); g.userData.exp=new THREE.Vector3(0.7,-0.7,0);
+    // pylône
+    const pyl=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.4,0.12), mat(0xbfc6d4,0.5,0.4)); pyl.position.set(-0.1,0.42,0); g.add(pyl);
+    // nacelle
+    const nacGeo=new THREE.CylinderGeometry(0.36,0.32,1.25,28,1,true); enableAO(nacGeo);
+    const nac=new THREE.Mesh(nacGeo, metalMat()); nac.rotation.z=Math.PI/2; nac.userData.part='reacteur'; g.add(nac);
+    const lip=new THREE.Mesh(new THREE.TorusGeometry(0.36,0.05,12,28), mat(0xdfe4ee,0.9,0.2)); lip.position.set(0.63,0,0); lip.rotation.y=Math.PI/2; g.add(lip);
+    // fan (soufflante) visible
+    const fan=new THREE.Group(); fan.position.set(0.5,0,0); const spinner=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.24,14), mat(0xdedede,0.85,0.3)); spinner.rotation.z=-Math.PI/2; spinner.position.x=0.12; fan.add(spinner);
+    for(let b=0;b<22;b++){ const bl=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.28,0.07), mat(0xb7bece,0.85,0.35)); bl.position.y=0.17; const gg=new THREE.Group(); gg.add(bl); gg.rotation.x=b/22*Math.PI*2; gg.rotation.z=0.3; fan.add(gg); }
+    fan.rotation.y=Math.PI/2; g.add(fan); if(s>0)fanR=fan; else fanL=fan;
+    // tuyère
+    const noz=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.18,0.3,24), darkMat()); noz.rotation.z=Math.PI/2; noz.position.set(-0.72,0,0); g.add(noz);
+    reg(nac,'reacteur',new THREE.Vector3(0.55,-0.62,s*2.0));
+    // turbine interne (visible en coupe)
+    const turb=new THREE.Group();
+    for(let d=0;d<4;d++){ const disc=new THREE.Mesh(new THREE.CylinderGeometry(0.2-d*0.02,0.2-d*0.02,0.04,16), mat(0xff8a3a,0.7,0.4,{emissive:0xff5a1a,emissiveIntensity:0.25})); disc.rotation.z=Math.PI/2; disc.position.x=-0.15-d*0.14; turb.add(disc); }
+    turb.visible=false; g.add(turb); if(s>0)turbR=turb; else turbL=turb;
+    g.userData.turb=turb;
+  });
+}
+
+function buildGear(){
+  gGear=new THREE.Group(); plane.add(gGear);
+  const spec=[[2.35,0,0.9,1],[-0.15,0.95,0.85,2],[-0.15,-0.95,0.85,2]]; // x,z,len,wheels
+  spec.forEach(([x,z,len,nw])=>{
+    const pivot=new THREE.Group(); pivot.position.set(x,-0.4,z); gGear.add(pivot);
+    const strut=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,len,10), mat(0xaeb6c4,0.85,0.3)); strut.position.y=-len/2; pivot.add(strut);
+    for(let i=0;i<nw;i++){ const w=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.14,18), mat(0x14161c,0.15,0.85)); w.rotation.x=Math.PI/2; w.position.set(0,-len,(nw>1? (i-0.5)*0.22:0)); pivot.add(w); gearWheels.push(w); }
+    pivot.userData.part='train'; gearPivots.push(pivot);
+  });
+  reg(gGear,'train',new THREE.Vector3(-0.15,-0.9,0.95));
+  parts.train={ obj:{traverse:(f)=>gGear.traverse(f)}, anchor:new THREE.Vector3(-0.15,-0.6,1.0), name:PARTS.train.name };
+}
+
+/* structure interne révélée en coupe / éclatée */
+function buildInternals(){
+  // longerons (spars) dans les ailes
+  [1,-1].forEach(s=>{ [0.15,-0.45].forEach(xo=>{ const spar=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.14,3.7), mat(0x6E6BFF,0.5,0.4)); spar.position.set(0.2+xo,-0.18,s*2.0); internals.add(spar); }); });
+  // cadres fuselage
+  for(let i=0;i<7;i++){ const fr=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.03,8,24), mat(0x8a93a6,0.6,0.4)); fr.position.set(1.6-i*0.6,0,0); fr.rotation.y=Math.PI/2; internals.add(fr); }
+  // soutes (cargo)
+  [1.0,-1.0].forEach(x=>{ const hold=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.34,0.8), mat(0xF5A623,0.4,0.5)); hold.position.set(x,-0.24,0); internals.add(hold); });
+  // plancher cabine
+  const floor=new THREE.Mesh(new THREE.BoxGeometry(4.4,0.04,0.9), mat(0x9aa0b0,0.4,0.5)); floor.position.set(0.2,0.02,0); internals.add(floor);
+  internals.visible=false;
+}
+
+/* ============ FORCES ============ */
+function buildForces(){ const mk=(col)=>{ const a=new THREE.ArrowHelper(new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,0),2,col,0.45,0.28); plane.add(a); return a; };
+  arrows.lift=mk(0x29B6E0); arrows.weight=mk(0xE63329); arrows.thrust=mk(0x23A06E); arrows.drag=mk(0xF5A623);
+  const F={ lift:['Portance','#29B6E0'], weight:['Poids','#E63329'], thrust:['Poussée','#23A06E'], drag:['Traînée','#F5A623'] };
+  Object.keys(F).forEach(k=>{ const el=document.createElement('div'); el.className='av-label'; el.style.color=F[k][1]; el.style.borderColor=F[k][1]; el.textContent=F[k][0]; el.dataset.force=k; el.style.display='none'; shell.api.stage.appendChild(el); arrows[k].userData.label=el; arrows[k].userData.tip=new THREE.Vector3(); });
+}
+
+/* ============ FILETS D'AIR ============ */
+function buildFlow(){ flowGrp=new THREE.Group(); flowGrp.position.set(0.2,-0.18,1.7); plane.add(flowGrp);
+  for(let i=0;i<48;i++){ const top=i%2===0; const p=new THREE.Mesh(new THREE.SphereGeometry(0.035,6,6),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.75}));
+    p.userData={t:Math.random(), top, lane:(Math.random()-0.5)*0.5, y0:top?0.16:-0.06}; flowGrp.add(p); flow.push(p); } }
+function airfoilBump(x){ return Math.exp(-Math.pow((x-0.15)/0.55,2)); }
+
+/* ============ UI ============ */
+function buildUI(){
+  const stage=shell.api.stage;
+  // panneau gauche
+  const left=document.createElement('div'); left.className='av-panel av-left';
+  left.innerHTML=`
+    <div><h3>Vue de l'avion</h3>
+      <div class="av-grid">
+        <button class="av-t" data-view="ext" aria-pressed="true">✈️ Extérieur</button>
+        <button class="av-t" data-view="cut">🔍 Coupe</button>
+        <button class="av-t" data-view="exp">💥 Éclatée</button>
+      </div>
+    </div>
+    <div><h3>Gouvernes</h3>
+      <div class="av-sl"><label>Ailerons <b id="avAilV">0</b></label><input id="avAil" type="range" min="-100" max="100" value="0" aria-label="Ailerons (roulis)"><span class="mini">roulis · gauche ↔ droite</span></div>
+      <div class="av-sl"><label>Profondeur <b id="avElevV">0</b></label><input id="avElev" type="range" min="-100" max="100" value="0" aria-label="Profondeur (tangage)"><span class="mini">tangage · piquer ↔ cabrer</span></div>
+      <div class="av-sl"><label>Direction <b id="avRudV">0</b></label><input id="avRud" type="range" min="-100" max="100" value="0" aria-label="Direction (lacet)"><span class="mini">lacet · nez gauche ↔ droite</span></div>
+    </div>
+    <div><h3>Configuration</h3>
+      <div class="av-grid two">
+        <button class="av-t" id="avFlaps" aria-pressed="true">🛬 Volets</button>
+        <button class="av-t" id="avGear" aria-pressed="true">🛞 Train</button>
+      </div>
+    </div>
+    <div><h3>Affichage</h3>
+      <div class="av-grid two">
+        <button class="av-t" id="avForces" aria-pressed="true">↗ Forces</button>
+        <button class="av-t" id="avFlow" aria-pressed="true">💨 Air</button>
+        <button class="av-t" id="avCk" aria-pressed="false">🎛️ Cockpit</button>
+        <button class="av-t" id="avLabels" aria-pressed="true">🏷️ Étiquettes</button>
+      </div>
+    </div>
+    <div class="av-grid two">
+      <button class="av-t" id="avNot">📚 Notions</button>
+      <button class="av-t" id="avFit">↺ Vue</button>
+    </div>`;
+  stage.appendChild(left);
+  left.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  const bind=(id,vid,setter)=>{ left.querySelector('#'+id).oninput=e=>{ const v=+e.target.value; document.getElementById(vid).textContent=(v>0?'+':'')+v; setter(v/100); leaveAuto(); }; };
+  bind('avAil','avAilV',v=>aileronIn=v); bind('avElev','avElevV',v=>elevIn=v); bind('avRud','avRudV',v=>rudderIn=v);
+  left.querySelector('#avFlaps').onclick=function(){ flaps=!flaps; slats=flaps; this.setAttribute('aria-pressed',flaps); document.getElementById('avForces'); shell.sound('pop'); leaveAuto(); shell.api.say(flaps?"Volets & becs sortis : l'aile se courbe et s'agrandit, la portance grimpe à basse vitesse. Parfait pour décoller/atterrir.":"Volets rentrés : configuration lisse, faible traînée pour la croisière.",'concentre'); };
+  left.querySelector('#avGear').onclick=function(){ gearDown=!gearDown; this.setAttribute('aria-pressed',gearDown); shell.sound('pop'); leaveAuto(); shell.api.say(gearDown?"Train sorti : prêt à rouler ou à se poser.":"Train rentré : moins de traînée, l'avion glisse mieux dans l'air.",'concentre'); };
+  left.querySelector('#avForces').onclick=function(){ showForces=!showForces; this.setAttribute('aria-pressed',showForces); shell.sound('click'); };
+  left.querySelector('#avFlow').onclick=function(){ showFlow=!showFlow; this.setAttribute('aria-pressed',showFlow); shell.sound('click'); };
+  left.querySelector('#avCk').onclick=function(){ const el=document.getElementById('avCockpit'); const on=!el.classList.contains('show'); el.classList.toggle('show',on); this.setAttribute('aria-pressed',on); shell.sound('click'); };
+  left.querySelector('#avLabels').onclick=function(){ labelsOn=!labelsOn; this.setAttribute('aria-pressed',labelsOn); if(!labelsOn) document.querySelectorAll('.av-label[data-part]').forEach(e=>e.style.display='none'); shell.sound('click'); };
+  left.querySelector('#avNot').onclick=openNotions;
+  left.querySelector('#avFit').onclick=()=>{ focusPoint=null; flying=false; camera.position.set(9.5,4.2,11); controls.target.set(0,0.4,0); shell.sound('click'); };
+
+  // jauges
+  const g=document.createElement('div'); g.className='av-panel av-gauges';
+  g.innerHTML=`<div class="av-g"><div class="v" id="avSpeed">0</div><div class="k">km/h</div></div>
+    <div class="av-g"><div class="v" id="avAlt">0</div><div class="k">altitude m</div></div>
+    <div class="av-g"><div class="v" id="avAoa" style="color:var(--accent-text)">2°</div><div class="k">incidence</div></div>
+    <div class="av-g"><div class="v" id="avLift" style="color:#29B6E0">0</div><div class="k">portance %</div></div>`;
+  stage.appendChild(g);
+
+  // barre de vol
+  const dv=document.createElement('div'); dv.className='av-panel av-drive'; dv.id='avDrive';
+  dv.innerHTML=`<div class="av-th"><span>Gaz (poussée)</span><input id="avThr" type="range" min="0" max="100" value="6" aria-label="Gaz"></div>
+    <div class="av-phases">${PHASES.map((p,i)=>`<button class="av-ph" data-ph="${i}"${i===0?' aria-pressed="true"':''}>${p.name}</button>`).join('')}</div>
+    <button class="av-b" id="avAuto">▶ Vol auto</button>`;
+  stage.appendChild(dv);
+  dv.querySelector('#avThr').oninput=e=>{ throttle=+e.target.value/100; leaveAuto(); };
+  dv.querySelectorAll('[data-ph]').forEach(b=>b.onclick=()=>{ setPhase(+b.dataset.ph); shell.sound('click'); });
+  dv.querySelector('#avAuto').onclick=function(){ autoCycle=!autoCycle; this.classList.toggle('on',autoCycle); this.textContent=autoCycle?'⏸ Vol auto':'▶ Vol auto'; if(autoCycle){ autoTimer=0; setPhase(1); shell.api.say("Vol automatique : décollage → montée → croisière → descente → atterrissage. Observe la poussée et la portance évoluer !",'enthousiaste'); } else shell.api.say('Vol auto en pause.','concentre'); shell.sound('click'); };
+
+  // cockpit
+  const ck=document.createElement('div'); ck.className='av-panel av-cockpit'; ck.id='avCockpit';
+  ck.innerHTML=`<svg class="av-adi-svg" viewBox="0 0 120 120" aria-hidden="true">
+      <defs><clipPath id="adiClip"><circle cx="60" cy="60" r="50"/></clipPath></defs>
+      <g clip-path="url(#adiClip)"><g id="adiRoll"><g id="adiPitch">
+        <rect x="-120" y="-160" width="360" height="220" fill="#3a86c8"/>
+        <rect x="-120" y="60" width="360" height="220" fill="#8a5a34"/>
+        <line x1="-120" y1="60" x2="240" y2="60" stroke="#fff" stroke-width="2.5"/>
+        <line x1="34" y1="40" x2="86" y2="40" stroke="#dfe9ff" stroke-width="1.5"/>
+        <line x1="40" y1="80" x2="80" y2="80" stroke="#f0dcc4" stroke-width="1.5"/>
+      </g></g></g>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="4"/>
+      <path d="M24 60 h20 M76 60 h20" stroke="#F5A623" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <circle cx="60" cy="60" r="2.6" fill="#F5A623"/>
+    </svg>
+    <div class="av-inst">
+      <div class="r"><b id="ciSpd" style="color:#29B6E0">0</b><span>badin km/h</span></div>
+      <div class="r"><b id="ciAlt">0</b><span>altitude m</span></div>
+      <div class="r"><b id="ciVs" style="color:#1E8C7A">0</b><span>vario m/s</span></div>
+    </div>`;
+  stage.appendChild(ck);
+
+  // fiche
+  const fiche=document.createElement('div'); fiche.className='av-panel av-fiche'; fiche.id='avFiche'; stage.appendChild(fiche);
+  // hint
+  const hint=document.createElement('div'); hint.className='av-hint'; hint.id='avHint'; hint.textContent='Braque une gouverne, sors les volets, joue une phase · clique une pièce ✈'; stage.appendChild(hint);
+  // stall
+  const stall=document.createElement('div'); stall.className='av-stall'; stall.id='avStall'; stall.textContent='⚠ DÉCROCHAGE — réduis l\'incidence !'; stage.appendChild(stall);
+}
+
+/* ============ VUE ============ */
+function setView(v){ view=v; document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.view===v));
+  explodeTarget=v==='exp'?1:0; cutTarget=(v==='cut'||v==='exp')?1:0; shell.sound('click');
+  const say={ ext:"Vue extérieure : admire la cellule et ses reflets sous le ciel.", cut:"Vue en coupe : la peau devient translucide — voici les longerons, les cadres, les soutes et l'intérieur du réacteur.", exp:"Vue éclatée : ailes, empennage et réacteurs s'écartent. Clique chaque élément pour son rôle !" };
+  shell.api.say(say[v],'curieux');
+}
+
+/* ============ PHASES ============ */
+function setPhase(i){ phaseIdx=i; phaseAnim=true; phaseT=0; document.querySelectorAll('[data-ph]').forEach(b=>b.setAttribute('aria-pressed', +b.dataset.ph===i));
+  const p=PHASES[i]; flaps=p.flaps; slats=p.slats; gearDown=p.gear; syncConfigButtons();
+  shell.api.say('Phase « '+p.name+' » — '+p.tip,'curieux');
+  if(course && course.step && course.step.type==='act' && course.step.act==='phase' && course.step.phase===p.id) checkActNow();
+}
+function applyPhaseConfig(p,instant){ throttle=p.thr; const thr=document.getElementById('avThr'); if(thr)thr.value=Math.round(p.thr*100); flaps=p.flaps; slats=p.slats; gearDown=p.gear; syncConfigButtons(); }
+function syncConfigButtons(){ const f=document.getElementById('avFlaps'); if(f)f.setAttribute('aria-pressed',flaps); const g=document.getElementById('avGear'); if(g)g.setAttribute('aria-pressed',gearDown); }
+function leaveAuto(){ if(phaseAnim){ phaseAnim=false; document.querySelectorAll('[data-ph]').forEach(b=>b.setAttribute('aria-pressed',false)); } if(autoCycle){ autoCycle=false; const b=document.getElementById('avAuto'); if(b){ b.classList.remove('on'); b.textContent='▶ Vol auto'; } } }
+
+/* ============ FICHES ============ */
+function openFiche(key){ const d=PARTS[key]; if(!d)return; const el=document.getElementById('avFiche');
+  el.innerHTML=`<div class="av-fiche-hd" style="background:linear-gradient(135deg,${d.color},${shade(d.color,-45)})">
+      <div class="sub">${d.sub}</div><h2>${d.icon} ${d.name}</h2>
+      <button class="av-fiche-x" aria-label="Fermer">×</button></div>
+    <div class="av-fiche-bd"><p>${d.role}</p>
+      <div class="av-facts">${d.facts.map(f=>`<div><span class="k">${f[0]}</span><span class="v">${f[1]}</span></div>`).join('')}</div>
+      <div class="av-fun">💡 Le savais-tu ? ${d.fun}</div></div>`;
+  el.classList.add('show'); el.querySelector('.av-fiche-x').onclick=()=>el.classList.remove('show');
+}
+function shade(hex,p){ const n=parseInt(hex.replace('#',''),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255; const f=v=>Math.max(0,Math.min(255,Math.round(v+v*p/100))); return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+function openNotions(){ const el=document.getElementById('avFiche');
+  el.innerHTML=`<div class="av-fiche-hd" style="background:linear-gradient(135deg,#29B6E0,#0a2a3a)"><div class="sub">Cours · encyclopédie</div><h2>📚 Notions de vol</h2><button class="av-fiche-x" aria-label="Fermer">×</button></div>
+    <div class="av-fiche-bd">${NOTIONS.map(n=>`<div style="margin-bottom:11px"><b style="font-size:13.5px">${n[0]}</b><p style="margin:4px 0 0;color:var(--fg-muted)">${n[1]}</p></div>`).join('')}</div>`;
+  el.classList.add('show'); el.querySelector('.av-fiche-x').onclick=()=>el.classList.remove('show'); shell.sound('click');
+}
+
+/* ============ INTERACTION 3D ============ */
+function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
+function pick(){ raycaster.setFromCamera(pointer,camera); const hits=raycaster.intersectObjects(plane.children,true); for(const h of hits){ let o=h.object; if(o.material&&o.material.transparent&&o.material.opacity<0.06)continue; while(o&&!o.userData.part)o=o.parent; if(o&&o.userData.part)return o.userData.part; } return null; }
+function onMove(e){ setP(e); const p=pick(); renderer.domElement.style.cursor=p?'pointer':'grab'; hovered=p; }
+function onDown(e){ setP(e); const key=pick(); if(!key)return;
+  if(shell.api.mode==='cours' && course && course.step && course.step.type==='find'){ checkFind(key); return; }
+  openFiche(key); focusOn(key); shell.sound('pop'); const d=PARTS[key]; if(d) shell.api.say(d.role.split('.')[0]+'.','concentre');
+}
+function focusOn(key){ const p=parts[key]; if(!p)return; focusPoint=p.anchor.clone().applyMatrix4(plane.matrixWorld); flying=true; }
+
+/* ============ MODE DÉTENTE ============ */
+function setDetente(){ course=null; const q=document.getElementById('avQuiz'); if(q)q.remove(); const dv=document.getElementById('avDrive'); if(dv)dv.style.display=''; const h=document.getElementById('avHint'); if(h)h.style.display=''; shell.api.setLevel('libre'); }
+
+/* ============ MODE COURS ============ */
+const COURSE=[
+  { type:'find', key:'aile', ask:"Clique une <b>aile</b>.", say:"C'est la grande surface horizontale qui crée la portance.", ok:"Oui ! L'aile dévie l'air et crée la portance qui soulève l'avion." },
+  { type:'qcm', ask:"Quelle force s'oppose au <b>poids</b> ?", say:"Laquelle tire l'avion vers le haut ?", options:["La portance","La traînée","La poussée","Le lacet"], correct:0, ok:"Exact ! La portance (vers le haut) équilibre le poids (vers le bas)." },
+  { type:'find', key:'profondeur', ask:"Clique la <b>gouverne de profondeur</b>.", say:"Elle est au bord de fuite du petit plan horizontal, à l'arrière. Passe en Éclatée si besoin.", ok:"Bravo ! La profondeur commande le tangage : elle fait monter ou descendre le nez." },
+  { type:'act', act:'flaps', want:true, ask:"Sors les <b>volets</b> pour l'atterrissage.", say:"Clique le bouton « Volets » : ils augmentent la portance à basse vitesse.", ok:"Parfait ! Volets sortis, l'aile porte davantage : on peut voler lentement sans décrocher." },
+  { type:'find', key:'aileron', ask:"Clique un <b>aileron</b> (bout d'aile).", say:"Les ailerons sont en bout d'aile, au bord de fuite. Ils servent au roulis.", ok:"Oui ! Les ailerons inclinent l'avion (roulis) pour amorcer un virage." },
+  { type:'qcm', ask:"Quelle gouverne fait <b>tourner le nez</b> à gauche/droite (lacet) ?", say:"Celle de l'empennage vertical, commandée aux pieds.", options:["La gouverne de direction","Les ailerons","La gouverne de profondeur","Les volets"], correct:0, ok:"Exact ! La gouverne de direction (dérive) commande le lacet, avec le palonnier." },
+  { type:'find', key:'reacteur', ask:"Clique un <b>réacteur</b>.", say:"Sous les ailes : la nacelle avec la grande soufflante.", ok:"Oui ! Le réacteur éjecte les gaz vers l'arrière et propulse l'avion : c'est la poussée." },
+  { type:'qcm', ask:"D'où vient principalement la <b>portance</b> ?", say:"Pense à la vitesse de l'air sur le dessus de l'aile.", options:["L'air accéléré crée une dépression sur le dessus de l'aile","Les réacteurs soufflent vers le bas","Le train pousse sur l'air","Les hublots aspirent l'air"], correct:0, ok:"Parfait ! Sur l'extrados, l'air va plus vite, la pression baisse et « aspire » l'aile vers le haut." },
+];
+function startCourse(){ setView('exp'); const dv=document.getElementById('avDrive'); if(dv)dv.style.display='none'; const h=document.getElementById('avHint'); if(h)h.style.display='none';
+  course={ idx:0, score:0, total:COURSE.length, step:null }; shell.api.setScore(0); shell.api.setProgress(0); showStep(); }
+function showStep(){ if(!course)return; if(course.idx>=course.total){ winCourse(); return; } const st=COURSE[course.idx]; course.step=st; actArmed=true;
+  shell.api.setLevel((course.idx+1)+'/'+course.total); shell.api.setProgress(course.idx/course.total);
+  let q=document.getElementById('avQuiz'); if(!q){ q=document.createElement('div'); q.className='av-quiz'; q.id='avQuiz'; shell.api.stage.appendChild(q); }
+  if(st.type==='qcm'){ q.innerHTML=`<span class="qn">${course.idx+1}/${course.total}</span><div class="qt">${st.ask}</div><div class="av-qrow">${st.options.map((o,i)=>`<button class="av-qo" data-i="${i}">${o}</button>`).join('')}</div>`;
+    q.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>checkQcm(+b.dataset.i)); }
+  else if(st.type==='find'){ q.innerHTML=`<span class="qn">${course.idx+1}/${course.total}</span><div class="qt">🎯 Trouve la pièce</div><div class="qs">${st.ask}</div>`; }
+  else { q.innerHTML=`<span class="qn">${course.idx+1}/${course.total}</span><div class="qt">🎮 Action</div><div class="qs">${st.ask}</div>`; }
+  shell.api.say(st.say,'curieux');
+}
+function checkFind(key){ const st=course.step; if(key===st.key){ correctStep(st.ok); } else { shell.sound('bad'); openFiche(key); shell.api.say("Pas celle-ci — c'est "+(PARTS[key]?PARTS[key].name.toLowerCase():'une autre pièce')+". Relis la consigne et réessaie.",'rassurant'); } }
+function checkQcm(i){ const st=course.step; if(i===st.correct){ correctStep(st.ok); } else { shell.sound('bad'); shell.api.say("Presque ! Réfléchis encore et retente.",'rassurant'); } }
+function checkActNow(){ if(!course||!course.step||course.step.type!=='act'||!actArmed)return; const st=course.step; let ok=false;
+  if(st.act==='flaps') ok=(flaps===st.want); else if(st.act==='phase') ok=true;
+  if(ok){ actArmed=false; correctStep(st.ok); } }
+function correctStep(msg){ course.score++; shell.sound('good'); shell.api.addScore(150); shell.api.say(msg,'celebration'); shell.api.toast('✅ Bonne réponse !');
+  course.idx++; shell.api.setProgress(course.idx/course.total); setTimeout(showStep,1300); }
+function winCourse(){ const q=document.getElementById('avQuiz'); if(q)q.remove(); const sc=course.score, tot=course.total; const st=sc>=tot?3:sc>=tot-2?2:1;
+  shell.api.win({ score:sc*150, stars:st, title:`${sc}/${tot} — brevet de vol décroché !`, learned:shell.cfg.learned,
+    buddy: st===3?"Sans faute ! Tu maîtrises les 4 forces, les 3 axes et le rôle de chaque gouverne. Décollage réussi !":"Bien joué — relis les fiches et retente pour le sans-faute, commandant !",
+    onNext:()=>{ shell.api.setScore(0); startCourse(); }, nextLabel:'Rejouer' });
+  course=null; const dv=document.getElementById('avDrive'); if(dv)dv.style.display='';
+}
+
+/* ============ SON ============ */
+function startSound(){ if(ac||shell.api.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)();
+  jetGain=ac.createGain(); jetGain.gain.value=0; jetGain.connect(ac.destination); jetOsc=ac.createOscillator(); jetOsc.type='sawtooth'; jetOsc.frequency.value=110; jetLp=ac.createBiquadFilter(); jetLp.type='bandpass'; jetLp.frequency.value=820; jetLp.Q.value=0.6; jetOsc.connect(jetLp); jetLp.connect(jetGain); jetOsc.start();
+  const buf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate); const dt=buf.getChannelData(0); for(let i=0;i<dt.length;i++)dt[i]=(Math.random()*2-1)*0.3; const src=ac.createBufferSource(); src.buffer=buf; src.loop=true; windGain=ac.createGain(); windGain.gain.value=0; const hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1100; src.connect(hp); hp.connect(windGain); windGain.connect(ac.destination); src.start();
+  }catch(e){} }
+function updateSound(){ if(!ac)return; const mute=shell.api.muted; if(jetOsc){ jetGain.gain.setTargetAtTime(mute?0:0.03+throttle*0.11,ac.currentTime,.15); jetOsc.frequency.setTargetAtTime(90+throttle*260,ac.currentTime,.15); } if(windGain) windGain.gain.setTargetAtTime(mute?0:Math.min(0.07,speed/1000*0.07),ac.currentTime,.2); }
+
+/* ============ THÈME / RESIZE ============ */
+function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; if(renderer) renderer.setClearColor(dark?0x0a1420:0x9fc4e0,1); if(scene&&scene.fog) scene.fog.color.setHex(dark?0x0a1420:0x9fc4e0); if(scene) scene.backgroundBlurriness=dark?0.5:0.35; if(composer&&composer.bloom) composer.bloom.strength=dark?0.42:0.3; }
+function onResize(){ const s=shell.api.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
+
+/* ============ ÉTIQUETTES 3D ============ */
+const LABEL_KEYS={ aile:'🪽 Aile', aileron:'↻ Aileron', volet:'🛬 Volet', profondeur:'↕ Profondeur', derive:'⇋ Direction', reacteur:'🔥 Réacteur', train:'🛞 Train', cockpit:'🎛️ Cockpit' };
+const labelEls={};
+function updateLabels(){ const stage=shell.api.stage; const show=labelsOn && (view!=='ext');
+  Object.keys(LABEL_KEYS).forEach(key=>{ const p=parts[key]; if(!p)return; let el=labelEls[key];
+    if(!show){ if(el)el.style.display='none'; return; }
+    if(!el){ el=document.createElement('div'); el.className='av-label'; el.dataset.part=key; el.textContent=LABEL_KEYS[key]; stage.appendChild(el); labelEls[key]=el; }
+    const v=p.anchor.clone().applyMatrix4(plane.matrixWorld).project(camera); if(v.z>1){ el.style.display='none'; return; }
+    el.style.display='block'; el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight)+'px'; });
+}
+
+/* ============ ANIMATION ============ */
+function animate(){ requestAnimationFrame(animate); const raw=clock.getDelta(); const dt=Math.min(0.05,raw);
+  const approach=(cur,tgt,rate)=>{ const d=tgt-cur; return Math.abs(d)<1e-4?tgt:cur+d*Math.min(1,dt*rate); };
+
+  // caméra focus
+  if(flying && focusPoint){ controls.target.lerp(focusPoint,0.09); const dir=camera.position.clone().sub(controls.target); const want=focusPoint.clone().add(dir.normalize().multiplyScalar(9)); camera.position.lerp(want,0.05); if(camera.position.distanceTo(want)<0.4) flying=false; }
+
+  // vol auto : enchaîner les phases
+  if(autoCycle){ autoTimer+=dt; if(autoTimer>5.5){ autoTimer=0; let n=phaseIdx+1; if(n>=PHASES.length){ n=1; } setPhase(n); } }
+
+  // cibles selon phase ou pilotage libre
+  const p=PHASES[phaseIdx];
+  if(phaseAnim){ throttle=approach(throttle,p.thr,1.4); const thrEl=document.getElementById('avThr'); if(thrEl) thrEl.value=Math.round(throttle*100); }
+  const targetSpeed = phaseAnim ? p.spd : throttle*1100;
+  speed=approach(speed,targetSpeed,0.5);
+  const targetAoa = (phaseAnim?p.aoa:2) + elevIn*8;
+  aoa=approach(aoa,targetAoa,2.2);
+  // portance : cl selon incidence (décrochage > 16°) + volets
+  let cl; if(aoa<16) cl=(aoa+4)*0.09+(flaps?0.42:0); else cl=Math.max(0.1,1.7-(aoa-16)*0.18)+(flaps?0.3:0);
+  stalled = aoa>=16 && speed>60;
+  const liftRaw=0.5*Math.pow(speed/300,2)*cl*100*3.4; lift=approach(lift,liftRaw,2);
+  // altitude
+  if(phaseAnim){ alt=approach(alt,p.alt,0.6); } else { alt+=(lift-WEIGHT)*dt*1.4; alt=Math.max(0,Math.min(12500,alt)); }
+  vs=approach(vs, phaseAnim?((p.alt-alt)>10?8:(p.alt-alt)<-10?-8:0):(lift-WEIGHT)*0.06, 1.5);
+
+  // HUD
+  const gSpeed=document.getElementById('avSpeed'); if(gSpeed){ gSpeed.textContent=Math.round(speed); document.getElementById('avAlt').textContent=Math.round(alt); document.getElementById('avAoa').textContent=Math.round(aoa)+'°'; document.getElementById('avLift').textContent=Math.round(lift/WEIGHT*100); document.getElementById('avAoa').style.color=stalled?'#E63329':'var(--accent-text)'; }
+  const stallEl=document.getElementById('avStall'); if(stallEl) stallEl.style.display=stalled?'block':'none';
+  // cockpit
+  const ciSpd=document.getElementById('ciSpd'); if(ciSpd){ ciSpd.textContent=Math.round(speed); document.getElementById('ciAlt').textContent=Math.round(alt); document.getElementById('ciVs').textContent=(vs>0?'+':'')+vs.toFixed(1); }
+
+  // attitude de l'avion (3 axes)
+  roll=approach(roll, aileronIn*0.55, 3);
+  pitchAtt=approach(pitchAtt, THREE.MathUtils.degToRad(aoa)*0.6, 2.5);
+  yawAtt=approach(yawAtt, rudderIn*0.35, 3);
+  const buffet=stalled&&!REDUCED?Math.sin(clock.elapsedTime*22)*0.03:0;
+  plane.rotation.set(roll+buffet, yawAtt, pitchAtt);
+  plane.position.y=0.35+(REDUCED?0:Math.sin(clock.elapsedTime*0.6)*0.06);
+  plane.updateMatrixWorld();
+
+  // ADI cockpit
+  const adiR=document.getElementById('adiRoll'), adiP=document.getElementById('adiPitch');
+  if(adiR){ adiR.setAttribute('transform',`rotate(${-THREE.MathUtils.radToDeg(roll)} 60 60)`); adiP.setAttribute('transform',`translate(0 ${aoa*1.4})`); }
+
+  // gouvernes braquées
+  const md=(v)=>v*DEFL;
+  if(aileronR) aileronR.rotation.z=approach(aileronR.rotation.z,-md(aileronIn),4);
+  if(aileronL) aileronL.rotation.z=approach(aileronL.rotation.z, md(aileronIn),4);
+  const flapDefl=flaps?0.5:0;
+  if(flapR) flapR.rotation.z=approach(flapR.rotation.z,flapDefl,3.5);
+  if(flapL) flapL.rotation.z=approach(flapL.rotation.z,flapDefl,3.5);
+  slatMeshes.forEach((b,i)=>{ const s=i===0?1:-1; b.rotation.y=approach(b.rotation.y,(s>0?-0.32:0.32)+(slats?s*0.28:0),3.5); b.position.x=approach(b.position.x,0.55+(slats?0.14:0),3.5); });
+  if(elevGrp) elevGrp.rotation.z=approach(elevGrp.rotation.z,-md(elevIn),4);
+  if(rudderGrp) rudderGrp.rotation.y=approach(rudderGrp.rotation.y,md(rudderIn),4);
+
+  // train : sortie/rentrée
+  gearPivots.forEach(pv=>{ pv.rotation.z=approach(pv.rotation.z, gearDown?0:1.35, 2.5); });
+  const gearVis=gearDown|| (gGear&&gGear.children.some(c=>c.rotation.z<1.3)); if(gGear) gGear.visible=true;
+
+  // réacteurs : fan tourne selon gaz
+  const fanSpd=(0.08+throttle*1.4)*(REDUCED?0.3:1); if(fanR)fanR.rotation.y+=fanSpd; if(fanL)fanL.rotation.y+=fanSpd;
+
+  // vue coupe / éclatée
+  explodeT=approach(explodeT,explodeTarget,2.5); cutT=approach(cutT,cutTarget,2.5);
+  applyExplode();
+  const bodyOp=1-cutT*0.82; bodyPanels.forEach(m=>{ if(m.material){ m.material.transparent=cutT>0.01; m.material.opacity=cutT>0.01?bodyOp:1; } });
+  glassPanels.forEach(m=>{ if(m.material){ m.material.opacity=0.5*(1-cutT*0.7); } });
+  const showInner=cutT>0.05||explodeT>0.05; internals.visible=showInner;
+  if(turbR)turbR.visible=showInner; if(turbL)turbL.visible=showInner;
+
+  // forces (vecteurs) + labels
+  const showF=showForces; Object.values(arrows).forEach(a=>a.visible=showF);
+  if(showF){ const Lg=lift/WEIGHT;
+    setArrow(arrows.lift, new THREE.Vector3(0,0.4,0), new THREE.Vector3(0,1,0), Math.max(0.35,Lg*1.7));
+    setArrow(arrows.weight, new THREE.Vector3(0,-0.3,0), new THREE.Vector3(0,-1,0), 1.5);
+    setArrow(arrows.thrust, new THREE.Vector3(1.6,0,0), new THREE.Vector3(1,0,0), Math.max(0.35,throttle*1.9));
+    setArrow(arrows.drag, new THREE.Vector3(-1.6,0,0), new THREE.Vector3(-1,0,0), Math.max(0.35,speed/1100*1.6+(stalled?0.7:0)));
+    Object.keys(arrows).forEach(k=>{ const a=arrows[k]; const el=a.userData.label; if(!el)return; const wp=a.userData.tip.clone().applyMatrix4(plane.matrixWorld).project(camera); if(wp.z>1){ el.style.display='none'; return; } el.style.display='block'; const st=shell.api.stage; el.style.left=((wp.x*.5+.5)*st.clientWidth)+'px'; el.style.top=((-wp.y*.5+.5)*st.clientHeight)+'px'; }); }
+  else { Object.values(arrows).forEach(a=>{ if(a.userData.label)a.userData.label.style.display='none'; }); }
+
+  // filets d'air
+  flow.forEach(pt=>{ pt.visible=showFlow; if(!showFlow)return; pt.userData.t=(pt.userData.t+dt*(0.35+speed/1600))%1; const t=pt.userData.t; const x=1.1-t*2.7; let y=pt.userData.y0; const bump=airfoilBump(x-0.2);
+    if(pt.userData.top){ y=0.14+bump*(0.14 - (flaps?-0.03:0)); if(stalled){ y+= (t>0.45?Math.sin(t*40+pt.userData.lane*7)*0.12:0); } }
+    else { y=-0.05-bump*0.05; }
+    pt.position.set(x, y, pt.userData.lane); const speedFac=pt.userData.top?1:0.85; pt.userData.t; pt.material.color.setHex(stalled&&pt.userData.top&&x<0.6?0xff5a3a:(pt.userData.top?0x29B6E0:0xffffff)); pt.material.opacity=pt.userData.top?0.85:0.55; });
+
+  // survol : léger surlignage
+  Object.keys(parts).forEach(k=>{ const o=parts[k].obj; if(o&&o.traverse) o.traverse(m=>{ if(m&&m.isMesh&&m.material&&m.material.emissive){ const target=(k===hovered)?0.3:0; m.material.emissiveIntensity=(m.material.emissiveIntensity||0)*0.85+target*0.15; if(k===hovered)m.material.emissive.setHex(0x1a2836); } }); });
+
+  // action course (ex : sortir volets)
+  if(course && course.step && course.step.type==='act') checkActNow();
+
+  updateSound(); controls.update(); updateLabels(); composer.render();
+}
+function setArrow(a, pos, dir, len){ a.position.copy(pos); a.setDirection(dir); a.setLength(len,Math.min(0.4,len*0.35),Math.min(0.28,len*0.22)); a.userData.tip.copy(pos).addScaledVector(dir,len+0.15); }
+
+/* démarre le son au 1er geste */
+window.addEventListener('pointerdown',()=>{ startSound(); try{ ac&&ac.resume&&ac.resume(); }catch(e){} }, {once:true});
+
+/* déplacement des organes en vue éclatée */
+function applyExplode(){ [gWingR,gWingL,gTail,gEngR,gEngL].forEach(gr=>{ if(gr&&gr.userData.home&&gr.userData.exp){ gr.position.copy(gr.userData.home).addScaledVector(gr.userData.exp,explodeT); } }); }
+</script>
+</body>
+</html>
