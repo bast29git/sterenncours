@@ -894,6 +894,7 @@
   document.getElementById('e-btn-palette').addEventListener('click', () => {
     const p = document.getElementById('e-palette-panneau');
     p.hidden = !p.hidden;
+    document.getElementById('e-btn-palette').setAttribute('aria-expanded', String(!p.hidden));
   });
 
   /** Le bouton du thème change de dessin et d'intitulé selon l'état courant. */

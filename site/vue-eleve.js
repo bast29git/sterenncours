@@ -19,9 +19,9 @@
   let minuteurHeure = null;
 
   const ONGLETS = [
-    { route: 'hub', ico: 'ic-accueil', texte: 'Aujourd\'hui' },
-    { route: 'matieres', ico: 'ic-planete', texte: 'Mes matières' },
-    { route: 'calendrier', ico: 'ic-calendrier', texte: 'Ma semaine' },
+    { route: 'hub', ico: 'ic-accueil', texte: 'Accueil' },
+    { route: 'matieres', ico: 'ic-planete', texte: 'Matières' },
+    { route: 'calendrier', ico: 'ic-calendrier', texte: 'Semaine' },
     { route: 'jeux', ico: 'ic-etincelle', texte: 'Jeux' },
     { route: 'messages', ico: 'ic-message', texte: 'Messages' },
   ];
@@ -122,13 +122,12 @@
       return `<li><button type="button" data-seance="${s.id}" data-lecon="${r}" class="${actuelle ? 'actuelle' : ''}" aria-pressed="${actuelle ? 'true' : 'false'}">
         <span class="m">${x.m.icone} ${N.ech(x.m.nom)}</span>
         <b>${N.ech(x.l.titre)}</b>
-        <span>${x.l.notions.slice(0, 3).map(N.ech).join(' · ')}</span>
         <span class="pourquoi">${N.ech(pourquoiProposee(x.m, x.l))}</span>
         ${actuelle ? '<span class="coche">✓ ton choix</span>' : ''}</button>
-        <button type="button" class="e-apercu-bouton" data-apercu="${x.m.id}/${x.l.ref}" aria-label="Aperçu de la fiche ${N.ech(x.l.titre)}">${N.ic('ic-loupe')} aperçu</button></li>`;
+        <button type="button" class="e-apercu-bouton" data-apercu="${x.m.id}/${x.l.ref}" aria-label="Aperçu de la fiche ${N.ech(x.l.titre)}">${N.ic('ic-loupe')} le plan</button></li>`;
     }).join('')}</ul>`;
     return `<article class="e-choix-carte etat-${e.code}" data-choix="${s.id}">
-      <p class="e-choix-quand">${N.ic('ic-calendrier')} Séance du ${N.ech(N.enFrancais(s.date, true))}, de ${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
+      <p class="e-choix-quand">${N.ic('ic-calendrier')} ${N.ech(N.enFrancais(s.date, true))}, de ${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
       <p class="e-choix-etat">${e.code === 'retard' || e.code === 'urgent' ? N.ic('ic-horloge') : ''} ${N.ech(e.texte)}</p>
       ${s.choisi_le && !ouverte
     ? `<p class="e-choix-fait">Tu as choisi : <b>${info ? N.ech(info.m.icone + ' ' + info.l.titre) : '?'}</b>
@@ -163,34 +162,38 @@
     } catch (e) { boite.innerHTML = '<p class="e-aide">Aperçu indisponible.</p>'; }
   }
 
-  /** Sur l'accueil : les trois prochaines séances à choix, la plus proche ouverte. */
-  function blocChoix(seances) {
-    const liste = seancesAChoix(seances);
-    if (!liste.length) return '';
-    const proches = liste.slice(0, 3);
-    return `<section class="e-choix-jour" aria-labelledby="e-choix-titre">
-      <h2 id="e-choix-titre">${N.ic('ic-etincelle')} À toi de choisir</h2>
-      <p class="aide">Une séance sur quatre, la deuxième leçon est à toi. Trois leçons sont proposées, toutes au programme : <b>clique sur celle que tu veux</b>. Tu peux changer d'avis jusqu'au jour de la séance.</p>
-      ${proches.map((s, k) => carteChoix(s, k === 0 && !s.choisi_le)).join('')}
-      ${liste.length > 3 ? `<p class="e-actions"><a class="e-bouton e-bouton-doux" href="#/choix">Voir tous mes choix (${liste.length})</a></p>` : ''}
-    </section>`;
-  }
-
-  /** Bandeau de rappel : un choix en retard ou à faire dans les trois jours. */
+  /** Sur l'accueil et la semaine : une seule phrase si un choix attend, jamais la liste. */
   function rappelChoix(seances) {
-    const s = seancesAChoix(seances).find((x) => !x.choisi_le && ['retard', 'urgent', 'bientot'].indexOf(etatChoix(x).code) !== -1);
+    const liste = seancesAChoix(seances).filter((x) => !x.choisi_le);
+    const s = liste[0];
     if (!s) return '';
     const e = etatChoix(s);
-    return `<p class="e-rappel ${e.code === 'retard' ? 'e-rappel-fort' : ''}">${N.ic('ic-horloge')} <b>Un choix t'attend</b> pour la séance du ${N.ech(N.enFrancais(s.date, true))}. ${N.ech(e.texte)} <a href="#/choix">Choisir maintenant</a></p>`;
+    const forte = e.code === 'retard' || e.code === 'urgent';
+    return `<p class="e-notif${forte ? ' forte' : ''}">${N.ic('ic-etincelle')} <span><b>Une leçon à choisir</b> pour la séance du ${N.ech(N.enFrancais(s.date, true))}. ${N.ech(e.texte)} <a href="#/choix/${s.id}">Choisir</a></span></p>`;
   }
 
-  /** Page « Mes choix » : toutes les séances à choix à venir, modifiables. */
-  function vueChoix() {
+  /** Page « Mon choix » : une séance à la fois, la plus proche non choisie d'abord. */
+  function vueChoix(id) {
     const liste = seancesAChoix(N.etat.seances);
-    afficher(`<h1>Mes choix</h1>
-      <p class="e-intro">Une séance sur quatre, tu décides de la deuxième leçon. Ici, tu vois tous les choix à venir et tu peux en changer un, jusqu'au jour de la séance.</p>
-      ${liste.length ? liste.map((s) => carteChoix(s, !s.choisi_le)).join('') : '<div class="e-carte e-vide"><p>Aucune séance à choix pour l\'instant. Elles apparaîtront ici dès que le planning en proposera.</p></div>'}`);
-    brancherChoix(vueChoix);
+    if (!liste.length) {
+      afficher(`<h1>Mon choix</h1><div class="e-carte e-vide"><p>Aucune séance à choisir pour l'instant. Une séance sur quatre, la deuxième leçon est à toi.</p></div>`);
+      return;
+    }
+    let k = liste.findIndex((x) => x.id === id);
+    if (k === -1) k = Math.max(0, liste.findIndex((x) => !x.choisi_le));
+    const s = liste[k];
+    const restants = liste.filter((x) => !x.choisi_le).length;
+    afficher(`<h1>Mon choix</h1>
+      <p class="e-choix-aide">Une séance sur quatre, la deuxième leçon est à toi : trois leçons du programme, tu cliques sur celle que tu veux. Tu peux changer d'avis jusqu'au jour de la séance.</p>
+      <div class="e-choix-pager">
+        <button class="e-rond" type="button" data-choix-vers="${k > 0 ? liste[k - 1].id : ''}" ${k > 0 ? '' : 'disabled'} aria-label="Séance précédente">‹</button>
+        <span>Séance ${k + 1} sur ${liste.length}${restants ? ` · ${restants} à choisir` : ' · tout est choisi'}</span>
+        <button class="e-rond" type="button" data-choix-vers="${k < liste.length - 1 ? liste[k + 1].id : ''}" ${k < liste.length - 1 ? '' : 'disabled'} aria-label="Séance suivante">›</button>
+      </div>
+      ${carteChoix(s, !s.choisi_le)}
+      ${s.choisi_le && k < liste.length - 1 ? `<p class="e-choix-suite"><a class="e-bouton e-bouton-doux" href="#/calendrier/${s.date}">Voir ma semaine</a><a class="e-bouton" href="#/choix/${liste[k + 1].id}">Séance suivante</a></p>` : ''}`);
+    vue().querySelectorAll('[data-choix-vers]').forEach((b) => b.addEventListener('click', () => { const v = b.getAttribute('data-choix-vers'); if (v) location.hash = '#/choix/' + v; }));
+    brancherChoix(() => vueChoix(s.id));
   }
 
   function brancherChoix(apres) {
@@ -270,32 +273,6 @@
     }
     return null;
   }
-  function blocEtoiles() {
-    const e = prochaineEtoile();
-    const palier = N.prochainPalier();
-    const n = N.reussites().total;
-    if (!e && !palier) return '';
-    return `<section class="e-bloc-fixe e-prochaine-etoile" aria-labelledby="e-h-etoile">
-      <h2 id="e-h-etoile">${N.ic('ic-etoile')} Ma prochaine étoile</h2>
-      ${e ? `<p>${N.ech(e.texte)} <a class="e-lien-action" href="${e.lien}">${N.ech(e.action)}</a></p>` : ''}
-      ${palier ? `<p class="e-palier">À <b>${palier.palier} étoiles</b>, tu débloques la palette « ${N.ech(palier.nom)} ». Tu en as ${n} : encore ${palier.palier - n}.</p>` : '<p class="e-palier">Toutes les palettes de couleurs sont ouvertes.</p>'}
-    </section>`;
-  }
-  /** Le travail à faire avant la prochaine séance : le temps perso annoncé, ou la prochaine leçon à relire. */
-  function blocAvant(suivante) {
-    const auj = N.jourIso();
-    const travaux = N.etat.seances.filter((s) => s.type === 'travail' && s.date >= auj && (!suivante || s.date <= suivante.date) && s.statut !== 'annulee').sort((a, b) => a.date.localeCompare(b.date));
-    const lignes = travaux.slice(0, 2).map((t) => `<li><b>${N.ech(t.date === auj ? 'Aujourd\'hui' : N.enFrancais(t.date))}</b> ${t.debut ? N.ech(t.debut) + ' · ' : ''}${N.ech(t.travail || 'Un temps court de révision, quinze minutes.')}
-      ${(t.lecons || []).map((r) => N.libelleLecon(r)).filter((x) => x && x.m.id !== 'module').map((x) => `<a class="e-lien-doux" href="#/lecon/${x.m.id}/${x.l.ref}/revision">${x.m.icone} ${N.ech(x.l.titre)}</a>`).join(' ')}</li>`);
-    const perso = travaux[0];
-    return `<section class="e-bloc-fixe e-avant" aria-labelledby="e-h-avant">
-      <h2 id="e-h-avant">${N.ic('ic-horloge')} À faire avant la prochaine fois</h2>
-      ${lignes.length ? `<ul class="e-liste-avant">${lignes.join('')}</ul>` : `<p>Rien d'annoncé pour l'instant. ${suivante ? 'Prochaine séance ' + N.ech(N.enFrancais(suivante.date, true)) + '.' : ''}</p>`}
-      ${perso ? `<p class="e-actions" style="margin:.6rem 0 0"><a class="e-bouton e-bouton-doux e-bouton-mini" href="#/perso/${perso.id}">${N.ic('ic-horloge')} Lancer mon temps perso guidé</a></p>` : ''}
-      <div id="e-materiel"></div>
-    </section>`;
-  }
-
   /** C47 : le vendredi et le week-end, les bilans de la semaine avec les mots exacts de Bastien. */
   function blocBilanSemaine() {
     const auj = N.jourIso();
@@ -333,90 +310,83 @@
     const travail = travailDuJour();
     const vedette = jour || suivante;
     const ouverte = prochaineLeconOuverte();
-    const cible = vedette && (vedette.lecons || []).length
-      ? ((vedette.lecons || []).map((r) => N.libelleLecon(r)).find((x) => x && x.m.id !== 'module') || ouverte)
-      : ouverte;
-
-    const moduleVedette = vedette && (vedette.lecons || []).map((r) => N.libelleLecon(r)).find((x) => x && x.m.id === 'module');
-    const titre = vedette
-      ? N.ech(vedette.objectif || 'Séance de travail')
-      : (cible ? N.ech(cible.l.titre) : 'Rien à faire pour l\'instant');
+    const infos = vedette ? (vedette.lecons || []).map((r) => N.libelleLecon(r)).filter(Boolean) : [];
+    const cible = infos.find((x) => x.m.id !== 'module') || ouverte;
+    const moduleVedette = infos.find((x) => x.m.id === 'module');
+    const aChoisir = vedette && (vedette.choix || []).length >= 2 && !vedette.choisi_le;
+    const parties = vedette ? String(vedette.objectif || '').split(' · ').filter(Boolean) : [];
+    const heure = new Date().getHours();
+    const salut = heure < 5 ? 'Bonne nuit, Sterenn' : heure < 12 ? 'Bonjour, Sterenn' : heure < 18 ? 'Bon après-midi, Sterenn' : 'Bonsoir, Sterenn';
+    const quand = jour ? 'Aujourd\'hui' : (suivante ? 'Prochaine séance' : 'Pour l\'instant');
     const detail = vedette
-      ? (jour ? `De ${N.ech(vedette.debut)} à ${N.ech(vedette.fin)}` : N.ech(N.enFrancais(vedette.date, true)))
-        + ' · ' + (vedette.matieres || []).map((id) => {
-          const m = N.matiere(id);
-          return m ? m.icone + ' ' + N.ech(m.nom) : '';
-        }).filter(Boolean).join(' · ')
+      ? `${N.ech(N.enFrancais(vedette.date, true))} · de ${N.ech(vedette.debut)} à ${N.ech(vedette.fin)}`
       : (cible ? N.ech(cible.m.nom) : 'Les prochaines leçons arriveront bientôt.');
+    const titre = vedette
+      ? (cible && parties.length > 1 ? N.ech(cible.l.titre) : N.ech(vedette.objectif || 'Séance de travail'))
+      : (cible ? N.ech(cible.l.titre) : 'Rien de prévu');
+    const contenu = parties.length > 1 ? `<ul class="e-prochaine-contenu">${parties.map((t) => `<li>${N.ech(t)}</li>`).join('')}</ul>` : '';
+    const actions = [];
+    if (moduleVedette) actions.push(`<a class="e-bouton" href="${moduleVedette.l.url}">${moduleVedette.l.icone} ${N.ech(moduleVedette.l.titre)}</a>`);
+    if (cible && cible.m.id !== 'module' && docsVisibles(cible.l).length && N.accessible(cible.m.id, cible.l.ref)) actions.push(`<a class="e-bouton${moduleVedette ? ' e-bouton-doux' : ''}" href="#/lecon/${cible.m.id}/${cible.l.ref}/cours">Ouvrir ma leçon</a>`);
+    if (!moduleVedette && cible && N.banque(cible.m.id, cible.l.ref)) actions.push(`<a class="e-bouton e-bouton-doux" href="#/exos/${cible.m.id}/${cible.l.ref}">M'entraîner</a>`);
+
+    // Ce qu'il y a à faire avant : seulement si un temps perso est annoncé.
+    const auj = N.jourIso();
+    const perso = N.etat.seances.filter((s) => s.type === 'travail' && s.date >= auj && (!suivante || s.date <= suivante.date) && s.statut !== 'annulee').sort((a, b) => a.date.localeCompare(b.date))[0];
+    const blocPerso = perso ? `<p class="e-notif">${N.ic('ic-horloge')} <span><b>${N.ech(perso.date === auj ? 'Aujourd\'hui' : N.enFrancais(perso.date, true))}</b>${perso.debut ? ' à ' + N.ech(perso.debut) : ''} · ${N.ech(perso.travail || 'Un temps court de révision, quinze minutes.')} <a href="#/perso/${perso.id}">Lancer mon temps perso</a></span></p>` : '';
+    const nonLus = N.etat.messagesNonLus || 0;
+    const validees = PROGRAMME.matieres.reduce((n, m) => n + m.lecons.filter((l) => N.estValidee(m.id, l.ref)).length, 0);
+    const modules = [
+      { lien: '#/decouverte', ico: '🤝', titre: 'Faire connaissance', fait: !!N.profil('moi.decouverte_fait'), sinon: 'Notre première séance, pas à pas' },
+      { lien: '#/visite', ico: '🗺️', titre: 'Visite guidée', fait: !!N.profil('moi.visite_faite') && N.profil('moi.visite_faite') !== 'interrompue', sinon: 'Sept étapes avec Opale' },
+      { lien: '#/positionnement', ico: '🧭', titre: 'Où j\'en suis', fait: !!N.profil('moi.positionnement') && !N.profil('moi.positionnement').enCours, sinon: 'À faire avec Bastien, sans note' },
+    ];
 
     afficher(
-      `<section class="e-jour" aria-labelledby="e-h-maintenant">
-        <p class="quand" id="e-h-maintenant">${jour ? 'Maintenant' : (suivante ? 'Prochaine séance' : 'À faire maintenant')}</p>
-        <h1>${titre}</h1>
-        <p class="detail">${detail}</p>
-        <p class="e-heure" id="e-heure">${N.ech(ligneHeure(jour || travail))}</p>
-        <p class="e-actions">
-          ${moduleVedette ? `<a class="e-bouton" href="${moduleVedette.l.url}">${moduleVedette.l.icone} ${N.ech(moduleVedette.l.titre)}</a>` : ''}
-          ${cible && cible.m.id !== 'module' && docsVisibles(cible.l).length && N.accessible(cible.m.id, cible.l.ref)
-        ? `<a class="e-bouton${moduleVedette ? ' e-bouton-doux' : ''}" href="#/lecon/${cible.m.id}/${cible.l.ref}/cours">Ouvrir ma leçon</a>` : ''}
-          ${cible && N.banque(cible.m.id, cible.l.ref)
-        ? `<a class="e-bouton e-bouton-doux" href="#/exos/${cible.m.id}/${cible.l.ref}">M'entraîner</a>` : ''}
-        </p>
-       </section>
-
-       ${blocAvant(suivante)}
-       ${blocBilanSemaine()}
-       <section class="e-bloc-fixe e-bloc-choix" aria-labelledby="e-h-choix">
-         <h2 id="e-h-choix">${N.ic('ic-cible')} Mes prochains choix</h2>
-         ${rappelChoix(N.etat.seances)}
-         ${blocChoix(N.etat.seances) || '<p>Pas de choix à faire pour l\'instant. Une séance sur quatre est à toi : tu choisis parmi trois leçons.</p>'}
-       </section>
+      `<div class="e-bonjour"><p class="date">${N.ech(N.enFrancais(auj, true))}</p><h1>${salut}</h1></div>
        ${blocMotNouveau()}
-       ${blocARevoir()}
-       ${blocEtoiles()}
-       ${blocDefiBastien()}
-       ${blocDefiJour()}
-       ${blocDefi()}
-
-       <div class="e-orbite-titre">
-         <h2>Mes matières</h2>
-         <span>Fais tourner, clique sur une planète</span>
-       </div>
-       <div class="e-orbite" id="e-orbite"></div>
-
-       <ul class="e-tuiles">
-         <li><a href="#/reussites"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-etoile"/></svg></span>
-           <b>Mes réussites</b><span>${N.reussites().total} étoile(s)</span></a></li>
-         <li><a href="#/messages"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-message"/></svg></span>
-           <b>Messages</b><span>${N.etat.messagesNonLus ? N.etat.messagesNonLus + ' non lu(s)' : 'Écrire, envoyer une photo'}</span></a></li>
-         <li><a href="#/calendrier"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-calendrier"/></svg></span>
-           <b>Ma semaine</b><span>Ce qui est prévu</span></a></li>
-         <li><a href="#/matieres"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-planete"/></svg></span>
-           <b>Mes matières</b><span>Ouvrir un parcours</span></a></li>
-         <li><a href="#/jeux"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-etincelle"/></svg></span>
-           <b>Jeux</b><span>${(window.JEUX || []).length} jeux et mondes 3D</span></a></li>
-         <li><a href="#/curiosites"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-etincelle"/></svg></span>
-           <b>Curiosités</b><span>Pour le plaisir, sans étoile</span></a></li>
-         <li><a href="#/notes"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-crayon"/></svg></span>
-           <b>Mes notes</b><span>Ce que j'ai écrit dans les fiches</span></a></li>
-         <li><a href="#/aide"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-livre"/></svg></span>
-           <b>Aide</b><span>Douze questions, douze réponses</span></a></li>
+       <section class="e-prochaine${vedette || cible ? '' : ' vide'}" aria-labelledby="e-h-maintenant">
+        <p class="quand" id="e-h-maintenant">${quand}</p>
+        <h2>${titre}</h2>
+        <p class="detail">${detail}</p>
+        ${jour || travail ? `<p class="e-heure" id="e-heure">${N.ech(ligneHeure(jour || travail))}</p>` : ''}
+        ${contenu}
+        ${aChoisir ? `<p class="e-notif" style="margin:.8rem 0 0">${N.ic('ic-etincelle')} <span>La deuxième leçon de cette séance est <b>à toi</b>. <a href="#/choix/${vedette.id}">Choisir ma leçon</a></span></p>` : ''}
+        ${actions.length ? `<p class="e-actions">${actions.join('')}</p>` : ''}
+        <div id="e-materiel"></div>
+       </section>
+       ${blocPerso}
+       ${aChoisir ? '' : rappelChoix(N.etat.seances)}
+       <ul class="e-liens3">
+         <li><a href="#/calendrier"><b>Ma semaine</b><span>${suivante ? 'Prochain cours ' + N.ech(N.enFrancais(suivante.date)) : 'Ce qui est prévu'}</span></a></li>
+         <li><a href="#/matieres"><b>Mes matières</b><span>${validees ? validees + ' leçon(s) validée(s)' : 'Ouvrir un parcours'}</span></a></li>
+         <li><a href="#/messages"><b>Messages${nonLus ? `<span class="bulle">${nonLus}</span>` : ''}</b><span>${nonLus ? 'À lire' : 'Écrire à Bastien'}</span></a></li>
        </ul>
-
-       <h2 class="e-titre-section">${N.ic('ic-cible')} Pour commencer</h2>
-       <ul class="e-tuiles e-tuiles-modules">
-         <li class="${N.profil('moi.decouverte_fait') ? 'fait' : ''}"><a href="#/decouverte"><span class="ico" aria-hidden="true">🤝</span>
-           <b>Faire connaissance</b><span>${N.profil('moi.decouverte_fait') ? 'Terminé ✓ · relire ma carte' : 'Notre première séance, pas à pas'}</span></a></li>
-         <li class="${N.profil('moi.visite_faite') && N.profil('moi.visite_faite') !== 'interrompue' ? 'fait' : ''}"><a href="#/visite"><span class="ico" aria-hidden="true">🗺️</span>
-           <b>Visite guidée</b><span>${N.profil('moi.visite_faite') && N.profil('moi.visite_faite') !== 'interrompue' ? 'Vue ✓ · la refaire' : 'Sept étapes avec Opale'}</span></a></li>
-         <li class="${N.profil('moi.positionnement') && !N.profil('moi.positionnement').enCours ? 'fait' : ''}"><a href="#/positionnement"><span class="ico" aria-hidden="true">🧭</span>
-           <b>Où j'en suis</b><span>${N.profil('moi.positionnement') && !N.profil('moi.positionnement').enCours ? 'Fait ✓ · voir mon point de départ' : 'À faire avec Bastien, sans note'}</span></a></li>
-       </ul>`,
+       <details class="e-plus" ${N.lire('opaline.accueil.plus', false) ? 'open' : ''}>
+         <summary>Et aussi</summary>
+         ${blocDefiBastien()}
+         ${blocARevoir()}
+         ${blocDefiJour()}
+         ${blocBilanSemaine()}
+         <ul class="e-plus-liste">
+           <li><a href="#/jeux">Jeux<span>${(window.JEUX || []).length} jeux et mondes 3D</span></a></li>
+           <li><a href="#/reussites">Mes réussites<span>${N.reussites().total} étoile(s)</span></a></li>
+           <li><a href="#/curiosites">Curiosités<span>Pour le plaisir, sans étoile</span></a></li>
+           <li><a href="#/notes">Mes notes<span>Ce que j'ai écrit dans les fiches</span></a></li>
+           <li><a href="#/aide">Aide<span>Douze questions, douze réponses</span></a></li>
+           <li><a href="#/annales">Mes évaluations<span>Les copies et leurs corrections</span></a></li>
+         </ul>
+         <h2 class="e-titre-section">Pour commencer</h2>
+         <ul class="e-plus-liste e-tuiles-modules">
+           ${modules.map((x) => `<li class="${x.fait ? 'fait' : ''}"><a href="${x.lien}">${x.ico} ${N.ech(x.titre)}<span>${x.fait ? 'Terminé ✓ · revoir' : N.ech(x.sinon)}</span></a></li>`).join('')}
+         </ul>
+       </details>`,
     );
+    const plus = vue().querySelector('.e-plus');
+    if (plus) plus.addEventListener('toggle', () => N.ecrire('opaline.accueil.plus', plus.open));
     brancherChoix(vueHub);
     brancherDefiJour(vueHub);
     brancherDefiBastien(vueHub);
-    monterOrbite();
     const vu = document.getElementById('e-mot-vu');
     if (vu) vu.addEventListener('click', async () => { await marquerMotsVus(); vueHub(); });
     minuteurHeure = setInterval(() => { const h = document.getElementById('e-heure'); if (h) h.textContent = ligneHeure(jour || travail); else clearInterval(minuteurHeure); }, 30000);
@@ -464,34 +434,6 @@
     rendre();
   }
 
-  async function monterOrbite() {
-    const hote = document.getElementById('e-orbite');
-    if (!hote) return;
-    const mondes = PROGRAMME.matieres.map((m) => {
-      const p = N.progression(m);
-      const prets = m.lecons.filter((l) => docsVisibles(l).length).length;
-      return {
-        id: m.id, titre: m.nom,
-        sousTitre: prets ? `${prets} leçon(s) · ${p.pct} %` : 'bientôt',
-        grad: N.DEGRADES[m.id] || ['#7B6BE8', '#B4A8F5'],
-        emoji: m.icone, url: '#/matiere/' + m.id, badge: p.faites ? String(p.faites) : '',
-      };
-    });
-    try {
-      await N.chargerScript('moteurs/worlds-orbit.js');
-      if (!window.KonstrioWorldsOrbit) throw new Error('indisponible');
-      observateurOrbite = window.KonstrioWorldsOrbit.mount(hote, mondes, {
-        onOpen: (monde) => { location.hash = '#/matiere/' + monde.id; },
-      });
-    } catch (e) {
-      hote.classList.add('e-carte');
-      hote.innerHTML = `<ul class="e-tuiles">${mondes.map((w) => `<li><a href="${w.url}">
-        <span class="ico" aria-hidden="true">${w.emoji}</span>
-        <b>${N.ech(w.titre)}</b><span>${N.ech(w.sousTitre)}</span></a></li>`).join('')}</ul>`;
-    }
-  }
-
-  /* ---------- Mes matières ---------------------------------------------------- */
   function formulaireRecherche(q) {
     return `<form class="e-recherche" id="e-form-recherche" role="search"><label class="visuellement-cache" for="e-q">Rechercher</label>
       <input id="e-q" type="search" value="${N.ech(q || '')}" placeholder="Une leçon, un mot du cours, un jeu…" autocomplete="off">
@@ -1617,51 +1559,39 @@
     const aujourd = N.jourIso();
     afficher('<p class="e-vide">Chargement…</p>');
 
-    // On charge large : le bandeau du mois et la semaine affichée.
+    // On charge large : le mois replié et la semaine affichée.
     const seances = await N.chargerSeances(N.decaler(ancre.slice(0, 8) + '01', -7),
       N.decaler(ancre.slice(0, 8) + '01', 44));
 
-    const colonnes = N.JOURS.map((nom, i) => {
+    const jours = N.JOURS.map((nom, i) => {
       const jour = N.decaler(lundi, i);
       const duJour = seances.filter((x) => x.date === jour)
         .sort((a, b) => String(a.debut).localeCompare(String(b.debut)));
-      return `<div class="e-jour-col${jour === aujourd ? ' auj' : ''}">
-        <p class="e-jour-nom">${nom}<b>${Number(jour.slice(8, 10))}</b></p>
-        <p class="e-jour-resume">${duJour.length ? duJour.length + ' prévu(s)' : 'rien'}</p>
-        ${duJour.length
-    ? duJour.map(evenement).join('')
-    : '<p class="e-jour-repos">Rien de prévu</p>'}
-      </div>`;
+      return `<li class="e-sem-jour${jour === aujourd ? ' auj' : ''}${duJour.length ? '' : ' repos'}">
+        <p class="e-sem-date"><b>${Number(jour.slice(8, 10))}</b><span>${N.ech(nom.slice(0, 3))}</span></p>
+        <div>${duJour.length ? duJour.map(evenement).join('') : '<p class="e-sem-repos">Rien de prévu</p>'}</div>
+      </li>`;
     }).join('');
 
-    const semaine = seances.filter((x) => x.date >= lundi && x.date <= N.decaler(lundi, 4));
-    const cours = semaine.filter((x) => x.type === 'cours').length;
-    const compacte = N.lire('opaline.semaine.compacte', true) !== false;
     const rappel = N.rappelActif();
-
     afficher(
       `<h1>Ma semaine</h1>
-       <p class="e-intro">Cours le lundi, le mercredi et le vendredi. Deux temps courts le mardi et le jeudi.</p>
-       <p class="e-semaine-options">
-         <label class="e-case"><input type="checkbox" id="e-rappel" ${rappel ? 'checked' : ''}> Me rappeler mes temps perso et mes séances une heure avant (message du navigateur)</label>
-       </p>
-       ${blocChoix(seances)}
-       ${bandeauMois(ancre, seances)}
-       <section class="e-semaine">
-         <div class="e-semaine-tete">
-           <button class="e-rond" id="e-prec" type="button" aria-label="Semaine précédente">‹</button>
-           <div>
-             <h2>Du ${N.ech(N.enFrancais(lundi))} au ${N.ech(N.enFrancais(N.decaler(lundi, 4)))}</h2>
-             <p>${cours} cours cette semaine</p>
-           </div>
-           <button class="e-rond" id="e-suiv" type="button" aria-label="Semaine suivante">›</button>
-         </div>
-         <div class="e-semaine-grille${compacte ? ' compacte' : ''}" id="e-semaine-grille">${colonnes}</div>
-         <p class="e-semaine-pied"><button class="e-bouton e-bouton-fin" id="e-auj" type="button">Revenir à aujourd'hui</button>
-           <button class="e-bouton e-bouton-fin e-semaine-plier" id="e-plier" type="button" aria-pressed="${compacte}">${compacte ? 'Voir toute la semaine' : 'Voir surtout aujourd\'hui'}</button></p>
-       </section>`,
+       <p class="e-intro">Cours le lundi, le mercredi et le vendredi, de 13 h à 14 h 30. Deux temps courts le mardi et le jeudi.</p>
+       ${rappelChoix(seances)}
+       <div class="e-sem-tete">
+         <button class="e-rond" id="e-prec" type="button" aria-label="Semaine précédente">‹</button>
+         <h2>Du ${N.ech(N.enFrancais(lundi))} au ${N.ech(N.enFrancais(N.decaler(lundi, 4)))}</h2>
+         <button class="e-rond" id="e-suiv" type="button" aria-label="Semaine suivante">›</button>
+       </div>
+       <ol class="e-sem-liste">${jours}</ol>
+       <div class="e-sem-pied">
+         ${lundi !== N.lundiDe(aujourd) ? '<p class="e-actions" style="margin:0 0 .6rem"><button class="e-bouton e-bouton-fin" id="e-auj" type="button">Revenir à cette semaine</button></p>' : ''}
+         <details class="e-plus"><summary>Voir le mois</summary>${bandeauMois(ancre, seances)}</details>
+         <details class="e-plus"><summary>Rappels</summary>
+           <div class="e-sem-options"><label class="e-case"><input type="checkbox" id="e-rappel" ${rappel ? 'checked' : ''}> Me prévenir une heure avant un cours ou un temps perso (message du navigateur)</label></div>
+         </details>
+       </div>`,
     );
-    document.getElementById('e-plier').addEventListener('click', () => { N.ecrire('opaline.semaine.compacte', !compacte); vueCalendrier(ancre); });
     document.getElementById('e-rappel').addEventListener('change', async (ev) => {
       const ok = await N.activerRappel(ev.target.checked);
       ev.target.checked = ok;
@@ -1669,10 +1599,10 @@
     });
     document.getElementById('e-prec').addEventListener('click', () => { location.hash = '#/calendrier/' + N.decaler(lundi, -7); });
     document.getElementById('e-suiv').addEventListener('click', () => { location.hash = '#/calendrier/' + N.decaler(lundi, 7); });
-    document.getElementById('e-auj').addEventListener('click', () => { location.hash = '#/calendrier/' + N.jourIso(); });
+    const auj = document.getElementById('e-auj');
+    if (auj) auj.addEventListener('click', () => { location.hash = '#/calendrier/' + N.jourIso(); });
     vue().querySelectorAll('[data-mois]').forEach((b) => b.addEventListener('click',
       () => { location.hash = '#/calendrier/' + b.getAttribute('data-mois'); }));
-    brancherChoix(() => vueCalendrier(ancre));
     brancherSemaine(() => vueCalendrier(ancre));
   }
 
@@ -1735,11 +1665,10 @@
   function evenement(s) {
     const futur = s.date >= N.jourIso();
     if (s.type === 'travail') {
-      return `<article class="e-evt perso" data-evt="${s.id}">
-        <p class="h">${N.ech(s.debut)} · ${dureeMinutes(s)} min</p>
-        <p class="t">Temps perso</p>
-        <p class="d">${N.ech(court(String(s.travail || 'À voir ensemble'), 78))}</p>
-        ${futur ? `<p class="l"><a class="o" href="#/perso/${s.id}">${N.ic('ic-droite')} Guidé</a><button type="button" class="o" data-deplacer="${s.id}">${N.ic('ic-horloge')} Déplacer</button></p>
+      return `<article class="e-sem-evt perso" data-evt="${s.id}">
+        <p class="h">${N.ech(s.debut)} · ${dureeMinutes(s)} min · temps perso</p>
+        <p class="t">${N.ech(court(String(s.travail || 'À voir ensemble'), 90))}</p>
+        ${futur ? `<p class="l"><a href="#/perso/${s.id}">${N.ic('ic-droite')} Lancer</a><button type="button" class="discret" data-deplacer="${s.id}">Déplacer</button></p>
         <form class="e-evt-form" data-form-deplacer="${s.id}" hidden>
           <label>Jour <input type="date" name="date" value="${N.ech(s.date)}" required></label>
           <label>Début <input type="time" name="debut" value="${N.ech(s.debut)}" required></label>
@@ -1748,24 +1677,25 @@
         </form>` : ''}
       </article>`;
     }
-    const liens = (s.lecons || []).map((r) => {
-      const info = N.libelleLecon(r);
-      if (!info || !docsVisibles(info.l).length || !N.accessible(info.m.id, info.l.ref)) return '';
-      return `<a class="o" href="#/lecon/${info.m.id}/${info.l.ref}/cours">${info.m.icone} Ouvrir</a>`;
-    }).filter(Boolean).join('');
+    const infos = (s.lecons || []).map((r) => N.libelleLecon(r)).filter(Boolean);
+    const ouvrable = infos.find((x) => x.m.id !== 'module' && docsVisibles(x.l).length && N.accessible(x.m.id, x.l.ref));
+    const matieres = (s.matieres || []).map((id) => N.matiere(id)).filter(Boolean).map((m) => m.icone + ' ' + N.ech(m.nom)).join(' · ');
     const titres = String(s.objectif || 'Séance').split(' · ');
-    return `<article class="e-evt cours${s.statut === 'faite' ? ' faite' : ''}${s.absence ? ' absente' : ''}" data-evt="${s.id}">
-      <p class="h">${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
-      ${s.absence ? `<p class="e-evt-absence">${N.ic('ic-croix')} Tu as prévenu : absente${s.commentaire_eleve ? ' · ' + N.ech(s.commentaire_eleve) : ''}</p>${creneauxRemplacement(s)}` : ''}
+    const aChoix = (s.choix || []).length >= 2 && futur;
+    return `<article class="e-sem-evt cours${s.statut === 'faite' ? ' faite' : ''}${s.absence ? ' absente' : ''}" data-evt="${s.id}">
+      <p class="h">${N.ech(s.debut)} à ${N.ech(s.fin)}${matieres ? ' · ' + matieres : ''}</p>
       ${titres.map((t) => `<p class="t">${N.ech(t)}</p>`).join('')}
-      ${N.profil('visio.' + s.id, null) && s.date >= N.jourIso() ? `<p class="l"><a class="o e-visio" href="${N.ech(N.profil('visio.' + s.id, ''))}" target="_blank" rel="noopener">${N.ic('ic-envoyer')} Rejoindre la visio</a></p>` : ''}
-      ${futur ? `<p class="l"><button type="button" class="o" data-absence="${s.id}">${s.absence ? 'Finalement je serai là' : 'Je serai absente'}</button></p>
-      <form class="e-evt-form" data-form-absence="${s.id}" hidden>
+      ${s.absence ? `<p class="e-sem-absente">${N.ic('ic-croix')} Tu as prévenu que tu serais absente${s.commentaire_eleve ? ' · ' + N.ech(s.commentaire_eleve) : ''}.</p>${creneauxRemplacement(s)}` : ''}
+      <p class="l">
+        ${ouvrable ? `<a href="#/lecon/${ouvrable.m.id}/${ouvrable.l.ref}/cours">${N.ic('ic-livre')} Ouvrir</a>` : ''}
+        ${aChoix ? `<a href="#/choix/${s.id}">${N.ic('ic-etincelle')} ${s.choisi_le ? 'Changer mon choix' : 'À toi de choisir'}</a>` : ''}
+        ${N.profil('visio.' + s.id, null) && futur ? `<a href="${N.ech(N.profil('visio.' + s.id, ''))}" target="_blank" rel="noopener">${N.ic('ic-envoyer')} Rejoindre la visio</a>` : ''}
+        ${futur ? `<button type="button" class="discret" data-absence="${s.id}">${s.absence ? 'Finalement je serai là' : 'Je serai absente'}</button>` : ''}
+      </p>
+      ${futur ? `<form class="e-evt-form" data-form-absence="${s.id}" hidden>
         <label>Pourquoi, en quelques mots (facultatif) <input type="text" name="commentaire" maxlength="300" placeholder="rendez-vous, sortie, fatigue…"></label>
         <span class="e-evt-form-actions"><button type="submit" class="e-bouton">Prévenir Bastien</button><button type="button" class="e-bouton e-bouton-fin" data-annuler>Annuler</button></span>
       </form>` : ''}
-      ${(s.choix || []).length >= 2 && s.date >= N.jourIso() ? `<p class="c"><a href="#/choix">${N.ic('ic-etincelle')} ${s.choisi_le ? 'changer mon choix' : 'à toi de choisir'}</a></p>` : ''}
-      ${liens ? `<p class="l">${liens}</p>` : ''}
     </article>`;
   }
 
@@ -2681,7 +2611,7 @@
       case 'aide': return vueAide();
       case 'notes': return vueNotes();
       case 'calendrier': return vueCalendrier(p[1]);
-      case 'choix': return vueChoix();
+      case 'choix': return vueChoix(p[1]);
       case 'decouverte': return module('vueDecouverte', p[1]);
       case 'positionnement': return module('vuePositionnement');
       case 'visite': return visite();

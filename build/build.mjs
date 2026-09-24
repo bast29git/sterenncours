@@ -421,7 +421,7 @@ function construirePaquets() {
     try { sortie = require('esbuild').transformSync(corps, { minify: true, loader: 'js', charset: 'utf8', legalComments: 'none', target: 'es2020' }).code; } catch (e) { console.warn(`   ⚠️  minification impossible pour ${nom} : ${String(e.message || e).split('\n')[0]}`); }
     fs.writeFileSync(path.join(SORTIE, nom), sortie);
   }
-  version = crypto.createHash('sha1').update(version + lire('app.js') + lire('eleve.css') + lire('prof.css')).digest('hex').slice(0, 10);
+  version = crypto.createHash('sha1').update(version + lire('app.js') + lire('eleve.css') + lire('calme.css') + lire('prof.css') + lire('index.html')).digest('hex').slice(0, 10);
   const index = path.join(SORTIE, 'index.html');
   fs.writeFileSync(index, fs.readFileSync(index, 'utf8').replace('<script src="app.js"></script>', `<script>window.OPALINE_VERSION = ${JSON.stringify(version)};</script>\n<script src="app.js?v=${version}"></script>`));
   fs.writeFileSync(path.join(SORTIE, 'version.json'), JSON.stringify({ version, le: new Date().toISOString() }));
@@ -443,7 +443,7 @@ copierDossier(path.join(RACINE, 'site'), SORTIE);
 function minifierSite() {
   const { transformSync } = require('esbuild');
   const cibles = ['app.js', 'vue-prof-pages.js', 'sw.js', 'data/exercices.js', 'data/jeux.js',
-    'socle.css', 'lecture.css', 'portail.css', 'eleve.css', 'prof.css', 'moteurs/aurora.css', 'theme/cours.css'];
+    'socle.css', 'lecture.css', 'portail.css', 'eleve.css', 'calme.css', 'prof.css', 'moteurs/aurora.css', 'theme/cours.css'];
   let avant = 0; let apres = 0;
   for (const rel of cibles) {
     const f = path.join(SORTIE, rel);

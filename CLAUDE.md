@@ -83,6 +83,14 @@ le source de la page. Ne jamais y placer de donnée sensible.
 Le suivi des acquis vit dans le `localStorage` du navigateur, avec export et import
 JSON. Aucune donnée ne part sur un serveur.
 
+**Direction de l'espace de Sterenn : une chose à la fois** (`site/calme.css`, chargé après
+`site/eleve.css`). Fond crème uni, jamais de photo derrière le contenu (l'aurore reste sur le
+portail). L'accueil montre la prochaine séance, une seule notification au plus, trois portes
+(semaine, matières, messages) et un bloc « Et aussi » replié pour le reste. La semaine se lit
+jour par jour, avec l'absence en lien discret sur chaque séance. Un choix de leçon se fait
+séance par séance (`#/choix/<id>`). Les réglages d'affichage (thème, taille, couleur) vivent
+dans un seul panneau. Toute nouvelle page respecte ce rythme : un écran, une intention.
+
 Le build génère `public/data/contenu/<matiere>.js` : le HTML de chaque fiche, son
 plan et ses métadonnées, chargé à la demande par le lecteur. On n'écrit jamais dans
 `public/`.

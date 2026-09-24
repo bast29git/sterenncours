@@ -16,26 +16,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap">
-<script>
-/* Le fond d'aurore est l'élément le plus lourd de l'écran : on le demande tout de suite,
-   dans la version du thème mémorisé, avant que le CSS ne soit lu. */
-(function () {
-  try {
-    var sombre = localStorage.getItem('cours4e.theme') === '"dark"';
-    var portrait = window.matchMedia && window.matchMedia('(max-aspect-ratio: 3/4)').matches;
-    var l = document.createElement('link');
-    l.rel = 'preload'; l.as = 'image'; l.fetchPriority = 'high';
-    l.href = portrait ? 'fond/aurore-mobile.webp' : (sombre ? 'fond/aurore-nuit.webp' : 'fond/aurore-jour.webp');
-    l.type = 'image/webp';
-    document.head.appendChild(l);
-  } catch (e) { /* sans stockage : pas de préchargement */ }
-})();
-</script>
 <link rel="stylesheet" href="moteurs/aurora.css">
 <link rel="stylesheet" href="socle.css">
 <link rel="stylesheet" href="lecture.css">
 <link rel="stylesheet" href="portail.css">
 <link rel="stylesheet" href="eleve.css">
+<link rel="stylesheet" href="calme.css">
 <link rel="stylesheet" href="prof.css">
 </head>
 <body>
@@ -243,15 +229,11 @@
     <nav class="e-nav" id="e-nav" aria-label="Navigation principale"></nav>
 
     <div class="e-droite">
-      <button class="e-rond-tete" id="e-btn-theme" type="button" aria-label="Passer en thème sombre">
-        <svg class="ic" aria-hidden="true"><use href="#ic-lune"/></svg>
-      </button>
       <button class="e-rond-tete" id="e-btn-confort" type="button" aria-label="Accessibilité et confort de lecture" title="Accessibilité et confort">
         <svg class="ic" aria-hidden="true"><use href="#ic-confort"/></svg>
       </button>
-      <button class="e-rond-tete e-btn-taille" id="e-btn-taille" type="button" aria-label="Taille du texte : normale. Cliquer pour changer." title="Taille du texte" data-cran="0"><span aria-hidden="true">Aa</span></button>
-      <button class="e-rond-tete" id="e-btn-palette" type="button" aria-label="Changer les couleurs">
-        <span class="e-pastille-couleur" aria-hidden="true"></span>
+      <button class="e-rond-tete" id="e-btn-palette" type="button" aria-label="Affichage : couleurs, thème, taille du texte" title="Affichage" aria-expanded="false">
+        <svg class="ic" aria-hidden="true"><use href="#ic-palette"/></svg>
       </button>
       <a class="e-jeton e-jeton-etoiles" href="#/reussites" id="e-reussites" title="Mes réussites">
         <svg class="ic" aria-hidden="true"><use href="#ic-etoile"/></svg><b id="e-etoiles">0</b>
@@ -263,11 +245,17 @@
   </header>
 
   <div class="e-palette-panneau" id="e-palette-panneau" hidden>
-    <p class="e-palette-titre">Choisis tes couleurs</p>
+    <p class="e-palette-titre">Affichage</p>
+    <div class="e-palette-lignes">
+      <button class="e-rond-tete" id="e-btn-theme" type="button" aria-label="Passer en thème sombre">
+        <svg class="ic" aria-hidden="true"><use href="#ic-lune"/></svg>
+      </button>
+      <button class="e-rond-tete e-btn-taille" id="e-btn-taille" type="button" aria-label="Taille du texte : normale. Cliquer pour changer." title="Taille du texte" data-cran="0"><span aria-hidden="true">Aa</span></button>
+      <span class="e-palette-libelle" id="e-palette-libelle">Thème et taille du texte</span>
+    </div>
+    <p class="e-palette-titre">Couleur</p>
     <div class="e-palette-choix" id="e-palette-choix"></div>
     <p class="e-palette-legende" id="e-palette-legende"></p>
-    <p class="e-palette-titre" style="margin-top:.7rem">Le fond d'écran</p>
-    <div class="e-aurore-choix" id="e-aurore-choix"></div>
   </div>
 
   <p class="e-bandeau" id="e-bandeau" hidden></p>

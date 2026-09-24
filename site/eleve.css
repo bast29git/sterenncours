@@ -36,18 +36,19 @@
 [data-palette="prune"]   { --e-vif: var(--e-prune-1);   --e-doux: var(--e-prune-2);   --e-voile: var(--e-prune-3);   --e-fond: var(--e-prune-4); }
 
 body.corps-eleve {
-  --e-encre: #211C28;
-  --e-encre-doux: #6B6478;
-  --e-carte: #FFFFFF;
-  --e-trait: #D8CFE0;
-  --e-trait-fort: #BFB2CA;
-  --e-r: 22px;
-  --e-r-petit: 14px;
+  --e-page: #F6F2EA;
+  --e-encre: #24202B;
+  --e-encre-doux: #6B6575;
+  --e-carte: #FFFDF9;
+  --e-trait: #E3DCD0;
+  --e-trait-fort: #CFC6B8;
+  --e-r: 16px;
+  --e-r-petit: 12px;
   /* Couleur vive assombrie : du texte blanc dessus atteint le contraste 4,5:1, et
      comme texte sur fond clair aussi. La couleur vive pure garde les grands aplats. */
   --e-vif-fonce: color-mix(in srgb, var(--e-vif) 70%, #0b1a3a);
-  --e-ombre: 0 1px 2px rgba(33, 28, 40, .10), 0 10px 28px rgba(33, 28, 40, .18);
-  --e-ombre-forte: 0 2px 6px rgba(33, 28, 40, .06), 0 18px 44px rgba(33, 28, 40, .12);
+  --e-ombre: 0 1px 2px rgba(36, 32, 43, .05);
+  --e-ombre-forte: 0 2px 6px rgba(36, 32, 43, .05), 0 12px 28px rgba(36, 32, 43, .08);
 
   margin: 0;
   min-height: 100vh;
@@ -55,15 +56,9 @@ body.corps-eleve {
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
   font-size: 16.5px;
   line-height: 1.6;
-  /* Une vraie photographie d'aurore boréale (NASA, domaine public) sous un
-     voile léger : l'aurore se voit, tout le contenu vit sur des cartes opaques. */
-  background:
-    linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%),
-    image-set(url('fond/aurore-nuit.avif') type('image/avif'), url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat,
-    var(--e-fond);
-  background-attachment: fixed;
+  /* Fond crème uni : la charge visuelle reste sur le contenu, jamais derrière lui. */
+  background: var(--e-page);
 }
-@media (max-aspect-ratio: 3/4) { body.corps-eleve { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%), image-set(url('fond/aurore-mobile.avif') type('image/avif'), url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); background-size: auto, cover; } }
 
 :is([data-theme="dark"], [data-theme="chaud"]) body.corps-eleve {
   --e-encre: #F1ECF5;
@@ -72,15 +67,12 @@ body.corps-eleve {
   --e-trait: #46405A;
   --e-trait-fort: #5A5270;
   --e-fond: #12101A;
+  --e-page: #14121B;
   --e-voile: #1E1929;
   --e-ombre: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
   --e-ombre-forte: 0 2px 8px rgba(0,0,0,.5), 0 22px 50px rgba(0,0,0,.5);
-  background:
-    linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%),
-    image-set(url('fond/aurore-nuit.avif') type('image/avif'), url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat fixed,
-    var(--e-fond);
+  background: var(--e-page);
 }
-@media (max-aspect-ratio: 3/4) { :is([data-theme="dark"], [data-theme="chaud"]) body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%), image-set(url('fond/aurore-mobile.avif') type('image/avif'), url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); } }
 
 .eleve { display: flex; flex-direction: column; min-height: 100vh; }
 .eleve h1, .eleve h2, .eleve h3 {
@@ -107,7 +99,7 @@ body.corps-eleve {
   letter-spacing: -0.01em;
   text-decoration: none; color: var(--e-encre); white-space: nowrap;
 }
-.e-marque-nom { background: linear-gradient(120deg, var(--e-vif), var(--e-doux)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.e-marque-nom { color: var(--e-encre); }
 .e-logo {
   display: grid; place-items: center; width: 2.05rem; height: 2.05rem;
   border-radius: 11px; color: #fff;
@@ -1335,12 +1327,7 @@ mark.e-surligne-violet { background: #e6d3f2; }
 .e-bilan-texte { display: block; white-space: pre-line; color: var(--e-encre); }
 .e-materiel { margin: 0.6rem 0 0; font-size: 0.9rem; color: var(--e-encre-doux); }
 /* Aurore : quatre teintes, par période ou au choix ; la photo passe par un calque pour recevoir la teinte */
-html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%); }
-html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { content: ""; position: fixed; inset: 0; z-index: -1; background: image-set(url('fond/aurore-nuit.avif') type('image/avif'), url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat; filter: hue-rotate(var(--e-aurore-teinte, 0deg)); }
-@media (max-aspect-ratio: 3/4) { html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { background-image: image-set(url('fond/aurore-mobile.avif') type('image/avif'), url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); } }
-html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-color: var(--e-fond); }
-:is([data-theme="dark"], [data-theme="chaud"]) html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve, html:is([data-theme="dark"], [data-theme="chaud"])[data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%); }
-.e-aurore-choix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+@media (max-aspect-ratio: 3/4) { :is([data-theme="dark"], [data-theme="chaud"]) .e-aurore-choix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
 .e-aurore-choix button { font: inherit; font-size: 0.7rem; font-weight: 700; display: grid; gap: 0.25rem; justify-items: center; padding: 0.35rem 0.2rem; border-radius: 10px; border: 2px solid transparent; background: var(--e-fond); color: var(--e-encre-doux); cursor: pointer; }
 .e-aurore-choix button i { width: 2rem; height: 1.3rem; border-radius: 6px; background: linear-gradient(120deg, #1a9f7e, #2a7fa6 55%, #7c4fb8); filter: hue-rotate(var(--t, 0deg)); }
 .e-aurore-choix button[aria-pressed="true"] { border-color: var(--e-encre); color: var(--e-encre); }
@@ -1436,11 +1423,7 @@ html[data-pauses="0"] .eleve .e-lecteur[data-pauses-fiche="1"] .bloc-pause { dis
 
 /* A24 : sur les écrans moyens, une version 1 280 px de l'aurore suffit */
 @media (max-width: 1400px) and (min-aspect-ratio: 3/4) {
-  body.corps-eleve, html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%), image-set(url('fond/aurore-nuit-1280.avif') type('image/avif'), url('fond/aurore-nuit-1280.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')); }
-  html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%); }
-  html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { background-image: image-set(url('fond/aurore-nuit-1280.avif') type('image/avif'), url('fond/aurore-nuit-1280.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')); }
-  :is([data-theme="dark"], [data-theme="chaud"]) body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%), image-set(url('fond/aurore-nuit-1280.avif') type('image/avif'), url('fond/aurore-nuit-1280.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')); }
-}
+  body.corps-eleve,     }
 /* A29 : hors ligne */
 html[data-hors-ligne="1"] .e-tete::after { content: "Hors ligne : tes fiches ouvertes restent lisibles, le reste attend le réseau."; position: fixed; left: 50%; bottom: 5rem; transform: translateX(-50%); z-index: 70; background: #B54708; color: #fff; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 999px; box-shadow: var(--e-ombre-forte); }
 .e-opale-source { margin-top: 0.4rem; }
@@ -1461,12 +1444,9 @@ html[data-hors-ligne="1"] .e-tete::after { content: "Hors ligne : tes fiches ouv
   --e-trait-fort: #64533F;
   --e-fond: #1E1712;
   --e-voile: #332920;
-  background:
-    linear-gradient(180deg, rgba(30, 23, 18, .10) 0%, rgba(30, 23, 18, .40) 55%, rgba(30, 23, 18, .70) 100%),
-    image-set(url('fond/aurore-nuit.avif') type('image/avif'), url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat fixed,
-    var(--e-fond);
+  --e-page: #1E1712;
+  background: var(--e-page);
 }
-[data-theme="chaud"] body.corps-eleve::before { filter: sepia(.45) saturate(.7) brightness(.85); }
 
 /* ---------- C88 : économie de données, sans fond d'écran ---------- */
 [data-eco] body.corps-eleve, [data-eco] body.corps-eleve::before { background-image: none !important; }
