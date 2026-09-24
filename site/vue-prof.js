@@ -76,7 +76,7 @@
       const alerte = i.route === 'messages' && N.etat.messagesNonLus
         ? `<span class="alerte">${N.etat.messagesNonLus}</span>` : '';
       const compte = !alerte && compteurs[i.route] ? `<span class="compte">${compteurs[i.route]}</span>` : '';
-      return `<li><a href="#/${i.route}"${actif}>
+      return `<li><a href="#/${i.route}"${actif} data-libelle="${N.ech(i.texte)}">
         ${N.ic(i.ico, 'ico')}<span>${N.ech(i.texte)}</span>${alerte}${compte}</a></li>`;
     }).join('')}</ul>
       </section>`).join('');
@@ -98,11 +98,25 @@
 
   function afficher(html, morceaux) {
     vue().innerHTML = html;
+    etiqueterTableaux(vue());
     nav();
     fil(morceaux || [{ t: 'Espace professeur' }]);
     fermerLateral();
     window.scrollTo(0, 0);
     vue().focus();
+  }
+
+  /** Sous 40 rem, chaque tableau devient une pile de cartes : les cellules reçoivent le libellé de leur colonne. */
+  function etiqueterTableaux(racine) {
+    racine.querySelectorAll('table.p-table').forEach((t) => {
+      if (t.classList.contains('p-acces')) return;
+      const entetes = [...t.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+      if (!entetes.length) return;
+      t.classList.add('p-cartes');
+      t.querySelectorAll('tbody tr:not(.grp)').forEach((tr) => {
+        [...tr.children].forEach((td, i) => { if (entetes[i] && td.textContent.trim()) td.setAttribute('data-etiquette', entetes[i]); });
+      });
+    });
   }
 
   const lateral = () => document.getElementById('p-lateral');
@@ -144,6 +158,38 @@
     return n
       ? `<span class="p-etat p-etat-${n.id}">${n.picto} ${N.ech(n.libelle)}</span>`
       : '<span class="p-etat p-etat-vide">non évaluée</span>';
+  }
+
+  /**
+   * Niveau proposé par les faits, quand le professeur n'a rien décidé :
+   * série à 90 % et trois fiches lues → très bien ; série à 70 % → satisfaisant ;
+   * une série jouée ou une fiche lue → fragile. Le professeur confirme.
+   */
+  function niveauPropose(mid, ref) {
+    if (N.niveauDe(mid, ref)) return null;
+    const cle = N.cle(mid, ref);
+    const res = N.etat.resultats[cle];
+    const lues = N.TYPES_DOC.filter((t) => N.etat.fiches[cle + '/' + t.id]).length;
+    const pct = res && res.total ? res.meilleur / res.total : 0;
+    if (pct >= 0.9 && lues >= 3) return 'tresbien';
+    if (pct >= 0.7) return 'satisfaisant';
+    if (res || lues) return 'fragile';
+    return null;
+  }
+  function boutonProposition(mid, ref) {
+    const p = niveauPropose(mid, ref);
+    if (!p) return '';
+    const n = N.NIVEAUX.find((x) => x.id === p);
+    return `<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini p-proposition" data-valider="${mid}/${ref}" data-niveau="${p}" title="Proposé d'après les séries et les fiches lues : cliquer pour confirmer">proposé : ${N.ech(n ? n.libelle : p)} ✓</button>`;
+  }
+  function brancherPropositions(apres) {
+    vue().querySelectorAll('[data-valider]').forEach((b) => b.addEventListener('click', async () => {
+      const [matiere, ref] = b.getAttribute('data-valider').split('/');
+      try {
+        await N.api('/suivi', { method: 'PUT', body: JSON.stringify({ matiere, ref, niveau: b.getAttribute('data-niveau') }) });
+        await N.rafraichirEtat(); N.signaler('Niveau confirmé.', 'succes'); apres();
+      } catch (e) { N.signaler(e.message); }
+    }));
   }
 
   function choixNiveau(mid, ref) {
@@ -295,6 +341,104 @@
     </article>`;
   }
 
+  /** La séance du jour, minutée : deux blocs, une pause, les fiches à ouvrir, le bilan en trois lignes. */
+  function carteSeanceJour(s, aVenir) {
+    const [h1, m1] = String(s.debut || '13:00').split(':').map(Number);
+    const [h2, m2] = String(s.fin || '14:30').split(':').map(Number);
+    const total = (h2 * 60 + m2) - (h1 * 60 + m1);
+    const heure = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')} h ${String(min % 60).padStart(2, '0')}`;
+    const debut = h1 * 60 + m1;
+    const lecons = (s.lecons || []).map((r) => N.libelleLecon(r)).filter(Boolean);
+    const blocs = lecons.length ? lecons : [null];
+    const accueil = 5; const pause = lecons.length > 1 ? 5 : 0; const fin = 5;
+    const parBloc = Math.max(10, Math.floor((total - accueil - pause - fin) / blocs.length));
+    let t = debut;
+    const lignes = [];
+    lignes.push(`<li><b>${heure(t)}</b><span><strong>Accueil</strong> <em>${accueil} min</em><br>Le plan de la séance est annoncé, le travail personnel est relu.</span></li>`); t += accueil;
+    blocs.forEach((info, k) => {
+      const module = info && info.m.id === 'module';
+      lignes.push(`<li><b>${heure(t)}</b><span><strong>${info ? N.ech(info.l.titre) : 'Bloc de travail'}</strong> <em>${parBloc} min</em>${info ? `<br>${module ? `<a class="p-jeton" href="${info.l.url}">${info.l.icone} ouvrir le module (côté Sterenn)</a>` : `<a class="p-jeton" href="#/lecon/${info.m.id}/${info.l.ref}/cours">${info.m.icone} cours</a> <a class="p-jeton" href="#/lecon/${info.m.id}/${info.l.ref}/exercices">exercices 1 à 4 sur écran</a>${N.banque(info.m.id, info.l.ref) ? ` <a class="p-jeton" href="#/exos/${info.m.id}/${info.l.ref}">série</a>` : ''}`}` : ''}</span></li>`);
+      t += parBloc;
+      if (k < blocs.length - 1 && pause) { lignes.push(`<li><b>${heure(t)}</b><span><strong>Pause</strong> <em>${pause} min</em></span></li>`); t += pause; }
+    });
+    lignes.push(`<li><b>${heure(t)}</b><span><strong>Ce qui est acquis, ce qui vient</strong> <em>${fin} min</em><br>On nomme l'acquis, on annonce le travail personnel.</span></li>`);
+    return `<article class="p-seance p-seance-jour ${N.ech(s.statut || 'prevue')}" data-carte="${s.id}">
+      <div class="p-seance-tete">
+        <span class="p-seance-date">${aVenir ? 'Prochaine : ' : ''}${N.ech(N.enFrancais(s.date, true))}</span>
+        <span class="p-seance-heure">${N.ech(s.debut)} à ${N.ech(s.fin)}</span>
+        ${s.absence ? '<span class="p-etat p-etat-insuffisant">absente</span>' : ''}
+        <span class="p-seance-statut">${N.ech(s.statut || 'prevue')}</span>
+      </div>
+      <p class="p-seance-obj">${N.ech(s.objectif || 'Sans objectif noté')}</p>
+      <ol class="p-ordre-jour">${lignes.join('')}</ol>
+      ${s.travail ? `<p class="p-seance-travail">Travail personnel annoncé : ${N.ech(s.travail)}</p>` : ''}
+      ${aVenir ? `<div class="p-seance-actions"><a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/seance/${s.id}">Préparer</a></div>` : `
+      <form class="p-form p-bilan-rapide" data-bilan="${s.id}">
+        <div class="ligne">
+          <div><label for="b-acquis-${s.id}">Acquis nommé</label><input id="b-acquis-${s.id}" name="acquis" type="text" maxlength="200" placeholder="ce qu'elle sait faire maintenant"></div>
+          <div><label for="b-reprendre-${s.id}">À reprendre</label><input id="b-reprendre-${s.id}" name="reprendre" type="text" maxlength="200" placeholder="ce qui reste fragile"></div>
+          <div><label for="b-suite-${s.id}">Prochaine étape</label><input id="b-suite-${s.id}" name="suite" type="text" maxlength="200" placeholder="ce qu'on fait la prochaine fois"></div>
+        </div>
+        <div class="p-seance-actions">
+          <button class="p-bouton p-bouton-mini" type="submit">${s.statut === 'faite' ? 'Mettre à jour le bilan' : 'Séance faite, bilan enregistré'}</button>
+          <label class="p-case" style="margin:0"><input type="checkbox" name="message" checked> envoyer le bilan à Sterenn en message</label>
+          <a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/seance/${s.id}">Ouvrir</a>
+        </div>
+      </form>`}
+    </article>`;
+  }
+  function brancherSeanceJour(apres) {
+    vue().querySelectorAll('[data-bilan]').forEach((f) => f.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const id = f.getAttribute('data-bilan');
+      const acquis = f.acquis.value.trim(); const reprendre = f.reprendre.value.trim(); const suite = f.suite.value.trim();
+      const bilan = [acquis && 'Acquis : ' + acquis, reprendre && 'À reprendre : ' + reprendre, suite && 'Prochaine étape : ' + suite].filter(Boolean).join('\n');
+      try {
+        await N.api('/seances/' + id, { method: 'PATCH', body: JSON.stringify({ statut: 'faite', bilan: bilan || null }) });
+        if (f.message.checked && bilan) {
+          const texte = 'Bilan de la séance :\n' + bilan.split('\n').map((l) => '- ' + l).join('\n');
+          await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte, contexte: 'Bilan de séance' }) });
+        }
+        await N.rafraichirSeances(); N.signaler('Séance close, bilan enregistré.', 'succes'); apres();
+      } catch (e) { N.signaler(e.message); }
+    }));
+  }
+  /** Report : la séance passe « reportée », ses leçons s'ajoutent à la séance de cours suivante. */
+  async function reporterSeance(id, apres) {
+    const s = N.etat.seances.find((x) => x.id === id);
+    if (!s) return;
+    const suivante = N.etat.seances.filter((x) => x.type === 'cours' && x.date > s.date && x.statut === 'prevue').sort((a, b) => a.date.localeCompare(b.date))[0];
+    if (!suivante) { N.signaler('Aucune séance suivante pour accueillir ses leçons.'); return; }
+    try {
+      const lecons = [...new Set([...(suivante.lecons || []), ...(s.lecons || [])])];
+      const matieres = [...new Set(lecons.map((r) => r.split('/')[0]).filter((m) => m !== 'module'))];
+      await N.api('/seances/' + id, { method: 'PATCH', body: JSON.stringify({ statut: 'reportee' }) });
+      await N.api('/seances/' + suivante.id, { method: 'PATCH', body: JSON.stringify({ lecons, matieres, objectif: [suivante.objectif, s.objectif].filter(Boolean).join(' · ') }) });
+      await N.rafraichirSeances(); N.signaler('Séance reportée : ses leçons sont ajoutées au ' + N.enFrancais(suivante.date) + '.', 'succes'); apres();
+    } catch (e) { N.signaler(e.message); }
+  }
+  /** Le dernier message de Sterenn et un champ de réponse, sans changer de page. */
+  async function reponseRapide() {
+    const zone = document.getElementById('p-reponse-rapide');
+    if (!zone) return;
+    let messages = [];
+    try { messages = (await N.api('/messages')).messages || []; } catch (e) { zone.innerHTML = '<p class="p-vide">Messages indisponibles.</p>'; return; }
+    const dernier = [...messages].reverse().find((m) => m.auteur === 'eleve');
+    zone.innerHTML = `${dernier ? `<div class="p-msg"><div class="p-msg-tete"><b>Sterenn</b><span>${N.ech(N.dateCourte(dernier.cree_le))}</span>${!dernier.lu_le ? '<span class="p-etat p-etat-fragile">nouveau</span>' : ''}</div>${dernier.contexte ? `<p class="p-msg-ctx">${N.ech(dernier.contexte)}</p>` : ''}<div class="p-msg-texte">${N.ech(dernier.texte)}</div></div>` : '<p class="p-vide">Pas encore de message de Sterenn.</p>'}
+      <form class="p-form" id="p-form-rapide"><div><label for="r-texte">Ta réponse</label><textarea id="r-texte" rows="2" maxlength="2000" required></textarea></div>
+      <div class="p-seance-actions"><button class="p-bouton p-bouton-mini" type="submit">Envoyer</button><a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/messages">Toute la conversation</a></div></form>`;
+    document.getElementById('p-form-rapide').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const texte = document.getElementById('r-texte').value.trim();
+      if (!texte) return;
+      try {
+        await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte, contexte: dernier && dernier.contexte ? dernier.contexte : null, fil: dernier ? dernier.fil : null }) });
+        if (dernier && !dernier.lu_le) await N.api('/messages', { method: 'PATCH' });
+        await N.rafraichirEtat(); N.signaler('Réponse envoyée.', 'succes'); reponseRapide(); nav();
+      } catch (e) { N.signaler(e.message); }
+    });
+  }
+
   function brancherStatuts(apres) {
     vue().querySelectorAll('[data-statut][data-id]').forEach((b) => b.addEventListener('click', async () => {
       try {
@@ -326,9 +470,17 @@
     const suivantes = N.etat.seances
       .filter((s) => s.date > aujourd)
       .sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5);
+    const prochainCours = N.etat.seances
+      .filter((s) => s.date > aujourd && s.type === 'cours' && s.statut === 'prevue')
+      .sort((a, b) => a.date.localeCompare(b.date))[0];
     const choixOuverts = N.etat.seances
       .filter((s) => (s.choix || []).length >= 2 && !s.choisi_le && s.date >= aujourd)
       .sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4);
+
+    const propositions = [];
+    PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => { if (niveauPropose(m.id, l.ref)) propositions.push({ m, l }); }));
+    const absences = N.etat.seances.filter((s) => s.absence && s.date >= aujourd).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 3);
+    const pos = N.profil('moi.positionnement', null);
 
     const aReprendre = [];
     PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => {
@@ -352,13 +504,17 @@
           <li class="${aClore.length ? 'neg' : ''}"><span class="v">${aClore.length}</span><span class="l">séances à clore</span></li>
           <li class="${N.etat.messagesNonLus ? 'att' : ''}"><span class="v">${N.etat.messagesNonLus}</span><span class="l">messages non lus</span></li>
         </ul>`
+      + (absences.length ? `<div class="p-bandeau p-bandeau-erreur p-absences">${absences.map((s) => `<p>Sterenn a prévenu qu'elle sera <b>absente le ${N.ech(N.enFrancais(s.date, true))}</b>${s.commentaire_eleve ? ' : « ' + N.ech(s.commentaire_eleve) + ' »' : ''}.
+          ${s.statut !== 'reportee' ? `<button type="button" class="p-bouton p-bouton-mini" data-reporter="${s.id}">Reporter ses leçons à la séance suivante</button>` : '<span class="p-etat p-etat-vide">reportée</span>'}</p>`).join('')}</div>` : '')
       + '<div class="p-grille2"><div>'
-      + bloc('Le programme du jour',
-        duJour.length
-          ? duJour.map((s) => carteSeance(s)).join('')
+      + bloc('La séance du jour',
+        (duJour.length
+          ? duJour.map((s) => (s.type === 'cours' ? carteSeanceJour(s) : carteSeance(s))).join('')
           : `<p class="p-vide">Aucune séance aujourd'hui.
-             ${suivantes.length ? 'Prochaine : ' + N.ech(N.enFrancais(suivantes[0].date, true)) + '.' : 'Le planning est vide.'}</p>`,
+             ${suivantes.length ? 'Prochaine : ' + N.ech(N.enFrancais(suivantes[0].date, true)) + '.' : 'Le planning est vide.'}</p>`)
+          + (!duJour.some((s) => s.type === 'cours') && prochainCours ? carteSeanceJour(prochainCours, true) : ''),
         duJour.length ? duJour.length + ' séance(s)' : '')
+      + bloc('Répondre à Sterenn', `<div id="p-reponse-rapide"><p class="p-vide">Chargement…</p></div>`)
       + bloc('Séances passées restées ouvertes',
         aClore.length
           ? aClore.map((s) => carteSeance(s)).join('')
@@ -375,11 +531,24 @@
         '', suivantes.length ? '' : '<a class="p-bouton p-bouton-mini" href="#/planning" style="margin-left:auto">Générer</a>')
       + bloc('Choix laissés à Sterenn',
         choixOuverts.length
-          ? `<ul class="p-liste">${choixOuverts.map((s) => `<li>
+          ? `<ul class="p-liste p-choix-attente">${choixOuverts.map((s) => {
+            const limite = N.decaler(s.date, -2);
+            const retard = limite < aujourd;
+            return `<li>
               <span class="num">${N.ech(N.enFrancais(s.date))}</span>
               <a href="#/seance/${s.id}">${(s.choix || []).length} leçons proposées</a>
-              <span class="p-etat p-etat-vide" style="margin-left:auto">en attente</span></li>`).join('')}</ul>`
+              <span class="p-etat ${retard ? 'p-etat-insuffisant' : 'p-etat-vide'}" style="margin-left:auto">${retard ? 'date limite passée' : 'à choisir avant le ' + N.ech(N.enFrancais(limite))}</span>
+              <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-choisir="${s.id}">Choisir à sa place</button>
+              <span class="p-choix-options" data-options="${s.id}" hidden>${(s.choix || []).map((r) => { const info = N.libelleLecon(r); return info ? `<button type="button" class="p-bouton p-bouton-mini" data-choix-seance="${s.id}" data-choix-lecon="${r}">${info.m.icone} ${N.ech(info.l.titre)}</button>` : ''; }).join('')}</span></li>`;
+          }).join('')}</ul>`
           : '<p class="p-vide">Aucun choix en attente.</p>')
+      + bloc('Niveaux proposés par les faits',
+        propositions.length
+          ? `<ul class="p-liste">${propositions.slice(0, 8).map((x) => `<li><a href="#/lecon/${x.m.id}/${x.l.ref}">${x.m.icone} ${N.ech(x.l.titre)}</a>${boutonProposition(x.m.id, x.l.ref)}</li>`).join('')}</ul>
+             <p class="p-aide">D'après les séries jouées et les fiches lues. Un clic confirme ; le suivi complet est dans « Suivi des acquis ».</p>`
+          : '<p class="p-vide">Rien à confirmer pour l\'instant.</p>',
+        propositions.length ? String(propositions.length) : '')
+      + (pos && !pos.enCours ? bloc('Point de départ (« Où j\'en suis »)', `<ul class="p-liste">${PROGRAMME.matieres.map((m) => { const r = pos.matieres[m.id] || { justes: 0, total: 0 }; return `<li><span style="min-width:10rem">${m.icone} ${N.ech(m.nom)}</span><span class="p-jauge"><i style="width:${r.total ? Math.round((r.justes / r.total) * 100) : 0}%"></i></span><b>${r.justes}/${r.total}</b></li>`; }).join('')}</ul>`) : '')
       + bloc('À reprendre',
         aReprendre.length
           ? `<table class="p-table"><thead><tr><th>Leçon</th><th>Niveau</th><th>Depuis</th></tr></thead><tbody>
@@ -394,6 +563,18 @@
       [{ t: 'Pilotage' }, { t: 'Aujourd\'hui' }],
     );
     brancherStatuts(vueAccueil);
+    brancherPropositions(vueAccueil);
+    brancherSeanceJour(vueAccueil);
+    reponseRapide();
+    vue().querySelectorAll('[data-reporter]').forEach((b) => b.addEventListener('click', () => reporterSeance(b.getAttribute('data-reporter'), vueAccueil)));
+    vue().querySelectorAll('[data-choisir]').forEach((b) => b.addEventListener('click', () => { const o = vue().querySelector(`[data-options="${b.getAttribute('data-choisir')}"]`); o.hidden = !o.hidden; }));
+    vue().querySelectorAll('[data-choix-seance]').forEach((b) => b.addEventListener('click', async () => {
+      try {
+        await N.api('/seances/' + b.getAttribute('data-choix-seance') + '/choix', { method: 'POST', body: JSON.stringify({ lecon: b.getAttribute('data-choix-lecon') }) });
+        await N.rafraichirSeances(); N.signaler('Choix fait à sa place.', 'succes'); vueAccueil();
+      } catch (e) { N.signaler(e.message); }
+    }));
+    
   }
 
   /* =======================================================================
@@ -693,6 +874,10 @@
             <div><label for="g-merc-debut">Mercredi : début</label><input id="g-merc-debut" type="time" value="13:00"></div>
             <div><label for="g-merc-fin">Mercredi : fin</label><input id="g-merc-fin" type="time" value="14:30"></div>
           </div>
+          <div><label for="g-vacances">Vacances et semaines sans cours (une par ligne : du AAAA-MM-JJ au AAAA-MM-JJ, nom)</label>
+            <textarea id="g-vacances" rows="5" placeholder="2026-10-17 au 2026-11-02 Toussaint&#10;2026-12-19 au 2027-01-04 Noël">${N.ech((N.profil('prof.vacances', []) || []).map((v) => `${v.du} au ${v.au} ${v.nom || ''}`.trim()).join('\n'))}</textarea>
+            <p class="p-aide">Ces semaines sont sautées par le générateur et grisées dans le planning.</p>
+          </div>
           <p class="p-aide">Le lundi et le vendredi restent de 13 h à 14 h 30. Le mercredi se règle ici pour
             toute l'année, et se corrige ensuite séance par séance.</p>
           <p class="p-aide">Le générateur répartit les ${N.chiffres().total} leçons en trois blocs chacune, fait tourner
@@ -728,8 +913,10 @@
         fin: document.getElementById('g-merc-fin').value || '14:30',
       };
       if (mercredi.debut >= mercredi.fin) return N.signaler('Le mercredi doit finir après avoir commencé.');
+      const vacances = document.getElementById('g-vacances').value.split('\n').map((l) => /^(\d{4}-\d{2}-\d{2})\s+au\s+(\d{4}-\d{2}-\d{2})\s*(.*)$/.exec(l.trim())).filter(Boolean).map((x) => ({ du: x[1], au: x[2], nom: x[3] || '' }));
+      N.enregistrerProfil('prof.vacances', vacances).catch(() => {});
       try {
-        apercu = window.PLANIFICATEUR.generer(N.lundiDe(d), n, { mercredi });
+        apercu = window.PLANIFICATEUR.generer(N.lundiDe(d), n, { mercredi, vacances });
         rendreApercu();
         document.getElementById('g-enregistrer').disabled = false;
       } catch (e) { N.signaler(e.message); }
@@ -877,7 +1064,7 @@
         <td class="num">${lues ? lues + '/' + (l.docs || []).length : '·'}</td>
         <td class="num">${res
     ? `<span title="${res.series} série(s)">${res.meilleur}/${res.total}</span>` : '·'}</td>
-        <td>${choixNiveau(m.id, l.ref)}</td>
+        <td>${choixNiveau(m.id, l.ref)}${boutonProposition(m.id, l.ref)}</td>
         <td>${pret ? choixOuverture(m.id, l.ref) : '<span class="p-puce">à rédiger</span>'}</td>
         <td><input data-note data-mid="${m.id}" data-ref="${l.ref}" type="text" maxlength="200"
               value="${N.ech(suivi.note || '')}" placeholder="ce qui reste à reprendre"></td>
@@ -1347,6 +1534,9 @@
           const info = N.TYPES_DOC.find((x) => x.id === t);
           return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${N.ic(info.ico)} ${info.libelle}</a>`;
         }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} Série d'exercices</a>` : ''}<a href="/cahiers/${mid}/${ref}.html" target="_blank" rel="noopener">${N.ic('ic-crayon')} Cahier à imprimer</a></nav>
+          <p class="p-eval-acces">${(() => { const d = N.decisionAcces(N.cle(mid, ref) + '/evaluation'); const a = N.etat.acces[N.cle(mid, ref) + '/evaluation']; return d === true
+            ? `<span class="p-etat p-etat-satisfaisant">évaluation ouverte à Sterenn${a && a.jusqu_au ? ' jusqu\'au ' + N.ech(N.dateCourte(a.jusqu_au)) : ''}</span> <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-eval-acces="fermer">Fermer</button>`
+            : `<span class="p-etat p-etat-vide">évaluation fermée</span> <button type="button" class="p-bouton p-bouton-mini" data-eval-acces="ouvrir">Ouvrir l'évaluation pour sept jours</button>`; })()}</p>
               <article class="p-fiche">${doc.html}</article>
             </div>
             <aside class="p-rail">
@@ -1379,6 +1569,13 @@
       document.getElementById('p-question').addEventListener('click', () => {
         location.hash = '#/messages/' + encodeURIComponent(m.nom + ' · ' + l.titre);
       });
+      vue().querySelectorAll('[data-eval-acces]').forEach((b) => b.addEventListener('click', async () => {
+        const ouvrir = b.getAttribute('data-eval-acces') === 'ouvrir';
+        try {
+          await N.api('/acces', { method: 'PUT', body: JSON.stringify({ cle: N.cle(mid, ref) + '/evaluation', etat: ouvrir ? true : null, jusqu_au: ouvrir ? new Date(Date.now() + 7 * 86400000).toISOString() : null }) });
+          await N.rafraichirEtat(); N.signaler(ouvrir ? 'Évaluation ouverte à Sterenn pour sept jours.' : 'Évaluation fermée.', 'succes'); vueLecon(mid, ref, actif);
+        } catch (e) { N.signaler(e.message); }
+      }));
       return undefined;
     });
     return undefined;

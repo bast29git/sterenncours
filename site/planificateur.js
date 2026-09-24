@@ -119,8 +119,14 @@
     const seances = [];
     let numero = 0;
 
-    for (let s = 0; s < semaines; s += 1) {
+    const vacances = (options && options.vacances) || [];
+    const enVacances = (jour) => vacances.some((v) => v.du && v.au && jour >= v.du && jour <= v.au);
+    let semainesPosees = 0;
+    for (let s = 0; semainesPosees < semaines && s < semaines + 20; s += 1) {
       const lundi = decaler(debut, s * 7);
+      // Une semaine de vacances est sautée entière ; elle ne compte pas.
+      if (enVacances(lundi) || enVacances(decaler(lundi, 4))) continue;
+      semainesPosees += 1;
 
       for (const modele of CRENEAUX) {
         const creneau = modele.reglable && reglage

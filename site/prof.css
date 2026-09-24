@@ -131,7 +131,7 @@ body.corps-prof {
   height: 3rem; padding: 0 0.9rem;
   background: var(--p-surface); border-bottom: 1px solid var(--p-trait);
 }
-.p-fil { flex: 1 1 auto; min-width: 0; font-size: 0.82rem; color: var(--p-faible); }
+.p-fil { flex: 1 1 auto; min-width: 0; font-size: 0.82rem; color: var(--p-faible); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .p-fil a { color: var(--p-faible); text-decoration: none; }
 .p-fil a:hover { color: var(--p-accent); }
 .p-fil b { color: var(--p-encre); font-weight: 600; }
@@ -581,3 +581,67 @@ body.corps-prof {
 .p-fiche-carte dd { margin: 0; }
 .p-jauge { flex: 1; height: 0.55rem; border-radius: 999px; background: var(--p-surface-2); overflow: hidden; }
 .p-jauge i { display: block; height: 100%; background: var(--p-accent); }
+
+/* ---------- Accueil : séance du jour, bilan rapide, absences, choix ---------- */
+.p-seance-jour { border-left: 4px solid var(--p-accent); }
+.p-seance-jour.faite { border-left-color: var(--p-ok); }
+.p-seance-jour.reportee { border-left-color: var(--p-attention); }
+.p-ordre-jour { list-style: none; margin: 0.6rem 0 0.4rem; padding: 0; display: grid; gap: 0.3rem; }
+.p-ordre-jour li { display: grid; grid-template-columns: 5.2rem 1fr; gap: 0.6rem; align-items: start; padding: 0.35rem 0.2rem; border-top: 1px dashed var(--p-trait); font-size: 0.83rem; line-height: 1.5; }
+.p-ordre-jour li:first-child { border-top: 0; }
+.p-ordre-jour li > b { font-family: var(--p-mono); font-weight: 600; font-size: 0.78rem; color: var(--p-accent); white-space: nowrap; padding-top: 0.1rem; }
+.p-ordre-jour li > span { min-width: 0; color: var(--p-doux); }
+.p-ordre-jour strong { color: var(--p-encre); }
+.p-ordre-jour em { font-style: normal; font-family: var(--p-mono); font-size: 0.72rem; color: var(--p-faible); margin-left: 0.3rem; }
+.p-ordre-jour .p-jeton { margin: 0.2rem 0.3rem 0 0; }
+.p-bilan-rapide { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--p-trait); }
+.p-bilan-rapide .ligne { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.p-bilan-rapide .ligne label { font-size: 0.72rem; font-weight: 700; color: var(--p-faible); }
+.p-bilan-rapide .ligne input { width: 100%; }
+.p-bilan-rapide .p-seance-actions { flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 0.6rem; }
+.p-absences { margin-bottom: 1rem; }
+.p-absences p { margin: 0.2rem 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.7rem; }
+.p-choix-attente > li { flex-wrap: wrap; align-items: center; gap: 0.35rem 0.6rem; }
+.p-choix-attente .p-etat { flex: none; }
+.p-choix-options { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; flex-basis: 100%; }
+.p-choix-options[hidden] { display: none; }
+.p-choix-options .p-bouton-mini { padding: 0.1rem 0.5rem; }
+.p-proposition { margin-left: 0.35rem; font-size: 0.7rem; border-style: dashed; color: var(--p-accent); }
+.p-proposition:hover { border-style: solid; }
+.p-eval-acces { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.7rem; margin: 0.6rem 0 0; padding: 0.55rem 0.7rem; border: 1px solid var(--p-trait); border-radius: var(--p-r); background: var(--p-surface-2); font-size: 0.83rem; }
+.p-eval-acces .p-etat { flex: none; }
+.p-eval-acces .p-bouton { margin-left: auto; }
+@media (max-width: 48rem) {
+  .p-ordre-jour li { grid-template-columns: 1fr; gap: 0.1rem; }
+  .p-bilan-rapide .ligne { grid-template-columns: 1fr; }
+  .p-eval-acces .p-bouton { margin-left: 0; }
+}
+
+/* ---------- B42 : rail d'icônes entre 58 et 72 rem ------------------------------ */
+@media (min-width: 58.01rem) and (max-width: 72rem) {
+  .prof { grid-template-columns: 3.6rem 1fr; }
+  .p-lateral { padding: 0.6rem 0.4rem; overflow: visible; }
+  .p-lateral-tete { justify-content: center; padding-bottom: 0.7rem; }
+  .p-marque span, .p-recherche, .p-lateral-pied { display: none; }
+  .p-groupe > h2 { font-size: 0; height: 1px; margin: 0.3rem 0.6rem 0.5rem; background: var(--p-trait); }
+  .p-nav a { justify-content: center; padding: 0.55rem 0; position: relative; }
+  .p-nav a > span:not(.alerte) { position: absolute; left: -9999px; }
+  .p-nav a .alerte { position: absolute; top: 0.1rem; right: 0.15rem; margin: 0; }
+  .p-nav a::after { content: attr(data-libelle); position: absolute; left: calc(100% + 0.5rem); top: 50%; transform: translateY(-50%); white-space: nowrap; font-size: 0.78rem; font-weight: 600; color: var(--p-encre); background: var(--p-surface); border: 1px solid var(--p-trait); border-radius: var(--p-r); padding: 0.25rem 0.55rem; box-shadow: 0 6px 18px rgba(0,0,0,.14); opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 45; }
+  .p-nav a:hover::after, .p-nav a:focus-visible::after { opacity: 1; }
+  .p-nav a.actif { box-shadow: inset 3px 0 0 var(--p-accent); }
+}
+
+/* ---------- B41 : tableaux en cartes sous 40 rem ------------------------------------ */
+@media (max-width: 40rem) {
+  .p-table.p-cartes { border: 0; }
+  .p-table.p-cartes thead { position: absolute; left: -9999px; }
+  .p-table.p-cartes tbody tr { display: grid; gap: 0.15rem; margin: 0 0 0.6rem; padding: 0.55rem 0.7rem; border: 1px solid var(--p-trait); border-radius: var(--p-r); background: var(--p-surface); }
+  .p-table.p-cartes tbody tr.grp { padding: 0.3rem 0.7rem; background: var(--p-surface-2); }
+  .p-table.p-cartes td { display: flex; justify-content: space-between; gap: 0.7rem; align-items: baseline; padding: 0.15rem 0; border: 0; text-align: right; }
+  .p-table.p-cartes td::before { content: attr(data-etiquette); flex: none; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--p-faible); text-align: left; }
+  .p-table.p-cartes td:not([data-etiquette])::before { content: none; }
+  .p-table.p-cartes td:first-child { font-weight: 700; text-align: left; justify-content: flex-start; }
+  .p-table.p-cartes tbody tr:hover td { background: transparent; }
+  .p-table.p-cartes .docs { white-space: normal; }
+}
