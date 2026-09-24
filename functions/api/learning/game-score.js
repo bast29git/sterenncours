@@ -2,8 +2,21 @@
  * POST /api/learning/game-score : un jeu terminé (coquille des jeux 2D et 3D).
  * Le résultat est rangé avec les séries d'exercices, sous la clé jeu/<id>,
  * pour qu'une partie gagnée compte comme une série réussie dans les étoiles.
+ *
+ * La coquille envoie les étoiles obtenues (0 à 3) et si la partie est gagnée.
+ * Trois étoiles valent 100, deux valent 80, une seule 50 : seule une partie
+ * à deux étoiles ou plus franchit le seuil de réussite (70 %). Sans étoiles,
+ * une partie gagnée vaut 75, une partie perdue 40.
  */
 import { json, erreur, gerer, exigerSession, maintenant } from '../../_commun.js';
+
+export function noteSur100(corps) {
+  const etoiles = Number(corps && corps.stars);
+  if (Number.isFinite(etoiles) && etoiles >= 0) {
+    return [30, 50, 80, 100][Math.min(3, Math.round(etoiles))];
+  }
+  return corps && corps.won === false ? 40 : 75;
+}
 
 export const onRequestPost = gerer(async (context) => {
   await exigerSession(context);
@@ -12,11 +25,8 @@ export const onRequestPost = gerer(async (context) => {
   let corps;
   try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
   const id = String((corps && corps.gameId) || '').replace(/[^a-z0-9-]/gi, '').slice(0, 60);
-  let score = Number(corps && corps.score);
   if (!id) return erreur('gameId requis.');
-  if (!Number.isFinite(score)) score = 0;
-  // Un score sur 100 : une partie terminée vaut au moins la réussite d'une série.
-  const justes = Math.max(70, Math.min(100, Math.round(score)));
+  const justes = noteSur100(corps);
   const cle = 'jeu/' + id;
 
   await DB.prepare(
@@ -30,5 +40,5 @@ export const onRequestPost = gerer(async (context) => {
   ).bind(cle, id, justes, justes, maintenant()).run();
 
   const ligne = await DB.prepare('SELECT * FROM resultats WHERE cle = ?').bind(cle).first();
-  return json(ligne);
+  return json({ ...ligne, reussie: justes >= 70 });
 });

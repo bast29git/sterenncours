@@ -693,7 +693,7 @@ function showEndScreen(){ if(!mission)return; mission.active=false; clearHelp();
   const score=mission.score, gained=Math.round(score/10)+stars*50+30; let lvl=null;
   try{ if(window.KonstrioAch){ window.KonstrioAch.recordWin(shell.cfg.id,{stars,score,mode:shell.mode}); lvl=window.KonstrioAch.get().level; } }catch(e){}
   try{ if(window.Konstrio&&window.Konstrio.unlock)window.Konstrio.unlock('play3d'); }catch(e){}
-  try{ fetch('/api/learning/game-score',{ method:'POST', headers:{'content-type':'application/json'}, credentials:'same-origin', body:JSON.stringify({ gameId:shell.cfg.id, title:shell.cfg.title, score:Math.round(score) }) }).catch(()=>{}); }catch(e){}
+  try{ fetch('/api/learning/game-score',{ method:'POST', headers:{'content-type':'application/json'}, credentials:'same-origin', body:JSON.stringify({ gameId:shell.cfg.id, title:shell.cfg.title, score:Math.round(score), stars:stars, won:true }) }).catch(()=>{}); }catch(e){}
   shell.sound('win'); if(!REDUCED&&shell.buddy&&shell.buddy.celebrate)try{shell.buddy.celebrate();}catch(e){}
   const el=document.createElement('div'); el.className='gl-end'; el.id='glEnd'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Débrief du tour du monde');
   el.innerHTML=`<div class="gl-end-card">

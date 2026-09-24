@@ -539,6 +539,17 @@ function construireDonneesSite() {
     '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
     + 'window.PROGRAMME = ' + JSON.stringify(programme, null, 2) + ';\n');
 
+  // Résumé du programme pour la tutrice Opale (fonction serveur) : matières,
+  // leçons, notions. Assez pour situer une question, sans le contenu des fiches.
+  const resume = programme.matieres.map((m) => ({
+    id: m.id, nom: m.nom,
+    lecons: m.lecons.map((l) => ({ ref: l.ref, titre: l.titre, periode: l.periode, notions: (l.notions || []).slice(0, 6) })),
+  }));
+  const cibleFonctions = path.join(RACINE, 'functions', '_programme.js');
+  fs.writeFileSync(cibleFonctions,
+    '/* Généré par build/build.mjs à partir de 00-pilotage/programme.json : ne pas modifier à la main. */\n'
+    + 'export const PROGRAMME = ' + JSON.stringify(resume) + ';\n');
+
   const prets = programme.matieres.reduce((n, m) =>
     n + m.lecons.filter((l) => l.docs.length === 4).length, 0);
   const total = programme.matieres.reduce((n, m) => n + m.lecons.length, 0);

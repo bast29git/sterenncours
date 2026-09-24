@@ -19,3 +19,8 @@ database_id = "__D1_ID__"
 [[r2_buckets]]
 binding = "FICHIERS"
 bucket_name = "sterenncours-fichiers"
+
+# Workers AI : la tutrice Opale. Sans cette liaison, l'espace de Sterenn garde
+# Opale, mais elle renvoie vers le plan de la fiche et vers le professeur.
+[ai]
+binding = "AI"

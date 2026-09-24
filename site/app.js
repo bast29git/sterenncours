@@ -318,6 +318,7 @@
       // Moteurs de l'espace de Sterenn : accessibilité, trophées, sons.
       chargerScript('moteurs/audio-engine.js').catch(() => {});
       chargerScript('moteurs/confort.js').catch(() => {});
+      chargerScript('tuteur.js').catch(() => {});
       construirePalette();
       majBoutonTheme();
       majReussites();

@@ -330,7 +330,7 @@
       const best = api.load('best', 0); const sc = o.score != null ? o.score : 0;
       if (sc > best) api.save({ best: sc });
       // Sync best-effort du score → Konstrio (D1 tenant-scopé). N'altère jamais le jeu (mode public/hors-ligne).
-      if (o.score != null) { try { fetch('/api/learning/game-score', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ gameId: cfg.id, title: cfg.title, score: Math.round(sc), lowerIsBetter: !!cfg.lowerIsBetter }) }).catch(function () {}); } catch (e) {} }
+      if (won || o.score != null) { try { fetch('/api/learning/game-score', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ gameId: cfg.id, title: cfg.title, score: Math.round(sc), stars: stars, won: !!won, lowerIsBetter: !!cfg.lowerIsBetter }) }).catch(function () {}); } catch (e) {} }
       const learned = o.learned || cfg.learned || [];
       $('.ksh-fin').innerHTML = `
         <div class="ksh-card" role="dialog" aria-label="Fin de partie">

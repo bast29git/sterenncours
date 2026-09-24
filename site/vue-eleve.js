@@ -336,7 +336,7 @@
           <button class="e-bouton" type="submit">Vérifier</button></form>`;
 
     afficher(
-      `<div class="e-exo">
+      `<div class="e-exo" data-exo-index="${s.index}">
         <h1 style="font-size:1.4rem;margin-bottom:.9rem">${N.ech(l.titre)}</h1>
         <div class="e-exo-barre" aria-hidden="true">${s.items.map((_, i) => {
         let c = '';
