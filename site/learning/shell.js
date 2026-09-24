@@ -57,6 +57,14 @@
   .ksh-learned li { font-size: 14px; line-height: 1.4; }
   .ksh-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-lg); border-radius: 12px; padding: 12px 18px; z-index: 95; font-weight: 600; opacity: 0; transition: .3s; pointer-events: none; }
   .ksh-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .ksh-lecon { margin: 0 0 6px; font-size: 14px; color: var(--fg-muted); }
+  .ksh-lecon-lien { color: var(--accent-text); font-weight: 700; text-decoration: none; border-bottom: 1px dotted currentColor; }
+  .ksh-lecon-attente { color: var(--fg-muted); }
+  .ksh-duree { margin: 0 0 14px; font-size: 13.5px; color: var(--fg-muted); }
+  .ksh-apprendre { background: var(--accent-weak); border-radius: 12px; padding: 12px 14px; margin: 0 0 16px; }
+  .ksh-apprendre h4 { font-size: 13px; font-family: var(--font-title); margin: 0 0 6px; color: var(--accent-text); }
+  .ksh-apprendre ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.5; }
+  .ksh-seuils { text-align: center; font-size: 12.5px; color: var(--fg-muted); margin: 0 0 14px; line-height: 1.5; }
   .ksh-finscore { font-family: var(--font-data); font-weight: 700; font-size: 40px; text-align: center; line-height: 1; }
   .ksh-finlabel { text-align:center; font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 4px; }
   @media (max-width: 640px) {
@@ -195,27 +203,75 @@
       lose(o) { showFin(false, o || {}); },
     };
 
-    /* ---------- écran Accueil ---------- */
+    /* ---------- écran Accueil : le même pour tous les jeux ---------- */
     function steps(arr) { return (arr || []).map((s, i) => `<div class="ksh-step"><i>${i + 1}</i><span>${s}</span></div>`).join(''); }
+    const esc = (t) => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    /** La leçon que ce jeu sert, d'après le catalogue et le programme d'Opaline (chargés une fois). */
+    function chargerScript(src) {
+      return new Promise((ok, ko) => {
+        if (document.querySelector(`script[src="${src}"]`)) return ok();
+        const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = ko; document.head.appendChild(el);
+      });
+    }
+    let leconPromise = null;
+    function leconServie() {
+      if (leconPromise) return leconPromise;
+      leconPromise = Promise.all([
+        window.JEUX ? Promise.resolve() : chargerScript('/data/jeux.js').catch(() => {}),
+        window.PROGRAMME ? Promise.resolve() : chargerScript('/data/programme.js').catch(() => {}),
+      ]).then(() => {
+        const jeu = (window.JEUX || []).find((j) => j.id === cfg.id);
+        if (!jeu || !window.PROGRAMME) return [];
+        return (jeu.lecons || []).map((c) => {
+          const [mid, ref] = c.split(':');
+          const m = PROGRAMME.matieres.find((x) => x.id === mid);
+          const l = m && m.lecons.find((x) => x.ref === ref);
+          return m && l ? { mid, ref, matiere: m.nom, icone: m.icone, titre: l.titre, notions: l.notions || [], url: '/#/lecon/' + mid + '/' + ref + '/cours' } : null;
+        }).filter(Boolean);
+      });
+      return leconPromise;
+    }
+    api.leconServie = leconServie;
+    /** E12 : les questions de la leçon rattachée, prises dans la banque d'Opaline (qcm et vrai/faux). */
+    api.banqueLecon = function () {
+      return leconServie().then((lecons) => (window.EXERCICES ? Promise.resolve() : chargerScript('/data/exercices.js').catch(() => {})).then(() => {
+        const items = [];
+        lecons.forEach((l) => { const b = window.EXERCICES && window.EXERCICES[l.mid + '/' + l.ref]; if (b && b.items) items.push(...b.items.filter((q) => q.type === 'qcm' || q.type === 'vraifaux')); });
+        return items;
+      }));
+    };
     function renderAccueil() {
       const intro = cfg.intro || {};
+      const consignes = (intro.how || []).slice(0, 3);
+      if (!consignes.length && intro.rule) consignes.push(intro.rule);
+      const modeParDefaut = intro.objectif ? 'cours' : 'detente';
       $('.ksh-accueil').innerHTML = `
         <div class="ksh-card" role="dialog" aria-label="Présentation du jeu">
           <div class="ksh-dtag" style="background:${dom.color};margin-bottom:12px">${cfg.code || ''} · ${dom.label || ''}</div>
           <h2 class="ksh-h">${cfg.title || ''}</h2>
-          <p class="ksh-sub">${intro.rule || ''}</p>
-          ${intro.how ? `<div class="ksh-steps">${steps(intro.how)}</div>` : ''}
-          ${intro.objectif ? `<div class="ksh-obj">🎯 <span><b>Objectif (mode Cours)&nbsp;:</b> ${intro.objectif}</span></div>` : ''}
+          <p class="ksh-lecon" id="ksh-lecon"><span class="ksh-lecon-attente">Leçon servie : recherche dans le programme…</span></p>
+          <p class="ksh-duree">⏱ Durée conseillée : ${esc(cfg.duree || intro.duree || '10 min')}${intro.rule && consignes[0] !== intro.rule ? ' · ' + intro.rule : ''}</p>
+          <div class="ksh-steps">${steps(consignes)}</div>
+          <div class="ksh-apprendre" id="ksh-apprendre" hidden></div>
+          ${intro.objectif ? `<div class="ksh-obj">🎯 <span><b>Objectif&nbsp;:</b> ${intro.objectif}</span></div>` : ''}
           <div class="ksh-row">
-            <button class="ksh-b primary ksh-play-detente">🌿 Jouer · Détente</button>
-            <button class="ksh-b ksh-play-cours">🎓 Jouer · Cours</button>
+            <button class="ksh-b primary ksh-play">▶ Jouer</button>
             <button class="ksh-b ksh-acc-instr">Instructions</button>
+            <button class="ksh-b ksh-play-autre" title="${modeParDefaut === 'cours' ? 'Sans les questions du cours' : 'Avec les questions du cours'}">${modeParDefaut === 'cours' ? '🌿 Plutôt en détente' : '🎓 Plutôt en mode cours'}</button>
           </div>
         </div>`;
-      $('.ksh-play-detente').onclick = () => begin('detente');
-      $('.ksh-play-cours').onclick = () => begin('cours');
+      $('.ksh-play').onclick = () => begin(modeParDefaut);
+      $('.ksh-play-autre').onclick = () => begin(modeParDefaut === 'cours' ? 'detente' : 'cours');
       $('.ksh-acc-instr').onclick = showInstr;
-      buddy.say((intro.greet || ('Salut ! ' + (cfg.title || '') + ' : prêt à jouer ?')), 'joyeux');
+      leconServie().then((lecons) => {
+        const zone = $('#ksh-lecon'); if (!zone) return;
+        if (!lecons.length) { zone.innerHTML = '<span class="ksh-lecon-attente">Jeu libre, hors programme.</span>'; return; }
+        zone.innerHTML = 'Leçon servie : ' + lecons.map((l) => `<a class="ksh-lecon-lien" href="${l.url}">${l.icone} ${esc(l.titre)}</a>`).join(' · ');
+        const notions = [...new Set(lecons.flatMap((l) => l.notions))].slice(0, 3);
+        const app = $('#ksh-apprendre');
+        if (app && notions.length) { app.hidden = false; app.innerHTML = `<h4>📘 Ce que tu vas apprendre</h4><ul>${notions.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>`; }
+      });
+      buddy.say((intro.greet || ('Salut ! ' + (cfg.title || '') + ' : prête à jouer ?')), 'joyeux');
     }
 
     function setMode(m) {
@@ -266,7 +322,23 @@
       api.setScore(0); api.setProgress(0); api.setStars(0);
       if (cfg.onRestart) cfg.onRestart(api); else if (cfg.onStart) cfg.onStart(mode, api);
     }
+    /** E28 : libère les géométries, matériaux, textures et le contexte WebGL déclarés par le monde. */
+    function liberer3d() {
+      const r = window.__ksh3d; if (!r) return;
+      try {
+        if (r.scene && r.scene.traverse) r.scene.traverse((o) => {
+          if (o.geometry && o.geometry.dispose) o.geometry.dispose();
+          const mats = Array.isArray(o.material) ? o.material : (o.material ? [o.material] : []);
+          mats.forEach((m) => { Object.keys(m).forEach((k) => { const v = m[k]; if (v && v.isTexture && v.dispose) v.dispose(); }); if (m.dispose) m.dispose(); });
+        });
+        if (r.renderer) { if (r.renderer.setAnimationLoop) r.renderer.setAnimationLoop(null); if (r.renderer.dispose) r.renderer.dispose(); if (r.renderer.forceContextLoss) r.renderer.forceContextLoss(); }
+      } catch (e) { /* la sortie ne doit jamais bloquer */ }
+      window.__ksh3d = null;
+    }
+    window.addEventListener('pagehide', liberer3d);
     function quit() {
+      if (cfg.onQuit) { try { cfg.onQuit(api); } catch (e) {} }
+      liberer3d();
       // Retour CONTEXTUEL au HUB éducatif (et non la vitrine ni l'accueil brut).
       // Priorité 1 : le referrer interne /learning* — il conserve la query string
       // (?view=…&mat=…) que le hub SPA encode → on revient à la BONNE vue.
@@ -319,6 +391,7 @@
           <div class="ksh-finlabel">${won ? 'Bravo !' : 'Continue, tu y es presque !'}</div>
           <h2 class="ksh-h" style="text-align:center;font-size:22px">${o.title || (won ? 'Niveau réussi' : 'Réessaie')}</h2>
           ${o.score != null ? `<div class="ksh-finscore" style="color:${dom.color}">${Math.round(sc)}</div><div class="ksh-finlabel" style="margin-bottom:16px">points${sc >= best && sc > 0 ? ' · nouveau record !' : ''}</div>` : ''}
+          <p class="ksh-seuils">${cfg.seuils || 'Les étoiles : 1 dès que la partie est finie, 2 à partir de 70 % de réussite, 3 à partir de 90 %. Dans Opaline, une étoile est gagnée à partir de 2 étoiles ici.'}</p>
           ${learned.length ? `<div class="ksh-learned"><h4>💡 Ce que tu as appris</h4><ul>${learned.map(l => `<li>${l}</li>`).join('')}</ul></div>` : ''}
           ${careers.length ? `<div class="ksh-learned" style="background:var(--surface-2)"><h4>💼 Métiers liés à ce domaine</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${careers.map(c => `<span style="font-family:var(--font-mono);font-size:11.5px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:4px 11px">${c}</span>`).join('')}</div></div>` : ''}
           <div class="ksh-row" style="justify-content:center">
@@ -363,5 +436,28 @@
     return api;
   }
 
-  window.Konstrio = { createGame, REDUCED, unlock: function (id) { if (window.KonstrioAch) window.KonstrioAch.unlock(id); } };
+  /** E2 : densité de pixels 2 sur ordinateur, 1,5 sur téléphone, abaissée d'un demi-cran si le rendu passe sous 45 images par seconde. */
+  function adapterRendu(renderer) {
+    const mobile = window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
+    let ratio = Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2);
+    renderer.setPixelRatio(ratio);
+    let images = 0; let depuis = performance.now(); let mesures = 0;
+    function compter() {
+      images += 1;
+      const t = performance.now();
+      if (t - depuis >= 3000) {
+        const ips = images / ((t - depuis) / 1000);
+        images = 0; depuis = t; mesures += 1;
+        if (ips < 45 && ratio > 1) { ratio = Math.max(1, ratio - 0.5); renderer.setPixelRatio(ratio); }
+        if (mesures >= 6 || ratio <= 1) return;
+      }
+      requestAnimationFrame(compter);
+    }
+    requestAnimationFrame(compter);
+    return ratio;
+  }
+  /** Le monde déclare sa scène et son rendu ; la coquille les libère à la sortie. */
+  function declarer3d(objets) { window.__ksh3d = Object.assign(window.__ksh3d || {}, objets); }
+
+  window.Konstrio = { createGame, REDUCED, adapterRendu, declarer3d, unlock: function (id) { if (window.KonstrioAch) window.KonstrioAch.unlock(id); } };
 })();

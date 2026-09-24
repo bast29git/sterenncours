@@ -16,6 +16,7 @@
     && (!l.matiere || N.accesDoc(l.matiere, l.ref, t)));
   const vue = () => document.getElementById('vue-eleve');
   let observateurOrbite = null;
+  let minuteurHeure = null;
 
   const ONGLETS = [
     { route: 'hub', ico: 'ic-accueil', texte: 'Aujourd\'hui' },
@@ -45,9 +46,23 @@
     N.majReussites();
   }
 
+  /** C4 : l'écran parent de chaque route ; le bouton de retour y mène, toujours à la même place. */
+  const PARENT = { matieres: '#/hub', matiere: '#/matieres', lecon: (p) => '#/matiere/' + p[1], exos: (p) => '#/lecon/' + p[1] + '/' + p[2] + '/exercices',
+    calendrier: '#/hub', choix: '#/hub', jeux: (p) => (p[1] ? '#/jeux' : '#/hub'), reussites: '#/hub', progres: '#/hub', messages: '#/hub', travail: '#/hub',
+    decouverte: '#/hub', positionnement: '#/hub', visite: '#/hub', donnees: '#/reussites' };
+  const LIBELLE_RETOUR = { matieres: 'Accueil', matiere: 'Mes matières', lecon: 'Le parcours', exos: 'La fiche', jeux: 'Les jeux', donnees: 'Mes réussites' };
+  function boutonRetour() {
+    const p = (location.hash || '#/hub').replace(/^#\/?/, '').split('/');
+    const parent = PARENT[p[0]];
+    if (!parent) return '';
+    const cible = typeof parent === 'function' ? parent(p) : parent;
+    return `<a class="e-retour" href="${cible}" aria-label="Retour : ${N.ech(LIBELLE_RETOUR[p[0]] || 'Accueil')}">${N.ic('ic-gauche')} <span>${N.ech(LIBELLE_RETOUR[p[0]] || 'Accueil')}</span></a>`;
+  }
+
   function afficher(html) {
     if (observateurOrbite) { try { observateurOrbite.dispose(); } catch (e) { /* ignore */ } observateurOrbite = null; }
-    vue().innerHTML = html;
+    if (minuteurHeure) { clearInterval(minuteurHeure); minuteurHeure = null; }
+    vue().innerHTML = boutonRetour() + html;
     nav();
     document.getElementById('e-palette-panneau').hidden = true;
     window.scrollTo(0, 0);
@@ -192,6 +207,63 @@
     } catch (e) { /* on réessaiera à la prochaine visite */ }
   }
 
+  /** C2 : l'heure qu'il est et le temps qui reste avant (ou dans) la séance. */
+  function ligneHeure(s) {
+    const d = new Date();
+    const min = d.getHours() * 60 + d.getMinutes();
+    const heure = `Il est ${d.getHours()} h ${String(d.getMinutes()).padStart(2, '0')}`;
+    if (!s || s.date !== N.jourIso()) return heure + '.';
+    const [h1, m1] = String(s.debut || '').split(':').map(Number);
+    const [h2, m2] = String(s.fin || '').split(':').map(Number);
+    if (Number.isNaN(h1)) return heure + '.';
+    const debut = h1 * 60 + (m1 || 0); const fin = Number.isNaN(h2) ? debut + 90 : h2 * 60 + (m2 || 0);
+    const duree = (n) => (n >= 60 ? `${Math.floor(n / 60)} h ${String(n % 60).padStart(2, '0')}` : `${n} min`);
+    if (min < debut) return `${heure}. La séance commence dans ${duree(debut - min)}.`;
+    if (min < fin) return `${heure}. La séance est en cours, encore ${duree(fin - min)}.`;
+    return `${heure}. La séance est terminée.`;
+  }
+  /** C43 : la prochaine étoile à portée de main, avec le lien. */
+  function prochaineEtoile() {
+    const ouvertes = [];
+    PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => { if (N.accessible(m.id, l.ref) && docsVisibles(l).length) ouvertes.push({ m, l }); }));
+    for (const x of ouvertes) {
+      const c = N.cle(x.m.id, x.l.ref);
+      const r = N.etat.resultats[c];
+      if (N.banque(x.m.id, x.l.ref) && r && r.total > 0 && r.meilleur / r.total < 0.7) return { texte: `Il te manque la série de « ${x.l.titre} » : ton meilleur est ${r.meilleur} sur ${r.total}, il faut 70 %.`, lien: `#/exos/${x.m.id}/${x.l.ref}`, action: 'Refaire la série' };
+    }
+    for (const x of ouvertes) {
+      const t = docsVisibles(x.l).find((d) => d !== 'evaluation' && !N.etat.fiches[N.cle(x.m.id, x.l.ref) + '/' + d]);
+      if (t) { const info = N.TYPES_DOC.find((y) => y.id === t); return { texte: `Une étoile t'attend : termine la fiche ${info ? info.libelle.toLowerCase() : t} de « ${x.l.titre} ».`, lien: `#/lecon/${x.m.id}/${x.l.ref}/${t}`, action: 'Ouvrir la fiche' }; }
+    }
+    for (const x of ouvertes) {
+      const c = N.cle(x.m.id, x.l.ref);
+      if (N.banque(x.m.id, x.l.ref) && !N.etat.resultats[c]) return { texte: `Une étoile t'attend : réussis la série de « ${x.l.titre} » à 70 %.`, lien: `#/exos/${x.m.id}/${x.l.ref}`, action: 'Faire la série' };
+    }
+    return null;
+  }
+  function blocEtoiles() {
+    const e = prochaineEtoile();
+    const palier = N.prochainPalier();
+    const n = N.reussites().total;
+    if (!e && !palier) return '';
+    return `<section class="e-bloc-fixe e-prochaine-etoile" aria-labelledby="e-h-etoile">
+      <h2 id="e-h-etoile">${N.ic('ic-etoile')} Ma prochaine étoile</h2>
+      ${e ? `<p>${N.ech(e.texte)} <a class="e-lien-action" href="${e.lien}">${N.ech(e.action)}</a></p>` : ''}
+      ${palier ? `<p class="e-palier">À <b>${palier.palier} étoiles</b>, tu débloques la palette « ${N.ech(palier.nom)} ». Tu en as ${n} : encore ${palier.palier - n}.</p>` : '<p class="e-palier">Toutes les palettes de couleurs sont ouvertes.</p>'}
+    </section>`;
+  }
+  /** Le travail à faire avant la prochaine séance : le temps perso annoncé, ou la prochaine leçon à relire. */
+  function blocAvant(suivante) {
+    const auj = N.jourIso();
+    const travaux = N.etat.seances.filter((s) => s.type === 'travail' && s.date >= auj && (!suivante || s.date <= suivante.date) && s.statut !== 'annulee').sort((a, b) => a.date.localeCompare(b.date));
+    const lignes = travaux.slice(0, 2).map((t) => `<li><b>${N.ech(t.date === auj ? 'Aujourd\'hui' : N.enFrancais(t.date))}</b> ${t.debut ? N.ech(t.debut) + ' · ' : ''}${N.ech(t.travail || 'Un temps court de révision, quinze minutes.')}
+      ${(t.lecons || []).map((r) => N.libelleLecon(r)).filter((x) => x && x.m.id !== 'module').map((x) => `<a class="e-lien-doux" href="#/lecon/${x.m.id}/${x.l.ref}/revision">${x.m.icone} ${N.ech(x.l.titre)}</a>`).join(' ')}</li>`);
+    return `<section class="e-bloc-fixe e-avant" aria-labelledby="e-h-avant">
+      <h2 id="e-h-avant">${N.ic('ic-horloge')} À faire avant la prochaine fois</h2>
+      ${lignes.length ? `<ul class="e-liste-avant">${lignes.join('')}</ul>` : `<p>Rien d'annoncé pour l'instant. ${suivante ? 'Prochaine séance ' + N.ech(N.enFrancais(suivante.date, true)) + '.' : ''}</p>`}
+    </section>`;
+  }
+
   function vueHub() {
     const jour = seanceDuJour();
     const suivante = prochaineSeance();
@@ -216,10 +288,11 @@
       : (cible ? N.ech(cible.m.nom) : 'Les prochaines leçons arriveront bientôt.');
 
     afficher(
-      `<section class="e-jour">
-        <p class="quand">${jour ? 'Aujourd\'hui' : (suivante ? 'Prochaine séance' : 'À faire maintenant')}</p>
+      `<section class="e-jour" aria-labelledby="e-h-maintenant">
+        <p class="quand" id="e-h-maintenant">${jour ? 'Maintenant' : (suivante ? 'Prochaine séance' : 'À faire maintenant')}</p>
         <h1>${titre}</h1>
         <p class="detail">${detail}</p>
+        <p class="e-heure" id="e-heure">${N.ech(ligneHeure(jour || travail))}</p>
         <p class="e-actions">
           ${moduleVedette ? `<a class="e-bouton" href="${moduleVedette.l.url}">${moduleVedette.l.icone} ${N.ech(moduleVedette.l.titre)}</a>` : ''}
           ${cible && cible.m.id !== 'module' && docsVisibles(cible.l).length && N.accessible(cible.m.id, cible.l.ref)
@@ -229,13 +302,14 @@
         </p>
        </section>
 
-       ${rappelChoix(N.etat.seances)}
+       ${blocAvant(suivante)}
+       <section class="e-bloc-fixe e-bloc-choix" aria-labelledby="e-h-choix">
+         <h2 id="e-h-choix">${N.ic('ic-cible')} Mes prochains choix</h2>
+         ${rappelChoix(N.etat.seances)}
+         ${blocChoix(N.etat.seances) || '<p>Pas de choix à faire pour l\'instant. Une séance sur quatre est à toi : tu choisis parmi trois leçons.</p>'}
+       </section>
        ${blocMotNouveau()}
-       ${blocChoix(N.etat.seances)}
-
-       ${travail ? `<div class="e-carte" style="margin-bottom:1.4rem">
-         <h2 style="font-size:1.05rem;margin-bottom:.3rem">⏱️ Ton temps perso, aujourd'hui</h2>
-         <p style="margin:0;color:var(--e-encre-doux)">${N.ech(travail.travail || 'Un temps court de révision.')}</p></div>` : ''}
+       ${blocEtoiles()}
 
        <div class="e-orbite-titre">
          <h2>Mes matières</h2>
@@ -270,6 +344,7 @@
     monterOrbite();
     const vu = document.getElementById('e-mot-vu');
     if (vu) vu.addEventListener('click', async () => { await marquerMotsVus(); vueHub(); });
+    minuteurHeure = setInterval(() => { const h = document.getElementById('e-heure'); if (h) h.textContent = ligneHeure(jour || travail); else clearInterval(minuteurHeure); }, 30000);
   }
 
   async function monterOrbite() {
@@ -376,7 +451,7 @@
         <p><a class="e-bouton e-bouton-doux" href="#/lecon/${mid}/${ref}/${ouverts[0] || 'cours'}">Revenir à la fiche</a></p></div></div>`);
     }
     const actif = ouverts.indexOf(type) !== -1 ? type : ouverts[0];
-    afficher('<p class="e-vide">Chargement…</p>');
+    afficher(N.squelette('fiche'));
     if (actif === 'evaluation') return vueEvaluation(m, l, mid, ref, ouverts);
 
     N.chargerContenu(mid).then((contenu) => {
@@ -404,10 +479,16 @@
       );
 
       rendreFiche(document.getElementById('e-fiche-hote'), doc, cleFiche, () => document.getElementById('e-fini').click());
+      if (actif === 'exercices') brancherModeSeance(document.getElementById('e-fiche-hote'), doc, cleFiche);
 
       document.getElementById('e-fini').addEventListener('click', async () => {
         const termine = !N.etat.fiches[cleFiche];
         try {
+          if (termine) {
+            const trace = await demanderTrace(doc.titre);
+            if (trace === null) return;
+            try { await N.enregistrerProfil('moi.trace.' + cleFiche, trace); } catch (e) { /* la trace ne bloque pas la fin de fiche */ }
+          }
           const r = await N.api('/fiches', { method: 'PUT', body: JSON.stringify({ cle: cleFiche, termine }) });
           if (termine) {
             N.etat.fiches[cleFiche] = { termine_le: r.termine_le };
@@ -422,6 +503,90 @@
         location.hash = '#/messages/' + encodeURIComponent(m.nom + ' · ' + l.titre);
       });
     });
+  }
+
+  /** C12 : avant de terminer une fiche, une phrase « ce que je retiens » ou trois cases. Rend null si elle renonce. */
+  function demanderTrace(titre) {
+    return new Promise((resoudre) => {
+      const el = document.createElement('div');
+      el.className = 'e-voile-modale'; el.id = 'e-trace';
+      el.innerHTML = `<form class="e-modale" role="dialog" aria-labelledby="e-trace-titre" aria-modal="true">
+        <h2 id="e-trace-titre">Avant de terminer : ce que je retiens</h2>
+        <p>Une phrase suffit. Bastien la lira. Tu peux aussi cocher les cases, sans écrire.</p>
+        <label for="e-trace-texte">Ce que je retiens de « ${N.ech(titre)} »</label>
+        <textarea id="e-trace-texte" rows="3" maxlength="400" placeholder="Par exemple : pour additionner deux fractions, je mets d'abord le même dénominateur."></textarea>
+        <div class="e-trace-cases">
+          <label><input type="checkbox" name="cases" value="compris"> J'ai compris l'idée principale</label>
+          <label><input type="checkbox" name="cases" value="exemple"> Je saurais refaire l'exemple guidé</label>
+          <label><input type="checkbox" name="cases" value="question"> Il me reste une question pour Bastien</label>
+        </div>
+        <div class="e-actions">
+          <button class="e-bouton" type="submit">${N.ic('ic-coche')} Terminer la fiche</button>
+          <button class="e-bouton e-bouton-fin" type="button" id="e-trace-annuler">Pas maintenant</button>
+        </div></form>`;
+      document.body.appendChild(el);
+      const liberer = N.piegerFocus(el, document.activeElement);
+      const fermer = (valeur) => { liberer(); el.remove(); resoudre(valeur); };
+      el.querySelector('form').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const texte = document.getElementById('e-trace-texte').value.trim();
+        const cases = [...el.querySelectorAll('input[name=cases]:checked')].map((c) => c.value);
+        if (!texte && !cases.length) { N.signaler('Écris une phrase, ou coche au moins une case.', 'info'); return; }
+        fermer({ texte, cases, date: new Date().toISOString() });
+      });
+      document.getElementById('e-trace-annuler').addEventListener('click', () => fermer(null));
+      el.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') fermer(null); });
+    });
+  }
+
+  /** C27 : les exercices 1 à 4, un par écran, avec un chronomètre discret et « on corrige ensemble ». */
+  function brancherModeSeance(hote, doc, cleFiche) {
+    const zone = document.createElement('div');
+    zone.className = 'e-lecture-mode e-mode-seance-lien';
+    zone.innerHTML = `<button type="button" class="e-bouton e-bouton-doux" id="e-mode-seance">${N.ic('ic-etincelle')} Mode séance : les exercices sur écran, un par un</button>`;
+    hote.parentNode.insertBefore(zone, hote);
+    document.getElementById('e-mode-seance').addEventListener('click', () => rendreModeSeance(hote, doc, cleFiche, zone));
+  }
+  function rendreModeSeance(hote, doc, cleFiche, lien) {
+    const bac = document.createElement('div'); bac.innerHTML = doc.html;
+    let exos = [...bac.querySelectorAll('section.exercice')].filter((e) => e.querySelector('.support-ecran'));
+    if (!exos.length) exos = [...bac.querySelectorAll('section.exercice')].slice(0, 4);
+    if (!exos.length) { N.signaler('Cette fiche n\'a pas d\'exercice sur écran.', 'info'); return; }
+    const cleFait = 'moi.seance.' + cleFiche;
+    const faits = new Set(N.profil(cleFait, []));
+    let i = 0; let depart = Date.now(); let minuteur = null;
+    lien.hidden = true;
+    const rendre = () => {
+      const e = exos[i];
+      const num = (e.querySelector('.exercice-num') || {}).textContent || `Exercice ${i + 1}`;
+      const fait = faits.has(i);
+      hote.innerHTML = `<section class="e-seance" aria-label="Mode séance">
+        <div class="e-seance-barre">
+          <span class="e-seance-compte">${num.trim()} · ${i + 1} sur ${exos.length}</span>
+          <span class="e-seance-chrono" id="e-seance-chrono" aria-live="off" title="Temps passé sur cet exercice">0:00</span>
+          <button type="button" class="e-bouton e-bouton-fin e-bouton-mini" id="e-seance-quitter">Quitter le mode séance</button>
+        </div>
+        <article class="e-fiche e-fiche-page e-seance-corps">${e.outerHTML}</article>
+        <div class="e-seance-pied">
+          <button type="button" class="e-bouton e-bouton-doux" id="e-seance-prec" ${i === 0 ? 'disabled' : ''}>${N.ic('ic-gauche')} Précédent</button>
+          <button type="button" class="e-bouton ${fait ? 'e-bouton-doux' : ''}" id="e-seance-corriger">${fait ? '✓ Corrigé ensemble' : 'On corrige ensemble'}</button>
+          <button type="button" class="e-bouton e-bouton-doux" id="e-seance-suiv" ${i === exos.length - 1 ? 'disabled' : ''}>Suivant ${N.ic('ic-droite')}</button>
+        </div></section>`;
+      depart = Date.now();
+      clearInterval(minuteur);
+      minuteur = setInterval(() => { const c = document.getElementById('e-seance-chrono'); if (!c) { clearInterval(minuteur); return; } const s = Math.floor((Date.now() - depart) / 1000); c.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }, 1000);
+      document.getElementById('e-seance-prec').addEventListener('click', () => { i -= 1; rendre(); });
+      document.getElementById('e-seance-suiv').addEventListener('click', () => { i += 1; rendre(); });
+      document.getElementById('e-seance-quitter').addEventListener('click', () => { clearInterval(minuteur); lien.hidden = false; rendreFiche(hote, doc, cleFiche, () => document.getElementById('e-fini').click()); });
+      document.getElementById('e-seance-corriger').addEventListener('click', async () => {
+        faits.add(i);
+        try { await N.enregistrerProfil(cleFait, [...faits].sort()); } catch (e) { /* silencieux */ }
+        N.signaler('Exercice corrigé ensemble, noté.', 'succes');
+        if (i < exos.length - 1) { i += 1; } rendre();
+      });
+      window.scrollTo({ top: Math.max(0, hote.getBoundingClientRect().top + window.scrollY - 90) });
+    };
+    rendre();
   }
 
   /* ---------- Évaluation : le sujet, servi par le serveur si l'accès est ouvert --- */
@@ -440,6 +605,10 @@
     const decision = N.decisionAcces(N.cle(mid, ref) + '/evaluation');
     const a = N.etat.acces[N.cle(mid, ref) + '/evaluation'];
     const limite = a && a.jusqu_au ? N.dateCourte(a.jusqu_au) : null;
+    // La durée du sujet : la somme des durées de ses exercices, entre 10 et 120 minutes ; 45 à défaut.
+    const durees = e ? [...String(e.sujet || '').replace(/<[^>]+>/g, ' ').matchAll(/(\d{1,3})\s*min/g)].map((x) => Number(x[1])) : [];
+    const somme = durees.reduce((a, b) => a + b, 0);
+    const dureeMin = somme ? Math.min(120, Math.max(10, somme)) : 45;
     afficher(`<div class="e-lecteur">
       <header class="e-lecteur-tete">
         <p style="margin:0;color:var(--e-encre-doux);font-size:.85rem">${m.icone} ${N.ech(m.nom)}</p>
@@ -458,13 +627,103 @@
           </ol>
           ${limite ? `<p class="e-eval-limite">${N.ic('ic-horloge')} Ouverte jusqu'au ${N.ech(limite)}.</p>` : ''}
         </section>
+        <section class="e-carte e-eval-chrono" aria-label="Chronomètre de l'évaluation">
+          <div class="e-eval-chrono-tete"><h2>${N.ic('ic-horloge')} Le temps</h2><span class="e-eval-duree">Durée prévue : ${dureeMin} min</span></div>
+          <p class="e-eval-chrono-aide">C'est toi qui démarres, c'est toi qui arrêtes. À la moitié, un message te le dit. Quand le temps est écoulé, tu poses ton stylo, rien ne se ferme.</p>
+          <div class="e-eval-chrono-corps">
+            <output class="e-eval-temps" id="e-eval-temps" aria-live="off">${String(dureeMin).padStart(2, '0')}:00</output>
+            <div class="e-eval-jauge" role="progressbar" aria-valuemin="0" aria-valuemax="${dureeMin * 60}" aria-valuenow="0" aria-label="Temps écoulé"><i id="e-eval-jauge"></i></div>
+            <div class="e-actions" style="margin:0">
+              <button class="e-bouton" id="e-eval-demarrer" type="button">Démarrer</button>
+              <button class="e-bouton e-bouton-doux" id="e-eval-arreter" type="button" hidden>Arrêter</button>
+            </div>
+          </div>
+          <p class="e-eval-chrono-etat" id="e-eval-etat" role="status"></p>
+        </section>
         <article class="e-fiche e-fiche-page e-eval-sujet">${e.sujet}</article>
         ${e.criteres ? `<details class="e-carte e-eval-criteres"><summary>${N.ic('ic-cible')} Ce qui est attendu : la grille des critères</summary><div class="e-fiche e-fiche-page">${e.criteres}</div></details>` : ''}
+        <section class="e-carte e-eval-depot" aria-labelledby="e-h-depot">
+          <h2 id="e-h-depot">${N.ic('ic-photo')} Envoyer ma copie</h2>
+          <ol class="e-eval-depot-etapes">
+            <li>Prends une photo par page, bien à plat, sans ombre. Trois photos au plus.</li>
+            <li>Vérifie l'aperçu : on doit lire ton écriture.</li>
+            <li>Appuie sur « Envoyer ma copie ». Un seul envoi suffit.</li>
+          </ol>
+          <input type="file" id="e-eval-photos" accept="image/*" multiple hidden>
+          <div class="e-eval-apercus" id="e-eval-apercus"></div>
+          <div class="e-actions" style="margin:0">
+            <button class="e-bouton e-bouton-doux" id="e-eval-ajouter" type="button">${N.ic('ic-plus')} Ajouter une photo</button>
+            <button class="e-bouton" id="e-eval-envoyer" type="button" disabled>${N.ic('ic-envoyer')} Envoyer ma copie</button>
+          </div>
+          <p class="e-eval-depot-etat" id="e-eval-depot-etat" role="status"></p>
+        </section>
         <div class="e-actions">
-          <a class="e-bouton" href="#/messages/${encodeURIComponent('Évaluation · ' + m.nom + ' · ' + l.titre)}">${N.ic('ic-photo')} Envoyer la photo de ma copie</a>
           <a class="e-bouton e-bouton-fin" href="#/matiere/${mid}">← Mon parcours</a>
         </div>`}
     </div>`);
+    if (e && decision === true) { brancherChronoEvaluation(dureeMin, N.cle(mid, ref)); brancherDepotEvaluation(m, l); }
+  }
+  /** C38 : le chronomètre de l'évaluation. Le départ est mémorisé sur l'appareil : recharger la page ne le remet pas à zéro. */
+  function brancherChronoEvaluation(dureeMin, cle) {
+    const total = dureeMin * 60;
+    const cleDepart = 'opaline.eval.depart.' + cle;
+    const temps = document.getElementById('e-eval-temps');
+    const jauge = document.getElementById('e-eval-jauge');
+    const etat = document.getElementById('e-eval-etat');
+    const bDemarrer = document.getElementById('e-eval-demarrer');
+    const bArreter = document.getElementById('e-eval-arreter');
+    let depart = null; let minuteur = null; let moitieDite = false; let finDite = false;
+    try { depart = Number(sessionStorage.getItem(cleDepart)) || null; } catch (err) { depart = null; }
+    const affiche = () => {
+      if (!temps || !document.body.contains(temps)) { clearInterval(minuteur); return; }
+      const ecoule = Math.floor((Date.now() - depart) / 1000);
+      const reste = Math.max(0, total - ecoule);
+      temps.textContent = String(Math.floor(reste / 60)).padStart(2, '0') + ':' + String(reste % 60).padStart(2, '0');
+      jauge.style.width = Math.min(100, (ecoule / total) * 100) + '%';
+      jauge.parentNode.setAttribute('aria-valuenow', String(Math.min(total, ecoule)));
+      if (!moitieDite && ecoule >= total / 2) { moitieDite = true; etat.textContent = 'La moitié du temps est passée. Regarde où tu en es, puis continue.'; N.signaler('La moitié du temps est passée.', 'info'); }
+      if (!finDite && ecoule >= total) { finDite = true; temps.classList.add('fini'); etat.textContent = 'Le temps est écoulé : pose ton stylo, puis photographie ta copie.'; N.signaler('Le temps est écoulé.', 'info'); }
+    };
+    const lancer = () => { bDemarrer.hidden = true; bArreter.hidden = false; affiche(); minuteur = setInterval(affiche, 1000); };
+    bDemarrer.addEventListener('click', () => { depart = Date.now(); try { sessionStorage.setItem(cleDepart, String(depart)); } catch (err) { /* privé */ } moitieDite = false; finDite = false; temps.classList.remove('fini'); etat.textContent = 'Chronomètre lancé. Bon travail.'; lancer(); });
+    bArreter.addEventListener('click', () => { clearInterval(minuteur); try { sessionStorage.removeItem(cleDepart); } catch (err) { /* privé */ } bArreter.hidden = true; bDemarrer.hidden = false; bDemarrer.textContent = 'Redémarrer'; etat.textContent = 'Chronomètre arrêté à ' + temps.textContent + '.'; });
+    if (depart) lancer();
+  }
+  /** C39 : dépôt de copie guidé, trois photos au plus, aperçu, un seul envoi. */
+  function brancherDepotEvaluation(m, l) {
+    const champ = document.getElementById('e-eval-photos');
+    const apercus = document.getElementById('e-eval-apercus');
+    const bEnvoyer = document.getElementById('e-eval-envoyer');
+    const etat = document.getElementById('e-eval-depot-etat');
+    let photos = [];
+    const rendre = () => {
+      apercus.innerHTML = photos.map((f, i) => `<figure><img src="${URL.createObjectURL(f)}" alt="Page ${i + 1} de ma copie"><figcaption>Page ${i + 1} · ${Math.round(f.size / 1024)} Ko <button type="button" data-retirer="${i}" aria-label="Retirer la page ${i + 1}">${N.ic('ic-croix')}</button></figcaption></figure>`).join('');
+      apercus.querySelectorAll('[data-retirer]').forEach((b) => b.addEventListener('click', () => { photos.splice(Number(b.getAttribute('data-retirer')), 1); rendre(); }));
+      bEnvoyer.disabled = !photos.length;
+      document.getElementById('e-eval-ajouter').disabled = photos.length >= 3;
+      etat.textContent = photos.length ? `${photos.length} page(s) prête(s) sur 3 au plus.` : '';
+    };
+    document.getElementById('e-eval-ajouter').addEventListener('click', () => champ.click());
+    champ.addEventListener('change', () => {
+      [...champ.files].forEach((f) => { if (photos.length < 3 && f.type.indexOf('image/') === 0) photos.push(f); });
+      champ.value = ''; rendre();
+    });
+    bEnvoyer.addEventListener('click', async () => {
+      bEnvoyer.disabled = true; etat.textContent = 'Envoi en cours…';
+      try {
+        for (let i = 0; i < photos.length; i += 1) {
+          const d = new FormData();
+          d.append('fichier', photos[i], `copie-${l.ref}-page-${i + 1}.jpg`);
+          d.append('note', `Copie d'évaluation, page ${i + 1} sur ${photos.length} : ${l.titre}`);
+          d.append('matiere', m.nom + ' · ' + l.titre);
+          await N.api('/fichiers', { method: 'POST', body: d });
+        }
+        await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: `J'ai envoyé ma copie de l'évaluation « ${l.titre} » (${photos.length} page(s)).`, contexte: 'Évaluation · ' + m.nom + ' · ' + l.titre, fil: m.id }) }).catch(() => {});
+        photos = []; rendre();
+        etat.textContent = 'Copie envoyée. Bastien la corrige avec la grille et te répond dans les messages.';
+        N.signaler('Copie envoyée à Bastien.', 'succes');
+      } catch (err) { etat.textContent = 'L\'envoi a échoué : ' + err.message + '. Réessaie, ou envoie la photo depuis les messages.'; bEnvoyer.disabled = false; }
+    });
   }
 
   /* ---------- Lecteur de fiche : en diapositives, ou en page ------------------- */
@@ -498,14 +757,29 @@
       return;
     }
     const clePos = 'opaline.diapo.' + cleFiche;
+    const cleServeur = 'moi.diapo.' + cleFiche;
     let i = 0;
-    try { i = Math.min(sections.length - 1, Math.max(0, Number(sessionStorage.getItem(clePos)) || 0)); } catch (e) { i = 0; }
+    // C11 : la position vient de l'onglet, sinon du profil partagé (reprise sur un autre appareil).
+    try { i = Number(sessionStorage.getItem(clePos)); if (Number.isNaN(i)) i = 0; } catch (e) { i = 0; }
+    if (!i) { const serveur = Number(N.profil(cleServeur, 0)); if (!Number.isNaN(serveur) && serveur > 0 && !N.etat.fiches[cleFiche]) i = serveur; }
+    i = Math.min(sections.length - 1, Math.max(0, i));
+    let attenteServeur = null;
+    const memoriser = (k) => {
+      try { sessionStorage.setItem(clePos, String(k)); } catch (e) { /* privé */ }
+      clearTimeout(attenteServeur);
+      attenteServeur = setTimeout(() => { if (Number(N.profil(cleServeur, 0)) !== k) N.enregistrerProfil(cleServeur, k).catch(() => {}); }, 1500);
+    };
+    // C13 : le temps de lecture, par diapositive et en tout, d'après les mots (110 mots par minute).
+    const mots = (html) => (html.replace(/<[^>]+>/g, ' ').match(/[\p{L}\p{N}]+/gu) || []).length;
+    const minutes = sections.map((x) => Math.max(1, Math.round(mots(x.html) / 110)));
+    const totalMinutes = minutes.reduce((a, b) => a + b, 0);
 
     hote.innerHTML = `<section class="e-diapo" aria-label="Fiche en diapositives">
       <div class="e-diapo-barre">
         <ol class="e-diapo-etapes" id="e-diapo-etapes">${sections.map((x, k) => `<li><button type="button" data-diapo="${k}" title="${N.ech(x.titre)}"><b>${k + 1}</b><span>${N.ech(titreCourt(x.titre))}</span></button></li>`).join('')}</ol>
         <button type="button" class="e-diapo-mode" id="e-mode-page" title="Afficher toute la fiche sur une page">${N.ic('ic-livre')}<span>Page entière</span></button>
       </div>
+      <p class="e-diapo-temps">${N.ic('ic-horloge')} ${sections.length} diapositives, environ ${totalMinutes} min de lecture en tout${doc.duree ? ` · fiche prévue pour ${N.ech(doc.duree)}` : ''}.</p>
       <div class="e-diapo-jauge" role="progressbar" aria-valuemin="1" aria-valuemax="${sections.length}" aria-valuenow="1" aria-label="Avancement dans la fiche"><i id="e-diapo-jauge"></i></div>
       <article class="e-fiche e-diapo-corps" id="e-diapo-corps" tabindex="-1"></article>
       <div class="e-diapo-pied">
@@ -518,7 +792,7 @@
     const corps = document.getElementById('e-diapo-corps');
     const montrer = (k, defiler) => {
       i = Math.min(sections.length - 1, Math.max(0, k));
-      try { sessionStorage.setItem(clePos, String(i)); } catch (e) { /* privé */ }
+      memoriser(i);
       const x = sections[i];
       corps.innerHTML = `<h2 id="${N.ech(x.id)}">${N.ech(x.titre)}</h2>${x.html}`;
       hote.querySelectorAll('[data-diapo]').forEach((b) => {
@@ -534,7 +808,7 @@
       });
       document.getElementById('e-diapo-jauge').style.width = Math.round(((i + 1) / sections.length) * 100) + '%';
       hote.querySelector('.e-diapo-jauge').setAttribute('aria-valuenow', String(i + 1));
-      document.getElementById('e-diapo-compte').textContent = `${i + 1} sur ${sections.length}`;
+      document.getElementById('e-diapo-compte').textContent = `${i + 1} sur ${sections.length} · ${minutes[i]} min`;
       const prec = document.getElementById('e-diapo-prec');
       const suiv = document.getElementById('e-diapo-suiv');
       prec.disabled = i === 0;
@@ -571,7 +845,7 @@
   let session = null;
   function vueExos(mid, ref) {
     if (!window.EXERCICES) {
-      afficher('<p class="e-vide">Chargement de la série…</p>');
+      afficher(N.squelette('serie'));
       N.chargerBanque().then(() => vueExos(mid, ref)).catch(() => afficher('<p class="e-vide">La série n\'a pas pu être chargée. Recharge la page.</p>'));
       return undefined;
     }
@@ -656,6 +930,7 @@
   }
   async function enregistrer() {
     const s = session;
+    if (s.rejouees) return;
     const justes = s.reponses.filter(Boolean).length;
     try {
       const ligne = await N.api('/resultats', {
@@ -683,22 +958,26 @@
     else if (pct >= 50) message = 'La base est là. Relis la fiche de révision, puis refais la série.';
     else message = 'Reprends la fiche de cours avant de refaire la série. Ce n\'est pas un problème d\'entraînement, c\'est une notion à revoir.';
     const ratees = s.items.filter((_, i) => s.reponses[i] === false);
+    if (s.rejouees) message = ratees.length ? 'Presque : ' + ratees.length + ' question(s) encore ratée(s). Relis l\'explication, puis refais la série entière quand tu veux.' : 'Toutes les questions ratées sont maintenant justes. Refais la série entière pour gagner l\'étoile.';
 
     afficher(
       `<div class="e-exo">
         <h1 style="font-size:1.8rem;text-align:center">${justes} sur ${s.items.length}</h1>
-        <p class="e-intro" style="text-align:center">${N.ech(l.titre)}</p>
+        <p class="e-intro" style="text-align:center">${s.rejouees ? 'Questions rejouées · ' : ''}${N.ech(l.titre)}</p>
         <div class="e-carte" style="margin-bottom:1rem"><p style="margin:0">${N.ech(message)}</p></div>
         ${ratees.length ? `<div class="e-carte" style="margin-bottom:1rem">
           <h2 style="font-size:1rem;margin-bottom:.4rem">À revoir</h2>
-          <ul style="margin:0;padding-left:1.1rem">${ratees.map((r) => `<li>${r.q}</li>`).join('')}</ul></div>` : ''}
+          <ul style="margin:0;padding-left:1.1rem">${ratees.map((r) => `<li>${r.q}</li>`).join('')}</ul>
+          <p style="margin:.7rem 0 0"><button class="e-bouton" id="e-rejouer" type="button">${N.ic('ic-cible')} Rejouer ces ${ratees.length} question(s) tout de suite</button></p></div>` : ''}
         <div class="e-actions" style="justify-content:center">
-          <button class="e-bouton" id="e-refaire" type="button">↺ Refaire</button>
+          <button class="e-bouton${ratees.length ? ' e-bouton-doux' : ''}" id="e-refaire" type="button">↺ Refaire la série entière</button>
           ${docsVisibles(l).indexOf('revision') !== -1 ? `<a class="e-bouton e-bouton-doux" href="#/lecon/${s.mid}/${s.ref}/revision">${N.ic('ic-cerveau')} Fiche de révision</a>` : ''}
           <a class="e-bouton e-bouton-fin" href="#/matiere/${s.mid}">← ${N.ech(m.nom)}</a>
         </div></div>`,
     );
     document.getElementById('e-refaire').addEventListener('click', () => vueExos(s.mid, s.ref));
+    const rejouer = document.getElementById('e-rejouer');
+    if (rejouer) rejouer.addEventListener('click', () => { session = { mid: s.mid, ref: s.ref, items: ratees, index: 0, reponses: [], termine: false, rejouees: true }; rendreExo(); });
   }
 
   /* ---------- Calendrier ------------------------------------------------------------ */
@@ -764,6 +1043,7 @@
         .sort((a, b) => String(a.debut).localeCompare(String(b.debut)));
       return `<div class="e-jour-col${jour === aujourd ? ' auj' : ''}">
         <p class="e-jour-nom">${nom}<b>${Number(jour.slice(8, 10))}</b></p>
+        <p class="e-jour-resume">${duJour.length ? duJour.length + ' prévu(s)' : 'rien'}</p>
         ${duJour.length
     ? duJour.map(evenement).join('')
     : '<p class="e-jour-repos">Rien de prévu</p>'}
@@ -772,10 +1052,15 @@
 
     const semaine = seances.filter((x) => x.date >= lundi && x.date <= N.decaler(lundi, 4));
     const cours = semaine.filter((x) => x.type === 'cours').length;
+    const compacte = N.lire('opaline.semaine.compacte', true) !== false;
+    const rappel = N.rappelActif();
 
     afficher(
       `<h1>Ma semaine</h1>
        <p class="e-intro">Cours le lundi, le mercredi et le vendredi. Deux temps courts le mardi et le jeudi.</p>
+       <p class="e-semaine-options">
+         <label class="e-case"><input type="checkbox" id="e-rappel" ${rappel ? 'checked' : ''}> Me rappeler mes temps perso et mes séances une heure avant (message du navigateur)</label>
+       </p>
        ${blocChoix(seances)}
        ${bandeauMois(ancre, seances)}
        <section class="e-semaine">
@@ -787,10 +1072,17 @@
            </div>
            <button class="e-rond" id="e-suiv" type="button" aria-label="Semaine suivante">›</button>
          </div>
-         <div class="e-semaine-grille">${colonnes}</div>
-         <p class="e-semaine-pied"><button class="e-bouton e-bouton-fin" id="e-auj" type="button">Revenir à aujourd'hui</button></p>
+         <div class="e-semaine-grille${compacte ? ' compacte' : ''}" id="e-semaine-grille">${colonnes}</div>
+         <p class="e-semaine-pied"><button class="e-bouton e-bouton-fin" id="e-auj" type="button">Revenir à aujourd'hui</button>
+           <button class="e-bouton e-bouton-fin e-semaine-plier" id="e-plier" type="button" aria-pressed="${compacte}">${compacte ? 'Voir toute la semaine' : 'Voir surtout aujourd\'hui'}</button></p>
        </section>`,
     );
+    document.getElementById('e-plier').addEventListener('click', () => { N.ecrire('opaline.semaine.compacte', !compacte); vueCalendrier(ancre); });
+    document.getElementById('e-rappel').addEventListener('change', async (ev) => {
+      const ok = await N.activerRappel(ev.target.checked);
+      ev.target.checked = ok;
+      if (ok) { N.signaler('Rappel activé : une heure avant, ton navigateur te prévient.', 'succes'); N.verifierRappel(); }
+    });
     document.getElementById('e-prec').addEventListener('click', () => { location.hash = '#/calendrier/' + N.decaler(lundi, -7); });
     document.getElementById('e-suiv').addEventListener('click', () => { location.hash = '#/calendrier/' + N.decaler(lundi, 7); });
     document.getElementById('e-auj').addEventListener('click', () => { location.hash = '#/calendrier/' + N.jourIso(); });
@@ -901,6 +1193,45 @@
     { s: 100, i: '👑', n: 'Couronne d\'Opaline', d: 'Cent étoiles. L\'année complète.' },
   ];
 
+  /* ---------- C95 : ce que l'application sait de moi ------------------------------ */
+  async function vueDonnees() {
+    afficher('<p class="e-vide">Chargement…</p>');
+    let messages = 0; let fichiers = 0;
+    try { const r = await Promise.all([N.api('/messages'), N.api('/fichiers')]); messages = (r[0].messages || []).length; fichiers = (r[1].fichiers || []).length; } catch (e) { /* on affiche ce qu'on a */ }
+    const profilMoi = Object.keys(N.etat.profil).filter((k) => k.indexOf('moi.') === 0);
+    const r = N.reussites();
+    const lignes = [
+      ['Mes fiches terminées', Object.keys(N.etat.fiches).length, 'la date à laquelle tu as terminé chaque fiche'],
+      ['Mes séries et mes jeux', Object.keys(N.etat.resultats).length, 'ton meilleur score et le nombre d\'essais, jamais tes réponses une par une'],
+      ['Mes étoiles', r.total, 'calculées à partir des fiches, des séries, des jeux et des leçons validées'],
+      ['Mes messages à Bastien', messages, 'le texte, la date, et si Bastien les a lus'],
+      ['Mes photos et fichiers envoyés', fichiers, 'les copies de devoirs, les photos du cahier'],
+      ['Ma carte et mes réponses', profilMoi.length, 'faire connaissance, où j\'en suis, ce que je retiens des fiches, ma place dans les fiches'],
+      ['Mes choix de séances', N.etat.seances.filter((s) => s.choisi_le).length, 'la leçon choisie et la date du choix'],
+      ['Mes absences annoncées', N.etat.seances.filter((s) => s.absence).length, 'la date et le mot que tu as laissé'],
+    ];
+    afficher(`<div class="e-donnees">
+      <h1>Ce que l'application sait de moi</h1>
+      <p class="e-intro">Tout ce qui est enregistré à ton sujet est ici. Bastien voit les mêmes choses. Rien ne part ailleurs : pas de publicité, pas de revente, aucun autre service.</p>
+      <ul class="e-donnees-liste">${lignes.map((x) => `<li><b>${x[1]}</b><span><strong>${N.ech(x[0])}</strong><br>${N.ech(x[2])}</span></li>`).join('')}</ul>
+      <div class="e-carte e-donnees-non">
+        <h2>${N.ic('ic-verrou')} Ce que l'application ne sait pas</h2>
+        <p>Ni ta position, ni ton adresse, ni ton téléphone, ni ce que tu fais en dehors d'Opaline. Le code d'entrée sert à séparer ton espace de celui de Bastien, pas à te suivre.</p>
+      </div>
+      <div class="e-actions">
+        <button class="e-bouton" id="e-exporter" type="button">${N.ic('ic-telecharger')} Télécharger mes données</button>
+        <a class="e-bouton e-bouton-doux" href="#/messages/${encodeURIComponent('Mes données')}">${N.ic('ic-message')} Demander un effacement à Bastien</a>
+      </div>
+      <p class="e-aide">Le fichier téléchargé est au format JSON : il se lit avec n'importe quel éditeur de texte. Pour effacer quelque chose, tu écris à Bastien : il le fait devant toi.</p>
+    </div>`);
+    document.getElementById('e-exporter').addEventListener('click', () => {
+      const donnees = { exporte_le: new Date().toISOString(), fiches: N.etat.fiches, resultats: N.etat.resultats, suivi: N.etat.suivi, profil: Object.fromEntries(profilMoi.map((k) => [k, N.etat.profil[k]])), felicitations: N.etat.felicitations, seances_choisies: N.etat.seances.filter((s) => s.choisi_le).map((s) => ({ date: s.date, lecons: s.lecons })), absences: N.etat.seances.filter((s) => s.absence).map((s) => ({ date: s.date, commentaire: s.commentaire_eleve })) };
+      const blob = new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mes-donnees-opaline.json'; document.body.appendChild(a); a.click(); a.remove();
+      N.signaler('Tes données sont téléchargées.', 'succes');
+    });
+  }
+
   function vueReussites() {
     const r = N.reussites();
     const c = N.chiffres();
@@ -954,7 +1285,9 @@
     return `<li><a href="#/matiere/${m.id}"><span class="ico" aria-hidden="true">${m.icone}</span>
           <b>${N.ech(m.nom)}</b><span>${pr.faites} sur ${pr.total} validées</span></a></li>`;
   }).join('')}</ul>
-       <p class="e-note-fin">${c.validees} leçon(s) validée(s) sur les ${c.total} de l'année.</p>`,
+       <h2 class="e-titre-section">Les palettes de couleurs</h2>
+       <ul class="e-palettes-paliers">${N.PALETTES.map((p) => `<li class="${N.paletteOuverte(p.id) ? 'ouverte' : ''}"><i style="background:linear-gradient(135deg,${p.c1},${p.c2})" aria-hidden="true"></i><b>${N.ech(p.nom)}</b><span>${p.palier ? (N.paletteOuverte(p.id) ? 'ouverte' : 'à ' + p.palier + ' étoiles') : 'toujours ouverte'}</span></li>`).join('')}</ul>
+       <p class="e-note-fin">${c.validees} leçon(s) validée(s) sur les ${c.total} de l'année. <a href="#/donnees">Ce que l'application sait de moi</a></p>`,
     );
     marquerMotsVus();
   }
@@ -1382,6 +1715,7 @@
       case 'visite': return visite();
       case 'jeux': return vueJeux(p[1]);
       case 'progres': case 'reussites': return vueReussites();
+      case 'donnees': return vueDonnees();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);
       case 'travail': return vueMessages(null);
       default: return vueIntrouvable();

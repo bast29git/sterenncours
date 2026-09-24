@@ -27,6 +27,8 @@ objectifs:
 
 ::: info Lecture des codes
 Chaque amélioration porte un identifiant, une **priorité** et un **effort**.
+✅ : livré et vérifié (build, scénarios, capture). Sans marque : à faire.
+
 **P1** : avant le 5 octobre. **P2** : période 1. **P3** : dans l'année. **P4** : quand tout le reste est fait.
 **S** : moins d'une demi-journée. **M** : une à deux journées. **L** : plus de deux journées.
 :::
@@ -76,9 +78,9 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Fiabilité et données
 
-- **A1 · P1 · M** Tests dans l'intégration continue. Déplacer les treize scénarios Playwright dans `tests/`, les lancer dans le workflow avant le déploiement, bloquer la mise en ligne s'ils échouent.
-- **A2 · P1 · S** Sauvegarde quotidienne de D1. Un Worker planifié (cron) exporte les tables vers R2 en JSON, conservation trente jours. Pages seul ne sait pas planifier : c'est le premier vrai motif d'un petit Worker à côté.
-- **A3 · P1 · S** Restauration testée. Un script `build/restaurer.mjs` recharge une sauvegarde en local et compare les comptes de lignes.
+- ✅ **A1 · P1 · M** Tests dans l'intégration continue. Déplacer les treize scénarios Playwright dans `tests/`, les lancer dans le workflow avant le déploiement, bloquer la mise en ligne s'ils échouent.
+- ✅ **A2 · P1 · S** Sauvegarde quotidienne de D1. Un Worker planifié (cron) exporte les tables vers R2 en JSON, conservation trente jours. Pages seul ne sait pas planifier : c'est le premier vrai motif d'un petit Worker à côté.
+- ✅ **A3 · P1 · S** Restauration testée. Un script `build/restaurer.mjs` recharge une sauvegarde en local et compare les comptes de lignes.
 - **A4 · P2 · S** Journal d'audit des écritures. Table `journal(quand, qui, quoi, cle, avant, apres)` alimentée par les PUT et PATCH sensibles : suivi, accès, réglages, séances.
 - **A5 · P2 · S** Transactions par lot. Le générateur d'année insère 183 lignes une par une ; passer par `DB.batch` par paquets de cinquante, comme l'horaire.
 - **A6 · P2 · S** Contraintes de schéma. `CHECK` sur `suivi.niveau`, `seances.statut`, `seances.type`, `acces.etat` ; index sur `seances(type, date)` et `messages(fil, cree_le)`.
@@ -89,9 +91,9 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Sécurité
 
-- **A11 · P1 · S** Limitation de débit par session sur toutes les routes d'écriture : compteur KV glissant, 60 écritures par minute, réponse 429 lisible.
-- **A12 · P1 · S** Taille maximale du corps des requêtes JSON (32 Ko, 1 Mo pour le lot de séances et la restauration) vérifiée avant `request.json()`.
-- **A13 · P2 · S** En-têtes de sécurité complets : `Content-Security-Policy` réelle (aujourd'hui absente), `Permissions-Policy`, `X-Frame-Options`.
+- ✅ **A11 · P1 · S** Limitation de débit par session sur toutes les routes d'écriture : compteur KV glissant, 60 écritures par minute, réponse 429 lisible.
+- ✅ **A12 · P1 · S** Taille maximale du corps des requêtes JSON (32 Ko, 1 Mo pour le lot de séances et la restauration) vérifiée avant `request.json()`.
+- ✅ **A13 · P2 · S** En-têtes de sécurité complets : `Content-Security-Policy` réelle (aujourd'hui absente), `Permissions-Policy`, `X-Frame-Options`.
 - **A14 · P2 · S** Rotation du jeton de session à chaque connexion et invalidation des anciens jetons du même rôle sur demande (bouton « Déconnecter partout »).
 - **A15 · P2 · M** Codes d'accès remplaçables sans redéploiement : une clé KV `codes` chiffrée, une page professeur pour les changer, l'ancien code valable dix minutes.
 - **A16 · P3 · S** Validation stricte des types de fichiers déposés par lecture des premiers octets, pas seulement du `content-type` annoncé.
@@ -100,8 +102,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Performance
 
-- **A19 · P1 · S** Réponse `/api/etat` allégée : renvoyer `verrous` et `acces` seulement quand ils changent (empreinte `ETag`), et sonder toutes les 45 secondes au lieu de 25.
-- **A20 · P1 · M** Regrouper `app.js`, `vue-eleve.js`, `messagerie.js`, `tuteur.js` en un seul fichier par rôle au build, minifié, avec empreinte dans le nom pour un cache long.
+- ✅ **A19 · P1 · S** Réponse `/api/etat` allégée : renvoyer `verrous` et `acces` seulement quand ils changent (empreinte `ETag`), et sonder toutes les 45 secondes au lieu de 25.
+- ✅ **A20 · P1 · M** (regroupés et versionnés ; la minification reste à faire) Regrouper `app.js`, `vue-eleve.js`, `messagerie.js`, `tuteur.js` en un seul fichier par rôle au build, minifié, avec empreinte dans le nom pour un cache long.
 - **A21 · P2 · S** `data/programme.js` réduit pour l'élève : retirer `attendus`, `themes`, `competences` (37 Ko dont 12 inutiles à l'écran).
 - **A22 · P2 · S** Préconnexion aux polices et sous-ensemble latin uniquement ; envisager d'héberger les quatre polices dans `/theme/` pour supprimer la dépendance externe.
 - **A23 · P2 · M** Service worker de cache : coquille, CSS, scripts, programme et fonds servis hors ligne ; les fiches déjà ouvertes relisibles sans réseau.
@@ -123,8 +125,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Build et déploiement
 
-- **A36 · P1 · S** Le build échoue sur les avertissements : un lien cassé ou un conteneur non fermé doit sortir en erreur, pas en avertissement.
-- **A37 · P1 · S** Vérification automatique des tirets longs et des mots interdits par la règle de discrétion dans tout le contenu et le site, au build.
+- ✅ **A36 · P1 · S** Le build échoue sur les avertissements : un lien cassé ou un conteneur non fermé doit sortir en erreur, pas en avertissement.
+- ✅ **A37 · P1 · S** Vérification automatique des tirets longs et des mots interdits par la règle de discrétion dans tout le contenu et le site, au build.
 - **A38 · P2 · S** Vérification du front-matter contre un schéma (types, listes non vides, durée au format attendu).
 - **A39 · P2 · S** Générer les cahiers en PDF au déploiement (`pdf.mjs` sait déjà le faire), un par leçon, en plus de la page imprimable.
 - **A40 · P2 · M** Prévisualisation de branche : chaque poussée sur une autre branche déploie une adresse de test Pages séparée avec sa propre base D1 locale.
@@ -133,7 +135,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Tutrice et intelligence artificielle
 
-- **A43 · P1 · S** Quota par jour et par rôle plutôt que global, et un message clair à Sterenn quand il est atteint.
+- ✅ **A43 · P1 · S** Quota par jour et par rôle plutôt que global, et un message clair à Sterenn quand il est atteint.
 - **A44 · P2 · M** Mémoire de séance : Opale reçoit les trois derniers échanges et la liste des fiches ouvertes aujourd'hui, pour des réponses suivies.
 - **A45 · P2 · M** Vérification des faits : sur une question de cours, Opale cite la section de la fiche (titre) d'où vient sa réponse, et le client la surligne.
 - **A46 · P2 · S** Journal des questions posées à Opale, lisible par le professeur (question, mode, contrôle appliqué), pour repérer les points de blocage.
@@ -162,17 +164,17 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Pilotage quotidien
 
-- **B1 · P1 · M** Accueil recentré sur la séance du jour : ordre du jour minuté, fiches à ouvrir en un clic, exercices 1 à 4 affichés, case « séance faite » et bilan en trois lignes sans quitter l'écran.
-- **B2 · P1 · S** Absence déclarée par Sterenn visible sur l'accueil avec son mot, et bouton « reporter la séance » qui décale les blocs.
-- **B3 · P1 · S** Choix en attente listés sur l'accueil avec le délai restant, et bouton « choisir à sa place » si la date limite est passée.
+- ✅ **B1 · P1 · M** Accueil recentré sur la séance du jour : ordre du jour minuté, fiches à ouvrir en un clic, exercices 1 à 4 affichés, case « séance faite » et bilan en trois lignes sans quitter l'écran.
+- ✅ **B2 · P1 · S** Absence déclarée par Sterenn visible sur l'accueil avec son mot, et bouton « reporter la séance » qui décale les blocs.
+- ✅ **B3 · P1 · S** Choix en attente listés sur l'accueil avec le délai restant, et bouton « choisir à sa place » si la date limite est passée.
 - **B4 · P2 · S** Rappel automatique du travail personnel annoncé à la séance précédente, avec case « fait » ou « pas fait, à reprendre ».
-- **B5 · P2 · M** Bilan de séance guidé : trois champs fixes (acquis nommé, à reprendre, prochaine étape) qui alimentent le suivi et le message de fin de séance.
-- **B6 · P2 · S** Message de fin de séance pré-rédigé à Sterenn à partir du bilan, envoyé en un clic, modifiable.
+- ✅ **B5 · P2 · M** Bilan de séance guidé : trois champs fixes (acquis nommé, à reprendre, prochaine étape) qui alimentent le suivi et le message de fin de séance.
+- ✅ **B6 · P2 · S** Message de fin de séance pré-rédigé à Sterenn à partir du bilan, envoyé en un clic, modifiable.
 
 ### Suivi des acquis
 
-- **B7 · P1 · M** Suivi alimenté par les faits : une leçon passe à « fragile » à la première série jouée, « satisfaisant » proposé quand série à 70 %, fiches terminées et devoir rendu ; le professeur confirme d'un clic.
-- **B8 · P1 · S** Positionnement de départ (« Où j'en suis ») affiché dans le suivi, en colonne, à côté du niveau courant.
+- ✅ **B7 · P1 · M** Suivi alimenté par les faits : une leçon passe à « fragile » à la première série jouée, « satisfaisant » proposé quand série à 70 %, fiches terminées et devoir rendu ; le professeur confirme d'un clic.
+- ✅ **B8 · P1 · S** Positionnement de départ (« Où j'en suis ») affiché dans le suivi, en colonne, à côté du niveau courant.
 - **B9 · P2 · M** Vue par compétence du socle : les critères des grilles agrégés par domaine (D1 à D5), pour le livret.
 - **B10 · P2 · S** Historique par leçon : chaque changement de niveau daté, avec l'auteur et la raison (série, devoir, décision).
 - **B11 · P2 · S** Reprise planifiée : marquer « à reprendre dans trois semaines » crée un temps personnel dans la semaine visée.
@@ -184,7 +186,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 ### Planning
 
 - **B16 · P2 · S** Prévisualisation avant génération : les huit premières semaines affichées avec les matières en couleur, puis validation, au lieu d'écrire directement en base.
-- **B17 · P1 · S** Vacances scolaires de la zone saisies une fois, sautées par le générateur, affichées en gris dans le planning.
+- ✅ **B17 · P1 · S** Vacances scolaires de la zone saisies une fois, sautées par le générateur, affichées en gris dans le planning.
 - **B18 · P2 · S** Déplacer une séance par glisser-déposer dans la semaine, avec recalcul des blocs.
 - **B19 · P2 · S** Recherche dans le sélecteur de leçons d'une séance : filtre par texte, matières groupées, leçons déjà planifiées signalées.
 - **B20 · P2 · S** Durée des temps personnels réglable dans le générateur (15, 20 ou 30 minutes) et modifiable séance par séance.
@@ -194,7 +196,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Contenu et accès
 
-- **B24 · P1 · S** Ouvrir une évaluation depuis la fiche de leçon, pas seulement depuis la page Accès, avec date de fermeture proposée à J+7.
+- ✅ **B24 · P1 · S** Ouvrir une évaluation depuis la fiche de leçon, pas seulement depuis la page Accès, avec date de fermeture proposée à J+7.
 - **B25 · P2 · S** Prévisualiser l'écran de Sterenn : un bouton « voir comme elle » qui rend la vue élève d'une leçon avec ses accès réels.
 - **B26 · P2 · S** Modifier une question de série en ligne (texte, réponse, explication), enregistrée comme surcharge en base, relue au build suivant.
 - **B27 · P2 · M** Ajouter une question ou un exercice personnel à une leçon, avec l'un des univers de Sterenn, sans toucher au Markdown.
@@ -204,7 +206,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Échanges
 
-- **B31 · P1 · S** Réponse rapide depuis l'accueil : le dernier message de Sterenn et un champ de réponse, sans changer de page.
+- ✅ **B31 · P1 · S** Réponse rapide depuis l'accueil : le dernier message de Sterenn et un champ de réponse, sans changer de page.
 - **B32 · P2 · S** Modèles de messages (rappel de travail, encouragement, changement d'horaire) avec variables (date, leçon).
 - **B33 · P2 · S** Envoi différé : rédiger le soir, envoyer à 8 h.
 - **B34 · P2 · S** Copie déposée ouverte en grand avec zoom et rotation, annotation simple (trait, cercle), renvoi annoté.
@@ -220,8 +222,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Interface et ergonomie
 
-- **B41 · P1 · S** Tableaux professeur sur mobile : cartes empilées sous 640 px au lieu de tableaux tronqués (Accès, Suivi).
-- **B42 · P1 · S** Menu latéral réduit à des icônes sur écran moyen, au lieu de disparaître derrière un bouton.
+- ✅ **B41 · P1 · S** Tableaux professeur sur mobile : cartes empilées sous 640 px au lieu de tableaux tronqués (Accès, Suivi).
+- ✅ **B42 · P1 · S** Menu latéral réduit à des icônes sur écran moyen, au lieu de disparaître derrière un bouton.
 - **B43 · P2 · S** Fil d'Ariane cliquable partout, retour arrière conservé (aujourd'hui certains « Retour » renvoient à l'accueil).
 - **B44 · P2 · S** États vides utiles : chaque liste vide propose l'action qui la remplit.
 - **B45 · P2 · S** Chargement progressif : squelettes gris au lieu de « Chargement… ».
@@ -235,10 +237,10 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Accueil et navigation
 
-- **C1 · P1 · S** Accueil en trois blocs fixes, toujours dans le même ordre : « Maintenant » (la séance ou le temps perso du jour), « À faire avant la prochaine fois », « Mes prochains choix ». Le reste descend.
-- **C2 · P1 · S** Le héros dit l'heure qu'il est et le temps restant avant la séance (« dans 2 h 10 »), pas seulement la date.
-- **C3 · P1 · S** Barre de navigation mobile en bas de l'écran, cinq icônes avec libellé, zone de pouce.
-- **C4 · P1 · S** Retour arrière cohérent : chaque écran a un seul bouton de retour, à la même place.
+- ✅ **C1 · P1 · S** Accueil en trois blocs fixes, toujours dans le même ordre : « Maintenant » (la séance ou le temps perso du jour), « À faire avant la prochaine fois », « Mes prochains choix ». Le reste descend.
+- ✅ **C2 · P1 · S** Le héros dit l'heure qu'il est et le temps restant avant la séance (« dans 2 h 10 »), pas seulement la date.
+- ✅ **C3 · P1 · S** Barre de navigation mobile en bas de l'écran, cinq icônes avec libellé, zone de pouce.
+- ✅ **C4 · P1 · S** Retour arrière cohérent : chaque écran a un seul bouton de retour, à la même place.
 - **C5 · P2 · S** Fil d'Ariane sur les fiches (Matière › Leçon › Fiche), cliquable.
 - **C6 · P2 · S** Recherche pour Sterenn : une leçon, un mot du cours, un jeu, depuis la barre du haut.
 - **C7 · P2 · S** Raccourcis clavier documentés : flèches dans les fiches, `Échap` partout, `?` pour l'aide.
@@ -248,9 +250,9 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Fiches et lecture
 
-- **C11 · P1 · S** Reprendre où elle en était : la diapositive courante mémorisée côté serveur, pas seulement dans l'onglet.
-- **C12 · P1 · S** « Terminer » une fiche demande une trace : une phrase à écrire (« ce que je retiens ») ou trois cases, enregistrée et visible du professeur.
-- **C13 · P1 · S** Temps de lecture affiché par diapositive et total, à partir de la durée de la fiche.
+- ✅ **C11 · P1 · S** Reprendre où elle en était : la diapositive courante mémorisée côté serveur, pas seulement dans l'onglet.
+- ✅ **C12 · P1 · S** « Terminer » une fiche demande une trace : une phrase à écrire (« ce que je retiens ») ou trois cases, enregistrée et visible du professeur.
+- ✅ **C13 · P1 · S** Temps de lecture affiché par diapositive et total, à partir de la durée de la fiche.
 - **C14 · P2 · S** Lecture à voix haute par diapositive (voix du navigateur), bouton par bloc, vitesse réglable.
 - **C15 · P2 · S** Surligneur personnel : sélectionner un passage le garde en couleur (turquoise, bleu, violet), enregistré par fiche.
 - **C16 · P2 · S** Notes en marge : une note par diapositive, reprise dans un carnet « Mes notes » par matière.
@@ -266,8 +268,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Exercices et séries
 
-- **C26 · P1 · S** Écran de fin de série avec les questions ratées rejouables tout de suite, une par une, avant de revenir.
-- **C27 · P1 · S** Exercices 1 à 4 affichés en « mode séance » : un exercice par écran, chronomètre discret, bouton « on corrige ensemble ».
+- ✅ **C26 · P1 · S** Écran de fin de série avec les questions ratées rejouables tout de suite, une par une, avant de revenir.
+- ✅ **C27 · P1 · S** Exercices 1 à 4 affichés en « mode séance » : un exercice par écran, chronomètre discret, bouton « on corrige ensemble ».
 - **C28 · P2 · S** Brouillon numérique sous chaque exercice sur écran (zone de texte libre, enregistrée), pour poser les calculs.
 - **C29 · P2 · S** Indice progressif : trois indices par question de série, du plus vague au plus précis, chacun coûte un point de score, jamais l'étoile.
 - **C30 · P2 · S** Répétition espacée : les questions ratées reviennent dans une série « à revoir » à J+2 et J+7, proposée sur l'accueil.
@@ -281,16 +283,16 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Évaluations
 
-- **C38 · P1 · S** Écran d'évaluation avec chronomètre visible et alerte à mi-temps, démarré par elle, arrêté par elle.
-- **C39 · P1 · S** Dépôt de copie guidé : trois photos maximum, aperçu, recadrage, envoi en une fois, confirmation.
+- ✅ **C38 · P1 · S** Écran d'évaluation avec chronomètre visible et alerte à mi-temps, démarré par elle, arrêté par elle.
+- ✅ **C39 · P1 · S** Dépôt de copie guidé : trois photos maximum, aperçu, recadrage, envoi en une fois, confirmation.
 - **C40 · P2 · S** Résultat d'évaluation rendu dans l'application : grille remplie par le professeur, mot, note, positionnement, et « ce que je refais ».
 - **C41 · P2 · S** Auto-positionnement avant la correction : elle coche ses huit critères, le professeur voit l'écart.
 - **C42 · P3 · S** Annales personnelles : ses évaluations passées relisibles, avec la copie et la correction.
 
 ### Étoiles, réussites, motivation
 
-- **C43 · P1 · S** Étoiles en attente : « il te manque une série pour la prochaine étoile » sur l'accueil, avec le lien.
-- **C44 · P1 · S** Paliers annoncés à l'avance : « à 12 étoiles, tu débloques la palette Faiseuse de livres » (une palette de couleurs par palier).
+- ✅ **C43 · P1 · S** Étoiles en attente : « il te manque une série pour la prochaine étoile » sur l'accueil, avec le lien.
+- ✅ **C44 · P1 · S** Paliers annoncés à l'avance : « à 12 étoiles, tu débloques la palette Faiseuse de livres » (une palette de couleurs par palier).
 - **C45 · P2 · S** Collection d'opales : chaque leçon validée ajoute une opale de la couleur de la matière à une vitrine, une par leçon, 72 au total.
 - **C46 · P2 · S** Série de jours : le compteur de jours consécutifs avec au moins une action, sans pénalité de rupture, juste un « reprise ».
 - **C47 · P2 · S** Bilan de semaine le vendredi : ce qui est acquis, en trois lignes, avec les mots exacts du professeur.
@@ -301,7 +303,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Messagerie
 
-- **C52 · P1 · S** Notification visible sans son : point rouge sur l'onglet, titre de page qui change, bandeau doux.
+- ✅ **C52 · P1 · S** Notification visible sans son : point rouge sur l'onglet, titre de page qui change, bandeau doux.
 - **C53 · P2 · S** Brouillon par fil (aujourd'hui un seul brouillon global).
 - **C54 · P2 · S** Message vocal court (30 secondes), transcrit par le navigateur si disponible.
 - **C55 · P2 · S** Envoi programmé pour elle aussi (« envoyer demain matin »).
@@ -311,8 +313,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Semaine et organisation
 
-- **C59 · P1 · S** Vue « aujourd'hui » dans la semaine : la journée en grand, les autres réduites, sur mobile.
-- **C60 · P1 · S** Rappel du temps personnel une heure avant (notification navigateur, si acceptée).
+- ✅ **C59 · P1 · S** Vue « aujourd'hui » dans la semaine : la journée en grand, les autres réduites, sur mobile.
+- ✅ **C60 · P1 · S** Rappel du temps personnel une heure avant (notification navigateur, si acceptée).
 - **C61 · P2 · S** Liste de matériel pour la prochaine séance, prise dans les fiches prévues.
 - **C62 · P2 · S** Temps personnel guidé : un écran qui enchaîne les deux fois quinze minutes avec un minuteur et deux tâches nommées.
 - **C63 · P2 · S** Absence : proposer directement un créneau de remplacement parmi ceux du professeur.
@@ -326,7 +328,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Tutrice Opale
 
-- **C68 · P1 · S** Opale réagit au contexte sans qu'on lui demande : à l'ouverture d'une fiche, une phrase d'accueil et deux suggestions ; jamais plus.
+- ✅ **C68 · P1 · S** Opale réagit au contexte sans qu'on lui demande : à l'ouverture d'une fiche, une phrase d'accueil et deux suggestions ; jamais plus.
 - **C69 · P2 · S** Mémoire de fil par leçon : la conversation se retrouve quand on revient sur la même fiche.
 - **C70 · P2 · S** Opale propose « on relit ensemble » : elle affiche la section citée dans son panneau.
 - **C71 · P2 · S** Mode « explique-moi comme à quelqu'un qui découvre » et « explique-moi plus court » : deux boutons sous chaque réponse.
@@ -336,8 +338,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Accessibilité et confort
 
-- **C75 · P1 · S** Contrôle de contraste automatique sur les palettes : la variante foncée calculée par palette, vérifiée au build.
-- **C76 · P1 · S** Ordre de focus vérifié sur chaque écran, piège de focus dans les panneaux (Opale, choix, fête).
+- ✅ **C75 · P1 · S** Contrôle de contraste automatique sur les palettes : la variante foncée calculée par palette, vérifiée au build.
+- ✅ **C76 · P1 · S** Ordre de focus vérifié sur chaque écran, piège de focus dans les panneaux (Opale, choix, fête).
 - **C77 · P2 · S** Annonces vocales cohérentes : une seule région `aria-live` pour tous les bandeaux.
 - **C78 · P2 · S** Taille de police en trois crans dans la barre du haut, sans passer par le panneau.
 - **C79 · P2 · S** Police « lisible » appliquée aussi aux fiches et aux jeux, pas seulement à l'interface.
@@ -347,8 +349,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Mobile et performance perçue
 
-- **C83 · P1 · S** Premier écran en moins de deux secondes : rendu de l'accueil dès `/api/etat`, données secondaires ensuite.
-- **C84 · P1 · S** Squelettes de chargement pour les fiches et les séries.
+- ✅ **C83 · P1 · S** Premier écran en moins de deux secondes : rendu de l'accueil dès `/api/etat`, données secondaires ensuite.
+- ✅ **C84 · P1 · S** Squelettes de chargement pour les fiches et les séries.
 - **C85 · P2 · S** Gestes : balayer pour changer de diapositive, tirer pour rafraîchir la semaine.
 - **C86 · P2 · S** Installable (manifeste complet, icônes, écran de démarrage), ouverture plein écran sur téléphone.
 - **C87 · P2 · S** Hors ligne : fiches ouvertes relisibles, réponses aux séries mises en file et envoyées au retour du réseau.
@@ -365,7 +367,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Données personnelles et confiance
 
-- **C95 · P1 · S** Page « Ce que l'application sait de moi » : ses données listées, exportables, effaçables sur demande au professeur.
+- ✅ **C95 · P1 · S** Page « Ce que l'application sait de moi » : ses données listées, exportables, effaçables sur demande au professeur.
 - **C96 · P2 · S** Ce qui est vu par le professeur marqué d'une icône partout où elle écrit (notes, questions à Opale).
 - **C97 · P2 · S** Suppression d'un message envoyé par erreur dans les cinq minutes.
 - **C98 · P3 · S** Historique des connexions visible pour elle (« tu t'es connectée hier à 17 h »).
@@ -377,10 +379,10 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ## 7. Axe D : jeux 2D (30)
 
-- **D1 · P1 · S** Écran d'accueil commun aux 53 jeux : titre, leçon servie, durée conseillée, trois consignes, un seul bouton « Jouer ».
-- **D2 · P1 · S** Chaque jeu nomme la leçon qu'il sert dans son écran d'accueil, avec le lien retour vers la fiche.
+- ✅ **D1 · P1 · S** Écran d'accueil commun aux 53 jeux : titre, leçon servie, durée conseillée, trois consignes, un seul bouton « Jouer ».
+- ✅ **D2 · P1 · S** Chaque jeu nomme la leçon qu'il sert dans son écran d'accueil, avec le lien retour vers la fiche.
 - **D3 · P1 · S** Vocabulaire aligné : les mêmes termes que les fiches (côté adjacent, hypoténuse, complément du nom), vérifiés jeu par jeu.
-- **D4 · P1 · S** Étoiles cohérentes : les seuils de score expliqués sur l'écran de fin (« 2 étoiles à partir de 70 % »).
+- ✅ **D4 · P1 · S** Étoiles cohérentes : les seuils de score expliqués sur l'écran de fin (« 2 étoiles à partir de 70 % »).
 - **D5 · P2 · S** Clavier complet : chaque jeu jouable sans souris, focus visible, `Échap` pour quitter.
 - **D6 · P2 · S** Tactile : zones de 44 px minimum, pas de survol nécessaire, retour haptique léger si disponible.
 - **D7 · P2 · S** Mode calme respecté : animations réduites, aucun compte à rebours agressif, aucun son sans action.
@@ -389,7 +391,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - **D10 · P2 · S** Difficulté en trois crans choisie avant de jouer, mémorisée par jeu.
 - **D11 · P2 · S** Explications sur les erreurs : chaque mauvaise réponse dit pourquoi, comme dans les séries.
 - **D12 · P2 · S** Temps de jeu conseillé affiché (« 8 minutes ») et compteur discret.
-- **D13 · P2 · S** Générateurs de questions branchés sur la banque : les jeux de quiz tirent leurs questions de `exercices.js` au lieu de listes internes.
+- ✅ **D13 · P2 · S** Générateurs de questions branchés sur la banque : les jeux de quiz tirent leurs questions de `exercices.js` au lieu de listes internes.
 - **D14 · P2 · M** Cinq jeux nouveaux pour les leçons peu couvertes : cosinus (viser un angle), signaux sonores (retrouver la distance à l'écho), la ville (repérer les procédés), voix passive, conditionnels anglais.
 - **D15 · P2 · S** Chaque jeu 2D testé sur 390 px de large : aucun défilement horizontal, texte lisible.
 - **D16 · P2 · S** Consignes littérales : une action par phrase, pas de « à toi de jouer », le premier geste montré.
@@ -412,8 +414,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Qualité de rendu
 
-- **E1 · P1 · S** Ombres douces partout : activer `shadowMap` avec `PCFSoftShadowMap` sur les sept mondes qui n'en ont pas (01, 04, 09, 10, 13, 15, 20).
-- **E2 · P1 · S** Anticrénelage adaptatif : `setPixelRatio` à 2 sur ordinateur, 1,5 sur téléphone, mesuré par la fréquence d'images (baisser si sous 45 images par seconde).
+- ✅ **E1 · P1 · S** Ombres douces partout : activer `shadowMap` avec `PCFSoftShadowMap` sur les sept mondes qui n'en ont pas (01, 04, 09, 10, 13, 15, 20).
+- ✅ **E2 · P1 · S** Anticrénelage adaptatif : `setPixelRatio` à 2 sur ordinateur, 1,5 sur téléphone, mesuré par la fréquence d'images (baisser si sous 45 images par seconde).
 - **E3 · P2 · S** Correction des couleurs unifiée : `ACESFilmicToneMapping` et exposition réglée monde par monde (aujourd'hui trois réglages différents).
 - **E4 · P2 · M** Environnement lumineux réel : une carte HDRI par monde (celles présentes dans `assets/3d/hdri`), au lieu de lumières fixes pour les mondes 05, 08, 13, 16.
 - **E5 · P2 · M** Textures en KTX2 compressées avec niveaux de détail : moitié du poids, chargement deux fois plus rapide, surtout pour le système solaire (le plus lourd).
@@ -425,7 +427,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Pédagogie
 
-- **E11 · P1 · S** Chaque monde commence par « ce que tu vas apprendre », trois phrases, tirées des notions de la leçon.
+- ✅ **E11 · P1 · S** Chaque monde commence par « ce que tu vas apprendre », trois phrases, tirées des notions de la leçon.
 - **E12 · P1 · S** Les questions des modes « cours » sortent de la banque de la leçon rattachée, pas de listes internes.
 - **E13 · P2 · S** Fiche 3D : un bouton « voir la fiche » dans chaque monde ouvre la section correspondante d'Opaline dans un panneau.
 - **E14 · P2 · S** Légendes contextuelles : toucher un objet affiche son nom et une phrase de la fiche, sans quitter la vue.
@@ -448,7 +450,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Technique des mondes
 
-- **E28 · P1 · S** Sortie propre : `dispose()` des géométries et textures au retour vers Opaline, pour éviter la fuite de mémoire au deuxième monde ouvert.
+- ✅ **E28 · P1 · S** Sortie propre : `dispose()` des géométries et textures au retour vers Opaline, pour éviter la fuite de mémoire au deuxième monde ouvert.
 - **E29 · P2 · S** Contrôles unifiés : mêmes touches et mêmes gestes dans les vingt mondes, un panneau « commandes » identique.
 - **E30 · P2 · S** Mesure de performance envoyée avec le score (images par seconde moyennes, durée de chargement), pour décider des réglages par appareil.
 
@@ -456,16 +458,16 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 Ce qui est cassé ou incohérent se corrige avant d'améliorer. Ces points ne comptent pas comme des améliorations.
 
-- **K1** Bouton d'accessibilité de la barre du haut : le panneau s'ouvrait puis se refermait aussitôt, le clic remontant jusqu'au document qui ferme le panneau. **Corrigé le 24 septembre.**
-- **K2** Rotation des matières : le générateur alterne maths-histoire et français-physique deux semaines de suite au lieu de faire tourner les huit matières.
-- **K3** Temps personnel affiché « 15 min » dans la semaine de Sterenn pour un créneau de vingt minutes.
-- **K4** Sélecteur de leçons d'une séance sans les modules : éditer la séance du 5 octobre lui ferait perdre « Faire connaissance ».
-- **K5** Fiche de séance professeur : le bloc « Niveaux des leçons » propose un lien vers une leçon `module/…` qui n'existe pas.
-- **K6** Panneau de confort : à la fermeture, le focus va sur le bouton flottant masqué ; il doit revenir sur le bouton de la barre du haut.
-- **K7** Jeux : formes à point médian (« pénalisé·e ») et vocabulaire d'un autre produit dans les textes ; quelques libellés anglais (« Score », « Level ») et des légendes anglaises dans le centre de données et la cyberdéfense.
-- **K8** Évaluation fermée ouverte par son adresse directe : l'écran retombe sur le cours sans message ; dire « pas encore ouverte ».
-- **K9** Thème sombre dans les fiches : les titres de blocs gardent les couleurs foncées du papier (bleu marine, vert foncé) et perdent en contraste.
-- **K10** Planning professeur : les cartes de séance ne montrent pas les modules (seules les matières sont résumées).
+- ✅ **K1** Bouton d'accessibilité de la barre du haut : le panneau s'ouvrait puis se refermait aussitôt, le clic remontant jusqu'au document qui ferme le panneau. **Corrigé le 24 septembre.**
+- ✅ **K2** Rotation des matières : le générateur alterne maths-histoire et français-physique deux semaines de suite au lieu de faire tourner les huit matières.
+- ✅ **K3** Temps personnel affiché « 15 min » dans la semaine de Sterenn pour un créneau de vingt minutes.
+- ✅ **K4** Sélecteur de leçons d'une séance sans les modules : éditer la séance du 5 octobre lui ferait perdre « Faire connaissance ».
+- ✅ **K5** Fiche de séance professeur : le bloc « Niveaux des leçons » propose un lien vers une leçon `module/…` qui n'existe pas.
+- ✅ **K6** Panneau de confort : à la fermeture, le focus va sur le bouton flottant masqué ; il doit revenir sur le bouton de la barre du haut.
+- ✅ **K7** Jeux : formes à point médian (« pénalisé·e ») et vocabulaire d'un autre produit dans les textes ; quelques libellés anglais (« Score », « Level ») et des légendes anglaises dans le centre de données et la cyberdéfense.
+- ✅ **K8** Évaluation fermée ouverte par son adresse directe : l'écran retombe sur le cours sans message ; dire « pas encore ouverte ».
+- ✅ **K9** Thème sombre dans les fiches : les titres de blocs gardent les couleurs foncées du papier (bleu marine, vert foncé) et perdent en contraste.
+- ✅ **K10** Planning professeur : les cartes de séance ne montrent pas les modules (seules les matières sont résumées).
 
 ## 10. Cours à rédiger (hors des 270)
 

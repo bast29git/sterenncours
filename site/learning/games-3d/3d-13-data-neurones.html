@@ -178,11 +178,11 @@ const shell = window.Konstrio.createGame({
 function init(api){
   shell.api = api;
   const stage = api.stage;
-  scene = new THREE.Scene(); clock = new THREE.Clock();
+  scene = new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene }); clock = new THREE.Clock();
   camera = new THREE.PerspectiveCamera(50, stage.clientWidth/stage.clientHeight, .1, 300);
   camera.position.set(0.5, 3.5, 17);
-  renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false }); window.Konstrio.declarer3d({ renderer: renderer }); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  window.Konstrio.adapterRendu(renderer);
   renderer.setSize(stage.clientWidth, stage.clientHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
   stage.appendChild(renderer.domElement);
@@ -212,7 +212,7 @@ function init(api){
 
   // lumières
   scene.add(new THREE.HemisphereLight(0xbcd2ff, 0x141a30, 0.85));
-  const key = new THREE.DirectionalLight(0xffffff, 0.75); key.position.set(6, 10, 8); scene.add(key);
+  const key = new THREE.DirectionalLight(0xffffff, 0.75); key.castShadow=true; key.shadow.mapSize.set(1024,1024); key.position.set(6, 10, 8); scene.add(key);
   const fill = new THREE.DirectionalLight(0x8f8dff, 0.35); fill.position.set(-8, 4, -6); scene.add(fill);
 
   // IBL (reflets glossy sur les neurones)

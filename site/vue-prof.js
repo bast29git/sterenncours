@@ -427,7 +427,9 @@
     zone.innerHTML = `${dernier ? `<div class="p-msg"><div class="p-msg-tete"><b>Sterenn</b><span>${N.ech(N.dateCourte(dernier.cree_le))}</span>${!dernier.lu_le ? '<span class="p-etat p-etat-fragile">nouveau</span>' : ''}</div>${dernier.contexte ? `<p class="p-msg-ctx">${N.ech(dernier.contexte)}</p>` : ''}<div class="p-msg-texte">${N.ech(dernier.texte)}</div></div>` : '<p class="p-vide">Pas encore de message de Sterenn.</p>'}
       <form class="p-form" id="p-form-rapide"><div><label for="r-texte">Ta réponse</label><textarea id="r-texte" rows="2" maxlength="2000" required></textarea></div>
       <div class="p-seance-actions"><button class="p-bouton p-bouton-mini" type="submit">Envoyer</button><a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/messages">Toute la conversation</a></div></form>`;
-    document.getElementById('p-form-rapide').addEventListener('submit', async (ev) => {
+    const formRapide = document.getElementById('p-form-rapide');
+    if (!formRapide) return;
+    formRapide.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const texte = document.getElementById('r-texte').value.trim();
       if (!texte) return;
@@ -1546,6 +1548,9 @@
                 <h2 style="margin-top:.6rem">Accès de Sterenn</h2>
                 ${choixOuverture(mid, ref)}
                 <p class="p-aide" style="margin-top:.35rem">${lue ? 'Lue le ' + N.ech(N.dateCourte(lue.termine_le)) : 'Pas encore marquée comme lue.'}</p>
+                ${(() => { const t = N.profil('moi.trace.' + N.cle(mid, ref) + '/' + actif, null); const pos = Number(N.profil('moi.diapo.' + N.cle(mid, ref) + '/' + actif, 0)); const CASES = { compris: 'a compris l\'idée principale', exemple: 'saurait refaire l\'exemple guidé', question: 'garde une question pour toi' };
+                  return (t ? `<h2 style="margin-top:.6rem">Ce qu'elle retient</h2><blockquote class="p-trace">${t.texte ? `<p>« ${N.ech(t.texte)} »</p>` : ''}${(t.cases || []).length ? `<ul>${t.cases.map((c) => `<li>${N.ech(CASES[c] || c)}</li>`).join('')}</ul>` : ''}<small>${N.ech(N.dateCourte(t.date))}</small></blockquote>` : '')
+                    + (pos > 0 && !lue ? `<p class="p-aide">Elle en est à la diapositive ${pos + 1}.</p>` : ''); })()}
                 ${res ? `<p class="p-aide">Exercices : ${res.meilleur}/${res.total} au mieux, ${res.series} série(s).</p>` : ''}
               </div>
               ${(doc.plan || []).length ? `<div class="p-rail-bloc"><h2>Plan de la fiche</h2>

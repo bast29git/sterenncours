@@ -29,8 +29,29 @@ function fichiers(dossier) {
   return sortie;
 }
 
-export function verifierForme() {
+/* C75 : la variante foncée de chaque palette (70 % de la couleur vive, 30 % d'encre #0b1a3a,
+   comme dans eleve.css) doit garder un contraste d'au moins 4,5 sur du blanc. */
+const ENCRE = [0x0b, 0x1a, 0x3a];
+const hexVersRvb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const lineaire = (c) => { const v = c / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+const luminance = (rvb) => 0.2126 * lineaire(rvb[0]) + 0.7152 * lineaire(rvb[1]) + 0.0722 * lineaire(rvb[2]);
+const contrasteSurBlanc = (rvb) => (1.05) / (luminance(rvb) + 0.05);
+export function verifierContrastes() {
   const manquements = [];
+  const css = fs.readFileSync(path.join(RACINE, 'site', 'eleve.css'), 'utf8');
+  const melange = /--e-vif-fonce:\s*color-mix\(in srgb, var\(--e-vif\) (\d+)%/.exec(css);
+  const part = melange ? Number(melange[1]) / 100 : 0.7;
+  for (const m of css.matchAll(/--e-([a-z]+)-1:\s*(#[0-9a-fA-F]{6})/g)) {
+    const vif = hexVersRvb(m[2]);
+    const fonce = vif.map((c, i) => Math.round(c * part + ENCRE[i] * (1 - part)));
+    const ratio = contrasteSurBlanc(fonce);
+    if (ratio < 4.5) manquements.push(`palette ${m[1]} : contraste ${ratio.toFixed(2)} de la variante foncée sur blanc (4,5 attendu)`);
+  }
+  return manquements;
+}
+
+export function verifierForme() {
+  const manquements = verifierContrastes();
   const cibles = DOSSIERS.flatMap((d) => fichiers(path.join(RACINE, d))).concat(SITE.map((f) => path.join(RACINE, f)).filter((f) => fs.existsSync(f)));
   for (const f of cibles) {
     const relatif = path.relative(RACINE, f);

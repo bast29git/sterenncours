@@ -215,10 +215,10 @@ const shell=window.Konstrio.createGame({
 /* ============================================================ INIT ============ */
 function init(api){
   shell.api=api; const stage=api.stage;
-  scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0x2a7fb8, 0.02);
+  scene=new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene }); scene.fog=new THREE.FogExp2(0x2a7fb8, 0.02);
   camera=new THREE.PerspectiveCamera(60, stage.clientWidth/stage.clientHeight, .1, 240);
   camera.position.set(0,0,0.1);
-  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; window.Konstrio.adapterRendu(renderer);
   renderer.setSize(stage.clientWidth,stage.clientHeight); stage.appendChild(renderer.domElement);
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1;
   // garde-fou CRUCIAL : scène sombre PAR DESIGN → rendu logiciel (SwiftShader/llvmpipe) ou mode réduit = pas de GTAO (l'AO écran casserait le rendu). La pénombre voulue reste, jamais un rendu cassé.
@@ -241,7 +241,7 @@ function init(api){
   controls.target.set(0,0,-5); controls.update();
 
   ambient=new THREE.AmbientLight(0xcfeaff,0.95); scene.add(ambient);
-  topLight=new THREE.DirectionalLight(0xddf4ff,0.7); topLight.position.set(0,10,2); scene.add(topLight);
+  topLight=new THREE.DirectionalLight(0xddf4ff,0.7); topLight.castShadow=true; topLight.shadow.mapSize.set(1024,1024); topLight.position.set(0,10,2); scene.add(topLight);
   // phare du bathyscaphe (suit la vue)
   headlight=new THREE.SpotLight(0xfff0d0, 0, 80, Math.PI/5, 0.55, 1.1);
   headlight.position.set(0,0,0); headlight.target.position.set(0,0,-10);

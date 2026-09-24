@@ -130,9 +130,9 @@ function fresnelShell(radius,colorHex,power,strength){ // halo de verre (fresnel
 function letterTex(ch){ const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d'); x.fillStyle='#fff'; x.font='900 42px Arial'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(ch,32,34); return new THREE.CanvasTexture(c); }
 
 function init(){ const stage=shell.stage; clock=new THREE.Clock();
-  scene=new THREE.Scene();
+  scene=new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene });
   camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight, .1, 600); camera.position.set(0,4,19);
-  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; stage.appendChild(renderer.domElement);
+  renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; window.Konstrio.adapterRendu(renderer); renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; stage.appendChild(renderer.domElement);
   // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produirait du noir → chaîne robuste sans GTAO
   let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
   const W=stage.clientWidth, H=stage.clientHeight;
@@ -147,7 +147,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08; controls.minDistance=4; controls.maxDistance=44; controls.autoRotate=REDUCED; controls.autoRotateSpeed=.35;
   // éclairage doux type microscope
   scene.add(new THREE.HemisphereLight(0xdfeaff,0x101a2e,1.05));
-  const key=new THREE.DirectionalLight(0xffffff,1.15); key.position.set(7,9,7); scene.add(key);
+  const key=new THREE.DirectionalLight(0xffffff,1.15); key.castShadow=true; key.shadow.mapSize.set(1024,1024); key.position.set(7,9,7); scene.add(key);
   const rim=new THREE.PointLight(0x6e6bff,1.3,60); rim.position.set(-8,-4,5); scene.add(rim);
   const warm=new THREE.PointLight(0xffb066,0.7,50); warm.position.set(6,-6,-4); scene.add(warm);
   const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();

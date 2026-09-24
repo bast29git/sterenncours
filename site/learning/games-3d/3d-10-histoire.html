@@ -242,9 +242,9 @@ const shell = window.Konstrio.createGame({
 
 /* ================= INIT ================= */
 function init(){ const stage=shell.stage; clock=new THREE.Clock();
-  scene=new THREE.Scene(); scene.fog=new THREE.Fog(ERAS[0].fog,45,175);
+  scene=new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene }); scene.fog=new THREE.Fog(ERAS[0].fog,45,175);
   camera=new THREE.PerspectiveCamera(52, stage.clientWidth/stage.clientHeight,.1,900);
-  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; window.Konstrio.adapterRendu(renderer);
   renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.12; stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8, renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
   // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) où l'AO écran (GTAO) produit du noir → chaîne robuste (AO bakée seule)
@@ -266,7 +266,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   controls.minDistance=7; controls.maxDistance=60; controls.maxPolarAngle=Math.PI/2.04; controls.autoRotate=REDUCED; controls.autoRotateSpeed=.3;
 
   hemi=new THREE.HemisphereLight(0xffffff,0x555044,1.0); scene.add(hemi);
-  sunLight=new THREE.DirectionalLight(0xffe8c0,1.3); sunLight.position.set(60,90,40); scene.add(sunLight);
+  sunLight=new THREE.DirectionalLight(0xffe8c0,1.3); sunLight.castShadow=true; sunLight.shadow.mapSize.set(1024,1024); sunLight.position.set(60,90,40); scene.add(sunLight);
 
   // Environnement HDRI local (IBL) → reflets & lumière indirecte crédibles
   try{ const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();

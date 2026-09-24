@@ -337,11 +337,11 @@ const shell = window.Konstrio.createGame({
 /* ====== INIT ====== */
 function init(){
   const stage=shell.stage; clock=new THREE.Clock();
-  scene=new THREE.Scene();
+  scene=new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene });
   camera=new THREE.PerspectiveCamera(55, stage.clientWidth/stage.clientHeight, 0.05, 8000);
   camera.position.set(0,70,180);
-  renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight);
+  renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  window.Konstrio.adapterRendu(renderer); renderer.setSize(stage.clientWidth,stage.clientHeight);
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15;
   stage.appendChild(renderer.domElement);
   /* ====== chaîne de rendu cinématique : Render → (GTAO si GPU réel) → Bloom → SMAA → Output ====== */
@@ -778,7 +778,7 @@ function startMission(){ if(mission&&mission.active)return; shell.sound('pop');
   // tour ombilicale (treillis)
   const tower=new THREE.Group(); for(let s=0;s<4;s++){ const col=new THREE.Mesh(new THREE.BoxGeometry(0.16,17,0.16), mmat(0x8a3a2a,0.5,0.6)); col.position.set((s<2?-0.5:0.5),8,(s%2?-0.5:0.5)); tower.add(col); } for(let y=1;y<17;y+=2){ const beam=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.1,0.1), mmat(0x8a3a2a,0.5,0.6)); beam.position.set(0,y,0.5); tower.add(beam); const b2=beam.clone(); b2.position.z=-0.5; tower.add(b2); }
   tower.position.set(-4.2,0,0); missionGroup.add(tower); missionGroup.userData.tower=tower;
-  if(!missionGroup.userData.lights){ const key=new THREE.DirectionalLight(0xfff2d8,2.4); key.position.set(40,60,30); missionGroup.add(key); const amb=new THREE.HemisphereLight(0x9fc0ff,0x202028,0.7); missionGroup.add(amb); missionGroup.userData.lights=true; }
+  if(!missionGroup.userData.lights){ const key=new THREE.DirectionalLight(0xfff2d8,2.4); key.castShadow=true; key.shadow.mapSize.set(1024,1024); key.position.set(40,60,30); missionGroup.add(key); const amb=new THREE.HemisphereLight(0x9fc0ff,0x202028,0.7); missionGroup.add(amb); missionGroup.userData.lights=true; }
   document.querySelectorAll('.ss-panel').forEach(p=>p.dataset._hidden=p.style.display||'')||0; document.querySelectorAll('.ss-panel').forEach(p=>p.style.display='none'); const hint=document.getElementById('ssHint'); if(hint)hint.style.visibility='hidden';
   buildMissionHUD();
   mission={ active:true, ended:false, i:-1, t:0, alt:0, vel:0, visualY:0, landed:false, crash:false, flameStage:1, engY:0, debris:[], assist:true, stabilize:true, autopose:false, px:0, pvx:0, thrustL:0 };

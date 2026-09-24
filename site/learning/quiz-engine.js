@@ -34,13 +34,25 @@
     document.head.appendChild(s); }
 
   window.QuizGame = function (cfg) {
-    let api, root, rounds = [], idx = 0, correct = 0, diff = 2;
+    let api, root, rounds = [], idx = 0, correct = 0, diff = 2, banque = null, mode = 'detente';
     const shell = window.Konstrio.createGame({
-      id: cfg.id, code: cfg.code, title: cfg.title, type: '2D', domain: cfg.domain, intro: cfg.intro, learned: cfg.learned,
+      id: cfg.id, code: cfg.code, title: cfg.title, type: '2D', domain: cfg.domain, intro: cfg.intro, learned: cfg.learned, duree: cfg.duree,
       onReady: (a) => { api = a; css(); root = document.createElement('div'); root.className = 'qz'; a.stage.appendChild(root); reset(); },
-      onStart: (m, a) => { api = a; reset(); }, onRestart: (a) => { api = a; reset(); },
+      onStart: (m, a) => { api = a; mode = m; reset(); chargerBanque(); }, onRestart: (a) => { api = a; reset(); },
     });
-    function pool() { const rs = cfg.rounds.filter(r => (r.lvl || 1) <= diff); return shuffle(rs).slice(0, Math.min(cfg.perRun || 10, rs.length)); }
+    /* En mode cours, les questions viennent de la banque de la leçon rattachée (Opaline) quand elle existe. */
+    function chargerBanque() {
+      if (mode !== 'cours' || banque !== null || cfg.sansBanque) return;
+      banque = [];
+      api.banqueLecon().then((items) => {
+        banque = items.map((q) => (q.type === 'vraifaux'
+          ? { prompt: q.q, options: ['Vrai', 'Faux'], answer: q.reponse ? 'Vrai' : 'Faux', explain: q.explication, lvl: 1 }
+          : { prompt: q.q, options: q.choix.slice(), answer: q.choix[q.reponse], explain: q.explication, lvl: 1 }));
+        if (banque.length >= 4 && idx === 0 && correct === 0) { api.toast('Questions prises dans ta leçon Opaline.', 2500); reset(); }
+      }).catch(() => { banque = []; });
+    }
+    function source() { return (mode === 'cours' && banque && banque.length >= 4) ? banque : cfg.rounds; }
+    function pool() { const rs = source().filter(r => (r.lvl || 1) <= diff); return shuffle(rs).slice(0, Math.min(cfg.perRun || 10, rs.length)); }
     function reset() { rounds = pool(); idx = 0; correct = 0; api.setScore(0); api.setProgress(0); render(); }
     function render() {
       if (idx >= rounds.length) return finish();

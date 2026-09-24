@@ -221,9 +221,9 @@ function rockNormal(rep){ const t=loadTex(PBR_BASE+'rock_boulder_dry/rock_boulde
 /* ======================= INIT ======================= */
 function init(){
   const stage=shell.stage; clock=new THREE.Clock();
-  scene=new THREE.Scene();
+  scene=new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene });
   camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight, .1, 400); camera.position.set(-8.5,5.0,-9.5);
-  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(stage.clientWidth,stage.clientHeight);
+  renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; window.Konstrio.adapterRendu(renderer); renderer.setSize(stage.clientWidth,stage.clientHeight);
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.06; renderer.localClippingEnabled=true;
   stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
@@ -249,7 +249,7 @@ function init(){
   // éclairage doux dramatique
   scene.add(new THREE.HemisphereLight(0x8aa0c0, 0x2a1810, 0.55));
   scene.add(new THREE.AmbientLight(0x334455, 0.35));
-  const sun=new THREE.DirectionalLight(0xfff2e0, 2.1); sun.position.set(7,9,5); scene.add(sun);
+  const sun=new THREE.DirectionalLight(0xfff2e0, 2.1); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024); sun.position.set(7,9,5); scene.add(sun);
   const rim=new THREE.DirectionalLight(0x6688cc, 0.6); rim.position.set(-6,3,-6); scene.add(rim);
 
   // fond étoilé + environnement HDR (réflexions PBR)

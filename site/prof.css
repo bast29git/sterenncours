@@ -645,3 +645,7 @@ body.corps-prof {
   .p-table.p-cartes tbody tr:hover td { background: transparent; }
   .p-table.p-cartes .docs { white-space: normal; }
 }
+.p-trace { margin: 0.3rem 0 0; padding: 0.5rem 0.7rem; border-left: 3px solid var(--p-accent); background: var(--p-surface-2); border-radius: 0 var(--p-r) var(--p-r) 0; font-size: 0.83rem; }
+.p-trace p { margin: 0 0 0.3rem; font-style: italic; }
+.p-trace ul { margin: 0; padding-left: 1.1rem; }
+.p-trace small { color: var(--p-faible); }

@@ -226,9 +226,9 @@ function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.
 /* ============ INIT ============ */
 function init(api){
   shell.api=api; const stage=api.stage; clock=new THREE.Clock();
-  scene=new THREE.Scene();
+  scene=new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene });
   camera=new THREE.PerspectiveCamera(46, stage.clientWidth/stage.clientHeight,.1,200); camera.position.set(6.5,3.6,7.2);
-  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); window.Konstrio.adapterRendu(renderer);
   renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.92;
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8); flakeNormal=makeFlakeNormal();

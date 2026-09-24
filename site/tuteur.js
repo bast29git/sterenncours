@@ -250,9 +250,12 @@
     if (!ok && onglet === 'calculer') choisirOnglet('parler');
   }
 
+  let libererFocus = null;
   function ouvrir() {
+    fermerBulle();
     majContexte();
     panneau.hidden = false;
+    libererFocus = N.piegerFocus(panneau, document.getElementById('e-opale-bouton'));
     document.getElementById('e-opale-bouton').setAttribute('aria-expanded', 'true');
     document.body.classList.add('opale-ouverte');
     if (!fil.length) {
@@ -264,6 +267,7 @@
     panneau.hidden = true;
     document.getElementById('e-opale-bouton').setAttribute('aria-expanded', 'false');
     document.body.classList.remove('opale-ouverte');
+    if (libererFocus) { libererFocus(); libererFocus = null; }
     document.getElementById('e-opale-bouton').focus();
   }
 
@@ -314,11 +318,40 @@
   }
 
   /* ---------- Démarrage ---------------------------------------------------- */
+  /* ---------- C68 : à l'ouverture d'une fiche, une phrase d'accueil et deux pistes, jamais plus ---------- */
+  const ACCUEILS = {
+    cours: 'Tu ouvres le cours. Lis une diapositive à la fois ; je suis là si un mot bloque.',
+    revision: 'Une fiche de révision : courte, à relire deux fois. Je peux te poser des questions dessus.',
+    exercices: 'Les exercices. Je donne des pistes, jamais la réponse : c\'est toi qui trouves.',
+  };
+  let bulle = null; let bulleMinuteur = null;
+  function fermerBulle() { clearTimeout(bulleMinuteur); if (bulle) { bulle.remove(); bulle = null; } }
+  function reagirAuContexte() {
+    if (!N.reglage('tuteur')) return;
+    const c = contexte();
+    if (!ACCUEILS[c.mode] || !c.matiere || !c.ref) { fermerBulle(); return; }
+    if (panneau && !panneau.hidden) return;
+    const cle = 'opaline.opale.vu.' + c.matiere + '/' + c.ref + '/' + c.mode;
+    try { if (sessionStorage.getItem(cle)) return; sessionStorage.setItem(cle, '1'); } catch (e) { /* privé */ }
+    fermerBulle();
+    const pistes = (SUGGESTIONS[c.mode] || []).slice(0, 2);
+    bulle = document.createElement('div');
+    bulle.className = 'e-opale-bulle'; bulle.setAttribute('role', 'status');
+    bulle.innerHTML = `<button type="button" class="e-opale-bulle-fermer" aria-label="Fermer">${N.ic('ic-croix')}</button>
+      <p><b>Opale</b> ${N.ech(ACCUEILS[c.mode])}</p>
+      <div class="e-opale-bulle-pistes">${pistes.map((x) => `<button type="button" class="e-opale-puce">${N.ech(x)}</button>`).join('')}</div>`;
+    document.body.appendChild(bulle);
+    bulle.querySelector('.e-opale-bulle-fermer').addEventListener('click', fermerBulle);
+    bulle.querySelectorAll('.e-opale-puce').forEach((b) => b.addEventListener('click', () => { const t = b.textContent; fermerBulle(); ouvrir(); envoyer(t); }));
+    bulleMinuteur = setTimeout(fermerBulle, 14000);
+  }
+
   function demarrer() {
     if (panneau) return;
     construire();
-    window.addEventListener('hashchange', () => { if (panneau && !panneau.hidden) majContexte(); });
+    window.addEventListener('hashchange', () => { if (panneau && !panneau.hidden) majContexte(); setTimeout(reagirAuContexte, 900); });
+    setTimeout(reagirAuContexte, 1500);
   }
-  window.OPALE = { demarrer, calculer, contexte };
+  window.OPALE = { demarrer, calculer, contexte, reagir: reagirAuContexte };
   if (document.getElementById('app-eleve')) demarrer();
 })();

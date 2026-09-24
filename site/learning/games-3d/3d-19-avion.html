@@ -244,9 +244,9 @@ function makeRunwayMarks(){ const w=128,h=1024,c=document.createElement('canvas'
 /* ============ INIT ============ */
 function init(api){
   shell.api=api; const stage=api.stage; clock=new THREE.Clock();
-  scene=new THREE.Scene(); scene.fog=new THREE.Fog(0x9fc4e0,55,150);
+  scene=new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene }); scene.fog=new THREE.Fog(0x9fc4e0,55,150);
   camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight,.1,600); camera.position.set(9.5,4.2,11);
-  renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); window.Konstrio.adapterRendu(renderer);
   renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.0;
   renderer.shadowMap.enabled=!REDUCED; renderer.shadowMap.type=THREE.PCFSoftShadowMap; stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);

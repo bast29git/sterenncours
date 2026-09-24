@@ -5,7 +5,9 @@
  */
 import { json, erreur, gerer, exigerSession, maintenant } from '../_commun.js';
 
-const CLE = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,3}$/;
+/* Une clé : des segments séparés par des points ; le dernier peut porter une référence
+   de fiche (« maths/L01/cours »). Exemples : moi.carte, moi.trace.maths/L01/cours. */
+const CLE = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,3}(\.[a-z][a-z0-9-]*\/[A-Za-z0-9]+(\/[a-z]+)?)?$/;
 const TAILLE_MAX = 20000;
 
 export async function lireProfil(DB) {
@@ -29,7 +31,7 @@ export const onRequestPut = gerer(async (context) => {
   let corps;
   try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
   const cle = String(corps && corps.cle || '');
-  if (!CLE.test(cle)) return erreur('Clé invalide.');
+  if (!CLE.test(cle) || cle.length > 120) return erreur('Clé invalide.');
   if (session.role !== 'prof' && !cle.startsWith('moi.')) return erreur('Cette clé appartient au professeur.', 403);
   const { DB } = context.env;
   if (corps.valeur === null || corps.valeur === undefined) {

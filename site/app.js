@@ -40,18 +40,26 @@
     'histoire-geo': ['#A2600F', '#E6B573'], 'emc': ['#0F6B63', '#6FC9BF'],
     'anglais-lv1': ['#3A45A8', '#9AA3E8'], 'espagnol-lv2': ['#A3154F', '#EB92B5'],
   };
+  /** Les palettes. « palier » : le nombre d'étoiles qui débloque la palette (0 : toujours ouverte). */
   const PALETTES = [
-    { id: 'aurore', nom: 'Aurore', c1: '#2BB5A0', c2: '#C79CE6' },
-    { id: 'turquoise', nom: 'Turquoise', c1: '#22A395', c2: '#8FE3D5' },
-    { id: 'indien', nom: 'Bleu indien', c1: '#1F6F8E', c2: '#8CC3DA' },
-    { id: 'violet', nom: 'Violet pastel', c1: '#A97AD1', c2: '#EBC6EC' },
-    { id: 'rose', nom: 'Rose', c1: '#E8608E', c2: '#F7A8C4' },
-    { id: 'lavande', nom: 'Lavande', c1: '#7B6BE8', c2: '#B4A8F5' },
-    { id: 'prune', nom: 'Prune', c1: '#9046A8', c2: '#C79BD6' },
-    { id: 'menthe', nom: 'Menthe', c1: '#1F9E86', c2: '#7FD3C1' },
-    { id: 'corail', nom: 'Corail', c1: '#E96A43', c2: '#F7B199' },
-    { id: 'ocean', nom: 'Océan', c1: '#2E7FC2', c2: '#8FC4E8' },
+    { id: 'aurore', nom: 'Aurore', c1: '#2BB5A0', c2: '#C79CE6', palier: 0 },
+    { id: 'turquoise', nom: 'Turquoise', c1: '#22A395', c2: '#8FE3D5', palier: 0 },
+    { id: 'rose', nom: 'Rose', c1: '#E8608E', c2: '#F7A8C4', palier: 0 },
+    { id: 'indien', nom: 'Bleu indien', c1: '#1F6F8E', c2: '#8CC3DA', palier: 5 },
+    { id: 'violet', nom: 'Violet pastel', c1: '#A97AD1', c2: '#EBC6EC', palier: 10 },
+    { id: 'lavande', nom: 'Lavande', c1: '#7B6BE8', c2: '#B4A8F5', palier: 16 },
+    { id: 'menthe', nom: 'Menthe', c1: '#1F9E86', c2: '#7FD3C1', palier: 24 },
+    { id: 'corail', nom: 'Corail', c1: '#E96A43', c2: '#F7B199', palier: 34 },
+    { id: 'ocean', nom: 'Océan', c1: '#2E7FC2', c2: '#8FC4E8', palier: 46 },
+    { id: 'prune', nom: 'Prune', c1: '#9046A8', c2: '#C79BD6', palier: 60 },
   ];
+  /** Une palette est ouverte quand le nombre d'étoiles atteint son palier. Le professeur voit tout. */
+  const paletteOuverte = (id) => { const p = PALETTES.find((x) => x.id === id); return !p || !p.palier || estProf() || reussites().total >= p.palier; };
+  /** Le prochain palier à atteindre, ou null quand tout est ouvert. */
+  function prochainPalier() {
+    const n = reussites().total;
+    return PALETTES.filter((p) => p.palier > n).sort((a, b) => a.palier - b.palier)[0] || null;
+  }
 
   const etat = {
     role: null,
@@ -113,6 +121,13 @@
     zone.hidden = false;
     clearTimeout(signaler.t);
     signaler.t = setTimeout(() => { zone.hidden = true; }, 5000);
+  }
+
+  /** C84 : un squelette de chargement, à la forme de ce qui arrive (fiche ou série). */
+  function squelette(genre) {
+    const lignes = (n) => Array.from({ length: n }, (_, i) => `<i style="width:${[92, 78, 85, 60, 88, 70][i % 6]}%"></i>`).join('');
+    if (genre === 'serie') return `<div class="e-squelette e-squelette-serie" role="status" aria-label="Chargement de la série"><b></b><div class="bloc">${lignes(2)}<span></span><span></span><span></span></div></div>`;
+    return `<div class="e-squelette" role="status" aria-label="Chargement de la fiche"><b></b><em></em><div class="bloc">${lignes(6)}</div><div class="bloc">${lignes(4)}</div></div>`;
   }
 
   /* ---------- Utilitaires ---------------------------------------------------- */
@@ -311,7 +326,8 @@
       <button type="button" class="e-bouton e-fete-ok">Continuer</button>
     </div>`;
     document.body.appendChild(el);
-    const fermer = () => { el.classList.add('fin'); setTimeout(() => el.remove(), 250); };
+    const liberer = piegerFocus(el, document.activeElement);
+    const fermer = () => { liberer(); el.classList.add('fin'); setTimeout(() => el.remove(), 250); };
     el.querySelector('.e-fete-ok').addEventListener('click', fermer);
     el.addEventListener('click', (ev) => { if (ev.target === el) fermer(); });
     setTimeout(fermer, 7000);
@@ -418,19 +434,30 @@
     try {
       // Le paquet du rôle d'abord ; s'il manque (ancien build), les fichiers un par un.
       await chargerScript(role === 'prof' ? 'paquet-prof.js' : 'paquet-eleve.js').catch(() => {});
+      // Le premier écran n'attend que l'essentiel : la vue, le programme, l'état, les séances.
+      // L'index des séries et le catalogue des jeux arrivent juste après et l'écran se met à jour.
+      const secondaires = Promise.all([
+        chargerScript('data/exercices-index.js').catch(() => chargerScript('data/exercices.js')).catch(() => {}),
+        chargerScript('data/jeux.js').catch(() => { window.JEUX = []; }),
+      ]).then(() => { etat.secondairesPrets = true; });
       await Promise.all([
         chargerScript(role === 'prof' ? 'vue-prof.js' : 'vue-eleve.js'),
         chargerScript('data/programme.js'),
-        chargerScript('data/exercices-index.js').catch(() => chargerScript('data/exercices.js')),
-        chargerScript('data/jeux.js').catch(() => { window.JEUX = []; }),
         chargerScript('planificateur.js'),
         rafraichirEtat(), rafraichirSeances(),
+        role === 'prof' ? secondaires : null,
       ]);
+      if (role === 'eleve') secondaires.then(() => {
+        // Le premier écran a pu se dessiner sans les jeux ni les séries : on le redessine une fois.
+        const r = (location.hash || '#/').replace(/^#\/?/, '').split('/')[0];
+        if (etat.role && ['', 'hub', 'accueil', 'jeux', 'matiere', 'matieres', 'lecon'].indexOf(r) !== -1 && !document.querySelector('.e-exo, .p-form')) router();
+      });
     } catch (e) {
       signaler('Le programme n\'a pas pu être chargé. Recharge la page.');
       return;
     }
     if (window.PROGRAMME) PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => { l.matiere = m.id; }));
+    majTitre();
 
     try { await chargerScript('messagerie.js'); } catch (e) { /* la messagerie reste en texte simple */ }
 
@@ -498,9 +525,63 @@
       }
       if (etat.messagesNonLus !== avant) {
         vueActive().nav();
+        majTitre();
         if (etat.messagesNonLus > avant) signaler('Nouveau message.', 'info');
       }
     } catch (e) { /* sonde silencieuse */ }
+    verifierRappel();
+  }
+
+  /** C52 : le titre de l'onglet dit les messages non lus, sans son. */
+  const TITRE_BASE = document.title;
+  function majTitre() {
+    const n = etat.role ? etat.messagesNonLus : 0;
+    document.title = n ? `(${n}) ${TITRE_BASE}` : TITRE_BASE;
+  }
+
+  /** C60 : un rappel du navigateur une heure avant le temps personnel, si Sterenn l'a accepté. */
+  const CLE_RAPPEL = 'opaline.rappel';
+  function rappelActif() { return lire(CLE_RAPPEL, false) === true && typeof Notification !== 'undefined' && Notification.permission === 'granted'; }
+  async function activerRappel(oui) {
+    if (!oui) { ecrire(CLE_RAPPEL, false); return false; }
+    if (typeof Notification === 'undefined') { signaler('Ton navigateur ne sait pas afficher de rappel.'); return false; }
+    let perm = Notification.permission;
+    if (perm !== 'granted') { try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; } }
+    if (perm !== 'granted') { signaler('Le rappel n\'est pas autorisé par le navigateur.'); ecrire(CLE_RAPPEL, false); return false; }
+    ecrire(CLE_RAPPEL, true);
+    return true;
+  }
+  function verifierRappel() {
+    if (etat.role !== 'eleve' || !rappelActif()) return;
+    const auj = jourIso();
+    const maintenant = new Date();
+    const minutes = maintenant.getHours() * 60 + maintenant.getMinutes();
+    etat.seances.filter((s) => s.date === auj && s.statut !== 'annulee' && s.statut !== 'reportee').forEach((s) => {
+      const [h, m] = String(s.debut || '').split(':').map(Number);
+      if (Number.isNaN(h)) return;
+      const dans = h * 60 + (m || 0) - minutes;
+      if (dans <= 0 || dans > 60) return;
+      const cle = 'opaline.rappel.fait.' + s.id;
+      if (lire(cle, false)) return;
+      ecrire(cle, true);
+      const titre = s.type === 'travail' ? 'Ton temps perso commence dans ' + dans + ' min' : 'Ta séance commence dans ' + dans + ' min';
+      try { new Notification(titre, { body: s.travail || s.objectif || 'Opaline', tag: 'opaline-' + s.id }); } catch (e) { signaler(titre, 'info'); }
+    });
+  }
+
+  /** C76 : le focus reste dans un panneau ouvert ; la fonction rendue le libère. */
+  function piegerFocus(el, rendreA) {
+    const focusables = () => [...el.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent !== null || x === document.activeElement);
+    const gardien = (ev) => {
+      if (ev.key !== 'Tab') return;
+      const f = focusables(); if (!f.length) return;
+      const premier = f[0]; const dernier = f[f.length - 1];
+      if (ev.shiftKey && document.activeElement === premier) { ev.preventDefault(); dernier.focus(); }
+      else if (!ev.shiftKey && document.activeElement === dernier) { ev.preventDefault(); premier.focus(); }
+    };
+    el.addEventListener('keydown', gardien);
+    const f = focusables(); if (f.length) f[0].focus();
+    return () => { el.removeEventListener('keydown', gardien); if (rendreA && rendreA.focus) rendreA.focus(); };
   }
 
   function majReussites() {
@@ -548,11 +629,20 @@
     const zone = document.getElementById('e-palette-choix');
     const panneau = document.getElementById('e-palette-panneau');
     const courante = lire(CLE_PALETTE, 'rose');
-    zone.innerHTML = PALETTES.map((p) => `<button type="button" data-palette="${p.id}"
-      aria-pressed="${p.id === courante}" title="${p.nom}" aria-label="${p.nom}"
-      style="background:linear-gradient(135deg,${p.c1},${p.c2})"></button>`).join('');
+    zone.innerHTML = PALETTES.map((p) => {
+      const ouverte = paletteOuverte(p.id);
+      const libelle = ouverte ? p.nom : `${p.nom} : s'ouvre à ${p.palier} étoiles`;
+      return `<button type="button" data-palette="${p.id}" class="${ouverte ? '' : 'fermee'}"
+      aria-pressed="${p.id === courante}" aria-disabled="${!ouverte}" title="${libelle}" aria-label="${libelle}"
+      style="background:linear-gradient(135deg,${p.c1},${p.c2})">${ouverte ? '' : '<svg class="ic" aria-hidden="true"><use href="#ic-verrou"/></svg>'}</button>`;
+    }).join('');
+    const suivant = prochainPalier();
+    const legende = document.getElementById('e-palette-legende');
+    if (legende) legende.textContent = suivant ? `Prochaine palette « ${suivant.nom} » à ${suivant.palier} étoiles (tu en as ${reussites().total}).` : 'Toutes les palettes sont ouvertes.';
     zone.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-      appliquerPalette(b.getAttribute('data-palette'));
+      const id = b.getAttribute('data-palette');
+      if (!paletteOuverte(id)) { const p = PALETTES.find((x) => x.id === id); signaler(`« ${p.nom} » s'ouvre à ${p.palier} étoiles. Tu en as ${reussites().total}.`, 'info'); return; }
+      appliquerPalette(id);
       construirePalette();
       panneau.hidden = true;
     }));
@@ -609,7 +699,8 @@
     chargerContenu, chargerSeances, chargerScript, rafraichirEtat, rafraichirSeances,
     majReussites, reussites, decision, reglementaire, router, lire, ecrire,
     reglage, appliquerReglages, REGLAGES_DEFAUT, celebrer,
-    NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES, ic,
+    NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES, ic, paletteOuverte, prochainPalier,
+    majTitre, rappelActif, activerRappel, verifierRappel, piegerFocus, squelette,
     appliquerTheme, appliquerPalette,
   };
 

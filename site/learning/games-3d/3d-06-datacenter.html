@@ -186,11 +186,11 @@ const shell = window.Konstrio.createGame({
 /* ====== INIT ====== */
 function init(){
   const stage = shell.stage; clock = new THREE.Clock();
-  scene = new THREE.Scene(); scene.fog = new THREE.Fog(0x070d18, 30, 70);
+  scene = new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene }); scene.fog = new THREE.Fog(0x070d18, 30, 70);
   camera = new THREE.PerspectiveCamera(52, stage.clientWidth/stage.clientHeight, 0.1, 220);
   camera.position.set(13, 8, 17);
-  renderer = new THREE.WebGLRenderer({ antialias:true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(stage.clientWidth, stage.clientHeight);
+  renderer = new THREE.WebGLRenderer({ antialias:true }); window.Konstrio.declarer3d({ renderer: renderer });
+  window.Konstrio.adapterRendu(renderer); renderer.setSize(stage.clientWidth, stage.clientHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   stage.appendChild(renderer.domElement);
