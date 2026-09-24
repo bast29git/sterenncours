@@ -381,6 +381,9 @@ let hoveredMarker=null, selectedId=null;
 let scene,camera,renderer,composer,controls,clock,globeGroup,earth,clouds,sunLight,raycaster,pointer,markers=[],hovered=null,targetRotY=null,labelEls={};
 let earthU=null, realSun=false, baseSunDir=new THREE.Vector3(1,.25,.6).normalize(), targetCamDist=null, targetPhi=null, mission=null;
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const m=markers.find(x=>x.pin===ob||x.halo===ob); return m&&m.c?{nom:m.c.name,phrase:'Capitale : '+m.c.cap+' · '+m.c.cont}:null; }
+function LEGENDES_OPALINE(){ return markers.filter(m=>m.c&&m.c.star).map(m=>({nom:m.c.name,phrase:'Capitale : '+m.c.cap})); }
 const shell=window.Konstrio.createGame({
   id:'3d-09-globe', code:'3D·09', title:'Globe géographique interactif', type:'3D',
   domain:{ label:'Histoire & Géo', color:'#E0892B' },
@@ -413,6 +416,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   composer.addPass(new SMAAPass(W,H));
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.minDistance=2.6; controls.maxDistance=12; controls.autoRotate=true; controls.autoRotateSpeed=REDUCED?0.12:0.4;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   scene.add(new THREE.AmbientLight(0x2a3b58,0.35)); sunLight=new THREE.DirectionalLight(0xfff2dc,2.4); sunLight.castShadow=true; sunLight.shadow.mapSize.set(1024,1024); scene.add(sunLight);
   scene.add(makeSky());
   globeGroup=new THREE.Object3D(); scene.add(globeGroup);

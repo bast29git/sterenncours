@@ -309,6 +309,9 @@ let probeSprites=[], showProbes=true;
 let mission=null, missionGroup=null, rocket=null, lander=null, missionFlame=null, earthGround=null, moonGround=null, missionThrust=false, savedCam=null, missionAudio=null;
 let moonGlobe=null, earthGlobe=null, dust=null; /* Lune/Terre translunaires + poussière regolithe */
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const b=bodies.find(x=>x.obj===ob); const d=b&&DATA[b.id]; return d?{nom:d.name,phrase:d.sub}:null; }
+function LEGENDES_OPALINE(){ return bodies.map(b=>DATA[b.id]).filter(Boolean).map(d=>({nom:d.name,phrase:d.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-01-systeme-solaire', code:'3D·01', title:'Système solaire & exploration spatiale',
   type:'3D', domain:{ label:'Espace & Astro', color:'#1B82E0' },
@@ -359,6 +362,7 @@ function init(){
   composer.addPass(new SMAAPass(stage.clientWidth,stage.clientHeight)); // anti-aliasing net (anneaux de Saturne, arêtes de la fusée)
   composer.addPass(new OutputPass()); // tone mapping ACES + conversion sRGB en fin de chaîne
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.06; controls.minDistance=4; controls.maxDistance=2600; controls.autoRotate=REDUCED; controls.autoRotateSpeed=.18;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   scene.add(new THREE.AmbientLight(0x6678aa,0.42));
   sunLight=new THREE.PointLight(0xfff4d6,2.7,0,0); scene.add(sunLight);
   if(!REDUCED){ const fMain=glowTex(), fGhost=flareTex(); const lf=new Lensflare();

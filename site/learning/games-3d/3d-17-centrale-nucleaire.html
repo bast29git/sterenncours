@@ -171,6 +171,9 @@ let mode = 'detente', challenge = null, quizTier = 'debutant', tour = null, camA
 let ac = null, humGain = null, telAcc = 0;
 let maxAniso = 8, software = false, skyDome = null;
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const p=ob.userData&&EQUIP[ob.userData.part]; return p?{nom:p.name,phrase:p.sub}:null; }
+function LEGENDES_OPALINE(){ return Object.values(EQUIP).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-17-centrale-nucleaire', code:'3D·17', title:'Centrale nucléaire', type:'3D',
   domain:{ label:'Physique & Énergie', color:'#F5A623' },
@@ -231,6 +234,7 @@ function init(){
   composer.addPass(new OutputPass());
 
   controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = .07;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.minDistance = 8; controls.maxDistance = 70; controls.maxPolarAngle = Math.PI * 0.495;
   controls.target.set(-1, 2.5, 0); controls.autoRotate = REDUCED; controls.autoRotateSpeed = .3;
 

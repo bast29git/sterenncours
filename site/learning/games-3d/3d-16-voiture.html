@@ -169,6 +169,9 @@ const NOTIONS=[
 ];
 
 /* ============ SHELL ============ */
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const p=ob.userData&&PARTS[ob.userData.part]; return p?{nom:p.name,phrase:p.sub}:null; }
+function LEGENDES_OPALINE(){ return Object.values(PARTS).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell=window.Konstrio.createGame({
   id:'3d-16-voiture', code:'3D·16', title:'Voiture : fonctionnement complet', type:'3D',
   domain:{ label:'Techno & Méca', color:'#1B82E0' },
@@ -252,6 +255,7 @@ function init(api){
   // OutputPass : tone mapping ACES + conversion sRGB en fin de chaîne
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.07;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bp, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.minDistance=4.2; controls.maxDistance=22; controls.target.set(0,0.85,0); controls.maxPolarAngle=Math.PI/2.02;
   controls.autoRotate=REDUCED; controls.autoRotateSpeed=.4;
 

@@ -142,6 +142,9 @@ let quiz=null, quizTier='debutant';
 let erupt=null, quakeT=0, ac=null;
 const labelDefs=[];
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const f=ob.userData&&FICHE[ob.userData.fiche]; return f?{nom:f.name,phrase:f.sub}:null; }
+function LEGENDES_OPALINE(){ return Object.values(FICHE).map(f=>({nom:f.name,phrase:f.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-15-terre-volcanisme', code:'3D·15', title:'Terre & volcanisme', type:'3D',
   domain:{ label:'Histoire & Géo', color:'#1E8C7A' },
@@ -244,6 +247,7 @@ function init(){
   composer.addPass(new OutputPass());        // tone mapping ACES + conversion sRGB en fin de chaîne
 
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.minDistance=5; controls.maxDistance=24; controls.target.set(0,1.6,0); controls.update();
 
   // éclairage doux dramatique

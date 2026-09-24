@@ -1386,6 +1386,17 @@
   }
 
   /** D17 : les jeux et mondes, avec ce que Sterenn y a fait : parties, meilleur score, dernière fois, questions ratées. */
+  /** E17, E30 : le journal de bord et les mesures d'un monde, en une cellule. */
+  function detailMonde(d) {
+    if (!d || (!d.journal && !d.banque && !d.perf)) return '<span class="p-faible">·</span>';
+    const parts = [];
+    if (d.journal && d.journal.touches && d.journal.touches.length) parts.push(`<small>Regardé : ${d.journal.touches.slice(0, 8).map(N.ech).join(', ')}${d.journal.touches.length > 8 ? '…' : ''}</small>`);
+    if (d.journal && d.journal.fiche) parts.push(`<small>Fiche ouverte ${d.journal.fiche} fois</small>`);
+    if (d.banque && d.banque.total) parts.push(`<small>Questions de la leçon : <b>${d.banque.justes}/${d.banque.total}</b>${d.banque.ratees && d.banque.ratees.length ? ' · ratées : ' + d.banque.ratees.map(N.ech).join(' · ') : ''}</small>`);
+    if (d.perf && d.perf.ips) parts.push(`<small class="${d.perf.ips < 30 ? 'p-alerte' : 'p-faible'}">Rendu : ${d.perf.ips} images/s, qualité ${['', 'basse', 'moyenne', 'haute'][d.perf.qualite] || '?'}${d.perf.mobile ? ', téléphone' : ''}${d.perf.chargement_ms ? ', chargé en ' + (d.perf.chargement_ms / 1000).toFixed(1) + ' s' : ''}${d.perf.ips < 30 ? ' : conseiller la qualité basse' : ''}</small>`);
+    if (d.duree_s) parts.push(`<small class="p-faible">${Math.round(d.duree_s / 60)} min de jeu</small>`);
+    return parts.join('<br>') || '<span class="p-faible">·</span>';
+  }
   function vueJeuxProf() {
     const jeux = window.JEUX || [];
     const lignes = jeux.map((j) => {
@@ -1398,10 +1409,10 @@
     const gagnes = lignes.filter((x) => x.r && x.r.meilleur >= 70).length;
     afficher(entete('Jeux et mondes', `${jeux.length} jeux · ${joues} joués par Sterenn · ${gagnes} gagnés (deux étoiles ou plus)`,
       `<a class="p-bouton p-bouton-fantome" href="#/acces">Accès des jeux</a>`)
-      + bloc('Ce que Sterenn a joué', `<div class="p-tableau-defilant"><table class="p-table"><thead><tr><th>Jeu</th><th>Leçon servie</th><th>Parties</th><th>Meilleur</th><th>Dernière fois</th><th>Questions ratées à la dernière partie</th></tr></thead><tbody>
-        ${lignes.sort((a, b) => (b.r ? b.r.maj_le : '').localeCompare(a.r ? a.r.maj_le : '')).map((x) => `<tr class="${x.r ? '' : 'p-faible'}"><td>${x.j.ico} <a href="${x.j.url}" target="_blank" rel="noopener">${N.ech(x.j.titre)}</a>${x.j.type === '3d' ? ' <span class="p-puce">3D</span>' : ''}</td><td>${x.lecons}</td><td class="num">${x.r ? x.r.series : '·'}</td><td class="num">${x.r ? `<span class="p-etat ${x.r.meilleur >= 70 ? 'p-etat-satisfaisant' : 'p-etat-fragile'}">${x.r.meilleur}</span>` : '·'}</td><td class="num">${x.r ? N.ech(N.dateCourte(x.r.maj_le)) : '·'}</td><td>${x.detail && x.detail.ratees && x.detail.ratees.length ? `<small>${x.detail.ratees.map(N.ech).join(' · ')}</small>` : (x.detail ? `<small class="p-faible">${x.detail.justes}/${x.detail.total}, aucune ratée</small>` : '<span class="p-faible">·</span>')}</td></tr>`).join('')}
+      + bloc('Ce que Sterenn a joué', `<div class="p-tableau-defilant"><table class="p-table"><thead><tr><th>Jeu</th><th>Leçon servie</th><th>Parties</th><th>Meilleur</th><th>Dernière fois</th><th>Questions ratées à la dernière partie</th><th>Monde : regardé, questions, rendu</th></tr></thead><tbody>
+        ${lignes.sort((a, b) => (b.r ? b.r.maj_le : '').localeCompare(a.r ? a.r.maj_le : '')).map((x) => `<tr class="${x.r ? '' : 'p-faible'}"><td>${x.j.ico} <a href="${x.j.url}" target="_blank" rel="noopener">${N.ech(x.j.titre)}</a>${x.j.type === '3d' ? ' <span class="p-puce">3D</span>' : ''}</td><td>${x.lecons}</td><td class="num">${x.r ? x.r.series : '·'}</td><td class="num">${x.r ? `<span class="p-etat ${x.r.meilleur >= 70 ? 'p-etat-satisfaisant' : 'p-etat-fragile'}">${x.r.meilleur}</span>` : '·'}</td><td class="num">${x.r ? N.ech(N.dateCourte(x.r.maj_le)) : '·'}</td><td>${x.detail && x.detail.ratees && x.detail.ratees.length ? `<small>${x.detail.ratees.map(N.ech).join(' · ')}</small>` : (x.detail ? `<small class="p-faible">${x.detail.justes}/${x.detail.total}, aucune ratée</small>` : '<span class="p-faible">·</span>')}</td><td>${detailMonde(x.detail)}</td></tr>`).join('')}
         </tbody></table></div>
-        <p class="p-aide">Le détail (questions ratées, difficulté) n'est envoyé que par les jeux à questions ; les mondes 3D envoient leurs étoiles.</p>`, String(jeux.length)),
+        <p class="p-aide">Les jeux à questions envoient leurs questions ratées et la difficulté. Les mondes 3D envoient ce que Sterenn a touché, son résultat aux cinq questions de la leçon, et la fluidité du rendu (images par seconde, qualité choisie) pour régler la qualité par appareil.</p>`, String(jeux.length)),
     [{ t: 'Ressources' }, { t: 'Jeux et mondes' }]);
   }
 

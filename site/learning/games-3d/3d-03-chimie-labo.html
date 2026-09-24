@@ -189,6 +189,10 @@ function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.
 /* ============================================================
    COQUILLE
    ============================================================ */
+/* E14 : légendes des objets pour le socle commun des mondes. */
+const VERRERIE_OPALINE={tube:'Tube à essai',bunsen:'Bec Bunsen',becher:'Bécher',erlen:'Erlenmeyer',fiole:'Fiole jaugée'};
+function LEGENDE_OPALINE(ob){ const u=ob.userData||{}; if(u.el&&u.el.sym&&E[u.el.sym]){ const e=E[u.el.sym]; return {nom:e[1]+' ('+u.el.sym+')',phrase:'Numéro atomique '+e[0]+(FAM[e[3]]?' · '+FAM[e[3]].n:'')}; } if(u.glass) return {nom:VERRERIE_OPALINE[u.glass]||u.glass,phrase:'Verrerie du laboratoire'}; return null; }
+function LEGENDES_OPALINE(){ return ['H','C','O','N','Na','Cl','Fe','Cu'].filter(s=>E[s]).map(s=>({nom:E[s][1]+' ('+s+')',phrase:'Numéro atomique '+E[s][0]})); }
 const shell=window.Konstrio.createGame({
   id:'3d-03-chimie-labo', code:'3D·03', title:'Labo de chimie & réactions', type:'3D',
   domain:{ label:'Chimie', color:'#1E8C7A' },
@@ -233,6 +237,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   // OutputPass : tone mapping ACES + conversion sRGB en fin de chaîne
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.minDistance=6; controls.maxDistance=60; controls.maxPolarAngle=Math.PI*0.52; controls.target.set(0,1.7,0); controls.autoRotate=false;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
 
   scene.add(new THREE.HemisphereLight(0xdfeaff,0x25201c,0.75));
   const key=new THREE.DirectionalLight(0xffffff,1.35); key.position.set(5,11,7); key.castShadow=true;

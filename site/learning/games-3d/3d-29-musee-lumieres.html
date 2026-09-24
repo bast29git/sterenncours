@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Opaline · Le musée des Lumières</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+</head>
+<body>
+<script type="module">
+import { creerMonde, THREE, textureTexte } from '../monde-base.js';
+
+const PENSEURS = [
+  { id: 'montesquieu', nom: 'Montesquieu', dates: '1689 à 1755', oeuvre: 'De l\'esprit des lois (1748)', idee: 'Séparer les trois pouvoirs, législatif, exécutif et judiciaire, pour empêcher la tyrannie.', couleur: '#2E7FC2', initiale: 'M' },
+  { id: 'voltaire', nom: 'Voltaire', dates: '1694 à 1778', oeuvre: 'Traité sur la tolérance (1763)', idee: 'Défend la tolérance religieuse et la liberté de pensée, après l\'affaire Calas (1762).', couleur: '#B9541D', initiale: 'V' },
+  { id: 'rousseau', nom: 'Rousseau', dates: '1712 à 1778', oeuvre: 'Du contrat social (1762)', idee: 'La souveraineté appartient au peuple : la loi est l\'expression de la volonté générale.', couleur: '#1E8C7A', initiale: 'R' },
+  { id: 'diderot', nom: 'Diderot et d\'Alembert', dates: '1713 à 1784', oeuvre: 'L\'Encyclopédie (1751 à 1772)', idee: 'Rassembler tous les savoirs en 28 volumes, pour les diffuser et faire reculer l\'ignorance.', couleur: '#8A4FD3', initiale: 'D' },
+  { id: 'chatelet', nom: 'Émilie du Châtelet', dates: '1706 à 1749', oeuvre: 'Traduction des Principia de Newton (1759)', idee: 'Physicienne et mathématicienne : elle explique la physique de Newton aux Français.', couleur: '#B03A8A', initiale: 'É' },
+];
+const LEGENDES = PENSEURS.map((p) => ({ nom: p.nom, phrase: p.oeuvre + '. ' + p.idee })).concat([
+  { nom: 'Salon', phrase: 'Chez Madame Geoffrin ou Madame du Deffand, philosophes et savants discutent : les idées circulent.' },
+  { nom: 'Encyclopédie', phrase: '28 volumes, 71 818 articles, 2 885 planches : le grand projet des Lumières, censuré puis achevé.' },
+  { nom: 'Presse d\'imprimerie', phrase: 'Livres, journaux, brochures, souvent imprimés hors du royaume pour échapper à la censure.' },
+]);
+let M, panneau, cadres = {};
+const shell = window.Konstrio.createGame({
+  id: '3d-29-musee-lumieres', code: '3D·29', title: 'Le musée des Lumières', type: '3D', duree: '12 min',
+  domain: { label: 'Histoire', color: '#B9541D' },
+  intro: {
+    greet: 'Une salle, cinq portraits, une presse et un salon. Chaque penseur des Lumières a son idée et son livre.',
+    rule: 'Touche un portrait pour lire l\'idée et l\'œuvre. Puis réponds aux questions : une par penseur.',
+    how: ['Glisse pour tourner dans la salle, molette pour avancer.', 'Touche un portrait, la presse, le salon ou l\'Encyclopédie.', 'Le panneau résume chaque penseur ; le bouton mène à son portrait.'],
+    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    objectif: 'Associer chaque philosophe des Lumières à son idée et à son œuvre, et expliquer comment les idées circulent.',
+    hint: 'Montesquieu : les pouvoirs. Voltaire : la tolérance. Rousseau : le peuple souverain. Diderot : l\'Encyclopédie.',
+    why: 'Ces idées, nées au XVIIIᵉ siècle, nourrissent la Révolution de 1789 et nos constitutions.',
+  },
+  learned: ['Montesquieu et la séparation des pouvoirs ; Voltaire et la tolérance ; Rousseau et la souveraineté du peuple.', 'L\'Encyclopédie de Diderot et d\'Alembert rassemble et diffuse les savoirs.', 'Les idées circulent par les salons, les cafés, les livres et les journaux, malgré la censure.'],
+  onReady: init, onStart: demarrer,
+});
+
+function texturePortrait(p) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 640; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, 640); g.addColorStop(0, '#2a2118'); g.addColorStop(1, '#0f0c08'); x.fillStyle = g; x.fillRect(0, 0, 512, 640);
+  x.fillStyle = p.couleur; x.beginPath(); x.arc(256, 250, 150, 0, Math.PI * 2); x.fill();
+  x.fillStyle = 'rgba(255,255,255,0.92)'; x.font = '900 190px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(p.initiale, 256, 262);
+  x.fillStyle = '#f2e8d5'; x.font = '700 44px Georgia, serif'; x.fillText(p.nom, 256, 500);
+  x.fillStyle = '#c9b892'; x.font = '400 30px Georgia, serif'; x.fillText(p.dates, 256, 560);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+function init() {
+  M = creerMonde(shell, { fond: 0x1a1512, hdri: '../assets/3d/env/studio_1k.hdr', sol: { taille: 20, couleur: 0x5a3b26 }, ambiance: 0.5, soleil: { position: [0, 9, 4], intensite: 1.2, couleur: 0xffe9c8, etendue: 12 }, camera: { position: [0, 2.4, 9], cible: [0, 2, 0], min: 1.5, max: 16 }, legendes: LEGENDES, libelle: 'Une salle de musée avec cinq portraits, un salon et une presse' });
+  const { scene, mesh, mat, legender, etiquette } = M;
+  const murs = mat(0x7a2e2e, { rugosite: 0.95 });
+  mesh(new THREE.BoxGeometry(18, 6, 0.3), murs, [0, 3, -6]).raycast = () => {};
+  mesh(new THREE.BoxGeometry(0.3, 6, 12), murs, [-9, 3, 0]).raycast = () => {}; mesh(new THREE.BoxGeometry(0.3, 6, 12), murs, [9, 3, 0]).raycast = () => {};
+  mesh(new THREE.BoxGeometry(18, 0.4, 12), mat(0xefe6d2), [0, 6.1, 0]).raycast = () => {};
+  for (let i = -8; i <= 8; i += 4) { const l = new THREE.SpotLight(0xffe2b0, 25, 9, Math.PI / 6, 0.5, 1.2); l.position.set(i, 5.6, -3.2); l.target.position.set(i, 3, -6); scene.add(l); scene.add(l.target); }
+  PENSEURS.forEach((p, i) => {
+    const g = new THREE.Group(); scene.add(g); g.position.set(-7.2 + i * 3.6, 3.1, -5.8);
+    mesh(new THREE.BoxGeometry(2.4, 3.0, 0.16), mat(0xc9a44a, { metal: 0.6, rugosite: 0.35 }), [0, 0, 0], g);
+    const toile = mesh(new THREE.PlaneGeometry(2.1, 2.65), new THREE.MeshStandardMaterial({ map: texturePortrait(p), roughness: 0.8 }), [0, 0, 0.09], g); toile.castShadow = false;
+    const cartel = mesh(new THREE.PlaneGeometry(1.6, 0.36), new THREE.MeshBasicMaterial({ map: textureTexte(p.oeuvre, { taille: 22, fond: '#f2e8d5', couleur: '#1a1512' }) }), [0, -1.85, 0.05], g); cartel.castShadow = false;
+    legender(g, p.nom, LEGENDES[i].phrase); cadres[p.id] = g;
+  });
+  // salon : table et fauteuils
+  const salon = new THREE.Group(); scene.add(salon); salon.position.set(-4, 0, 1);
+  mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.08, 28), mat(0x6b3f1f, { rugosite: 0.4 }), [0, 0.75, 0], salon); mesh(new THREE.CylinderGeometry(0.1, 0.16, 0.75, 12), mat(0x4a2a12), [0, 0.37, 0], salon);
+  for (let k = 0; k < 4; k += 1) { const a = k * Math.PI / 2; const f = new THREE.Group(); salon.add(f); f.position.set(Math.cos(a) * 1.9, 0, Math.sin(a) * 1.9); f.rotation.y = -a + Math.PI / 2; mesh(new THREE.BoxGeometry(0.7, 0.16, 0.7), mat(0x9b2f3f, { rugosite: 0.9 }), [0, 0.5, 0], f); mesh(new THREE.BoxGeometry(0.7, 0.8, 0.14), mat(0x9b2f3f, { rugosite: 0.9 }), [0, 0.95, -0.28], f); [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]].forEach((q) => mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), mat(0xc9a44a, { metal: 0.6 }), [q[0], 0.22, q[1]], f)); }
+  for (let k = 0; k < 3; k += 1) mesh(new THREE.BoxGeometry(0.3, 0.05, 0.2), mat([0x2d4a7a, 0x7a2d2d, 0x2d7a4a][k]), [-0.4 + k * 0.35, 0.82, 0.1 * k], salon);
+  legender(salon, 'Salon', LEGENDES[5].phrase);
+  // vitrine avec l'Encyclopédie
+  const vit = new THREE.Group(); scene.add(vit); vit.position.set(4, 0, 1);
+  mesh(new THREE.BoxGeometry(2.2, 1.0, 1.2), mat(0x3a2a1a), [0, 0.5, 0], vit);
+  const verre = mesh(new THREE.BoxGeometry(2.2, 0.9, 1.2), new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.18, roughness: 0.05 }), [0, 1.45, 0], vit); verre.castShadow = false;
+  for (let k = 0; k < 7; k += 1) mesh(new THREE.BoxGeometry(0.22, 0.42, 0.7), mat(0x5a2a1a, { rugosite: 0.7 }), [-0.75 + k * 0.25, 1.22, 0], vit);
+  const ouvert = mesh(new THREE.BoxGeometry(0.9, 0.04, 0.6), mat(0xf2e8d5), [0.3, 1.03, 0.3], vit); ouvert.rotation.y = 0.3;
+  legender(vit, 'Encyclopédie', LEGENDES[6].phrase);
+  // presse d'imprimerie
+  const presse = new THREE.Group(); scene.add(presse); presse.position.set(6.5, 0, -2.5);
+  mesh(new THREE.BoxGeometry(1.4, 0.2, 1.0), mat(0x4a2e1a), [0, 0.9, 0], presse); mesh(new THREE.BoxGeometry(0.16, 2.6, 0.16), mat(0x4a2e1a), [-0.6, 1.3, 0], presse); mesh(new THREE.BoxGeometry(0.16, 2.6, 0.16), mat(0x4a2e1a), [0.6, 1.3, 0], presse); mesh(new THREE.BoxGeometry(1.4, 0.2, 0.4), mat(0x4a2e1a), [0, 2.5, 0], presse);
+  mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.0, 12), mat(0x8a8f96, { metal: 0.7, rugosite: 0.3 }), [0, 1.9, 0], presse); mesh(new THREE.BoxGeometry(1.0, 0.1, 0.7), mat(0x8a8f96, { metal: 0.7, rugosite: 0.3 }), [0, 1.35, 0], presse);
+  mesh(new THREE.BoxGeometry(1.0, 0.06, 0.06), mat(0x4a2e1a), [0.7, 1.9, 0], presse).rotation.z = 0.5;
+  mesh(new THREE.BoxGeometry(0.8, 0.02, 0.6), mat(0xf2e8d5), [0, 1.02, 0], presse);
+  legender(presse, 'Presse d\'imprimerie', LEGENDES[7].phrase);
+  etiquette('Salon', [-4, 2.2, 1], { hauteur: 0.35 }); etiquette('Encyclopédie', [4, 2.4, 1], { hauteur: 0.35 }); etiquette('Presse', [6.5, 3.1, -2.5], { hauteur: 0.35 });
+
+  panneau = M.panneau(`<h3>Les penseurs</h3>
+    <div class="mb-etapes">${PENSEURS.map((p, i) => `<button class="mb-bouton" data-p="${p.id}" style="border-left:6px solid ${p.couleur}"><i>${i + 1}</i>${p.nom}</button>`).join('')}</div>
+    <p class="mb-carte" id="mu-texte">Touche un portrait, ou choisis un penseur.</p>`);
+  panneau.querySelectorAll('[data-p]').forEach((b) => b.addEventListener('click', () => voir(b.getAttribute('data-p'))));
+  M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; const p = PENSEURS.find((x) => x.nom === nom); if (p) voir(p.id, true); }, 30); });
+}
+function voir(id, sansCamera) {
+  const p = PENSEURS.find((x) => x.id === id); const g = cadres[id];
+  panneau.querySelector('#mu-texte').innerHTML = '<b>' + p.nom + '</b> (' + p.dates + '). ' + p.oeuvre + '. ' + p.idee;
+  if (!sansCamera) { M.controls.target.set(g.position.x, 3, -5.8); M.camera.position.set(g.position.x, 3, -1.6); M.controls.update(); }
+  shell.say(p.nom + ' : ' + p.idee, 'concentre');
+}
+function demarrer(mode, api) {
+  if (mode !== 'cours') { api.say('Approche-toi des portraits. Touche le salon, la presse, l\'Encyclopédie : c\'est ainsi que les idées circulent.', 'joyeux'); return; }
+  api.defis([
+    { type: 'toucher', texte: 'Touche le portrait de <b>Montesquieu</b>.', cible: 'Montesquieu', explication: 'De l\'esprit des lois, 1748 : Montesquieu observe l\'Angleterre et théorise la séparation des pouvoirs.' },
+    { type: 'qcm', texte: 'Montesquieu défend…', choix: ['la séparation des pouvoirs législatif, exécutif et judiciaire', 'le pouvoir absolu du roi', 'la suppression des lois', 'le retour à la nature'], reponse: 0, explication: 'Si une seule personne fait la loi, l\'applique et juge, c\'est la tyrannie. Les pouvoirs doivent se limiter les uns les autres.' },
+    { type: 'qcm', texte: 'L\'Encyclopédie (1751 à 1772) est dirigée par…', choix: ['Diderot et d\'Alembert', 'Voltaire et Rousseau', 'Montesquieu et Newton', 'Louis XV et ses ministres'], reponse: 0, explication: '28 volumes pour rassembler tous les savoirs : sciences, techniques, arts. Un travail collectif, un temps interdit par le roi.' },
+    { type: 'qcm', texte: 'Voltaire écrit le Traité sur la tolérance après…', choix: ['l\'affaire Calas (1762), un protestant exécuté à tort', 'la Révolution française', 'la mort de Louis XIV', 'un voyage en Amérique'], reponse: 0, explication: 'Jean Calas, protestant de Toulouse, est condamné et exécuté injustement. Voltaire obtient sa réhabilitation en 1765.' },
+    { type: 'qcm', texte: 'Pour Rousseau, la souveraineté appartient…', choix: ['au peuple', 'au roi', 'à l\'Église', 'aux nobles'], reponse: 0, explication: 'Du contrat social, 1762 : les citoyens s\'associent librement, et la loi exprime la volonté générale.' },
+    { type: 'toucher', texte: 'Touche le portrait d\'<b>Émilie du Châtelet</b>.', cible: 'Émilie du Châtelet', explication: 'Physicienne et mathématicienne, elle traduit et commente Newton : les Lumières sont aussi scientifiques, et pas seulement masculines.' },
+    { type: 'qcm', texte: 'Comment les idées des Lumières circulent-elles ?', choix: ['Par les salons, les cafés, les livres, les journaux et l\'Encyclopédie', 'Par la télévision', 'Par les sermons à l\'église uniquement', 'Elles ne circulent pas : elles sont interdites'], reponse: 0, explication: 'Malgré la censure, les livres s\'impriment à l\'étranger, les salons et les cafés discutent, les correspondances relient toute l\'Europe.' },
+  ], { rejouer: () => demarrer('cours', api) });
+}
+</script>
+</body>
+</html>

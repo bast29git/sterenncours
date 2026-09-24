@@ -142,6 +142,9 @@ const NOTIONS = [
 ];
 
 /* ============ SHELL ============ */
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const p=ob.userData&&PARTS[ob.userData.part]; return p?{nom:p.name,phrase:p.sub}:null; }
+function LEGENDES_OPALINE(){ return Object.values(PARTS).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-05-circuits', code:'3D·05', title:'Circuits & électronique', type:'3D',
   domain:{ label:'Physique', color:'#F5A623' },
@@ -193,6 +196,7 @@ function init(api){
   // OutputPass : tone mapping ACES + conversion sRGB en fin de chaîne
   composer.addPass(new OutputPass());
   controls = new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bp, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.maxDistance=24; controls.minDistance=6.5; controls.minPolarAngle=0.14; controls.maxPolarAngle=Math.PI*0.49; controls.target.set(0,0.4,0);
   controls.rotateSpeed=0.82; controls.zoomSpeed=0.9; controls.panSpeed=0.7; controls.screenSpacePanning=true;
   controls.mouseButtons={ LEFT:THREE.MOUSE.ROTATE, MIDDLE:THREE.MOUSE.DOLLY, RIGHT:THREE.MOUSE.PAN };

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Opaline · La chambre d'écho</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+</head>
+<body>
+<script type="module">
+import { creerMonde, THREE } from '../monde-base.js';
+
+const MILIEUX = { air: { nom: 'air', v: 340, couleur: 0xdfe6ec, fond: 0xe9eef3 }, eau: { nom: 'eau', v: 1480, couleur: 0x7fb6d8, fond: 0xbfdcec }, acier: { nom: 'acier', v: 5000, couleur: 0x9aa3ad, fond: 0xd2d6db } };
+let milieu = 'air', D = 34; // distance émetteur-mur, en mètres
+let M, mur, onde, emetteur, micro, panneau, salle, propagation = null;
+const ECH = 0.1; // 1 m = 0,1 unité
+const RALENTI = 40;
+const LEGENDES = [
+  { nom: 'Émetteur', phrase: 'Le haut-parleur : une membrane qui vibre et fait vibrer l\'air.' },
+  { nom: 'Mur', phrase: 'Le son s\'y réfléchit et revient : c\'est l\'écho.' },
+  { nom: 'Micro', phrase: 'Il capte le retour du son et arrête le chronomètre.' },
+  { nom: 'Onde sonore', phrase: 'Une vibration qui se propage dans la matière, jamais dans le vide.' },
+];
+const shell = window.Konstrio.createGame({
+  id: '3d-25-chambre-echo', code: '3D·25', title: 'La chambre d\'écho', type: '3D', duree: '10 min',
+  domain: { label: 'Physique · Sons', color: '#8A4FD3' },
+  intro: {
+    greet: 'Un haut-parleur, un mur, un micro. Émets un son, chronomètre l\'aller-retour, calcule la vitesse.',
+    rule: 'Le son part de l\'émetteur, touche le mur et revient au micro. Le temps mesuré vaut 2 × D ÷ v. Change le milieu : air, eau, acier.',
+    how: ['Glisse pour tourner, molette pour zoomer.', 'Règle la distance du mur et choisis le milieu dans le panneau.', '« Émettre » lance l\'onde, au ralenti, et le chronomètre affiche le vrai temps.'],
+    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    objectif: 'Utiliser v = d ÷ t avec un écho, et comparer la vitesse du son dans l\'air, l\'eau et l\'acier.',
+    hint: 'Aller-retour : le son parcourt 2 × D. Donc t = 2 × D ÷ v.',
+    why: 'Le sonar des bateaux et l\'échographie mesurent une distance avec le temps d\'un écho.',
+  },
+  learned: ['Le son est une vibration qui se propage dans la matière : 340 m/s dans l\'air, 1 480 m/s dans l\'eau, 5 000 m/s dans l\'acier.', 'Avec un écho, le son parcourt deux fois la distance : t = 2 D ÷ v.', 'Le son ne se propage pas dans le vide.'],
+  onReady: init, onStart: demarrer,
+});
+const temps = () => 2 * D / MILIEUX[milieu].v;
+const f = (x, n) => x.toFixed(n).replace('.', ',');
+
+function init() {
+  M = creerMonde(shell, { fond: MILIEUX.air.fond, hdri: '../assets/3d/env/workshop_1k.hdr', sol: { taille: 60, couleur: 0x9c9890 }, ambiance: 0.9, soleil: { position: [10, 16, 6], intensite: 1.5, etendue: 30 }, brouillard: { couleur: 0xe9eef3, densite: 0.03 }, camera: { position: [-3, 4, 9], cible: [1.5, 1, 0], min: 2, max: 50 }, legendes: LEGENDES, libelle: 'Une longue salle avec un haut-parleur, un micro et un mur' });
+  const { scene, mesh, mat, legender } = M;
+  salle = mesh(new THREE.BoxGeometry(40, 5, 8), new THREE.MeshStandardMaterial({ color: MILIEUX.air.couleur, side: THREE.BackSide, roughness: 0.95 }), [16, 2.5, 0]); salle.raycast = () => {}; salle.castShadow = false;
+  emetteur = new THREE.Group(); scene.add(emetteur);
+  const boite = mesh(new THREE.BoxGeometry(0.6, 0.9, 0.6), mat(0x2b2f36, { rugosite: 0.6 }), [0, 0.45, 0], emetteur);
+  const membrane = mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.12, 32), mat(0x7a7f88, { rugosite: 0.4, metal: 0.3 }), [0.33, 0.5, 0], emetteur); membrane.rotation.z = -Math.PI / 2;
+  legender(emetteur, 'Émetteur', LEGENDES[0].phrase); emetteur.userData.membrane = membrane;
+  micro = new THREE.Group(); scene.add(micro);
+  mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 8), mat(0x444a52), [0, 0.7, 0.8], micro); mesh(new THREE.SphereGeometry(0.12, 16, 12), mat(0x1B82E0, { emissif: 0x1B82E0, intensite: 0.5 }), [0, 1.42, 0.8], micro);
+  legender(micro, 'Micro', LEGENDES[2].phrase);
+  mur = mesh(new THREE.BoxGeometry(0.4, 4.4, 7.4), mat(0xc9b9a0, { rugosite: 0.9 }), [D * ECH, 2.2, 0]); legender(mur, 'Mur', LEGENDES[1].phrase);
+  onde = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28), new THREE.MeshBasicMaterial({ color: 0x1B82E0, transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false })); onde.visible = false; onde.position.set(0.4, 0.5, 0); scene.add(onde); legender(onde, 'Onde sonore', LEGENDES[3].phrase);
+  const regle = new THREE.Group(); scene.add(regle); regle.raycast = () => {};
+  for (let i = 0; i <= 200; i += 10) { const g = new THREE.Mesh(new THREE.BoxGeometry(0.02, i % 50 === 0 ? 0.3 : 0.15, 0.02), mat(0x222222)); g.position.set(i * ECH, 0.08, -3.6); g.raycast = () => {}; regle.add(g); }
+  M.regleEtiquettes = [50, 100, 150, 200].map((m) => M.etiquette(m + ' m', [m * ECH, 0.5, -3.6], { hauteur: 0.35 }));
+  panneau = M.panneau(`<h3>La mesure</h3>
+    <label>Distance du mur D <span class="mb-val" id="ch-d">${D} m</span><input class="mb-plage" id="ch-ds" type="range" min="10" max="200" step="1" value="${D}" aria-label="Distance du mur"></label>
+    <div class="mb-groupe" role="group" aria-label="Milieu">${Object.keys(MILIEUX).map((k) => `<button class="mb-bouton" data-milieu="${k}" aria-pressed="${k === milieu}">${MILIEUX[k].nom} · ${MILIEUX[k].v} m/s</button>`).join('')}</div>
+    <button class="mb-bouton primaire" id="ch-emettre">Émettre un son</button>
+    <div class="mb-mesures"><span>Chronomètre</span><b id="ch-t">0,000 s</b><span>Distance parcourue 2 D</span><b id="ch-2d">·</b><span>Vitesse v = 2 D ÷ t</span><b id="ch-v">·</b></div>
+    <p class="mb-carte" id="ch-calc"></p>`);
+  panneau.querySelector('#ch-ds').addEventListener('input', (e) => { D = Number(e.target.value); placer(); });
+  panneau.querySelectorAll('[data-milieu]').forEach((b) => b.addEventListener('click', () => { milieu = b.getAttribute('data-milieu'); panneau.querySelectorAll('[data-milieu]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); salle.material.color.set(MILIEUX[milieu].couleur); scene.background = new THREE.Color(MILIEUX[milieu].fond); if (scene.fog) scene.fog.color.set(MILIEUX[milieu].fond); placer(); }));
+  panneau.querySelector('#ch-emettre').addEventListener('click', emettre);
+  placer();
+  M.boucle((dt, t) => {
+    emetteur.userData.membrane.position.x = 0.33 + (propagation && propagation.t < 0.3 ? 0.03 * Math.sin(t * 90) : 0);
+    if (!propagation) return;
+    propagation.t += dt / RALENTI; // temps physique écoulé
+    const v = MILIEUX[milieu].v; const parcouru = v * propagation.t; const tot = 2 * D;
+    onde.visible = true;
+    if (parcouru <= D) { onde.scale.setScalar(Math.max(0.05, parcouru * ECH)); onde.position.x = 0.4; }
+    else { const retour = parcouru - D; onde.scale.setScalar(Math.max(0.05, (D - retour) * ECH)); onde.position.x = D * ECH; }
+    panneau.querySelector('#ch-t').textContent = f(Math.min(propagation.t, temps()), 3) + ' s';
+    if (parcouru >= tot) { propagation = null; onde.visible = false; shell.sound('pop'); panneau.querySelector('#ch-t').textContent = f(temps(), 3) + ' s'; panneau.querySelector('#ch-v').textContent = Math.round(2 * D / temps()) + ' m/s'; panneau.querySelector('#ch-calc').textContent = 'v = 2 × ' + D + ' ÷ ' + f(temps(), 3) + ' = ' + Math.round(2 * D / temps()) + ' m/s : c\'est bien la vitesse du son dans l\'' + MILIEUX[milieu].nom + '.'; }
+  });
+}
+function placer() {
+  mur.position.x = D * ECH;
+  panneau.querySelector('#ch-d').textContent = D + ' m'; panneau.querySelector('#ch-2d').textContent = 2 * D + ' m'; panneau.querySelector('#ch-t').textContent = '0,000 s'; panneau.querySelector('#ch-v').textContent = '·';
+  panneau.querySelector('#ch-calc').textContent = 'Attendu : t = 2 × ' + D + ' ÷ ' + MILIEUX[milieu].v + ' = ' + f(temps(), 3) + ' s. Émets un son pour vérifier (animation ralentie ' + RALENTI + ' fois).';
+  propagation = null; onde.visible = false;
+}
+function emettre() { if (propagation) return; propagation = { t: 0 }; shell.sound('click'); }
+function demarrer(mode, api) {
+  if (mode !== 'cours') { api.say('Règle la distance, choisis le milieu, émets un son. Le chronomètre affiche le vrai temps de l\'aller-retour.', 'joyeux'); return; }
+  api.defis([
+    { type: 'qcm', texte: 'Quelle est la vitesse du son dans l\'air ?', choix: ['340 m/s', '3 400 m/s', '34 m/s', '300 000 km/s'], reponse: 0, explication: 'Environ 340 m/s dans l\'air. 300 000 km/s, c\'est la lumière : près d\'un million de fois plus vite.' },
+    { type: 'verifier', texte: 'Dans l\'air, règle la distance du mur pour un écho après 0,10 s.', bouton: 'C\'est réglé', verifier: () => milieu === 'air' && Math.abs(D - 17) <= 1, indice: 't = 2 D ÷ v, donc D = v × t ÷ 2 = 340 × 0,10 ÷ 2.', explication: 'D = 340 × 0,10 ÷ 2 = 17 m. L\'oreille distingue un écho à partir d\'environ 0,1 s : un mur à 17 m au moins.' },
+    { type: 'qcm', texte: 'Dans l\'eau, le son…', choix: ['va plus vite que dans l\'air, environ 1 480 m/s', 'va moins vite que dans l\'air', 'va à la même vitesse', 'ne se propage pas'], reponse: 0, explication: 'Plus le milieu est dense et rigide, plus le son va vite : eau 1 480 m/s, acier 5 000 m/s.' },
+    { type: 'qcm', texte: 'Un écho revient après 0,5 s dans l\'air. À quelle distance est le mur ?', choix: ['85 m', '170 m', '340 m', '42 m'], reponse: 0, explication: 'Distance parcourue : 340 × 0,5 = 170 m, aller et retour. Le mur est à 170 ÷ 2 = 85 m.' },
+    { type: 'toucher', texte: 'Touche le <b>mur</b> qui renvoie le son.', cible: 'Mur', explication: 'Le son se réfléchit sur l\'obstacle et revient : c\'est l\'écho.' },
+    { type: 'verifier', texte: 'Choisis l\'acier, règle 100 m, émets et lis le temps.', bouton: 'C\'est fait', verifier: () => milieu === 'acier' && D === 100 && panneau.querySelector('#ch-v').textContent !== '·', indice: 'Bouton « acier », curseur sur 100, puis « Émettre un son ».', explication: 't = 2 × 100 ÷ 5 000 = 0,04 s : dans l\'acier, l\'écho revient presque aussitôt.' },
+    { type: 'qcm', texte: 'Le son, c\'est…', choix: ['une vibration qui se propage dans la matière', 'une lumière', 'une onde qui se propage aussi dans le vide', 'un courant électrique'], reponse: 0, explication: 'Sans matière, pas de son : dans le vide de l\'espace, aucune vibration ne peut se transmettre.' },
+  ], { rejouer: () => demarrer('cours', api) });
+}
+</script>
+</body>
+</html>

@@ -884,5 +884,119 @@ window.JEUX = [
   "espagnol-lv2:L06"
  ],
  "apprend": "Indefinido et imperfecto dans un récit"
-}
+},
+ {
+  "id": "3d-21-aurore-boreale",
+  "type": "3d",
+  "url": "learning/games-3d/3d-21-aurore-boreale.html",
+  "titre": "Aurore boréale",
+  "ico": "🌌",
+  "lecons": [
+   "physique-chimie:L08",
+   "svt:L04"
+  ],
+  "apprend": "Physique · Lumière, vent solaire et champ magnétique"
+ },
+ {
+  "id": "3d-24-echelle-cosinus",
+  "type": "3d",
+  "url": "learning/games-3d/3d-24-echelle-cosinus.html",
+  "titre": "L'échelle et le cosinus",
+  "ico": "📐",
+  "lecons": [
+   "maths:L13",
+   "maths:L08"
+  ],
+  "apprend": "Maths · Cosinus et Pythagore dans un triangle rectangle"
+ },
+ {
+  "id": "3d-25-chambre-echo",
+  "type": "3d",
+  "url": "learning/games-3d/3d-25-chambre-echo.html",
+  "titre": "La chambre d'écho",
+  "ico": "🔊",
+  "lecons": [
+   "physique-chimie:L09"
+  ],
+  "apprend": "Physique · Vitesse du son et écho"
+ },
+ {
+  "id": "3d-28-volumes",
+  "type": "3d",
+  "url": "learning/games-3d/3d-28-volumes.html",
+  "titre": "Pyramides et cônes",
+  "ico": "🔺",
+  "lecons": [
+   "maths:L10"
+  ],
+  "apprend": "Maths · Volume des pyramides et des cônes"
+ },
+ {
+  "id": "3d-22-atelier-papier",
+  "type": "3d",
+  "url": "learning/games-3d/3d-22-atelier-papier.html",
+  "titre": "L'atelier de la Faiseuse de livres",
+  "ico": "📜",
+  "lecons": [
+   "histoire-geo:H4",
+   "physique-chimie:L03"
+  ],
+  "apprend": "Histoire · Fabrication du papier, proportions et révolution industrielle"
+ },
+ {
+  "id": "3d-23-apothicairerie",
+  "type": "3d",
+  "url": "learning/games-3d/3d-23-apothicairerie.html",
+  "titre": "L'apothicairerie",
+  "ico": "⚗️",
+  "lecons": [
+   "physique-chimie:L02",
+   "maths:L05"
+  ],
+  "apprend": "Physique et maths · Pourcentages, masse volumique, mélange et transformation"
+ },
+ {
+  "id": "3d-26-ville-xixe",
+  "type": "3d",
+  "url": "learning/games-3d/3d-26-ville-xixe.html",
+  "titre": "La ville au XIXᵉ siècle",
+  "ico": "🏙️",
+  "lecons": [
+   "francais:L11"
+  ],
+  "apprend": "Français · Regard panoramique et regard du passant"
+ },
+ {
+  "id": "3d-27-routes-negrieres",
+  "type": "3d",
+  "url": "learning/games-3d/3d-27-routes-negrieres.html",
+  "titre": "Ports négriers et routes maritimes",
+  "ico": "⛵",
+  "lecons": [
+   "histoire-geo:H1"
+  ],
+  "apprend": "Histoire · Commerce triangulaire, ports et abolitions"
+ },
+ {
+  "id": "3d-29-musee-lumieres",
+  "type": "3d",
+  "url": "learning/games-3d/3d-29-musee-lumieres.html",
+  "titre": "Le musée des Lumières",
+  "ico": "🖼️",
+  "lecons": [
+   "histoire-geo:H2"
+  ],
+  "apprend": "Histoire · Les philosophes des Lumières et leurs idées"
+ },
+ {
+  "id": "3d-30-migrations",
+  "type": "3d",
+  "url": "learning/games-3d/3d-30-migrations.html",
+  "titre": "Carte des migrations",
+  "ico": "🧭",
+  "lecons": [
+   "histoire-geo:G3"
+  ],
+  "apprend": "Géographie · Flux migratoires, réfugiés et migrants économiques"
+ }
 ];

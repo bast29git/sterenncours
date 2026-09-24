@@ -96,6 +96,9 @@ let scene,camera,renderer,composer,bloom,controls,clock,raycaster,pointer,hovere
 let cellGroup, dnaGroup, organelles=[], dnaBases=[], camTarget=null, focusDist=14, flying=false;
 let labelWrap, labelEls={};
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const o=ob.userData&&ORG[ob.userData.key]; return o?{nom:o.name,phrase:o.sub}:null; }
+function LEGENDES_OPALINE(){ return Object.keys(ORG).filter(k=>vegetal||(k!=='chloro'&&k!=='paroi')).map(k=>({nom:ORG[k].name,phrase:ORG[k].sub})); }
 const shell=window.Konstrio.createGame({
   id:'3d-04-cellule-adn', code:'3D·04', title:'Cellule & ADN', type:'3D',
   domain:{ label:'Bio & SVT', color:'#2AA98C' },
@@ -145,6 +148,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   composer.addPass(new SMAAPass(W,H));
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08; controls.minDistance=4; controls.maxDistance=44; controls.autoRotate=REDUCED; controls.autoRotateSpeed=.35;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   // éclairage doux type microscope
   scene.add(new THREE.HemisphereLight(0xdfeaff,0x101a2e,1.05));
   const key=new THREE.DirectionalLight(0xffffff,1.15); key.castShadow=true; key.shadow.mapSize.set(1024,1024); key.position.set(7,9,7); scene.add(key);

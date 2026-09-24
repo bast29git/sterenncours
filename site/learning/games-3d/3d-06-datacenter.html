@@ -155,6 +155,9 @@ let ac = null, fanGain = null;
 let mode = 'detente', labelsOn = true;
 let challenge = null;                 // mode Cours
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const p=ob.userData&&EQUIP[ob.userData.equip]; return p?{nom:p.name,phrase:p.sub}:null; }
+function LEGENDES_OPALINE(){ return Object.values(EQUIP).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-06-datacenter', code:'3D·06', title:'Datacenter & infrastructure cloud', type:'3D',
   domain:{ label:'Réseaux & Systèmes', color:'#29B6E0' },
@@ -217,6 +220,7 @@ function init(){
   composer.addPass(new OutputPass());
 
   controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = .07;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.minDistance = 6; controls.maxDistance = 46; controls.maxPolarAngle = Math.PI * 0.495;
   controls.target.set(0, 2, -2); controls.autoRotate = REDUCED; controls.autoRotateSpeed = .35;
 

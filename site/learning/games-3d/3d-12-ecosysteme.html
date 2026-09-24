@@ -104,6 +104,9 @@ let night=false, ac=null, ambGain=null, chirpTimer=null;
 let phase=null, finds=null, sceneReady=false;
 
 /* ===== Grammaire commune : la coquille de jeu ===== */
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const p=ob.userData&&SPECIES[ob.userData.kind]; return p?{nom:p.name,phrase:p.sub}:null; }
+function LEGENDES_OPALINE(){ return Object.values(SPECIES).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell=window.Konstrio.createGame({
   id:'3d-12-ecosysteme', code:'3D·12', title:'Écosystème & biodiversité', type:'3D',
   domain:{ label:'Écologie', color:'#23A06E' },
@@ -158,12 +161,14 @@ function init(){
   composer.addPass(new OutputPass());
 
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=0.08;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.maxPolarAngle=Math.PI/2.12; controls.minDistance=9; controls.maxDistance=64; controls.target.set(0,2,0);
   controls.autoRotate=REDUCED; controls.autoRotateSpeed=0.28;
 
   // lumières : hémisphérique douce + soleil directionnel avec ombres
   hemi=new THREE.HemisphereLight(0xd8f0ff,0x4a6a3a,0.9); scene.add(hemi);
   sun=new THREE.DirectionalLight(0xfff2d8,1.5); sun.position.set(18,26,10); sun.castShadow=true;
+  window.Konstrio.rayonLumineux(THREE, scene, [18,26,10], [2,0,-1], 0xfff2c0, 1.2, 0.06);
   sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.near=1; sun.shadow.camera.far=100;
   sun.shadow.camera.left=-42; sun.shadow.camera.right=42; sun.shadow.camera.top=42; sun.shadow.camera.bottom=-42;
   sun.shadow.bias=-0.0004; scene.add(sun); scene.add(sun.target);

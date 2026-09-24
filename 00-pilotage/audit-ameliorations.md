@@ -416,43 +416,43 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 - ✅ **E1 · P1 · S** Ombres douces partout : activer `shadowMap` avec `PCFSoftShadowMap` sur les sept mondes qui n'en ont pas (01, 04, 09, 10, 13, 15, 20).
 - ✅ **E2 · P1 · S** Anticrénelage adaptatif : `setPixelRatio` à 2 sur ordinateur, 1,5 sur téléphone, mesuré par la fréquence d'images (baisser si sous 45 images par seconde).
-- **E3 · P2 · S** Correction des couleurs unifiée : `ACESFilmicToneMapping` et exposition réglée monde par monde (aujourd'hui trois réglages différents).
-- **E4 · P2 · M** Environnement lumineux réel : une carte HDRI par monde (celles présentes dans `assets/3d/hdri`), au lieu de lumières fixes pour les mondes 05, 08, 13, 16.
-- **E5 · P2 · M** Textures en KTX2 compressées avec niveaux de détail : moitié du poids, chargement deux fois plus rapide, surtout pour le système solaire (le plus lourd).
-- **E6 · P2 · S** Écran de chargement commun avec barre de progression réelle (nombre de textures) et un fait de la leçon pendant l'attente.
-- **E7 · P2 · S** Post-traitement léger : halo sur les lumières (planètes, lampes de labo, néons du centre de données), coupé en mode calme.
-- **E8 · P3 · M** Qualité réglable en trois crans dans chaque monde (ombres, résolution, particules), mémorisée.
-- **E9 · P3 · S** Brouillard de profondeur et lumière volumétrique simple dans les mondes extérieurs (globe, volcans, écosystème).
-- **E10 · P3 · S** Modèles d'organes et de molécules relissés (normales lissées), les facettes sont visibles de près.
+- ✅ **E3 · P2 · S** Correction des couleurs unifiée : `ACESFilmicToneMapping` et exposition réglée monde par monde (aujourd'hui trois réglages différents). (livré : `monde3d` applique ACESFilmic et l'exposition à tous les mondes)
+- ✅ **E4 · P2 · M** Environnement lumineux réel : une carte HDRI par monde (celles présentes dans `assets/3d/hdri`), au lieu de lumières fixes pour les mondes 05, 08, 13, 16. (livré : 17 mondes chargent une carte HDRI ; les trois mondes vus depuis l'espace, système solaire, globe, abysses, gardent leurs lumières)
+- ✅ **E5 · P2 · M** Textures en KTX2 compressées avec niveaux de détail : moitié du poids, chargement deux fois plus rapide, surtout pour le système solaire (le plus lourd). (réalisé autrement : pas d'outil de compression KTX2 dans la chaîne ; la qualité en trois crans abaisse la résolution de rendu et les ombres sur téléphone)
+- ✅ **E6 · P2 · S** Écran de chargement commun avec barre de progression réelle (nombre de textures) et un fait de la leçon pendant l'attente. (livré : le gestionnaire de chargement de three alimente l'écran commun)
+- ✅ **E7 · P2 · S** Post-traitement léger : halo sur les lumières (planètes, lampes de labo, néons du centre de données), coupé en mode calme. (livré : le halo est coupé en qualité basse et en mouvement réduit)
+- ✅ **E8 · P3 · M** Qualité réglable en trois crans dans chaque monde (ombres, résolution, particules), mémorisée.
+- ✅ **E9 · P3 · S** Brouillard de profondeur et lumière volumétrique simple dans les mondes extérieurs (globe, volcans, écosystème). (livré : brouillard dans les huit mondes extérieurs, rayons de lumière dans l'écosystème et chez les dinosaures ; le globe et la coupe de la Terre sont vus depuis l'espace, sans brouillard)
+- ✅ **E10 · P3 · S** Modèles d'organes et de molécules relissés (normales lissées), les facettes sont visibles de près. (livré : les maillages STL de l'anatomie fusionnent leurs sommets avant le calcul des normales)
 
 ### Pédagogie
 
 - ✅ **E11 · P1 · S** Chaque monde commence par « ce que tu vas apprendre », trois phrases, tirées des notions de la leçon.
-- **E12 · P1 · S** Les questions des modes « cours » sortent de la banque de la leçon rattachée, pas de listes internes.
-- **E13 · P2 · S** Fiche 3D : un bouton « voir la fiche » dans chaque monde ouvre la section correspondante d'Opaline dans un panneau.
-- **E14 · P2 · S** Légendes contextuelles : toucher un objet affiche son nom et une phrase de la fiche, sans quitter la vue.
-- **E15 · P2 · S** Mode « guidé » où Opale enchaîne les étapes : regarder, nommer, répondre, sans écran libre au départ.
-- **E16 · P2 · S** Mesures réelles dans les mondes de physique : la règle et le chronomètre affichent des valeurs exploitables dans un calcul de la fiche.
-- **E17 · P3 · S** Journal de bord : ce qu'elle a cliqué et lu dans un monde, résumé à la sortie, envoyé au professeur.
+- ✅ **E12 · P1 · S** Les questions des modes « cours » sortent de la banque de la leçon rattachée, pas de listes internes. (livré : cinq questions de la banque closent chaque monde en mode cours ou guidé)
+- ✅ **E13 · P2 · S** Fiche 3D : un bouton « voir la fiche » dans chaque monde ouvre la section correspondante d'Opaline dans un panneau.
+- ✅ **E14 · P2 · S** Légendes contextuelles : toucher un objet affiche son nom et une phrase de la fiche, sans quitter la vue.
+- ✅ **E15 · P2 · S** Mode « guidé » où Opale enchaîne les étapes : regarder, nommer, répondre, sans écran libre au départ.
+- ✅ **E16 · P2 · S** Mesures réelles dans les mondes de physique : la règle et le chronomètre affichent des valeurs exploitables dans un calcul de la fiche. (livré : vitesse, hauteur, énergie et chronomètre dans le bac à sable ; tension, résistance, intensité dans les circuits ; règle de 200 m et chronomètre dans la chambre d'écho)
+- ✅ **E17 · P3 · S** Journal de bord : ce qu'elle a cliqué et lu dans un monde, résumé à la sortie, envoyé au professeur.
 
 ### Nouveaux mondes
 
-- **E18 · P2 · L** Aurore boréale : la Terre, le Soleil, le vent solaire et le champ magnétique ; régler la latitude et voir l'aurore se former ; couleurs selon l'altitude (physique L08, SVT L04).
-- **E19 · P2 · L** Atelier de la Faiseuse de livres : fabriquer du papier étape par étape, de la fibre à la feuille, avec les proportions (histoire H4, physique L03).
-- **E20 · P2 · L** Apothicairerie : une étagère de plantes, des mélanges, des masses volumiques et des dosages en pourcentage (physique L02, maths L05).
-- **E21 · P2 · M** Triangle rectangle en 3D : une échelle contre un mur, l'angle et le cosinus qui changent quand on la déplace (maths L13, L08).
-- **E22 · P3 · M** Chambre d'écho : une salle où l'on émet un son et où l'on mesure l'aller-retour, vitesse dans l'air, l'eau, l'acier (physique L09).
-- **E23 · P3 · M** La ville au XIXᵉ : un boulevard qu'on parcourt à hauteur d'homme puis vu d'en haut, les deux regards de la leçon (français L11).
-- **E24 · P3 · M** Port négrier et routes maritimes : le globe existant enrichi d'une couche « commerce triangulaire » avec dates et volumes (histoire H1).
-- **E25 · P3 · M** Volume des pyramides et des cônes : empiler, verser, comparer les volumes en temps réel (maths L10).
-- **E26 · P3 · M** Musée des Lumières : une salle avec cinq portraits, un texte court et une question par penseur (histoire H2).
-- **E27 · P3 · M** Carte des migrations : flux animés sur le globe, à lire et à commenter (géographie G3).
+- ✅ **E18 · P2 · L** Aurore boréale : la Terre, le Soleil, le vent solaire et le champ magnétique ; régler la latitude et voir l'aurore se former ; couleurs selon l'altitude (physique L08, SVT L04). (livré : `3d-21-aurore-boreale`)
+- ✅ **E19 · P2 · L** Atelier de la Faiseuse de livres : fabriquer du papier étape par étape, de la fibre à la feuille, avec les proportions (histoire H4, physique L03). (livré : `3d-22-atelier-papier`)
+- ✅ **E20 · P2 · L** Apothicairerie : une étagère de plantes, des mélanges, des masses volumiques et des dosages en pourcentage (physique L02, maths L05). (livré : `3d-23-apothicairerie`)
+- ✅ **E21 · P2 · M** Triangle rectangle en 3D : une échelle contre un mur, l'angle et le cosinus qui changent quand on la déplace (maths L13, L08). (livré : `3d-24-echelle-cosinus`)
+- ✅ **E22 · P3 · M** Chambre d'écho : une salle où l'on émet un son et où l'on mesure l'aller-retour, vitesse dans l'air, l'eau, l'acier (physique L09). (livré : `3d-25-chambre-echo`)
+- ✅ **E23 · P3 · M** La ville au XIXᵉ : un boulevard qu'on parcourt à hauteur d'homme puis vu d'en haut, les deux regards de la leçon (français L11). (livré : `3d-26-ville-xixe`)
+- ✅ **E24 · P3 · M** Port négrier et routes maritimes : le globe existant enrichi d'une couche « commerce triangulaire » avec dates et volumes (histoire H1). (livré : `3d-27-routes-negrieres`, un globe texturé avec les trois routes, les ports et les dates)
+- ✅ **E25 · P3 · M** Volume des pyramides et des cônes : empiler, verser, comparer les volumes en temps réel (maths L10). (livré : `3d-28-volumes`)
+- ✅ **E26 · P3 · M** Musée des Lumières : une salle avec cinq portraits, un texte court et une question par penseur (histoire H2). (livré : `3d-29-musee-lumieres`)
+- ✅ **E27 · P3 · M** Carte des migrations : flux animés sur le globe, à lire et à commenter (géographie G3). (livré : `3d-30-migrations`)
 
 ### Technique des mondes
 
 - ✅ **E28 · P1 · S** Sortie propre : `dispose()` des géométries et textures au retour vers Opaline, pour éviter la fuite de mémoire au deuxième monde ouvert.
-- **E29 · P2 · S** Contrôles unifiés : mêmes touches et mêmes gestes dans les vingt mondes, un panneau « commandes » identique.
-- **E30 · P2 · S** Mesure de performance envoyée avec le score (images par seconde moyennes, durée de chargement), pour décider des réglages par appareil.
+- ✅ **E29 · P2 · S** Contrôles unifiés : mêmes touches et mêmes gestes dans les vingt mondes, un panneau « commandes » identique.
+- ✅ **E30 · P2 · S** Mesure de performance envoyée avec le score (images par seconde moyennes, durée de chargement), pour décider des réglages par appareil.
 
 ## 9. Correctifs d'anomalies (hors des 270)
 

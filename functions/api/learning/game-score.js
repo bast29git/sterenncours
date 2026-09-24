@@ -44,6 +44,11 @@ export const onRequestPost = gerer(async (context) => {
   if (corps.detail && typeof corps.detail === 'object') {
     const d = corps.detail;
     const detail = { justes: Number(d.justes) || 0, total: Number(d.total) || 0, difficulte: Number(d.difficulte) || null, mode: String(corps.mode || '').slice(0, 10), ratees: Array.isArray(d.ratees) ? d.ratees.slice(0, 10).map((x) => String(x).slice(0, 80)) : [], le: maintenant() };
+    // E12, E17, E30 : questions de la leçon, journal de bord et mesures d'un monde 3D, bornés.
+    if (d.banque && typeof d.banque === 'object') detail.banque = { justes: Number(d.banque.justes) || 0, total: Number(d.banque.total) || 0, ratees: Array.isArray(d.banque.ratees) ? d.banque.ratees.slice(0, 10).map((x) => String(x).slice(0, 80)) : [] };
+    if (d.journal && typeof d.journal === 'object') detail.journal = { touches: Array.isArray(d.journal.touches) ? d.journal.touches.slice(0, 20).map((x) => String(x).slice(0, 60)) : [], fiche: Number(d.journal.fiche) || 0, guide: Number(d.journal.guide) || 0 };
+    if (d.perf && typeof d.perf === 'object') detail.perf = { ips: Number(d.perf.ips) || null, chargement_ms: Number(d.perf.chargement_ms) || null, qualite: Number(d.perf.qualite) || null, ratio: Number(d.perf.ratio) || null, mobile: !!d.perf.mobile };
+    if (d.duree_s != null) detail.duree_s = Math.min(36000, Math.max(0, Number(d.duree_s) || 0));
     try { await DB.prepare('UPDATE resultats SET detail = ? WHERE cle = ?').bind(JSON.stringify(detail), cle).run(); } catch (e) { /* colonne absente avant la migration 0010 */ }
   }
   await compter(context.env, 'jeu');

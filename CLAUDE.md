@@ -109,7 +109,7 @@ quelque chose, pas seulement signaler l'erreur.
   étoiles 1, leçon validée 3, félicitation 1. Une célébration s'affiche à chaque gain.
 - **Messagerie** (`site/messagerie.js`) : émojis par groupes, mise en forme légère
   (option), réactions animées, fils par matière (`messages.fil`, table `reactions`).
-- **Jeux** (`site/learning/`) : 20 mondes 3D et 53 jeux 2D rattachés aux leçons
+- **Jeux** (`site/learning/`) : 30 mondes 3D et 58 jeux 2D rattachés aux leçons
   (`site/data/jeux.js`), score envoyé à `/api/learning/game-score`.
 - **Accès et déblocages** (`/api/acces`, page « Accès et déblocages ») : trois états par élément
   (cours, révision, exercices, série, évaluation, jeu) : automatique, ouvert, fermé, avec date de

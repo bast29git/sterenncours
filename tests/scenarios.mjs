@@ -94,7 +94,7 @@ export const SCENARIOS = {
     ok(dernier && dernier.texte.includes('Message de test'), 'message enregistré');
     const r = await api(eleve.page, `/messages/${dernier.id}/reaction`, { method: 'POST', body: JSON.stringify({ emoji: '👍' }) });
     ok(r.statut === 200 && r.corps.ajoutee, 'réaction ajoutée');
-    ok(!eleve.erreurs.length, 'sans erreur JS');
+    ok(!eleve.erreurs.length, 'sans erreur JS : ' + eleve.erreurs.join(' | '));
   },
   async 'félicitation et célébration'(nav, BASE) {
     const eleve = await ouvrir(nav, BASE, ELEVE);
@@ -136,7 +136,7 @@ export const SCENARIOS = {
     const { page, erreurs } = await ouvrir(nav, BASE, ELEVE);
     await page.click('#e-btn-confort'); await page.waitForTimeout(600);
     ok(await page.evaluate(() => { const p = document.querySelector('.cf-panel'); return p && !p.hidden; }), 'panneau de confort ouvert');
-    ok(!erreurs.length, 'sans erreur JS');
+    ok(!erreurs.length, 'sans erreur JS : ' + erreurs.join(' | '));
   },
   async 'contrat des API : un corps invalide répond 400 en français avec un code'(nav, BASE) {
     const { page } = await ouvrir(nav, BASE, PROF);

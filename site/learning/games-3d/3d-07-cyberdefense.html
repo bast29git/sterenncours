@@ -194,6 +194,10 @@ let ac = null, humGain = null;
 let mode = 'detente', labelsOn = true;
 let challenge = null, quizTier = 'debutant';
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+const AUTRES_OPALINE={internet:{name:'Internet',sub:'Le réseau extérieur, d\'où viennent les menaces'},core:{name:'Cœur du réseau',sub:'Les serveurs à protéger'}};
+function LEGENDE_OPALINE(ob){ const k=ob.userData&&ob.userData.equip; const p=k&&(DEFBYID[k]||AUTRES_OPALINE[k]); return p?{nom:p.name,phrase:p.sub}:null; }
+function LEGENDES_OPALINE(){ return DEF.map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-07-cyberdefense', code:'3D·07', title:'Cyber-défense 3D', type:'3D',
   domain:{ label:'Cybersécurité', color:'#E63329' },
@@ -251,6 +255,7 @@ function init(){
   composer.addPass(new OutputPass());
 
   controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = .07;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.minDistance = 8; controls.maxDistance = 52; controls.maxPolarAngle = Math.PI * 0.49;
   controls.target.set(0, 2, 0); controls.autoRotate = REDUCED; controls.autoRotateSpeed = .3;
 

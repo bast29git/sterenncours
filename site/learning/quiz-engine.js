@@ -12,7 +12,7 @@
    .qz{ position:absolute; inset:0; overflow:auto; display:flex; flex-direction:column; align-items:center; padding:18px 16px 34px; gap:14px; }
    .qz-diff{ display:flex; gap:6px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:4px; }
    .qz-diff button{ font-family:var(--font-body); font-weight:700; font-size:12px; padding:7px 15px; border-radius:999px; border:none; background:transparent; color:var(--fg-muted); cursor:pointer; }
-   .qz-diff button[aria-pressed="true"]{ background:var(--accent); color:#fff; }
+   .qz-diff button[aria-pressed="true"]{ background:var(--accent); color: var(--on-accent, #fff); }
    .qz-card{ width:min(580px,100%); background:var(--surface); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-md); padding:22px; display:flex; flex-direction:column; gap:15px; animation:fadeUp .35s both; }
    .qz-visual{ background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:14px 16px; overflow-x:auto; }
    .qz-prompt{ font-size:17px; line-height:1.45; font-weight:600; }
@@ -26,7 +26,7 @@
    .qz-fb{ display:none; font-size:14px; line-height:1.5; }
    .qz-fb.show{ display:block; padding:13px 15px; border-radius:12px; }
    .qz-fb.good{ background:var(--ok); color:var(--ok-fg); } .qz-fb.bad{ background:var(--err); color:var(--err-fg); }
-   .qz-next{ min-height:46px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-family:var(--font-body); font-weight:700; font-size:15px; cursor:pointer; width:100%; }
+   .qz-next{ min-height:46px; border-radius:12px; border:none; background:var(--accent); color: var(--on-accent, #fff); font-family:var(--font-body); font-weight:700; font-size:15px; cursor:pointer; width:100%; }
    .qz-mono{ font-family:var(--font-mono); }
    .qz-grid{ border-collapse:collapse; font-family:var(--font-mono); font-size:13px; }
    .qz-grid th,.qz-grid td{ border:1px solid var(--border); padding:5px 10px; text-align:center; }
@@ -76,7 +76,7 @@
       const r = rounds[idx]; api.setLevel((idx + 1) + '/' + rounds.length); api.setProgress(idx / rounds.length);
       const opts = shuffle(r.options);
       root.innerHTML = `<div class="qz-diff">${['Facile', 'Moyen', 'Expert'].map((d, i) => `<button data-d="${i + 1}" aria-pressed="${diff === i + 1}">${d}</button>`).join('')}</div>
-        <div class="qz-card">${r.visual ? `<div class="qz-visual">${r.visual}</div>` : ''}<div class="qz-prompt">${r.prompt}</div>
+        <div class="qz-card">${r.visual ? `<div class="qz-visual" tabindex="0" aria-label="Illustration de la question">${r.visual}</div>` : ''}<div class="qz-prompt">${r.prompt}</div>
         <div class="qz-opts">${opts.map(o => `<button class="qz-opt" data-o="${esc(o)}">${o}</button>`).join('')}</div><div class="qz-fb" id="qzFb"></div></div>`;
       root.querySelectorAll('.qz-diff button').forEach(b => b.onclick = () => { diff = +b.dataset.d; api.save({ diff }); reset(); });
       root.querySelectorAll('.qz-opt').forEach((b, k) => { b.onclick = () => answer(b.dataset.o, b, r); b.setAttribute('data-touche', String(k + 1)); b.title = 'Touche ' + (k + 1); });

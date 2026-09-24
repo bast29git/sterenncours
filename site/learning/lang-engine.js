@@ -17,7 +17,7 @@
     .lg2{ position:absolute; inset:0; overflow:auto; display:flex; flex-direction:column; align-items:center; padding:18px 16px 34px; gap:14px; }
     .lg2-diff{ display:flex; gap:6px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:4px; }
     .lg2-diff button{ font-family:var(--font-body); font-weight:700; font-size:12px; padding:7px 15px; border-radius:999px; border:none; background:transparent; color:var(--fg-muted); cursor:pointer; }
-    .lg2-diff button[aria-pressed="true"]{ background:var(--accent); color:#fff; }
+    .lg2-diff button[aria-pressed="true"]{ background:var(--accent); color: var(--on-accent, #fff); }
     .lg2-card{ width:min(560px,100%); background:var(--surface); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-md); padding:24px; display:flex; flex-direction:column; gap:16px; animation:fadeUp .35s both; }
     .lg2-prompt{ font-size:19px; line-height:1.4; font-weight:600; display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
     .lg2-prompt .big{ font-family:var(--font-title); font-weight:800; font-size:30px; color:var(--accent-text); }
@@ -36,12 +36,12 @@
     .lg2-chip{ font-family:var(--font-body); font-weight:700; font-size:15px; padding:9px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; }
     .lg2-chip:hover{ border-color:var(--accent); }
     .lg2-chip.used{ opacity:.3; pointer-events:none; }
-    .lg2-check{ min-height:48px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-family:var(--font-body); font-weight:700; font-size:15px; cursor:pointer; }
+    .lg2-check{ min-height:48px; border-radius:12px; border:none; background:var(--accent); color: var(--on-accent, #fff); font-family:var(--font-body); font-weight:700; font-size:15px; cursor:pointer; }
     .lg2-fb{ font-size:14px; line-height:1.5; padding:0; display:none; }
     .lg2-fb.show{ display:block; padding:13px 15px; border-radius:12px; }
     .lg2-fb.good{ background:var(--ok); color:var(--ok-fg); }
     .lg2-fb.bad{ background:var(--err); color:var(--err-fg); }
-    .lg2-next{ min-height:46px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-family:var(--font-body); font-weight:700; font-size:15px; cursor:pointer; width:100%; }`;
+    .lg2-next{ min-height:46px; border-radius:12px; border:none; background:var(--accent); color: var(--on-accent, #fff); font-family:var(--font-body); font-weight:700; font-size:15px; cursor:pointer; width:100%; }`;
     document.head.appendChild(st);
   }
 

@@ -15,6 +15,16 @@ const seulement = process.argv[2];
 
 const nav = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--no-sandbox', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await nav.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+// Le dossier /learning est réservé aux sessions ouvertes : on entre d'abord avec le code élève de test.
+{
+  const entree = await ctx.newPage();
+  await entree.goto(BASE + '/', { waitUntil: 'networkidle' });
+  await entree.fill('#code', process.env.CODE_ELEVE_TEST || 'sanka29'); await entree.click('.entree-bouton');
+  await entree.waitForFunction(() => !document.getElementById('portail') || document.getElementById('portail').hidden, null, { timeout: 15000 });
+  const test = await entree.goto(BASE + '/learning/shell.js');
+  if (!test || test.status() !== 200) { console.log('❌ session élève impossible : /learning répond ' + (test ? test.status() : '?')); process.exit(1); }
+  await entree.close();
+}
 let problemes = 0;
 for (const url of jeux.filter((u) => !seulement || u.includes(seulement))) {
   const page = await ctx.newPage();
@@ -26,7 +36,9 @@ for (const url of jeux.filter((u) => !seulement || u.includes(seulement))) {
     const large = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
     await page.addScriptTag({ content: AXE });
     const axe = await page.evaluate(async () => { const r = await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa'], resultTypes: ['violations'] }); return r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => v.id + ' ×' + v.nodes.length); });
+    const jeuPresent = await page.$('.ksh-root, .ksh-hud, canvas, .qz-card, .lg2-card, [data-jeu]');
     const soucis = [];
+    if (!jeuPresent) soucis.push('page sans jeu (redirection ?)');
     if (large) soucis.push('défilement horizontal');
     if (erreurs.length) soucis.push('erreurs JS : ' + erreurs.join(' | '));
     if (axe.length) soucis.push('axe : ' + axe.join(', '));

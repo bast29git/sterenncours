@@ -207,6 +207,7 @@ function init(){
   composer.addPass(new OutputPass());
 
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: null });
   controls.minDistance=12; controls.maxDistance=54; controls.maxPolarAngle=Math.PI/2.08; controls.target.set(0,2,0);
   controls.autoRotate=REDUCED; controls.autoRotateSpeed=.28;
 
@@ -732,6 +733,7 @@ function buildUI(){
     <div class="sep"></div>
     <div class="r">Vitesse suivie <b id="telV">0.0 m/s</b></div>
     <div class="r">Hauteur <b id="telH">0.0 m</b></div>
+    <div class="r">Chronomètre <b id="telT">0.00 s</b></div>
     <div class="bar"><i id="telKe" style="background:#E63329;width:50%"></i><i id="telPe" style="background:#29B6E0;width:50%"></i></div>
     <div class="bk"><span>cinétique</span><span>potentielle</span></div>`;
   stage.appendChild(tel);
@@ -816,6 +818,7 @@ function updateTelemetry(){
   if(!b||!bodies.includes(b)){ tv.textContent='0.0 m/s'; th.textContent='0.0 m'; document.getElementById('telKe').style.width='50%'; document.getElementById('telPe').style.width='50%'; return; }
   const sp=b.vel.length(), h=Math.max(0,b.pos.y-(b.r||b.half.y)); const ke=0.5*b.mass*sp*sp, pe=b.mass*gMag*h; const tot=ke+pe||1;
   tv.textContent=sp.toFixed(1)+' m/s'; th.textContent=h.toFixed(1)+' m';
+  const tt=document.getElementById('telT'); if(tt){ if(b.chrono==null) b.chrono=performance.now(); tt.textContent=((performance.now()-b.chrono)/1000).toFixed(2)+' s'; }
   document.getElementById('telKe').style.width=(ke/tot*100).toFixed(0)+'%'; document.getElementById('telPe').style.width=(pe/tot*100).toFixed(0)+'%';
 }
 

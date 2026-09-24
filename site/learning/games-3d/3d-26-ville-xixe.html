@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Opaline · La ville au XIXᵉ siècle</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+</head>
+<body>
+<script type="module">
+import { creerMonde, THREE, textureTexte } from '../monde-base.js';
+
+const LEGENDES = [
+  { nom: 'Immeuble haussmannien', phrase: 'Cinq étages, balcons filants, pierre de taille : la ville nouvelle, régulière, monumentale.' },
+  { nom: 'Réverbère à gaz', phrase: 'Allumé chaque soir : la ville ne dort plus, elle brille. Promesse pour les uns, vertige pour les autres.' },
+  { nom: 'Grand magasin', phrase: 'Vitrines, lumière, marchandises entassées : « Au Bonheur des Dames » de Zola en fait un temple de la consommation.' },
+  { nom: 'Fiacre', phrase: 'La voiture de louage : le bruit des roues sur le pavé, la vitesse, le danger de la rue.' },
+  { nom: 'Foule', phrase: 'Le flâneur s\'y perd et l\'observe : elle fascine et menace, anonyme et vivante.' },
+  { nom: 'Boulevard', phrase: 'Large, rectiligne, percé au XIXᵉ : la ville s\'ouvre, se traverse, se donne à voir.' },
+  { nom: 'Plaque d\'égout', phrase: 'Sous la ville lumineuse, la ville souterraine : l\'envers du décor, celui des « Misérables ».' },
+];
+let regard = 'passant'; let position = 0; let M, panneau, foule = [], fiacre, lampes = [];
+const shell = window.Konstrio.createGame({
+  id: '3d-26-ville-xixe', code: '3D·26', title: 'La ville au XIXᵉ siècle', type: '3D', duree: '12 min',
+  domain: { label: 'Français', color: '#B03A8A' },
+  intro: {
+    greet: 'Un boulevard du XIXᵉ siècle. Parcours-le à hauteur d\'homme, puis regarde-le d\'en haut : ce sont les deux regards de la leçon.',
+    rule: 'Le regard du passant voit les détails, les bruits, la foule qui bouscule. Le regard panoramique voit la ville entière, comme un tableau. Change de regard et touche ce que tu vois.',
+    how: ['Le panneau bascule entre « regard du passant » et « regard panoramique ».', 'Le curseur avance le long du boulevard.', 'Touche un immeuble, un réverbère, le fiacre, la foule : chaque objet a sa phrase.'],
+    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    objectif: 'Distinguer le regard panoramique et le regard du passant, reconnaître personnification, énumération et contraste, et dire en quoi la ville est promesse et menace.',
+    hint: 'Panoramique : d\'en haut, l\'ensemble, l\'énumération. Passant : de près, les sensations, la foule.',
+    why: 'Baudelaire, Zola, Hugo ou Verhaeren écrivent la ville moderne avec ces deux regards : elle attire et elle inquiète.',
+  },
+  learned: ['Le regard panoramique embrasse la ville entière ; le regard du passant la vit de près, dans la foule.', 'Personnification, énumération et contraste sont les figures qui font vivre la ville dans un texte.', 'La ville du XIXᵉ est à la fois promesse (lumière, liberté, réussite) et menace (foule, misère, solitude).'],
+  onReady: init, onStart: demarrer,
+});
+
+function init() {
+  M = creerMonde(shell, { fond: 0xd9dfe6, hdri: '../assets/3d/env/sky_day_1k.hdr', sol: { taille: 90, couleur: 0x6f6a63 }, ambiance: 0.75, soleil: { position: [20, 30, 14], intensite: 1.7, etendue: 40 }, brouillard: { couleur: 0xd9dfe6, densite: 0.012 }, camera: { position: [3, 1.7, 26], cible: [0, 1.6, 0], min: 1, max: 90, polaire: Math.PI * 0.49 }, legendes: LEGENDES, libelle: 'Un boulevard du XIXᵉ siècle bordé d\'immeubles, avec des passants et un fiacre' });
+  const { scene, mesh, mat, legender } = M;
+  const LONG = 64;
+  // chaussée, trottoirs, plaques
+  const chaussee = mesh(new THREE.BoxGeometry(12, 0.1, LONG), mat(0x55534f, { rugosite: 1 }), [0, 0.02, 0]); chaussee.raycast = () => {};
+  [-8.5, 8.5].forEach((x) => { const t = mesh(new THREE.BoxGeometry(5, 0.18, LONG), mat(0x9a948a, { rugosite: 1 }), [x, 0.09, 0]); legender(t, 'Boulevard', LEGENDES[5].phrase); });
+  legender(chaussee, 'Boulevard', LEGENDES[5].phrase);
+  for (let z = -24; z <= 24; z += 16) { const p = mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.04, 20), mat(0x3a3a3a, { metal: 0.6, rugosite: 0.5 }), [4.5, 0.09, z]); legender(p, 'Plaque d\'égout', LEGENDES[6].phrase); }
+  // immeubles
+  const texFacade = (couleur) => { const c = document.createElement('canvas'); c.width = 256; c.height = 512; const x = c.getContext('2d'); x.fillStyle = couleur; x.fillRect(0, 0, 256, 512); x.fillStyle = '#2b2a33'; for (let e = 0; e < 6; e += 1) for (let f = 0; f < 4; f += 1) { x.fillRect(22 + f * 58, 30 + e * 78, 30, 48); } x.fillStyle = 'rgba(0,0,0,0.25)'; for (let e = 1; e < 6; e += 1) x.fillRect(0, e * 78 + 20, 256, 4); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
+  const facades = ['#d9c9a8', '#cdbb98', '#e2d3b3', '#c9b58f'].map(texFacade);
+  for (let i = 0; i < 8; i += 1) {
+    for (const cote of [-1, 1]) {
+      const h = 15 + (i * 7 % 3) * 1.5; const g = new THREE.Group(); scene.add(g);
+      const corps = mesh(new THREE.BoxGeometry(9, h, 7.4), new THREE.MeshStandardMaterial({ map: facades[(i + (cote > 0 ? 1 : 0)) % 4], roughness: 0.9 }), [0, h / 2, 0], g);
+      corps.material.map.repeat.set(1, 1);
+      mesh(new THREE.BoxGeometry(9.4, 1.2, 7.8), mat(0x4a4f5a, { rugosite: 0.6 }), [0, h + 0.6, 0], g); // toit zinc
+      for (let e = 2; e < 6; e += 1) { const b = mesh(new THREE.BoxGeometry(8.6, 0.08, 0.5), mat(0x2f2f36, { metal: 0.5, rugosite: 0.5 }), [0, e * 2.55 + 1.0, cote < 0 ? 3.95 : -3.95], g); b.castShadow = false; }
+      g.position.set(cote * 15.5, 0, -28 + i * 8);
+      legender(g, 'Immeuble haussmannien', LEGENDES[0].phrase);
+    }
+  }
+  // grand magasin
+  const gm = new THREE.Group(); scene.add(gm); gm.position.set(15.5, 0, 36);
+  mesh(new THREE.BoxGeometry(9, 12, 7.4), mat(0xe9dfc8, { rugosite: 0.8 }), [0, 6, 0], gm);
+  const vitrine = mesh(new THREE.BoxGeometry(0.3, 4, 6.8), new THREE.MeshPhysicalMaterial({ color: 0xbfe6ff, transparent: true, opacity: 0.55, roughness: 0.05, metalness: 0.1 }), [-4.6, 2.2, 0], gm); vitrine.castShadow = false;
+  const enseigne = mesh(new THREE.PlaneGeometry(6, 1), new THREE.MeshBasicMaterial({ map: textureTexte('AU BONHEUR', { taille: 40, fond: '#7a1f2b', couleur: '#ffd86b' }) }), [-4.55, 5.2, 0], gm); enseigne.rotation.y = -Math.PI / 2; enseigne.castShadow = false;
+  legender(gm, 'Grand magasin', LEGENDES[2].phrase);
+  // réverbères
+  for (let z = -28; z <= 28; z += 8) for (const x of [-6.2, 6.2]) {
+    const g = new THREE.Group(); scene.add(g); g.position.set(x, 0, z + 4);
+    mesh(new THREE.CylinderGeometry(0.07, 0.11, 3.6, 10), mat(0x1f2a24, { metal: 0.6, rugosite: 0.4 }), [0, 1.8, 0], g);
+    const lanterne = mesh(new THREE.BoxGeometry(0.45, 0.6, 0.45), new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: 0xffc860, emissiveIntensity: 0.6, transparent: true, opacity: 0.9 }), [0, 3.9, 0], g); lanterne.castShadow = false; lampes.push(lanterne);
+    legender(g, 'Réverbère à gaz', LEGENDES[1].phrase);
+  }
+  // arbres
+  for (let z = -28; z <= 28; z += 8) for (const x of [-9.5, 9.5]) { const g = new THREE.Group(); scene.add(g); g.position.set(x, 0, z); mesh(new THREE.CylinderGeometry(0.12, 0.18, 2.6, 8), mat(0x5a4030), [0, 1.3, 0], g); mesh(new THREE.SphereGeometry(1.4, 12, 10), mat(0x4f7a3a, { rugosite: 1 }), [0, 3.4, 0], g); g.userData.legende = { nom: 'Boulevard', phrase: LEGENDES[5].phrase }; g.traverse((c) => { c.userData.legende = g.userData.legende; }); }
+  // fiacre
+  fiacre = new THREE.Group(); scene.add(fiacre); fiacre.position.set(2.5, 0, 10);
+  mesh(new THREE.BoxGeometry(1.6, 1.4, 2.6), mat(0x2a1f1a, { rugosite: 0.5 }), [0, 1.3, 0], fiacre);
+  mesh(new THREE.BoxGeometry(1.5, 0.5, 1.0), mat(0x3a2a20), [0, 2.05, 1.6], fiacre);
+  [[-0.85, 1.0, 0.7], [0.85, 1.0, 0.7], [-0.85, 0.7, -0.9], [0.85, 0.7, -0.9]].forEach((p) => { const r = mesh(new THREE.CylinderGeometry(p[1] * 0.7, p[1] * 0.7, 0.12, 18), mat(0x5a4030), [p[0], p[1] * 0.7, p[2]], fiacre); r.rotation.z = Math.PI / 2; });
+  const cheval = mesh(new THREE.BoxGeometry(0.7, 0.9, 1.9), mat(0x5b3a22), [0, 1.1, 3.6], fiacre); mesh(new THREE.BoxGeometry(0.35, 0.5, 0.9), mat(0x5b3a22), [0, 1.75, 4.6], fiacre);
+  [[-0.25, 2.9], [0.25, 2.9], [-0.25, 4.3], [0.25, 4.3]].forEach((p) => mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.7, 6), mat(0x4a2e1a), [p[0], 0.35, p[1]], fiacre));
+  legender(fiacre, 'Fiacre', LEGENDES[3].phrase);
+  // foule
+  const teintes = [0x2b2b33, 0x4a3a55, 0x6b4a3a, 0x3a4a6b, 0x7a6a5a, 0x5a2a3a];
+  for (let i = 0; i < 34; i += 1) {
+    const g = new THREE.Group(); scene.add(g);
+    mesh(new THREE.CapsuleGeometry(0.22, 0.9, 4, 10), mat(teintes[i % 6], { rugosite: 0.9 }), [0, 0.75, 0], g);
+    mesh(new THREE.SphereGeometry(0.16, 10, 8), mat(0xe8c9a8), [0, 1.5, 0], g);
+    mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.22, 10), mat(0x1a1a1a), [0, 1.72, 0], g);
+    const cote = i % 2 ? 1 : -1; g.position.set(cote * (7 + Math.random() * 3.6), 0, -30 + Math.random() * 60); g.userData.v = (0.4 + Math.random() * 0.6) * (Math.random() < 0.5 ? 1 : -1);
+    legender(g, 'Foule', LEGENDES[4].phrase); foule.push(g);
+  }
+  panneau = M.panneau(`<h3>Le regard</h3>
+    <div class="mb-groupe" role="group" aria-label="Regard"><button class="mb-bouton" data-regard="passant" aria-pressed="true">Regard du passant</button><button class="mb-bouton" data-regard="panoramique" aria-pressed="false">Regard panoramique</button></div>
+    <label>Avancer sur le boulevard <input class="mb-plage" id="vi-pos" type="range" min="0" max="100" step="1" value="0" aria-label="Position sur le boulevard"></label>
+    <p class="mb-carte" id="vi-texte"></p>
+    <h3>Les mots de la leçon</h3>
+    <p><b>Personnification</b> : « la ville tend ses bras ». <b>Énumération</b> : toits, cheminées, dômes, clochers. <b>Contraste</b> : lumière des vitrines, ombre des ruelles.</p>`);
+  panneau.querySelectorAll('[data-regard]').forEach((b) => b.addEventListener('click', () => changerRegard(b.getAttribute('data-regard'))));
+  panneau.querySelector('#vi-pos').addEventListener('input', (e) => { position = Number(e.target.value); placerCamera(false); });
+  changerRegard('passant');
+  M.boucle((dt, t) => {
+    fiacre.position.z -= dt * 3.2; if (fiacre.position.z < -34) fiacre.position.z = 34; fiacre.children.slice(2, 6).forEach((r) => { r.rotation.x += dt * 4; });
+    foule.forEach((g) => { g.position.z += dt * g.userData.v; if (g.position.z > 31) g.position.z = -31; if (g.position.z < -31) g.position.z = 31; g.position.y = 0.03 * Math.abs(Math.sin(t * 6 + g.position.x)); });
+    lampes.forEach((l, i) => { l.material.emissiveIntensity = 0.55 + 0.1 * Math.sin(t * 5 + i); });
+  });
+}
+function changerRegard(r) {
+  regard = r; panneau.querySelectorAll('[data-regard]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-regard') === r)));
+  panneau.querySelector('#vi-texte').textContent = r === 'passant' ? 'À hauteur d\'homme : les pavés, les roues du fiacre, la foule qui frôle, l\'odeur du gaz. Le texte dit les sensations, au présent, à la première personne.' : 'D\'en haut : le boulevard tiré au cordeau, les toits gris, les dômes, la fumée. Le texte énumère, décrit l\'ensemble, comme un tableau ou une carte.';
+  placerCamera(true);
+  shell.say(panneau.querySelector('#vi-texte').textContent, 'concentre');
+}
+function placerCamera(saut) {
+  const z = 28 - position * 0.56;
+  if (regard === 'passant') { M.camera.position.set(6.5, 1.7, z); M.controls.target.set(0, 1.6, z - 12); M.controls.minDistance = 1; M.controls.maxPolarAngle = Math.PI * 0.52; }
+  else { M.camera.position.set(saut ? 26 : M.camera.position.x, 42, z + 10); M.controls.target.set(0, 0, z - 10); M.controls.minDistance = 8; M.controls.maxPolarAngle = Math.PI * 0.45; }
+  M.controls.update();
+}
+function demarrer(mode, api) {
+  if (mode !== 'cours') { api.say('Change de regard, avance sur le boulevard, touche ce que tu vois. Chaque objet a sa phrase.', 'joyeux'); return; }
+  api.defis([
+    { type: 'verifier', texte: 'Passe au <b>regard du passant</b>, à hauteur d\'homme.', bouton: 'C\'est fait', verifier: () => regard === 'passant', indice: 'Le bouton « Regard du passant » dans le panneau.', explication: 'Le passant voit de près : détails, bruits, foule. C\'est le regard de Baudelaire dans « Le Spleen de Paris ».', avant: () => changerRegard('panoramique') },
+    { type: 'qcm', texte: 'Le regard panoramique, c\'est…', choix: ['voir la ville d\'en haut, dans son ensemble, comme un tableau', 'voir un détail de très près', 'fermer les yeux et imaginer', 'lire un plan de métro'], reponse: 0, explication: 'Panoramique vient du grec « tout voir » : le narrateur domine la ville et l\'énumère, toits, dômes, fumées.' },
+    { type: 'toucher', texte: 'Touche un <b>réverbère à gaz</b>.', cible: 'Réverbère à gaz', explication: 'L\'éclairage au gaz change la ville : la nuit devient un spectacle. Promesse de lumière, mais aussi vertige.' },
+    { type: 'qcm', texte: '« La ville tend ses bras de fer vers le ciel » : quelle figure de style ?', choix: ['Une personnification', 'Une énumération', 'Une comparaison', 'Une hyperbole'], reponse: 0, explication: 'La ville agit comme une personne : elle « tend ses bras ». Une comparaison utiliserait « comme ».' },
+    { type: 'qcm', texte: 'Le flâneur, c\'est…', choix: ['celui qui marche sans but et observe la foule', 'le cocher du fiacre', 'le vendeur du grand magasin', 'le policier du boulevard'], reponse: 0, explication: 'Figure inventée par Baudelaire : le poète se perd dans la foule pour la regarder. Le poème en prose est sa forme.' },
+    { type: 'qcm', texte: '« Promesse et menace » : dans les textes du XIXᵉ, la ville est vue comme…', choix: ['à la fois attirante et dangereuse', 'seulement belle', 'seulement dangereuse', 'sans intérêt'], reponse: 0, explication: 'Lumière, réussite, liberté d\'un côté ; foule, misère, solitude de l\'autre. Le contraste structure ces textes.' },
+    { type: 'toucher', texte: 'Touche le <b>grand magasin</b>.', cible: 'Grand magasin', explication: 'Chez Zola, le grand magasin est un monstre qui dévore les petites boutiques : personnification et menace, encore.' },
+  ], { rejouer: () => demarrer('cours', api) });
+}
+</script>
+</body>
+</html>

@@ -188,6 +188,9 @@ let raycaster,pointer,marker,curZoneIdx=-1,selected=null,targetTween=null;
 let ac=null, ambGain=null, expedition=null, bubbleT=0, sceneReady=false;
 let cours=null;
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const p=ob.userData&&SPECIES[ob.userData.key]; return p?{nom:p.n,phrase:p.sub}:null; }
+function LEGENDES_OPALINE(){ return Object.values(SPECIES).map(p=>({nom:p.n,phrase:p.sub})); }
 const shell=window.Konstrio.createGame({
   id:'3d-20-abysses', code:'3D·20', title:'Abysses : plongée océan profond', type:'3D',
   domain:{ label:'Bio & SVT', color:'#1457A8' },
@@ -236,6 +239,7 @@ function init(api){
   composer.addPass(new OutputPass());
 
   controls=new OrbitControls(camera,renderer.domElement);
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.enableZoom=true; controls.enablePan=false; controls.rotateSpeed=-0.4;
   controls.minDistance=0.1; controls.enableDamping=true; controls.dampingFactor=0.08;
   controls.target.set(0,0,-5); controls.update();

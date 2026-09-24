@@ -219,6 +219,9 @@ function cylX(i){ return (i-(NC-1)/2)*DX; }
 /* ============================================================
    SHELL
    ============================================================ */
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const p=ob.userData&&PARTS[ob.userData.part]; return p?{nom:p.name,phrase:p.sub}:null; }
+function LEGENDES_OPALINE(){ return Object.values(PARTS).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-11-moteur', code:'3D·11', title:'Moteur & mécanique', type:'3D',
   domain:{ label:'Techno & Méca', color:DOM_COLOR },
@@ -276,6 +279,7 @@ function init(){
   composer.addPass(new OutputPass());
 
   controls=new OrbitControls(camera, renderer.domElement);
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.enableDamping=true; controls.dampingFactor=.07; controls.minDistance=6.5; controls.maxDistance=42;
   controls.target.set(0,2.6,0); controls.maxPolarAngle=Math.PI*0.92;
   controls.autoRotate=REDUCED; controls.autoRotateSpeed=.5;

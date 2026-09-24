@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Opaline · L'atelier de la Faiseuse de livres</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+</head>
+<body>
+<script type="module">
+import { creerMonde, THREE } from '../monde-base.js';
+
+const ETAPES = [
+  { id: 'fibres', nom: 'Chiffons et bois', x: -6, texte: 'Le papier est fait de fibres de cellulose. Jusqu\'au XIXᵉ siècle, on récupère des chiffons de lin et de coton ; à partir de 1850, la pâte de bois remplace les chiffons devenus trop rares.' },
+  { id: 'cuve', nom: 'Cuve', x: -3.5, texte: 'Les fibres sont battues et mélangées à l\'eau : la pâte contient environ 2 % de fibres pour 98 % d\'eau. La masse volumique de l\'eau, 1 kg par litre, permet de peser sans mesurer.' },
+  { id: 'forme', nom: 'Forme (tamis)', x: -1, texte: 'L\'ouvrier plonge la forme, un cadre tendu d\'un tamis de fils de laiton, dans la cuve. L\'eau s\'écoule, les fibres restent : une feuille se forme en quelques secondes.' },
+  { id: 'presse', nom: 'Presse', x: 1.5, texte: 'Les feuilles humides, séparées par des feutres, passent sous la presse : l\'eau est chassée, les fibres se soudent.' },
+  { id: 'sechoir', nom: 'Séchoir', x: 4, texte: 'Les feuilles sèchent suspendues sur des cordes, dans l\'étendoir, pendant plusieurs jours.' },
+  { id: 'machine', nom: 'Machine à papier', x: 7, texte: 'En 1799, Louis-Nicolas Robert invente la machine à papier continu : une toile sans fin remplace la forme. Au XIXᵉ, la vapeur l\'entraîne : des kilomètres de papier par jour, des usines, des ouvriers regroupés dans les villes.' },
+];
+let fibres = 100; const EAU_L = 5; let etape = null; let M, panneau, stations = {}, feuilles = [], bande;
+const LEGENDES = ETAPES.map((e) => ({ nom: e.nom, phrase: e.texte.split('. ')[0] + '.' }));
+const shell = window.Konstrio.createGame({
+  id: '3d-22-atelier-papier', code: '3D·22', title: 'L\'atelier de la Faiseuse de livres', type: '3D', duree: '12 min',
+  domain: { label: 'Histoire · Physique', color: '#B9541D' },
+  intro: {
+    greet: 'Des chiffons à la feuille, puis de la feuille à la machine : l\'atelier où l\'on fabrique le papier, avant et après la révolution industrielle.',
+    rule: 'Suis les six étapes de la fabrication du papier. Prépare la pâte avec la bonne proportion de fibres, puis découvre ce que la machine à vapeur change.',
+    how: ['Touche une station de l\'atelier, ou choisis-la dans le panneau.', 'Règle la masse de fibres dans la cuve et lis la proportion.', 'La dernière station montre la machine à papier du XIXᵉ siècle.'],
+    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    objectif: 'Décrire la fabrication du papier, calculer une proportion et une masse avec la masse volumique, et expliquer ce que l\'usine change au XIXᵉ siècle.',
+    hint: 'Pâte à 2 % : 100 g de fibres pour 5 L d\'eau, soit 5 kg d\'eau.',
+    why: 'La machine à papier fait passer d\'un artisanat lent à une production industrielle : c\'est le même mouvement que le textile ou la métallurgie.',
+  },
+  learned: ['Le papier est fait de fibres de cellulose : chiffons, puis bois à partir de 1850.', 'La masse volumique de l\'eau est de 1 kg par litre : 5 L d\'eau pèsent 5 kg.', 'La machine à papier continu (1799) et la vapeur transforment l\'atelier en usine : production de masse, ouvriers, villes.'],
+  onReady: init, onStart: demarrer,
+});
+const proportion = () => fibres / (fibres + EAU_L * 1000) * 100;
+const f1 = (x) => (Math.round(x * 10) / 10).toString().replace('.', ',');
+
+function init() {
+  M = creerMonde(shell, { fond: 0xe9e2d3, hdri: '../assets/3d/env/workshop_1k.hdr', sol: { taille: 40, couleur: 0x8f7a5c }, ambiance: 0.85, soleil: { position: [6, 12, 8], intensite: 1.5, etendue: 16 }, camera: { position: [1, 5, 11], cible: [0.5, 1, 0], min: 3, max: 30 }, legendes: LEGENDES, libelle: 'Un atelier de papetier, avec six stations de fabrication' });
+  const { scene, mesh, mat, legender, etiquette } = M;
+  // murs et poutres
+  const murFond = mesh(new THREE.BoxGeometry(18, 5, 0.3), mat(0xd8c8a8, { rugosite: 0.95 }), [0.5, 2.5, -3.2]); murFond.raycast = () => {};
+  for (let i = -8; i <= 9; i += 3.4) { const p = mesh(new THREE.BoxGeometry(0.25, 0.25, 7), mat(0x6b4a2b), [i, 4.9, 0]); p.raycast = () => {}; }
+  const bois = mat(0x9b6b3c, { rugosite: 0.7 }); const metal = mat(0x8a8f96, { rugosite: 0.35, metal: 0.6 });
+  // 1 chiffons et bois
+  const s1 = new THREE.Group(); scene.add(s1); s1.position.x = ETAPES[0].x;
+  mesh(new THREE.CylinderGeometry(0.6, 0.5, 0.7, 20), bois, [0, 0.35, 0], s1);
+  for (let i = 0; i < 6; i += 1) mesh(new THREE.SphereGeometry(0.16 + Math.random() * 0.08, 10, 8), mat([0xe8e0d0, 0xc9d3e6, 0xf2d2c8][i % 3]), [(Math.random() - 0.5) * 0.7, 0.8 + Math.random() * 0.15, (Math.random() - 0.5) * 0.7], s1);
+  for (let i = 0; i < 3; i += 1) { const b = mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.2, 10), mat(0x7a5230), [0.9, 0.12 + i * 0.24, -0.6 + i * 0.1], s1); b.rotation.z = Math.PI / 2; }
+  stations.fibres = s1;
+  // 2 cuve
+  const s2 = new THREE.Group(); scene.add(s2); s2.position.x = ETAPES[1].x;
+  mesh(new THREE.CylinderGeometry(1, 0.85, 0.9, 28, 1, true), new THREE.MeshStandardMaterial({ color: 0x8a6a45, side: THREE.DoubleSide, roughness: 0.8 }), [0, 0.45, 0], s2);
+  const pate = mesh(new THREE.CylinderGeometry(0.96, 0.96, 0.05, 28), mat(0xe9e4d4, { rugosite: 1 }), [0, 0.82, 0], s2); s2.userData.pate = pate;
+  stations.cuve = s2;
+  // 3 forme
+  const s3 = new THREE.Group(); scene.add(s3); s3.position.x = ETAPES[2].x;
+  const cadre = mesh(new THREE.BoxGeometry(1.3, 0.06, 1.0), bois, [0, 0.9, 0], s3); cadre.rotation.z = 0.25;
+  const tamis = mesh(new THREE.PlaneGeometry(1.15, 0.85), new THREE.MeshStandardMaterial({ color: 0xc9a44a, side: THREE.DoubleSide, roughness: 0.5, metalness: 0.4, transparent: true, opacity: 0.8 }), [0, 0.94, 0], s3); tamis.rotation.x = -Math.PI / 2; tamis.rotation.y = 0.25; tamis.rotation.order = 'YXZ';
+  mesh(new THREE.BoxGeometry(0.5, 0.9, 0.5), bois, [0, 0.45, 0], s3);
+  stations.forme = s3;
+  // 4 presse
+  const s4 = new THREE.Group(); scene.add(s4); s4.position.x = ETAPES[3].x;
+  mesh(new THREE.BoxGeometry(1.4, 0.2, 1.1), bois, [0, 0.1, 0], s4); mesh(new THREE.BoxGeometry(1.4, 0.2, 1.1), bois, [0, 1.3, 0], s4);
+  mesh(new THREE.BoxGeometry(0.15, 1.2, 0.15), bois, [-0.6, 0.7, 0], s4); mesh(new THREE.BoxGeometry(0.15, 1.2, 0.15), bois, [0.6, 0.7, 0], s4);
+  const vis = mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 12), metal, [0, 1.6, 0], s4); mesh(new THREE.BoxGeometry(1.0, 0.08, 0.08), metal, [0, 2.15, 0], s4);
+  for (let i = 0; i < 6; i += 1) mesh(new THREE.BoxGeometry(1.1, 0.03, 0.8), mat(i % 2 ? 0xf3efe4 : 0x9c9a92), [0, 0.22 + i * 0.05, 0], s4);
+  stations.presse = s4;
+  // 5 séchoir
+  const s5 = new THREE.Group(); scene.add(s5); s5.position.x = ETAPES[4].x;
+  mesh(new THREE.BoxGeometry(0.1, 2.6, 0.1), bois, [-1.1, 1.3, 0], s5); mesh(new THREE.BoxGeometry(0.1, 2.6, 0.1), bois, [1.1, 1.3, 0], s5);
+  for (let j = 0; j < 2; j += 1) { mesh(new THREE.CylinderGeometry(0.015, 0.015, 2.2, 6), mat(0x554433), [0, 2.4 - j * 0.9, 0], s5).rotation.z = Math.PI / 2; for (let i = 0; i < 4; i += 1) { const fe = mesh(new THREE.PlaneGeometry(0.42, 0.55), new THREE.MeshStandardMaterial({ color: 0xf6f1e6, side: THREE.DoubleSide, roughness: 1 }), [-0.75 + i * 0.5, 2.1 - j * 0.9, 0], s5); fe.castShadow = false; feuilles.push(fe); } }
+  stations.sechoir = s5;
+  // 6 machine à papier
+  const s6 = new THREE.Group(); scene.add(s6); s6.position.x = ETAPES[5].x;
+  mesh(new THREE.BoxGeometry(3.2, 0.9, 1.2), mat(0x3d4a56, { rugosite: 0.5, metal: 0.5 }), [0, 0.45, 0], s6);
+  for (let i = 0; i < 4; i += 1) { const r = mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.3, 20), metal, [-1.2 + i * 0.8, 1.1, 0], s6); r.rotation.x = Math.PI / 2; }
+  bande = mesh(new THREE.BoxGeometry(3.4, 0.02, 1.0), mat(0xf6f1e6), [0, 1.33, 0], s6);
+  const cheminee = mesh(new THREE.CylinderGeometry(0.18, 0.22, 2.2, 14), mat(0x3a3a3a), [1.9, 1.9, -0.3], s6);
+  s6.userData.fumee = []; for (let i = 0; i < 5; i += 1) { const fum = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), new THREE.MeshBasicMaterial({ color: 0xbbbbbb, transparent: true, opacity: 0.35 })); fum.position.set(1.9, 3.1 + i * 0.4, -0.3); fum.raycast = () => {}; s6.add(fum); s6.userData.fumee.push(fum); }
+  stations.machine = s6;
+  ETAPES.forEach((e, i) => { legender(stations[e.id], e.nom, LEGENDES[i].phrase); etiquette((i + 1) + '. ' + e.nom, [e.x, 3.2, 0.2], { hauteur: 0.42 }); });
+
+  panneau = M.panneau(`<h3>Les six étapes</h3>
+    <div class="mb-etapes">${ETAPES.map((e, i) => `<button class="mb-bouton" data-etape="${e.id}" aria-pressed="false"><i>${i + 1}</i>${e.nom}</button>`).join('')}</div>
+    <p class="mb-carte" id="pa-texte">Touche une station, ou choisis-la ici.</p>
+    <h3>La pâte dans la cuve</h3>
+    <label>Fibres <span class="mb-val" id="pa-f">${fibres} g</span><input class="mb-plage" id="pa-fs" type="range" min="20" max="400" step="10" value="${fibres}" aria-label="Masse de fibres"></label>
+    <div class="mb-mesures"><span>Eau</span><b>5 L = 5 kg</b><span>Fibres</span><b id="pa-f2">·</b><span>Proportion de fibres</span><b id="pa-p">·</b></div>
+    <p class="mb-carte" id="pa-avis"></p>`);
+  panneau.querySelectorAll('[data-etape]').forEach((b) => b.addEventListener('click', () => choisir(b.getAttribute('data-etape'))));
+  panneau.querySelector('#pa-fs').addEventListener('input', (e) => { fibres = Number(e.target.value); majPate(); });
+  majPate();
+  renderer_legendes_clic();
+  M.boucle((dt, t) => {
+    feuilles.forEach((fe, i) => { fe.rotation.y = 0.12 * Math.sin(t * 1.2 + i); });
+    bande.position.x = 0.05 * Math.sin(t * 6);
+    stations.machine.userData.fumee.forEach((fum, i) => { fum.position.y = 3.1 + ((t * 0.5 + i * 0.4) % 2.2); fum.position.x = 1.9 + 0.15 * Math.sin(t + i); fum.material.opacity = 0.35 * (1 - ((t * 0.5 + i * 0.4) % 2.2) / 2.2); });
+  });
+}
+function renderer_legendes_clic() {
+  // choisir la station quand sa légende est touchée
+  const anc = window.__kshApi.attenteLegende; void anc;
+  document.addEventListener('ksh-legende', () => {});
+  M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; const e = ETAPES.find((x) => x.nom === nom); if (e) choisir(e.id, true); }, 30); });
+}
+function choisir(id, sansCamera) {
+  etape = id; const e = ETAPES.find((x) => x.id === id);
+  panneau.querySelectorAll('[data-etape]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-etape') === id)));
+  panneau.querySelector('#pa-texte').textContent = e.texte;
+  if (!sansCamera) { M.controls.target.set(e.x, 1, 0); M.camera.position.set(e.x + 2.5, 3.2, 5.5); }
+  shell.say(e.texte, 'concentre');
+}
+function majPate() {
+  const p = proportion();
+  panneau.querySelector('#pa-f').textContent = fibres + ' g'; panneau.querySelector('#pa-f2').textContent = fibres + ' g'; panneau.querySelector('#pa-p').textContent = f1(p) + ' %';
+  const avis = panneau.querySelector('#pa-avis'); avis.textContent = p < 1.5 ? 'Trop liquide : la feuille sera trouée.' : p > 2.6 ? 'Trop épais : la feuille sera grumeleuse.' : 'Bonne pâte : environ 2 % de fibres, la feuille sera régulière.';
+  avis.style.borderLeft = '6px solid ' + (p < 1.5 || p > 2.6 ? '#E63329' : '#2AA98C');
+  const pate = stations.cuve.userData.pate; pate.material.color.set(p < 1.5 ? 0xd9dde3 : p > 2.6 ? 0xd8c9a8 : 0xe9e4d4);
+}
+function demarrer(mode, api) {
+  if (mode !== 'cours') { api.say('Visite les six stations dans l\'ordre. Puis règle la pâte dans la cuve.', 'joyeux'); return; }
+  api.defis([
+    { type: 'toucher', texte: 'Touche la <b>forme</b>, le tamis qui donne sa forme à la feuille.', cible: 'Forme (tamis)', explication: 'La forme retient les fibres et laisse passer l\'eau : c\'est elle qui fait la feuille, une à la fois.' },
+    { type: 'verifier', texte: 'Prépare une pâte à environ 2 % de fibres : règle la masse de fibres pour 5 L d\'eau.', bouton: 'C\'est réglé', verifier: () => proportion() >= 1.7 && proportion() <= 2.3, indice: '5 L d\'eau pèsent 5 000 g. 2 % de 5 000 g, c\'est 100 g.', explication: '100 g de fibres dans 5 000 g d\'eau : 100 ÷ 5 100 ≈ 2 %. La proportion se calcule avec la masse totale.' },
+    { type: 'qcm', texte: '5 L d\'eau pèsent…', choix: ['5 kg', '500 g', '50 kg', '5 g'], reponse: 0, explication: 'La masse volumique de l\'eau est de 1 kg par litre : masse = 1 × 5 = 5 kg.' },
+    { type: 'qcm', texte: 'Le papier est fait de…', choix: ['fibres de cellulose : chiffons, puis bois', 'plastique', 'argile', 'sable fondu'], reponse: 0, explication: 'Les chiffons de lin et de coton d\'abord ; le bois à partir de 1850, quand la demande explose.' },
+    { type: 'qcm', texte: 'Ce que change la machine à papier au XIXᵉ siècle :', choix: ['une bande continue, produite par une machine à vapeur, au lieu de feuilles faites une à une', 'la couleur du papier', 'le papier devient plus cher', 'on n\'utilise plus d\'eau'], reponse: 0, explication: 'La machine à papier continu (1799) puis la vapeur : production de masse, journaux à un sou, livres pour tous.' },
+    { type: 'toucher', texte: 'Touche la <b>presse</b> qui chasse l\'eau des feuilles.', cible: 'Presse', explication: 'Sous la presse, l\'eau est expulsée et les fibres se soudent entre elles.' },
+    { type: 'qcm', texte: 'Au XIXᵉ siècle, l\'usine et la machine à vapeur ont pour conséquence…', choix: ['des ouvriers regroupés dans des usines et des villes qui grandissent', 'moins de travail pour tout le monde', 'la disparition des villes', 'le retour aux ateliers familiaux'], reponse: 0, explication: 'La révolution industrielle regroupe le travail dans des usines : exode rural, croissance des villes, naissance du prolétariat.' },
+  ], { rejouer: () => demarrer('cours', api) });
+}
+</script>
+</body>
+</html>

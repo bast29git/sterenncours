@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Opaline · L'échelle et le cosinus</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+</head>
+<body>
+<script type="module">
+import { creerMonde, THREE } from '../monde-base.js';
+
+const L = 5; // longueur de l'échelle, en mètres
+let d = 2.5; // distance du pied au mur
+let M, echelle, segAdj, segOpp, arcAngle, etiqAdj, etiqOpp, etiqHyp, etiqAngle, panneau;
+const LEGENDES = [
+  { nom: 'Hypoténuse', phrase: 'L\'échelle : le côté le plus long, en face de l\'angle droit. Ici 5 m.' },
+  { nom: 'Côté adjacent', phrase: 'Le sol, du pied de l\'échelle au mur : il touche l\'angle α.' },
+  { nom: 'Côté opposé', phrase: 'Le mur, du sol au haut de l\'échelle : en face de l\'angle α.' },
+  { nom: 'Angle α', phrase: 'L\'angle entre l\'échelle et le sol. cos α = adjacent ÷ hypoténuse.' },
+  { nom: 'Mur', phrase: 'Il forme un angle droit avec le sol : le triangle est rectangle.' },
+];
+const shell = window.Konstrio.createGame({
+  id: '3d-24-echelle-cosinus', code: '3D·24', title: 'L\'échelle et le cosinus', type: '3D', duree: '10 min',
+  domain: { label: 'Mathématiques', color: '#2E7FC2' },
+  intro: {
+    greet: 'Une échelle de 5 m contre un mur. Déplace son pied : l\'angle change, le cosinus aussi.',
+    rule: 'Le triangle formé par le sol, le mur et l\'échelle est rectangle. Déplace le pied et lis l\'angle, le cosinus et la hauteur atteinte.',
+    how: ['Glisse pour tourner autour de l\'échelle, molette pour zoomer.', 'Touche l\'échelle, le sol, le mur ou l\'angle : chaque côté a son nom.', 'Le curseur du panneau déplace le pied de l\'échelle.'],
+    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    objectif: 'Reconnaître le côté adjacent et l\'hypoténuse, calculer un cosinus, retrouver un angle ou une longueur.',
+    hint: 'cos α = côté adjacent ÷ hypoténuse. Ici, cos α = d ÷ 5.',
+    why: 'Avec le cosinus, une seule mesure au sol suffit pour connaître l\'angle de l\'échelle, sans rapporteur.',
+  },
+  learned: ['Dans un triangle rectangle, cos α = côté adjacent ÷ hypoténuse.', 'Connaissant l\'angle et l\'hypoténuse, on retrouve le côté adjacent : adjacent = hypoténuse × cos α.', 'La hauteur se calcule avec Pythagore : h² = L² − d².'],
+  onReady: init, onStart: demarrer,
+});
+
+const angle = () => Math.acos(d / L) * 180 / Math.PI;
+const hauteur = () => Math.sqrt(L * L - d * d);
+
+function init() {
+  M = creerMonde(shell, { fond: 0xdfe9f2, hdri: '../assets/3d/env/sky_day_1k.hdr', sol: { taille: 30, couleur: 0x9aa39b }, ambiance: 0.8, soleil: { position: [8, 14, 10], intensite: 1.8, etendue: 14 }, camera: { position: [7, 4.5, 9], cible: [1.5, 2, 0], min: 3, max: 30 }, legendes: LEGENDES, libelle: 'Une échelle contre un mur, avec le triangle rectangle qu\'elle forme' });
+  const { scene, mesh, mat, legender, etiquette } = M;
+  // mur : le plan x = 0, l'échelle s'appuie dessus ; le sol y = 0
+  const mur = mesh(new THREE.BoxGeometry(0.4, 6.5, 10), mat(0xd9cfc0, { rugosite: 0.9 }), [-0.2, 3.25, 0]);
+  legender(mur, 'Mur', LEGENDES[4].phrase);
+  for (let i = 0; i < 4; i += 1) { const f = mesh(new THREE.BoxGeometry(0.06, 1.1, 0.9), mat(0x7fb0d8, { rugosite: 0.2, metal: 0.1 }), [0.04, 2 + (i % 2) * 2.4, -3 + Math.floor(i / 2) * 6]); f.userData.legende = mur.userData.legende; }
+  // échelle
+  echelle = new THREE.Group(); scene.add(echelle);
+  const bois = mat(0xb5793d, { rugosite: 0.7 });
+  const montant = (z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.08, L, 0.08), bois); m.position.set(0, L / 2, z); m.castShadow = true; echelle.add(m); };
+  montant(-0.25); montant(0.25);
+  for (let i = 1; i < 12; i += 1) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.5, 10), bois); b.rotation.x = Math.PI / 2; b.position.set(0, i * L / 12, 0); b.castShadow = true; echelle.add(b); }
+  legender(echelle, 'Hypoténuse', LEGENDES[0].phrase);
+  // côtés du triangle
+  segAdj = new THREE.Mesh(new THREE.BoxGeometry(1, 0.05, 0.05), mat(0xE63329, { emissif: 0xE63329, intensite: 0.4 })); scene.add(segAdj); legender(segAdj, 'Côté adjacent', LEGENDES[1].phrase);
+  segOpp = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1, 0.05), mat(0x1B82E0, { emissif: 0x1B82E0, intensite: 0.4 })); scene.add(segOpp); legender(segOpp, 'Côté opposé', LEGENDES[2].phrase);
+  arcAngle = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.75, 32, 1, 0, 1), new THREE.MeshBasicMaterial({ color: 0xF5A623, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })); arcAngle.rotation.x = 0; scene.add(arcAngle); legender(arcAngle, 'Angle α', LEGENDES[3].phrase);
+  const coin = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.02), new THREE.MeshBasicMaterial({ color: 0x1B82E0, wireframe: true })); coin.position.set(0.15, 0.15, 0.3); coin.raycast = () => {}; scene.add(coin);
+  etiqAdj = etiquette('d', [1, 0.35, 0.6], { hauteur: 0.5, fond: 'rgba(230,51,41,0.85)' });
+  etiqOpp = etiquette('h', [-0.6, 2, 0.6], { hauteur: 0.5, fond: 'rgba(27,130,224,0.85)' });
+  etiqHyp = etiquette('L = 5 m', [1.6, 2.6, 0.7], { hauteur: 0.5, fond: 'rgba(120,80,30,0.85)' });
+  etiqAngle = etiquette('α', [1.2, 0.5, 0.6], { hauteur: 0.5, fond: 'rgba(245,166,35,0.9)', couleur: '#1a1200' });
+  placer();
+  panneau = M.panneau(`<h3>L'échelle</h3>
+    <label>Distance du pied au mur <span class="mb-val" id="ec-d">2,50 m</span><input class="mb-plage" id="ec-ds" type="range" min="0.5" max="4.9" step="0.05" value="2.5" aria-label="Distance du pied au mur"></label>
+    <div class="mb-mesures"><span>Hypoténuse L</span><b>5,00 m</b><span>Côté adjacent d</span><b id="ec-adj">·</b><span>Côté opposé h</span><b id="ec-opp">·</b><span>cos α = d ÷ L</span><b id="ec-cos">·</b><span>Angle α</span><b id="ec-a">·</b></div>
+    <p class="mb-carte" id="ec-calc"></p>
+    <p class="mb-carte" id="ec-secu"></p>`);
+  panneau.querySelector('#ec-ds').addEventListener('input', (e) => { d = Number(e.target.value); placer(); });
+  majPanneau();
+}
+function placer() {
+  const a = Math.acos(d / L); const h = hauteur();
+  echelle.position.set(d, 0, 0); echelle.rotation.z = (Math.PI / 2 - a);
+  segAdj.scale.x = d; segAdj.position.set(d / 2, 0.03, 0.55);
+  segOpp.scale.y = h; segOpp.position.set(0.03, h / 2, 0.55);
+  arcAngle.geometry.dispose(); arcAngle.geometry = new THREE.RingGeometry(0.55, 0.8, 32, 1, Math.PI - a, a); arcAngle.position.set(d, 0.02, 0.55); arcAngle.rotation.set(0, 0, 0);
+  etiqAdj.position.set(d / 2, 0.35, 0.9); etiqOpp.position.set(-0.55, h / 2, 0.9); etiqHyp.position.set(d / 2 + 0.5, h / 2 + 0.4, 0.9); etiqAngle.position.set(d - 1.0, 0.45, 0.9);
+  majPanneau();
+}
+const f2 = (x) => x.toFixed(2).replace('.', ',');
+function majPanneau() {
+  if (!panneau) return;
+  const a = angle(); const h = hauteur(); const c = d / L;
+  panneau.querySelector('#ec-d').textContent = f2(d) + ' m'; panneau.querySelector('#ec-adj').textContent = f2(d) + ' m'; panneau.querySelector('#ec-opp').textContent = f2(h) + ' m';
+  panneau.querySelector('#ec-cos').textContent = f2(c); panneau.querySelector('#ec-a').textContent = a.toFixed(1).replace('.', ',') + '°';
+  panneau.querySelector('#ec-calc').textContent = 'cos α = ' + f2(d) + ' ÷ 5 = ' + f2(c) + ', donc α = cos⁻¹(' + f2(c) + ') ≈ ' + Math.round(a) + '°. Hauteur : h = √(5² − ' + f2(d) + '²) ≈ ' + f2(h) + ' m.';
+  const s = panneau.querySelector('#ec-secu'); s.textContent = a > 78 ? 'Trop raide : l\'échelle risque de basculer en arrière.' : (a < 65 ? 'Trop couchée : le pied peut glisser.' : 'Angle de sécurité (65° à 78°) : la position est stable.'); s.style.borderLeft = '6px solid ' + (a > 78 || a < 65 ? '#E63329' : '#2AA98C');
+}
+function demarrer(mode, api) {
+  if (mode !== 'cours') { api.say('Déplace le pied de l\'échelle avec le curseur, et lis l\'angle, le cosinus et la hauteur. Touche chaque côté pour son nom.', 'joyeux'); return; }
+  api.defis([
+    { type: 'toucher', texte: 'Touche l\'<b>hypoténuse</b> du triangle.', cible: 'Hypoténuse', explication: 'L\'échelle est l\'hypoténuse : le plus long côté, en face de l\'angle droit formé par le mur et le sol.' },
+    { type: 'qcm', texte: 'cos α est égal à…', choix: ['côté adjacent ÷ hypoténuse', 'côté opposé ÷ hypoténuse', 'hypoténuse ÷ côté adjacent', 'côté adjacent ÷ côté opposé'], reponse: 0, explication: 'Le cosinus d\'un angle aigu est le quotient du côté adjacent par l\'hypoténuse. Il est toujours entre 0 et 1.' },
+    { type: 'verifier', texte: 'Place le pied pour que l\'angle α soit de 60°, à 2° près.', bouton: 'C\'est réglé', verifier: () => Math.abs(angle() - 60) <= 2, indice: 'cos 60° = 0,5, donc d = 0,5 × 5 = 2,5 m.', explication: 'd = L × cos α = 5 × 0,5 = 2,5 m : le pied est à 2,5 m du mur.' },
+    { type: 'qcm', texte: 'Le pied est à 3 m du mur. Quelle hauteur atteint l\'échelle de 5 m ?', choix: ['4 m', '2 m', '5,8 m', '3 m'], reponse: 0, explication: 'Pythagore : h² = 5² − 3² = 25 − 9 = 16, donc h = 4 m.' },
+    { type: 'verifier', texte: 'Règle l\'échelle pour atteindre au moins 4,5 m de haut.', bouton: 'C\'est réglé', verifier: () => hauteur() >= 4.5, indice: 'Plus le pied est proche du mur, plus l\'échelle monte. Il faut d ≤ 2,18 m.', explication: 'h ≥ 4,5 impose d² ≤ 25 − 20,25 = 4,75, donc d ≤ 2,18 m environ.' },
+    { type: 'qcm', texte: 'Le pied est à 4 m du mur : cos α = 4 ÷ 5 = 0,8. Quel est l\'angle α ?', choix: ['Environ 37°', 'Environ 53°', '80°', '45°'], reponse: 0, explication: 'α = cos⁻¹(0,8) ≈ 36,9°. La touche cos⁻¹ (ou arccos) de la calculatrice donne l\'angle à partir du cosinus.' },
+    { type: 'toucher', texte: 'Touche le <b>côté adjacent</b> à l\'angle α.', cible: 'Côté adjacent', explication: 'Le côté adjacent touche l\'angle α sans être l\'hypoténuse : ici, le sol entre le pied et le mur.' },
+  ], { rejouer: () => demarrer('cours', api) });
+}
+</script>
+</body>
+</html>

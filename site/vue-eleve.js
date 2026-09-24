@@ -2251,10 +2251,8 @@
         stockage = rep[1].stockage !== false;
         listeMessages = messages;
       } catch (e) { N.signaler(e.message); return; }
-      if (!stockage) {
-        document.getElementById('e-btn-fichier').disabled = true;
-        document.getElementById('e-btn-photo').disabled = true;
-      }
+      if (!stockage) ['e-btn-fichier', 'e-btn-photo'].forEach((id) => { const b = document.getElementById(id); if (b) b.disabled = true; });
+      if (!zoneT.isConnected) return;
 
       const zoneFils = document.getElementById('e-fils');
       if (M && zoneFils) {

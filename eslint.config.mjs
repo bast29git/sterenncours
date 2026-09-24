@@ -15,6 +15,7 @@ const regles = { ...js.configs.recommended.rules, 'no-unused-vars': ['warn', { a
 export default [
   { ignores: ['public/**', 'node_modules/**', 'site/learning/vendor/**', 'site/learning/games-2d/**', 'site/learning/games-3d/**', 'site/moteurs/**', 'site/learning/konstrio.js', 'site/learning/achievements.js', 'site/learning/audio-engine.js', 'site/learning/lang-engine.js', 'site/learning/quiz-engine.js', '.wrangler/**'] },
   { files: ['site/**/*.js'], languageOptions: { ecmaVersion: 2022, sourceType: 'script', globals: navigateur }, rules: regles },
+  { files: ['site/learning/monde-base.js'], languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: navigateur }, rules: regles },
   { files: ['functions/**/*.js'], languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: workers }, rules: regles },
   { files: ['build/**/*.mjs', 'tests/**/*.mjs'], languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: { ...workers, ...navigateur, process: 'readonly', Buffer: 'readonly', global: 'readonly' } }, rules: regles },
 ];

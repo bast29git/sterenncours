@@ -204,6 +204,7 @@ function init(api){
   composer.addPass(new OutputPass());
 
   controls = new OrbitControls(camera, renderer.domElement);
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bp, composer: () => composer, legende: null });
   controls.enableDamping = true; controls.dampingFactor = .08;
   controls.autoRotate = !REDUCED; controls.autoRotateSpeed = .45;
   controls.minDistance = 9; controls.maxDistance = 42; controls.maxPolarAngle = Math.PI*0.9;

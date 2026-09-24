@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Opaline · L'apothicairerie</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+</head>
+<body>
+<script type="module">
+import { creerMonde, THREE } from '../monde-base.js';
+
+const PLANTES = [
+  { id: 'menthe', nom: 'Menthe', couleur: 0x3f9a4a, usage: 'digestion' }, { id: 'camomille', nom: 'Camomille', couleur: 0xe6c34a, usage: 'sommeil' },
+  { id: 'thym', nom: 'Thym', couleur: 0x6f8f5a, usage: 'toux' }, { id: 'tilleul', nom: 'Tilleul', couleur: 0xb9c76a, usage: 'calme' },
+];
+const LIQUIDES = { eau: { nom: 'eau', rho: 1.00, couleur: 0x8fc8ff }, huile: { nom: 'huile', rho: 0.92, couleur: 0xe8c14a }, miel: { nom: 'miel', rho: 1.42, couleur: 0xd08a1e } };
+let total = 200, pourcent = 15, liquide = 'eau', volume = 100, plante = 'menthe';
+let M, panneau, bocaux = {}, flacon, balanceAiguille, bol, contenuBol;
+const LEGENDES = [
+  { nom: 'Balance', phrase: 'Elle mesure une masse, en grammes. Une masse, pas un volume.' },
+  { nom: 'Éprouvette', phrase: 'Elle mesure un volume, en millilitres.' },
+  { nom: 'Bol de mélange', phrase: 'Plante et sirop mélangés : un mélange, pas une transformation chimique.' },
+  { nom: 'Fourneau', phrase: 'Chauffer du sucre jusqu\'au caramel : une transformation chimique, de nouvelles substances apparaissent.' },
+].concat(PLANTES.map((p) => ({ nom: 'Bocal de ' + p.nom.toLowerCase(), phrase: 'Plante séchée, employée pour la ' + p.usage + '.' })));
+const shell = window.Konstrio.createGame({
+  id: '3d-23-apothicairerie', code: '3D·23', title: 'L\'apothicairerie', type: '3D', duree: '12 min',
+  domain: { label: 'Physique · Maths', color: '#1E8C7A' },
+  intro: {
+    greet: 'Une étagère de plantes, une balance, une éprouvette. Dose un sirop en pourcentage et pèse un liquide avec sa masse volumique.',
+    rule: 'Règle la masse totale du sirop et le pourcentage de plante : la balance te dit combien peser. Choisis un liquide et un volume : la masse volumique donne la masse.',
+    how: ['Touche un bocal, la balance, l\'éprouvette ou le fourneau : chaque objet a sa légende.', 'Règle la masse totale et le pourcentage : lis la masse de plante.', 'Choisis un liquide et un volume : lis la masse pesée.'],
+    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    objectif: 'Calculer un pourcentage d\'une masse, utiliser une masse volumique, distinguer mélange et transformation chimique.',
+    hint: 'Masse = masse volumique × volume. 15 % de 200 g, c\'est 200 × 15 ÷ 100.',
+    why: 'Un pharmacien dose encore ainsi : une proportion, une masse volumique, une balance.',
+  },
+  learned: ['p % d\'une masse : masse × p ÷ 100.', 'Masse = masse volumique × volume : 50 mL de miel à 1,42 g/mL pèsent 71 g.', 'Mélanger, c\'est réversible et sans nouvelle substance ; une transformation chimique fait apparaître de nouvelles substances, et la masse totale se conserve.'],
+  onReady: init, onStart: demarrer,
+});
+const massePlante = () => total * pourcent / 100; const masseLiquide = () => LIQUIDES[liquide].rho * volume;
+const f1 = (x) => (Math.round(x * 10) / 10).toString().replace('.', ',');
+
+function init() {
+  M = creerMonde(shell, { fond: 0xe6dccb, hdri: '../assets/3d/env/workshop_1k.hdr', sol: { taille: 30, couleur: 0x7a5a3c }, ambiance: 0.8, soleil: { position: [4, 10, 7], intensite: 1.4, etendue: 12 }, camera: { position: [0, 3.2, 7.5], cible: [0, 1.4, 0], min: 2.5, max: 20 }, legendes: LEGENDES, libelle: 'Un comptoir d\'apothicaire avec des bocaux, une balance et une éprouvette' });
+  const { scene, mesh, mat, legender, etiquette } = M;
+  const bois = mat(0x6b4326, { rugosite: 0.75 });
+  mesh(new THREE.BoxGeometry(9, 4.2, 0.3), mat(0xcdb891, { rugosite: 0.95 }), [0, 2.1, -2.3]).raycast = () => {};
+  const comptoir = mesh(new THREE.BoxGeometry(8, 0.25, 2.2), bois, [0, 1.0, 0]); comptoir.raycast = () => {};
+  mesh(new THREE.BoxGeometry(8, 1.0, 2.0), mat(0x5a3820), [0, 0.5, 0]).raycast = () => {};
+  // étagère et bocaux
+  for (let j = 0; j < 2; j += 1) mesh(new THREE.BoxGeometry(7, 0.12, 0.7), bois, [0, 2.3 + j * 1.0, -1.9]).raycast = () => {};
+  PLANTES.forEach((p, i) => {
+    const g = new THREE.Group(); scene.add(g); g.position.set(-2.6 + i * 1.7, 2.36, -1.9);
+    mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.7, 24), new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, roughness: 0.1, transmission: 0.3 }), [0, 0.35, 0], g);
+    mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.5, 24), mat(p.couleur, { rugosite: 1 }), [0, 0.27, 0], g);
+    mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.08, 24), mat(0x3a2a1a), [0, 0.74, 0], g);
+    const etq = mesh(new THREE.PlaneGeometry(0.4, 0.2), mat(0xf6f1e6), [0, 0.35, 0.29], g); etq.castShadow = false;
+    legender(g, 'Bocal de ' + p.nom.toLowerCase(), LEGENDES[4 + i].phrase); bocaux[p.id] = g;
+    etiquette(p.nom, [g.position.x, 3.25, -1.7], { hauteur: 0.3 });
+  });
+  // balance à plateaux
+  const bal = new THREE.Group(); scene.add(bal); bal.position.set(-2.2, 1.12, 0.2);
+  mesh(new THREE.CylinderGeometry(0.35, 0.45, 0.1, 24), mat(0xb08d57, { metal: 0.7, rugosite: 0.3 }), [0, 0.05, 0], bal);
+  mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.1, 10), mat(0xb08d57, { metal: 0.7, rugosite: 0.3 }), [0, 0.6, 0], bal);
+  const fleau = mesh(new THREE.BoxGeometry(1.6, 0.05, 0.05), mat(0xb08d57, { metal: 0.7, rugosite: 0.3 }), [0, 1.15, 0], bal); bal.userData.fleau = fleau;
+  [-0.75, 0.75].forEach((x) => { mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.03, 24), mat(0xc9a86a, { metal: 0.7, rugosite: 0.3 }), [x, 0.55, 0], bal); for (const dz of [-0.2, 0.2]) mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.6, 6), mat(0x555555), [x, 0.85, dz], bal); });
+  balanceAiguille = mesh(new THREE.BoxGeometry(0.03, 0.35, 0.03), mat(0xE63329), [0, 1.35, 0], bal);
+  legender(bal, 'Balance', LEGENDES[0].phrase);
+  // éprouvette
+  flacon = new THREE.Group(); scene.add(flacon); flacon.position.set(0.6, 1.12, 0.3);
+  mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.2, 24, 1, true), new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, roughness: 0.05, side: THREE.DoubleSide }), [0, 0.6, 0], flacon);
+  mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.06, 24), mat(0xdddddd), [0, 0.03, 0], flacon);
+  const liq = mesh(new THREE.CylinderGeometry(0.2, 0.2, 1, 24), mat(LIQUIDES.eau.couleur, { transparent: true, opacite: 0.75 }), [0, 0.5, 0], flacon); flacon.userData.liq = liq; liq.castShadow = false;
+  legender(flacon, 'Éprouvette', LEGENDES[1].phrase);
+  // bol
+  bol = new THREE.Group(); scene.add(bol); bol.position.set(2.4, 1.12, 0.2);
+  mesh(new THREE.SphereGeometry(0.55, 28, 14, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xe9e0cf, side: THREE.DoubleSide, roughness: 0.6 }), [0, 0.55, 0], bol).rotation.x = Math.PI;
+  contenuBol = mesh(new THREE.CylinderGeometry(0.42, 0.3, 0.2, 24), mat(0x3f9a4a, { rugosite: 1 }), [0, 0.35, 0], bol); contenuBol.castShadow = false;
+  legender(bol, 'Bol de mélange', LEGENDES[2].phrase);
+  // fourneau
+  const four = new THREE.Group(); scene.add(four); four.position.set(3.6, 0, -1.4);
+  mesh(new THREE.BoxGeometry(1.1, 0.9, 0.9), mat(0x3a3a3a, { rugosite: 0.5, metal: 0.4 }), [0, 0.45, 0], four);
+  mesh(new THREE.CylinderGeometry(0.3, 0.25, 0.25, 20), mat(0x8a7a5a, { metal: 0.6, rugosite: 0.3 }), [0, 1.02, 0], four);
+  const braise = mesh(new THREE.BoxGeometry(0.5, 0.15, 0.1), mat(0xff5a1e, { emissif: 0xff4500, intensite: 1.2 }), [0, 0.3, 0.42], four); braise.castShadow = false; four.userData.braise = braise;
+  legender(four, 'Fourneau', LEGENDES[3].phrase);
+
+  panneau = M.panneau(`<h3>Le sirop</h3>
+    <div class="mb-groupe" role="group" aria-label="Plante">${PLANTES.map((p) => `<button class="mb-bouton" data-plante="${p.id}" aria-pressed="${p.id === plante}">${p.nom}</button>`).join('')}</div>
+    <label>Masse totale <span class="mb-val" id="ap-t">${total} g</span><input class="mb-plage" id="ap-ts" type="range" min="100" max="500" step="10" value="${total}" aria-label="Masse totale du sirop"></label>
+    <label>Part de plante <span class="mb-val" id="ap-p">${pourcent} %</span><input class="mb-plage" id="ap-ps" type="range" min="5" max="30" step="1" value="${pourcent}" aria-label="Pourcentage de plante"></label>
+    <div class="mb-mesures"><span>Masse de plante à peser</span><b id="ap-mp">·</b><span>Reste en sirop</span><b id="ap-ms">·</b></div>
+    <h3>Le liquide</h3>
+    <div class="mb-groupe" role="group" aria-label="Liquide">${Object.keys(LIQUIDES).map((k) => `<button class="mb-bouton" data-liq="${k}" aria-pressed="${k === liquide}">${LIQUIDES[k].nom} · ${f1(LIQUIDES[k].rho)} g/mL</button>`).join('')}</div>
+    <label>Volume <span class="mb-val" id="ap-v">${volume} mL</span><input class="mb-plage" id="ap-vs" type="range" min="10" max="250" step="10" value="${volume}" aria-label="Volume"></label>
+    <div class="mb-mesures"><span>Masse = ρ × V</span><b id="ap-ml">·</b></div>
+    <p class="mb-carte" id="ap-calc"></p>`);
+  panneau.querySelectorAll('[data-plante]').forEach((b) => b.addEventListener('click', () => { plante = b.getAttribute('data-plante'); panneau.querySelectorAll('[data-plante]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); contenuBol.material.color.set(PLANTES.find((p) => p.id === plante).couleur); }));
+  panneau.querySelectorAll('[data-liq]').forEach((b) => b.addEventListener('click', () => { liquide = b.getAttribute('data-liq'); panneau.querySelectorAll('[data-liq]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); maj(); }));
+  panneau.querySelector('#ap-ts').addEventListener('input', (e) => { total = Number(e.target.value); maj(); });
+  panneau.querySelector('#ap-ps').addEventListener('input', (e) => { pourcent = Number(e.target.value); maj(); });
+  panneau.querySelector('#ap-vs').addEventListener('input', (e) => { volume = Number(e.target.value); maj(); });
+  maj();
+  M.boucle((dt, t) => { four.userData.braise.material.emissiveIntensity = 1 + 0.4 * Math.sin(t * 7); });
+}
+function maj() {
+  panneau.querySelector('#ap-t').textContent = total + ' g'; panneau.querySelector('#ap-p').textContent = pourcent + ' %';
+  panneau.querySelector('#ap-mp').textContent = f1(massePlante()) + ' g'; panneau.querySelector('#ap-ms').textContent = f1(total - massePlante()) + ' g';
+  panneau.querySelector('#ap-v').textContent = volume + ' mL'; panneau.querySelector('#ap-ml').textContent = f1(masseLiquide()) + ' g';
+  panneau.querySelector('#ap-calc').textContent = 'Plante : ' + total + ' × ' + pourcent + ' ÷ 100 = ' + f1(massePlante()) + ' g. Liquide : ' + f1(LIQUIDES[liquide].rho) + ' × ' + volume + ' = ' + f1(masseLiquide()) + ' g.';
+  const liq = flacon.userData.liq; liq.scale.y = Math.max(0.02, volume / 250); liq.position.y = 0.06 + liq.scale.y / 2; liq.material.color.set(LIQUIDES[liquide].couleur);
+  const angle = Math.min(0.25, massePlante() / 600); balanceAiguille.rotation.z = -angle * 2; balanceAiguille.parent.userData.fleau.rotation.z = -angle * 0.4;
+  contenuBol.scale.setScalar(0.6 + massePlante() / 150);
+}
+function demarrer(mode, api) {
+  if (mode !== 'cours') { api.say('Touche les bocaux, la balance, l\'éprouvette et le fourneau. Puis dose un sirop et pèse un liquide.', 'joyeux'); return; }
+  api.defis([
+    { type: 'verifier', texte: 'Prépare 200 g de sirop à 15 % de plante : règle la masse totale et le pourcentage.', bouton: 'C\'est réglé', verifier: () => total === 200 && pourcent === 15, indice: 'Curseur « Masse totale » sur 200 g, curseur « Part de plante » sur 15 %.', explication: 'La balance indique 30 g de plante : 200 × 15 ÷ 100 = 30.' },
+    { type: 'qcm', texte: 'Dans 200 g de sirop à 15 % de plante, la masse de plante est…', choix: ['30 g', '15 g', '45 g', '185 g'], reponse: 0, explication: '15 % de 200 g : 200 × 15 ÷ 100 = 30 g. Le reste, 170 g, est le sirop.' },
+    { type: 'verifier', texte: 'Choisis le miel et règle 50 mL. Lis la masse.', bouton: 'C\'est fait', verifier: () => liquide === 'miel' && volume === 50, indice: 'Bouton « miel », puis le curseur Volume sur 50 mL.', explication: 'Masse = 1,42 × 50 = 71 g. Le miel est plus dense que l\'eau : 50 mL pèsent plus de 50 g.' },
+    { type: 'qcm', texte: 'Eau et huile dans le même bocal : qui est au-dessus ?', choix: ['L\'huile : moins dense (0,92 g/mL), elle flotte', 'L\'eau', 'Elles se mélangent', 'Ça dépend de la quantité'], reponse: 0, explication: 'Le liquide de plus faible masse volumique se place au-dessus. L\'huile, 0,92 g/mL, flotte sur l\'eau, 1,00 g/mL.' },
+    { type: 'toucher', texte: 'Touche la <b>balance</b>.', cible: 'Balance', explication: 'La balance mesure une masse en grammes. Le volume, lui, se mesure à l\'éprouvette, en millilitres.' },
+    { type: 'qcm', texte: 'Chauffer du sucre jusqu\'au caramel, c\'est…', choix: ['une transformation chimique : de nouvelles substances apparaissent', 'un simple mélange', 'un changement d\'état, comme la fonte de la glace', 'une dissolution'], reponse: 0, explication: 'Le sucre disparaît, le caramel et de la vapeur d\'eau apparaissent : des réactifs sont consommés, des produits se forment.' },
+    { type: 'qcm', texte: 'Pendant une transformation chimique en récipient fermé, la masse totale…', choix: ['se conserve', 'augmente', 'diminue', 'devient nulle'], reponse: 0, explication: 'Les atomes se réarrangent, aucun ne disparaît : la masse des produits égale la masse des réactifs (Lavoisier).' },
+  ], { rejouer: () => demarrer('cours', api) });
+}
+</script>
+</body>
+</html>

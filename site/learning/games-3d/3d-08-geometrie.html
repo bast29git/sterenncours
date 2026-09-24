@@ -156,6 +156,9 @@ function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttr
 /* tache d'ombre de contact douce (occlusion lisible même en rendu logiciel) */
 function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,8,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.24)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const sd=ob.userData&&ob.userData.pick&&SOLIDS[st.solid]; return sd?{nom:sd.name,phrase:(sd.V?sd.V+' sommets, '+sd.E+' arêtes, '+sd.F+' faces':'Solide de révolution')}:null; }
+function LEGENDES_OPALINE(){ const sd=SOLIDS[st.solid]; return sd?[{nom:sd.name,phrase:''}]:[]; }
 const shell = window.Konstrio.createGame({
   id:'3d-08-geometrie', code:'3D·08', title:"Géométrie dans l'espace", type:'3D',
   domain:{ label:'Maths', color:'#9B2BB0' },
@@ -214,6 +217,7 @@ function init(api){
   composer.addPass(new OutputPass());
 
   controls = new OrbitControls(camera, renderer.domElement);
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bp, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.enableDamping = true; controls.dampingFactor = .08;
   controls.minDistance = 3.4; controls.maxDistance = 22; controls.maxPolarAngle = Math.PI*0.92;
   controls.target.set(0, 0.2, 0);

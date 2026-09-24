@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Opaline · Pyramides et cônes</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+</head>
+<body>
+<script type="module">
+import { creerMonde, THREE } from '../monde-base.js';
+
+let r = 3, a = 4, h = 6; // rayon du cône, côté de la base carrée, hauteur commune (cm)
+let M, cone, cylindre, pyramide, prisme, liquideCyl, liquideCone, panneau, versement = null, verses = 0;
+const ECH = 0.5; // 1 cm = 0,5 unité
+const LEGENDES = [
+  { nom: 'Cône', phrase: 'Base : un disque. Volume = π × r² × h ÷ 3.' },
+  { nom: 'Cylindre', phrase: 'Même base et même hauteur que le cône : trois fois son volume.' },
+  { nom: 'Pyramide', phrase: 'Base : un carré. Volume = a² × h ÷ 3.' },
+  { nom: 'Prisme', phrase: 'Même base et même hauteur que la pyramide : trois fois son volume.' },
+  { nom: 'Sommet', phrase: 'Le point où toutes les arêtes latérales se rejoignent.' },
+  { nom: 'Hauteur', phrase: 'La distance du sommet à la base, perpendiculaire à la base.' },
+];
+const shell = window.Konstrio.createGame({
+  id: '3d-28-volumes', code: '3D·28', title: 'Pyramides et cônes', type: '3D', duree: '10 min',
+  domain: { label: 'Mathématiques', color: '#2E7FC2' },
+  intro: {
+    greet: 'Un cône, un cylindre, une pyramide, un prisme. Verse, compare, et vois d\'où vient le « ÷ 3 ».',
+    rule: 'Règle le rayon, le côté de la base et la hauteur. Les volumes se calculent en direct. Verse le cône dans le cylindre pour vérifier qu\'il faut trois cônes.',
+    how: ['Glisse pour tourner, molette pour zoomer.', 'Les curseurs changent le rayon, le côté et la hauteur.', '« Verser » remplit le cône, puis le vide dans le cylindre : compte les versements.'],
+    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    objectif: 'Calculer le volume d\'une pyramide et d\'un cône, et comprendre le facteur 1/3.',
+    hint: 'Volume d\'un cône ou d\'une pyramide : aire de la base × hauteur ÷ 3.',
+    why: 'Le cylindre contient exactement trois fois le cône de même base et de même hauteur. Le prisme contient trois fois la pyramide.',
+  },
+  learned: ['Volume du cône : π × r² × h ÷ 3. Volume de la pyramide : aire de la base × h ÷ 3.', 'Un cylindre de même base et de même hauteur contient trois fois le cône.', 'Le patron d\'un cône : un disque et un secteur de disque.'],
+  onReady: init, onStart: demarrer,
+});
+const vCone = () => Math.PI * r * r * h / 3; const vCyl = () => Math.PI * r * r * h; const vPyr = () => a * a * h / 3; const vPri = () => a * a * h;
+const f1 = (x) => (Math.round(x * 10) / 10).toString().replace('.', ',');
+
+function init() {
+  M = creerMonde(shell, { fond: 0xe8eef2, hdri: '../assets/3d/env/studio_1k.hdr', sol: { taille: 30, couleur: 0xb8b0a4 }, ambiance: 0.9, soleil: { position: [6, 12, 8], intensite: 1.6, etendue: 12 }, camera: { position: [0, 6, 12], cible: [0, 1.6, 0], min: 3, max: 30 }, legendes: LEGENDES, libelle: 'Quatre solides sur une table : cône, cylindre, pyramide, prisme' });
+  const { scene, mesh, mat, legender, etiquette } = M;
+  const table = mesh(new THREE.BoxGeometry(14, 0.3, 6), mat(0x8c6a4a, { rugosite: 0.6 }), [0, -0.15, 0]); table.receiveShadow = true; table.raycast = () => {};
+  const verre = (c) => new THREE.MeshPhysicalMaterial({ color: c, transparent: true, opacity: 0.42, roughness: 0.1, metalness: 0, transmission: 0.2, side: THREE.DoubleSide });
+  cone = mesh(new THREE.ConeGeometry(1, 1, 48, 1, true), verre(0x1B82E0)); legender(cone, 'Cône', LEGENDES[0].phrase);
+  cylindre = mesh(new THREE.CylinderGeometry(1, 1, 1, 48, 1, true), verre(0x2AA98C)); legender(cylindre, 'Cylindre', LEGENDES[1].phrase);
+  pyramide = mesh(new THREE.ConeGeometry(1, 1, 4, 1, true), verre(0xF5A623)); legender(pyramide, 'Pyramide', LEGENDES[2].phrase);
+  prisme = mesh(new THREE.BoxGeometry(1, 1, 1), verre(0xE63329)); legender(prisme, 'Prisme', LEGENDES[3].phrase);
+  [cone, cylindre, pyramide, prisme].forEach((m) => { m.castShadow = false; });
+  liquideCone = new THREE.Mesh(new THREE.ConeGeometry(1, 1, 48), mat(0x2f8fe0, { transparent: true, opacite: 0.85 })); liquideCone.raycast = () => {}; liquideCone.visible = false; scene.add(liquideCone);
+  liquideCyl = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 48), mat(0x2f8fe0, { transparent: true, opacite: 0.85 })); liquideCyl.raycast = () => {}; liquideCyl.visible = false; scene.add(liquideCyl);
+  const sommet = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 12), mat(0xffffff, { emissif: 0xffd000, intensite: 0.9 })); scene.add(sommet); legender(sommet, 'Sommet', LEGENDES[4].phrase); pyramide.userData.sommet = sommet;
+  const hauteurLigne = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1, 8), mat(0x222222, { emissif: 0x222222, intensite: 0.3 })); scene.add(hauteurLigne); legender(hauteurLigne, 'Hauteur', LEGENDES[5].phrase); pyramide.userData.hauteur = hauteurLigne;
+  M.etiquettes = { cone: etiquette('Cône', [0, 0, 0], { hauteur: 0.45 }), cyl: etiquette('Cylindre', [0, 0, 0], { hauteur: 0.45 }), pyr: etiquette('Pyramide', [0, 0, 0], { hauteur: 0.45 }), pri: etiquette('Prisme', [0, 0, 0], { hauteur: 0.45 }) };
+  placer();
+  panneau = M.panneau(`<h3>Dimensions (cm)</h3>
+    <label>Rayon r (cône et cylindre) <span class="mb-val" id="vo-r">${r}</span><input class="mb-plage" id="vo-rs" type="range" min="1" max="5" step="0.5" value="${r}" aria-label="Rayon"></label>
+    <label>Côté a (pyramide et prisme) <span class="mb-val" id="vo-a">${a}</span><input class="mb-plage" id="vo-as" type="range" min="1" max="7" step="0.5" value="${a}" aria-label="Côté de la base"></label>
+    <label>Hauteur h (les quatre) <span class="mb-val" id="vo-h">${h}</span><input class="mb-plage" id="vo-hs" type="range" min="2" max="9" step="0.5" value="${h}" aria-label="Hauteur"></label>
+    <h3>Volumes</h3>
+    <div class="mb-mesures"><span>Cône π r² h ÷ 3</span><b id="vo-vc">·</b><span>Cylindre π r² h</span><b id="vo-vy">·</b><span>Pyramide a² h ÷ 3</span><b id="vo-vp">·</b><span>Prisme a² h</span><b id="vo-vr">·</b></div>
+    <button class="mb-bouton primaire" id="vo-verser">Verser le cône dans le cylindre</button>
+    <p class="mb-carte" id="vo-etat">Le cylindre est vide. Combien de cônes pour le remplir ?</p>`);
+  ['r', 'a', 'h'].forEach((k) => panneau.querySelector('#vo-' + k + 's').addEventListener('input', (e) => { if (k === 'r') r = Number(e.target.value); if (k === 'a') a = Number(e.target.value); if (k === 'h') h = Number(e.target.value); verses = 0; versement = null; liquideCyl.visible = false; liquideCone.visible = false; placer(); }));
+  panneau.querySelector('#vo-verser').addEventListener('click', verser);
+  M.boucle((dt) => {
+    if (!versement) return;
+    versement.t += dt * 0.9;
+    if (versement.phase === 0) { const f = Math.min(1, versement.t); liquideCone.visible = true; liquideCone.scale.set(r * ECH * f, h * ECH * f, r * ECH * f); liquideCone.position.set(-4.5, h * ECH * f / 2, 0); if (f >= 1) { versement.phase = 1; versement.t = 0; } }
+    else { const f = Math.min(1, versement.t); liquideCone.scale.set(r * ECH * (1 - f), h * ECH * (1 - f), r * ECH * (1 - f)); liquideCone.position.set(-4.5, h * ECH * (1 - f) / 2, 0); const niveau = (verses + f / 3) * h * ECH; liquideCyl.visible = true; liquideCyl.scale.set(r * ECH * 0.98, Math.max(0.001, niveau), r * ECH * 0.98); liquideCyl.position.set(-1.5, niveau / 2, 0); if (f >= 1) { verses += 1; versement = null; liquideCone.visible = false; const e = panneau.querySelector('#vo-etat'); e.textContent = verses >= 3 ? 'Trois cônes remplissent exactement le cylindre : le cône vaut un tiers du cylindre.' : verses + ' cône' + (verses > 1 ? 's' : '') + ' versé' + (verses > 1 ? 's' : '') + ' : le cylindre est rempli à ' + Math.round(verses / 3 * 100) + ' %.'; shell.sound('pop'); } }
+  });
+}
+function verser() { if (versement) return; if (verses >= 3) { verses = 0; liquideCyl.visible = false; } versement = { phase: 0, t: 0 }; }
+function placer() {
+  cone.scale.set(r * ECH, h * ECH, r * ECH); cone.position.set(-4.5, h * ECH / 2, 0);
+  cylindre.scale.set(r * ECH, h * ECH, r * ECH); cylindre.position.set(-1.5, h * ECH / 2, 0);
+  pyramide.scale.set(a * ECH / Math.SQRT2, h * ECH, a * ECH / Math.SQRT2); pyramide.rotation.y = Math.PI / 4; pyramide.position.set(1.8, h * ECH / 2, 0);
+  prisme.scale.set(a * ECH, h * ECH, a * ECH); prisme.position.set(4.8, h * ECH / 2, 0);
+  pyramide.userData.sommet.position.set(1.8, h * ECH + 0.02, 0);
+  pyramide.userData.hauteur.scale.y = h * ECH; pyramide.userData.hauteur.position.set(1.8, h * ECH / 2, 0);
+  const E = M.etiquettes; E.cone.position.set(-4.5, h * ECH + 0.7, 0); E.cyl.position.set(-1.5, h * ECH + 0.7, 0); E.pyr.position.set(1.8, h * ECH + 0.9, 0); E.pri.position.set(4.8, h * ECH + 0.7, 0);
+  if (panneau) { panneau.querySelector('#vo-r').textContent = f1(r); panneau.querySelector('#vo-a').textContent = f1(a); panneau.querySelector('#vo-h').textContent = f1(h); panneau.querySelector('#vo-vc').textContent = f1(vCone()) + ' cm³'; panneau.querySelector('#vo-vy').textContent = f1(vCyl()) + ' cm³'; panneau.querySelector('#vo-vp').textContent = f1(vPyr()) + ' cm³'; panneau.querySelector('#vo-vr').textContent = f1(vPri()) + ' cm³'; }
+}
+function demarrer(mode, api) {
+  if (mode !== 'cours') { api.say('Règle les dimensions et lis les volumes. Verse trois fois le cône dans le cylindre pour voir le tiers.', 'joyeux'); return; }
+  api.defis([
+    { type: 'qcm', texte: 'Le volume d\'une pyramide, c\'est…', choix: ['aire de la base × hauteur ÷ 3', 'aire de la base × hauteur', 'périmètre de la base × hauteur', 'base × hauteur ÷ 2'], reponse: 0, explication: 'Comme pour le cône : V = B × h ÷ 3, où B est l\'aire de la base.' },
+    { type: 'verifier', texte: 'Règle le cône pour un volume entre 95 et 105 cm³.', bouton: 'C\'est réglé', verifier: () => vCone() >= 95 && vCone() <= 105, indice: 'V = π × r² × h ÷ 3. Avec r = 3 et h = 3,5 : environ 33 cm³ ; augmente h ou r.', explication: 'Par exemple r = 4 et h = 6 : π × 16 × 6 ÷ 3 ≈ 100,5 cm³.' },
+    { type: 'qcm', texte: 'Combien de cônes pleins faut-il pour remplir le cylindre de même base et de même hauteur ?', choix: ['3', '2', '4', '1'], reponse: 0, explication: 'Le cylindre a un volume de π r² h, le cône π r² h ÷ 3 : il faut trois cônes.' },
+    { type: 'verifier', texte: 'Règle la pyramide : base 6 cm et hauteur 5 cm. Lis son volume.', bouton: 'C\'est réglé', verifier: () => a === 6 && h === 5, indice: 'Curseur « Côté a » sur 6, curseur « Hauteur h » sur 5.', explication: 'V = 6 × 6 × 5 ÷ 3 = 180 ÷ 3 = 60 cm³.' },
+    { type: 'qcm', texte: 'Une pyramide de base carrée 6 cm et de hauteur 5 cm a pour volume…', choix: ['60 cm³', '180 cm³', '30 cm³', '90 cm³'], reponse: 0, explication: 'Aire de la base : 6 × 6 = 36 cm². Volume : 36 × 5 ÷ 3 = 60 cm³.' },
+    { type: 'toucher', texte: 'Touche le <b>sommet</b> de la pyramide.', cible: 'Sommet', explication: 'Le sommet est le point commun à toutes les arêtes latérales. La hauteur part de lui, perpendiculaire à la base.' },
+    { type: 'qcm', texte: 'Le patron d\'un cône est fait de…', choix: ['un disque et un secteur de disque', 'deux disques', 'un rectangle et un disque', 'un triangle et un carré'], reponse: 0, explication: 'La base est un disque ; la surface latérale, dépliée, est un secteur de disque de rayon la génératrice.' },
+  ], { rejouer: () => demarrer('cours', api) });
+}
+</script>
+</body>
+</html>

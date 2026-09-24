@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Opaline · Carte des migrations</title>
+<link rel="icon" href="../assets/favicon-512.png" />
+<link rel="stylesheet" href="../tokens.css" />
+<script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
+<script src="../konstrio.js"></script>
+<script src="../shell.js"></script>
+</head>
+<body>
+<script type="module">
+import { creerMonde, THREE, latlon, arcSphere } from '../monde-base.js';
+
+const R = 3;
+const LIEUX = {
+  mexique: { nom: 'Mexique et Amérique centrale', lat: 21, lon: -100 }, usa: { nom: 'États-Unis', lat: 39, lon: -98 }, afriqueO: { nom: 'Afrique de l\'Ouest', lat: 12, lon: -2 }, maghreb: { nom: 'Maghreb', lat: 32, lon: 2 },
+  europe: { nom: 'Europe', lat: 49, lon: 8 }, syrie: { nom: 'Syrie', lat: 35, lon: 38 }, turquie: { nom: 'Turquie', lat: 39, lon: 33 }, asieSud: { nom: 'Asie du Sud', lat: 22, lon: 78 }, golfe: { nom: 'Pays du Golfe', lat: 24, lon: 50 },
+  ukraine: { nom: 'Ukraine', lat: 49, lon: 32 }, venezuela: { nom: 'Venezuela', lat: 8, lon: -66 }, colombie: { nom: 'Colombie', lat: 4, lon: -73 }, chine: { nom: 'Chine', lat: 33, lon: 105 }, bangladesh: { nom: 'Bangladesh', lat: 24, lon: 90 },
+};
+const TYPES = { eco: { nom: 'Travail', couleur: 0x1B82E0, texte: 'Migrations économiques : partir pour un emploi et un salaire, envoyer de l\'argent à la famille (les remises).' }, refuge: { nom: 'Réfugiés', couleur: 0xE63329, texte: 'Fuir une guerre ou une persécution : un statut protégé par la convention de Genève de 1951.' }, etude: { nom: 'Études', couleur: 0x2AA98C, texte: 'Étudier à l\'étranger : plus de six millions d\'étudiants dans le monde.' }, climat: { nom: 'Climat', couleur: 0xF5A623, texte: 'Déplacés par les inondations, la sécheresse, la montée des eaux : souvent à l\'intérieur de leur pays.' } };
+const FLUX = [
+  { de: 'mexique', vers: 'usa', type: 'eco', volume: 11, texte: 'Environ 11 millions de personnes nées au Mexique vivent aux États-Unis : le premier couloir migratoire du monde.' },
+  { de: 'afriqueO', vers: 'europe', type: 'eco', volume: 3, texte: 'Traversée du Sahara puis de la Méditerranée : une route longue et dangereuse, vers l\'Espagne, l\'Italie, la France.' },
+  { de: 'maghreb', vers: 'europe', type: 'eco', volume: 5, texte: 'Algériens, Marocains, Tunisiens : une immigration ancienne vers la France, l\'Espagne, l\'Italie.' },
+  { de: 'syrie', vers: 'turquie', type: 'refuge', volume: 3.6, texte: 'Depuis 2011, la guerre en Syrie a poussé 3,6 millions de réfugiés en Turquie, premier pays d\'accueil au monde.' },
+  { de: 'asieSud', vers: 'golfe', type: 'eco', volume: 9, texte: 'Indiens, Pakistanais, Bangladais travaillent dans le bâtiment et les services des pays du Golfe, souvent sans droits.' },
+  { de: 'ukraine', vers: 'europe', type: 'refuge', volume: 6, texte: '2022 : la guerre pousse près de six millions d\'Ukrainiens vers la Pologne, l\'Allemagne et le reste de l\'Europe.' },
+  { de: 'venezuela', vers: 'colombie', type: 'refuge', volume: 2.5, texte: 'Crise économique et politique : 2,5 millions de Vénézuéliens accueillis en Colombie, voisine.' },
+  { de: 'chine', vers: 'usa', type: 'etude', volume: 0.3, texte: 'Environ 300 000 étudiants chinois dans les universités américaines.' },
+  { de: 'bangladesh', vers: 'bangladesh', type: 'climat', volume: 1, texte: 'Au Bangladesh, cyclones et montée des eaux déplacent chaque année des centaines de milliers de personnes, à l\'intérieur du pays.' },
+];
+let visibles = { eco: true, refuge: true, etude: true, climat: true }; let M, panneau, globe, arcs = [], particules = [];
+const LEGENDES = Object.values(LIEUX).map((l) => ({ nom: l.nom, phrase: '' })).concat(Object.values(TYPES).map((t) => ({ nom: t.nom, phrase: t.texte })));
+const shell = window.Konstrio.createGame({
+  id: '3d-30-migrations', code: '3D·30', title: 'Carte des migrations', type: '3D', duree: '12 min',
+  domain: { label: 'Géographie', color: '#1E8C7A' },
+  intro: {
+    greet: 'Un monde de migrants : les grands flux animés sur le globe, avec leurs chiffres et leurs raisons.',
+    rule: 'Chaque arc est un flux migratoire, coloré selon sa raison : travail, refuge, études, climat. Touche un arc ou une région pour lire le chiffre.',
+    how: ['Glisse pour tourner le globe, molette pour zoomer.', 'Touche un flux ou une région : sa légende s\'affiche.', 'Le panneau allume ou éteint chaque type de migration.'],
+    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    objectif: 'Lire une carte de flux, distinguer migrant économique et réfugié, et retenir les ordres de grandeur.',
+    hint: 'Les migrants internationaux : 281 millions en 2020, soit 3,6 % de l\'humanité. La plupart restent dans leur région.',
+    why: 'Migrer, c\'est presque toujours partir vers un pays proche, pour travailler ou se mettre à l\'abri.',
+  },
+  learned: ['281 millions de migrants internationaux en 2020 : 3,6 % de la population mondiale.', 'Un réfugié fuit une guerre ou une persécution ; un migrant économique part travailler.', 'La Turquie est le premier pays d\'accueil de réfugiés ; la plupart des migrations se font vers un pays proche.'],
+  onReady: init, onStart: demarrer,
+});
+
+function init() {
+  M = creerMonde(shell, { fond: 0x0a1020, sol: false, ombres: false, ambiance: 0.6, soleil: { position: [-20, 10, 20], intensite: 1.6 }, camera: { position: [0, 3, 10], cible: [0, 0, 0], min: 4.5, max: 24, polaire: Math.PI }, legendes: LEGENDES, libelle: 'Un globe terrestre avec les grands flux migratoires' });
+  const { scene, mesh, mat, legender, etiquette } = M;
+  globe = new THREE.Group(); scene.add(globe);
+  const matTerre = mat(0x3f6fb5, { rugosite: 0.9 });
+  const terre = mesh(new THREE.SphereGeometry(R, 72, 54), matTerre, [0, 0, 0], globe); terre.castShadow = false; terre.receiveShadow = false; terre.raycast = () => {};
+  new THREE.TextureLoader().load('../assets/3d/planets/2k_earth_daymap.jpg', (t) => { t.colorSpace = THREE.SRGBColorSpace; matTerre.map = t; matTerre.color.set(0xffffff); matTerre.needsUpdate = true; }, undefined, () => {});
+  const pts = []; for (let i = 0; i < 900; i += 1) { const v = new THREE.Vector3().randomDirection().multiplyScalar(120); pts.push(v.x, v.y, v.z); }
+  const gs = new THREE.BufferGeometry(); gs.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); const etoiles = new THREE.Points(gs, new THREE.PointsMaterial({ color: 0xaab4d0, size: 0.3 })); etoiles.raycast = () => {}; scene.add(etoiles);
+  const pos = {};
+  Object.keys(LIEUX).forEach((k) => {
+    const l = LIEUX[k]; pos[k] = latlon(l.lat, l.lon, R * 1.005);
+    const g = new THREE.Group(); g.position.copy(pos[k]); globe.add(g);
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 8), mat(0xffffff, { emissif: 0xffffff, intensite: 0.6 })));
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), new THREE.MeshBasicMaterial({ visible: false })));
+    const arrivees = FLUX.filter((f) => f.vers === k).reduce((a, f) => a + f.volume, 0); const departs = FLUX.filter((f) => f.de === k && f.vers !== k).reduce((a, f) => a + f.volume, 0);
+    legender(g, l.nom, (arrivees ? 'Accueille environ ' + String(arrivees).replace('.', ',') + ' millions de personnes des flux montrés. ' : '') + (departs ? 'Départ d\'environ ' + String(departs).replace('.', ',') + ' millions.' : ''));
+    const e = etiquette(l.nom, [0, 0, 0], { hauteur: 0.26, taille: 24 }); e.position.copy(pos[k].clone().multiplyScalar(1.08)); globe.add(e);
+  });
+  FLUX.forEach((f) => {
+    const t = TYPES[f.type];
+    if (f.de === f.vers) { const anneau = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.02, 6, 32), new THREE.MeshBasicMaterial({ color: t.couleur })); anneau.position.copy(pos[f.de].clone().multiplyScalar(1.01)); anneau.lookAt(new THREE.Vector3()); anneau.userData.legende = { nom: t.nom, phrase: f.texte }; anneau.userData.type = f.type; globe.add(anneau); arcs.push(anneau); return; }
+    const courbe = arcSphere(pos[f.de], pos[f.vers], R, 0.14 + f.volume * 0.012, 56);
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(courbe, 56, 0.012 + f.volume * 0.004, 6, false), new THREE.MeshBasicMaterial({ color: t.couleur, transparent: true, opacity: 0.8 }));
+    tube.userData.legende = { nom: t.nom, phrase: LIEUX[f.de].nom + ' → ' + LIEUX[f.vers].nom + ' : ' + f.texte }; tube.userData.type = f.type; globe.add(tube); arcs.push(tube);
+    const n = Math.max(2, Math.round(f.volume)); for (let k = 0; k < n; k += 1) { const p = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), mat(0xffffff, { emissif: t.couleur, intensite: 1 })); p.userData.legende = tube.userData.legende; p.userData.type = f.type; globe.add(p); particules.push({ m: p, courbe, t: k / n, v: 0.06 + Math.random() * 0.04 }); }
+  });
+  panneau = M.panneau(`<h3>Pourquoi partir ?</h3>
+    <div class="mb-etapes">${Object.keys(TYPES).map((k) => `<button class="mb-bouton" data-type="${k}" aria-pressed="true" style="border-left:6px solid #${TYPES[k].couleur.toString(16).padStart(6, '0')}"><i>●</i>${TYPES[k].nom}</button>`).join('')}</div>
+    <p class="mb-carte" id="mi-texte">Touche un flux ou une région pour lire le chiffre.</p>
+    <h3>Repères (ONU, 2020)</h3>
+    <div class="mb-mesures"><span>Migrants internationaux</span><b>281 millions</b><span>Part de l'humanité</span><b>3,6 %</b><span>Réfugiés</span><b>≈ 26 millions</b><span>Premier pays d'accueil</span><b>Turquie</b></div>`);
+  panneau.querySelectorAll('[data-type]').forEach((b) => b.addEventListener('click', () => { const k = b.getAttribute('data-type'); visibles[k] = !visibles[k]; b.setAttribute('aria-pressed', String(visibles[k])); arcs.forEach((a) => { if (a.userData.type === k) a.visible = visibles[k]; }); particules.forEach((p) => { if (p.m.userData.type === k) p.m.visible = visibles[k]; }); panneau.querySelector('#mi-texte').textContent = TYPES[k].nom + ' : ' + TYPES[k].texte; shell.say(TYPES[k].texte, 'concentre'); }));
+  M.boucle((dt) => { globe.rotation.y += dt * 0.015; particules.forEach((p) => { p.t = (p.t + dt * p.v) % 1; p.m.position.copy(p.courbe.getPoint(p.t)); }); });
+}
+function demarrer(mode, api) {
+  if (mode !== 'cours') { api.say('Tourne le globe et touche les flux. Chaque couleur est une raison de partir.', 'joyeux'); return; }
+  api.defis([
+    { type: 'qcm', texte: 'Quelle part de l\'humanité vit dans un autre pays que celui de sa naissance ?', choix: ['Environ 3,6 %', 'Environ 36 %', 'Environ 0,3 %', 'Environ 60 %'], reponse: 0, explication: '281 millions de migrants internationaux en 2020 sur 7,8 milliards d\'humains : 3,6 %. La grande majorité des humains ne migre pas.' },
+    { type: 'toucher', texte: 'Touche les <b>pays du Golfe</b>, qui accueillent des millions de travailleurs.', cible: 'Pays du Golfe', explication: 'Arabie saoudite, Émirats, Qatar : les travailleurs d\'Asie du Sud y sont majoritaires dans le bâtiment et les services.' },
+    { type: 'qcm', texte: 'Un réfugié, c\'est une personne qui…', choix: ['fuit une guerre ou une persécution, et est protégée par le droit international', 'part travailler à l\'étranger', 'part étudier à l\'étranger', 'voyage en touriste'], reponse: 0, explication: 'La convention de Genève (1951) protège le réfugié : il ne peut pas être renvoyé vers le danger. Le migrant économique n\'a pas ce statut.' },
+    { type: 'qcm', texte: 'En 2020, le premier pays d\'accueil de réfugiés au monde est…', choix: ['la Turquie', 'la France', 'les États-Unis', 'le Japon'], reponse: 0, explication: 'Près de 3,6 millions de réfugiés syriens : les pays voisins des conflits accueillent le plus, bien avant l\'Europe.' },
+    { type: 'qcm', texte: 'La plupart des migrants internationaux se déplacent…', choix: ['vers un pays proche, souvent voisin', 'vers un autre continent, très loin', 'en bateau uniquement', 'sans jamais revenir'], reponse: 0, explication: 'Syrie → Turquie, Venezuela → Colombie, Mexique → États-Unis : la proximité compte, pour le coût du voyage comme pour la langue.' },
+    { type: 'toucher', texte: 'Touche les <b>États-Unis</b>, premier pays d\'immigration.', cible: 'États-Unis', explication: 'Plus de 50 millions de personnes nées à l\'étranger y vivent : Mexicains d\'abord, puis Indiens, Chinois, Philippins.' },
+    { type: 'qcm', texte: 'Une remise (ou transfert de fonds), c\'est…', choix: ['de l\'argent envoyé par un migrant à sa famille restée au pays', 'un visa de travail', 'une frontière fermée', 'un camp de réfugiés'], reponse: 0, explication: 'Plus de 600 milliards de dollars par an : pour certains pays, c\'est la première ressource, avant les exportations.' },
+  ], { rejouer: () => demarrer('cours', api) });
+}
+</script>
+</body>
+</html>

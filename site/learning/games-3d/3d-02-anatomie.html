@@ -116,6 +116,9 @@ import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+/* E10 : les maillages STL arrivent en facettes ; on fusionne les sommets puis on recalcule des normales lissées. */
+function lisserGeometrie(g){ try { const g2 = mergeVertices(g, 1e-4); g2.computeVertexNormals(); g.dispose(); return g2; } catch (e) { g.computeVertexNormals(); return g; } }
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 const REDUCED = window.Konstrio.REDUCED;
 const MOBILE = Math.min(window.innerWidth, window.innerHeight) < 760;
@@ -209,6 +212,9 @@ function alignBody(){ if(!BPXF) return; if(skin) applyBPXF(skin); if(vhAll) appl
 /* ============================================================
    COQUILLE DE JEU
    ============================================================ */
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const p=ob.userData&&PARTS[ob.userData.part]; return p?{nom:p.n,phrase:p.role||p.s}:null; }
+function LEGENDES_OPALINE(){ const vus=[]; if(scene) scene.traverse(o=>{ const p=o.visible&&o.userData&&PARTS[o.userData.part]; if(p&&!vus.some(v=>v.nom===p.n)) vus.push({nom:p.n,phrase:p.role||p.s}); }); return vus; }
 const shell = window.Konstrio.createGame({
   id:'3d-02-anatomie', code:'3D·02', title:'Anatomie humaine 3D', type:'3D',
   domain:{ label:'SVT & Santé', color:'#E63329' },
@@ -272,6 +278,7 @@ function init(){
   composer.addPass(new OutputPass());
 
   setupControlsDefaults();
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
 
   // éclairage : hémisphérique + clé (ombre) + contre-jour bleuté + rebond
   scene.add(new THREE.HemisphereLight(0xf4f8ff, 0x2a2438, 0.9));
@@ -458,7 +465,7 @@ function bump(){ loadCount++; const el = document.getElementById('anLoadBar'); i
 
 function loadRealModels(){ loadTotal = VH.length + SK.length + 1; loadVHOrgans(); loadSkeleton(); loadSkin(); }
 
-function loadSkin(){ new STLLoader().load('../assets/3d/models/bp-skin.stl', g=>{ g.computeVertexNormals(); const m = new THREE.Mesh(g, skinMat()); m.userData.part = 'peau'; skin.add(m); applyBPXF(skin); bump(); }, undefined, ()=>bump()); }
+function loadSkin(){ new STLLoader().load('../assets/3d/models/bp-skin.stl', g=>{ g = lisserGeometrie(g); const m = new THREE.Mesh(g, skinMat()); m.userData.part = 'peau'; skin.add(m); applyBPXF(skin); bump(); }, undefined, ()=>bump()); }
 
 function loadVHOrgans(){ const L = new STLLoader(); vhAll = new THREE.Group(); scene.add(vhAll);
   VH.forEach(spec=>{ L.load('../assets/3d/models/'+spec.f, g=>{ g.computeVertexNormals();
@@ -483,7 +490,7 @@ function loadVHOrgans(){ const L = new STLLoader(); vhAll = new THREE.Group(); s
 function placeVH(){ if(!vhAll||!vhAll.children.length) return; applyBPXF(vhAll); vhReady = true; setSys(sys); }
 
 function loadSkeleton(){ const L = new STLLoader(); bpGroup = new THREE.Group(); scene.add(bpGroup); let n = 0; const pend = [];
-  SK.forEach(spec=>{ L.load('../assets/3d/models/'+spec.f+'.stl', g=>{ g.computeVertexNormals(); const m = new THREE.Mesh(g, boneMat()); m.userData.part = spec.part; m.userData.mir = spec.mir; if(!MOBILE) m.castShadow = true; bpGroup.add(m); pend.push(m); bump(); if(++n>=SK.length) placeBP(pend); }, undefined, ()=>{ bump(); if(++n>=SK.length) placeBP(pend); }); });
+  SK.forEach(spec=>{ L.load('../assets/3d/models/'+spec.f+'.stl', g=>{ g = lisserGeometrie(g); const m = new THREE.Mesh(g, boneMat()); m.userData.part = spec.part; m.userData.mir = spec.mir; if(!MOBILE) m.castShadow = true; bpGroup.add(m); pend.push(m); bump(); if(++n>=SK.length) placeBP(pend); }, undefined, ()=>{ bump(); if(++n>=SK.length) placeBP(pend); }); });
 }
 function placeBP(meshes){ if(!bpGroup||!bpGroup.children.length) return;
   bpGroup.rotation.set(BPTRANSFORM.rotX,0,0); bpGroup.scale.setScalar(1); bpGroup.position.set(0,0,0); bpGroup.updateMatrixWorld(true);

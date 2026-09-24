@@ -17,7 +17,8 @@
   --fg: #13142B;
   --fg-muted: #565B75;
 
-  --accent: #1F8F86;
+  --accent: #17766F;
+  --on-accent: #ffffff;
   --accent-weak: #E3F5F2;
   --accent-text: #176E67;
 
@@ -54,6 +55,7 @@
   --fg-muted: #A4A8C8;
 
   --accent: #4FD1BF;
+  --on-accent: #06201c;
   --accent-weak: #113330;
   --accent-text: #7FE3D5;
 

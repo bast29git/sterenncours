@@ -182,6 +182,9 @@ let tour=null, camAnim=null, ac=null, ambGain=null;
 const U=0.5; // 1 mètre = 0.5 unité
 const tmpV=new THREE.Vector3();
 
+/* E14 : légendes des objets pour le socle commun des mondes. */
+function LEGENDE_OPALINE(ob){ const u=ob.userData||{}; const d=u.species||(u.key&&DINOS[u.key]); return d&&d.n?{nom:d.n,phrase:(d.diet||'')+(d.len?' · '+d.len+' m':'')}:null; }
+function LEGENDES_OPALINE(){ const vus=[]; if(scene) scene.traverse(o=>{ const d=o.userData&&o.userData.species; if(d&&d.n&&!vus.some(v=>v.nom===d.n)) vus.push({nom:d.n,phrase:d.diet||''}); }); return vus; }
 const shell=window.Konstrio.createGame({
   id:'3d-18-dinosaures', code:'3D·18', title:'Dinosaures : le monde perdu', type:'3D',
   domain:{ label:'Bio & SVT', color:'#2AA98C' },
@@ -225,10 +228,11 @@ function init(api){
   try{ composer.addPass(new SMAAPass(W,H)); }catch(e){}
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.06; controls.maxPolarAngle=Math.PI/2.08; controls.minDistance=2.4; controls.maxDistance=95; controls.target.set(0,4,0); controls.autoRotate=REDUCED; controls.autoRotateSpeed=.25;
+  window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bp, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
 
   // Éclairage cinématique : ciel/sol + soleil directionnel (ombres douces) + contre-jour bleuté
   hemi=new THREE.HemisphereLight(0xffffff,0x55503a,0.85); scene.add(hemi);
-  sunLight=new THREE.DirectionalLight(0xfff0d8,2.2); sunLight.position.set(34,46,20); sunLight.castShadow=!REDUCED;
+  sunLight=new THREE.DirectionalLight(0xfff0d8,2.2); sunLight.position.set(34,46,20); window.Konstrio.rayonLumineux(THREE, scene, [34,46,20], [4,0,-6], 0xfff0d8, 1.6, 0.05); sunLight.castShadow=!REDUCED;
   sunLight.shadow.mapSize.set(REDUCED?1024:2048,REDUCED?1024:2048); sunLight.shadow.camera.near=6; sunLight.shadow.camera.far=170;
   const sc=sunLight.shadow.camera; sc.left=-60; sc.right=60; sc.top=60; sc.bottom=-60; sunLight.shadow.bias=-0.0006; sunLight.shadow.normalBias=0.04;
   scene.add(sunLight); scene.add(sunLight.target);
