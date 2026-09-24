@@ -60,7 +60,15 @@
     reglages: {},
     felicitations: [],
     acces: {}, verrous: {},
+    profil: {},
   };
+  /** Les modules hors programme : découverte, positionnement, visite. */
+  const MODULES = {
+    decouverte: { ref: 'decouverte', titre: 'Faire connaissance', icone: '🤝', url: '#/decouverte', notions: ['Nos cartes', 'Nos règles', 'Un premier jeu'] },
+    positionnement: { ref: 'positionnement', titre: 'Où j\'en suis', icone: '🧭', url: '#/positionnement', notions: ['Cinq questions par matière', 'Sans note'] },
+    visite: { ref: 'visite', titre: 'Visite guidée de l\'application', icone: '🗺️', url: '#/visite', notions: ['Six étapes avec Opale'] },
+  };
+  const MATIERE_MODULE = { id: 'module', nom: 'Module', icone: '✨', lecons: Object.values(MODULES) };
   /** Valeurs par défaut des réglages professeur, si le serveur ne répond pas. */
   const REGLAGES_DEFAUT = {
     pauses: true, tuteur: true, calculatrice: true, calculatrice_maths: true, calculatrice_evaluation: false,
@@ -175,6 +183,7 @@
   }
   function libelleLecon(ref) {
     const [mid, r] = String(ref).split('/');
+    if (mid === 'module') return MODULES[r] ? { m: MATIERE_MODULE, l: MODULES[r] } : null;
     const m = matiere(mid);
     const l = lecon(m, r);
     return m && l ? { m, l } : null;
@@ -215,6 +224,14 @@
     if (estProf()) return true;
     const d = decisionAcces('jeu/' + id);
     return d === null ? true : d;
+  }
+
+  /** Profil partagé : lecture, et écriture d'une clé (Sterenn : « moi.* »). */
+  const profil = (k, defaut) => (k in etat.profil ? etat.profil[k] : defaut);
+  async function enregistrerProfil(k, valeur) {
+    const d = await api('/profil', { method: 'PUT', body: JSON.stringify({ cle: k, valeur }) });
+    if (d.valeur === null) delete etat.profil[k]; else etat.profil[k] = d.valeur;
+    return d.valeur;
   }
 
   /** Ce que dirait la règle automatique, sans tenir compte de la décision. */
@@ -373,7 +390,7 @@
     etat.role = null;
     etat.suivi = {}; etat.resultats = {}; etat.fiches = {};
     etat.ouvertures = {}; etat.seances = []; etat.messagesNonLus = 0; etat.reglages = {}; etat.felicitations = [];
-    etat.acces = {}; etat.verrous = {};
+    etat.acces = {}; etat.verrous = {}; etat.profil = {};
     if (minuteur) { clearInterval(minuteur); minuteur = null; }
     location.hash = '';
     document.getElementById('code').value = '';
@@ -438,6 +455,7 @@
       etat.felicitations = d.felicitations || [];
       etat.acces = d.acces || {};
       etat.verrous = d.verrous || {};
+      etat.profil = d.profil || {};
       etat.messagesNonLus = d.messagesNonLus || 0;
       etat.role = d.role || etat.role;
       appliquerReglages();
@@ -570,7 +588,8 @@
   /* ---------- Interface exposée aux modules de vue --------------------------------------- */
   window.NOYAU = {
     etat, api, signaler, ech, estProf,
-    matiere, lecon, cle, banque, chargerBanque, niveauDe, accesDoc, accesJeu, decisionAcces, estValidee, dossierPdf, nomCourt,
+    matiere, lecon, cle, banque, chargerBanque, niveauDe, accesDoc, accesJeu, decisionAcces,
+    MODULES, profil, enregistrerProfil, estValidee, dossierPdf, nomCourt,
     progression, chiffres, libelleLecon, accessible, raisonVerrou, programmee,
     jourIso, decaler, lundiDe, enFrancais, dateCourte, poids,
     chargerContenu, chargerSeances, chargerScript, rafraichirEtat, rafraichirSeances,

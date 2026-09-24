@@ -6,13 +6,14 @@ import { json, gerer, exigerSession } from '../_commun.js';
 import { lireReglages } from './reglages.js';
 import { lireFelicitations } from './felicitations.js';
 import { lireAcces } from './acces.js';
+import { lireProfil } from './profil.js';
 import { PROGRAMME } from '../_programme.js';
 
 export const onRequestGet = gerer(async (context) => {
   const session = await exigerSession(context);
   const { DB } = context.env;
 
-  const [suivi, resultats, fiches, ouvertures, messages, reglages, felicitations, acces, passees] = await Promise.all([
+  const [suivi, resultats, fiches, ouvertures, messages, reglages, felicitations, acces, profil, passees] = await Promise.all([
     DB.prepare('SELECT cle, niveau, note, maj_le, maj_par FROM suivi').all(),
     DB.prepare('SELECT cle, justes, total, meilleur, series, maj_le FROM resultats').all(),
     DB.prepare('SELECT cle, termine_le FROM fiches_lues').all(),
@@ -21,6 +22,7 @@ export const onRequestGet = gerer(async (context) => {
     lireReglages(DB),
     lireFelicitations(DB),
     lireAcces(DB),
+    lireProfil(DB),
     DB.prepare('SELECT lecons FROM seances WHERE date <= ? AND type = ?').bind(new Date().toISOString().slice(0, 10), 'cours').all().catch(() => ({ results: [] })),
   ]);
 
@@ -60,6 +62,7 @@ export const onRequestGet = gerer(async (context) => {
     role: session.role,
     acces,
     verrous,
+    profil,
     suivi: enObjet(suivi.results || [], 'cle'),
     resultats: enObjet(resultats.results || [], 'cle'),
     fiches: enObjet(fiches.results || [], 'cle'),

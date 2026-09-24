@@ -19,7 +19,7 @@
     jeux: ['Comment on joue ?', 'Qu\'est-ce que ce jeu m\'apprend ?', 'Comment gagner des étoiles ?'],
     messages: ['Aide-moi à formuler ma question', 'Comment envoyer une photo de mon devoir ?'],
     reussites: ['Comment on gagne des étoiles ?', 'C\'est quoi les paliers ?'],
-    autre: ['Qu\'est-ce que je fais aujourd\'hui ?', 'Comment marche l\'application ?', 'Comment gagner des étoiles ?'],
+    autre: ['Qu\'est-ce que je fais aujourd\'hui ?', 'Fais-moi visiter l\'application', 'Comment gagner des étoiles ?'],
   };
 
   /* Chaque avatar porte son propre dégradé : un dégradé défini dans un
@@ -283,6 +283,13 @@
   async function envoyer(texte) {
     texte = String(texte || '').trim();
     if (!texte || occupe) return;
+    if (/visite|fais-moi visiter|montre-moi l'application/i.test(texte)) {
+      ajouter('user', texte);
+      ajouter('assistant', 'Je te fais visiter. Suis les étapes, tu peux arrêter quand tu veux avec Échap.');
+      fermer();
+      N.chargerScript('visite.js').then(() => { location.hash = '#/hub'; setTimeout(() => window.VISITE.lancer(0), 400); }).catch(() => {});
+      return;
+    }
     document.getElementById('e-opale-q').value = '';
     ajouter('user', texte);
     occupe = true; rendreFil();

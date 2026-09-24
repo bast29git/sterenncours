@@ -135,6 +135,27 @@
           continue;
         }
 
+        // La toute première séance : on fait connaissance, on visite
+        // l'application, on fait le point de départ ; puis un premier bloc
+        // de français. Ni maths, ni histoire, ni sciences ce jour-là.
+        if (numero === 0 && fs.francais) {
+          const pris = consommer(fs.francais);
+          if (pris) {
+            fs.francais.dernier = numero;
+            seances.push({
+              date, creneau: creneau.code, type: 'cours',
+              debut: creneau.debut, fin: creneau.fin,
+              matieres: ['francais'],
+              lecons: ['module/decouverte', 'module/positionnement', 'francais/' + pris.lecon.ref],
+              choix: [],
+              objectif: 'Faire connaissance · Où j\'en suis · ' + pris.lecon.titre + ' (' + pris.etape + '/' + BLOCS_PAR_LECON + ')',
+              travail: null,
+            });
+            numero += 1;
+            continue;
+          }
+        }
+
         const precedente = seances.filter((x) => x.type === 'cours').pop();
         const dejaVues = precedente ? precedente.matieres : [];
 

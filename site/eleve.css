@@ -1023,3 +1023,47 @@ html[data-tuteur="0"] .e-opale-bouton, html[data-tuteur="0"] .e-opale { display:
 .e-evt-form input { font: inherit; font-size: 0.9rem; padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid var(--e-trait-fort); background: var(--e-carte); color: var(--e-encre); }
 .e-evt-form-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 .e-evt-form-actions .e-bouton { font-size: 0.82rem; padding: 0.4rem 0.7rem; }
+
+/* ---------- Modules : faire connaissance, où j'en suis ---------------------- */
+.e-module-corps { display: block !important; }
+.e-module-intro { margin: 0 0 1rem; line-height: 1.6; }
+.e-module-q { margin: 1.1rem 0 0.4rem; font-weight: 800; }
+.e-module-q small { font-weight: 600; color: var(--e-encre-doux); }
+.e-horaire { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.e-horaire li { display: grid; grid-template-columns: 5rem 1fr; gap: 0.8rem; padding: 0.6rem 0.8rem; border: 1px solid var(--e-trait); border-radius: var(--e-r-petit); background: var(--e-carte); }
+.e-horaire b { font-family: 'Archivo', sans-serif; font-size: 1.05rem; color: var(--e-vif-fonce); }
+.e-horaire em { font-style: normal; font-size: 0.78rem; font-weight: 700; color: var(--e-encre-doux); margin-left: 0.3rem; }
+.e-form-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.7rem; }
+.e-form-grille label, .e-form-libre { display: grid; gap: 0.25rem; font-size: 0.85rem; font-weight: 700; color: var(--e-encre-doux); margin-top: 0.6rem; }
+.e-form-grille input, .e-form-grille select, .e-form-libre input, .e-form-libre textarea { font: inherit; font-size: 0.95rem; font-weight: 500; color: var(--e-encre); padding: 0.5rem 0.7rem; border-radius: 10px; border: 1px solid var(--e-trait-fort); background: var(--e-carte); }
+.e-puces { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.e-puce { font: inherit; font-size: 0.88rem; font-weight: 700; padding: 0.4rem 0.85rem; border-radius: 999px; border: 1px solid var(--e-trait-fort); background: var(--e-carte); color: var(--e-encre); cursor: pointer; }
+.e-puce.actif { background: var(--e-vif-fonce); border-color: var(--e-vif-fonce); color: #fff; }
+.e-puce:focus-visible { outline: 3px solid var(--e-vif); outline-offset: 2px; }
+.e-carte-bastien { margin: 0; padding: 1rem 1.2rem; border-left: 5px solid var(--e-doux); background: var(--e-voile); border-radius: var(--e-r-petit); line-height: 1.7; }
+.e-regles { list-style: none; padding: 0; margin: 0 0 0.6rem; display: grid; gap: 0.35rem; }
+.e-regles label { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.55rem 0.7rem; border: 1px solid var(--e-trait); border-radius: 10px; background: var(--e-carte); cursor: pointer; line-height: 1.5; }
+.e-regles input { width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; accent-color: var(--e-vif-fonce); }
+.e-tuiles-modules li.fait a { border-color: var(--e-vif-fonce); }
+.e-pos-liste { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.5rem; }
+.e-pos-liste li { display: grid; grid-template-columns: 11rem 1fr 5rem; align-items: center; gap: 0.7rem; }
+.e-pos-mat { font-weight: 700; }
+.e-pos-barre { height: 0.8rem; border-radius: 999px; background: var(--e-voile); overflow: hidden; }
+.e-pos-barre i { display: block; height: 100%; background: linear-gradient(90deg, var(--e-vif), var(--e-doux)); }
+.e-pos-liste b { text-align: right; font-size: 0.9rem; }
+@media (max-width: 40rem) { .e-pos-liste li { grid-template-columns: 1fr 4.5rem; } .e-pos-liste .e-pos-barre { grid-column: 1 / -1; } .e-horaire li { grid-template-columns: 4rem 1fr; } }
+
+/* ---------- Visite guidée ------------------------------------------------- */
+.e-visite-voile { position: fixed; inset: 0; z-index: 80; background: rgba(11, 26, 58, 0.55); pointer-events: none; }
+.e-visite-voile.avec-cible { background: transparent; }
+.e-visite-voile.avec-cible::before { content: ""; position: fixed; left: var(--x); top: var(--y); width: var(--w); height: var(--h); border-radius: 14px; box-shadow: 0 0 0 9999px rgba(11, 26, 58, 0.55), 0 0 0 3px var(--e-vif); }
+.e-visite-cible { position: relative; z-index: 81 !important; }
+.e-visite-carte { position: fixed; left: 50%; transform: translateX(-50%); z-index: 82; width: min(30rem, calc(100vw - 2rem)); display: flex; gap: 0.9rem; padding: 1.1rem 1.2rem; background: var(--e-carte); color: var(--e-encre); border: 1px solid var(--e-trait-fort); border-radius: var(--e-r); box-shadow: var(--e-ombre-forte); }
+.e-visite-carte.centree { top: 50%; transform: translate(-50%, -50%); }
+.e-visite-avatar { width: 3.2rem; height: 3.2rem; flex: none; }
+.e-visite-texte { flex: 1; min-width: 0; }
+.e-visite-etape { margin: 0 0 0.2rem; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--e-vif-fonce); }
+.e-visite-texte h2 { font-size: 1.15rem; margin: 0 0 0.35rem; }
+.e-visite-texte p { margin: 0; line-height: 1.55; }
+.e-visite-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.8rem; justify-content: flex-end; }
+.e-visite-actions .e-bouton { font-size: 0.85rem; padding: 0.45rem 0.8rem; }

@@ -576,3 +576,8 @@ body.corps-prof {
 .p-acces thead th { position: static; }
 .p-case { display: flex !important; align-items: center; gap: 0.45rem; font-size: 0.8rem !important; color: var(--p-encre) !important; margin: 0.4rem 0 0.6rem !important; }
 .p-evt-abs { margin-left: 0.3rem; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--p-alerte); }
+.p-fiche-carte { margin: 0; display: grid; grid-template-columns: 11rem 1fr; gap: 0.45rem 0.8rem; font-size: 0.85rem; }
+.p-fiche-carte dt { font-weight: 700; color: var(--p-faible); }
+.p-fiche-carte dd { margin: 0; }
+.p-jauge { flex: 1; height: 0.55rem; border-radius: 999px; background: var(--p-surface-2); overflow: hidden; }
+.p-jauge i { display: block; height: 100%; background: var(--p-accent); }

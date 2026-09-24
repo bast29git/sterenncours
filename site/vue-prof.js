@@ -25,6 +25,7 @@
         { route: 'mois', ico: 'ic-calendrier', texte: 'Planning' },
         { route: 'suivi', ico: 'ic-graphique', texte: 'Suivi des acquis' },
         { route: 'acces', ico: 'ic-verrou', texte: 'Accès et déblocages' },
+        { route: 'sterenn', ico: 'ic-etoile', texte: 'Sterenn' },
       ],
     },
     {
@@ -1659,6 +1660,55 @@
     }));
   }
 
+  /* ---------- Sterenn : sa carte, ses règles, son point de départ ------------ */
+  function vueSterenn() {
+    const c = N.profil('moi.carte', null);
+    const pos = N.profil('moi.positionnement', null);
+    const nomMat = (id) => { const m = N.matiere(id); return m ? m.icone + ' ' + m.nom : 'non renseignée'; };
+    const REGLES = { pause: 'Une pause de cinq minutes toutes les vingt-cinq minutes', stop: 'Elle peut dire « stop » sans expliquer', consigne: 'Une seule consigne à la fois', fin: 'La séance finit à l\'heure', acquis: 'Ce qui est acquis est nommé et coché', plan: 'Le plan de la séance est annoncé au début' };
+    const PREVENIR = { veille: 'la veille, par message', debut: 'au début de la séance', juste: 'juste avant' };
+    const carte = c ? `
+      <dl class="p-fiche-carte">
+        <dt>Prénom à utiliser</dt><dd>${N.ech(c.prenom || 'Sterenn')}</dd>
+        <dt>Ce qu'elle aime</dt><dd>${(c.aime || []).length ? c.aime.map(N.ech).join(' · ') : '<i>rien coché</i>'}${c.aimePas ? '<br><small>' + N.ech(c.aimePas) + '</small>' : ''}</dd>
+        <dt>Matière préférée</dt><dd>${nomMat(c.matierePref)}</dd>
+        <dt>Matière qui l'inquiète</dt><dd>${c.matiereInquiete ? nomMat(c.matiereInquiete) : 'aucune'}</dd>
+        <dt>Prévenir d'un changement</dt><dd>${PREVENIR[c.prevenir] || 'la veille'}</dd>
+        <dt>Ce qui l'aide quand elle bloque</dt><dd>${(c.aide || []).length ? c.aide.map(N.ech).join(' · ') : '<i>rien coché</i>'}</dd>
+        <dt>Règles retenues</dt><dd><ul class="p-liste">${(c.regles || []).map((r) => `<li>${N.ech(REGLES[r] || r)}</li>`).join('')}${c.autre ? `<li><b>Ajoutée par elle :</b> ${N.ech(c.autre)}</li>` : ''}</ul></dd>
+        ${c.question ? `<dt>Sa question pour toi</dt><dd>${N.ech(c.question)}</dd>` : ''}
+      </dl>` : '<p class="p-vide">Elle n\'a pas encore rempli sa carte. Le module « Faire connaissance » est sur son accueil.</p>';
+    const bilan = pos && !pos.enCours ? `<ul class="p-liste">${PROGRAMME.matieres.map((m) => {
+      const r = pos.matieres[m.id] || { justes: 0, total: 0 };
+      const pct = r.total ? Math.round((r.justes / r.total) * 100) : 0;
+      return `<li><span style="min-width:11rem">${m.icone} ${N.ech(m.nom)}</span><span class="p-jauge"><i style="width:${pct}%"></i></span><b>${r.justes}/${r.total}</b></li>`;
+    }).join('')}</ul><p class="p-aide">Fait le ${N.ech(N.dateCourte(pos.date))}. Cinq questions par matière, prises dans les deux premières leçons.</p>` : '<p class="p-vide">Pas encore fait. Le module « Où j\'en suis » se fait ensemble, sur écran, sans note.</p>';
+    const modules = `<ul class="p-liste">
+      <li>Faire connaissance : ${N.profil('moi.decouverte_fait') ? '<span class="p-etat p-etat-satisfaisant">terminé</span>' : '<span class="p-etat p-etat-fragile">à faire</span>'}</li>
+      <li>Visite guidée : ${N.profil('moi.visite_faite') && N.profil('moi.visite_faite') !== 'interrompue' ? '<span class="p-etat p-etat-satisfaisant">vue</span>' : '<span class="p-etat p-etat-fragile">à faire</span>'}</li>
+      <li>Où j'en suis : ${pos && !pos.enCours ? '<span class="p-etat p-etat-satisfaisant">fait</span>' : '<span class="p-etat p-etat-fragile">à faire</span>'}</li>
+    </ul>`;
+    afficher(entete('Sterenn', 'Sa carte, ses règles, son point de départ, et ta carte à toi.')
+      + '<div class="p-grille2"><div>'
+      + bloc('Sa carte', carte)
+      + bloc('Son point de départ', bilan)
+      + '</div><div>'
+      + bloc('Les modules de début d\'année', modules)
+      + bloc('Ta carte, telle qu\'elle la lit', `<form class="p-form" id="p-form-carte">
+          <div><label for="c-texte">Texte</label><textarea id="c-texte" rows="8" maxlength="1200">${N.ech(N.profil('bastien.carte', ''))}</textarea>
+          <p class="p-aide">Vide, le texte par défaut du module s'affiche. Écris-la à la première personne, en tutoyant.</p></div>
+          <button class="p-bouton" type="submit">Enregistrer</button></form>`)
+      + '</div></div>', [{ t: 'Pilotage' }, { t: 'Sterenn' }]);
+    document.getElementById('p-form-carte').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      try {
+        const t = document.getElementById('c-texte').value.trim();
+        await N.enregistrerProfil('bastien.carte', t || null);
+        N.signaler('Carte enregistrée.', 'succes');
+      } catch (e) { N.signaler(e.message); }
+    });
+  }
+
   /* ---------- Routage ------------------------------------------------------- */
   function rendre(p) {
     brancherChromeUneFois();
@@ -1679,6 +1729,7 @@
       case 'documents': return vueDocuments();
       case 'reglages': return vueReglages();
       case 'acces': return vueAcces();
+      case 'sterenn': return vueSterenn();
       case 'recherche': return vueRecherche(p[1] ? decodeURIComponent(p.slice(1).join('/')) : '');
       default: return vueIntrouvable();
     }

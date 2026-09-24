@@ -198,9 +198,12 @@
     const travail = travailDuJour();
     const vedette = jour || suivante;
     const ouverte = prochaineLeconOuverte();
-    const cible = vedette && (vedette.lecons || []).length ? N.libelleLecon(vedette.lecons[0]) : ouverte;
+    const cible = vedette && (vedette.lecons || []).length
+      ? ((vedette.lecons || []).map((r) => N.libelleLecon(r)).find((x) => x && x.m.id !== 'module') || ouverte)
+      : ouverte;
     const c = N.chiffres();
 
+    const moduleVedette = vedette && (vedette.lecons || []).map((r) => N.libelleLecon(r)).find((x) => x && x.m.id === 'module');
     const titre = vedette
       ? N.ech(vedette.objectif || 'Séance de travail')
       : (cible ? N.ech(cible.l.titre) : 'Rien à faire pour l\'instant');
@@ -218,8 +221,9 @@
         <h1>${titre}</h1>
         <p class="detail">${detail}</p>
         <p class="e-actions">
-          ${cible && docsVisibles(cible.l).length && N.accessible(cible.m.id, cible.l.ref)
-        ? `<a class="e-bouton" href="#/lecon/${cible.m.id}/${cible.l.ref}/cours">Ouvrir ma leçon</a>` : ''}
+          ${moduleVedette ? `<a class="e-bouton" href="${moduleVedette.l.url}">${moduleVedette.l.icone} ${N.ech(moduleVedette.l.titre)}</a>` : ''}
+          ${cible && cible.m.id !== 'module' && docsVisibles(cible.l).length && N.accessible(cible.m.id, cible.l.ref)
+        ? `<a class="e-bouton${moduleVedette ? ' e-bouton-doux' : ''}" href="#/lecon/${cible.m.id}/${cible.l.ref}/cours">Ouvrir ma leçon</a>` : ''}
           ${cible && N.banque(cible.m.id, cible.l.ref)
         ? `<a class="e-bouton e-bouton-doux" href="#/exos/${cible.m.id}/${cible.l.ref}">M'entraîner</a>` : ''}
         </p>
@@ -250,6 +254,16 @@
            <b>Mes matières</b><span>Ouvrir un parcours</span></a></li>
          <li><a href="#/jeux"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-etincelle"/></svg></span>
            <b>Jeux</b><span>${(window.JEUX || []).length} jeux et mondes 3D</span></a></li>
+       </ul>
+
+       <h2 class="e-titre-section">${N.ic('ic-cible')} Pour commencer</h2>
+       <ul class="e-tuiles e-tuiles-modules">
+         <li class="${N.profil('moi.decouverte_fait') ? 'fait' : ''}"><a href="#/decouverte"><span class="ico" aria-hidden="true">🤝</span>
+           <b>Faire connaissance</b><span>${N.profil('moi.decouverte_fait') ? 'Terminé ✓ · relire ma carte' : 'Notre première séance, pas à pas'}</span></a></li>
+         <li class="${N.profil('moi.visite_faite') && N.profil('moi.visite_faite') !== 'interrompue' ? 'fait' : ''}"><a href="#/visite"><span class="ico" aria-hidden="true">🗺️</span>
+           <b>Visite guidée</b><span>${N.profil('moi.visite_faite') && N.profil('moi.visite_faite') !== 'interrompue' ? 'Vue ✓ · la refaire' : 'Sept étapes avec Opale'}</span></a></li>
+         <li class="${N.profil('moi.positionnement') && !N.profil('moi.positionnement').enCours ? 'fait' : ''}"><a href="#/positionnement"><span class="ico" aria-hidden="true">🧭</span>
+           <b>Où j'en suis</b><span>${N.profil('moi.positionnement') && !N.profil('moi.positionnement').enCours ? 'Fait ✓ · voir mon point de départ' : 'À faire avec Bastien, sans note'}</span></a></li>
        </ul>`,
     );
     brancherChoix(vueHub);
@@ -1330,6 +1344,15 @@
     );
   }
 
+  /** Les modules et la visite vivent dans leurs propres fichiers, chargés à la demande. */
+  function module(nom, arg) {
+    afficher('<p class="e-vide">Chargement…</p>');
+    N.chargerScript('modules.js').then(() => window.MODULES_ELEVE[nom](arg)).catch(() => afficher('<p class="e-vide">Ce module n\'a pas pu être chargé. Recharge la page.</p>'));
+  }
+  function visite() {
+    N.chargerScript('visite.js').then(() => { location.hash = '#/hub'; setTimeout(() => window.VISITE.lancer(0), 400); }).catch(() => N.signaler('La visite n\'a pas pu démarrer.'));
+  }
+
   function vueIntrouvable() {
     afficher('<div class="e-vide"><p>Cette page n\'existe pas.</p><p><a class="e-bouton e-bouton-doux" href="#/hub">Revenir à l\'accueil</a></p></div>');
   }
@@ -1344,6 +1367,9 @@
       case 'exos': return vueExos(p[1], p[2]);
       case 'calendrier': return vueCalendrier(p[1]);
       case 'choix': return vueChoix();
+      case 'decouverte': return module('vueDecouverte', p[1]);
+      case 'positionnement': return module('vuePositionnement');
+      case 'visite': return visite();
       case 'jeux': return vueJeux(p[1]);
       case 'progres': case 'reussites': return vueReussites();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);
@@ -1352,5 +1378,6 @@
     }
   }
 
-  window.VUE_ELEVE = { nav, rendre };
+  window.VUE_ELEVE = { nav, rendre, afficher };
+  N.VUE = window.VUE_ELEVE;
 })();
