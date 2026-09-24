@@ -27,6 +27,7 @@
    .qz-fb.show{ display:block; padding:13px 15px; border-radius:12px; }
    .qz-fb.good{ background:var(--ok); color:var(--ok-fg); } .qz-fb.bad{ background:var(--err); color:var(--err-fg); }
    .qz-next{ min-height:46px; border-radius:12px; border:none; background:var(--accent); color: var(--on-accent, #fff); font-family:var(--font-body); font-weight:700; font-size:15px; cursor:pointer; width:100%; }
+   .qz-tour{ text-align:center; font-size:14px; color:var(--fg-muted); margin:0 0 10px; }
    .qz-mono{ font-family:var(--font-mono); }
    .qz-grid{ border-collapse:collapse; font-family:var(--font-mono); font-size:13px; }
    .qz-grid th,.qz-grid td{ border:1px solid var(--border); padding:5px 10px; text-align:center; }
@@ -35,6 +36,8 @@
 
   window.QuizGame = function (cfg) {
     let api, root, rounds = [], idx = 0, correct = 0, diff = 2, banque = null, mode = 'detente', ratees = [], aRevoir = [];
+    /* D19 : à deux sur le même écran, à tour de rôle ; le score de Sterenn compte pour les étoiles. */
+    let deux = false, joueur = 0; const scores = [0, 0]; const NOMS = ['Sterenn', 'Bastien'];
     const shell = window.Konstrio.createGame({
       id: cfg.id, code: cfg.code, title: cfg.title, type: '2D', domain: cfg.domain, intro: cfg.intro, learned: cfg.learned, duree: cfg.duree,
       onReady: (a) => { api = a; css(); root = document.createElement('div'); root.className = 'qz'; a.stage.appendChild(root); reset(); },
@@ -59,9 +62,9 @@
       const rnd = api.aleatoire(api.graine());
       const prioritaires = mode === 'cours' && banque && banque.length >= 4 ? rs.filter((_, i) => aRevoir.indexOf(i) !== -1) : [];
       const reste = shuffle(rs.filter((r) => prioritaires.indexOf(r) === -1), rnd);
-      return prioritaires.concat(reste).slice(0, Math.min(cfg.perRun || 10, rs.length));
+      return prioritaires.concat(reste).slice(0, Math.min((cfg.perRun || 10) * (deux ? 2 : 1), rs.length));
     }
-    function reset() { rounds = pool(); idx = 0; correct = 0; ratees = []; api.setScore(0); api.setProgress(0); api.save({ enCours: null }); render(); }
+    function reset() { rounds = pool(); idx = 0; correct = 0; ratees = []; joueur = 0; scores[0] = 0; scores[1] = 0; api.setScore(0); api.setProgress(0); api.save({ enCours: null }); render(); }
     /* D8 : reprise de partie : l'état est mémorisé à chaque réponse. */
     function memoriser() { api.save({ enCours: { graine: api.graine(), idx, correct, diff, mode, ratees } }); }
     function reprendre() {
@@ -75,10 +78,12 @@
       if (idx >= rounds.length) return finish();
       const r = rounds[idx]; api.setLevel((idx + 1) + '/' + rounds.length); api.setProgress(idx / rounds.length);
       const opts = shuffle(r.options);
-      root.innerHTML = `<div class="qz-diff">${['Facile', 'Moyen', 'Expert'].map((d, i) => `<button data-d="${i + 1}" aria-pressed="${diff === i + 1}">${d}</button>`).join('')}</div>
+      root.innerHTML = `<div class="qz-diff">${['Facile', 'Moyen', 'Expert'].map((d, i) => `<button data-d="${i + 1}" aria-pressed="${diff === i + 1}">${d}</button>`).join('')}<button data-deux aria-pressed="${deux}" title="Jouer à deux sur le même écran, chacun son tour">À deux</button></div>
+        ${deux ? `<p class="qz-tour"><b>Au tour de ${NOMS[joueur]}</b> · Sterenn ${scores[0]} · Bastien ${scores[1]}</p>` : ''}
         <div class="qz-card">${r.visual ? `<div class="qz-visual" tabindex="0" aria-label="Illustration de la question">${r.visual}</div>` : ''}<div class="qz-prompt">${r.prompt}</div>
         <div class="qz-opts">${opts.map(o => `<button class="qz-opt" data-o="${esc(o)}">${o}</button>`).join('')}</div><div class="qz-fb" id="qzFb"></div></div>`;
-      root.querySelectorAll('.qz-diff button').forEach(b => b.onclick = () => { diff = +b.dataset.d; api.save({ diff }); reset(); });
+      root.querySelectorAll('.qz-diff button[data-d]').forEach(b => b.onclick = () => { diff = +b.dataset.d; api.save({ diff }); reset(); });
+      root.querySelector('[data-deux]').onclick = () => { deux = !deux; api.toast(deux ? 'À deux : Sterenn commence, puis Bastien, chacun son tour.' : 'Retour au jeu en solo.', 2200); reset(); };
       root.querySelectorAll('.qz-opt').forEach((b, k) => { b.onclick = () => answer(b.dataset.o, b, r); b.setAttribute('data-touche', String(k + 1)); b.title = 'Touche ' + (k + 1); });
       api.say(idx === 0 ? (cfg.intro.greet) : 'Question suivante !', 'concentre');
     }
@@ -86,18 +91,20 @@
       root.querySelectorAll('.qz-opt').forEach(b => b.disabled = true);
       const ok = val === r.answer; btn.classList.add(ok ? 'ok' : 'no');
       if (!ok) root.querySelectorAll('.qz-opt').forEach(b => { if (b.dataset.o === r.answer) b.classList.add('ok'); });
-      if (ok) { correct++; api.addScore(100); api.sound('good'); } else { api.sound('bad'); ratees.push(String(r.prompt).replace(/<[^>]+>/g, '').slice(0, 80)); }
-      memoriser();
+      if (ok) { scores[joueur] += 100; if (!deux || joueur === 0) { correct++; api.addScore(100); } api.sound('good'); } else { api.sound('bad'); if (!deux || joueur === 0) ratees.push(String(r.prompt).replace(/<[^>]+>/g, '').slice(0, 80)); }
+      if (!deux) memoriser();
       const fb = root.querySelector('#qzFb'); fb.className = 'qz-fb show ' + (ok ? 'good' : 'bad');
       fb.innerHTML = `<b>${ok ? '✓ Correct !' : '✗ Réponse : ' + r.answer}</b>${r.explain ? '<br>' + r.explain : ''}`;
       api.say(ok ? (r.explain || 'Bien vu !') : ('La bonne réponse : ' + r.answer + '. ' + (r.explain || '')), ok ? 'fier' : 'rassurant');
       const nb = document.createElement('button'); nb.className = 'qz-next'; nb.textContent = idx + 1 < rounds.length ? '▸ Suivant' : '🏁 Résultat';
-      root.querySelector('.qz-card').appendChild(nb); nb.focus(); nb.onclick = () => { idx++; api.setProgress(idx / rounds.length); render(); };
+      root.querySelector('.qz-card').appendChild(nb); nb.focus(); nb.onclick = () => { idx++; if (deux) joueur = 1 - joueur; api.setProgress(idx / rounds.length); render(); };
     }
     function finish() {
-      const acc = correct / rounds.length, stars = acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1;
+      const total = deux ? Math.ceil(rounds.length / 2) : rounds.length;
+      const acc = correct / Math.max(1, total), stars = acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1;
       api.save({ enCours: null });
       const graine = api.graine();
+      if (deux) { api.win({ score: correct * 100, stars, title: `Sterenn ${scores[0]} · Bastien ${scores[1]}`, learned: cfg.learned, buddy: scores[0] > scores[1] ? 'Sterenn gagne cette manche.' : scores[0] < scores[1] ? 'Bastien gagne cette manche. Revanche ?' : 'Égalité parfaite.', onNext: () => { api.nouvelleGraine(); reset(); }, nextLabel: 'Revanche', detail: { justes: correct, total, ratees: ratees.slice(0, 10), difficulte: diff, deux: true } }); return; }
       api.win({ score: correct * 100, stars, title: `${correct}/${rounds.length} bonnes réponses`, learned: cfg.learned, buddy: acc >= 0.9 ? 'Excellent : niveau expert atteint.' : 'Bien joué. Rejoue pour viser le sans-faute.', onNext: () => { api.nouvelleGraine(); reset(); }, nextLabel: 'Nouveau tirage', memeTirage: () => { api._graine = graine; reset(); }, detail: { justes: correct, total: rounds.length, ratees: ratees.slice(0, 10), difficulte: diff } });
     }
     // D5 : les touches 1 à 4 choisissent une proposition, Entrée passe à la suivante.

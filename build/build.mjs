@@ -436,6 +436,13 @@ await (async () => {
     }
   }
   console.log(`   🖼  ${n} fond(s) d'écran dérivés (AVIF, 1 280 px)`);
+  // C86 : icônes PNG de l'application installable, dérivées du favicon SVG (192, 512, et une version « maskable » avec marge).
+  try {
+    const svg = fs.readFileSync(path.join(RACINE, 'site', 'favicon.svg'));
+    fs.mkdirSync(path.join(SORTIE, 'icones'), { recursive: true });
+    for (const t of [192, 512]) await sharp(svg, { density: 384 }).resize(t, t).png().toFile(path.join(SORTIE, 'icones', `opaline-${t}.png`));
+    await sharp(svg, { density: 384 }).resize(400, 400).extend({ top: 56, bottom: 56, left: 56, right: 56, background: '#0b1a3a' }).png().toFile(path.join(SORTIE, 'icones', 'opaline-maskable-512.png'));
+  } catch (e) { console.warn(`   ⚠️  icônes : ${e.message}`); }
 })();
 construirePaquets();
 

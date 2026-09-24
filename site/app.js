@@ -163,7 +163,46 @@
   window.addEventListener('error', (ev) => remonterErreur(ev.message || 'Erreur', (ev.filename || '') + ':' + (ev.lineno || '')));
   window.addEventListener('unhandledrejection', (ev) => remonterErreur('Promesse rejetée : ' + (ev.reason && ev.reason.message ? ev.reason.message : String(ev.reason)), ''));
 
+  /** C77 : toutes les annonces vocales passent par une seule région, jamais deux lecteurs en même temps. */
+  function annoncer(texte) {
+    const z = document.getElementById('e-annonces'); if (!z || !texte) return;
+    z.textContent = ''; setTimeout(() => { z.textContent = String(texte); }, 30);
+  }
+  /* C91, C81 : quatre sons courts et doux, réglables, coupés en évaluation ; chacun a son équivalent visuel. */
+  const CLE_SONS = 'opaline.sons';
+  let ctxAudio = null;
+  const SONS = { ok: [[660, 0.09], [880, 0.12]], etoile: [[523, 0.12], [659, 0.12], [784, 0.2]], message: [[740, 0.08]], fin: [[392, 0.1], [523, 0.16]] };
+  const LIBELLES_SONS = { ok: 'réussite', etoile: 'étoile', message: 'message', fin: 'fin de série' };
+  function sonsActifs() {
+    if (estProf()) return false;
+    if (document.documentElement.getAttribute('data-confort-sons') === 'off') return false;
+    if (lire(CLE_SONS, true) === false) return false;
+    if (/\/evaluation/.test(location.hash)) return false;
+    return true;
+  }
+  function montrerSon(nom) {
+    if (!document.getElementById('app-eleve') || lire(CLE_SONS, true) === false) return;
+    let z = document.getElementById('e-son-visuel');
+    if (!z) { z = document.createElement('p'); z.id = 'e-son-visuel'; z.className = 'e-son-visuel'; z.setAttribute('aria-hidden', 'true'); document.body.appendChild(z); }
+    z.textContent = '♪ ' + (LIBELLES_SONS[nom] || nom); z.classList.add('visible');
+    clearTimeout(montrerSon.t); montrerSon.t = setTimeout(() => z.classList.remove('visible'), 1400);
+  }
+  function son(nom) {
+    montrerSon(nom);
+    if (!sonsActifs()) return;
+    try {
+      ctxAudio = ctxAudio || new (window.AudioContext || window.webkitAudioContext)();
+      let t = ctxAudio.currentTime;
+      (SONS[nom] || SONS.ok).forEach(([f, d]) => {
+        const o = ctxAudio.createOscillator(); const g = ctxAudio.createGain(); o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+        o.connect(g); g.connect(ctxAudio.destination); o.start(t); o.stop(t + d + 0.02); t += d * 0.8;
+      });
+    } catch (e) { /* pas de son sur cet appareil */ }
+  }
   function signaler(message, type = 'erreur') {
+    annoncer(message);
+    if (type === 'succes') son('ok');
     const id = estProf() ? 'p-bandeau' : 'e-bandeau';
     const prefixe = estProf() ? 'p-bandeau' : 'e-bandeau';
     const zone = document.getElementById(id);
@@ -201,7 +240,11 @@
     if (choisie && auroreOuverte(choisie)) return choisie;
     return AURORES[(periodeCourante() - 1) % AURORES.length];
   }
+  const CLE_ECO = 'opaline.eco';
+  const ecoActive = () => lire(CLE_ECO, false) === true || (navigator.connection && navigator.connection.saveData === true);
+  function basculerEco(oui) { ecrire(CLE_ECO, !!oui); appliquerAurore(); }
   function appliquerAurore() {
+    document.documentElement.toggleAttribute('data-eco', ecoActive());
     const a = auroreCourante();
     document.documentElement.setAttribute('data-aurore', a.id);
     document.documentElement.style.setProperty('--e-aurore-teinte', a.teinte + 'deg');
@@ -301,14 +344,23 @@
     return jourIso(d);
   };
   const lundiDe = (iso) => decaler(iso, -((new Date(iso + 'T12:00:00').getDay() + 6) % 7));
-  const enFrancais = (iso, complet) => new Date(iso + 'T12:00:00').toLocaleDateString('fr-FR',
-    complet ? { weekday: 'long', day: 'numeric', month: 'long' } : { weekday: 'short', day: 'numeric', month: 'short' });
-  const dateCourte = (iso) => {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
-      + ' à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  /* A34 : une seule fonction de formatage. ISO en base, heure de Paris à l'écran, quel que soit l'appareil. */
+  const FUSEAU = 'Europe/Paris';
+  const STYLES_DATE = {
+    jour: { weekday: 'short', day: 'numeric', month: 'short' }, complet: { weekday: 'long', day: 'numeric', month: 'long' },
+    long: { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }, court: { day: '2-digit', month: '2-digit' },
+    heure: { hour: '2-digit', minute: '2-digit' }, mois: { month: 'long', year: 'numeric' },
   };
+  function formaterDate(iso, style) {
+    if (!iso) return '';
+    const seul = /^\d{4}-\d{2}-\d{2}$/.test(String(iso));
+    const d = new Date(seul ? iso + 'T12:00:00' : iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    try { return new Intl.DateTimeFormat('fr-FR', Object.assign({ timeZone: FUSEAU }, STYLES_DATE[style] || STYLES_DATE.jour)).format(d); }
+    catch (e) { return d.toLocaleDateString('fr-FR'); }
+  }
+  const enFrancais = (iso, complet) => formaterDate(iso, complet ? 'complet' : 'jour');
+  const dateCourte = (iso) => (iso ? formaterDate(iso, 'court') + ' à ' + formaterDate(iso, 'heure') : '');
   const poids = (o) => (o > 1048576 ? (o / 1048576).toFixed(1) + ' Mo' : Math.max(1, Math.round(o / 1024)) + ' Ko');
 
   function progression(m) {
@@ -434,7 +486,15 @@
       if (s.niveau === 'satisfaisant' || s.niveau === 'tresbien') lecons += 1;
     });
     const felicitations = (etat.felicitations || []).length;
-    return { fiches, series, jeux, lecons, felicitations, total: fiches + series + jeux + lecons * 3 + felicitations };
+    // C35 : une étoile bonus par semaine où le défi du jour a été fait cinq jours sur cinq.
+    const semaines = {};
+    Object.keys(etat.profil || {}).forEach((k) => {
+      if (k.indexOf('moi.defi.') !== 0) return;
+      const j = k.slice(9); const v = profil(k, null);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(j) && v && v.fait) { const l = lundiDe(j); semaines[l] = (semaines[l] || 0) + 1; }
+    });
+    const defis = Object.values(semaines).filter((n) => n >= 5).length;
+    return { fiches, series, jeux, lecons, felicitations, defis, total: fiches + series + jeux + lecons * 3 + felicitations + defis };
   }
 
   /**
@@ -447,7 +507,8 @@
     if (!reglage('felicitations') || !document.getElementById('app-eleve')) return;
     const ancien = document.getElementById('e-fete'); if (ancien) ancien.remove();
     const el = document.createElement('div');
-    el.id = 'e-fete'; el.className = 'e-fete'; el.setAttribute('role', 'status');
+    el.id = 'e-fete'; el.className = 'e-fete'; el.setAttribute('aria-hidden', 'true');
+    annoncer(titre + (detail ? '. ' + detail : '')); son('etoile');
     el.innerHTML = `<div class="e-fete-carte">
       <svg class="e-fete-opale" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="fete-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7FF0C8"/><stop offset=".4" stop-color="#2BB5A0"/><stop offset=".72" stop-color="#2A7FA6"/><stop offset="1" stop-color="#C79CE6"/></linearGradient></defs><path d="M32 6 54 26 32 60 10 26Z" fill="url(#fete-g)"/><path d="M10 26h44L32 34Z" fill="#fff" opacity=".35"/><circle cx="25" cy="32" r="3.2" fill="#0b1a3a"/><circle cx="39" cy="32" r="3.2" fill="#0b1a3a"/><path d="M27 40q5 4 10 0" stroke="#0b1a3a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
       <p class="e-fete-titre">${ech(titre)}</p>
@@ -516,8 +577,9 @@
   const chargerSeances = (du, au) => api(`/seances?du=${du}&au=${au}`).then((d) => d.seances || []).catch(() => []);
 
   /* ---------- Thème et palette -------------------------------------------------- */
+  const THEMES = ['light', 'dark', 'chaud'];
   function appliquerTheme(v) {
-    document.documentElement.setAttribute('data-theme', v === 'dark' ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', THEMES.indexOf(v) === -1 ? 'light' : v);
     ecrire(CLE_THEME, v);
   }
   function appliquerPalette(id) {
@@ -607,6 +669,14 @@
     if (minuteur) clearInterval(minuteur);
     minuteur = setInterval(sonder, Math.max(20, Math.min(300, Number(reglage('sonde')) || 45)) * 1000);
     if (role === 'prof') appliquerPilotage();
+    if (!estProf() && !sessionStorage.getItem('opaline.connexion-notee')) {
+      // C98 : elle voit ses propres connexions ; une seule note par session du navigateur.
+      try {
+        sessionStorage.setItem('opaline.connexion-notee', '1');
+        const c = profil('moi.connexions', {}) || {};
+        enregistrerProfil('moi.connexions', { derniere: new Date().toISOString(), precedente: c.derniere || null, nombre: (Number(c.nombre) || 0) + 1 }).catch(() => {});
+      } catch (e) { /* sans mémoire de connexion */ }
+    }
     if (!reprendreDernier()) router();
     rejouerAttente();
     // A23 : le service worker garde la coquille et les fiches ouvertes pour le hors-ligne.
@@ -658,6 +728,7 @@
       const d = await reponse.json();
       const avant = etat.messagesNonLus;
       etat.messagesNonLus = d.messagesNonLus || 0;
+      if (etat.messagesNonLus > avant && etat.role === 'eleve') son('message');
       if (d.reglages && JSON.stringify(d.reglages) !== JSON.stringify(etat.reglages)) {
         const avantSonde = reglage('sonde');
         etat.reglages = d.reglages;
@@ -823,13 +894,16 @@
   function majBoutonTheme() {
     const b = document.getElementById('e-btn-theme');
     if (!b) return;
-    const sombre = lire(CLE_THEME, 'light') === 'dark';
-    b.querySelector('use').setAttribute('href', sombre ? '#ic-soleil' : '#ic-lune');
-    b.setAttribute('aria-label', sombre ? 'Revenir au thème clair' : 'Passer en thème sombre');
-    b.setAttribute('title', sombre ? 'Thème clair' : 'Thème sombre');
+    const t = lire(CLE_THEME, 'light');
+    const suivant = THEMES[(THEMES.indexOf(t) + 1) % THEMES.length];
+    const noms = { light: 'thème clair', dark: 'thème sombre', chaud: 'nuit chaude (crème sombre)' };
+    b.querySelector('use').setAttribute('href', suivant === 'light' ? '#ic-soleil' : '#ic-lune');
+    b.setAttribute('aria-label', 'Thème actuel : ' + noms[t] + '. Cliquer pour passer au ' + noms[suivant] + '.');
+    b.setAttribute('title', 'Passer au ' + noms[suivant]);
   }
   document.getElementById('e-btn-theme').addEventListener('click', () => {
-    appliquerTheme(lire(CLE_THEME, 'light') === 'dark' ? 'light' : 'dark');
+    const t = lire(CLE_THEME, 'light');
+    appliquerTheme(THEMES[(THEMES.indexOf(t) + 1) % THEMES.length]);
     majBoutonTheme();
   });
 
@@ -879,7 +953,7 @@
     matiere, lecon, cle, banque, chargerBanque, niveauDe, accesDoc, accesJeu, decisionAcces,
     MODULES, profil, enregistrerProfil, estValidee, dossierPdf, nomCourt,
     progression, chiffres, libelleLecon, accessible, raisonVerrou, programmee,
-    jourIso, decaler, lundiDe, enFrancais, dateCourte, poids,
+    jourIso, decaler, lundiDe, enFrancais, dateCourte, formaterDate, poids, son, annoncer, basculerEco, ecoActive, CLE_SONS, THEMES,
     chargerContenu, chargerSeances, chargerScript, rafraichirEtat, rafraichirSeances,
     majReussites, reussites, decision, reglementaire, router, lire, ecrire,
     reglage, appliquerReglages, REGLAGES_DEFAUT, celebrer,

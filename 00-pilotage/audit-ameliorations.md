@@ -105,7 +105,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **A19 · P1 · S** Réponse `/api/etat` allégée : renvoyer `verrous` et `acces` seulement quand ils changent (empreinte `ETag`), et sonder toutes les 45 secondes au lieu de 25.
 - ✅ **A20 · P1 · M** (regroupés et versionnés ; la minification reste à faire) Regrouper `app.js`, `vue-eleve.js`, `messagerie.js`, `tuteur.js` en un seul fichier par rôle au build, minifié, avec empreinte dans le nom pour un cache long.
 - ✅ **A21 · P2 · S** `data/programme.js` réduit pour l'élève : retirer `attendus`, `themes`, `competences` (37 Ko dont 12 inutiles à l'écran).
-- **A22 · P2 · S** Préconnexion aux polices et sous-ensemble latin uniquement ; envisager d'héberger les quatre polices dans `/theme/` pour supprimer la dépendance externe.
+- ✅ **A22 · P2 · S** Préconnexion aux polices et sous-ensemble latin uniquement ; envisager d'héberger les quatre polices dans `/theme/` pour supprimer la dépendance externe. (livré : préconnexion et `display=swap` ; les sous-ensembles latins sont servis par `unicode-range` ; les polices restent chez Google Fonts, sans dépendance de build)
 - ✅ **A23 · P2 · M** Service worker de cache : coquille, CSS, scripts, programme et fonds servis hors ligne ; les fiches déjà ouvertes relisibles sans réseau.
 - ✅ **A24 · P2 · S** Images d'aurore en AVIF en plus du WebP, et une version 1 280 px pour les écrans moyens.
 - **A25 · P3 · M** Fiches par leçon plutôt que par matière : `data/eleve/maths.js` pèse toute la matière ; un fichier par leçon divise le premier chargement d'une fiche par douze.
@@ -120,7 +120,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - **A31 · P3 · M** Passer les fonctions serveur en modules ES avec un routeur unique et des validateurs partagés (`valider.js`) au lieu de regex répétées.
 - ✅ **A32 · P3 · S** Supprimer le code mort hérité de l'autre produit dans `shell.js` et `konstrio.js` (métiers, hub, référents inutilisés).
 - ✅ **A33 · P2 · S** Gestion d'erreur unifiée : toute exception serveur renvoie `{ erreur, code }` avec un code stable, affiché tel quel côté client.
-- **A34 · P3 · S** Horodatages en heure de Paris pour l'affichage, ISO en base ; une seule fonction de formatage des dates.
+- ✅ **A34 · P3 · S** Horodatages en heure de Paris pour l'affichage, ISO en base ; une seule fonction de formatage des dates. (livré : `formaterDate` en heure de Paris, ISO en base)
 - **A35 · P3 · M** Internationalisation minimale des chaînes serveur (messages d'erreur) dans un fichier, pour relecture et cohérence de ton.
 
 ### Build et déploiement
@@ -245,7 +245,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C6 · P2 · S** Recherche pour Sterenn : une leçon, un mot du cours, un jeu, depuis la barre du haut.
 - ✅ **C7 · P2 · S** Raccourcis clavier documentés : flèches dans les fiches, `Échap` partout, `?` pour l'aide.
 - ✅ **C8 · P2 · S** Mémoire du dernier écran : rouvrir l'application ramène où elle était, avec une ligne « tu étais ici ».
-- **C9 · P3 · S** Mode « une seule chose » : un bouton qui masque tout sauf le bloc en cours (le mode focus du panneau de confort, branché sur nos écrans).
+- ✅ **C9 · P3 · S** Mode « une seule chose » : un bouton qui masque tout sauf le bloc en cours (le mode focus du panneau de confort, branché sur nos écrans). (livré : bouton « Une seule chose » dans la fiche)
 - ✅ **C10 · P3 · S** Page « Aide » écrite pour elle : douze questions, douze réponses de trois lignes.
 
 ### Fiches et lecture
@@ -262,9 +262,9 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C20 · P2 · S** Largeur de lecture réglable (étroite, normale, large) et interligne à trois crans, dans le confort.
 - ✅ **C21 · P2 · S** Les blocs « pause » deviennent actifs : un minuteur de cinq minutes, une phrase pour reprendre.
 - **C22 · P3 · S** Résumé de fiche généré en trois phrases par Opale, affiché avant la première diapositive, validé par le professeur.
-- **C23 · P3 · S** Comparer deux fiches côte à côte sur grand écran (cours et révision).
-- **C24 · P3 · S** Version imprimable d'une fiche depuis l'écran, sans corrigé, mise en page identique au cahier.
-- **C25 · P3 · S** Mode nuit chaud (crème sombre) en plus du sombre et du clair.
+- ✅ **C23 · P3 · S** Comparer deux fiches côte à côte sur grand écran (cours et révision).
+- ✅ **C24 · P3 · S** Version imprimable d'une fiche depuis l'écran, sans corrigé, mise en page identique au cahier.
+- ✅ **C25 · P3 · S** Mode nuit chaud (crème sombre) en plus du sombre et du clair.
 
 ### Exercices et séries
 
@@ -276,8 +276,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C31 · P2 · S** Cahier à imprimer avec cases à cocher « fait » côté écran, pour suivre ce qui est rendu sur papier.
 - **C32 · P2 · S** Photo de la page du cahier rattachée à l'exercice (dépôt par exercice, pas seulement par leçon).
 - ✅ **C33 · P2 · S** Série chronométrée facultative avec temps par question suggéré, jamais imposé.
-- **C34 · P3 · S** Séries mélangées : dix questions prises dans trois leçons validées, pour entretenir.
-- **C35 · P3 · S** Défi du jour : une question par matière, une étoile bonus le vendredi si les cinq jours sont faits.
+- ✅ **C34 · P3 · S** Séries mélangées : dix questions prises dans trois leçons validées, pour entretenir.
+- ✅ **C35 · P3 · S** Défi du jour : une question par matière, une étoile bonus le vendredi si les cinq jours sont faits.
 - **C36 · P3 · M** Exercices à trous et à relier en plus des trois types (nouveau type `associer` et `trous` dans la banque et le lecteur).
 - **C37 · P3 · S** Correction commentée à voix haute (audio enregistré par le professeur) sur les exercices du devoir.
 
@@ -287,7 +287,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C39 · P1 · S** Dépôt de copie guidé : trois photos maximum, aperçu, recadrage, envoi en une fois, confirmation.
 - ✅ **C40 · P2 · S** Résultat d'évaluation rendu dans l'application : grille remplie par le professeur, mot, note, positionnement, et « ce que je refais ».
 - ✅ **C41 · P2 · S** Auto-positionnement avant la correction : elle coche ses huit critères, le professeur voit l'écart.
-- **C42 · P3 · S** Annales personnelles : ses évaluations passées relisibles, avec la copie et la correction.
+- ✅ **C42 · P3 · S** Annales personnelles : ses évaluations passées relisibles, avec la copie et la correction.
 
 ### Étoiles, réussites, motivation
 
@@ -297,9 +297,9 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C46 · P2 · S** Série de jours : le compteur de jours consécutifs avec au moins une action, sans pénalité de rupture, juste un « reprise ».
 - ✅ **C47 · P2 · S** Bilan de semaine le vendredi : ce qui est acquis, en trois lignes, avec les mots exacts du professeur.
 - ✅ **C48 · P2 · S** Fond d'écran débloqué par palier : quatre aurores différentes, la quatrième à cinquante étoiles.
-- **C49 · P3 · S** Carte des progrès : les huit planètes s'allument leçon par leçon, visible sur le carrousel.
+- ✅ **C49 · P3 · S** Carte des progrès : les huit planètes s'allument leçon par leçon, visible sur le carrousel.
 - **C50 · P3 · S** Défis à deux : un défi proposé par le professeur (« trois séries cette semaine »), accepté ou refusé, une étoile bonus.
-- **C51 · P3 · S** Mots du professeur relus dans une page « Mon carnet », classés par matière.
+- ✅ **C51 · P3 · S** Mots du professeur relus dans une page « Mon carnet », classés par matière.
 
 ### Messagerie
 
@@ -309,7 +309,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C55 · P2 · S** Envoi programmé pour elle aussi (« envoyer demain matin »).
 - ✅ **C56 · P2 · S** Réponse citée : répondre à un message précis, la citation en tête.
 - **C57 · P3 · S** Autocollants d'opale : six réactions dessinées dans la charte, en plus des émojis.
-- **C58 · P3 · S** Recherche dans les messages.
+- ✅ **C58 · P3 · S** Recherche dans les messages.
 
 ### Semaine et organisation
 
@@ -318,13 +318,13 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C61 · P2 · S** Liste de matériel pour la prochaine séance, prise dans les fiches prévues.
 - ✅ **C62 · P2 · S** Temps personnel guidé : un écran qui enchaîne les deux fois quinze minutes avec un minuteur et deux tâches nommées.
 - ✅ **C63 · P2 · S** Absence : proposer directement un créneau de remplacement parmi ceux du professeur.
-- **C64 · P3 · S** Vue mois pour elle, avec les vacances et les évaluations.
+- ✅ **C64 · P3 · S** Vue mois pour elle, avec les vacances et les évaluations. (livré : vacances et évaluations sur le bandeau du mois)
 
 ### Choix
 
 - ✅ **C65 · P2 · S** Choix expliqué : chaque option dit en une phrase pourquoi elle est proposée maintenant.
 - ✅ **C66 · P2 · S** Aperçu de la fiche au survol de l'option (plan et durée).
-- **C67 · P3 · S** Historique de ses choix, et ce qu'ils lui ont rapporté.
+- ✅ **C67 · P3 · S** Historique de ses choix, et ce qu'ils lui ont rapporté.
 
 ### Tutrice Opale
 
@@ -334,43 +334,43 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C71 · P2 · S** Mode « explique-moi comme à quelqu'un qui découvre » et « explique-moi plus court » : deux boutons sous chaque réponse.
 - ✅ **C72 · P2 · S** Calculatrice avec historique et copie du résultat dans le brouillon.
 - **C73 · P3 · S** Convertisseur d'unités et tables de conjugaison dans le panneau, hors évaluation.
-- **C74 · P3 · S** Avatar d'Opale animé sobrement (clignement, sourire) coupé par le mode calme.
+- ✅ **C74 · P3 · S** Avatar d'Opale animé sobrement (clignement, sourire) coupé par le mode calme.
 
 ### Accessibilité et confort
 
 - ✅ **C75 · P1 · S** Contrôle de contraste automatique sur les palettes : la variante foncée calculée par palette, vérifiée au build.
 - ✅ **C76 · P1 · S** Ordre de focus vérifié sur chaque écran, piège de focus dans les panneaux (Opale, choix, fête).
-- **C77 · P2 · S** Annonces vocales cohérentes : une seule région `aria-live` pour tous les bandeaux.
+- ✅ **C77 · P2 · S** Annonces vocales cohérentes : une seule région `aria-live` pour tous les bandeaux. (livré : région `#e-annonces` unique, bandeau et célébration y passent)
 - ✅ **C78 · P2 · S** Taille de police en trois crans dans la barre du haut, sans passer par le panneau.
 - ✅ **C79 · P2 · S** Police « lisible » appliquée aussi aux fiches et aux jeux, pas seulement à l'interface.
-- **C80 · P2 · S** Réduction des animations respectée dans les jeux 2D (certains ignorent la préférence).
-- **C81 · P3 · S** Sous-titres des sons : chaque son d'interface a un équivalent visuel.
-- **C82 · P3 · S** Curseur agrandi et règle de lecture dans les diapositives.
+- ✅ **C80 · P2 · S** Réduction des animations respectée dans les jeux 2D (certains ignorent la préférence).
+- ✅ **C81 · P3 · S** Sous-titres des sons : chaque son d'interface a un équivalent visuel.
+- ✅ **C82 · P3 · S** Curseur agrandi et règle de lecture dans les diapositives.
 
 ### Mobile et performance perçue
 
 - ✅ **C83 · P1 · S** Premier écran en moins de deux secondes : rendu de l'accueil dès `/api/etat`, données secondaires ensuite.
 - ✅ **C84 · P1 · S** Squelettes de chargement pour les fiches et les séries.
 - ✅ **C85 · P2 · S** Gestes : balayer pour changer de diapositive, tirer pour rafraîchir la semaine.
-- **C86 · P2 · S** Installable (manifeste complet, icônes, écran de démarrage), ouverture plein écran sur téléphone.
+- ✅ **C86 · P2 · S** Installable (manifeste complet, icônes, écran de démarrage), ouverture plein écran sur téléphone.
 - ✅ **C87 · P2 · S** Hors ligne : fiches ouvertes relisibles, réponses aux séries mises en file et envoyées au retour du réseau.
-- **C88 · P3 · S** Économie de données : fond d'écran désactivable, images différées.
+- ✅ **C88 · P3 · S** Économie de données : fond d'écran désactivable, images différées.
 
 ### Identité et plaisir d'usage
 
 - ✅ **C89 · P2 · S** Illustrations d'opale par matière (huit gemmes, une par planète), utilisées dans les tuiles et les fêtes.
 - ✅ **C90 · P2 · S** Micro-animations utiles : coche qui se dessine, jauge qui avance, sans rebond ni secousse.
-- **C91 · P2 · S** Sons courts et doux, quatre au total, réglables, désactivés par défaut en évaluation.
+- ✅ **C91 · P2 · S** Sons courts et doux, quatre au total, réglables, désactivés par défaut en évaluation.
 - ✅ **C92 · P2 · S** Thème de saison : une teinte d'aurore différente par période, annoncée.
-- **C93 · P3 · S** Écran de fin de leçon validée : la page qui récapitule les quatre fiches, les étoiles, le mot du professeur.
-- **C94 · P3 · S** Fond d'écran choisi parmi les photographies déjà débloquées.
+- ✅ **C93 · P3 · S** Écran de fin de leçon validée : la page qui récapitule les quatre fiches, les étoiles, le mot du professeur.
+- ✅ **C94 · P3 · S** Fond d'écran choisi parmi les photographies déjà débloquées. (déjà en place : le choix parmi les aurores débloquées, dans la barre du haut)
 
 ### Données personnelles et confiance
 
 - ✅ **C95 · P1 · S** Page « Ce que l'application sait de moi » : ses données listées, exportables, effaçables sur demande au professeur.
 - ✅ **C96 · P2 · S** Ce qui est vu par le professeur marqué d'une icône partout où elle écrit (notes, questions à Opale).
 - ✅ **C97 · P2 · S** Suppression d'un message envoyé par erreur dans les cinq minutes.
-- **C98 · P3 · S** Historique des connexions visible pour elle (« tu t'es connectée hier à 17 h »).
+- ✅ **C98 · P3 · S** Historique des connexions visible pour elle (« tu t'es connectée hier à 17 h »).
 
 ### Contenu vivant
 
@@ -397,7 +397,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **D16 · P2 · S** Consignes littérales : une action par phrase, pas de « à toi de jouer », le premier geste montré.
 - ✅ **D17 · P3 · S** Statistiques par jeu pour le professeur : parties, meilleur score, erreurs fréquentes.
 - ✅ **D18 · P3 · S** Défi hebdomadaire sur un jeu tiré au sort parmi les leçons ouvertes.
-- **D19 · P3 · S** Jouer avec le professeur : un mode à deux sur le même écran (tour par tour), pour la séance.
+- ✅ **D19 · P3 · S** Jouer avec le professeur : un mode à deux sur le même écran (tour par tour), pour la séance. (livré : mode « À deux » dans les jeux à questions, chacun son tour)
 - ✅ **D20 · P3 · S** Sons des jeux issus de l'identité sonore commune (quatre sons), volume unique.
 - ✅ **D21 · P3 · S** Pause automatique quand l'onglet perd le focus.
 - ✅ **D22 · P3 · S** Chargement : un écran d'attente commun avec la progression et un conseil de la leçon.

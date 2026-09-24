@@ -63,8 +63,10 @@ export const SCENARIOS = {
     const { page, erreurs } = await ouvrir(nav, BASE, ELEVE);
     await aller(page, '#/lecon/maths/L01/cours', 1500);
     ok((await page.locator('.e-diapo-etapes button').count()) > 5, 'étapes de la fiche');
+    // La fiche reprend là où elle a été laissée (profil) : on compare au compteur de départ.
+    const depart = parseInt(await page.locator('#e-diapo-compte').innerText(), 10) || 1;
     await page.click('#e-diapo-suiv'); await page.waitForTimeout(600);
-    ok((await page.locator('#e-diapo-compte').innerText()).startsWith('2'), 'diapositive suivante');
+    ok((await page.locator('#e-diapo-compte').innerText()).startsWith(String(depart + 1)), 'diapositive suivante');
     const cahier = await page.evaluate(async () => (await fetch('/cahiers/maths/L01.html')).status);
     ok(cahier === 200, 'cahier servi');
     ok(!erreurs.length, 'sans erreur JS : ' + erreurs.join(' | '));

@@ -29,7 +29,7 @@
     <defs><linearGradient id="opale-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7FF0C8"/><stop offset=".4" stop-color="#2BB5A0"/><stop offset=".72" stop-color="#2A7FA6"/><stop offset="1" stop-color="#C79CE6"/></linearGradient></defs>
     <path d="M32 6 54 26 32 60 10 26Z" fill="url(#opale-g)"/>
     <path d="M10 26h44L32 34Z" fill="#fff" opacity=".35"/>
-    <circle cx="25" cy="32" r="3.2" fill="#0b1a3a"/><circle cx="39" cy="32" r="3.2" fill="#0b1a3a"/>
+    <circle class="oeil" cx="25" cy="32" r="3.2" fill="#0b1a3a"/><circle class="oeil" cx="39" cy="32" r="3.2" fill="#0b1a3a"/>
     <circle cx="26" cy="31" r="1" fill="#fff"/><circle cx="40" cy="31" r="1" fill="#fff"/>
     <path d="M27 40q5 4 10 0" stroke="#0b1a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
     <path d="M52 4c.4 2.6 1.1 4 2.3 4.9 1 .7 2.2 1.1 4.4 1.5-2.2.4-3.4.8-4.4 1.5-1.2.9-1.9 2.3-2.3 4.9-.4-2.6-1.1-4-2.3-4.9-1-.7-2.2-1.1-4.4-1.5 2.2-.4 3.4-.8 4.4-1.5 1.2-.9 1.9-2.3 2.3-4.9Z" fill="#fff"/>

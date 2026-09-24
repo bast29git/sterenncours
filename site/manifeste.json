@@ -7,7 +7,12 @@
   "background_color": "#0b1a3a",
   "theme_color": "#2BB5A0",
   "lang": "fr",
+  "orientation": "any",
+  "categories": ["education"],
   "icons": [
-    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icones/opaline-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icones/opaline-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icones/opaline-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

@@ -374,6 +374,7 @@
        ${blocMotNouveau()}
        ${blocARevoir()}
        ${blocEtoiles()}
+       ${blocDefiJour()}
        ${blocDefi()}
 
        <div class="e-orbite-titre">
@@ -410,6 +411,7 @@
        </ul>`,
     );
     brancherChoix(vueHub);
+    brancherDefiJour(vueHub);
     monterOrbite();
     const vu = document.getElementById('e-mot-vu');
     if (vu) vu.addEventListener('click', async () => { await marquerMotsVus(); vueHub(); });
@@ -583,6 +585,7 @@
           <span class="ico ico-gemme" aria-hidden="true">${N.gemme(m.id)}<em>${m.icone}</em></span>
           <b>${N.ech(m.nom)}</b>
           <span>${prets ? `${prets} leçon(s) disponible(s) · ${p.faites} validée(s)` : 'Bientôt disponible'}</span>
+          <span class="e-planete-lecons" role="img" aria-label="${p.faites} leçon(s) validée(s) sur ${m.lecons.length}">${m.lecons.map((l) => `<i class="${N.estValidee(m.id, l.ref) ? 'validee' : (N.accessible(m.id, l.ref) ? 'ouverte' : '')}"></i>`).join('')}</span>
         </a></li>`;
       }).join('')}</ul>`,
     );
@@ -672,12 +675,18 @@
             <button class="e-bouton" id="e-fini" type="button">${lu ? '↺ Pas encore terminée' : '✓ J\'ai terminé'}</button>
             ${N.banque(mid, ref) ? `<a class="e-bouton e-bouton-doux" href="#/exos/${mid}/${ref}">M'entraîner</a>` : ''}
             <button class="e-bouton e-bouton-fin" id="e-question" type="button">${N.ic('ic-message')} Poser une question</button>
+            <button class="e-bouton e-bouton-fin" id="e-une-chose" type="button" title="Masquer tout sauf la fiche">${N.ic('ic-cible')} Une seule chose</button>
+            <button class="e-bouton e-bouton-fin" id="e-imprimer" type="button" title="Imprimer cette fiche, sans corrigé">${N.ic('ic-telecharger')} Imprimer</button>
+            ${ouverts.indexOf('cours') !== -1 && ouverts.indexOf('revision') !== -1 ? `<a class="e-bouton e-bouton-fin e-btn-comparer" href="#/comparer/${mid}/${ref}">Cours et révision côte à côte</a>` : ''}
+            ${N.estValidee(mid, ref) ? `<a class="e-bouton e-bouton-fin" href="#/lecon/${mid}/${ref}/bilan">${N.ic('ic-trophee')} Bilan de la leçon</a>` : ''}
             <a class="e-bouton e-bouton-fin" href="#/matiere/${mid}">← Mon parcours</a>
           </div>
          </div>`,
       );
 
       rendreFiche(document.getElementById('e-fiche-hote'), doc, cleFiche, () => document.getElementById('e-fini').click());
+      document.getElementById('e-imprimer').addEventListener('click', () => { N.annoncer('Impression de la fiche.'); window.print(); });
+      document.getElementById('e-une-chose').addEventListener('click', () => uneSeuleChose(true));
       if (actif === 'exercices') { brancherModeSeance(document.getElementById('e-fiche-hote'), doc, cleFiche); suiviCahier(document.getElementById('e-fiche-hote'), doc, cleFiche, mid, ref); }
 
       document.getElementById('e-fini').addEventListener('click', async () => {
@@ -1010,6 +1019,8 @@
    * mémorise. Les flèches du clavier passent d'une diapositive à l'autre.
    */
   function rendreFiche(hote, doc, cleFiche, terminer) {
+    // C88 : les images d'une fiche se chargent quand elles approchent de l'écran.
+    doc = Object.assign({}, doc, { html: String(doc.html || '').replace(/<img\b(?![^>]*\bloading=)/g, '<img loading="lazy" decoding="async"') });
     const sections = decouperFiche(doc.html);
     const mode = N.lire(CLE_LECTURE, 'diapo');
     if (mode === 'page' || sections.length < 2) {
@@ -1118,6 +1129,7 @@
       <span class="e-outils-groupe" aria-label="Largeur de lecture">
         ${['etroite', 'normale', 'large'].map((l) => `<button type="button" class="e-outil-lecture e-largeur" data-largeur="${l}" aria-pressed="${largeur === l}" title="Largeur ${l}">${l === 'etroite' ? '▯' : l === 'normale' ? '▭' : '▬'}<span class="visuellement-cache">Largeur ${l}</span></button>`).join('')}
       </span>
+      <button type="button" class="e-outil-lecture" id="e-regle" aria-pressed="${document.body.hasAttribute('data-regle')}" title="Une règle suit la souris ou le doigt pour garder la ligne">▬ <span>Règle de lecture</span></button>
       <span class="e-outils-groupe e-surligne-aide" aria-label="Surligneur">${N.ic('ic-crayon')} <span>Sélectionne un passage pour le surligner</span></span>
     </div>`;
   }
@@ -1481,6 +1493,7 @@
   }
   /** C30 : les questions ratées entrent dans « à revoir » ; une reprise réussie fait avancer l'étape (J+2 puis J+7). */
   async function noterARevoir(s) {
+    if (s.melange) return;
     const cle = N.cle(s.mid, s.ref);
     const tout = N.profil('moi.arevoir', {}) || {};
     try {
@@ -1581,6 +1594,10 @@
     const decalage = (d.getDay() + 6) % 7;
     const aujourd = N.jourIso();
     const lundiCourant = N.lundiDe(ancre);
+    // C64 : les vacances déclarées par le professeur et les séances d'évaluation, visibles sur le mois.
+    const vacances = (N.profil('prof.vacances', []) || []).map((v) => ({ du: v.du || v.debut, au: v.au || v.fin, nom: v.nom || 'Vacances' })).filter((v) => v.du && v.au);
+    const enVacances = (iso) => vacances.find((v) => iso >= v.du && iso <= v.au);
+    const estEvaluation = (x) => x.type === 'evaluation' || /valuation/i.test(String(x.objectif || ''));
 
     const cases = [];
     for (let i = 0; i < decalage; i += 1) cases.push('<li class="vide" aria-hidden="true"></li>');
@@ -1589,13 +1606,17 @@
       const duJour = seances.filter((x) => x.date === iso);
       const cours = duJour.some((x) => x.type === 'cours');
       const perso = duJour.some((x) => x.type === 'travail');
+      const evaluation = duJour.some(estEvaluation);
+      const vac = enVacances(iso);
       const classes = [];
+      if (evaluation) classes.push('evaluation');
+      if (vac) classes.push('vacances');
       if (iso === aujourd) classes.push('auj');
       if (N.lundiDe(iso) === lundiCourant) classes.push('semaine');
       if (cours) classes.push('cours');
       else if (perso) classes.push('perso');
-      cases.push(`<li class="${classes.join(' ')}"><a href="#/calendrier/${iso}"
-        aria-label="${N.ech(N.enFrancais(iso, true))}">${n}</a></li>`);
+      cases.push(`<li class="${classes.join(' ')}"><a href="#/calendrier/${iso}" title="${vac ? N.ech(vac.nom) : (evaluation ? 'Évaluation' : '')}"
+        aria-label="${N.ech(N.enFrancais(iso, true))}${vac ? ', ' + N.ech(vac.nom) : ''}${evaluation ? ', évaluation' : ''}">${n}</a></li>`);
     }
 
     return `<section class="e-mois">
@@ -1827,12 +1848,20 @@
         <h2>${N.ic('ic-verrou')} Ce que l'application ne sait pas</h2>
         <p>Ni ta position, ni ton adresse, ni ton téléphone, ni ce que tu fais en dehors d'Opaline. Le code d'entrée sert à séparer ton espace de celui de Bastien, pas à te suivre.</p>
       </div>
+      ${(() => { const c = N.profil('moi.connexions', null); if (!c || !c.derniere) return ''; return `<p class="e-aide">${N.ic('ic-horloge')} Ta dernière connexion : ${N.ech(N.dateCourte(c.derniere))}${c.precedente ? ' · la précédente : ' + N.ech(N.dateCourte(c.precedente)) : ''}${c.nombre ? ' · ' + c.nombre + ' connexions au total' : ''}.</p>`; })()}
+      <div class="e-carte">
+        <h2>${N.ic('ic-reglage')} Mes réglages</h2>
+        <label class="e-case"><input type="checkbox" id="e-eco" ${N.ecoActive() ? 'checked' : ''}> Économie de données : sans fond d'écran, images chargées au besoin</label>
+        <label class="e-case"><input type="checkbox" id="e-sons" ${N.lire(N.CLE_SONS, true) !== false ? 'checked' : ''}> Sons doux (réussite, étoile, message, fin de série) ; jamais pendant une évaluation</label>
+      </div>
       <div class="e-actions">
         <button class="e-bouton" id="e-exporter" type="button">${N.ic('ic-telecharger')} Télécharger mes données</button>
         <a class="e-bouton e-bouton-doux" href="#/messages/${encodeURIComponent('Mes données')}">${N.ic('ic-message')} Demander un effacement à Bastien</a>
       </div>
       <p class="e-aide">Le fichier téléchargé est au format JSON : il se lit avec n'importe quel éditeur de texte. Pour effacer quelque chose, tu écris à Bastien : il le fait devant toi.</p>
     </div>`);
+    document.getElementById('e-eco').addEventListener('change', (ev) => { N.basculerEco(ev.target.checked); N.signaler(ev.target.checked ? 'Économie de données activée : le fond d\'écran est retiré.' : 'Fond d\'écran rétabli.', 'info'); });
+    document.getElementById('e-sons').addEventListener('change', (ev) => { N.ecrire(N.CLE_SONS, ev.target.checked); if (ev.target.checked) N.son('ok'); });
     document.getElementById('e-exporter').addEventListener('click', () => {
       const donnees = { exporte_le: new Date().toISOString(), fiches: N.etat.fiches, resultats: N.etat.resultats, suivi: N.etat.suivi, profil: Object.fromEntries(profilMoi.map((k) => [k, N.etat.profil[k]])), felicitations: N.etat.felicitations, seances_choisies: N.etat.seances.filter((s) => s.choisi_le).map((s) => ({ date: s.date, lecons: s.lecons })), absences: N.etat.seances.filter((s) => s.absence).map((s) => ({ date: s.date, commentaire: s.commentaire_eleve })) };
       const blob = new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' });
@@ -1879,13 +1908,17 @@
          <li><strong>${r.jeux}</strong><span>mondes et jeux gagnés<em>1 étoile chacun</em></span></li>
          <li><strong>${r.lecons}</strong><span>leçons validées<em>3 étoiles chacune</em></span></li>
          <li><strong>${r.felicitations}</strong><span>félicitations de Bastien<em>1 étoile chacune</em></span></li>
+         <li><strong>${r.defis || 0}</strong><span>semaines de défi du jour complètes<em>1 étoile chacune</em></span></li>
          <li><strong>${parfaits}</strong><span>séries sans faute<em>le maximum</em></span></li>
        </ul>
+       <p class="e-aide"><a href="#/carnet">Mon carnet : tous les mots de Bastien</a> · <a href="#/annales">Mes évaluations passées</a> · <a href="#/exos/melange">Une série mélangée pour entretenir</a></p>
 
        ${motsDeBastien()}
 
        <h2 class="e-titre-section">Tes dernières réussites</h2>
        ${journalReussites()}
+
+       ${historiqueChoix()}
 
        <h2 class="e-titre-section">Les paliers</h2>
        <ul class="e-badges">${PALIERS.map((b) => `<li class="${r.total >= b.s ? 'obtenu' : ''}">
@@ -1963,6 +1996,180 @@
     </li>`).join('')}</ol>`;
   }
 
+  /* ---------- C67 : ses choix de séances et ce qu'ils ont rapporté ---------- */
+  function historiqueChoix() {
+    const choisies = (N.etat.seances || []).filter((x) => x.choisi_le).sort((a, b) => String(b.choisi_le).localeCompare(String(a.choisi_le)));
+    if (!choisies.length) return '';
+    const lignes = choisies.slice(0, 8).map((x) => {
+      let options = []; try { options = JSON.parse(x.choix || '[]'); } catch (e) { options = []; }
+      const ref = (x.lecons || []).find((r) => options.indexOf(r) !== -1) || (x.lecons || []).slice(-1)[0];
+      const l = ref ? N.libelleLecon(ref) : null; if (!l) return '';
+      const cle = ref; let etoiles = 0;
+      Object.keys(N.etat.fiches).forEach((k) => { if (k.indexOf(cle + '/') === 0) etoiles += 1; });
+      const r = N.etat.resultats[cle]; if (r && r.total > 0 && r.meilleur / r.total >= 0.7) etoiles += 1;
+      if (N.estValidee(l.m.id, l.l.ref)) etoiles += 3;
+      return `<li><span class="e-journal-ico" aria-hidden="true">${N.ic('ic-cible')}</span><span class="e-journal-corps"><b>${l.m.icone} ${N.ech(l.l.titre)}</b><em>Choisie le ${N.ech(N.enFrancais(String(x.choisi_le).slice(0, 10), true))} pour la séance du ${N.ech(N.enFrancais(x.date))}</em></span><span class="e-journal-etoiles">${N.ic('ic-etoile', 'ic-plein')} ${etoiles}</span></li>`;
+    }).join('');
+    return `<h2 class="e-titre-section">Tes choix de leçons</h2><p class="e-aide">Une séance sur quatre, c'est toi qui choisis. Voici ce que chaque choix t'a rapporté depuis.</p><ol class="e-journal">${lignes}</ol>`;
+  }
+
+  /* ---------- C9 : une seule chose à l'écran ---------- */
+  function uneSeuleChose(oui) {
+    document.body.toggleAttribute('data-une-chose', !!oui);
+    const ancien = document.getElementById('e-une-chose-sortie'); if (ancien) ancien.remove();
+    if (!oui) return;
+    const b = document.createElement('button'); b.type = 'button'; b.id = 'e-une-chose-sortie'; b.className = 'e-bouton e-une-chose-sortie'; b.textContent = 'Tout réafficher';
+    b.addEventListener('click', () => uneSeuleChose(false)); document.body.appendChild(b); b.focus();
+    N.annoncer('Une seule chose à l\'écran : la fiche. Le bouton « Tout réafficher » rend le reste.');
+  }
+  window.addEventListener('hashchange', () => { if (document.body.hasAttribute('data-une-chose')) uneSeuleChose(false); });
+
+  /* ---------- C82 : la règle de lecture ---------- */
+  let regleEl = null;
+  function regleLecture(oui) {
+    N.ecrire('opaline.regle', !!oui);
+    document.body.toggleAttribute('data-regle', !!oui);
+    if (!oui) { if (regleEl) regleEl.remove(); regleEl = null; return; }
+    if (!regleEl) { regleEl = document.createElement('div'); regleEl.className = 'e-regle'; regleEl.setAttribute('aria-hidden', 'true'); document.body.appendChild(regleEl); }
+    regleEl.style.top = Math.round(window.innerHeight / 2) + 'px';
+  }
+  document.addEventListener('pointermove', (e) => { if (regleEl) regleEl.style.top = e.clientY + 'px'; }, { passive: true });
+  document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('#e-regle'); if (!b) return; const oui = !document.body.hasAttribute('data-regle'); regleLecture(oui); b.setAttribute('aria-pressed', String(oui)); });
+  if (N.lire('opaline.regle', false) === true) setTimeout(() => regleLecture(true), 0);
+
+  /* ---------- C23 : cours et révision côte à côte ---------- */
+  function vueComparer(mid, ref) {
+    const m = N.matiere(mid); const l = m && N.lecon(m, ref);
+    if (!m || !l || !N.accessible(mid, ref)) return vueIntrouvable();
+    afficher(N.squelette('fiche'));
+    N.chargerContenu(mid).then((contenu) => {
+      const c = contenu && contenu[ref]; if (!c || !c.cours || !c.revision) return afficher('<p class="e-vide">Ces deux fiches ne sont pas disponibles ensemble.</p>');
+      const lazy = (h) => String(h || '').replace(/<img\b(?![^>]*\bloading=)/g, '<img loading="lazy" decoding="async"');
+      afficher(`<div class="e-lecteur"><header class="e-lecteur-tete"><nav class="e-ariane" aria-label="Fil d'Ariane"><a href="#/matieres">Mes matières</a> › <a href="#/matiere/${mid}">${m.icone} ${N.ech(m.nom)}</a> › <a href="#/lecon/${mid}/${ref}/cours">${N.ech(l.titre)}</a></nav>
+        <h1>${N.ech(l.titre)} : cours et révision côte à côte</h1><p class="e-aide">Sur grand écran, la fiche de cours à gauche et la fiche de révision à droite. Sur téléphone, l'une sous l'autre.</p></header>
+        <div class="e-comparer"><section aria-labelledby="e-h-cours"><h2 id="e-h-cours">${N.ic('ic-livre')} Fiche de cours</h2><article class="e-fiche e-fiche-page">${lazy(c.cours.html)}</article></section>
+        <section aria-labelledby="e-h-revision"><h2 id="e-h-revision">${N.ic('ic-etincelle')} Fiche de révision</h2><article class="e-fiche e-fiche-page">${lazy(c.revision.html)}</article></section></div>
+        <div class="e-actions"><a class="e-bouton e-bouton-fin" href="#/lecon/${mid}/${ref}/cours">← Revenir à la fiche</a></div></div>`);
+    });
+  }
+
+  /* ---------- C34 : une série mélangée, dix questions prises dans trois leçons validées ---------- */
+  function vueMelange() {
+    if (!window.EXERCICES) {
+      afficher(N.squelette('serie'));
+      N.chargerBanque().then(() => vueMelange()).catch(() => afficher('<p class="e-vide">La série n\'a pas pu être chargée. Recharge la page.</p>'));
+      return;
+    }
+    const candidates = [];
+    PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => { const b = N.banque(m.id, l.ref); if (!b || !b.items || !b.items.length || !N.accessible(m.id, l.ref)) return; const r = N.etat.resultats[N.cle(m.id, l.ref)]; candidates.push({ mid: m.id, ref: l.ref, items: b.items, validee: N.estValidee(m.id, l.ref), jouee: !!r, date: (r && r.maj_le) || '' }); }));
+    const choisies = candidates.filter((c) => c.validee).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
+    if (choisies.length < 3) candidates.filter((c) => !c.validee && c.jouee).sort((a, b) => b.date.localeCompare(a.date)).forEach((c) => { if (choisies.length < 3) choisies.push(c); });
+    if (choisies.length < 2) return afficher(`<div class="e-carte e-vide"><p>${N.ic('ic-cible')} La série mélangée prend ses questions dans au moins deux leçons déjà travaillées. Fais d'abord une ou deux séries.</p><p><a class="e-bouton e-bouton-doux" href="#/matieres">Mes matières</a></p></div>`);
+    let x = Number(N.jourIso().replace(/-/g, '')) % 2147483647; const alea = () => { x = (x * 48271) % 2147483647; return x / 2147483647; };
+    const items = []; const sources = []; let k = 0;
+    const piles = choisies.map((c) => c.items.map((it, i) => ({ it, i })).sort(() => alea() - 0.5));
+    while (items.length < 10 && piles.some((p) => p.length)) { const p = piles[k % piles.length]; const c = choisies[k % piles.length]; k += 1; const e = p.pop(); if (!e) continue; items.push(Object.assign({}, e.it, { source: c.mid + '/' + c.ref })); if (sources.indexOf(c.mid + '/' + c.ref) === -1) sources.push(c.mid + '/' + c.ref); }
+    session = { mid: choisies[0].mid, ref: choisies[0].ref, items, index: 0, reponses: [], termine: false, rejouees: true, melange: true, sources };
+    N.signaler('Série mélangée : ' + sources.map((r) => { const l = N.libelleLecon(r); return l ? l.l.titre : r; }).join(', ') + '. Sans étoile, pour entretenir.', 'info');
+    rendreExo();
+  }
+
+  /* ---------- C35 : le défi du jour, une question par matière ---------- */
+  function questionsDuJour() {
+    const jour = N.jourIso(); let x = Number(jour.replace(/-/g, '')) % 2147483647; const alea = () => { x = (x * 48271) % 2147483647; return x / 2147483647; };
+    const liste = [];
+    PROGRAMME.matieres.forEach((m) => {
+      const lecons = m.lecons.filter((l) => N.accessible(m.id, l.ref) && N.banque(m.id, l.ref) && (N.etat.resultats[N.cle(m.id, l.ref)] || N.estValidee(m.id, l.ref) || Object.keys(N.etat.fiches).some((k) => k.indexOf(N.cle(m.id, l.ref) + '/') === 0)));
+      if (!lecons.length) return;
+      const l = lecons[Math.floor(alea() * lecons.length)]; const b = N.banque(m.id, l.ref);
+      const qs = (b.items || []).filter((q) => q.type === 'qcm' || q.type === 'vraifaux'); if (!qs.length) return;
+      liste.push({ m, l, q: qs[Math.floor(alea() * qs.length)] });
+    });
+    return liste;
+  }
+  function blocDefiJour() {
+    if (!window.EXERCICES) return `<section class="e-bloc-fixe e-defi-jour" aria-labelledby="e-h-defi-jour"><h2 id="e-h-defi-jour">${N.ic('ic-etincelle')} Le défi du jour</h2><p class="e-vide" id="e-defi-jour-attente">Chargement des questions…</p></section>`;
+    const jour = N.jourIso(); const etatJour = N.profil('moi.defi.' + jour, null) || { faites: [], fait: false };
+    const qs = questionsDuJour(); if (!qs.length) return '';
+    const lundi = N.lundiDe(jour); const joursFaits = [0, 1, 2, 3, 4].map((i) => N.decaler(lundi, i)).filter((j) => { const v = N.profil('moi.defi.' + j, null); return v && v.fait; }).length;
+    return `<section class="e-bloc-fixe e-defi-jour" aria-labelledby="e-h-defi-jour"><h2 id="e-h-defi-jour">${N.ic('ic-etincelle')} Le défi du jour</h2>
+      <p class="e-aide">Une question par matière, tirée de ce que tu as déjà travaillé. Cinq jours sur cinq dans la semaine : une étoile bonus le vendredi. Cette semaine : ${joursFaits} jour(s) sur 5.</p>
+      ${etatJour.fait ? '<p class="e-defi-jour-fini">✓ Défi du jour terminé. À demain.</p>' : ''}
+      <ul class="e-defi-jour-liste">${qs.map((x, i) => `<li class="${etatJour.faites.indexOf(x.m.id) !== -1 ? 'fait' : ''}"><span>${x.m.icone} ${N.ech(N.nomCourt(x.m.id))}</span>${etatJour.faites.indexOf(x.m.id) !== -1 ? '<b>✓</b>' : `<button type="button" class="e-bouton e-bouton-fin" data-defi-jour="${i}">Répondre</button>`}</li>`).join('')}</ul>
+      <div id="e-defi-jour-question" hidden></div></section>`;
+  }
+  function brancherDefiJour(apres) {
+    const zone = vue(); if (!zone) return;
+    if (!window.EXERCICES && document.getElementById('e-defi-jour-attente')) { N.chargerBanque().then(() => { if (location.hash.replace(/^#\/?/, '') === '' || /^#\/(hub|accueil)?$/.test(location.hash)) apres(); }).catch(() => {}); return; }
+    const qs = questionsDuJour();
+    zone.querySelectorAll('[data-defi-jour]').forEach((b) => b.addEventListener('click', () => {
+      const x = qs[Number(b.getAttribute('data-defi-jour'))]; if (!x) return;
+      const q = x.q; const choix = q.type === 'vraifaux' ? ['Vrai', 'Faux'] : q.choix;
+      const boite = document.getElementById('e-defi-jour-question'); boite.hidden = false;
+      boite.innerHTML = `<div class="e-carte e-defi-jour-carte"><p class="e-aide">${x.m.icone} ${N.ech(x.m.nom)} · ${N.ech(x.l.titre)}</p><p class="e-defi-jour-q">${q.q}</p><ul class="e-exo-choix">${choix.map((c, i) => `<li><button type="button" data-rep="${i}">${c}</button></li>`).join('')}</ul><p class="e-defi-jour-fb" hidden></p></div>`;
+      boite.querySelectorAll('[data-rep]').forEach((r) => r.addEventListener('click', async () => {
+        const i = Number(r.getAttribute('data-rep')); const bonne = q.type === 'vraifaux' ? (q.reponse === true ? 0 : 1) : q.reponse; const ok = i === bonne;
+        boite.querySelectorAll('[data-rep]').forEach((y) => { y.disabled = true; if (Number(y.getAttribute('data-rep')) === bonne) y.classList.add('juste'); });
+        if (!ok) r.classList.add('faux');
+        const fb = boite.querySelector('.e-defi-jour-fb'); fb.hidden = false; fb.innerHTML = (ok ? '<b>Juste.</b> ' : `<b>La bonne réponse : ${N.ech(choix[bonne])}.</b> `) + (q.explication || '');
+        if (ok) N.son('ok');
+        const jour = N.jourIso(); const e = N.profil('moi.defi.' + jour, null) || { faites: [], fait: false, justes: 0 };
+        if (e.faites.indexOf(x.m.id) === -1) e.faites.push(x.m.id); if (ok) e.justes = (e.justes || 0) + 1;
+        e.fait = e.faites.length >= qs.length;
+        try { await N.enregistrerProfil('moi.defi.' + jour, e); } catch (err) { /* le défi ne bloque rien */ }
+        if (e.fait) { N.signaler('Défi du jour terminé : ' + (e.justes || 0) + ' sur ' + qs.length + '.', 'succes'); N.majReussites(); }
+        setTimeout(apres, e.fait ? 1600 : 2200);
+      }));
+    }));
+  }
+
+  /* ---------- C42 : ses évaluations passées ---------- */
+  async function vueAnnales() {
+    afficher('<p class="e-vide">Chargement…</p>');
+    let fichiers = []; try { fichiers = (await N.api('/fichiers')).fichiers || []; } catch (e) { fichiers = []; }
+    const entrees = Object.keys(N.etat.profil).filter((k) => k.indexOf('eval.') === 0).map((k) => ({ cle: k.slice(5), r: N.profil(k, null) })).filter((x) => x.r && x.r.rendu_le).sort((a, b) => String(b.r.rendu_le).localeCompare(String(a.r.rendu_le)));
+    const niv = (id) => N.NIVEAUX.find((n) => n.id === id);
+    afficher(`<h1>Mes évaluations passées</h1><p class="e-intro">Chaque devoir corrigé reste lisible ici : ta copie, la note, le positionnement et le mot de Bastien.</p>
+      ${entrees.length ? `<ul class="e-annales">${entrees.map((x) => { const l = N.libelleLecon(x.cle); const copies = fichiers.filter((f) => f.matiere === x.cle.split('/')[0] && f.ref === x.cle.split('/')[1]); return `<li class="e-carte"><h2>${l ? l.m.icone + ' ' + N.ech(l.l.titre) : N.ech(x.cle)}</h2>
+        <p>${x.r.note != null ? `<b class="e-note">${N.ech(String(x.r.note))}</b> sur 20 · ` : ''}${x.r.positionnement && niv(x.r.positionnement) ? `<span class="e-etat-niveau niv-${x.r.positionnement}">${N.ech(niv(x.r.positionnement).libelle || x.r.positionnement)}</span> · ` : ''}rendue le ${N.ech(N.dateCourte(x.r.rendu_le))}</p>
+        ${x.r.mot ? `<p class="e-annales-mot">« ${N.ech(x.r.mot)} »</p>` : ''}
+        ${copies.length ? `<p class="e-annales-copies">${copies.map((f) => `<a href="/api/fichiers/${f.id}" target="_blank" rel="noopener">${N.ic('ic-photo')} ${N.ech(f.nom)}</a>`).join(' · ')}</p>` : ''}
+        <p><a class="e-bouton e-bouton-fin" href="#/lecon/${x.cle}/evaluation">Revoir la correction</a></p></li>`; }).join('')}</ul>` : '<p class="e-vide">Aucune évaluation corrigée pour l\'instant. Elles s\'afficheront ici, avec ta copie et la correction.</p>'}
+      <div class="e-actions"><a class="e-bouton e-bouton-fin" href="#/reussites">← Mes réussites</a></div>`);
+  }
+
+  /* ---------- C51 : mon carnet, les mots de Bastien par matière ---------- */
+  function vueCarnet() {
+    const mots = [];
+    (N.etat.felicitations || []).forEach((f) => mots.push({ mid: f.matiere, ref: f.ref, texte: f.texte, le: f.cree_le, genre: 'Félicitation' }));
+    Object.keys(N.etat.profil).filter((k) => k.indexOf('eval.') === 0).forEach((k) => { const r = N.profil(k, null); if (r && r.mot) mots.push({ mid: k.slice(5).split('/')[0], ref: k.slice(5).split('/')[1], texte: r.mot, le: r.rendu_le, genre: 'Correction' }); });
+    const parMatiere = PROGRAMME.matieres.map((m) => ({ m, liste: mots.filter((x) => x.mid === m.id).sort((a, b) => String(b.le).localeCompare(String(a.le))) })).filter((x) => x.liste.length);
+    const sans = mots.filter((x) => !N.matiere(x.mid));
+    afficher(`<h1>Mon carnet</h1><p class="e-intro">Tout ce que Bastien t'a écrit, rangé par matière : félicitations et mots de correction.</p>
+      ${parMatiere.length || sans.length ? parMatiere.map((x) => `<h2 class="e-titre-section">${x.m.icone} ${N.ech(x.m.nom)}</h2><ul class="e-mots">${x.liste.map((y) => { const l = y.ref ? N.libelleLecon(y.mid + '/' + y.ref) : null; return `<li><span class="e-mot-ico" aria-hidden="true">${N.ic(y.genre === 'Correction' ? 'ic-crayon' : 'ic-trophee')}</span><span class="e-mot-corps"><b>${N.ech(y.texte)}</b><em>${y.genre}${l ? ' · ' + N.ech(l.l.titre) : ''} · ${N.ech(N.dateCourte(y.le))}</em></span></li>`; }).join('')}</ul>`).join('') + (sans.length ? `<h2 class="e-titre-section">Autres mots</h2><ul class="e-mots">${sans.map((y) => `<li><span class="e-mot-ico" aria-hidden="true">${N.ic('ic-trophee')}</span><span class="e-mot-corps"><b>${N.ech(y.texte)}</b><em>${N.ech(N.dateCourte(y.le))}</em></span></li>`).join('')}</ul>` : '') : '<p class="e-vide">Rien encore. Les mots de Bastien s\'ajouteront ici au fil des devoirs rendus.</p>'}
+      <div class="e-actions"><a class="e-bouton e-bouton-fin" href="#/reussites">← Mes réussites</a></div>`);
+  }
+
+  /* ---------- C93 : le bilan d'une leçon validée ---------- */
+  function vueBilan(mid, ref) {
+    const m = N.matiere(mid); const l = m && N.lecon(m, ref); if (!m || !l) return vueIntrouvable();
+    const cle = N.cle(mid, ref); const suivi = N.etat.suivi[cle] || {}; const niv = N.NIVEAUX.find((n) => n.id === suivi.niveau);
+    const docs = docsVisibles(l).map((t) => { const info = N.TYPES_DOC.find((x) => x.id === t); const f = N.etat.fiches[cle + '/' + t]; return { t, libelle: info ? info.libelle : t, faite: !!f, le: f && f.termine_le }; });
+    const r = N.etat.resultats[cle]; const jeux = (window.JEUX || []).filter((j) => (j.lecons || []).indexOf(mid + ':' + ref) !== -1);
+    const jeuxGagnes = jeux.filter((j) => { const x = N.etat.resultats['jeu/' + j.id]; return x && x.meilleur >= 70; });
+    const evalR = N.profil('eval.' + cle, null); const felicitations = (N.etat.felicitations || []).filter((f) => f.matiere === mid && f.ref === ref);
+    let etoiles = docs.filter((d) => d.faite).length + (r && r.total > 0 && r.meilleur / r.total >= 0.7 ? 1 : 0) + jeuxGagnes.length + (N.estValidee(mid, ref) ? 3 : 0) + felicitations.length;
+    afficher(`<div class="e-lecteur"><header class="e-lecteur-tete"><nav class="e-ariane" aria-label="Fil d'Ariane"><a href="#/matieres">Mes matières</a> › <a href="#/matiere/${mid}">${m.icone} ${N.ech(m.nom)}</a> › <a href="#/lecon/${mid}/${ref}/cours">${N.ech(l.titre)}</a></nav>
+      <h1>${N.ic('ic-trophee')} Bilan : ${N.ech(l.titre)}</h1>
+      <p class="e-aide">${N.estValidee(mid, ref) ? `Leçon validée : ${N.ech(niv ? niv.libelle : suivi.niveau)}${suivi.maj_le ? ', le ' + N.ech(N.enFrancais(String(suivi.maj_le).slice(0, 10), true)) : ''}.` : 'Cette leçon n\'est pas encore validée : voici où tu en es.'}</p></header>
+      <section class="e-carte"><h2>Les quatre fiches</h2><ul class="e-bilan-docs">${docs.map((d) => `<li class="${d.faite ? 'faite' : ''}">${d.faite ? '✓' : '·'} ${N.ech(d.libelle)}${d.le ? ` <em>terminée le ${N.ech(N.dateCourte(d.le))}</em>` : ''}</li>`).join('')}</ul></section>
+      <section class="e-carte"><h2>Séries et jeux</h2><p>${r ? `Meilleure série : <b>${r.meilleur}</b> sur ${r.total}, en ${r.series} essai(s).` : 'Aucune série faite.'} ${jeux.length ? `Jeux rattachés : ${jeuxGagnes.length} gagné(s) sur ${jeux.length}.` : ''}</p></section>
+      ${evalR && evalR.rendu_le ? `<section class="e-carte"><h2>L'évaluation</h2><p>${evalR.note != null ? `<b class="e-note">${N.ech(String(evalR.note))}</b> sur 20 · ` : ''}${evalR.positionnement ? N.ech((N.NIVEAUX.find((n) => n.id === evalR.positionnement) || {}).libelle || evalR.positionnement) : ''}</p>${evalR.mot ? `<p class="e-annales-mot">« ${N.ech(evalR.mot)} »</p>` : ''}</section>` : ''}
+      ${felicitations.length ? `<section class="e-carte"><h2>Les mots de Bastien</h2><ul class="e-mots">${felicitations.map((f) => `<li><span class="e-mot-ico" aria-hidden="true">${N.ic('ic-trophee')}</span><span class="e-mot-corps"><b>${N.ech(f.texte)}</b><em>${N.ech(N.dateCourte(f.cree_le))}</em></span></li>`).join('')}</ul></section>` : ''}
+      <section class="e-carte e-bilan-etoiles"><h2>Ce que cette leçon t'a rapporté</h2><p class="e-etoiles-compte">${N.ic('ic-etoile', 'ic-plein')}<span>${etoiles}</span></p><p class="e-aide">Fiches, série, jeux, validation, félicitations : rien ne redescend.</p></section>
+      <div class="e-actions"><a class="e-bouton" href="#/matiere/${mid}">Leçon suivante dans ${N.ech(m.nom)}</a><a class="e-bouton e-bouton-fin" href="#/lecon/${mid}/${ref}/cours">Relire la fiche</a><a class="e-bouton e-bouton-fin" href="#/reussites">Mes réussites</a></div></div>`);
+  }
+
   /* ---------- Conversation : messages et travail au même endroit ------------ */
   const RAPIDES = [
     { t: "J'ai terminé", i: 'ic-coche' },
@@ -1988,6 +2195,7 @@
   function vueMessages(contexte) {
     const M = window.MESSAGERIE || null;
     let filActif = null;
+    let filtreTexte = '';
     const lecons = [];
     PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => {
       if (docsVisibles(l).length && N.accessible(m.id, l.ref)) {
@@ -2000,6 +2208,7 @@
        <p class="e-intro">Écris à Bastien, envoie une photo de ton travail, pose une question. Tout est au même endroit.</p>
 
        <div id="e-fils"></div>
+       <p class="e-msg-recherche"><label class="visuellement-cache" for="e-msg-recherche">Rechercher dans les messages</label><input type="search" id="e-msg-recherche" placeholder="Rechercher dans les messages" autocomplete="off"></p>
        <div class="e-tchat" id="e-tchat"><p class="e-vide">Chargement…</p></div>
 
        <div class="e-rapides" id="e-rapides">${RAPIDES.map((r) => `<button type="button" data-rapide="${N.ech(r.t)}">
@@ -2264,7 +2473,8 @@
           charger();
         }));
       }
-      const visibles = M ? M.filtrer(messages, filActif) : messages;
+      let visibles = M ? M.filtrer(messages, filActif) : messages;
+      if (filtreTexte) { const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); const q = norm(filtreTexte); visibles = visibles.filter((x) => norm(x.texte).indexOf(q) !== -1); }
       const fichiersVisibles = filActif ? fichiers.filter((f) => f.matiere === filActif || (f.matiere && N.matiere(filActif) && String(f.matiere).toLowerCase().indexOf(N.matiere(filActif).nom.toLowerCase()) === 0)) : fichiers;
       const fil = []
         .concat(visibles.map((m) => ({ genre: 'texte', date: m.cree_le, d: m })))
@@ -2336,6 +2546,8 @@
     }
     charger();
     if (M) M.brancherReactions(zoneT, () => charger(false));
+    const champRecherche = document.getElementById('e-msg-recherche');
+    if (champRecherche) champRecherche.addEventListener('input', () => { clearTimeout(champRecherche._t); champRecherche._t = setTimeout(() => { filtreTexte = champRecherche.value.trim(); charger(false); }, 250); });
 
     /* --- Envoi ---------------------------------------------------------------- */
     async function envoyer() {
@@ -2439,8 +2651,11 @@
       case '': case 'hub': case 'accueil': return vueHub();
       case 'matieres': return vueMatieres();
       case 'matiere': return vueMatiere(p[1]);
-      case 'lecon': return vueLecon(p[1], p[2], p[3]);
-      case 'exos': return vueExos(p[1], p[2], p[3]);
+      case 'lecon': return p[3] === 'bilan' ? vueBilan(p[1], p[2]) : vueLecon(p[1], p[2], p[3]);
+      case 'comparer': return vueComparer(p[1], p[2]);
+      case 'exos': return p[1] === 'melange' ? vueMelange() : vueExos(p[1], p[2], p[3]);
+      case 'annales': return vueAnnales();
+      case 'carnet': return vueCarnet();
       case 'recherche': return vueRecherche(p.slice(1).join('/'));
       case 'perso': return vuePerso(p[1]);
       case 'aide': return vueAide();
