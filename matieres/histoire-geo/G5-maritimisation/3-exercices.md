@@ -124,7 +124,7 @@ C'est ce mécanisme, appelé économie d'échelle, qui pousse les armateurs à c
 :::
 :::
 
-::: exercice 5 | application | 8 min | ecran
+::: exercice 5 | application | 8 min | main
 Un tee-shirt fabriqué au Bangladesh est vendu 8 € en France. Son transport maritime coûte environ 0,04 €.
 
 1. Quelle part du prix de vente le transport représente-t-il ? Exprime-la en pourcentage.
@@ -149,7 +149,7 @@ C'est exactement ce qu'on appelle une **chaîne de production éclatée**, et el
 :::
 :::
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Classe ces six ressources marines en trois catégories : **alimentaires**, **énergétiques**, **matériaux**.
 
 a. Le thon
@@ -212,7 +212,7 @@ Une flèche partant de Shanghai, passant par Malacca, l'océan Indien, la mer Ro
 :::
 :::
 
-::: exercice 8 | entrainement | 10 min | ecran
+::: exercice 8 | entrainement | 10 min | main
 Un navire va de Shanghai à Rotterdam. Deux itinéraires sont possibles : par le canal de Suez, environ 19 000 km, ou en contournant l'Afrique par le cap de Bonne-Espérance, environ 25 500 km.
 
 1. Quelle est la différence de distance ?
@@ -252,7 +252,7 @@ L'écart est donc d'environ **huit jours** par trajet.
 :::
 :::
 
-::: exercice 9 | entrainement | 10 min | ecran
+::: exercice 9 | entrainement | 10 min | main
 Voici le trafic de six ports, en millions d'EVP par an.
 
 ::: grille
@@ -301,7 +301,7 @@ Shanghai traite environ **16 fois** plus de conteneurs que Le Havre.
 :::
 :::
 
-::: exercice 10 | entrainement | 10 min | ecran
+::: exercice 10 | entrainement | 10 min | main
 Rotterdam est le premier port européen, alors que Marseille dispose aussi d'un bon site portuaire.
 
 1. Donne la définition d'un hinterland.
@@ -320,7 +320,7 @@ Marseille dispose d'un bon port, mais le Rhône ne pénètre pas aussi loin et s
 :::
 :::
 
-::: exercice 11 | entrainement | 8 min | ecran
+::: exercice 11 | entrainement | 8 min | main
 Environ 99 % des données internet intercontinentales passent par des câbles sous-marins.
 
 1. Pourquoi cette information surprend-elle souvent ?
@@ -336,7 +336,7 @@ Environ 99 % des données internet intercontinentales passent par des câbles so
 :::
 :::
 
-::: exercice 12 | entrainement | 10 min | ecran
+::: exercice 12 | entrainement | 10 min | main
 Les passages stratégiques concentrent le trafic mondial.
 
 1. Cite quatre passages stratégiques et dis ce que chacun relie.
@@ -390,7 +390,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 
 ## Série C : ZEE, tensions, environnement
 
-::: exercice 14 | approfondissement | 10 min | ecran
+::: exercice 14 | approfondissement | 10 min | main
 Complète ce tableau des zones maritimes.
 
 ::: grille
@@ -419,7 +419,7 @@ Dans une ZEE, tout navire étranger conserve le droit de **naviguer** et de **su
 :::
 :::
 
-::: exercice 15 | approfondissement | 12 min | ecran
+::: exercice 15 | approfondissement | 12 min | main
 La France possède environ 10,2 millions de km² de ZEE, dont 97 % proviennent de l'outre-mer. La France métropolitaine couvre environ 550 000 km² de terres.
 
 1. Combien de km² de ZEE proviennent de l'outre-mer ?
@@ -453,7 +453,7 @@ Un rocher de quelques centaines de mètres carrés et une île de 1 000 km² ouv
 :::
 :::
 
-::: exercice 16 | approfondissement | 10 min | ecran
+::: exercice 16 | approfondissement | 10 min | main
 Deux États se font face de part et d'autre d'une mer large de 300 milles marins.
 
 1. Quelle serait la ZEE de chacun si l'on appliquait la règle des 200 milles sans ajustement ?
@@ -473,7 +473,7 @@ Deux États se font face de part et d'autre d'une mer large de 300 milles marins
 :::
 :::
 
-::: exercice 17 | approfondissement | 10 min | ecran
+::: exercice 17 | approfondissement | 10 min | main
 Un îlot inhabité de 300 m² est revendiqué par trois États.
 
 1. Quelle surface de ZEE cet îlot peut-il générer ? On prend un rayon de 370 km et on utilise la formule de l'aire du disque.
@@ -506,7 +506,7 @@ C'est pourquoi certains États aménagent ces îlots, y construisent des install
 :::
 :::
 
-::: exercice 18 | approfondissement | 10 min | ecran
+::: exercice 18 | approfondissement | 10 min | main
 Voici quatre pressions exercées sur le milieu marin.
 
 ::: grille

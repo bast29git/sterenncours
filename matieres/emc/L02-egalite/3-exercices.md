@@ -93,7 +93,7 @@ Si une seule condition manque, **ce n'est pas une discrimination au sens juridiq
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Cite au moins dix critères reconnus par la loi française, en les classant par famille.
 
 ::: corrige
@@ -110,7 +110,7 @@ La liste légale compte aujourd'hui plus de **vingt critères**, et elle s'est a
 
 ## Série B : qualifier un cas
 
-::: exercice 6 | application | 6 min | ecran
+::: exercice 6 | application | 6 min | main
 Pour chaque cas, dis s'il s'agit d'une discrimination au sens juridique, et justifie par les trois conditions.
 
 1. Une annonce d'emploi précise « moins de 30 ans ».
@@ -126,7 +126,7 @@ Pour chaque cas, dis s'il s'agit d'une discrimination au sens juridique, et just
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Pour chaque cas, dis s'il s'agit d'une différence de traitement **licite** ou d'une **discrimination**.
 
 1. Un tarif réduit pour les moins de 26 ans dans un musée.
@@ -142,7 +142,7 @@ Pour chaque cas, dis s'il s'agit d'une différence de traitement **licite** ou d
 :::
 :::
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Applique le test des trois questions à chacun de ces cas.
 
 1. Une entreprise n'accorde une prime qu'aux salariés présents toute l'année.
@@ -160,7 +160,7 @@ Applique le test des trois questions à chacun de ces cas.
 :::
 :::
 
-::: exercice 9 | entrainement | 7 min | ecran
+::: exercice 9 | entrainement | 7 min | main
 Un magasin affiche : « Entrée interdite aux personnes accompagnées d'un animal. » Une personne aveugle accompagnée de son chien guide se voit refuser l'entrée.
 
 1. La règle est-elle discriminatoire en elle-même ?
@@ -176,7 +176,7 @@ Un magasin affiche : « Entrée interdite aux personnes accompagnées d'un anima
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Une entreprise exige une taille minimale de 1,80 m pour un poste de vendeur en magasin.
 
 1. La règle vise-t-elle explicitement un groupe ?
@@ -212,7 +212,7 @@ Critères de réussite : les trois conditions explicitement vérifiées dans le 
 
 ## Série C : directe, indirecte, recours
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Pour chaque cas, dis s'il s'agit d'une discrimination **directe** ou **indirecte**.
 
 1. Une annonce précisant « homme uniquement ».
@@ -230,7 +230,7 @@ Les cas 2 et 4 montrent que la discrimination indirecte n'est pas une intention 
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Remets dans l'ordre les cinq étapes d'un recours, puis explique l'intérêt de la première.
 
 - Saisir la justice
@@ -250,7 +250,7 @@ L'intérêt de la première étape est décisif : les preuves **disparaissent vi
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 L'aménagement de la charge de la preuve.
 
 1. Que doit apporter la victime ?
@@ -266,7 +266,7 @@ L'aménagement de la charge de la preuve.
 :::
 :::
 
-::: exercice 15 | entrainement | 6 min | ecran
+::: exercice 15 | entrainement | 6 min | main
 Le Défenseur des droits.
 
 1. Quelle est sa nature juridique ?

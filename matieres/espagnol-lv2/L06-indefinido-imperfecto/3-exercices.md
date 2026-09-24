@@ -90,7 +90,7 @@ Deux points d'attention. Au point 3, `dijeron` perd le `i` de la terminaison, pa
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Chaque phrase contient une erreur. Corrige-la et explique en une phrase.
 
 1. `Ayer yo hablo con María.`
@@ -110,7 +110,7 @@ Chaque phrase contient une erreur. Corrige-la et explique en une phrase.
 
 ## Série B : choisir le temps
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Pour chaque phrase, dis si le verbe doit être à l'**indefinido** ou à l'**imperfecto**, sans conjuguer encore.
 
 1. `Ayer (ir) ……… al cine.`
@@ -128,7 +128,7 @@ Pour chaque phrase, dis si le verbe doit être à l'**indefinido** ou à l'**imp
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Conjugue maintenant les cinq phrases de l'exercice 6.
 
 ::: corrige
@@ -142,7 +142,7 @@ La phrase 3 est la plus importante du chapitre : elle contient toute la règle. 
 :::
 :::
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Pour chaque emploi de l'imperfecto, trouve la phrase correspondante.
 
 Emplois : description · habitude · action en cours · état physique ou mental
@@ -163,7 +163,7 @@ Ces quatre emplois couvrent la totalité des usages de l'imperfecto. Si une phra
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Explique pourquoi chacune de ces phrases est à l'indefinido.
 
 1. `Ayer vi una película.`
@@ -179,7 +179,7 @@ La phrase 3 est celle qui surprend le plus. Retiens-la : la **durée ne décide 
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Traduis ces cinq phrases.
 
 1. Quand j'étais petite, j'allais tous les étés en Espagne.
@@ -227,7 +227,7 @@ Critères de réussite : les six emplois reconnaissables, les accents correcteme
 
 ## Série C : textes et trois passés
 
-::: exercice 12 | entrainement | 8 min | ecran
+::: exercice 12 | entrainement | 8 min | main
 Complète ce texte en choisissant entre indefinido et imperfecto.
 
 « `Cuando (yo / tener) ……… diez años, (nosotros / vivir) ……… en un pueblo cerca del mar. La casa (ser) ……… pequeña y siempre (oler) ……… a pan porque (haber) ……… una panadería al lado. Todos los sábados mi abuelo me (llevar) ……… a pescar.` »
@@ -239,7 +239,7 @@ Tous les verbes sont à l'**imperfecto**, sans exception. C'est normal : ce para
 :::
 :::
 
-::: exercice 13 | entrainement | 8 min | ecran
+::: exercice 13 | entrainement | 8 min | main
 Poursuis le texte de l'exercice 12.
 
 « `Un sábado de julio, (nosotros / salir) ……… muy temprano. El mar (estar) ……… tranquilo y no (haber) ……… nadie en el puerto. De repente, mi abuelo (señalar) ……… el agua: un delfín (nadar) ……… a diez metros de la barca. (Nosotros / quedarse) ……… quietos durante varios minutos.` »
@@ -253,7 +253,7 @@ Compare avec l'exercice 12 : le paragraphe précédent était entièrement descr
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 Complète en choisissant entre les **trois** passés : pretérito perfecto, indefinido ou imperfecto.
 
 1. `Hoy (yo / comer) ……… en casa.`
@@ -271,7 +271,7 @@ Complète en choisissant entre les **trois** passés : pretérito perfecto, inde
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Lis ce court texte et réponds.
 
 ::: exemple Texto

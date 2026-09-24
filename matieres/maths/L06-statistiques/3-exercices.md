@@ -118,7 +118,7 @@ Le test : puis-je additionner deux valeurs et obtenir quelque chose qui a un sen
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Un tableau a été mal recopié. Trouve l'erreur et corrige-la.
 
 | Valeur | 2 | 4 | 6 | 8 | Total |
@@ -140,7 +140,7 @@ Retiens la méthode : quand la somme des fréquences ne vaut pas 1, recalcule-le
 
 ## Série B : les trois indicateurs
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Calcule la moyenne de chaque série.
 
 1. `12, 15, 9, 14, 10`
@@ -154,7 +154,7 @@ Calcule la moyenne de chaque série.
 :::
 :::
 
-::: exercice 7 | application | 6 min | ecran
+::: exercice 7 | application | 6 min | main
 Calcule la moyenne pondérée de cette série.
 
 | Note | 8 | 10 | 12 | 14 | 16 |
@@ -178,7 +178,7 @@ Attention : le dénominateur est **25**, l'effectif total, et non 5, le nombre d
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Détermine la médiane de chaque série.
 
 1. `9, 10, 12, 14, 15`
@@ -194,7 +194,7 @@ Sans rangement préalable, on aurait lu 9, qui est la 3ᵉ valeur de la liste d'
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Détermine la médiane de cette série à l'aide des effectifs cumulés.
 
 | Valeur | 5 | 10 | 15 | 20 | 30 |
@@ -212,7 +212,7 @@ Détermine la médiane de cette série à l'aide des effectifs cumulés.
 :::
 :::
 
-::: exercice 10 | application | 4 min | ecran
+::: exercice 10 | application | 4 min | main
 Calcule l'étendue de chaque série.
 
 1. `12, 15, 9, 14, 10`
@@ -228,7 +228,7 @@ Les séries 2 et 3 ont la **même étendue** mais des moyennes très différente
 :::
 :::
 
-::: exercice 11 | entrainement | 8 min | ecran
+::: exercice 11 | entrainement | 8 min | main
 Voici les résultats de deux classes à un même contrôle.
 
 **Classe A** : `8, 9, 10, 11, 12, 12, 13, 14, 15, 16`
@@ -259,7 +259,7 @@ Conclusion de méthode : la moyenne seule ne décrit pas une série. Il faut lui
 
 ## Série C : choisir et interpréter
 
-::: exercice 12 | entrainement | 8 min | ecran
+::: exercice 12 | entrainement | 8 min | main
 Voici les salaires mensuels, en euros, des six employés d'une entreprise.
 
 `1500, 1600, 1600, 1700, 1800, 12000`
@@ -277,7 +277,7 @@ Voici les salaires mensuels, en euros, des six employés d'une entreprise.
 :::
 :::
 
-::: exercice 13 | entrainement | 7 min | ecran
+::: exercice 13 | entrainement | 7 min | main
 Dans chaque cas, dis quel indicateur tu choisirais et pourquoi, en une phrase.
 
 1. Le prix moyen d'un logement dans une ville où quelques villas valent dix fois plus que les autres biens.
@@ -295,7 +295,7 @@ Règle générale : cherche d'abord s'il existe une valeur **très éloignée** 
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 La moyenne d'une classe de 20 élèves est de 11. On ajoute un 21ᵉ élève qui a obtenu 18.
 
 1. Quelle était la somme des notes des 20 premiers élèves ?
@@ -312,7 +312,7 @@ La moyenne n'a gagné que 0,3 point, alors que la note ajoutée dépassait l'anc
 :::
 :::
 
-::: exercice 15 | entrainement | 8 min | ecran
+::: exercice 15 | entrainement | 8 min | main
 Une série de 5 valeurs a pour moyenne 10 et pour médiane 8.
 
 1. Est-ce possible ? Justifie.
@@ -372,7 +372,7 @@ On souhaite représenter cette série par un diagramme circulaire.
 :::
 :::
 
-::: exercice 18 | entrainement | 7 min | ecran
+::: exercice 18 | entrainement | 7 min | main
 Un graphique montre l'évolution du nombre d'adhérents d'un club : 95 en 2023, 100 en 2024. L'axe vertical commence à 94 et se termine à 101.
 
 1. De combien d'adhérents le club a-t-il augmenté ?

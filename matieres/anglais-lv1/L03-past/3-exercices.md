@@ -141,7 +141,7 @@ Ces phrases contiennent une erreur. Corrige-les et explique.
 
 ## Série B : le prétérit continu
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Mets au prétérit continu.
 
 1. I (watch) a film.
@@ -157,7 +157,7 @@ Mets au prétérit continu.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Choisis entre le prétérit simple et le prétérit continu.
 
 1. At 8 p.m. yesterday, I ……… (watch) a film.
@@ -225,7 +225,7 @@ b. `I was reading a book yesterday.`
 
 ## Série C : combiner et relier
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Complète avec le prétérit simple ou continu.
 
 1. I ……… (walk) home when it ……… (start) to rain.
@@ -241,7 +241,7 @@ Dans les trois cas, l'action **longue** est au continu et l'action **courte** qu
 :::
 :::
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Complète avec `when` ou `while`.
 
 1. ……… I was reading, the phone rang.

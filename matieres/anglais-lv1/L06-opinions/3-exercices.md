@@ -130,7 +130,7 @@ Critères de réussite : cinq degrés distincts, `probably` placé au **milieu**
 
 ## Série B : raison et conséquence
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Complète par `because` ou `because of`.
 
 1. We stayed at home ……… the rain.
@@ -148,7 +148,7 @@ La règle est mécanique : `because` + sujet et verbe, `because of` + nom. On ne
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Relie les deux phrases de deux façons : une fois avec `because`, une fois avec `so`.
 
 1. It was raining. We stayed in.
@@ -162,7 +162,7 @@ Les deux versions décrivent le même lien logique. Seul l'**ordre** change : av
 :::
 :::
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Complète par `since`, `so`, `that's why` ou `therefore`.
 
 1. ……… it is raining, we'll stay in.
@@ -180,7 +180,7 @@ Remarque que `since` a ici le sens de « puisque » et non de « depuis ». Le c
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Chaque phrase contient une erreur. Corrige-la.
 
 1. `We stayed in because of it was raining.`
@@ -196,7 +196,7 @@ Chaque phrase contient une erreur. Corrige-la.
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Donne une raison à chacune de ces opinions, avec un connecteur différent à chaque fois.
 
 1. `I prefer travelling by train.`
@@ -234,7 +234,7 @@ Critères de réussite : six connecteurs distincts, chacun correctement construi
 
 ## Série C : opposition et dialogue
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Complète par `although` ou `despite`.
 
 1. ……… the rain, we went out.
@@ -252,7 +252,7 @@ C'est exactement la même logique que `because` et `because of` : proposition d'
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Relie les deux idées de trois façons différentes : avec `but`, avec `although`, avec `however`.
 
 `It is expensive.` / `It is useful.`
@@ -268,7 +268,7 @@ Et surtout : on ne cumule **jamais** `Although it is expensive, but it is useful
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Complète ce dialogue avec des expressions d'accord et de désaccord variées.
 
 `A. I think school should start later in the morning.`
@@ -290,7 +290,7 @@ Critères de réussite : un désaccord poli en trois temps, reconnaître, oppose
 :::
 :::
 
-::: exercice 15 | application | 5 min | ecran
+::: exercice 15 | application | 5 min | main
 Réponds par `So do I` ou `Neither do I`, selon la phrase.
 
 1. `I love winter.`

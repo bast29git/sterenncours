@@ -30,8 +30,8 @@ objectifs:
 :::
 
 ::: info Le repère de support, en tête de chaque exercice
-**💻 sur écran** : exercice fait avec Bastien, corrigé vérifié ensemble juste après.
-**✍️ à la main** : exercice fait seule, sur papier. Les rédactions se font toujours à la main.
+**💻 sur écran** : les quatre premiers exercices, faits **ensemble** pendant la séance, corrigés à voix haute juste après.
+**✍️ à la main** : tous les autres, faits **seule**, sur papier, dans le cahier à imprimer de la leçon. Ils ne sont jamais les mêmes que ceux de la séance. La rédaction compte autant que le résultat.
 :::
 
 ::: methode Comment utiliser cette fiche
@@ -43,9 +43,8 @@ objectifs:
 :::
 :::
 
-::: info Combien d'exercices dans une séance ?
-Séance 1 : exercices **1 à 7**. Séance 2 : exercices **8 à 14**. Séance 3 : exercices **15 à 19**.
-L'exercice 20 se fait à part, en conditions de devoir.
+::: info Comment les exercices se répartissent
+En séance, sur écran, avec Bastien : les exercices **1 à 4**. Sur papier, seule, avec le cahier à imprimer : les exercices **5 et suivants**, dont le sujet de type devoir, à faire à part en temps limité.
 :::
 
 ## Niveau Application : exercices 1 à 7
@@ -103,7 +102,7 @@ Effet : la rue est un **monstre bruyant** qui entoure le poète (« autour de mo
 :::
 :::
 
-::: exercice 5 | application | 3 min | ecran
+::: exercice 5 | application | 3 min | main
 Donner la définition de : flâneur, allégorie, poème en prose.
 
 ::: corrige
@@ -113,7 +112,7 @@ Donner la définition de : flâneur, allégorie, poème en prose.
 :::
 :::
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Dans « Le Cygne », Baudelaire écrit : « Paris change ! mais rien dans ma mélancolie / N'a bougé ! » Expliquer en deux phrases ce qui s'oppose dans ces vers.
 
 ::: corrige
@@ -139,7 +138,7 @@ Chaque groupe a un sens complet. La barre après « tour Eiffel » sépare l'app
 
 ## Niveau Entraînement : exercices 8 à 14
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Verhaeren appelle la ville « la pieuvre ardente et l'ossuaire / Et la carcasse solennelle ». Pour chacune des trois images, dire ce qu'elle révèle de la ville.
 
 ::: corrige
@@ -161,7 +160,7 @@ Exemple avec le regard du passant et la peur :
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Dans *Bel-Ami*, le roman commence par : « Quand la caissière lui eut rendu la monnaie de sa pièce de cent sous, Georges Duroy sortit du restaurant. »
 1. Que sait-on de Duroy dès cette phrase ?
 2. Pourquoi commencer un roman sur la ville par un détail d'argent ?
@@ -180,7 +179,7 @@ Pour Baudelaire, la foule n'est pas seulement une gêne : c'est un plaisir qui s
 :::
 :::
 
-::: exercice 12 | entrainement | 7 min | ecran
+::: exercice 12 | entrainement | 7 min | main
 Dans *La Petite Faiseuse de Livres*, la ville est le seul endroit où Myne peut fabriquer du papier et apprendre à lire. Dans « Le Cygne », la ville efface les souvenirs du poète.
 Classer ces deux visions dans le tableau promesse / menace, et expliquer chacune en une phrase.
 
@@ -201,7 +200,7 @@ Exemple :
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Lire à voix haute ces vers d'Apollinaire, puis dire ce que produit l'absence de ponctuation.
 > Tu lis les prospectus les catalogues les affiches qui chantent tout haut
 > Voilà la poésie ce matin et pour la prose il y a les journaux
@@ -234,7 +233,7 @@ Exemple :
 :::
 :::
 
-::: exercice 17 | approfondissement | 10 min | ecran
+::: exercice 17 | approfondissement | 10 min | main
 Dans *Les Carnets de l'Apothicaire*, le palais impérial est une ville fermée : des murs, des quartiers, des règles, des secrets. Expliquer en huit lignes en quoi cette « ville dans la ville » est à la fois **une promesse** et **une menace** pour Maomao, en réutilisant le vocabulaire du chapitre.
 
 ::: corrige
@@ -252,7 +251,7 @@ Exemple :
 :::
 :::
 
-::: exercice 19 | approfondissement | 8 min | ecran
+::: exercice 19 | approfondissement | 8 min | main
 Préparer une lecture à voix haute d'une minute : les quatre vers d'« À une passante » (exercice 4), puis les deux vers de « Zone » (exercice 14). Écrire en trois lignes comment tu changes ta voix entre les deux textes, et pourquoi.
 
 ::: corrige

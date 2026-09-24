@@ -84,7 +84,7 @@ Sur un planisphère, situe et nomme :
 :::
 :::
 
-::: exercice 4 | entrainement | 5 min | main
+::: exercice 4 | entrainement | 5 min | ecran
 Vrai ou faux ? Corrige les phrases fausses.
 
 1. Le navire négrier part d'Afrique.
@@ -112,7 +112,7 @@ Cette production de masse fait baisser les prix, et le sucre devient un produit 
 
 ## Série B : le commerce triangulaire
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Complète les trois étapes du commerce triangulaire.
 
 1. Europe → ………… : on transporte …………
@@ -186,7 +186,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 
 ## Série C : analyser des documents
 
-::: exercice 11 | application | 6 min | ecran
+::: exercice 11 | application | 6 min | main
 Rappelle les cinq questions à se poser devant un document historique, dans l'ordre.
 
 ::: corrige

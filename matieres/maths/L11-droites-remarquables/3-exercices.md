@@ -99,7 +99,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Complète le tableau de la position des points de concours.
 
 | Type de triangle | `O` | `H` | `G` | `I` |
@@ -229,7 +229,7 @@ Erreur à ne pas commettre : ouvrir le compas « jusqu'à ce que ça touche » a
 
 ## Série C : calculs et propriétés
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Dans un triangle, la médiane `[AA']` mesure les longueurs suivantes. Calcule `AG` et `GA'`.
 
 1. `AA' = 9 cm` · 2. `AA' = 12 cm` · 3. `AA' = 15 cm` · 4. `AA' = 7,5 cm`
@@ -246,7 +246,7 @@ Contrôle systématique : la somme doit redonner la médiane entière, et `AG` d
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Dans un triangle, on sait que `AG = 10 cm`, où `G` est le centre de gravité et `[AA']` une médiane.
 
 1. Calcule `GA'`.
@@ -262,7 +262,7 @@ Retiens le rapport le plus commode à manipuler : `AG = 2 × GA'`. Il évite les
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Un triangle rectangle a une hypoténuse de `10 cm`.
 
 1. Où se trouve le centre de son cercle circonscrit ?
@@ -280,7 +280,7 @@ Cette propriété est fondamentale et sera réutilisée en 3ᵉ : tout triangle 
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Dans un triangle `ABC` isocèle en `A`.
 
 1. Quelles droites issues de `A` sont confondues ?

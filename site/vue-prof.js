@@ -1337,7 +1337,7 @@
               <nav class="p-onglets">${l.docs.map((t) => {
           const info = N.TYPES_DOC.find((x) => x.id === t);
           return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${N.ic(info.ico)} ${info.libelle}</a>`;
-        }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} Série d'exercices</a>` : ''}</nav>
+        }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} Série d'exercices</a>` : ''}<a href="/cahiers/${mid}/${ref}.html" target="_blank" rel="noopener">${N.ic('ic-crayon')} Cahier à imprimer</a></nav>
               <article class="p-fiche">${doc.html}</article>
             </div>
             <aside class="p-rail">

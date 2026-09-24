@@ -30,8 +30,8 @@ objectifs:
 :::
 
 ::: info Le repère de support, en tête de chaque exercice
-**💻 sur écran** : exercice fait avec Bastien, corrigé vérifié ensemble juste après.
-**✍️ à la main** : exercice fait seule, sur papier. La rédaction compte autant que le résultat.
+**💻 sur écran** : les quatre premiers exercices, faits **ensemble** pendant la séance, corrigés à voix haute juste après.
+**✍️ à la main** : tous les autres, faits **seule**, sur papier, dans le cahier à imprimer de la leçon. Ils ne sont jamais les mêmes que ceux de la séance. La rédaction compte autant que le résultat.
 :::
 
 ::: methode Comment utiliser cette fiche
@@ -43,9 +43,8 @@ objectifs:
 :::
 :::
 
-::: info Combien d'exercices dans une séance ?
-Séance 1 : exercices **1 à 8**. Séance 2 : exercices **9 à 15**. Séance 3 : exercices **16 à 20**.
-L'exercice 21 se fait à part, en conditions de devoir. Le nombre est annoncé à l'avance et ne change pas en cours de séance.
+::: info Comment les exercices se répartissent
+En séance, sur écran, avec Bastien : les exercices **1 à 4**. Sur papier, seule, avec le cahier à imprimer : les exercices **5 et suivants**, dont le sujet de type devoir, à faire à part en temps limité.
 :::
 
 ## Niveau Application : exercices 1 à 8
@@ -118,7 +117,7 @@ Donc NP = √169 = 13.
 :::
 :::
 
-::: exercice 5 | application | 4 min | ecran
+::: exercice 5 | application | 4 min | main
 Un triangle rectangle a une hypoténuse de 25 cm et un côté de l'angle droit de 7 cm.
 Calculer l'autre côté de l'angle droit.
 
@@ -136,7 +135,7 @@ Donc c = √576 = 24.
 :::
 :::
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Le triangle ABC est rectangle en **A**, avec AB = 8 cm et AC = 15 cm.
 Calculer BC.
 
@@ -151,7 +150,7 @@ Donc BC = √289 = 17.
 :::
 :::
 
-::: exercice 7 | application | 4 min | ecran
+::: exercice 7 | application | 4 min | main
 Un triangle rectangle a une hypoténuse de 41 cm et un côté de l'angle droit de 40 cm.
 Calculer le troisième côté.
 
@@ -167,7 +166,7 @@ Donc c = √81 = 9.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Un triangle rectangle a des côtés de l'angle droit de **2,4 cm** et **3,2 cm**.
 Calculer son hypoténuse.
 
@@ -195,7 +194,7 @@ Fin de la séance 1. Reprends à l'exercice 9.
 
 Les résultats ne tombent plus toujours juste : **arrondis au dixième** sauf indication contraire.
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Un triangle rectangle a des côtés de l'angle droit de 5 cm et 7 cm.
 Calculer l'hypoténuse, arrondie au dixième de centimètre.
 
@@ -216,7 +215,7 @@ On écrit **h = √74** (exact) puis **h ≈ 8,6 cm** (arrondi).
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Un triangle rectangle a une hypoténuse de 12 cm et un côté de l'angle droit de 5 cm.
 Calculer l'autre côté, arrondi au dixième.
 
@@ -234,7 +233,7 @@ Donc c = √119 ≈ 10,908…
 :::
 :::
 
-::: exercice 11 | entrainement | 6 min | ecran
+::: exercice 11 | entrainement | 6 min | main
 Un triangle a pour côtés 6 cm, 8 cm et 10 cm.
 Ce triangle est-il rectangle ? Justifier par une démonstration complète.
 
@@ -249,7 +248,7 @@ Donc, d'après la **réciproque du théorème de Pythagore**, ce triangle **est 
 :::
 :::
 
-::: exercice 12 | entrainement | 6 min | ecran
+::: exercice 12 | entrainement | 6 min | main
 Un triangle a pour côtés 7 cm, 8 cm et 12 cm.
 Ce triangle est-il rectangle ? Justifier.
 
@@ -264,7 +263,7 @@ Donc, d'après la réciproque du théorème de Pythagore, ce triangle **n'est pa
 :::
 :::
 
-::: exercice 13 | entrainement | 8 min | ecran
+::: exercice 13 | entrainement | 8 min | main
 Une échelle de **4 m** est appuyée contre un mur vertical. Son pied est posé à **1,5 m**
 du mur. À quelle hauteur l'échelle touche-t-elle le mur ? Arrondir au dixième de mètre.
 
@@ -289,7 +288,7 @@ ces expressions annoncent toutes un **angle droit**. C'est la première chose à
 :::
 :::
 
-::: exercice 14 | entrainement | 8 min | ecran
+::: exercice 14 | entrainement | 8 min | main
 Un écran de télévision rectangulaire mesure **1,10 m** de largeur et **0,62 m** de hauteur.
 Quelle est la longueur de sa diagonale, arrondie au centimètre ?
 
@@ -306,7 +305,7 @@ Donc d = √1,5944 ≈ 1,2627…
 :::
 :::
 
-::: exercice 15 | entrainement | 6 min | ecran
+::: exercice 15 | entrainement | 6 min | main
 ABCD est un rectangle avec AB = 12 cm et BC = 9 cm.
 Calculer la longueur de la diagonale [AC].
 

@@ -61,7 +61,7 @@ Relève les trois marques du discours direct dans cette phrase.
 :::
 :::
 
-::: exercice 3 | application | 5 min | main
+::: exercice 3 | application | 5 min | ecran
 Ponctue correctement ce dialogue.
 
 Elle s'arrêta sur le seuil et demanda Tu viens Dans une minute répondit-il sans lever les yeux Tu as dit ça il y a une heure Je sais
@@ -91,7 +91,7 @@ Ces phrases contiennent une erreur de ponctuation ou d'incise. Corrige-les.
 :::
 :::
 
-::: exercice 5 | entrainement | 5 min | ecran
+::: exercice 5 | entrainement | 5 min | main
 Remplace le verbe `dit` par un verbe de parole plus précis, correspondant à l'intention indiquée.
 
 1. « Sors d'ici », dit-il. (avec autorité)
@@ -128,7 +128,7 @@ c. « Ce n'est rien », trancha-t-elle.
 
 ## Série B : passer à l'indirect
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Transforme au discours indirect. Le verbe introducteur reste au présent.
 
 1. `Il dit : « Je suis fatigué. »`
@@ -144,7 +144,7 @@ Le verbe introducteur étant au **présent**, les temps ne changent pas. Seuls l
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Transforme au discours indirect. Le verbe introducteur est au passé.
 
 1. `Il a dit : « Je suis fatigué. »`
@@ -158,7 +158,7 @@ Transforme au discours indirect. Le verbe introducteur est au passé.
 :::
 :::
 
-::: exercice 9 | application | 5 min | ecran
+::: exercice 9 | application | 5 min | main
 Remplace les indicateurs de temps et de lieu.
 
 1. `hier`
@@ -231,7 +231,7 @@ C'est la méthode de vérification la plus fiable. Si la phrase obtenue au disco
 
 ## Série C : questions et formes mixtes
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Transforme ces questions au discours indirect.
 
 1. `Il demande : « Est-ce que tu viens ? »`
@@ -249,7 +249,7 @@ Dans les quatre cas, le point d'interrogation disparaît et l'inversion du sujet
 :::
 :::
 
-::: exercice 14 | application | 5 min | ecran
+::: exercice 14 | application | 5 min | main
 Ces transformations de questions sont fautives. Corrige-les.
 
 1. `Il demande si je viens ?`

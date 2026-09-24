@@ -119,7 +119,7 @@ Corrige ces phrases.
 
 ## Série B : pronominaux et heure
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Complète avec le bon pronom.
 
 1. `Yo ……… levanto a las siete.`
@@ -137,7 +137,7 @@ Le pronom change avec la personne : `me, te, se, nos, os, se`.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Traduis.
 
 1. Je me lève.
@@ -169,7 +169,7 @@ Où se place le pronom ? Corrige si nécessaire.
 :::
 :::
 
-::: exercice 10 | application | 5 min | ecran
+::: exercice 10 | application | 5 min | main
 Écris l'heure en espagnol.
 
 1. 1 h 00
@@ -223,7 +223,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 
 ## Série C : comprendre et dialoguer
 
-::: exercice 13 | entrainement | 8 min | ecran
+::: exercice 13 | entrainement | 8 min | main
 Lis ce texte, puis réponds en espagnol.
 
 > `¡Hola! Me llamo Lucía. Tengo catorce años y soy española. Vivo en Sevilla con mi familia. Me levanto a las siete y media y desayuno con mi hermano. Por la mañana, estudio en el instituto. Como a las dos y media. Por la tarde, escucho música y leo. Me acuesto a las diez y media.`
@@ -284,7 +284,7 @@ Quatre questions différentes, signes ouvrants présents, et deux verbes pronomi
 :::
 :::
 
-::: exercice 16 | approfondissement | 8 min | ecran
+::: exercice 16 | approfondissement | 8 min | main
 Enregistre-toi en répondant à ces questions, à l'oral, sans lire.
 
 1. `¿Cómo te llamas?`

@@ -98,7 +98,7 @@ Rappel important : l'énergie de position se mesure **par rapport à une référ
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Une pierre de `2 kg` tombe du haut d'une falaise de `45 m`. On néglige les frottements de l'air.
 
 1. Calcule son énergie de position au départ.
@@ -119,7 +119,7 @@ Ce résultat est frappant : une pierre lâchée de 45 mètres arrive au sol à p
 
 ## Série B : conversions et chaînes
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Pour chaque convertisseur, indique l'énergie reçue et les énergies fournies.
 
 1. Une lampe · 2. Un panneau photovoltaïque · 3. Une pile · 4. Un moteur électrique · 5. Un alternateur
@@ -175,7 +175,7 @@ Analyse : le corps est un convertisseur au rendement modeste, de l'ordre de 20 �
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Une ampoule de `60 W` émet environ `3 J` de lumière par seconde.
 
 1. Combien de joules reçoit-elle chaque seconde ?
@@ -214,7 +214,7 @@ L'expression courante « consommer de l'énergie » n'est pas interdite, mais il
 
 ## Série C : conservation et rendement
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Calcule le rendement dans chaque cas, en pourcentage.
 
 1. Une ampoule reçoit `60 J` et émet `3 J` de lumière.
@@ -230,7 +230,7 @@ L'ampoule à diodes est **huit fois** plus efficace que l'ampoule à incandescen
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Un appareil reçoit `500 J` et a un rendement de `35 %`.
 
 1. Calcule l'énergie utile.
@@ -246,7 +246,7 @@ Un appareil reçoit `500 J` et a un rendement de `35 %`.
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 On compare deux ampoules qui éclairent autant : une ampoule à incandescence de `60 W` et une ampoule à diodes de `10 W`.
 
 1. Calcule l'énergie consommée par chacune sur `1 000 heures`, en kWh.
@@ -263,7 +263,7 @@ On compare deux ampoules qui éclairent autant : une ampoule à incandescence de
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Une centrale thermique reçoit `1 000 MJ` d'énergie chimique et produit `400 MJ` d'énergie électrique.
 
 1. Calcule son rendement.
@@ -301,7 +301,7 @@ Ce raisonnement porte un nom : l'analyse sur l'**ensemble du cycle de vie**. Com
 
 ## Série D : sources, consommation et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 Classe ces sources en renouvelables et non renouvelables, puis indique leur origine profonde.
 
 `solaire` · `charbon` · `éolien` · `uranium` · `géothermie` · `pétrole` · `hydraulique`
@@ -322,7 +322,7 @@ Origines profondes :
 :::
 :::
 
-::: exercice 18 | entrainement | 6 min | ecran
+::: exercice 18 | entrainement | 6 min | main
 Un camarade affirme : « Les énergies renouvelables n'ont aucun impact sur l'environnement. »
 
 1. Cette affirmation est-elle exacte ?
@@ -339,7 +339,7 @@ Un camarade affirme : « Les énergies renouvelables n'ont aucun impact sur l'en
 :::
 :::
 
-::: exercice 19 | entrainement | 7 min | ecran
+::: exercice 19 | entrainement | 7 min | main
 Un chauffe-eau de `2 400 W` fonctionne 2 heures par jour pendant 31 jours. Le kWh coûte `0,22 €`.
 
 1. Convertis la puissance en kilowatts.

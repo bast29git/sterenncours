@@ -68,7 +68,7 @@ Classe ces actions en contact ou à distance.
 :::
 :::
 
-::: exercice 3 | application | 5 min | main
+::: exercice 3 | application | 5 min | ecran
 Fais le bilan des actions mécaniques s'exerçant sur un livre posé sur une table. Présente-le dans un tableau.
 
 ::: corrige
@@ -85,7 +85,7 @@ Attention : la force exercée par le **livre sur la table** existe aussi, mais e
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Fais le bilan des actions mécaniques dans chaque cas.
 
 1. Une lampe suspendue à un fil au plafond.
@@ -130,7 +130,7 @@ Un élève écrit le bilan suivant pour une bille posée au sol : « le poids de
 
 ## Série B : représenter une force
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Cite les quatre caractéristiques d'une force et dis comment chacune se lit sur une flèche.
 
 ::: corrige
@@ -156,7 +156,7 @@ L'erreur fréquente consiste à dessiner les deux flèches de longueurs différe
 :::
 :::
 
-::: exercice 8 | application | 4 min | ecran
+::: exercice 8 | application | 4 min | main
 Quelle est l'unité de force et quel est son symbole ? Donne trois ordres de grandeur.
 
 ::: corrige
@@ -206,7 +206,7 @@ Un objet est suspendu à un dynamomètre et reste immobile. Le dynamomètre indi
 
 ## Série C : poids et masse
 
-::: exercice 11 | application | 4 min | ecran
+::: exercice 11 | application | 4 min | main
 Complète le tableau.
 
 | | Masse | Poids |
@@ -226,7 +226,7 @@ Complète le tableau.
 :::
 :::
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Calcule les poids sur Terre, avec `g = 9,8 N/kg`.
 
 1. Une masse de `10 kg`.
@@ -241,7 +241,7 @@ Calcule les poids sur Terre, avec `g = 9,8 N/kg`.
 :::
 :::
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Calcule les masses, avec `g = 9,8 N/kg`.
 
 1. Un poids de `196 N`.
@@ -304,7 +304,7 @@ Dans une station spatiale, les objets flottent.
 
 ## Série D : forces et mouvement, devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 1. À quelle condition deux forces se compensent-elles ?
 2. Que se passe-t-il alors pour un objet immobile ?
 3. Que se passe-t-il pour un objet en mouvement ?

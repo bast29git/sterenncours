@@ -135,7 +135,7 @@ Points de vigilance : `s'assoit` donne `s'assit`, `prend` donne `prit`, `lit` do
 
 ## Série B : les valeurs
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Quelle valeur de l'imparfait ? Description, action en cours, habitude ou durée.
 
 1. `Le vent soufflait sur la lande.`
@@ -151,7 +151,7 @@ Quelle valeur de l'imparfait ? Description, action en cours, habitude ou durée.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Quelle valeur du passé simple ? Action brève, succession ou action soudaine.
 
 1. `Une porte claqua.`
@@ -231,7 +231,7 @@ Un élève écrit un récit entièrement à l'imparfait, puis un autre entièrem
 
 ## Série C : plus-que-parfait et systèmes
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Conjugue au plus-que-parfait, troisième personne du singulier.
 
 1. manger

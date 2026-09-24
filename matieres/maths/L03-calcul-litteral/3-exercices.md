@@ -104,7 +104,7 @@ Ces expressions sont-elles réductibles ? Réponds par oui ou non et justifie.
 :::
 :::
 
-::: exercice 5 | entrainement | 5 min | ecran
+::: exercice 5 | entrainement | 5 min | main
 Calcule la valeur de chaque expression pour `x = 4`.
 
 1. `3x + 5`
@@ -140,7 +140,7 @@ Remarque : sans parenthèses, on écrirait `−3²`, ce qui vaut `−9` et condu
 
 ## Série B : distributivité simple
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Développe.
 
 1. `5(x + 2)`
@@ -158,7 +158,7 @@ Développe.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Développe, en soignant les signes.
 
 1. `−2(x + 4)`
@@ -228,7 +228,7 @@ On considère l'expression `A = 5(x + 2) − 3(x − 4)`.
 
 ## Série C : double distributivité et factorisation
 
-::: exercice 12 | application | 6 min | ecran
+::: exercice 12 | application | 6 min | main
 Développe et réduis.
 
 1. `(x + 1)(x + 3)`
@@ -261,7 +261,7 @@ Développe et réduis.
 :::
 :::
 
-::: exercice 14 | application | 5 min | ecran
+::: exercice 14 | application | 5 min | main
 Factorise.
 
 1. `3x + 12`

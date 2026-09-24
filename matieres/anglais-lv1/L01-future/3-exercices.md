@@ -130,7 +130,7 @@ La réponse courte reprend uniquement l'auxiliaire de la question, jamais le ver
 
 ## Série B : choisir la bonne forme
 
-::: exercice 7 | application | 6 min | ecran
+::: exercice 7 | application | 6 min | main
 Choisis entre `will` et `be going to`.
 
 1. `Look at that car! It ……… crash!`
@@ -146,7 +146,7 @@ Choisis entre `will` et `be going to`.
 :::
 :::
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Choisis entre `be going to` et le présent continu.
 
 1. `I ……… the dentist at 3 p.m. on Tuesday.` (see)
@@ -231,7 +231,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 
 ## Série C : questions et dialogues
 
-::: exercice 13 | application | 6 min | ecran
+::: exercice 13 | application | 6 min | main
 Écris la question qui correspond à chaque réponse.
 
 1. `……… ? Yes, I'm going to study tonight.`
@@ -245,7 +245,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 Complète ce dialogue avec la forme qui convient.
 
 > A : `What ……… you ……… do this weekend?` (do)
@@ -284,7 +284,7 @@ Les trois formes apparaissent : `going to` pour l'intention, le présent continu
 :::
 :::
 
-::: exercice 16 | approfondissement | 8 min | ecran
+::: exercice 16 | approfondissement | 8 min | main
 Enregistre-toi en répondant à ces trois questions, à l'oral, sans lire.
 
 1. `What are you going to do this weekend?`

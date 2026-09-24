@@ -90,7 +90,7 @@ Le point 5 est un irrégulier : `bad` → `worse` → `the worst`. Il ne prend n
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Récris chaque phrase en remplaçant l'adjectif souligné par son contraire, sans changer le sens général de la comparaison.
 
 1. `Paris is bigger than Brest.` → avec `small`
@@ -108,7 +108,7 @@ Retiens le mécanisme : changer l'adjectif par son contraire sans inverser les d
 
 ## Série B : les cinq structures
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Complète avec `as ... as` ou `not as ... as`, selon l'information donnée.
 
 1. Tom : 1 m 70. Léa : 1 m 70. (tall)
@@ -124,7 +124,7 @@ Au point 3, attention au sens de `cheap` : bon marché. Un prix plus élevé sig
 :::
 :::
 
-::: exercice 7 | entrainement | 7 min | ecran
+::: exercice 7 | entrainement | 7 min | main
 Écris chaque comparaison de **trois** façons différentes, comme dans l'exemple de la fiche de cours.
 
 1. Brest est plus petit que Paris.
@@ -139,7 +139,7 @@ Les trois versions décrivent la même réalité. Savoir passer de l'une à l'au
 :::
 :::
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Traduis ces cinq phrases en anglais.
 
 1. Elle est aussi grande que son frère.
@@ -159,7 +159,7 @@ Note au point 4 : `yours` remplace `your house`. On ne répète pas le nom en an
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Chaque phrase contient une erreur. Corrige-la et nomme le piège concerné.
 
 1. `She is as tall her sister.`
@@ -177,7 +177,7 @@ Chaque phrase contient une erreur. Corrige-la et nomme le piège concerné.
 :::
 :::
 
-::: exercice 10 | entrainement | 7 min | ecran
+::: exercice 10 | entrainement | 7 min | main
 Lis ce tableau, puis écris cinq phrases de comparaison, une par consigne.
 
 ::: grille
@@ -223,7 +223,7 @@ Critères de réussite : les quatre structures présentes, aucun double comparat
 
 ## Série C : superlatifs et irréguliers
 
-::: exercice 12 | application | 4 min | ecran
+::: exercice 12 | application | 4 min | main
 Donne le superlatif de chaque adjectif.
 
 1. tall · 2. big · 3. happy · 4. expensive · 5. good · 6. bad
@@ -235,7 +235,7 @@ N'oublie jamais `the` : c'est le piège 3 de la fiche de révision, et il coûte
 :::
 :::
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Complète par `in` ou `of`.
 
 1. `He is the tallest boy ……… the class.`
@@ -253,7 +253,7 @@ Règle : `in` devant un **lieu** ou un **groupe de personnes**, `of` devant une 
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Complète avec la forme correcte de `good`, `bad`, `far` ou `little`.
 
 1. `This film is ……… than the first one.` (good, comparatif)
@@ -271,7 +271,7 @@ Ces quatre adjectifs ne suivent aucune règle de longueur : ils changent complè
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Complète ce texte avec les adjectifs entre parenthèses, au comparatif ou au superlatif selon le sens.
 
 « `Our new flat is ……… (small) than the old one, but it is ……… (bright) and much ……… (quiet). It is also ……… (close) to my school: fifteen minutes on foot instead of forty. The ……… (good) thing is the balcony. It is ……… (beautiful) room in the flat, even if it is ……… (little) one.` »

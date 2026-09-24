@@ -84,7 +84,7 @@ Qualifie la trajectoire : rectiligne, circulaire ou curviligne.
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Un point situé sur la roue d'un vélo qui avance.
 
 1. Quelle est sa trajectoire par rapport au cadre du vélo ?
@@ -116,7 +116,7 @@ Pendant des siècles, on a cru que la Terre était immobile.
 
 ## Série B : calculs de vitesse
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Calcule.
 
 1. Un coureur parcourt `800 m` en `100 s`.
@@ -130,7 +130,7 @@ Calcule.
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Convertis.
 
 1. `10 m/s` en `km/h`
@@ -146,7 +146,7 @@ Convertis.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Ces vitesses sont-elles plausibles ? Justifie par une conversion.
 
 1. Un marcheur à `15 m/s`.
@@ -211,7 +211,7 @@ Un automobiliste fait `120 km` à l'aller à `60 km/h`, et les mêmes `120 km` a
 
 ## Série C : chronophotographies et graphiques
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Sur une chronophotographie, qualifie le mouvement.
 
 1. Les positions sont régulièrement espacées.
@@ -295,7 +295,7 @@ Remarque : sur un graphique distance-temps, la **pente** de la courbe représent
 
 ## Série D : sécurité routière et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 1. De quoi la distance d'arrêt est-elle la somme ?
 2. Que vaut le temps de réaction d'un conducteur attentif ?
 3. Quelle est la distance d'arrêt à `90 km/h` ?

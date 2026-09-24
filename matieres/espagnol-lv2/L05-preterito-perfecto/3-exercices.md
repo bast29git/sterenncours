@@ -88,7 +88,7 @@ Vrai ou faux ? Justifie chaque réponse en une phrase.
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Traduis ces cinq phrases en espagnol.
 
 1. J'ai mangé au lycée.
@@ -110,7 +110,7 @@ Note au point 3 : l'espagnol emploie `haber` pour tous les verbes, y compris ceu
 
 ## Série B : les irréguliers et les marqueurs
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Donne le participe irrégulier de chaque verbe.
 
 1. hacer · 2. decir · 3. ver · 4. escribir · 5. volver · 6. poner · 7. abrir · 8. romper
@@ -122,7 +122,7 @@ Repère de forme : six finissent par `-to`, deux par `-cho`. Aucun ne finit par 
 :::
 :::
 
-::: exercice 7 | entrainement | 5 min | ecran
+::: exercice 7 | entrainement | 5 min | main
 Donne le participe de ces verbes composés, en t'appuyant sur le verbe simple qu'ils contiennent.
 
 1. devolver · 2. describir · 3. componer · 4. deshacer · 5. reabrir
@@ -138,7 +138,7 @@ Règle : un verbe composé garde l'irrégularité du verbe simple qu'il contient
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Pour chaque marqueur, dis s'il appelle le pretérito perfecto ou un autre temps.
 
 1. `hoy` · 2. `ayer` · 3. `esta semana` · 4. `la semana pasada` · 5. `este año` · 6. `en 2020` · 7. `todavía no` · 8. `hace tres años`
@@ -151,7 +151,7 @@ Le critère est unique : la période désignée est-elle **terminée** ? `Hoy` n
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Complète avec le verbe au pretérito perfecto.
 
 1. `Hoy (yo / hacer) ……… los deberes.`
@@ -167,7 +167,7 @@ Les cinq verbes sont irréguliers. Vérifie dans chaque cas que le participe ne 
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Chaque phrase contient une erreur. Corrige-la et explique en une phrase.
 
 1. `Hoy he hacido los deberes.`
@@ -210,7 +210,7 @@ Critères de réussite : six phrases au pretérito perfecto, aucun marqueur de p
 
 ## Série C : négation, pronoms et ordre des mots
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Mets ces phrases à la forme négative.
 
 1. `He comido.`
@@ -228,7 +228,7 @@ Mets ces phrases à la forme négative.
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Récris chaque phrase en remplaçant le complément souligné par un pronom.
 
 1. `He visto la película.` → remplace `la película`
@@ -246,7 +246,7 @@ Le pronom se place **devant `haber`**, et après `no` s'il y en a un. Au point 4
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Remets les mots dans l'ordre.
 
 1. `he / no / lo / visto`
@@ -264,7 +264,7 @@ L'ordre est toujours le même : `no`, puis les pronoms, puis `haber`, puis le pa
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Lis ce texte et réponds aux questions.
 
 ::: exemple Texto

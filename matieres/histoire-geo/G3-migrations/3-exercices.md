@@ -121,7 +121,7 @@ Les trois éléments distinctifs attendus : *aucune valeur juridique* pour migra
 
 ## Série B : chiffres et statuts
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Retrouve les chiffres du chapitre.
 
 1. Combien de migrants internationaux dans le monde ?
@@ -141,7 +141,7 @@ Le chiffre le plus important à retenir est le deuxième : la migration internat
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Associe chaque situation au statut juridique exact : **réfugié**, **demandeur d'asile**, **déplacé interne**, **déplacé environnemental**, **migrant de travail**.
 
 1. Une famille fuit les combats et s'installe dans une autre région de son pays.
@@ -159,7 +159,7 @@ Associe chaque situation au statut juridique exact : **réfugié**, **demandeur 
 :::
 :::
 
-::: exercice 8 | entrainement | 8 min | ecran
+::: exercice 8 | entrainement | 8 min | main
 La population mondiale est d'environ 8 milliards de personnes. On compte environ 280 millions de migrants internationaux.
 
 1. Calcule la part des migrants internationaux dans la population mondiale. Donne le résultat en pourcentage, arrondi au dixième.
@@ -177,7 +177,7 @@ Conclusion : l'augmentation du nombre s'explique en grande partie par la **crois
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Explique en deux phrases pourquoi chacune de ces affirmations est inexacte.
 
 1. « Les réfugiés vivent tous dans des camps. »
@@ -206,7 +206,7 @@ Le mot « explosion » n'est pas une information, c'est une **appréciation**. U
 :::
 :::
 
-::: exercice 11 | entrainement | 6 min | ecran
+::: exercice 11 | entrainement | 6 min | main
 Pour chaque cause, indique s'il s'agit d'un **facteur de départ** ou d'un **facteur d'attraction**.
 
 1. Un taux de chômage de 40 % chez les jeunes du pays d'origine.
@@ -232,7 +232,7 @@ Une migration résulte presque toujours de la **combinaison** des deux : un fact
 
 ## Série C : cartes et documents
 
-::: exercice 12 | entrainement | 8 min | ecran
+::: exercice 12 | entrainement | 8 min | main
 Voici six routes migratoires. Pour chacune, indique la région de départ, la région d'arrivée et la cause dominante.
 
 1. La route de la Méditerranée centrale.
@@ -252,7 +252,7 @@ Voici six routes migratoires. Pour chacune, indique la région de départ, la r�
 :::
 :::
 
-::: exercice 13 | entrainement | 9 min | ecran
+::: exercice 13 | entrainement | 9 min | main
 Lis ce tableau, puis réponds.
 
 ::: grille
@@ -299,7 +299,7 @@ Lis ce tableau, puis réponds.
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Cette affirmation revient souvent : « Ce sont les plus pauvres qui migrent. »
 
 1. Est-elle exacte ? Réponds par oui ou non.

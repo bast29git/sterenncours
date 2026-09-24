@@ -105,7 +105,7 @@ Vrai ou faux ? Justifie chaque réponse en une phrase.
 :::
 :::
 
-::: exercice 5 | application | 8 min | ecran
+::: exercice 5 | application | 8 min | main
 On donne trois statuts de l'anglais : `native language`, `official language`, `lingua franca`.
 
 1. Définis chacun en une phrase.
@@ -126,7 +126,7 @@ On donne trois statuts de l'anglais : `native language`, `official language`, `l
 :::
 :::
 
-::: exercice 6 | application | 8 min | ecran
+::: exercice 6 | application | 8 min | main
 Explique en trois phrases pourquoi l'anglais est langue officielle en Inde, au Nigeria et en Jamaïque.
 
 Puis explique en une phrase pourquoi ce statut y est parfois discuté.
@@ -148,7 +148,7 @@ Fin de la série A. Six exercices faits. Reprends dans un moment.
 
 ## Série B : British English et American English
 
-::: exercice 7 | entrainement | 8 min | ecran
+::: exercice 7 | entrainement | 8 min | main
 Donne l'équivalent américain de ces mots britanniques.
 
 a. `lift`
@@ -174,7 +174,7 @@ h. `trousers` → `pants`
 :::
 :::
 
-::: exercice 8 | entrainement | 8 min | ecran
+::: exercice 8 | entrainement | 8 min | main
 Un Américain dit : `I bought some chips at the store.`
 Un Britannique dit : `I bought some chips at the shop.`
 
@@ -191,7 +191,7 @@ Un Britannique dit : `I bought some chips at the shop.`
 :::
 :::
 
-::: exercice 9 | entrainement | 8 min | ecran
+::: exercice 9 | entrainement | 8 min | main
 Récris ces phrases en anglais américain.
 
 1. `I take the underground to go to my flat.`
@@ -211,7 +211,7 @@ Récris ces phrases en anglais américain.
 :::
 :::
 
-::: exercice 10 | entrainement | 8 min | ecran
+::: exercice 10 | entrainement | 8 min | main
 Récris ces mots en anglais américain et donne la règle appliquée.
 
 a. `colour`
@@ -233,7 +233,7 @@ f. `programme` → `program`. Forme **raccourcie** en américain.
 :::
 :::
 
-::: exercice 11 | entrainement | 8 min | ecran
+::: exercice 11 | entrainement | 8 min | main
 Un ami américain t'écrit : `See you on 03/04.`
 
 1. À quelle date te donne-t-il rendez-vous ?
@@ -249,7 +249,7 @@ Un ami américain t'écrit : `See you on 03/04.`
 :::
 :::
 
-::: exercice 12 | entrainement | 10 min | ecran
+::: exercice 12 | entrainement | 10 min | main
 Voici cinq faux amis. Donne le sens réel de chaque mot, puis la traduction anglaise du mot français avec lequel on le confond.
 
 a. `actually`
@@ -311,7 +311,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 
 ## Série C : compréhension et exposé
 
-::: exercice 14 | approfondissement | 10 min | ecran
+::: exercice 14 | approfondissement | 10 min | main
 Voici le paratexte d'un document.
 
 > **Title:** "Why Thanksgiving is more than a big meal"
@@ -332,7 +332,7 @@ Réponds aux cinq questions de la méthode avant même d'avoir lu le texte.
 :::
 :::
 
-::: exercice 15 | approfondissement | 12 min | ecran
+::: exercice 15 | approfondissement | 12 min | main
 Lis ce texte, puis réponds.
 
 > Every year, on the fourth Thursday of November, millions of Americans travel across the country to share a meal with their families. The tradition goes back to the seventeenth century, when English settlers and Native Americans shared a harvest celebration. Today, the holiday is above all a family gathering. Airports are crowded, roads are full, and many people travel for more than ten hours just to spend one evening together. For some Native American communities, however, the date is also a day of mourning, and they hold their own ceremonies instead.
@@ -354,7 +354,7 @@ Lis ce texte, puis réponds.
 :::
 :::
 
-::: exercice 16 | approfondissement | 10 min | ecran
+::: exercice 16 | approfondissement | 10 min | main
 Tu dois écouter un document audio en classe.
 
 1. Décris les quatre écoutes de la méthode.
@@ -413,7 +413,7 @@ Wales missing - 17th century - Australia - New Zealand - history
 :::
 :::
 
-::: exercice 18 | approfondissement | 10 min | ecran
+::: exercice 18 | approfondissement | 10 min | main
 Voici six phrases d'un exposé, dans le désordre. Remets-les dans l'ordre et indique la fonction de chacune.
 
 a. `To sum up, it is a religious festival that has become a worldwide celebration.`

@@ -99,7 +99,7 @@ Un conducteur grille un feu rouge et blesse un piéton.
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Explique en trois phrases pourquoi la justice n'est pas la vengeance.
 
 ::: corrige
@@ -113,7 +113,7 @@ Enfin, une décision de justice peut être **contestée** par un recours, ce qui
 
 ## Série B : infractions et juridictions
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Classe ces infractions en **contravention**, **délit** ou **crime**, et donne la juridiction compétente.
 
 1. Un excès de vitesse de 15 km/h. · 2. Un vol dans un magasin. · 3. Un meurtre. · 4. Un tapage nocturne. · 5. Une escroquerie.
@@ -129,7 +129,7 @@ Le classement ne dépend ni de la gravité ressentie par la victime ni de l'appr
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Que signifie le principe « pas d'infraction, pas de peine sans loi » ?
 
 1. Donne son nom exact.
@@ -145,7 +145,7 @@ Que signifie le principe « pas d'infraction, pas de peine sans loi » ?
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Pour chaque cas, nomme la juridiction compétente.
 
 1. Un salarié conteste son licenciement.
@@ -165,7 +165,7 @@ Le cas 4 est le seul à relever de l'ordre **administratif** : c'est la présenc
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Le conseil de prud'hommes présente deux particularités.
 
 1. Comment est-il composé ?
@@ -179,7 +179,7 @@ Le conseil de prud'hommes présente deux particularités.
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 La cour d'assises.
 
 1. Quelles infractions juge-t-elle ?
@@ -215,7 +215,7 @@ La Cour de cassation.
 
 ## Série C : procès et droits de la défense
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Associe chaque acteur d'un procès pénal à son rôle.
 
 Acteurs : juge · procureur · avocat · greffier · partie civile
@@ -231,7 +231,7 @@ Le greffier est souvent oublié, alors que son absence rend une audience irrégu
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Remets dans l'ordre les étapes d'une audience pénale, puis explique la position de la dernière.
 
 - Réquisitions du procureur
@@ -253,7 +253,7 @@ Le prévenu parle **toujours en dernier**. C'est une garantie ancienne découlan
 :::
 :::
 
-::: exercice 14 | application | 5 min | ecran
+::: exercice 14 | application | 5 min | main
 Cite six droits de la défense, avec leur contenu.
 
 ::: corrige
@@ -268,7 +268,7 @@ Cite six droits de la défense, avec leur contenu.
 :::
 :::
 
-::: exercice 15 | entrainement | 6 min | ecran
+::: exercice 15 | entrainement | 6 min | main
 Le droit au silence.
 
 1. En quoi consiste-t-il ?

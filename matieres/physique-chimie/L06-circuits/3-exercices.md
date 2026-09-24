@@ -50,7 +50,7 @@ Retiens que le trait long représente la borne `+` et le trait court la borne `�
 :::
 :::
 
-::: exercice 2 | application | 5 min | main
+::: exercice 2 | application | 5 min | ecran
 Schématise un circuit comportant une pile, un interrupteur fermé et deux lampes en série. Indique le sens du courant.
 
 ::: corrige
@@ -96,7 +96,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Une ancienne guirlande de Noël comporte 20 ampoules. Quand une seule grille, toute la guirlande s'éteint.
 
 1. De quel montage s'agit-il ? Justifie.
@@ -114,7 +114,7 @@ Une ancienne guirlande de Noël comporte 20 ampoules. Quand une seule grille, to
 
 ## Série B : intensité et tension
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Complète.
 
 1. L'intensité se note ………, s'exprime en ……… et se mesure avec un ………
@@ -130,7 +130,7 @@ Complète.
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Un générateur débite une intensité de `0,8 A`. Le circuit se sépare en deux branches. Dans la première, on mesure `0,3 A`.
 
 1. Quelle loi appliques-tu ?
@@ -146,7 +146,7 @@ Vérification du point 2 : `0,3 + 0,5 = 0,8`, ce qui correspond bien à l'intens
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Un générateur de `9 V` alimente trois lampes identiques **en série**.
 
 1. Quelle loi appliques-tu ?
@@ -162,7 +162,7 @@ Cet exercice mobilise les deux lois du montage en série : la tension s'addition
 :::
 :::
 
-::: exercice 9 | application | 5 min | ecran
+::: exercice 9 | application | 5 min | main
 Un générateur de `12 V` alimente deux lampes **en dérivation**. La première est traversée par `0,4 A`, la seconde par `0,25 A`.
 
 1. Quelle tension reçoit chaque lampe ?
@@ -176,7 +176,7 @@ Un générateur de `12 V` alimente deux lampes **en dérivation**. La première 
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Pour chaque erreur de manipulation, dis ce qui se passe et pourquoi.
 
 1. On branche un ampèremètre en dérivation aux bornes d'une pile.
@@ -212,7 +212,7 @@ Ce montage mixte combine les deux types : il faut raisonner branche par branche,
 
 ## Série C : loi d'Ohm, puissance, énergie
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Applique la loi d'Ohm.
 
 1. `R = 100 Ω`, `I = 0,05 A`. Calcule `U`.
@@ -230,7 +230,7 @@ Sans la conversion du point 4, on aurait obtenu `150 × 40 = 6 000 V`, un résul
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Un conducteur ohmique est soumis à différentes tensions. On relève les intensités.
 
 | `U` en V | 2 | 4 | 6 | 8 |
@@ -252,7 +252,7 @@ Remarque que ce tableau est un tableau de proportionnalité dont le coefficient 
 :::
 :::
 
-::: exercice 14 | application | 5 min | ecran
+::: exercice 14 | application | 5 min | main
 Calcule la puissance ou l'intensité.
 
 1. Un appareil sous `230 V` est traversé par `5 A`. Calcule sa puissance.
@@ -268,7 +268,7 @@ Compare les points 2 et 3 : un four tire environ 33 fois plus de courant qu'une 
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Un radiateur de `2 000 W` fonctionne 3 heures par jour pendant 30 jours. Le kilowattheure coûte `0,20 €`.
 
 1. Convertis la puissance en kilowatts.
@@ -308,7 +308,7 @@ Cet exercice explique la règle domestique : on ne cumule jamais plusieurs appar
 
 ## Série D : sécurité et devoir type
 
-::: exercice 17 | entrainement | 7 min | ecran
+::: exercice 17 | entrainement | 7 min | main
 1. Qu'est-ce qu'un court-circuit ?
 2. Explique par la loi d'Ohm pourquoi il est dangereux.
 3. Quelle est la différence entre un fusible et un disjoncteur ?

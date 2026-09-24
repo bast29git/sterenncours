@@ -102,7 +102,7 @@ Le point 6 peut se discuter, et c'est normal : un classement sert à organiser l
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Un article affirme : « Le tourisme de masse concerne désormais toute la planète. »
 
 1. Quel chiffre du chapitre contredit directement cette affirmation ?
@@ -118,7 +118,7 @@ Un article affirme : « Le tourisme de masse concerne désormais toute la planè
 
 ## Série B : flux et espaces
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 1. Cite les cinq premiers pays d'accueil touristique.
 2. Quelle région du monde concentre la moitié des arrivées ?
 3. Quelle part les Amériques représentent-elles ? Et l'Afrique ?
@@ -132,7 +132,7 @@ Un article affirme : « Le tourisme de masse concerne désormais toute la planè
 :::
 :::
 
-::: exercice 7 | entrainement | 6 min | ecran
+::: exercice 7 | entrainement | 6 min | main
 La France est première pour les arrivées mais seulement troisième pour les recettes.
 
 1. Ces deux indicateurs mesurent-ils la même chose ?
@@ -146,7 +146,7 @@ La France est première pour les arrivées mais seulement troisième pour les re
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Associe chaque type d'espace touristique à son atout principal et à un exemple.
 
 Types : littoral · montagne · urbain · rural · naturel protégé
@@ -162,7 +162,7 @@ Remarque que l'espace **urbain** est le seul où le tourisme d'affaires pèse lo
 :::
 :::
 
-::: exercice 9 | entrainement | 7 min | ecran
+::: exercice 9 | entrainement | 7 min | main
 Un village de montagne possède un lac remarquable, mais aucune route carrossable et aucun hébergement.
 
 1. Est-ce un espace touristique ? Justifie.
@@ -178,7 +178,7 @@ Cet exercice montre que le tourisme ne se contente pas d'occuper un espace : en 
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Remets dans l'ordre les phases du cycle de vie d'une station et décris chacune en une phrase.
 
 - Maturité
@@ -216,7 +216,7 @@ Une commune littorale compte 4 000 habitants l'hiver et 40 000 en août.
 
 ## Série C : effets et documents
 
-::: exercice 12 | entrainement | 7 min | ecran
+::: exercice 12 | entrainement | 7 min | main
 Classe ces effets du tourisme en **positifs** et **négatifs**, puis précise **pour qui**.
 
 1. Création d'emplois. · 2. Hausse du prix du logement. · 3. Restauration d'un monument. · 4. Départ des habitants du centre-ville. · 5. Maintien d'une école en zone rurale. · 6. Forte consommation d'eau.
@@ -229,7 +229,7 @@ La question « pour qui ? » est décisive. Le même tourisme qui finance la res
 :::
 :::
 
-::: exercice 13 | entrainement | 7 min | ecran
+::: exercice 13 | entrainement | 7 min | main
 Dans une destination lointaine, un séjour coûte 1 500 € par personne. On estime que 25 % de cette somme reste dans le pays d'accueil.
 
 1. Calcule la somme qui reste sur place.
@@ -245,7 +245,7 @@ Dans une destination lointaine, un séjour coûte 1 500 € par personne. On est
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 Voici des données sur Venise.
 
 ::: chiffres
@@ -304,7 +304,7 @@ Trois affirmations. Dis pour chacune si elle est **exacte**, **inexacte** ou **i
 
 ## Série D : réguler et devoir type
 
-::: exercice 17 | entrainement | 8 min | ecran
+::: exercice 17 | entrainement | 8 min | main
 Pour chacune de ces mesures réelles, dis sur quoi elle agit : le **nombre**, la **période**, le **lieu** ou le **comportement**.
 
 1. Une redevance d'accès à la journée dans une ville historique.

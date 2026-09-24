@@ -30,7 +30,7 @@ Une feuille, un crayon, un planisphère vierge. Les exercices marqués `à la ma
 
 ## Série A : la carte et l'Espagne
 
-::: exercice 1 | application | 8 min | main
+::: exercice 1 | application | 8 min | ecran
 Sur un planisphère vierge, colorie les pays hispanophones et nomme-en au moins **douze**, avec leur capitale.
 
 ::: corrige
@@ -134,7 +134,7 @@ Complète le tableau des fêtes.
 :::
 :::
 
-::: exercice 5 | application | 8 min | ecran
+::: exercice 5 | application | 8 min | main
 Un élève écrit : « En Espagne, tout le monde fait la sieste l'après-midi et mange à midi comme nous. »
 
 1. Corrige les deux erreurs.
@@ -150,7 +150,7 @@ Un élève écrit : « En Espagne, tout le monde fait la sieste l'après-midi et
 :::
 :::
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Associe chaque tradition à sa définition.
 
 Traditions : las tapas, la sobremesa, el paseo, el flamenco, la paella.
@@ -176,7 +176,7 @@ Fin de la série A. Six exercices faits. Reprends dans un moment.
 
 ## Série B : l'Amérique, les langues, les variétés
 
-::: exercice 7 | entrainement | 10 min | ecran
+::: exercice 7 | entrainement | 10 min | main
 Complète la fiche du Mexique.
 
 1. Capitale : ...
@@ -196,7 +196,7 @@ Complète la fiche du Mexique.
 :::
 :::
 
-::: exercice 8 | entrainement | 10 min | ecran
+::: exercice 8 | entrainement | 10 min | main
 Décris une `ofrenda` du Día de Muertos.
 
 1. Quand la dresse-t-on ?
@@ -222,7 +222,7 @@ Les dates sont proches parce que les deux fêtes ont un lien avec le calendrier 
 :::
 :::
 
-::: exercice 9 | entrainement | 8 min | ecran
+::: exercice 9 | entrainement | 8 min | main
 Donne la capitale de chaque pays et un repère culturel ou géographique.
 
 a. Argentina
@@ -242,7 +242,7 @@ f. **Santiago**. Repères : la cordillère des Andes, le poète Pablo Neruda.
 :::
 :::
 
-::: exercice 10 | entrainement | 8 min | ecran
+::: exercice 10 | entrainement | 8 min | main
 Ces mots espagnols viennent de langues indigènes d'Amérique. Classe-les selon leur origine : **náhuatl**, **quechua**, **langues des Caraïbes**.
 
 `chocolate`, `papa`, `canoa`, `tomate`, `puma`, `hamaca`, `aguacate`, `llama`, `huracán`, `chicle`
@@ -256,7 +256,7 @@ Ces mots espagnols viennent de langues indigènes d'Amérique. Classe-les selon 
 :::
 :::
 
-::: exercice 11 | entrainement | 10 min | ecran
+::: exercice 11 | entrainement | 10 min | main
 Un texte écrit en Espagne contient les mots suivants. Récris chaque phrase telle qu'on la dirait au Mexique ou en Argentine.
 
 1. `Vosotros tenéis un coche nuevo.`
@@ -276,7 +276,7 @@ Un texte écrit en Espagne contient les mots suivants. Récris chaque phrase tel
 :::
 :::
 
-::: exercice 12 | entrainement | 8 min | ecran
+::: exercice 12 | entrainement | 8 min | main
 Explique en une ou deux phrases chacun de ces trois phénomènes, avec un exemple.
 
 1. Le seseo
@@ -321,7 +321,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 
 ## Série C : compréhension et exposé
 
-::: exercice 14 | approfondissement | 10 min | ecron
+::: exercice 14 | approfondissement | 10 min | main
 Voici le paratexte d'un document.
 
 > **Título :** « Las Fallas: cuando Valencia arde »
@@ -342,7 +342,7 @@ Réponds aux cinq questions de la méthode avant d'avoir lu le texte.
 :::
 :::
 
-::: exercice 15 | approfondissement | 12 min | ecran
+::: exercice 15 | approfondissement | 12 min | main
 Lis ce texte, puis réponds.
 
 > Cada 1 y 2 de noviembre, millones de familias mexicanas preparan una ofrenda en su casa. Ponen fotos de sus familiares muertos, velas, flores de cempasúchil y la comida que más les gustaba. No es una fiesta triste: es una manera de recibir a los muertos y de recordarlos con alegría. La tradición mezcla creencias prehispánicas y católicas, y la UNESCO la declaró patrimonio de la humanidad en 2008. Sin embargo, algunos mexicanos temen que Halloween, cada vez más popular entre los jóvenes, acabe sustituyendo a la fiesta tradicional.
@@ -366,7 +366,7 @@ Lis ce texte, puis réponds.
 :::
 :::
 
-::: exercice 16 | approfondissement | 8 min | ecran
+::: exercice 16 | approfondissement | 8 min | main
 Voici six faux amis. Donne le sens réel de chaque mot, puis la traduction espagnole du mot français avec lequel on le confond.
 
 a. `largo`
@@ -431,7 +431,7 @@ toros - blanco y rojo - popular - criticada - tradición
 :::
 :::
 
-::: exercice 18 | approfondissement | 8 min | ecran
+::: exercice 18 | approfondissement | 8 min | main
 Voici six phrases d'un exposé, dans le désordre. Remets-les dans l'ordre et indique la fonction de chacune.
 
 a. `En resumen, es una fiesta que mezcla tradición y alegría.`

@@ -102,7 +102,7 @@ Remarque au point 3 : `de` + `el mercado` donne `del mercado`.
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Chaque phrase contient une erreur. Corrige-la.
 
 1. `Voy a el museo.`
@@ -122,7 +122,7 @@ Chaque phrase contient une erreur. Corrige-la.
 
 ## Série B : l'impératif affirmatif
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Donne l'impératif affirmatif en `tú`.
 
 1. hablar · 2. girar · 3. comer · 4. beber · 5. subir · 6. escribir
@@ -134,7 +134,7 @@ La recette est toujours la même : on prend la **3ᵉ personne du singulier du p
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Donne l'impératif affirmatif en `usted` des six mêmes verbes.
 
 ::: corrige
@@ -144,7 +144,7 @@ L'échange de voyelles : les verbes en `-ar` prennent `-e`, ceux en `-er` et `-i
 :::
 :::
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Transforme ces consignes du tutoiement au vouvoiement.
 
 1. `Sigue todo recto.`
@@ -164,7 +164,7 @@ Au point 3, attention : `coger` s'écrit avec un `j` devant `a` et `o`, pour gar
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Donne l'impératif en `tú` puis en `usted` des huit irréguliers.
 
 `ir` · `venir` · `hacer` · `decir` · `poner` · `salir` · `tener` · `ser`
@@ -185,7 +185,7 @@ Deux repères pour les retenir : les formes en `tú` sont toutes très courtes, 
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Traduis ces cinq consignes, en tutoiement.
 
 1. Tourne à droite.
@@ -225,7 +225,7 @@ Critères de réussite : cinq verbes différents, tous à l'impératif et non à
 
 ## Série C : l'impératif négatif et les irréguliers
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Mets ces consignes à la forme négative, en gardant le tutoiement.
 
 1. `Gira a la derecha.`
@@ -245,7 +245,7 @@ La méthode : on part de la forme `usted`, `gire`, `coma`, `suba`, `cruce`, `hab
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Complète le tableau des quatre formes.
 
 | Verbe | Aff. `tú` | Aff. `usted` | Nég. `tú` | Nég. `usted` |
@@ -267,7 +267,7 @@ Observe la colonne « Nég. `tú` » : elle est toujours la colonne « Aff. `ust
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Chaque phrase contient une erreur d'impératif. Corrige-la et explique en une phrase.
 
 1. `No gira a la izquierda.`
@@ -287,7 +287,7 @@ Les points 1, 3 et 5 relèvent tous du même piège, le plus fréquent du chapit
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Lis ce dialogue et réponds aux questions.
 
 ::: exemple Diálogo

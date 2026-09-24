@@ -758,7 +758,11 @@ function construireCahiers(programme) {
       const sections = [];
       const re = /<section class="exercice">[\s\S]*?<\/section>/g;
       let t;
-      while ((t = re.exec(html))) if (t[0].includes('support-main')) sections.push(t[0]);
+      while ((t = re.exec(html))) {
+        if (!t[0].includes('support-main')) continue;
+        // Sur papier, pas de renvoi au corrigé : l'espace de réponse suffit.
+        sections.push(t[0].replace(/<p class="corrige-cache">[\s\S]*?<\/p>/g, ''));
+      }
       if (!sections.length) continue;
       const dossier = path.join(racine, m.id);
       fs.mkdirSync(dossier, { recursive: true });
@@ -768,7 +772,7 @@ function construireCahiers(programme) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cahier · ${echapper(l.titre)}</title>
-<link rel="stylesheet" href="/theme/cours.css">
+<link rel="stylesheet" href="../../theme/cours.css">
 <style>
   body { max-width: 52rem; margin: 0 auto; padding: 1.5rem 1.2rem 3rem; }
   .cahier-tete { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; }

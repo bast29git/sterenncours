@@ -82,7 +82,7 @@ Nomme chaque strophe d'après son nombre de vers.
 :::
 :::
 
-::: exercice 4 | entrainement | 5 min | main
+::: exercice 4 | entrainement | 5 min | ecran
 Un poème est composé de deux quatrains suivis de deux tercets.
 
 1. Combien de vers compte-t-il au total ? Montre le calcul.
@@ -116,7 +116,7 @@ Voici un vers de Ronsard :
 
 ## Série B : les rimes
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Donne le schéma des rimes de chaque quatrain, avec des lettres.
 
 1. Vers finissant par : jour / amour / nuit / ennui
@@ -134,7 +134,7 @@ Donne le schéma des rimes de chaque quatrain, avec des lettres.
 :::
 :::
 
-::: exercice 7 | entrainement | 6 min | ecran
+::: exercice 7 | entrainement | 6 min | main
 Voici le quatrain de Louise Labé vu en cours :
 
 > Je vis, je meurs ; je me brûle et me noie ;
@@ -197,7 +197,7 @@ Fin de la série B. Prends cinq minutes avant les images.
 
 ## Série C : les images
 
-::: exercice 10 | application | 6 min | ecran
+::: exercice 10 | application | 6 min | main
 Pour chaque phrase, dis s'il s'agit d'une comparaison, d'une métaphore ou d'une personnification.
 
 1. « Ses yeux sont comme deux étoiles. »
@@ -217,7 +217,7 @@ Pour chaque phrase, dis s'il s'agit d'une comparaison, d'une métaphore ou d'une
 :::
 :::
 
-::: exercice 11 | application | 5 min | ecran
+::: exercice 11 | application | 5 min | main
 Décompose chaque comparaison : comparé, outil, comparant.
 
 1. « Son sourire était comme un rayon de soleil. »

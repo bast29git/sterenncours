@@ -132,7 +132,7 @@ Un élève écrit : « En espagnol, on met toujours `me` avant `gustar`, c'est c
 
 ## Série B : accord et famille de verbes
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Choisis entre `gusta` et `gustan`.
 
 1. Me ……… el chocolate.
@@ -150,7 +150,7 @@ Choisis entre `gusta` et `gustan`.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Complète avec le verbe et le pronom qui conviennent.
 
 1. ……… ……… la cabeza. (j'ai mal à la tête, verbe `doler`)
@@ -219,7 +219,7 @@ Analyse :
 
 ## Série C : nuancer et réagir
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Range ces formules de la plus positive à la plus négative.
 
 `no me gusta nada` · `me gusta mucho` · `me gusta un poco` · `me encanta` · `no me gusta` · `me gusta`
@@ -234,7 +234,7 @@ Range ces formules de la plus positive à la plus négative.
 :::
 :::
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Réponds à chaque phrase selon la consigne.
 
 1. `A. Me gusta el cine.` Tu es d'accord.
@@ -308,7 +308,7 @@ Critères d'évaluation :
 
 ## Série D : opinion et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 Traduis ces formules d'opinion.
 
 1. Je crois que

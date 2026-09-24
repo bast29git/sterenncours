@@ -28,8 +28,8 @@ objectifs:
 :::
 
 ::: info Le repère de support, en tête de chaque exercice
-**💻 sur écran** : exercice fait avec Bastien, corrigé vérifié ensemble juste après.
-**✍️ à la main** : exercice fait seule, sur papier. La rédaction compte autant que le résultat.
+**💻 sur écran** : les quatre premiers exercices, faits **ensemble** pendant la séance, corrigés à voix haute juste après.
+**✍️ à la main** : tous les autres, faits **seule**, sur papier, dans le cahier à imprimer de la leçon. Ils ne sont jamais les mêmes que ceux de la séance. La rédaction compte autant que le résultat.
 :::
 
 ::: methode Comment utiliser cette fiche
@@ -41,9 +41,8 @@ objectifs:
 :::
 :::
 
-::: info Combien d'exercices dans une séance ?
-Séance 1 : exercices **1 à 7**. Séance 2 : exercices **8 à 14**. Séance 3 : exercices **15 à 19**.
-L'exercice 20 se fait à part, en conditions de devoir. Dans tout le chapitre, la vitesse du son dans l'air vaut **340 m/s**.
+::: info Comment les exercices se répartissent
+En séance, sur écran, avec Bastien : les exercices **1 à 4**. Sur papier, seule, avec le cahier à imprimer : les exercices **5 et suivants**, dont le sujet de type devoir, à faire à part en temps limité.
 :::
 
 ## Niveau Application : exercices 1 à 7
@@ -88,7 +87,7 @@ d = v × t = 340 × 5 = **1 700 m**, soit 1,7 km.
 :::
 :::
 
-::: exercice 5 | application | 4 min | ecran
+::: exercice 5 | application | 4 min | main
 Un coup de canon est tiré à 2 040 m d'un spectateur. Combien de temps après avoir vu la fumée l'entend-il ?
 
 ::: corrige
@@ -96,7 +95,7 @@ La lumière arrive presque instantanément. Le son met : t = d ÷ v = 2 040 ÷ 3
 :::
 :::
 
-::: exercice 6 | application | 3 min | ecran
+::: exercice 6 | application | 3 min | main
 Voici trois sons : 80 Hz, 800 Hz, 8 000 Hz. Lequel est le plus grave ? Lequel est le plus aigu ? Sont-ils tous audibles ?
 
 ::: corrige
@@ -105,7 +104,7 @@ Les trois sont entre 20 Hz et 20 000 Hz : ils sont **tous audibles** par une ore
 :::
 :::
 
-::: exercice 7 | application | 3 min | ecran
+::: exercice 7 | application | 3 min | main
 Un sonomètre indique 62 dB dans une salle de classe et 95 dB dans un couloir à la récréation. Que mesure-t-il ? Lequel des deux lieux présente un risque si on y reste longtemps ?
 
 ::: corrige
@@ -119,7 +118,7 @@ Le seuil de danger pour une exposition longue est **85 dB**. Le couloir à 95 dB
 
 ## Niveau Entraînement : exercices 8 à 14
 
-::: exercice 8 | entrainement | 5 min | ecran
+::: exercice 8 | entrainement | 5 min | main
 Pendant un orage, tu vois un éclair et tu comptes 9 secondes avant le tonnerre. À quelle distance est l'orage ? Ta réponse dépend-elle de la vitesse de la lumière ?
 
 ::: corrige
@@ -137,7 +136,7 @@ La falaise est à la **moitié** : 680 ÷ 2 = **340 m**.
 :::
 :::
 
-::: exercice 10 | entrainement | 5 min | ecran
+::: exercice 10 | entrainement | 5 min | main
 Un bateau envoie un ultrason vers le fond de la mer. L'écho revient 1,2 s plus tard. Dans l'eau, le son va à 1 500 m/s. Quelle est la profondeur ?
 
 ::: corrige
@@ -156,7 +155,7 @@ Le chat entend jusqu'à 65 000 Hz environ : 30 000 Hz est dans **son** domaine a
 :::
 :::
 
-::: exercice 12 | entrainement | 5 min | ecran
+::: exercice 12 | entrainement | 5 min | main
 Une corde de guitare vibre à 110 Hz. On la raccourcit en appuyant sur une frette : elle vibre alors à 220 Hz. Le son devient-il plus grave ou plus aigu ? Plus fort ou plus faible ?
 
 ::: corrige
@@ -176,7 +175,7 @@ Un casque audio est réglé à 100 dB. Un guide de santé conseille de ne pas d�
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Sur un quai, un promeneur pose l'oreille sur le rail et entend un train à 2 000 m. Dans l'acier, le son va à 5 000 m/s.
 1. Combien de temps le son met-il par le rail ?
 2. Combien de temps mettrait-il par l'air ? Arrondir au dixième.
@@ -215,7 +214,7 @@ Un radar de recul de voiture émet un ultrason et reçoit l'écho 0,01 s plus ta
 :::
 :::
 
-::: exercice 17 | approfondissement | 8 min | ecran
+::: exercice 17 | approfondissement | 8 min | main
 Le « la » du diapason vibre à 440 Hz. Combien de vibrations fait-il en 3 secondes ? En une minute ?
 
 ::: corrige

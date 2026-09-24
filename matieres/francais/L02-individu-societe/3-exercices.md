@@ -77,7 +77,7 @@ Sans ces deux indications, on ne saurait ni que le personnage est seul, ni qu'il
 :::
 :::
 
-::: exercice 4 | entrainement | 5 min | main
+::: exercice 4 | entrainement | 5 min | ecran
 Un personnage dit : « Je vous assure que tout va très bien. » L'auteur ajoute la didascalie *d'une voix tremblante, en évitant son regard*.
 
 1. Que dit le dialogue ?
@@ -134,7 +134,7 @@ Voici trois moments d'une pièce. Nomme le procédé théâtral employé.
 
 ## Série B : le conflit de valeurs
 
-::: exercice 8 | application | 4 min | ecran
+::: exercice 8 | application | 4 min | main
 Parmi ces mots, lesquels désignent des **valeurs** ?
 
 liberté · table · honneur · mardi · justice · argent · amitié · chaise
@@ -147,7 +147,7 @@ Le critère : une valeur est un **principe** auquel on tient, et pour lequel on 
 :::
 :::
 
-::: exercice 9 | application | 5 min | ecran
+::: exercice 9 | application | 5 min | main
 Rappelle les quatre questions à se poser devant un conflit de valeurs.
 
 ::: corrige
@@ -228,7 +228,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 
 ## Série C : convaincre et persuader
 
-::: exercice 14 | application | 4 min | ecran
+::: exercice 14 | application | 4 min | main
 Convaincre, persuader ou délibérer ?
 
 1. « Les chiffres du ministère montrent une baisse de 12 % en trois ans. »
@@ -242,7 +242,7 @@ Convaincre, persuader ou délibérer ?
 :::
 :::
 
-::: exercice 15 | application | 5 min | ecran
+::: exercice 15 | application | 5 min | main
 Nomme le procédé argumentatif employé.
 
 1. « Est-il acceptable de laisser un enfant sans école ? »

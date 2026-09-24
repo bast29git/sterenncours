@@ -114,7 +114,7 @@ Certaines fins peuvent convenir à plusieurs débuts : justifie ton choix.
 :::
 :::
 
-::: exercice 5 | application | 8 min | ecran
+::: exercice 5 | application | 8 min | main
 Complète avec `will`, `would`, `can` ou `might`, selon le sens indiqué entre parenthèses.
 
 1. `If you ask him, he ... help you.` (prédiction neutre)
@@ -134,7 +134,7 @@ Complète avec `will`, `would`, `can` ou `might`, selon le sens indiqué entre p
 :::
 :::
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Vrai ou faux ? Justifie chaque réponse en une phrase.
 
 1. On peut mettre `will` après `if`.
@@ -156,7 +156,7 @@ Fin de la série A. Six exercices faits. Reprends dans un moment.
 
 ## Série B : virgule, were, unless, choix du type
 
-::: exercice 7 | entrainement | 8 min | ecran
+::: exercice 7 | entrainement | 8 min | main
 Réécris chaque phrase dans l'autre sens, en adaptant la ponctuation.
 
 1. `If you come early, we will have time to talk.`
@@ -174,7 +174,7 @@ Réécris chaque phrase dans l'autre sens, en adaptant la ponctuation.
 :::
 :::
 
-::: exercice 8 | entrainement | 10 min | ecran
+::: exercice 8 | entrainement | 10 min | main
 Donne un conseil avec `If I were you, I would...` pour chacune de ces situations.
 
 1. `My phone is broken.`
@@ -197,7 +197,7 @@ Donne un conseil avec `If I were you, I would...` pour chacune de ces situations
 :::
 :::
 
-::: exercice 9 | entrainement | 8 min | ecran
+::: exercice 9 | entrainement | 8 min | main
 Transforme chaque phrase en employant `unless`.
 
 1. `If you don't leave now, you will be late.`
@@ -215,7 +215,7 @@ Transforme chaque phrase en employant `unless`.
 :::
 :::
 
-::: exercice 10 | entrainement | 8 min | ecran
+::: exercice 10 | entrainement | 8 min | main
 Choisis entre `if` et `in case`, puis explique ta réponse en une phrase.
 
 1. `Take your umbrella ... it rains.`
@@ -233,7 +233,7 @@ Choisis entre `if` et `in case`, puis explique ta réponse en une phrase.
 :::
 :::
 
-::: exercice 11 | entrainement | 10 min | ecran
+::: exercice 11 | entrainement | 10 min | main
 Complète avec le mot qui convient : `unless`, `as long as`, `in case`, `even if`.
 
 1. `You can borrow my bike ... you bring it back before six.`
@@ -253,7 +253,7 @@ Complète avec le mot qui convient : `unless`, `as long as`, `in case`, `even if
 :::
 :::
 
-::: exercice 12 | entrainement | 10 min | ecran
+::: exercice 12 | entrainement | 10 min | main
 Pour chaque situation, écris une phrase hypothétique du type qui convient, et indique le type choisi.
 
 1. Tu expliques que le chocolat fond quand on le chauffe.
@@ -349,7 +349,7 @@ Traduis en anglais. Attention : les cinq phrases ne sont pas du même type.
 :::
 :::
 
-::: exercice 16 | approfondissement | 10 min | ecran
+::: exercice 16 | approfondissement | 10 min | main
 Voici cinq phrases correctes en anglais. Pour chacune, explique ce qu'elle dit de la réalité.
 
 1. `If I have time tonight, I will call you.`

@@ -73,7 +73,7 @@ Déclaration des droits de l'homme et du citoyen · Déclaration universelle des
 :::
 :::
 
-::: exercice 4 | entrainement | 5 min | main
+::: exercice 4 | entrainement | 5 min | ecran
 Un élève écrit : « Être libre, c'est pouvoir faire tout ce que je veux, sans que personne ne m'en empêche. »
 
 1. Que faut-il corriger dans cette phrase ?
@@ -99,7 +99,7 @@ Ce cas montre que le classement individuel ou collectif dépend moins de la libe
 
 ## Série B : les limites
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Rappelle les quatre questions à se poser pour vérifier qu'une limite est légitime.
 
 ::: corrige
@@ -110,7 +110,7 @@ Rappelle les quatre questions à se poser pour vérifier qu'une limite est légi
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 À quel motif légitime correspond chaque limite ?
 
 1. L'interdiction de la diffamation
@@ -187,7 +187,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 
 ## Série C : conflits de libertés
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Rappelle les cinq étapes pour traiter un conflit entre deux libertés.
 
 ::: corrige

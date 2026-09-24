@@ -68,7 +68,7 @@ La bonne organisation consiste à traiter la première demande dans le corps du 
 :::
 :::
 
-::: exercice 3 | entrainement | 6 min | main
+::: exercice 3 | entrainement | 6 min | ecran
 Sujet : « Faut-il limiter le temps passé devant les écrans ? »
 
 Applique les cinq minutes de brouillon et rends ton brouillon, pas le texte final.
@@ -126,7 +126,7 @@ Critères de réussite : une phrase d'annonce nette ; un développement qui expl
 
 ## Série B : le récit et la lettre
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Remets dans l'ordre les cinq étapes du schéma narratif et donne le rôle de chacune.
 
 ::: corrige
@@ -158,7 +158,7 @@ Critères de réussite : imparfait dans la situation initiale ; élément pertur
 :::
 :::
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Ce texte mélange les temps. Corrige-le.
 
 « Il marchait le long de la rivière. Le vent est froid et les arbres bougeaient à peine. Soudain, il aperçoit une lumière entre les branches. Il s'arrêta. »
@@ -176,7 +176,7 @@ Remarque la répartition dans la version au passé : l'**imparfait** pour le dé
 :::
 :::
 
-::: exercice 9 | application | 6 min | ecran
+::: exercice 9 | application | 6 min | main
 Associe chaque formule d'appel à sa formule de politesse.
 
 Appels : `Chère Léa,` · `Madame, Monsieur,` · `Madame la Directrice,`
@@ -190,7 +190,7 @@ La règle est mécanique : la formule de politesse **reprend exactement** la for
 :::
 :::
 
-::: exercice 10 | entrainement | 7 min | ecran
+::: exercice 10 | entrainement | 7 min | main
 Ce passage de lettre formelle contient des marques de registre familier. Corrige-les.
 
 « Je vous écris parce que j'ai pas eu de réponse. On voudrait savoir si le projet est tjs d'actualité. C'est important pour nous parce qu'on doit s'organiser. »
@@ -241,7 +241,7 @@ Critères de réussite : lieu et date présents ; formule d'appel reprise exacte
 
 ## Série C : l'article et l'argumentation
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Ce texte de quatre phrases est un article. Vérifie qu'il répond aux cinq questions, et signale ce qui manque.
 
 « La kermesse du collège s'est tenue samedi dans la cour. Plus de trois cents personnes y ont participé. Les bénéfices seront reversés au voyage de fin d'année. La prochaine édition est déjà annoncée. »
@@ -283,7 +283,7 @@ Critères de réussite : titre court avec un **verbe** ; chapeau qui résume l'e
 :::
 :::
 
-::: exercice 14 | application | 5 min | ecran
+::: exercice 14 | application | 5 min | main
 Pour chaque énoncé, dis s'il s'agit d'un **argument** ou d'un **exemple**.
 
 Thèse : « Il faut proposer des mangas au CDI du collège. »
@@ -339,7 +339,7 @@ Retiens le principe : un texte qui ignore l'argument adverse paraît faible, par
 
 ## Série D : relire et devoir type
 
-::: exercice 17 | application | 6 min | ecran
+::: exercice 17 | application | 6 min | main
 Applique la grille de relecture à ce texte et relève toutes les erreurs.
 
 « Les élèves de quatrième a visité le musée. Ils ont beaucoup aimés l'exposition. Ensuite on est rentrés au collège. La visite était super intéressante. »
@@ -361,7 +361,7 @@ Remarque que les quatre erreurs relèvent de deux passages seulement de la grill
 :::
 :::
 
-::: exercice 18 | entrainement | 6 min | ecran
+::: exercice 18 | entrainement | 6 min | main
 Ce paragraphe emploie des connecteurs mal choisis. Corrige-les.
 
 « Le vélo est pratique en ville. De plus, il est lent sur les longues distances. Donc beaucoup de gens l'utilisent pour les trajets courts. Par exemple, il ne pollue pas. »

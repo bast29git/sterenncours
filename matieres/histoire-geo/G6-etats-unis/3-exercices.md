@@ -127,7 +127,7 @@ Ce qui est délocalisé, ce sont donc les **emplois**, pas le **pouvoir de déci
 :::
 :::
 
-::: exercice 5 | application | 8 min | ecran
+::: exercice 5 | application | 8 min | main
 La Silicon Valley concentre deux grandes universités, des milliers d'entreprises technologiques et des fonds d'investissement spécialisés.
 
 1. Donne la définition d'un technopôle.
@@ -146,7 +146,7 @@ Enfin, les fournisseurs, les cabinets juridiques et les services spécialisés s
 :::
 :::
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Vrai ou faux ? Justifie chaque réponse en une phrase.
 
 1. Les États-Unis dominent tous les domaines sans concurrence.
@@ -208,7 +208,7 @@ Puis rédige une légende organisée en trois parties.
 :::
 :::
 
-::: exercice 8 | entrainement | 10 min | ecran
+::: exercice 8 | entrainement | 10 min | main
 Environ 83 % de la population américaine vit en ville.
 
 1. Sur 335 millions d'habitants, combien vivent en ville ?
@@ -260,7 +260,7 @@ Ton schéma doit faire apparaître : le CBD, les quartiers péricentraux, les ba
 :::
 :::
 
-::: exercice 10 | entrainement | 10 min | ecran
+::: exercice 10 | entrainement | 10 min | main
 La Megalopolis compte environ 50 millions d'habitants sur environ 800 km de long.
 
 1. Quelle part de la population américaine cela représente-t-il ?
@@ -285,7 +285,7 @@ Environ **15 %** de la population du pays, sur une surface très réduite à l'�
 :::
 :::
 
-::: exercice 11 | entrainement | 10 min | ecran
+::: exercice 11 | entrainement | 10 min | main
 Voici trois façades maritimes américaines.
 
 ::: grille
@@ -312,7 +312,7 @@ Les marchandises arrivent donc désormais par le **Pacifique**, ce qui a fait du
 :::
 :::
 
-::: exercice 12 | entrainement | 10 min | ecran
+::: exercice 12 | entrainement | 10 min | main
 Un habitant d'Atlanta parcourt 50 km pour aller travailler, matin et soir, cinq jours par semaine.
 
 1. Combien de kilomètres parcourt-il par semaine ?
@@ -375,7 +375,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 
 ## Série C : Sun Belt, frontières, limites
 
-::: exercice 14 | approfondissement | 10 min | ecran
+::: exercice 14 | approfondissement | 10 min | main
 Complète ce tableau comparant Sun Belt et Rust Belt.
 
 ::: grille
@@ -405,7 +405,7 @@ Dans le même temps, le sud et l'ouest attiraient par un climat plus favorable, 
 :::
 :::
 
-::: exercice 15 | approfondissement | 12 min | ecran
+::: exercice 15 | approfondissement | 12 min | main
 La frontière entre les États-Unis et le Mexique mesure environ 3 200 km. C'est la frontière la plus franchie du monde.
 
 1. Donne deux éléments qui en font une **barrière**.
@@ -427,7 +427,7 @@ Une frontière n'est donc jamais simplement ouverte ou fermée : elle trie selon
 :::
 :::
 
-::: exercice 16 | approfondissement | 10 min | ecran
+::: exercice 16 | approfondissement | 10 min | main
 Compare les deux frontières terrestres des États-Unis.
 
 ::: grille
@@ -455,7 +455,7 @@ Cet écart crée une forte **pression migratoire** du sud vers le nord, à laque
 :::
 :::
 
-::: exercice 17 | approfondissement | 10 min | ecran
+::: exercice 17 | approfondissement | 10 min | main
 Dans l'industrie automobile nord-américaine, une même pièce peut franchir la frontière plusieurs fois avant d'être montée sur un véhicule.
 
 1. Explique pourquoi une entreprise organise ainsi sa production.
@@ -471,7 +471,7 @@ Dans l'industrie automobile nord-américaine, une même pièce peut franchir la 
 :::
 :::
 
-::: exercice 18 | approfondissement | 10 min | ecran
+::: exercice 18 | approfondissement | 10 min | main
 Des millions d'Américains vivent dans des *gated communities*, quartiers résidentiels fermés et surveillés.
 
 1. Donne la définition de la ségrégation urbaine.

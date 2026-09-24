@@ -86,7 +86,7 @@ Donne le symbole de chaque atome.
 :::
 :::
 
-::: exercice 4 | entrainement | 5 min | main
+::: exercice 4 | entrainement | 5 min | ecran
 Ces écritures sont fausses. Corrige-les et explique l'erreur en une ligne.
 
 1. `NA` pour le sodium
@@ -118,7 +118,7 @@ L'erreur vient d'une confusion entre **masse** et **volume** : un objet peut êt
 
 ## Série B : lire et compter
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Pour chaque formule, dis combien d'atomes de chaque sorte elle contient.
 
 1. `H₂O`
@@ -134,7 +134,7 @@ Pour chaque formule, dis combien d'atomes de chaque sorte elle contient.
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Combien d'atomes **au total** chaque molécule contient-elle ?
 
 1. `O₂`
@@ -150,7 +150,7 @@ Combien d'atomes **au total** chaque molécule contient-elle ?
 :::
 :::
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Ces formules contiennent des parenthèses. Compte les atomes de chaque sorte.
 
 1. `Ca(OH)₂`
@@ -198,7 +198,7 @@ Un élève affirme que `3 H₂O` et `H₆O₃` désignent la même chose.
 :::
 :::
 
-::: exercice 11 | entrainement | 6 min | ecran
+::: exercice 11 | entrainement | 6 min | main
 Écris la formule correspondant à chaque description.
 
 1. Une molécule faite de 2 atomes d'azote.
@@ -237,7 +237,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 
 ## Série C : classer la matière
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Corps pur ou mélange ? Justifie en quelques mots.
 
 1. L'eau distillée
@@ -255,7 +255,7 @@ Corps pur ou mélange ? Justifie en quelques mots.
 :::
 :::
 
-::: exercice 14 | application | 5 min | ecran
+::: exercice 14 | application | 5 min | main
 Atome, molécule ou ion ?
 
 1. `Na`

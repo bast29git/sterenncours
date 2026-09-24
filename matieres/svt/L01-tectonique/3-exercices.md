@@ -82,7 +82,7 @@ La croûte océanique est plus fine, plus dense, et beaucoup plus jeune.
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Le rayon de la Terre mesure `6 370 km`. La croûte continentale mesure en moyenne `35 km`.
 
 1. Quelle fraction du rayon la croûte représente-t-elle ? Donne le résultat en pourcentage, arrondi au centième.
@@ -111,7 +111,7 @@ Un élève écrit : « Sous la croûte, la Terre est faite de magma en fusion, e
 
 ## Série B : plaques et frontières
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Associe chaque frontière à son mouvement.
 
 Frontières : divergente · convergente · coulissante
@@ -124,7 +124,7 @@ Mouvements : les plaques se rapprochent · les plaques glissent l'une contre l'a
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 À quel type de frontière correspond chaque exemple ?
 
 1. La dorsale médio-atlantique
@@ -198,7 +198,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 
 ## Série C : exploiter des données
 
-::: exercice 12 | application | 6 min | ecran
+::: exercice 12 | application | 6 min | main
 La plaque africaine se rapproche de la plaque eurasiatique à la vitesse de `2 cm` par an.
 
 1. De combien se rapprochent-elles en `100 ans` ?

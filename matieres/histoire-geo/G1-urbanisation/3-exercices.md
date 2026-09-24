@@ -80,7 +80,7 @@ La différence tient au **critère retenu** : les limites administratives pour l
 :::
 :::
 
-::: exercice 4 | entrainement | 5 min | main
+::: exercice 4 | entrainement | 5 min | ecran
 Vrai ou faux ? Justifie en une phrase.
 
 1. Une métropole est simplement une ville de plus d'un million d'habitants.
@@ -114,7 +114,7 @@ Remarque de méthode : ces deux colonnes correspondent exactement aux deux sens 
 
 ## Série B : métropoles et organisation urbaine
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Pour chaque métropole, indique le continent et une fonction de commandement qu'elle exerce.
 
 1. Tokyo
@@ -132,7 +132,7 @@ Pour chaque métropole, indique le continent et une fonction de commandement qu'
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Range ces quatre zones du centre vers l'extérieur, puis indique pour chacune la densité et le type de bâti.
 
 banlieue · espace périurbain · quartier d'affaires · centre-ville
@@ -210,7 +210,7 @@ Sur un planisphère, localise cinq métropoles mondiales et complète le raisonn
 
 ## Série C : analyser des paysages et des documents
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Rappelle les six étapes de la méthode d'analyse d'une photographie de paysage urbain.
 
 ::: corrige
@@ -297,7 +297,7 @@ Rappelle les six étapes de la méthode d'analyse d'une photographie de paysage 
 
 ## Série D : croissance, durabilité et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 1. Quel est le principal moteur de l'urbanisation dans les pays développés ?
 2. Et dans les pays en développement ?
 3. Quel problème domine dans chaque cas ?

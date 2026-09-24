@@ -89,7 +89,7 @@ Pour chaque expansion en gras, indique sa nature : adjectif épithète, complém
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Dans chaque phrase, indique si le groupe en gras est une **expansion du nom** ou un **complément du verbe**. Justifie par le test de suppression.
 
 1. Elle regarde **la route**.
@@ -127,7 +127,7 @@ Voici un groupe nominal très développé.
 
 ## Série B : adjectif et accords
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Indique si l'adjectif en gras est **épithète** ou **attribut du sujet**.
 
 1. une nuit **claire**
@@ -145,7 +145,7 @@ Indique si l'adjectif en gras est **épithète** ou **attribut du sujet**.
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Accorde correctement les adjectifs entre parenthèses.
 
 1. des chemins (étroit)
@@ -217,7 +217,7 @@ b. `Les spectateurs, déçus, ont quitté la salle.`
 
 ## Série C : complément du nom et relative
 
-::: exercice 11 | application | 5 min | ecran
+::: exercice 11 | application | 5 min | main
 Pour chaque complément du nom, indique ce qu'il apporte : matière, appartenance, destination, contenu ou lieu.
 
 1. une bague en argent
@@ -235,7 +235,7 @@ Pour chaque complément du nom, indique ce qu'il apporte : matière, appartenanc
 :::
 :::
 
-::: exercice 12 | application | 4 min | ecran
+::: exercice 12 | application | 4 min | main
 Explique la différence de sens entre les deux groupes de chaque couple.
 
 1. un verre de vin · un verre en verre
@@ -249,7 +249,7 @@ Dans les deux cas, c'est la **préposition** qui porte le sens, pas le nom qui s
 :::
 :::
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Complète avec `qui` ou `que`.
 
 1. la chanson … j'écoute
@@ -316,7 +316,7 @@ Analyse le groupe nominal suivant.
 
 ## Série D : rédaction et devoir type
 
-::: exercice 17 | application | 6 min | ecran
+::: exercice 17 | application | 6 min | main
 Enrichis chaque groupe nominal en ajoutant les trois expansions demandées.
 
 1. `un couloir` → ajoute un adjectif, puis un complément du nom, puis une relative.

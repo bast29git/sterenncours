@@ -76,7 +76,7 @@ La réaction du personnage est l'indice le plus rapide, plus fiable que la prés
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Un élève écrit : « Ce texte est fantastique parce qu'il y a un monstre. »
 
 1. Pourquoi ce raisonnement est-il faux ?
@@ -106,7 +106,7 @@ Réponse attendue :
 
 ## Série B : le cadre et la gradation
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Cite quatre éléments qui installent un cadre réaliste au début d'un récit fantastique, et dis à quoi chacun sert.
 
 ::: corrige
@@ -132,7 +132,7 @@ Le début du *Horla* décrit un homme qui regarde paisiblement son jardin, la Se
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Range ces cinq étapes dans l'ordre d'une gradation.
 
 a. Un fait indéniable que le personnage ne peut plus nier.
@@ -202,7 +202,7 @@ Réponse attendue :
 
 ## Série C : narrateur, lexique, motifs
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 1. Quelle personne emploie-t-on le plus souvent dans un récit fantastique ?
 2. Quel point de vue ?
 3. Pourquoi ce choix ?
@@ -214,7 +214,7 @@ Réponse attendue :
 :::
 :::
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Relève les marques du doute dans ce passage.
 
 « Il me sembla entendre un souffle. C'était peut-être le vent, ou une sorte de courant d'air venu du couloir. J'eus l'impression, un instant, que quelque chose bougeait derrière moi, comme si quelqu'un s'était approché. »

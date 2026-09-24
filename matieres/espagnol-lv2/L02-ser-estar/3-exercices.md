@@ -126,7 +126,7 @@ Le point de vigilance dans les quatre cas : l'adjectif s'accorde avec le sujet, 
 
 ## Série B : ser ou estar
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Complète avec `ser` ou `estar` conjugué.
 
 1. Madrid ……… la capital de España.
@@ -144,7 +144,7 @@ Les paires 1-2 et 3-4 montrent que le même sujet change de verbe selon ce qu'on
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Complète et justifie ton choix en un mot.
 
 1. Hoy ……… lunes.
@@ -233,7 +233,7 @@ Un élève affirme : « On emploie `ser` pour ce qui ne change jamais et `estar`
 
 ## Série C : hay et les adjectifs changeants
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Complète avec `hay`, `está` ou `están`.
 
 1. En mi habitación ……… una cama.
@@ -249,7 +249,7 @@ Complète avec `hay`, `está` ou `están`.
 :::
 :::
 
-::: exercice 13 | application | 4 min | ecran
+::: exercice 13 | application | 4 min | main
 Ces phrases sont fautives. Corrige-les.
 
 1. `Hay el libro en la mesa.`
@@ -279,7 +279,7 @@ Traduis en espagnol.
 :::
 :::
 
-::: exercice 15 | entrainement | 6 min | ecran
+::: exercice 15 | entrainement | 6 min | main
 Traduis ces quatre phrases, qui emploient des adjectifs changeants.
 
 1. `El libro es aburrido.`

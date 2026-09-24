@@ -140,7 +140,7 @@ Le point commun : `must` n'existe qu'au présent. Dès qu'on change de temps, on
 
 ## Série B : obligation et interdiction
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Traduis en français, en précisant bien le sens.
 
 1. `You must show your ticket.`
@@ -154,7 +154,7 @@ Traduis en français, en précisant bien le sens.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Complète avec `mustn't` ou `don't have to`.
 
 1. You ……… touch the paintings in the museum.
@@ -242,7 +242,7 @@ Lis ce court règlement de piscine, puis réponds.
 
 ## Série C : conseil et permission
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Complète avec `should` ou `shouldn't`.
 
 1. You ……… drink more water, it's hot today.
@@ -258,7 +258,7 @@ Complète avec `should` ou `shouldn't`.
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Classe ces quatre phrases de la moins forte à la plus forte.
 
 a. `You must revise tonight.`
@@ -295,7 +295,7 @@ Critère de réussite : la forme employée doit correspondre au degré d'urgence
 :::
 :::
 
-::: exercice 16 | approfondissement | 8 min | ecran
+::: exercice 16 | approfondissement | 8 min | main
 Complète ce dialogue dans un musée, en variant les registres.
 
 `Visitor: ……… I take photos here?`

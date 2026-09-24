@@ -66,7 +66,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 :::
 
-::: exercice 3 | entrainement | 6 min | main
+::: exercice 3 | entrainement | 6 min | ecran
 Compare l'énergie hydraulique et l'énergie de la vapeur sur trois critères.
 
 ::: corrige
@@ -80,7 +80,7 @@ Conséquence : l'industrie cesse de dépendre de la géographie des rivières et
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Le chemin de fer est souvent présenté comme l'innovation la plus importante du siècle.
 
 1. Cite trois effets directs du chemin de fer.
@@ -113,7 +113,7 @@ Aucun n'aurait suffi seul : d'autres pays possédaient du charbon sans capitaux 
 
 ## Série B : la société nouvelle
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Compare l'atelier artisanal et l'usine sur quatre critères.
 
 ::: corrige
@@ -128,7 +128,7 @@ On peut ajouter la **propriété** : l'artisan possède son outil, l'ouvrier ne 
 :::
 :::
 
-::: exercice 7 | application | 4 min | ecran
+::: exercice 7 | application | 4 min | main
 1. Qu'est-ce que la bourgeoisie industrielle ?
 2. Qu'est-ce que le prolétariat ?
 3. D'où vient le revenu de chacun ?
@@ -274,7 +274,7 @@ Zola dans *Germinal*, Dickens en Angleterre et Hugo dans *Les Misérables* décr
 
 ## Série D : mobilisations et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 Range ces formes d'action ouvrière de la plus ancienne à la plus élaborée.
 
 parti politique · bris de machines · grève · syndicat

@@ -83,7 +83,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Dessine en perspective cavalière une pyramide à base carrée de 4 cm de côté et 5 cm de hauteur.
 
 ::: corrige
@@ -117,7 +117,7 @@ Circonférence de la base : `2 × π × 3 = 6π`. Les deux coïncident bien.
 
 ## Série B : volumes et unités
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Calcule le volume de chaque solide.
 
 1. Pyramide à base carrée de côté `6 cm`, hauteur `10 cm`.
@@ -133,7 +133,7 @@ Au point 3, la valeur exacte `48π` est préférable à la valeur approchée tan
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Attention aux données. Calcule le volume.
 
 1. Cône de **diamètre** `10 cm`, hauteur `12 cm`.
@@ -149,7 +149,7 @@ Ces deux exercices reproduisent les deux pièges les plus fréquents : employer 
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Convertis.
 
 1. `1 m³` en cm³ · 2. `2,5 dm³` en L · 3. `750 cm³` en mL · 4. `0,3 m³` en dm³ · 5. `4 500 cm³` en dm³
@@ -165,7 +165,7 @@ Retiens : chaque changement d'unité de longueur multiplie ou divise le volume p
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Calcule la grandeur demandée.
 
 1. Une pyramide a une base carrée de `5 cm` de côté et un volume de `75 cm³`. Calcule sa hauteur.
@@ -184,7 +184,7 @@ Méthode générale pour isoler une grandeur : multiplier d'abord par 3 pour sup
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Un prisme et une pyramide ont la même base, un carré de `4 cm` de côté, et la même hauteur, `9 cm`.
 
 1. Calcule le volume du prisme.
@@ -223,7 +223,7 @@ Le résultat est cohérent avec la règle du tiers : le cône fait `15 cm` de ha
 
 ## Série C : Pythagore et sections
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Dans un cône, `g² = h² + r²`. Calcule la grandeur manquante.
 
 1. `r = 6 cm`, `g = 10 cm`. Calcule `h`.
@@ -239,7 +239,7 @@ Ces trois triplets, `6-8-10`, `8-15-17` et `5-12-13`, sont des triplets pythagor
 :::
 :::
 
-::: exercice 13 | entrainement | 7 min | ecran
+::: exercice 13 | entrainement | 7 min | main
 Un cône a un rayon de `9 cm` et une génératrice de `15 cm`.
 
 1. Calcule sa hauteur.
@@ -275,7 +275,7 @@ Conseil de méthode : conserve les valeurs **exactes** le plus longtemps possibl
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Une pyramide régulière à base carrée a une base de côté `10 cm` et un apothème de `13 cm`.
 
 1. Quelle longueur associe-t-on à l'apothème dans le triangle rectangle ?
@@ -315,7 +315,7 @@ Ce résultat est le plus contre-intuitif du chapitre : couper à mi-hauteur lais
 
 ## Série D : problèmes et devoir type
 
-::: exercice 17 | entrainement | 7 min | ecran
+::: exercice 17 | entrainement | 7 min | main
 Un cornet de glace a la forme d'un cône de `3 cm` de rayon et `12 cm` de hauteur.
 
 1. Calcule son volume, valeur exacte et arrondie.

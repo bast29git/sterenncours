@@ -108,7 +108,7 @@ Retiens en particulier le rôle des trompes : c'est là que se produit la fécon
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Un ovule mesure environ `120 µm` de diamètre.
 
 1. Convertis cette mesure en millimètres.
@@ -126,7 +126,7 @@ Un ovule mesure environ `120 µm` de diamètre.
 
 ## Série B : le cycle
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Remets ces événements du cycle dans l'ordre chronologique, et donne le jour approximatif de chacun pour un cycle de 28 jours.
 
 - L'ovulation
@@ -144,7 +144,7 @@ Par convention, le jour 1 du cycle est le **premier jour des règles**. C'est un
 :::
 :::
 
-::: exercice 7 | entrainement | 6 min | ecran
+::: exercice 7 | entrainement | 6 min | main
 Trois personnes ont des cycles de durées différentes : 24 jours, 28 jours et 33 jours.
 
 Sachant que la phase qui suit l'ovulation dure environ 14 jours dans tous les cas :
@@ -161,7 +161,7 @@ Sachant que la phase qui suit l'ovulation dure environ 14 jours dans tous les ca
 :::
 :::
 
-::: exercice 8 | entrainement | 7 min | ecran
+::: exercice 8 | entrainement | 7 min | main
 Une personne a un cycle régulier de 30 jours. Ses dernières règles ont commencé le 3 mars.
 
 1. Quel jour a probablement lieu l'ovulation ?
@@ -175,7 +175,7 @@ Une personne a un cycle régulier de 30 jours. Ses dernières règles ont commen
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Complète ces phrases sur les hormones.
 
 1. La puberté est déclenchée par des hormones libérées par le ………
@@ -193,7 +193,7 @@ Retiens la chaîne complète : tout part du **cerveau**, qui commande aux organe
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Distingue les caractères sexuels primaires et secondaires.
 
 1. Les organes reproducteurs. · 2. La pilosité. · 3. Le changement de voix. · 4. Le développement de la poitrine. · 5. L'élargissement des hanches ou des épaules.
@@ -233,7 +233,7 @@ Lis ces données réelles sur l'âge de début de la puberté.
 
 ## Série C : fécondation et grossesse
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Remets dans l'ordre les quatre étapes de la fécondation.
 
 - Les deux noyaux fusionnent.
@@ -251,7 +251,7 @@ L'ordre des étapes 2 et 3 est important : le blocage est la **conséquence** im
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Un élève écrit : « Plusieurs spermatozoïdes entrent dans l'ovule, c'est pour cela qu'il y en a des centaines de millions. »
 
 1. Repère les deux erreurs.
@@ -266,7 +266,7 @@ Un élève écrit : « Plusieurs spermatozoïdes entrent dans l'ovule, c'est pou
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Une cellule-œuf se divise en deux, puis chaque cellule se divise à son tour, et ainsi de suite.
 
 1. Combien y a-t-il de cellules après 1, 2, 3, 4 et 5 divisions ?
@@ -281,7 +281,7 @@ Une cellule-œuf se divise en deux, puis chaque cellule se divise à son tour, e
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 1. Nomme les trois éléments qui entourent et nourrissent le fœtus, avec le rôle de chacun.
 2. Que le placenta laisse-t-il passer dans chaque sens ?
 3. Les sangs de la mère et du fœtus se mélangent-ils ?
@@ -325,7 +325,7 @@ Cet exercice illustre un principe général en sciences : on choisit comme point
 
 ## Série D : maîtrise, comparaison et devoir type
 
-::: exercice 17 | entrainement | 7 min | ecran
+::: exercice 17 | entrainement | 7 min | main
 Pour chaque méthode de contraception, indique sur quelle étape elle agit.
 
 1. La pilule. · 2. Le préservatif. · 3. Le dispositif intra-utérin. · 4. L'implant.
@@ -340,7 +340,7 @@ Chaque méthode agit sur une **étape précise** du processus. Comprendre laquel
 :::
 :::
 
-::: exercice 18 | entrainement | 6 min | ecran
+::: exercice 18 | entrainement | 6 min | main
 1. Quelle méthode de contraception protège aussi des infections sexuellement transmissibles ? Pourquoi ?
 2. Cite les trois moyens de prévention des IST.
 3. Pourquoi le dépistage est-il indispensable, même sans symptôme ?

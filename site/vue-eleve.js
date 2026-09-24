@@ -384,10 +384,7 @@
             <p style="margin:0;color:var(--e-encre-doux);font-size:.85rem">${m.icone} ${N.ech(m.nom)}</p>
             <h1>${N.ech(doc.titre)}</h1>
             ${doc.resume ? `<p style="margin:0;color:var(--e-encre-doux)">${N.ech(doc.resume)}</p>` : ''}
-            <nav class="e-onglets">${ouverts.map((t) => {
-          const info = N.TYPES_DOC.find((x) => x.id === t);
-          return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${N.ic(info.ico)} ${info.libelle}</a>`;
-        }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} M'entraîner</a>` : ''}${jeuxDe(mid, ref).map((j) => lienJeu(j)).join('')}</nav>
+            ${ongletsLecon(mid, ref, ouverts, actif)}
           </header>
           <div id="e-fiche-hote"></div>
           <div class="e-actions">
@@ -425,7 +422,7 @@
     return `<nav class="e-onglets">${ouverts.map((t) => {
       const info = N.TYPES_DOC.find((x) => x.id === t);
       return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${N.ic(info.ico)} ${info.libelle}</a>`;
-    }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} M'entraîner</a>` : ''}${jeuxDe(mid, ref).map((j) => lienJeu(j)).join('')}</nav>`;
+    }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} M'entraîner</a>` : ''}${ouverts.indexOf('exercices') !== -1 ? `<a href="/cahiers/${mid}/${ref}.html" target="_blank" rel="noopener">${N.ic('ic-crayon')} Cahier à imprimer</a>` : ''}${jeuxDe(mid, ref).map((j) => lienJeu(j)).join('')}</nav>`;
   }
   async function vueEvaluation(m, l, mid, ref, ouverts) {
     let e = null;

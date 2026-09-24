@@ -133,7 +133,7 @@ Une pénombre n'apparaît qu'avec une source **étendue** : certains points de l
 :::
 :::
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Vrai ou faux ? Justifie chaque réponse en une phrase.
 
 1. On voit la Lune parce qu'elle produit de la lumière.
@@ -155,7 +155,7 @@ Fin de la série A. Six exercices faits. Reprends dans un moment.
 
 ## Série B : ombres, vitesse de la lumière, année-lumière
 
-::: exercice 7 | entrainement | 10 min | ecran
+::: exercice 7 | entrainement | 10 min | main
 Une lampe ponctuelle est placée à **20 cm** d'une balle opaque de **4 cm** de diamètre.
 L'écran est à **100 cm** de la lampe. La balle, la lampe et l'écran sont alignés.
 
@@ -192,7 +192,7 @@ L'ombre mesure alors **10 cm**. En rapprochant l'écran, l'ombre **rétrécit**.
 :::
 :::
 
-::: exercice 8 | entrainement | 10 min | ecran
+::: exercice 8 | entrainement | 10 min | main
 Bastien veut connaître la hauteur d'un arbre sans grimper dessus.
 Il plante un bâton vertical de **1 m** et mesure son ombre : **1,5 m**.
 Au même moment, l'ombre de l'arbre mesure **12 m**.
@@ -223,7 +223,7 @@ Vérification : 8 divisé par 12 donne bien 0,666..., le même rapport que 1 div
 :::
 :::
 
-::: exercice 9 | entrainement | 10 min | ecran
+::: exercice 9 | entrainement | 10 min | main
 La vitesse de la lumière dans le vide vaut `c = 300 000 km/s`.
 
 1. La Lune est à 384 000 km de la Terre. Combien de temps met sa lumière pour nous parvenir ?
@@ -263,7 +263,7 @@ Ce résultat explique pourquoi une sonde spatiale lointaine ne peut pas être pi
 :::
 :::
 
-::: exercice 10 | entrainement | 10 min | ecran
+::: exercice 10 | entrainement | 10 min | main
 Une sonde est posée sur Mars. Au moment de l'expérience, Mars est à **78 millions de km** de la Terre.
 
 1. Combien de temps met un signal pour aller de la Terre à Mars ?
@@ -291,7 +291,7 @@ t total = 2 × 260 = 520 s
 :::
 :::
 
-::: exercice 11 | entrainement | 10 min | ecran
+::: exercice 11 | entrainement | 10 min | main
 1. Rappelle la définition exacte d'une année-lumière.
 2. On donne : une année vaut environ 31 500 000 secondes. Calcule la valeur d'une année-lumière en kilomètres.
 3. L'étoile Sirius est à 8,6 années-lumière. Exprime cette distance en kilomètres.
@@ -321,7 +321,7 @@ C'est justement pour éviter d'écrire des nombres pareils que les astronomes ut
 :::
 :::
 
-::: exercice 12 | entrainement | 10 min | ecran
+::: exercice 12 | entrainement | 10 min | main
 L'étoile Bételgeuse est à **640 années-lumière** de la Terre.
 
 1. Que signifie exactement la phrase « nous voyons Bételgeuse telle qu'elle était il y a 640 ans » ?
@@ -410,7 +410,7 @@ Le blanc diffuse tout, donc il prend la couleur de l'éclairage ; le noir absorb
 :::
 :::
 
-::: exercice 15 | approfondissement | 10 min | ecran
+::: exercice 15 | approfondissement | 10 min | main
 Sur une scène de spectacle, un projecteur éclaire les danseurs en lumière bleue.
 Une danseuse porte un costume qui paraît **noir** sous ce projecteur, alors qu'il est **jaune** en plein jour.
 
@@ -454,7 +454,7 @@ Contrôle : sur le schéma à l'échelle, l'objet est à 4 cm de la lentille sur
 :::
 :::
 
-::: exercice 17 | approfondissement | 10 min | ecran
+::: exercice 17 | approfondissement | 10 min | main
 On garde la même lentille de distance focale **10 cm**. On déplace l'objet.
 
 1. L'objet est maintenant à **30 cm**. L'image est-elle plus grande ou plus petite que l'objet ? Est-elle droite ou renversée ?
@@ -477,7 +477,7 @@ Le repère à retenir : tant que l'objet est **au-delà du foyer**, l'image est 
 :::
 :::
 
-::: exercice 18 | approfondissement | 10 min | ecran
+::: exercice 18 | approfondissement | 10 min | main
 Compare l'œil et l'appareil photographique.
 
 1. Recopie et complète le tableau des correspondances.

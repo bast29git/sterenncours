@@ -28,7 +28,7 @@ Une feuille, un crayon, une règle pour les frises. Les exercices marqués `à l
 
 ## Série A : repères, régimes, suffrage
 
-::: exercice 1 | application | 8 min | main
+::: exercice 1 | application | 8 min | ecran
 Trace une frise de 1815 à 1914 sur une ligne de 20 cm, soit 1 cm pour 5 ans.
 Place et légende ces sept dates : 1815, 1830, 1848, 1852, 1870, 1882, 1905.
 
@@ -120,7 +120,7 @@ Vrai ou faux ? Justifie chaque réponse en une phrase.
 :::
 :::
 
-::: exercice 5 | application | 8 min | ecran
+::: exercice 5 | application | 8 min | main
 Voici trois affirmations sur 1848. Deux sont exactes, une est fausse. Trouve laquelle et corrige-la.
 
 a. Le suffrage universel masculin est instauré en mars 1848.
@@ -136,7 +136,7 @@ Les deux autres sont exactes : le suffrage universel masculin date du **2 mars 1
 :::
 :::
 
-::: exercice 6 | application | 8 min | ecran
+::: exercice 6 | application | 8 min | main
 Lis cet extrait de la Charte de 1814.
 
 > « Les Français sont égaux devant la loi, quels que soient d'ailleurs leurs titres et leurs rangs. Ils contribuent indistinctement, dans la proportion de leur fortune, aux charges de l'État. »
@@ -160,7 +160,7 @@ Fin de la série A. Six exercices faits. Reprends dans un moment.
 
 ## Série B : la IIIᵉ République et ses lois
 
-::: exercice 7 | entrainement | 10 min | ecran
+::: exercice 7 | entrainement | 10 min | main
 Remets ces six événements dans l'ordre chronologique et donne l'année de chacun.
 
 a. Lois constitutionnelles
@@ -182,7 +182,7 @@ Le détail à noter : la Commune commence en mars 1871 et le traité de Francfor
 :::
 :::
 
-::: exercice 8 | entrainement | 10 min | ecran
+::: exercice 8 | entrainement | 10 min | main
 La IIIᵉ République naît en septembre 1870, mais l'Assemblée élue en février 1871 est majoritairement monarchiste.
 
 1. Comment expliquer que la République se maintienne malgré cela ?
@@ -198,7 +198,7 @@ La IIIᵉ République naît en septembre 1870, mais l'Assemblée élue en févri
 :::
 :::
 
-::: exercice 9 | entrainement | 10 min | ecran
+::: exercice 9 | entrainement | 10 min | main
 Associe chaque loi à son année et à ce qu'elle rend possible.
 
 Lois : liberté de la presse, liberté syndicale, rétablissement du divorce, liberté d'association, liberté de réunion.
@@ -218,7 +218,7 @@ Le point commun : toutes remplacent une **autorisation à demander** par une **l
 :::
 :::
 
-::: exercice 10 | entrainement | 10 min | ecran
+::: exercice 10 | entrainement | 10 min | main
 Lis cet extrait de la loi du 28 mars 1882.
 
 > « L'enseignement primaire comprend : l'instruction morale et civique ; la lecture et l'écriture ; la langue et les éléments de la littérature française ; la géographie, particulièrement celle de la France ; l'histoire, particulièrement celle de la France jusqu'à nos jours. »
@@ -236,7 +236,7 @@ Lis cet extrait de la loi du 28 mars 1882.
 :::
 :::
 
-::: exercice 11 | entrainement | 10 min | ecran
+::: exercice 11 | entrainement | 10 min | main
 En 1830, environ 50 % des conscrits savent lire et écrire. En 1900, ils sont plus de 95 %.
 
 1. Calcule l'augmentation en points de pourcentage.
@@ -261,7 +261,7 @@ Instruire tous les enfants, c'est donc rendre le suffrage universel réellement 
 :::
 :::
 
-::: exercice 12 | entrainement | 10 min | ecran
+::: exercice 12 | entrainement | 10 min | main
 Observe ces deux chiffres : la France compte quelques dizaines de quotidiens en 1870, et plus de 300 en 1914. Le *Petit Journal* tire à plus d'un million d'exemplaires.
 
 1. Quelle loi explique cette explosion ?
@@ -314,7 +314,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 
 ## Série C : laïcité, Dreyfus, ce qui reste à conquérir
 
-::: exercice 14 | approfondissement | 10 min | ecran
+::: exercice 14 | approfondissement | 10 min | main
 Lis les deux premiers articles de la loi du 9 décembre 1905.
 
 > « Article 1. La République assure la liberté de conscience. Elle garantit le libre exercice des cultes sous les seules restrictions édictées ci-après dans l'intérêt de l'ordre public. »
@@ -337,7 +337,7 @@ Lis les deux premiers articles de la loi du 9 décembre 1905.
 :::
 :::
 
-::: exercice 15 | approfondissement | 12 min | ecran
+::: exercice 15 | approfondissement | 12 min | main
 Voici le déroulement de l'affaire Dreyfus.
 
 ::: grille
@@ -393,7 +393,7 @@ Lis cet extrait de « J'accuse », publié par Émile Zola le 13 janvier 1898.
 :::
 :::
 
-::: exercice 17 | approfondissement | 10 min | ecran
+::: exercice 17 | approfondissement | 10 min | main
 En 1914, la République française a instauré de nombreuses libertés, et pourtant plusieurs groupes restent privés de droits.
 
 1. Cite quatre groupes concernés et ce qui leur manque.
@@ -415,7 +415,7 @@ Les deux affirmations sont vraies **en même temps** : décrire cette période, 
 :::
 :::
 
-::: exercice 18 | approfondissement | 10 min | ecran
+::: exercice 18 | approfondissement | 10 min | main
 Hubertine Auclert refuse de payer ses impôts en 1880 en déclarant : « je ne vote pas, je ne paie pas ».
 
 1. Sur quel principe s'appuie cet argument ?

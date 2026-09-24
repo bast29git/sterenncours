@@ -30,8 +30,8 @@ objectifs:
 :::
 
 ::: info Le repère de support, en tête de chaque exercice
-**💻 sur écran** : exercice fait avec Bastien, corrigé vérifié ensemble juste après.
-**✍️ à la main** : exercice fait seule, sur papier. La rédaction compte autant que le résultat.
+**💻 sur écran** : les quatre premiers exercices, faits **ensemble** pendant la séance, corrigés à voix haute juste après.
+**✍️ à la main** : tous les autres, faits **seule**, sur papier, dans le cahier à imprimer de la leçon. Ils ne sont jamais les mêmes que ceux de la séance. La rédaction compte autant que le résultat.
 :::
 
 ::: methode Comment utiliser cette fiche
@@ -43,9 +43,8 @@ objectifs:
 :::
 :::
 
-::: info Combien d'exercices dans une séance ?
-Séance 1 : exercices **1 à 7**. Séance 2 : exercices **8 à 14**. Séance 3 : exercices **15 à 19**.
-L'exercice 20 se fait à part, en conditions de devoir. Les arrondis sont demandés au **dixième** pour les longueurs et au **degré** pour les angles, sauf indication contraire.
+::: info Comment les exercices se répartissent
+En séance, sur écran, avec Bastien : les exercices **1 à 4**. Sur papier, seule, avec le cahier à imprimer : les exercices **5 et suivants**, dont le sujet de type devoir, à faire à part en temps limité.
 :::
 
 ## Niveau Application : exercices 1 à 7
@@ -98,7 +97,7 @@ Le résultat est entre 0 et 1 : cohérent. Il n'a pas d'unité.
 :::
 :::
 
-::: exercice 5 | application | 4 min | ecran
+::: exercice 5 | application | 4 min | main
 Le triangle ABC est rectangle en A, avec BC = 12 cm et l'angle B qui mesure 60°. Calculer AB.
 
 ::: corrige
@@ -109,7 +108,7 @@ Contrôle : 6 < 12, le côté adjacent est plus court que l'hypoténuse.
 :::
 :::
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Le triangle DEF est rectangle en D, avec DE = 5 cm et l'angle E qui mesure 60°. Calculer EF.
 
 ::: corrige
@@ -120,7 +119,7 @@ Contrôle : 10 > 5, l'hypoténuse est bien la plus longue.
 :::
 :::
 
-::: exercice 7 | application | 4 min | ecran
+::: exercice 7 | application | 4 min | main
 Le triangle ABC est rectangle en A, avec AB = 4,5 cm et BC = 6 cm. Calculer la mesure de l'angle B, arrondie au degré.
 
 ::: corrige
@@ -135,7 +134,7 @@ Contrôle : 0,75 est entre 0 et 1, et 41° est entre 0° et 90°.
 
 ## Niveau Entraînement : exercices 8 à 14
 
-::: exercice 8 | entrainement | 5 min | ecran
+::: exercice 8 | entrainement | 5 min | main
 Le triangle MNP est rectangle en M, avec NP = 8 cm et l'angle N qui mesure 40°. Calculer MN au dixième.
 
 ::: corrige
@@ -146,7 +145,7 @@ Contrôle : 6,1 < 8. Cohérent.
 :::
 :::
 
-::: exercice 9 | entrainement | 5 min | ecran
+::: exercice 9 | entrainement | 5 min | main
 Le triangle GHI est rectangle en G, avec GH = 6 cm et l'angle H qui mesure 35°. Calculer HI au dixième.
 
 ::: corrige
@@ -167,7 +166,7 @@ Contrôle : 0,625 est entre 0 et 1, 51° est entre 0° et 90°.
 :::
 :::
 
-::: exercice 11 | entrainement | 6 min | ecran
+::: exercice 11 | entrainement | 6 min | main
 Maomao pose une échelle de 3,5 m contre le mur de l'apothicairerie. L'échelle fait un angle de 20° avec le mur. À quelle hauteur du sol touche-t-elle le mur ? Arrondir au centimètre.
 
 ::: corrige
@@ -191,7 +190,7 @@ Contrôle : 5,8 < 9. Cohérent.
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Un câble tendu maintient un mât. Il est fixé au sol à 7 m du pied du mât et fait un angle de 37° avec le sol. Quelle est la longueur du câble ? Arrondir au dixième.
 
 ::: corrige
@@ -242,7 +241,7 @@ Vérification : cos(C) = AC ÷ BC = 6 ÷ 10 = 0,6, et cos⁻¹(0,6) ≈ 53°. Le
 :::
 :::
 
-::: exercice 17 | approfondissement | 8 min | ecran
+::: exercice 17 | approfondissement | 8 min | main
 Un losange ABCD a des côtés de 5 cm et une diagonale AC de 8 cm. Ses diagonales se coupent en O, en leur milieu, et sont perpendiculaires. Calculer la mesure de l'angle BAO au degré près.
 
 ::: corrige

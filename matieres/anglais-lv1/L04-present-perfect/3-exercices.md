@@ -96,7 +96,7 @@ On reprend **l'auxiliaire seul**, jamais le verbe. `Yes, I have finished` n'est 
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Dans chaque phrase, `'s` signifie-t-il `is` ou `has` ? Justifie en un mot.
 
 1. `He's tired.`
@@ -118,7 +118,7 @@ Le test est toujours le même : **un participe passé après `'s` signifie `has`
 
 ## Série B : choisir le temps
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Pour chaque phrase, indique si le temps doit être le **present perfect** ou le **prétérit**. Ne conjugue pas encore, dis seulement lequel.
 
 1. I (see) this film yesterday.
@@ -138,7 +138,7 @@ Pour chaque phrase, indique si le temps doit être le **present perfect** ou le 
 :::
 :::
 
-::: exercice 7 | entrainement | 7 min | ecran
+::: exercice 7 | entrainement | 7 min | main
 Conjugue maintenant les six phrases de l'exercice 6.
 
 ::: corrige
@@ -153,7 +153,7 @@ Remarque au point 2 : `never` se place **entre l'auxiliaire et le participe pass
 :::
 :::
 
-::: exercice 8 | entrainement | 7 min | ecran
+::: exercice 8 | entrainement | 7 min | main
 Chaque phrase contient une erreur. Corrige-la et explique en une phrase.
 
 1. `I have seen her last week.`
@@ -171,7 +171,7 @@ Chaque phrase contient une erreur. Corrige-la et explique en une phrase.
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Traduis ces cinq phrases en anglais.
 
 1. Je n'ai jamais vu ce film.
@@ -191,7 +191,7 @@ Note la répartition : `already` en affirmative et au milieu, `yet` en interroga
 :::
 :::
 
-::: exercice 10 | entrainement | 7 min | ecran
+::: exercice 10 | entrainement | 7 min | main
 Voici deux phrases par situation. Explique en une phrase ce qui change de sens.
 
 1. `I have lost my keys.` / `I lost my keys yesterday.`
@@ -226,7 +226,7 @@ Critère de réussite : dans chaque paire, la version au prétérit contient un 
 
 ## Série C : since, for et les adverbes
 
-::: exercice 12 | application | 4 min | ecran
+::: exercice 12 | application | 4 min | main
 Complète par `since` ou `for`.
 
 1. ……… three years · 2. ……… 2019 · 3. ……… Monday · 4. ……… two hours · 5. ……… I was ten · 6. ……… a long time
@@ -238,7 +238,7 @@ Le test : si le groupe répond à *when did it start?*, c'est `since`. S'il rép
 :::
 :::
 
-::: exercice 13 | entrainement | 7 min | ecran
+::: exercice 13 | entrainement | 7 min | main
 Récris chaque phrase en remplaçant `since` par `for`, ou l'inverse, sans changer le sens. On est en 2026.
 
 1. `I have known him since 2020.`
@@ -254,7 +254,7 @@ L'exercice montre que les deux mots décrivent la **même situation** mesurée a
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Place l'adverbe entre parenthèses au bon endroit dans la phrase.
 
 1. `I have eaten.` (already)
@@ -276,7 +276,7 @@ Règle générale : `already`, `just`, `ever` et `never` se placent **entre l'au
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Complète ce dialogue en conjuguant au temps qui convient.
 
 `A. (you / ever / try) ……… surfing?`

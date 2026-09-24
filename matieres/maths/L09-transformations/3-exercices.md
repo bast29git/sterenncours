@@ -67,7 +67,7 @@ Le point 4 est le seul qui demande de réfléchir : pour remonter à l'antécéd
 :::
 :::
 
-::: exercice 3 | application | 6 min | main
+::: exercice 3 | application | 6 min | ecran
 Sur papier quadrillé, place le triangle `ABC` avec `A(1 ; 2)`, `B(4 ; 2)`, `C(2 ; 5)`.
 
 1. Construis son image par la translation « 3 carreaux à droite, 1 carreau vers le bas ».
@@ -117,7 +117,7 @@ C'est la caractérisation de la translation : `M'` est l'image de `M` par la tra
 
 ## Série B : la rotation
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Pour chaque rotation, dis si l'énoncé est complet. Si non, précise ce qui manque.
 
 1. « La rotation de centre `O` et d'angle `60°` dans le sens horaire. »
@@ -149,7 +149,7 @@ Cet exercice montre concrètement pourquoi le sens est indispensable : les deux 
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Sur quadrillage, le centre `O` est à l'origine. Le point `A` est repéré par le déplacement « 3 à droite, 2 en haut » depuis `O`.
 
 1. Donne le déplacement de l'image de `A` par la rotation de `90°` dans le sens antihoraire.
@@ -179,7 +179,7 @@ Trace un triangle `ABC` quelconque et place un point `O` à l'extérieur du tria
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Complète ce tableau des propriétés.
 
 | Propriété | Sym. axiale | Sym. centrale | Translation | Rotation |
@@ -221,7 +221,7 @@ Règle générale : un polygone régulier à `n` côtés est inchangé par les r
 
 ## Série C : reconnaître et enchaîner
 
-::: exercice 12 | entrainement | 7 min | ecran
+::: exercice 12 | entrainement | 7 min | main
 Pour chaque description, identifie la transformation.
 
 1. La figure a glissé de 5 carreaux vers la droite, sans changer d'orientation.
@@ -255,7 +255,7 @@ Pourquoi les médiatrices ? Parce que le centre est à égale distance de `A` et
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Complète.
 
 1. L'enchaînement de deux translations donne ………
@@ -341,7 +341,7 @@ Observe une frise formée d'un motif en forme de `L` répété horizontalement, 
 :::
 :::
 
-::: exercice 18 | entrainement | 7 min | ecran
+::: exercice 18 | entrainement | 7 min | main
 1. Quels polygones réguliers pavent le plan à eux seuls ?
 2. Justifie par un calcul d'angles.
 3. Pourquoi le pentagone régulier ne convient-il pas ?

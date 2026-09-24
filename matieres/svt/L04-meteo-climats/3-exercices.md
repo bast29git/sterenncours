@@ -76,7 +76,7 @@ Paramètres : température, pression, humidité, vitesse du vent, précipitation
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Un orage donne `35 mm` de précipitations en une heure.
 
 1. Que représente `1 mm` de pluie ?
@@ -108,7 +108,7 @@ Un élève écrit : « L'hiver dernier a été très froid, donc le réchauffeme
 
 ## Série B : le moteur et les zones
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 1. D'où vient l'énergie qui met l'atmosphère en mouvement ?
 2. Pourquoi cette énergie n'est-elle pas reçue également partout ?
 3. Dans quel sens se déplace l'air ?
@@ -137,7 +137,7 @@ Un élève affirme : « Il fait froid aux pôles parce qu'ils sont plus éloign�
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Range ces zones climatiques de l'équateur vers le pôle.
 
 tempérée · désertique · polaire · équatoriale · tropicale
@@ -208,7 +208,7 @@ La banquise arctique fond, laissant place à de l'eau libre.
 
 ## Série C : effet de serre et documents
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 1. Explique l'effet de serre en trois étapes.
 2. Cite quatre gaz à effet de serre.
 3. Quelle serait la température moyenne de la Terre sans effet de serre ?
@@ -286,7 +286,7 @@ Les océans absorbent environ un quart du `CO₂` émis par les activités humai
 
 ## Série D : conséquences, réponses, devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 1. Cite quatre conséquences observées du réchauffement.
 2. Quelle est la différence entre atténuation et adaptation ?
 3. Donne un exemple de chaque.

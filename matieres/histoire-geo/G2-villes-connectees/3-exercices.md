@@ -80,7 +80,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Pour aller de Brest à Hô Chi Minh-Ville, il n'existe aucun vol direct : il faut passer par Paris, puis par Dubaï ou Doha.
 
 1. Que montre cet exemple sur l'organisation du réseau aérien ?
@@ -112,7 +112,7 @@ Un produit électronique est conçu en Californie, ses composants fabriqués à 
 
 ## Série B : la hiérarchie des villes
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Cite les cinq critères qui définissent une ville mondiale, avec un exemple de ce qu'on mesure pour chacun.
 
 ::: corrige
@@ -124,7 +124,7 @@ Cite les cinq critères qui définissent une ville mondiale, avec un exemple de 
 :::
 :::
 
-::: exercice 7 | application | 4 min | ecran
+::: exercice 7 | application | 4 min | main
 Lagos compte plus d'habitants que Londres. Laquelle est la plus puissante ? Justifie.
 
 ::: corrige
@@ -147,7 +147,7 @@ Ces trois aires concentrent l'essentiel des sièges de firmes, des échanges fin
 :::
 :::
 
-::: exercice 9 | entrainement | 5 min | ecran
+::: exercice 9 | entrainement | 5 min | main
 Classe ces villes en mégapoles ou en éléments d'une mégalopole.
 
 Le Caire · Boston · Osaka · Bombay · Washington · Lagos
@@ -200,7 +200,7 @@ Deux classements de villes mondiales sont publiés la même année. Le premier p
 
 ## Série C : lire des documents
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Rappelle les cinq étapes de la méthode d'analyse d'une carte de flux ou d'un classement.
 
 ::: corrige
@@ -278,7 +278,7 @@ L'installation d'un câble sous-marin sur une côte africaine fait chuter le pri
 
 ## Série D : fractures et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 1. Qu'est-ce que la fracture numérique ?
 2. Cite ses trois niveaux.
 3. Donne un exemple d'inégalité entre pays et un exemple d'inégalité à l'intérieur d'un pays.

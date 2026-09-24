@@ -114,7 +114,7 @@ Ce contrôle par la somme est le plus rapide et le plus sûr. Prends l'habitude 
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Une roue est partagée en quatre secteurs : un secteur rouge occupe la **moitié** du disque, et trois secteurs, vert, bleu et jaune, occupent chacun **un sixième**.
 
 1. Peut-on dire que la probabilité du rouge vaut `1 ÷ 4` ? Justifie.
@@ -132,7 +132,7 @@ Cet exercice est le contre-exemple à retenir : compter les secteurs sans regard
 
 ## Série B : événement contraire et deux épreuves
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 Donne l'événement contraire de chacun, puis sa probabilité, pour un lancer de dé.
 
 1. « Obtenir un 6 »
@@ -148,7 +148,7 @@ Attention au point 3 : le contraire de « supérieur à 2 » est « inférieur *
 :::
 :::
 
-::: exercice 7 | entrainement | 7 min | ecran
+::: exercice 7 | entrainement | 7 min | main
 On lance deux dés à six faces.
 
 1. Combien y a-t-il d'issues ?
@@ -166,7 +166,7 @@ Vérification possible : les issues avec au moins un 6 sont les 6 de la ligne du
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Calcule le nombre d'issues de chaque expérience.
 
 1. On lance une pièce puis un dé.
@@ -184,7 +184,7 @@ La différence entre les points 3 et 4 tient à un seul mot de l'énoncé. Repè
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 On lance deux pièces.
 
 1. Trace l'arbre des possibles.
@@ -204,7 +204,7 @@ C'est exactement la même erreur que celle qui consisterait à compter les somme
 :::
 :::
 
-::: exercice 10 | entrainement | 7 min | ecran
+::: exercice 10 | entrainement | 7 min | main
 Un sac contient 3 boules numérotées 1, 2 et 3. On en tire deux **sans** remise.
 
 1. Combien y a-t-il d'issues ?
@@ -244,7 +244,7 @@ La probabilité passe de 0,16 à 0,1 : retirer une boule blanche du sac diminue 
 
 ## Série C : arbres, tableaux et fréquences
 
-::: exercice 12 | entrainement | 8 min | ecran
+::: exercice 12 | entrainement | 8 min | main
 On lance deux dés et on s'intéresse à la **somme** obtenue.
 
 1. Combien y a-t-il d'issues ?
@@ -262,7 +262,7 @@ On lance deux dés et on s'intéresse à la **somme** obtenue.
 :::
 :::
 
-::: exercice 13 | entrainement | 7 min | ecran
+::: exercice 13 | entrainement | 7 min | main
 Reprends le tableau des sommes de deux dés.
 
 1. Calcule la probabilité d'obtenir une somme supérieure ou égale à 10.
@@ -276,7 +276,7 @@ Reprends le tableau des sommes de deux dés.
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 On lance 20 fois une pièce et on obtient 13 piles.
 
 1. Calcule la fréquence observée de pile.
@@ -292,7 +292,7 @@ On lance 20 fois une pièce et on obtient 13 piles.
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Voici une série d'essais réels.
 
 | Nombre de lancers | 20 | 100 | 1 000 | 10 000 |

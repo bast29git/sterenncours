@@ -84,7 +84,7 @@ Vrai ou faux ? Justifie chaque réponse en une phrase.
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 On verse du vinaigre sur du bicarbonate de sodium. Il se forme une mousse abondante, le mélange refroidit légèrement, et un gaz s'échappe. Ce gaz éteint une allumette enflammée.
 
 1. Cite deux signes qui indiquent une transformation chimique.
@@ -113,7 +113,7 @@ Un apprenti de l'apothicairerie regarde Maomao brûler des herbes sèches et éc
 
 ## Série B : bilans et équations
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Écris le bilan en toutes lettres de chaque transformation.
 
 1. Le dihydrogène brûle dans le dioxygène et forme de l'eau.
@@ -127,7 +127,7 @@ Un apprenti de l'apothicairerie regarde Maomao brûler des herbes sèches et éc
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Remplace les noms par les formules chimiques. N'équilibre pas encore.
 
 1. `carbone + dioxygène → dioxyde de carbone`
@@ -141,7 +141,7 @@ Remplace les noms par les formules chimiques. N'équilibre pas encore.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Compte les atomes de chaque sorte, à gauche puis à droite, dans l'équation `CH₄ + O₂ → CO₂ + H₂O`.
 
 ::: corrige
@@ -169,7 +169,7 @@ Ces trois écritures sont fausses. Explique pourquoi en une phrase pour chacune.
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 On fait réagir du zinc `Zn` avec de l'acide chlorhydrique `HCl`. Il se forme du chlorure de zinc `ZnCl₂` et du dihydrogène `H₂`.
 
 1. Nomme les réactifs et les produits.
@@ -202,7 +202,7 @@ Un élève affirme : « Une transformation chimique se reconnaît toujours à un
 
 ## Série C : équilibrer
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Équilibre ces équations en ajoutant des coefficients.
 
 1. `H₂ + O₂ → H₂O`
@@ -219,7 +219,7 @@ Un élève affirme : « Une transformation chimique se reconnaît toujours à un
 :::
 :::
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Ces équations sont-elles équilibrées ? Réponds par oui ou non et donne le compte des atomes.
 
 1. `C + O₂ → CO₂`
@@ -300,7 +300,7 @@ Le zinc réagit avec l'acide chlorhydrique : `Zn + HCl → ZnCl₂ + H₂`.
 
 ## Série D : masse, combustions et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 1. On brûle `24 g` de carbone avec `64 g` de dioxygène. Quelle masse de dioxyde de carbone se forme ?
 2. Une réaction consomme `4 g` de dihydrogène et `32 g` de dioxygène. Quelle masse d'eau obtient-on ?
 3. Dans un flacon fermé, `10 g` de réactifs donnent des produits. Quelle est leur masse ?

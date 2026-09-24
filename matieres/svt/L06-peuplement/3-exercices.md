@@ -109,7 +109,7 @@ Le mot **muscinale** vient du latin *muscus*, qui signifie mousse. C'est un moye
 :::
 :::
 
-::: exercice 5 | application | 8 min | ecran
+::: exercice 5 | application | 8 min | main
 Les jacinthes des bois fleurissent en avril, puis leurs feuilles jaunissent dès juin, alors que l'été n'est pas terminé.
 
 1. Quelle condition de vie explique la floraison en avril ?
@@ -125,7 +125,7 @@ Les jacinthes des bois fleurissent en avril, puis leurs feuilles jaunissent dès
 :::
 :::
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Vrai ou faux ? Justifie chaque réponse en une phrase.
 
 1. Une espèce absente d'un milieu a choisi de ne pas y vivre.
@@ -147,7 +147,7 @@ Fin de la série A. Six exercices faits. Reprends dans un moment.
 
 ## Série B : saisons et formes de résistance
 
-::: exercice 7 | entrainement | 10 min | ecran
+::: exercice 7 | entrainement | 10 min | main
 Associe chaque animal à sa stratégie hivernale, puis explique en une phrase comment il survit.
 
 Animaux : marmotte, hirondelle, écureuil roux, papillon citron, renard roux.
@@ -164,7 +164,7 @@ Les catégories ne sont pas étanches : un même animal peut combiner vie ralent
 :::
 :::
 
-::: exercice 8 | entrainement | 10 min | ecran
+::: exercice 8 | entrainement | 10 min | main
 Un élève écrit : « Les hirondelles partent en Afrique parce qu'elles ont froid. »
 
 1. Explique en trois phrases pourquoi cette explication est incomplète.
@@ -180,7 +180,7 @@ Un élève écrit : « Les hirondelles partent en Afrique parce qu'elles ont fro
 :::
 :::
 
-::: exercice 9 | entrainement | 10 min | ecran
+::: exercice 9 | entrainement | 10 min | main
 Explique la différence entre **hibernation** et **hivernation** en remplissant ce tableau.
 
 ::: grille
@@ -206,7 +206,7 @@ Conséquence pratique : un hérisson trouvé endormi en hiver ne doit pas être 
 :::
 :::
 
-::: exercice 10 | entrainement | 10 min | ecran
+::: exercice 10 | entrainement | 10 min | main
 Classe ces cinq plantes selon ce qui passe l'hiver.
 
 a. Le coquelicot, plante annuelle
@@ -260,7 +260,7 @@ On place des graines de haricot dans cinq conditions différentes pendant une se
 :::
 :::
 
-::: exercice 12 | entrainement | 10 min | ecran
+::: exercice 12 | entrainement | 10 min | main
 Voici un relevé d'espèces dans une mare, à deux dates.
 
 ::: grille
@@ -317,7 +317,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 
 ## Série C : dispersion, multiplication, influence humaine
 
-::: exercice 14 | approfondissement | 10 min | ecran
+::: exercice 14 | approfondissement | 10 min | main
 Pour chaque graine décrite, indique le mode de dispersion et justifie par la forme.
 
 a. Une graine de pissenlit, surmontée d'une aigrette de poils.
@@ -341,7 +341,7 @@ La règle générale : la **forme** de la graine ou du fruit renseigne presque t
 :::
 :::
 
-::: exercice 15 | approfondissement | 12 min | ecran
+::: exercice 15 | approfondissement | 12 min | main
 Un fraisier produit des fleurs et des stolons.
 
 1. Décris ce qui se passe dans chacun des deux cas.
@@ -378,7 +378,7 @@ Les **graines** permettent d'atteindre des endroits lointains et de produire des
 :::
 :::
 
-::: exercice 16 | approfondissement | 10 min | ecran
+::: exercice 16 | approfondissement | 10 min | main
 La renouée du Japon a été introduite en Europe au XIXᵉ siècle comme plante ornementale. Elle se multiplie par rhizomes : un fragment de 2 cm suffit à faire repartir un massif entier.
 
 1. Explique en deux phrases pourquoi elle se propage si vite.
@@ -397,7 +397,7 @@ La renouée du Japon a été introduite en Europe au XIXᵉ siècle comme plante
 :::
 :::
 
-::: exercice 17 | approfondissement | 12 min | ecran
+::: exercice 17 | approfondissement | 12 min | main
 Un agriculteur arrache une haie de 300 m entre deux champs. Trois ans plus tard, il constate une baisse des rendements et une augmentation des ravageurs.
 
 1. Cite trois espèces qui vivaient dans cette haie.

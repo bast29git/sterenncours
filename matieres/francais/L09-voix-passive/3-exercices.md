@@ -107,7 +107,7 @@ Le point 4 est le seul qui demande une décision : **aucun agent n'est exprimé*
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Ces phrases peuvent-elles se mettre au passif ? Justifie chaque réponse en une phrase.
 
 1. `Le chat dort sur le canapé.`
@@ -127,7 +127,7 @@ Ces phrases peuvent-elles se mettre au passif ? Justifie chaque réponse en une 
 
 ## Série B : agent et effets
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Relève le complément d'agent quand il existe, et indique la préposition qui l'introduit.
 
 1. `La ville a été détruite par un séisme.`
@@ -143,7 +143,7 @@ Relève le complément d'agent quand il existe, et indique la préposition qui l
 :::
 :::
 
-::: exercice 7 | entrainement | 6 min | ecran
+::: exercice 7 | entrainement | 6 min | main
 Dans chaque phrase, le groupe souligné est-il un complément d'agent ou un complément circonstanciel ? Applique le test.
 
 1. `Le vase a été cassé **par mon frère**.`
@@ -161,7 +161,7 @@ Le test est toujours le même : peut-on faire du groupe le **sujet** d'une phras
 :::
 :::
 
-::: exercice 8 | entrainement | 7 min | ecran
+::: exercice 8 | entrainement | 7 min | main
 Pour chaque phrase, explique en une phrase pourquoi l'auteur a choisi le passif.
 
 1. `Des erreurs ont été commises.`
@@ -177,7 +177,7 @@ Pour chaque phrase, explique en une phrase pourquoi l'auteur a choisi le passif.
 :::
 :::
 
-::: exercice 9 | entrainement | 7 min | ecran
+::: exercice 9 | entrainement | 7 min | main
 Lis cet extrait, puis réponds.
 
 ::: exemple Extrait
@@ -197,7 +197,7 @@ Lis cet extrait, puis réponds.
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Pour chacune de ces phrases, dis s'il s'agit d'un passif ou de la description d'un état. Justifie.
 
 1. `À vingt heures, la porte est fermée par le gardien.`
@@ -246,7 +246,7 @@ Retiens la méthode : devant un passif sans agent dans un texte officiel, la que
 
 ## Série C : les trois règles d'accord
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Accorde le participe passé employé seul.
 
 1. `(Fatigué) ………, elle s'assit sur un banc.`
@@ -264,7 +264,7 @@ Le participe employé seul, sans `être` ni `avoir` devant lui, s'accorde exacte
 :::
 :::
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Accorde le participe passé avec l'auxiliaire `être`.
 
 1. `Elle est (venir) ……… hier.`
@@ -282,7 +282,7 @@ Avec `être`, l'accord se fait **toujours** avec le sujet, sans exception.
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 Accorde le participe passé avec l'auxiliaire `avoir`. Justifie chaque réponse en indiquant où se trouve le COD.
 
 1. `Elle a (manger) ……… les pommes.`
@@ -302,7 +302,7 @@ La question à se poser est toujours la même : *où est le COD ?* Après le ver
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Chaque phrase contient une erreur d'accord. Corrige-la et nomme la règle concernée.
 
 1. `Elle a mangée une pomme.`

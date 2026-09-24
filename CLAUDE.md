@@ -95,8 +95,8 @@ quelque chose, pas seulement signaler l'erreur.
 ## 3 quater. Ce que l'espace de Sterenn embarque
 
 - **Opale, la tutrice** (`site/tuteur.js`, `functions/api/tuteur.js`) : panneau flottant sur
-  tous les écrans élève, contexte de la fiche ouverte, suggestions, calculatrice coupée en
-  exercices de maths et en évaluation. Serveur sur Workers AI (liaison `[ai] binding = "AI"`
+  tous les écrans élève, contexte de la fiche ouverte, suggestions, calculatrice accessible par
+  défaut (réglages pour la couper en exercices de maths et en évaluation). Serveur sur Workers AI (liaison `[ai] binding = "AI"`
   dans `wrangler.toml.modele`), programme résumé généré au build dans `functions/_programme.js`.
   Elle ne donne jamais la réponse : la réponse attendue de l'exercice en cours est filtrée et
   un second passage du modèle contrôle. Sans liaison IA, elle renvoie le plan et le message
@@ -111,6 +111,22 @@ quelque chose, pas seulement signaler l'erreur.
   (option), réactions animées, fils par matière (`messages.fil`, table `reactions`).
 - **Jeux** (`site/learning/`) : 20 mondes 3D et 53 jeux 2D rattachés aux leçons
   (`site/data/jeux.js`), score envoyé à `/api/learning/game-score`.
+- **Accès et déblocages** (`/api/acces`, page « Accès et déblocages ») : trois états par élément
+  (cours, révision, exercices, série, évaluation, jeu) : automatique, ouvert, fermé, avec date de
+  fermeture facultative. Le serveur calcule les verrous des leçons (`/api/etat`) et ne sert le
+  sujet d'évaluation (`public/data/evaluations/<matiere>/<ref>.js`) que si l'accès est ouvert.
+- **Exercices** : les exercices **1 à 4** sont `ecran` (faits ensemble en séance), tous les autres
+  `main`. Le build génère un **cahier à imprimer** par leçon (`public/cahiers/<matiere>/<ref>.html`),
+  sans corrigé, avec les seuls exercices à la main.
+- **Fiches en diapositives** : le lecteur élève découpe une fiche sur ses titres de niveau 2 ; la
+  page entière reste à un clic.
+- **Modules de début d'année** (`site/modules.js`, `site/visite.js`) : « Faire connaissance »,
+  « Où j'en suis », visite guidée ; réponses dans le profil partagé (`/api/profil`, clés `moi.*`),
+  lues par le professeur sur la page « Sterenn ». Le générateur d'année les place sur la première
+  séance avec un bloc de français. Les leçons `module/<id>` sont résolues par `N.libelleLecon`.
+- **Semaine** : Sterenn déclare une absence avec un mot et déplace ses temps personnels
+  (`PATCH /api/seances/:id/eleve`) ; le professeur applique un horaire à tout un jour de semaine
+  (`POST /api/seances/horaire`).
 - **Migrations** : `migrations/*.sql`, toutes rejouables, appliquées dans l'ordre par
   `build/provisionner.mjs` au déploiement.
 
@@ -126,7 +142,8 @@ quelque chose, pas seulement signaler l'erreur.
   modifiable séance par séance dans l'espace professeur.
 - **Sur écran avec Bastien, à la main en autonomie.** Chaque exercice porte son
   support en 4ᵉ argument du conteneur : `::: exercice 3 | entrainement | 10 min | ecran`
-  ou `| main`. Les rédactions et les exercices d'approfondissement vont **à la main**.
+  ou `| main`. Règle fixe : les exercices **1 à 4** sur écran, ensemble ; **tous les autres à la
+  main**, dans le cahier à imprimer, jamais les mêmes.
 - Le travail personnel, c'est **deux fois 15 minutes** entre deux séances, annoncées,
   jamais sur une notion non vue ensemble.
 - Les énoncés s'appuient en priorité sur les **centres d'intérêt de Sterenn**

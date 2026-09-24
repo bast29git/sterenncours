@@ -141,7 +141,7 @@ Fin de la série A. Les relatifs sont acquis, on passe aux fractions.
 
 ## Série B : les fractions
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Simplifie chaque fraction au maximum.
 
 1. `12/18`
@@ -157,7 +157,7 @@ Simplifie chaque fraction au maximum.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Additionne ou soustrais. Les dénominateurs sont déjà les mêmes.
 
 1. `3/7 + 2/7`
@@ -173,7 +173,7 @@ Additionne ou soustrais. Les dénominateurs sont déjà les mêmes.
 :::
 :::
 
-::: exercice 9 | entrainement | 10 min | ecran
+::: exercice 9 | entrainement | 10 min | main
 Additionne ou soustrais. Il faut d'abord trouver le dénominateur commun.
 
 1. `1/2 + 1/5`
@@ -201,7 +201,7 @@ Additionne ou soustrais. Il faut d'abord trouver le dénominateur commun.
 :::
 :::
 
-::: exercice 10 | application | 5 min | ecran
+::: exercice 10 | application | 5 min | main
 Multiplie, puis simplifie si c'est possible.
 
 1. `2/5 × 3/7`
@@ -219,7 +219,7 @@ Multiplie, puis simplifie si c'est possible.
 :::
 :::
 
-::: exercice 11 | entrainement | 7 min | ecran
+::: exercice 11 | entrainement | 7 min | main
 Divise.
 
 1. `2/3 ÷ 4/9`
@@ -285,7 +285,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 
 ## Série C : tout assembler
 
-::: exercice 14 | entrainement | 8 min | ecran
+::: exercice 14 | entrainement | 8 min | main
 Calcule en respectant les priorités.
 
 1. `12 - 4 × 3`

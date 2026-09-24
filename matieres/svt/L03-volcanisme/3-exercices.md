@@ -50,7 +50,7 @@ Complète les phrases.
 :::
 :::
 
-::: exercice 2 | application | 5 min | main
+::: exercice 2 | application | 5 min | ecran
 Fais une coupe de volcan et légende six éléments : chambre magmatique, cheminée, cratère, cône volcanique, coulée de lave, surface du sol.
 
 ::: corrige
@@ -82,7 +82,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Associe chaque situation à la cause de la fusion des roches, et donne un exemple.
 
 Situations : dorsale océanique · zone de subduction · point chaud.
@@ -111,7 +111,7 @@ On chauffe du sel sur une route verglacée pour faire fondre la glace, alors mê
 
 ## Série B : effusif et explosif
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Classe ces caractéristiques en deux colonnes : effusif ou explosif.
 
 lave fluide · nuées ardentes · volcan en bouclier · éruptions rares · coulées de lave · cendres abondantes · éruptions fréquentes · cône étroit et pentu
@@ -126,7 +126,7 @@ lave fluide · nuées ardentes · volcan en bouclier · éruptions rares · coul
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Pour chaque volcan, indique le type de volcanisme.
 
 1. Le Piton de la Fournaise
@@ -203,7 +203,7 @@ Qu'est-ce qu'une nuée ardente ?
 
 ## Série C : répartition et documents
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Associe chaque zone à son type de volcanisme et à un exemple.
 
 Zones : dorsale océanique · zone de subduction · point chaud.
@@ -279,7 +279,7 @@ Compare l'éruption de la Montagne Pelée en 1902 et celle du Pinatubo en 1991.
 
 ## Série D : risque, prévention et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 1. Écris la relation entre aléa, enjeux, vulnérabilité et risque.
 2. Cite deux signes précurseurs d'une éruption.
 3. Que permet et que ne permet pas la surveillance volcanique ?

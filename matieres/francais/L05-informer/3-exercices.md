@@ -71,7 +71,7 @@ Remarque ce que le texte **ne contient pas** : aucun chiffre, aucune date, aucun
 :::
 :::
 
-::: exercice 3 | entrainement | 6 min | main
+::: exercice 3 | entrainement | 6 min | ecran
 Réécris le texte de l'exercice 2 en ne conservant que des faits. Invente les chiffres manquants, mais rends le texte vérifiable dans sa forme.
 
 ::: corrige
@@ -105,7 +105,7 @@ Retiens le principe : plus on s'éloigne du document primaire, plus le risque de
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 Applique les quatre questions d'évaluation à cette source.
 
 « Publié il y a trois jours sur le site d'une association de consommateurs, signé par une juriste nommée, avec les références des textes de loi cités et un lien vers le texte officiel. »
@@ -122,7 +122,7 @@ Conclusion : source globalement **fiable**, avec un intérêt identifié qu'il f
 
 ## Série B : titres et images
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Pour chaque titre, identifie le procédé employé.
 
 1. « Faut-il avoir peur de cette nouvelle application ? »
@@ -159,7 +159,7 @@ Remarque que les trois titres reposent sur le **même fait**. Rien n'a été inv
 :::
 :::
 
-::: exercice 8 | entrainement | 6 min | ecran
+::: exercice 8 | entrainement | 6 min | main
 Une photographie de manifestation circule avec la légende « hier à Paris ». Une recherche montre qu'elle a été prise trois ans plus tôt, dans une autre ville.
 
 1. L'image est-elle truquée ?
@@ -175,7 +175,7 @@ Une photographie de manifestation circule avec la légende « hier à Paris ». 
 :::
 :::
 
-::: exercice 9 | entrainement | 7 min | ecran
+::: exercice 9 | entrainement | 7 min | main
 Applique les cinq questions de lecture d'image à cette situation.
 
 « Une photographie montre une file d'attente devant un magasin. Légende : "Pénurie : les magasins pris d'assaut." »
@@ -191,7 +191,7 @@ Conclusion : l'image est probablement authentique, la légende est une **interpr
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Un graphique montre l'évolution d'un indicateur : 95 en 2023, 100 en 2024. L'axe vertical commence à 94.
 
 1. Quelle est l'augmentation réelle, en pourcentage ?
@@ -231,7 +231,7 @@ Critères de réussite : chaque réponse appuyée sur un élément **précis** d
 
 ## Série C : rumeur et manipulation
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Quelles sont les trois conditions de naissance d'une rumeur ? Applique-les à cette situation : « Une coupure d'électricité touche un quartier un soir d'hiver, sans explication du fournisseur. »
 
 ::: corrige
@@ -248,7 +248,7 @@ Conclusion pratique : le meilleur moyen d'éviter une rumeur n'est pas de la dé
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Une phrase entendue : « Il y a eu un incident près du gymnase, la police est venue. »
 Après cinq relais : « La police a bouclé le quartier, il paraît que c'est grave. »
 
@@ -266,7 +266,7 @@ Après cinq relais : « La police a bouclé le quartier, il paraît que c'est gr
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 Identifie le procédé de manipulation employé dans chaque énoncé.
 
 1. « Il est contre cette mesure, donc il est contre la sécurité. »
@@ -322,7 +322,7 @@ Retiens ce signal : une demande explicite de **partage massif** est l'un des ind
 
 ## Série D : vérifier, rédiger et devoir type
 
-::: exercice 17 | entrainement | 7 min | ecran
+::: exercice 17 | entrainement | 7 min | main
 Un camarade te dit : « J'ai vérifié, vingt sites disent la même chose. »
 
 1. Est-ce une vérification suffisante ? Justifie.

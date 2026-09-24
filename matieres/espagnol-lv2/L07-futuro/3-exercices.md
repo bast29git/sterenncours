@@ -111,7 +111,7 @@ c. **Futur simple** : plus **neutre** ou plus **solennel**. Cela peut être une 
 :::
 :::
 
-::: exercice 5 | application | 8 min | ecran
+::: exercice 5 | application | 8 min | main
 Corrige les erreurs. Chaque phrase en contient une.
 
 1. `Mañana voy estudiar toda la tarde.`
@@ -131,7 +131,7 @@ Corrige les erreurs. Chaque phrase en contient une.
 :::
 :::
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Vrai ou faux ? Justifie chaque réponse en une phrase.
 
 1. Au futur simple, les terminaisons changent selon que le verbe est en `-ar`, `-er` ou `-ir`.
@@ -153,7 +153,7 @@ Fin de la série A. Six exercices faits. Reprends dans un moment.
 
 ## Série B : irréguliers, probabilité, marqueurs
 
-::: exercice 7 | entrainement | 10 min | ecran
+::: exercice 7 | entrainement | 10 min | main
 Donne le radical du futur, puis conjugue à la personne demandée.
 
 1. `tener`, `yo`
@@ -183,7 +183,7 @@ Donne le radical du futur, puis conjugue à la personne demandée.
 :::
 :::
 
-::: exercice 8 | entrainement | 10 min | ecran
+::: exercice 8 | entrainement | 10 min | main
 Complète avec le verbe au futur simple.
 
 1. `Mañana no ... (poder, yo) venir.`
@@ -209,7 +209,7 @@ Complète avec le verbe au futur simple.
 :::
 :::
 
-::: exercice 9 | entrainement | 8 min | ecran
+::: exercice 9 | entrainement | 8 min | main
 Ces verbes sont des composés. Conjugue-les au futur, à la personne indiquée, en t'appuyant sur le verbe simple.
 
 1. `obtener`, `yo`
@@ -229,7 +229,7 @@ Ces verbes sont des composés. Conjugue-les au futur, à la personne indiquée, 
 :::
 :::
 
-::: exercice 10 | entrainement | 8 min | ecran
+::: exercice 10 | entrainement | 8 min | main
 Traduis ces réponses en employant le futur de probabilité.
 
 1. `¿Qué hora es?` → Il doit être onze heures.
@@ -249,7 +249,7 @@ Traduis ces réponses en employant le futur de probabilité.
 :::
 :::
 
-::: exercice 11 | entrainement | 8 min | ecran
+::: exercice 11 | entrainement | 8 min | main
 Pour chaque phrase, dis s'il s'agit d'un **futur réel** ou d'un **futur de probabilité**, et traduis.
 
 1. `Mañana estará en Madrid.`
@@ -271,7 +271,7 @@ Pour chaque phrase, dis s'il s'agit d'un **futur réel** ou d'un **futur de prob
 :::
 :::
 
-::: exercice 12 | entrainement | 8 min | ecran
+::: exercice 12 | entrainement | 8 min | main
 Complète avec le marqueur temporel qui convient : `dentro de`, `que viene`, `pasado mañana`, `algún día`, `pronto`, `esta noche`.
 
 1. `Hoy es lunes. ... es miércoles.`
@@ -320,7 +320,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 
 ## Série C : `si`, `cuando`, traduction, rédaction
 
-::: exercice 14 | approfondissement | 10 min | ecran
+::: exercice 14 | approfondissement | 10 min | main
 Complète avec le mode et le temps qui conviennent.
 
 1. `Si ... (tener, tú) tiempo, ven a verme.`
@@ -342,7 +342,7 @@ Complète avec le mode et le temps qui conviennent.
 :::
 :::
 
-::: exercice 15 | approfondissement | 8 min | ecran
+::: exercice 15 | approfondissement | 8 min | main
 Corrige les erreurs. Chaque phrase en contient une.
 
 1. `Si lloverá, nos quedaremos en casa.`
@@ -362,7 +362,7 @@ Corrige les erreurs. Chaque phrase en contient une.
 :::
 :::
 
-::: exercice 16 | approfondissement | 10 min | ecran
+::: exercice 16 | approfondissement | 10 min | main
 Voici trois phrases avec `cuando`. Pour chacune, indique si elle décrit une **habitude**, un **fait passé** ou un **avenir**, et justifie le mode employé.
 
 1. `Cuando llego del instituto, meriendo.`

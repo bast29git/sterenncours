@@ -66,7 +66,7 @@ Ordre : **b**, puis **c**, puis **a**.
 :::
 :::
 
-::: exercice 3 | application | 5 min | main
+::: exercice 3 | application | 5 min | ecran
 Fais un schéma en coupe du sous-sol. Place et légende : la surface du sol, la faille, le foyer, l'épicentre, et trois cercles représentant les ondes.
 
 ::: corrige
@@ -82,7 +82,7 @@ L'erreur la plus fréquente consiste à placer le foyer en surface et l'épicent
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Vrai ou faux ? Justifie chaque réponse en une phrase.
 
 1. Le séisme creuse la faille au moment où il se produit.
@@ -114,7 +114,7 @@ Un élève écrit : « Les séismes arrivent au hasard, personne ne sait où la 
 
 ## Série B : ondes, sismogrammes, localisation
 
-::: exercice 6 | application | 4 min | ecran
+::: exercice 6 | application | 4 min | main
 1. Qu'enregistre un sismographe ?
 2. Comment s'appelle le tracé obtenu ?
 3. Que lit-on en abscisse ? En ordonnée ?
@@ -126,7 +126,7 @@ Un élève écrit : « Les séismes arrivent au hasard, personne ne sait où la 
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Sur un sismogramme, on observe une ligne plate, puis une forte perturbation qui dure 40 secondes, puis un retour progressif au calme.
 
 1. Que représente la ligne plate du début ?
@@ -154,7 +154,7 @@ Une station de mesure calcule qu'elle se trouve à `180 km` de l'épicentre d'un
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Les ondes sismiques les plus rapides se propagent à environ `6 km/s` dans la croûte terrestre.
 
 1. Combien de temps mettent-elles pour parcourir `120 km` ?
@@ -187,7 +187,7 @@ Deux villes A et B se trouvent à la même distance de l'épicentre d'un séisme
 
 ## Série C : magnitude, intensité, répartition
 
-::: exercice 11 | application | 4 min | ecran
+::: exercice 11 | application | 4 min | main
 Pour chaque affirmation, indique s'il s'agit de la magnitude ou de l'intensité.
 
 1. Elle se note en chiffres romains.
@@ -205,7 +205,7 @@ Pour chaque affirmation, indique s'il s'agit de la magnitude ou de l'intensité.
 :::
 :::
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 1. Un séisme passe de la magnitude 5 à la magnitude 6. Par combien l'amplitude des ondes est-elle multipliée ?
 2. Et l'énergie libérée, approximativement ?
 3. Un séisme de magnitude 7 libère combien de fois plus d'énergie qu'un séisme de magnitude 5 ?
@@ -217,7 +217,7 @@ Pour chaque affirmation, indique s'il s'agit de la magnitude ou de l'intensité.
 :::
 :::
 
-::: exercice 13 | entrainement | 6 min | ecran
+::: exercice 13 | entrainement | 6 min | main
 Un séisme de magnitude `6,3` frappe une région. On relève les intensités suivantes : `IX` à l'épicentre, `VI` à `40 km`, `III` à `120 km`.
 
 1. Quelle est la magnitude à `40 km` de l'épicentre ?
@@ -245,7 +245,7 @@ Un journaliste écrit : « Le séisme a atteint 8 sur l'échelle de Richter, qui
 :::
 :::
 
-::: exercice 15 | entrainement | 6 min | ecran
+::: exercice 15 | entrainement | 6 min | main
 Associe chaque type de limite de plaques à sa sismicité.
 
 Limites : dorsale, subduction, coulissage, collision.
@@ -275,7 +275,7 @@ On superpose une carte des séismes mondiaux enregistrés sur dix ans et une car
 
 ## Série D : risque, prévention et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 Définis en une phrase chacun de ces termes, puis écris la relation qui les lie.
 
 1. Aléa

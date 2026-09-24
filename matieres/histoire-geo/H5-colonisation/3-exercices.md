@@ -101,7 +101,7 @@ Un élève écrit : « Les Européens ont colonisé l'Afrique pour la civiliser.
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 En 1885, deux hommes politiques s'opposent à l'Assemblée.
 
 ::: exemple Deux extraits
@@ -124,7 +124,7 @@ En 1885, deux hommes politiques s'opposent à l'Assemblée.
 
 ## Série B : conquête et partage
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Cite cinq moyens qui ont rendu la conquête possible, avec une précision pour chacun.
 
 ::: corrige
@@ -136,7 +136,7 @@ Cite cinq moyens qui ont rendu la conquête possible, avec une précision pour c
 :::
 :::
 
-::: exercice 7 | entrainement | 6 min | ecran
+::: exercice 7 | entrainement | 6 min | main
 À Omdurman, en 1898, une armée britannique équipée de mitrailleuses affronte une armée mahdiste bien plus nombreuse. Les pertes sont de quelques dizaines d'un côté, de plusieurs milliers de l'autre.
 
 1. Comment expliquer un tel écart ?
@@ -150,7 +150,7 @@ Cite cinq moyens qui ont rendu la conquête possible, avec une précision pour c
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 La conférence de Berlin.
 
 1. En quelle année se tient-elle ?
@@ -166,7 +166,7 @@ La conférence de Berlin.
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 La conférence de Berlin voulait éviter les conflits entre puissances européennes.
 
 1. Quelle règle a produit l'effet inverse ?
@@ -180,7 +180,7 @@ La conférence de Berlin voulait éviter les conflits entre puissances européen
 :::
 :::
 
-::: exercice 10 | entrainement | 7 min | ecran
+::: exercice 10 | entrainement | 7 min | main
 Complète ce tableau des empires en 1914.
 
 | Puissance | Deux possessions |
@@ -224,7 +224,7 @@ Samory Touré résiste à l'avancée française pendant dix-sept ans, de 1881 à
 
 ## Série C : documents et sociétés coloniales
 
-::: exercice 12 | entrainement | 7 min | ecran
+::: exercice 12 | entrainement | 7 min | main
 Distingue les trois statuts de territoire.
 
 1. Une colonie. · 2. Un protectorat. · 3. Un dominion.
@@ -240,7 +240,7 @@ La différence de traitement entre dominion et colonie n'a rien de technique : e
 :::
 :::
 
-::: exercice 13 | entrainement | 7 min | ecran
+::: exercice 13 | entrainement | 7 min | main
 En Algérie en 1914, on compte environ 750 000 Européens pour 4,5 millions de colonisés.
 
 1. Calcule la part des Européens dans la population totale, arrondie au dixième.
@@ -255,7 +255,7 @@ En Algérie en 1914, on compte environ 750 000 Européens pour 4,5 millions de c
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 Le code de l'indigénat.
 
 1. À partir de quelle année est-il appliqué ?

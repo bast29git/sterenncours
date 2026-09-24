@@ -96,7 +96,7 @@ Le programme comporte bien les trois éléments attendus : des **entrées** avec
 :::
 :::
 
-::: exercice 5 | entrainement | 6 min | ecran
+::: exercice 5 | entrainement | 6 min | main
 On veut échanger les valeurs de deux variables `a` et `b`.
 
 1. Pourquoi `a ← b` puis `b ← a` ne fonctionne-t-il pas ?
@@ -118,7 +118,7 @@ Ce problème est un classique de l'algorithmique : il illustre qu'une affectatio
 
 ## Série B : tests et boucles
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Que fait ce programme pour chaque valeur de `n` ?
 
 ```
@@ -141,7 +141,7 @@ Le point 2 est le piège : avec `≥`, le programme aurait affiché « grand ».
 :::
 :::
 
-::: exercice 7 | entrainement | 6 min | ecran
+::: exercice 7 | entrainement | 6 min | main
 Écris un algorithme qui demande un nombre et affiche « positif », « nul » ou « négatif ».
 
 ::: corrige
@@ -164,7 +164,7 @@ Vérification : pour `n = 5`, le premier test est vrai, on affiche « positif »
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Que valent ces conditions pour `n = 7` ?
 
 1. `n > 0 ET n < 10` · 2. `n > 0 ET n < 5` · 3. `n < 0 OU n > 5` · 4. `n = 7 ET n ≠ 7`
@@ -177,7 +177,7 @@ Que valent ces conditions pour `n = 7` ?
 :::
 :::
 
-::: exercice 9 | application | 6 min | ecran
+::: exercice 9 | application | 6 min | main
 Déroule ce programme et donne l'affichage.
 
 ```
@@ -204,7 +204,7 @@ Remarque que `Afficher s` se trouve **après** le `Fin Pour` : le programme n'af
 :::
 :::
 
-::: exercice 10 | entrainement | 6 min | ecran
+::: exercice 10 | entrainement | 6 min | main
 Déroule ce programme.
 
 ```
@@ -271,7 +271,7 @@ Deux points essentiels : la ligne `s ← 0` **avant** la boucle, sans laquelle r
 
 ## Série C : dérouler et corriger
 
-::: exercice 12 | entrainement | 7 min | ecran
+::: exercice 12 | entrainement | 7 min | main
 Déroule ce programme dans un tableau complet.
 
 ```
@@ -301,7 +301,7 @@ En remplaçant `3` par `n` dans la boucle, on obtiendrait un programme calculant
 :::
 :::
 
-::: exercice 13 | entrainement | 7 min | ecran
+::: exercice 13 | entrainement | 7 min | main
 Ce programme devait afficher la somme des entiers de 1 à 10. Il affiche autre chose.
 
 ```
@@ -332,7 +332,7 @@ Ces deux erreurs sont les plus fréquentes en 4ᵉ. Prends le réflexe : chaque 
 :::
 :::
 
-::: exercice 14 | entrainement | 7 min | ecran
+::: exercice 14 | entrainement | 7 min | main
 Ces programmes contiennent chacun une erreur. Identifie-la et corrige.
 
 1.
@@ -366,7 +366,7 @@ L'erreur 3 est la plus sournoise : le programme fonctionne parfaitement, ne prod
 :::
 :::
 
-::: exercice 15 | entrainement | 7 min | ecran
+::: exercice 15 | entrainement | 7 min | main
 Déroule ce programme pour `n = 12`, puis pour `n = 7`.
 
 ```
@@ -417,7 +417,7 @@ Remarque aussi la boucle qui part de `2` et non de `1` : le premier nombre a dé
 
 ## Série D : figures et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 Un lutin doit tracer les polygones réguliers suivants. De combien doit-il tourner à chaque sommet ?
 
 1. Carré · 2. Triangle équilatéral · 3. Pentagone · 4. Hexagone · 5. Décagone, dix côtés

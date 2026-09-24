@@ -127,7 +127,7 @@ Cela représente environ **101 jours** de consommation domestique, soit plus de 
 :::
 :::
 
-::: exercice 5 | application | 8 min | ecran
+::: exercice 5 | application | 8 min | main
 Il faut environ 1 000 ans pour former 1 cm de sol fertile. En France, environ 20 hectares de terres agricoles sont artificialisés chaque jour.
 
 1. Combien d'hectares cela représente-t-il en un an ? Prends 365 jours.
@@ -155,7 +155,7 @@ Il faudrait environ **30 000 ans**, soit six fois la durée de toute l'histoire 
 :::
 :::
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Vrai ou faux ? Justifie chaque réponse en une phrase.
 
 1. Une ressource renouvelable ne peut jamais s'épuiser.
@@ -177,7 +177,7 @@ Fin de la série A. Six exercices faits. Reprends dans un moment.
 
 ## Série B : pollutions, effet de serre, climat, biodiversité
 
-::: exercice 7 | entrainement | 10 min | ecran
+::: exercice 7 | entrainement | 10 min | main
 Voici des mesures de mercure prises dans un même secteur marin.
 
 ::: grille
@@ -240,7 +240,7 @@ L'effet de serre n'est pas une pollution : c'est un phénomène **naturel** sans
 :::
 :::
 
-::: exercice 9 | entrainement | 10 min | ecran
+::: exercice 9 | entrainement | 10 min | main
 La concentration de dioxyde de carbone dans l'atmosphère est passée d'environ 280 ppm avant 1850 à environ 420 ppm aujourd'hui.
 
 1. Calcule l'augmentation en ppm.
@@ -271,7 +271,7 @@ L'augmentation est de **50 %**.
 :::
 :::
 
-::: exercice 10 | entrainement | 10 min | ecran
+::: exercice 10 | entrainement | 10 min | main
 Un article de presse titre : « Il a neigé en mai : le réchauffement climatique est une invention. »
 
 1. Quelle confusion ce titre contient-il ?
@@ -290,7 +290,7 @@ Un article de presse titre : « Il a neigé en mai : le réchauffement climatiqu
 :::
 :::
 
-::: exercice 11 | entrainement | 10 min | ecran
+::: exercice 11 | entrainement | 10 min | main
 Un élève écrit : « le niveau des mers monte parce que la banquise arctique fond ».
 
 1. Explique pourquoi cette phrase est fausse.
@@ -311,7 +311,7 @@ Un élève écrit : « le niveau des mers monte parce que la banquise arctique f
 :::
 :::
 
-::: exercice 12 | entrainement | 10 min | ecran
+::: exercice 12 | entrainement | 10 min | main
 En trente ans, les populations d'oiseaux des champs ont diminué d'environ 30 % en France.
 
 1. Si une population comptait 400 000 couples il y a trente ans, combien en reste-t-il ?
@@ -371,7 +371,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 
 ## Série C : risques et gestion durable
 
-::: exercice 14 | approfondissement | 10 min | ecran
+::: exercice 14 | approfondissement | 10 min | main
 Pour chaque situation, identifie l'**aléa**, l'**enjeu** et la **vulnérabilité**, puis dis si le risque est fort ou faible.
 
 a. Un séisme de magnitude 7 dans un désert inhabité.
@@ -401,7 +401,7 @@ La comparaison entre a et b montre l'essentiel : deux aléas identiques peuvent 
 :::
 :::
 
-::: exercice 15 | approfondissement | 10 min | ecran
+::: exercice 15 | approfondissement | 10 min | main
 Classe ces mesures en **prévision**, **prévention** ou **protection**.
 
 a. Un réseau de sismographes qui détecte les secousses
@@ -426,7 +426,7 @@ La question qui trie : la mesure sert-elle à **annoncer**, à **rendre moins fr
 :::
 :::
 
-::: exercice 16 | approfondissement | 12 min | ecran
+::: exercice 16 | approfondissement | 12 min | main
 Une commune constate que ses inondations sont plus fréquentes et plus violentes qu'il y a trente ans, alors que les pluies n'ont pas augmenté.
 
 Dans le même temps, la surface bétonnée de la commune est passée de 12 % à 34 % du territoire.
@@ -448,7 +448,7 @@ En passant de 12 % à 34 % de surface imperméable, la commune a donc triplé la
 :::
 :::
 
-::: exercice 17 | approfondissement | 12 min | ecran
+::: exercice 17 | approfondissement | 12 min | main
 En 1992, la pêche à la morue a été interdite à Terre-Neuve après l'effondrement du stock. Environ 30 000 personnes ont perdu leur emploi du jour au lendemain.
 
 1. Pourquoi le stock s'est-il effondré alors que le poisson est une ressource renouvelable ?

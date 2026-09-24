@@ -126,7 +126,7 @@ Un élève calcule : « L'objet a une masse de `2 kg` et un volume de `500 cm³`
 
 ## Série B : mesures et unités
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 On verse `60 mL` d'eau dans une éprouvette. On y plonge un objet. Le niveau monte à `82 mL`.
 
 1. Quel est le volume de l'objet ?
@@ -140,7 +140,7 @@ On verse `60 mL` d'eau dans une éprouvette. On y plonge un objet. Le niveau mon
 :::
 :::
 
-::: exercice 8 | application | 4 min | ecran
+::: exercice 8 | application | 4 min | main
 Dans l'atelier de Myne, on calcule le volume des blocs d'encre et des tablettes de cire sans utiliser d'eau.
 
 1. Un bloc d'encre en forme de cube de `4 cm` de côté.
@@ -205,7 +205,7 @@ On dispose de trois cubes de `2 cm` de côté : un en liège, un en aluminium, u
 
 ## Série C : flottaison et identification
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Ces corps flottent-ils sur l'eau ? Justifie par une comparaison chiffrée.
 
 1. Le liège, `ρ = 0,24`
@@ -287,7 +287,7 @@ Un bijoutier veut vérifier qu'une bague est bien en or. Elle a une masse de `9,
 
 ## Série D : changements d'état et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 Nomme le changement d'état correspondant.
 
 1. La glace fond.

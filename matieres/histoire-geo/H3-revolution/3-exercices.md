@@ -82,7 +82,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 **Document.** Extrait de *Qu'est-ce que le tiers état ?* de l'abbé Sieyès, janvier 1789.
 « Qu'est-ce que le tiers état ? Tout. Qu'a-t-il été jusqu'à présent dans l'ordre politique ? Rien. Que demande-t-il ? À y devenir quelque chose. »
 
@@ -119,7 +119,7 @@ Remarque de méthode : en contrôle, on attend que la cause intellectuelle soit 
 
 ## Série B : 1789 et la Déclaration
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Explique en une phrase chacun de ces événements.
 
 1. Le serment du Jeu de paume.
@@ -149,7 +149,7 @@ La Bastille ne contenait que sept prisonniers le 14 juillet 1789.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Associe chaque article de la Déclaration à son principe.
 
 Articles : 1 · 3 · 11 · 16.
@@ -214,7 +214,7 @@ La Déclaration proclame que les hommes naissent égaux en droits. Pourtant, en 
 
 ## Série C : de la République à la Terreur
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Range ces quatre régimes dans l'ordre chronologique et donne leurs dates.
 
 Empire · monarchie constitutionnelle · Consulat · Première République
@@ -289,7 +289,7 @@ Les historiens proposent trois explications de la Terreur : par les circonstance
 
 ## Série D : Napoléon et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 1. Que se passe-t-il le 18 brumaire an VIII ?
 2. Quand Napoléon devient-il empereur ?
 3. Qu'est-ce qu'un plébiscite ?

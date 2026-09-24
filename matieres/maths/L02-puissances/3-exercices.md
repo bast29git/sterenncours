@@ -154,7 +154,7 @@ Ordre croissant : `(-2)³ < 2⁻¹ < 5⁰ < 2³ < 3²`, c'est-à-dire `-8 < 0,5 
 
 ## Série B : les trois règles
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Simplifie en une seule puissance.
 
 1. `4³ × 4⁵`
@@ -168,7 +168,7 @@ Simplifie en une seule puissance.
 :::
 :::
 
-::: exercice 9 | application | 5 min | ecran
+::: exercice 9 | application | 5 min | main
 Simplifie en une seule puissance.
 
 1. `8⁷ ÷ 8³`
@@ -182,7 +182,7 @@ Simplifie en une seule puissance.
 :::
 :::
 
-::: exercice 10 | application | 5 min | ecran
+::: exercice 10 | application | 5 min | main
 Simplifie en une seule puissance.
 
 1. `(3²)⁴`
@@ -266,7 +266,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 
 ## Série C : puissances de 10 et notation scientifique
 
-::: exercice 15 | application | 4 min | ecran
+::: exercice 15 | application | 4 min | main
 Donne l'écriture décimale.
 
 1. `10⁵`
@@ -282,7 +282,7 @@ Donne l'écriture décimale.
 :::
 :::
 
-::: exercice 16 | application | 5 min | ecran
+::: exercice 16 | application | 5 min | main
 Calcule.
 
 1. `3,5 × 10³`
@@ -298,7 +298,7 @@ Calcule.
 :::
 :::
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 Écris en notation scientifique.
 
 1. `4 500`

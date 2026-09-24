@@ -114,7 +114,7 @@ Remarque de méthode : chaque principe défendu répond à un adversaire précis
 
 ## Série B : les philosophes et leurs idées
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 1. Quels sont les trois pouvoirs distingués par Montesquieu ?
 2. Que fait chacun d'eux ?
 3. Pourquoi faut-il les séparer, selon lui ?
@@ -163,7 +163,7 @@ Remarque de méthode : chaque principe défendu répond à un adversaire précis
 :::
 :::
 
-::: exercice 9 | entrainement | 6 min | ecran
+::: exercice 9 | entrainement | 6 min | main
 Pour chaque idée, indique à quel philosophe elle correspond et justifie en une phrase.
 
 1. « Il faut que le pouvoir arrête le pouvoir. »
@@ -215,7 +215,7 @@ Compare les positions de Voltaire et de Rousseau sur l'origine du pouvoir légit
 
 ## Série C : diffuser et censurer
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 1. Qui dirige l'*Encyclopédie* ?
 2. Entre quelles dates paraît-elle ?
 3. Combien de volumes de texte et de planches comporte-t-elle ?
@@ -245,7 +245,7 @@ L'article « Anthropophages » de l'*Encyclopédie*, consacré aux peuples qui p
 :::
 :::
 
-::: exercice 14 | entrainement | 6 min | ecran
+::: exercice 14 | entrainement | 6 min | main
 Associe chaque lieu à ce qui s'y passe.
 
 Lieux : salon · café · académie · loge maçonnique.
@@ -287,7 +287,7 @@ L'*Encyclopédie* est condamnée par le pouvoir royal en 1759. Sa publication se
 
 ## Série D : analyse, limites et devoir type
 
-::: exercice 17 | application | 5 min | ecran
+::: exercice 17 | application | 5 min | main
 1. Qu'est-ce que le despotisme éclairé ?
 2. Cite deux souverains concernés et leur pays.
 3. Citer une réforme menée par l'un d'eux.

@@ -76,7 +76,7 @@ La solution est `x = 5`.
 :::
 :::
 
-::: exercice 4 | entrainement | 5 min | main
+::: exercice 4 | entrainement | 5 min | ecran
 Vrai ou faux ? Justifie en une phrase.
 
 1. On peut ajouter 4 uniquement au membre de gauche d'une équation.
@@ -114,7 +114,7 @@ Un élève écrit ceci pour résoudre `4x + 6 = 18`.
 
 ## Série B : résoudre
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Résous.
 
 1. `x + 9 = 15`
@@ -130,7 +130,7 @@ Résous.
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Résous, en écrivant l'étape intermédiaire.
 
 1. `2x + 7 = 19`
@@ -144,7 +144,7 @@ Résous, en écrivant l'étape intermédiaire.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Résous. Les solutions ne sont pas toutes entières.
 
 1. `4x = 10`
@@ -232,7 +232,7 @@ On considère l'équation `5x − 3 = 2x + 9`.
 
 ## Série C : parenthèses, fractions, cas particuliers
 
-::: exercice 13 | application | 6 min | ecran
+::: exercice 13 | application | 6 min | main
 Résous, en développant d'abord.
 
 1. `2(x + 5) = 18`
@@ -301,7 +301,7 @@ Résous et conclus précisément.
 
 ## Série D : mise en équation et devoir type
 
-::: exercice 17 | application | 6 min | ecran
+::: exercice 17 | application | 6 min | main
 Traduis chaque phrase en équation. Ne résous pas.
 
 1. Le double d'un nombre vaut 26.

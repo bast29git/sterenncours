@@ -105,7 +105,7 @@ f. **Phrase mixte, et c'est le cas le plus intéressant.** Telle quelle, c'est u
 :::
 :::
 
-::: exercice 5 | application | 5 min | ecran
+::: exercice 5 | application | 5 min | main
 Vrai ou faux ? Justifie chaque réponse en une phrase.
 
 1. La liberté d'expression autorise tout.
@@ -152,7 +152,7 @@ Fin de la série A. Six exercices faits. Reprends dans un moment.
 
 ## Série B : médias, vérification, algorithmes
 
-::: exercice 7 | entrainement | 10 min | ecran
+::: exercice 7 | entrainement | 10 min | main
 Classe ces quatre contenus selon ce qu'ils visent : **informer**, **défendre une opinion**, **vendre**, **influencer en dissimulant son intention**.
 
 a. Un article signé qui rapporte les résultats d'une enquête, avec ses sources.
@@ -170,7 +170,7 @@ c. **Influencer en dissimulant son intention.** C'est le seul cas problématique
 :::
 :::
 
-::: exercice 8 | entrainement | 12 min | ecran
+::: exercice 8 | entrainement | 12 min | main
 Une publication circule : une photographie d'un immense incendie, avec le texte « incendie catastrophique ce matin près de chez nous, partagez avant suppression ».
 
 Applique les cinq étapes de la vérification et dis ce que tu conclus.
@@ -192,7 +192,7 @@ Applique les cinq étapes de la vérification et dis ce que tu conclus.
 :::
 :::
 
-::: exercice 9 | entrainement | 10 min | ecran
+::: exercice 9 | entrainement | 10 min | main
 Pour chaque signal d'alerte, explique en une phrase ce qu'il indique.
 
 a. « Les médias ne vous le diront pas »
@@ -214,7 +214,7 @@ e. Les majuscules et l'urgence visent l'**émotion**, pas le raisonnement. Une i
 :::
 :::
 
-::: exercice 10 | entrainement | 10 min | ecran
+::: exercice 10 | entrainement | 10 min | main
 Un algorithme de recommandation choisit ce qui s'affiche sur un fil.
 
 1. Sur quoi s'appuie-t-il pour choisir ?
@@ -233,7 +233,7 @@ Un algorithme de recommandation choisit ce qui s'affiche sur un fil.
 :::
 :::
 
-::: exercice 11 | entrainement | 10 min | ecran
+::: exercice 11 | entrainement | 10 min | main
 Deux élèves de la même classe ouvrent la même application au même moment et voient des contenus complètement différents.
 
 1. Comment l'expliquer ?
@@ -249,7 +249,7 @@ Deux élèves de la même classe ouvrent la même application au même moment et
 :::
 :::
 
-::: exercice 12 | entrainement | 10 min | ecran
+::: exercice 12 | entrainement | 10 min | main
 Compare un média traditionnel et un réseau social.
 
 1. Complète le tableau sur quatre critères : qui publie, vérification avant publication, responsabilité, vitesse.
@@ -309,7 +309,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 
 ## Série C : données, droits, cyberharcèlement
 
-::: exercice 14 | approfondissement | 8 min | ecran
+::: exercice 14 | approfondissement | 8 min | main
 Classe ces éléments : sont-ils des **données personnelles** ou non ?
 
 a. Ton nom et ton prénom
@@ -329,7 +329,7 @@ La **liste des vidéos regardées** en est une pour la même raison : un histori
 :::
 :::
 
-::: exercice 15 | approfondissement | 10 min | ecran
+::: exercice 15 | approfondissement | 10 min | main
 Une application de retouche photo est gratuite. À l'installation, elle demande l'accès aux photos, aux contacts, au micro et à la position.
 
 1. Quelles demandes te semblent justifiées par le service rendu ?
@@ -348,7 +348,7 @@ Une application de retouche photo est gratuite. À l'installation, elle demande 
 :::
 :::
 
-::: exercice 16 | approfondissement | 10 min | ecran
+::: exercice 16 | approfondissement | 10 min | main
 Tu veux publier sur un réseau social une photo de groupe prise à la fin d'un match, où huit personnes sont reconnaissables.
 
 1. Quel droit est en jeu ?
@@ -367,7 +367,7 @@ Tu veux publier sur un réseau social une photo de groupe prise à la fin d'un m
 :::
 :::
 
-::: exercice 17 | approfondissement | 12 min | ecran
+::: exercice 17 | approfondissement | 12 min | main
 Lis cette situation.
 
 > Depuis trois semaines, une élève de 4ème reçoit chaque jour des messages moqueurs sur son physique, envoyés depuis plusieurs comptes. Une photo d'elle a été détournée et circule dans un groupe de classe. Elle ne dort plus, elle a mal au ventre le matin et elle a commencé à manquer les cours.
@@ -402,7 +402,7 @@ Ne **pas relayer**, ne pas commenter, ne pas réagir même par dérision : chaqu
 :::
 :::
 
-::: exercice 18 | approfondissement | 10 min | ecran
+::: exercice 18 | approfondissement | 10 min | main
 1. Cite cinq droits que le RGPD te donne sur tes données.
 2. Que doit être un consentement valable ?
 3. Qu'est-ce que la CNIL et que peut-elle faire ?

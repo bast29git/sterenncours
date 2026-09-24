@@ -78,7 +78,7 @@ Auteurs : Balzac · Flaubert · Zola · Stendhal.
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 **Document.** « La chambre donnait sur une cour étroite. Un papier peint à fleurs, jauni par le temps, se décollait près de la fenêtre. Sur la commode, un réveil de fer-blanc marquait sept heures vingt. Il flottait une odeur de graisse froide montée de la cuisine du rez-de-chaussée. »
 
 1. Relève trois procédés de l'effet de réel et nomme-les.
@@ -112,7 +112,7 @@ Un élève écrit : « Ce roman est réaliste, donc l'histoire s'est vraiment pa
 
 ## Série B : analyser une description
 
-::: exercice 6 | application | 5 min | ecran
+::: exercice 6 | application | 5 min | main
 Cite quatre fonctions possibles d'une description dans un roman.
 
 ::: corrige
@@ -126,7 +126,7 @@ Quatre au choix :
 :::
 :::
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Relève les indicateurs spatiaux de ce passage et dis dans quel ordre se fait la description.
 
 « Au fond de la pièce, une cheminée éteinte. À droite, un lit de fer. Sur le mur d'en face, un miroir piqué renvoyait la lumière grise de la fenêtre. »
@@ -213,7 +213,7 @@ Dans une description, un narrateur mentionne un vieux baromètre accroché au mu
 
 ## Série C : les points de vue
 
-::: exercice 12 | application | 5 min | ecran
+::: exercice 12 | application | 5 min | main
 Nomme les trois points de vue narratifs et dis ce que le narrateur sait dans chacun.
 
 ::: corrige
@@ -223,7 +223,7 @@ Nomme les trois points de vue narratifs et dis ce que le narrateur sait dans cha
 :::
 :::
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Identifie le point de vue de chaque phrase.
 
 1. « Elle entra dans la pièce. Elle ignorait que son frère l'attendait depuis deux heures. »

@@ -89,7 +89,7 @@ Contrôle de cohérence : dans les deux cas, on demande **plus** que la quantit�
 :::
 :::
 
-::: exercice 4 | entrainement | 6 min | main
+::: exercice 4 | entrainement | 6 min | ecran
 Un abonnement de téléphone coûte `12 €` par mois, plus `0,05 €` par minute d'appel hors forfait.
 
 1. Complète le tableau pour 0, 100 et 200 minutes.
@@ -141,7 +141,7 @@ Sur un graphique, une droite passe par l'origine et par le point de coordonnées
 
 ## Série B : pourcentages
 
-::: exercice 7 | application | 5 min | ecran
+::: exercice 7 | application | 5 min | main
 Maomao range la réserve de l'apothicairerie. Calcule.
 
 1. Elle garde `20 %` d'un lot de `150` g de racines séchées. Combien de grammes ?
@@ -157,7 +157,7 @@ Maomao range la réserve de l'apothicairerie. Calcule.
 :::
 :::
 
-::: exercice 8 | application | 5 min | ecran
+::: exercice 8 | application | 5 min | main
 Myne fabrique du papier dans son atelier. Calcule le pourcentage.
 
 1. `12` feuilles réussies sur `48` fabriquées
@@ -171,7 +171,7 @@ Myne fabrique du papier dans son atelier. Calcule le pourcentage.
 :::
 :::
 
-::: exercice 9 | application | 5 min | ecran
+::: exercice 9 | application | 5 min | main
 Donne le coefficient multiplicateur.
 
 1. une hausse de `15 %`
@@ -241,7 +241,7 @@ Un prix subit deux évolutions successives.
 
 ## Série C : vitesses et grandeurs composées
 
-::: exercice 13 | application | 5 min | ecran
+::: exercice 13 | application | 5 min | main
 Calcule.
 
 1. Un train parcourt `480 km` en `4 h`. Quelle vitesse ?
@@ -255,7 +255,7 @@ Calcule.
 :::
 :::
 
-::: exercice 14 | application | 5 min | ecran
+::: exercice 14 | application | 5 min | main
 Écris ces durées en heures décimales.
 
 1. `2 h 30`
