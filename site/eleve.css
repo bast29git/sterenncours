@@ -150,7 +150,7 @@ body.corps-eleve {
   border-radius: 999px; padding: 0.3rem 0.7rem;
   font-size: 0.78rem; font-weight: 600;
 }
-.e-jeton b { font-size: 0.95rem; font-weight: 800; color: var(--e-vif); }
+.e-jeton b { font-size: 0.95rem; font-weight: 800; color: var(--e-vif-fonce); }
 .e-jeton-bouton { cursor: pointer; font: inherit; padding: 0.35rem; }
 .e-jeton-etoiles { align-items: center; gap: 0.35rem; padding: 0.3rem 0.8rem; }
 .e-jeton-etoiles .ic { width: 1.1rem; height: 1.1rem; fill: var(--e-vif); stroke: var(--e-vif); stroke-width: 1.2; }
@@ -218,7 +218,7 @@ body.corps-eleve {
 }
 .e-bouton:hover { transform: translateY(-1px); box-shadow: 0 10px 24px color-mix(in srgb, var(--e-vif) 38%, transparent); }
 .e-bouton:active { transform: translateY(0); }
-.e-bouton-doux { background: var(--e-voile); color: var(--e-vif); box-shadow: none; }
+.e-bouton-doux { background: var(--e-voile); color: var(--e-vif-fonce); box-shadow: none; }
 .e-bouton-doux:hover { box-shadow: none; background: color-mix(in srgb, var(--e-voile) 70%, var(--e-doux)); }
 .e-bouton-fin { background: transparent; color: var(--e-encre-doux); border: 1px solid var(--e-trait); box-shadow: none; }
 .e-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
@@ -342,7 +342,7 @@ body.corps-eleve {
   border-radius: 999px; padding: 0.38rem 0.9rem;
 }
 .e-onglets a .ic { width: 1.05rem; height: 1.05rem; }
-.e-onglets a.actif { background: var(--e-vif); color: #fff; }
+.e-onglets a.actif { background: var(--e-vif-fonce); color: #fff; }
 .e-fiche {
   background: var(--e-carte); border: 1px solid var(--e-trait);
   border-radius: var(--e-r); box-shadow: var(--e-ombre); padding: 1.4rem 1.5rem;
