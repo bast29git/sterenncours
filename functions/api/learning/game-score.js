@@ -40,6 +40,12 @@ export const onRequestPost = gerer(async (context) => {
        maj_le = excluded.maj_le,
        genre = 'jeu'`,
   ).bind(cle, id, justes, justes, maintenant()).run();
+  // D25 : le détail de la partie (justes, total, questions ratées, difficulté, mode), borné.
+  if (corps.detail && typeof corps.detail === 'object') {
+    const d = corps.detail;
+    const detail = { justes: Number(d.justes) || 0, total: Number(d.total) || 0, difficulte: Number(d.difficulte) || null, mode: String(corps.mode || '').slice(0, 10), ratees: Array.isArray(d.ratees) ? d.ratees.slice(0, 10).map((x) => String(x).slice(0, 80)) : [], le: maintenant() };
+    try { await DB.prepare('UPDATE resultats SET detail = ? WHERE cle = ?').bind(JSON.stringify(detail), cle).run(); } catch (e) { /* colonne absente avant la migration 0010 */ }
+  }
   await compter(context.env, 'jeu');
 
   const ligne = await DB.prepare('SELECT * FROM resultats WHERE cle = ?').bind(cle).first();

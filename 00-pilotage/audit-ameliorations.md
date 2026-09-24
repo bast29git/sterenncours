@@ -381,34 +381,34 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 - ✅ **D1 · P1 · S** Écran d'accueil commun aux 53 jeux : titre, leçon servie, durée conseillée, trois consignes, un seul bouton « Jouer ».
 - ✅ **D2 · P1 · S** Chaque jeu nomme la leçon qu'il sert dans son écran d'accueil, avec le lien retour vers la fiche.
-- **D3 · P1 · S** Vocabulaire aligné : les mêmes termes que les fiches (côté adjacent, hypoténuse, complément du nom), vérifiés jeu par jeu.
+- ✅ **D3 · P1 · S** Vocabulaire aligné : les mêmes termes que les fiches (côté adjacent, hypoténuse, complément du nom), vérifiés jeu par jeu.
 - ✅ **D4 · P1 · S** Étoiles cohérentes : les seuils de score expliqués sur l'écran de fin (« 2 étoiles à partir de 70 % »).
-- **D5 · P2 · S** Clavier complet : chaque jeu jouable sans souris, focus visible, `Échap` pour quitter.
-- **D6 · P2 · S** Tactile : zones de 44 px minimum, pas de survol nécessaire, retour haptique léger si disponible.
-- **D7 · P2 · S** Mode calme respecté : animations réduites, aucun compte à rebours agressif, aucun son sans action.
-- **D8 · P2 · S** Reprise de partie : quitter et revenir retrouve le niveau en cours.
-- **D9 · P2 · S** Écran de fin identique pour tous : score, étoiles, « ce que tu as appris » lié aux notions de la leçon, « rejouer », « revenir à la fiche ».
-- **D10 · P2 · S** Difficulté en trois crans choisie avant de jouer, mémorisée par jeu.
-- **D11 · P2 · S** Explications sur les erreurs : chaque mauvaise réponse dit pourquoi, comme dans les séries.
-- **D12 · P2 · S** Temps de jeu conseillé affiché (« 8 minutes ») et compteur discret.
+- ✅ **D5 · P2 · S** Clavier complet : chaque jeu jouable sans souris, focus visible, `Échap` pour quitter.
+- ✅ **D6 · P2 · S** Tactile : zones de 44 px minimum, pas de survol nécessaire, retour haptique léger si disponible.
+- ✅ **D7 · P2 · S** Mode calme respecté : animations réduites, aucun compte à rebours agressif, aucun son sans action.
+- ✅ **D8 · P2 · S** Reprise de partie : quitter et revenir retrouve le niveau en cours.
+- ✅ **D9 · P2 · S** Écran de fin identique pour tous : score, étoiles, « ce que tu as appris » lié aux notions de la leçon, « rejouer », « revenir à la fiche ».
+- ✅ **D10 · P2 · S** Difficulté en trois crans choisie avant de jouer, mémorisée par jeu.
+- ✅ **D11 · P2 · S** Explications sur les erreurs : chaque mauvaise réponse dit pourquoi, comme dans les séries.
+- ✅ **D12 · P2 · S** Temps de jeu conseillé affiché (« 8 minutes ») et compteur discret.
 - ✅ **D13 · P2 · S** Générateurs de questions branchés sur la banque : les jeux de quiz tirent leurs questions de `exercices.js` au lieu de listes internes.
-- **D14 · P2 · M** Cinq jeux nouveaux pour les leçons peu couvertes : cosinus (viser un angle), signaux sonores (retrouver la distance à l'écho), la ville (repérer les procédés), voix passive, conditionnels anglais.
-- **D15 · P2 · S** Chaque jeu 2D testé sur 390 px de large : aucun défilement horizontal, texte lisible.
-- **D16 · P2 · S** Consignes littérales : une action par phrase, pas de « à toi de jouer », le premier geste montré.
-- **D17 · P3 · S** Statistiques par jeu pour le professeur : parties, meilleur score, erreurs fréquentes.
-- **D18 · P3 · S** Défi hebdomadaire sur un jeu tiré au sort parmi les leçons ouvertes.
+- ✅ **D14 · P2 · M** Cinq jeux nouveaux (livrés : 2d-60 à 2d-64) pour les leçons peu couvertes : cosinus (viser un angle), signaux sonores (retrouver la distance à l'écho), la ville (repérer les procédés), voix passive, conditionnels anglais.
+- ✅ **D15 · P2 · S** Chaque jeu 2D testé sur 390 px de large : aucun défilement horizontal, texte lisible.
+- ✅ **D16 · P2 · S** Consignes littérales : une action par phrase, pas de « à toi de jouer », le premier geste montré.
+- ✅ **D17 · P3 · S** Statistiques par jeu pour le professeur : parties, meilleur score, erreurs fréquentes.
+- ✅ **D18 · P3 · S** Défi hebdomadaire sur un jeu tiré au sort parmi les leçons ouvertes.
 - **D19 · P3 · S** Jouer avec le professeur : un mode à deux sur le même écran (tour par tour), pour la séance.
-- **D20 · P3 · S** Sons des jeux issus de l'identité sonore commune (quatre sons), volume unique.
-- **D21 · P3 · S** Pause automatique quand l'onglet perd le focus.
-- **D22 · P3 · S** Chargement : un écran d'attente commun avec la progression et un conseil de la leçon.
-- **D23 · P3 · S** Retirer les jeux hors programme de 4ᵉ (ceux rattachés à aucune leçon) ou les ranger dans un onglet « pour le plaisir ».
-- **D24 · P3 · S** Mode révision : un jeu propose seulement les questions déjà ratées en série.
-- **D25 · P3 · S** Résultats envoyés avec le détail (réussites par notion), pas seulement le score.
-- **D26 · P3 · S** Thème visuel unique : palette d'Opaline appliquée aux 53 jeux via `tokens.css`.
-- **D27 · P3 · S** Accessibilité vérifiée automatiquement (axe-core) sur chaque jeu au build.
-- **D28 · P3 · S** Rejouer une partie à l'identique (même tirage) pour comparer deux essais.
-- **D29 · P3 · S** Chaque jeu documente ses notions dans `jeux.js` (aujourd'hui : « apprend » en une phrase, incomplet pour 20 jeux).
-- **D30 · P3 · S** Un « carnet de jeux » côté élève : ce qu'elle a gagné, ce qu'il reste à essayer, par matière.
+- ✅ **D20 · P3 · S** Sons des jeux issus de l'identité sonore commune (quatre sons), volume unique.
+- ✅ **D21 · P3 · S** Pause automatique quand l'onglet perd le focus.
+- ✅ **D22 · P3 · S** Chargement : un écran d'attente commun avec la progression et un conseil de la leçon.
+- ✅ **D23 · P3 · S** Retirer les jeux hors programme de 4ᵉ (ceux rattachés à aucune leçon) ou les ranger dans un onglet « pour le plaisir ».
+- ✅ **D24 · P3 · S** Mode révision : un jeu propose seulement les questions déjà ratées en série.
+- ✅ **D25 · P3 · S** Résultats envoyés avec le détail (réussites par notion), pas seulement le score.
+- ✅ **D26 · P3 · S** Thème visuel unique : palette d'Opaline appliquée aux 53 jeux via `tokens.css`.
+- ✅ **D27 · P3 · S** Accessibilité vérifiée automatiquement (axe-core) sur chaque jeu au build.
+- ✅ **D28 · P3 · S** Rejouer une partie à l'identique (même tirage) pour comparer deux essais.
+- ✅ **D29 · P3 · S** Chaque jeu documente ses notions dans `jeux.js` (aujourd'hui : « apprend » en une phrase, incomplet pour 20 jeux).
+- ✅ **D30 · P3 · S** Un « carnet de jeux » côté élève : ce qu'elle a gagné, ce qu'il reste à essayer, par matière.
 
 ## 8. Axe E : mondes 3D, qualité et nouveaux mondes (30)
 

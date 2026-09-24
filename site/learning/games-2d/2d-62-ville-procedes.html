@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Opaline · La ville : repérer les procédés</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script></head>
+<body><script>
+/* Des phrases écrites pour le jeu : chacune emploie un procédé de la leçon sur la ville. */
+const P = ['personnification', 'énumération', 'contraste', 'comparaison', 'allégorie', 'regard panoramique', 'regard du passant'];
+const opts = (bonne) => [bonne].concat(P.filter((x) => x !== bonne).sort(() => 0.5 - Math.random()).slice(0, 3));
+const rounds = [
+  { lvl: 1, prompt: '« La ville s\'étire, bâille et allume ses lampadaires un à un. »', answer: 'personnification', explain: 'La ville s\'étire et bâille comme une personne : c\'est une personnification.' },
+  { lvl: 1, prompt: '« Des vitrines, des enseignes, des klaxons, des affiches, des odeurs de pain et d\'essence. »', answer: 'énumération', explain: 'La phrase aligne des éléments sans verbe : une énumération, qui donne l\'impression de foule et de trop-plein.' },
+  { lvl: 1, prompt: '« D\'un côté les tours de verre qui brillent, de l\'autre les ruelles où la lumière n\'entre pas. »', answer: 'contraste', explain: 'Deux images opposées mises face à face : un contraste, qui fait sentir l\'inégalité.' },
+  { lvl: 1, prompt: '« Les voitures avancent comme un fleuve de tôle. »', answer: 'comparaison', explain: '« comme » relie deux réalités : les voitures et un fleuve. C\'est une comparaison.' },
+  { lvl: 2, prompt: '« Vue d\'en haut, la ville est un damier gris troué de parcs verts, traversé par le ruban de la rivière. »', answer: 'regard panoramique', explain: 'L\'œil embrasse tout d\'en haut, comme sur une carte : c\'est le regard panoramique.' },
+  { lvl: 2, prompt: '« Je longe le mur, je frôle un vendeur de journaux, je m\'arrête devant une porte cochère entrouverte. »', answer: 'regard du passant', explain: 'On avance dans la rue à hauteur d\'homme, détail après détail : c\'est le regard du passant, du flâneur.' },
+  { lvl: 2, prompt: '« La Nuit descend sur la ville, elle traîne son manteau sur les toits. »', answer: 'allégorie', explain: 'La Nuit, avec une majuscule, devient un personnage qui agit : une allégorie, une idée représentée par une figure.' },
+  { lvl: 2, prompt: '« Le métro avale les gens et les recrache trois stations plus loin. »', answer: 'personnification', explain: 'Le métro avale et recrache comme un être vivant : personnification.' },
+  { lvl: 2, prompt: '« Marchés, cafés, ateliers, écoles, hôpitaux : tout ce qu\'il faut pour vivre à cent mètres. »', answer: 'énumération', explain: 'Une liste qui accumule : l\'énumération dit ici l\'abondance, la promesse de la ville.' },
+  { lvl: 3, prompt: '« Le boulevard promet tout et ne donne rien à celui qui n\'a pas de pièce en poche. »', answer: 'contraste', explain: 'Promettre tout / ne rien donner : le contraste porte l\'idée de promesse et de menace, au cœur de la leçon.' },
+  { lvl: 3, prompt: '« Les immeubles se serrent les uns contre les autres comme des passagers dans un bus bondé. »', answer: 'comparaison', explain: 'Le mot « comme » introduit une comparaison entre les immeubles et des passagers.' },
+  { lvl: 3, prompt: '« De ma fenêtre au dixième, les rues dessinent des lignes, les gens ne sont plus que des points. »', answer: 'regard panoramique', explain: 'Depuis le haut, tout devient lignes et points : regard panoramique, qui met à distance.' },
+  { lvl: 3, prompt: '« La Misère habite au dernier étage, sans ascenseur, et elle ne descend jamais. »', answer: 'allégorie', explain: 'La Misère personnifiée en habitante : une allégorie de la pauvreté urbaine.' },
+  { lvl: 3, prompt: '« Une main tendue, un regard baissé, une porte qui claque : la rue continue. »', answer: 'regard du passant', explain: 'Des détails saisis au passage, sans vue d\'ensemble : le regard du passant.' },
+].map((r) => ({ ...r, options: opts(r.answer) }));
+QuizGame({ id: '2d-62-ville-procedes', code: '2D·62', title: 'La ville : repérer les procédés', duree: '8 min', domain: { label: 'Français', color: '#8046A8' },
+  intro: { greet: 'Chaque phrase montre la ville avec un procédé. Tu le nommes.', rule: 'Sept procédés vus dans la leçon : personnification, énumération, contraste, comparaison, allégorie, regard panoramique, regard du passant.', how: ['Lis la phrase en entier.', 'Cherche l\'indice : « comme », une majuscule, une liste, une opposition, un point de vue.', 'Choisis le procédé.'], objectif: 'Reconnaître les procédés qui construisent l\'image de la ville.', hint: '« comme » = comparaison ; un objet qui agit comme une personne = personnification ; une liste = énumération.', why: 'Nommer le procédé, c\'est comprendre ce que le texte fait sentir.' },
+  learned: ['Personnification : une chose agit comme une personne.', 'Allégorie : une idée devient un personnage, souvent avec une majuscule.', 'Panoramique d\'en haut, passant à hauteur d\'homme : deux regards sur la ville.'], perRun: 10, rounds });
+</script></body></html>

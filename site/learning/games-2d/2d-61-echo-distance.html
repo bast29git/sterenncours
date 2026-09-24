@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Opaline · L'écho et la distance</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script>
+<style>.eco{width:min(320px,86vw);height:auto;display:block;margin:0 auto 8px}.eco text{font-family:var(--font-data);font-size:14px;font-weight:700;fill:var(--fg)}</style></head>
+<body><script>
+/* Le son va à 340 m/s dans l'air. Un écho fait l'aller et le retour : distance = 340 × t ÷ 2. */
+const V = 340;
+const dessin = (t) => `<svg class="eco" viewBox="0 0 340 120" aria-label="Une personne, un son, une falaise"><circle cx="30" cy="70" r="12" fill="var(--accent)"/><rect x="24" y="82" width="12" height="30" fill="var(--accent)"/><rect x="300" y="20" width="30" height="92" fill="var(--fg-muted)"/><path d="M50 70 Q170 40 295 70" fill="none" stroke="var(--brand-violet)" stroke-width="3" stroke-dasharray="6 5"/><path d="M295 80 Q170 110 50 80" fill="none" stroke="var(--brand-teal)" stroke-width="3" stroke-dasharray="6 5"/><text x="120" y="32">aller puis retour : ${String(t).replace('.', ',')} s</text></svg>`;
+const T = [1, 2, 0.5, 3, 1.5, 4, 0.2, 2.5, 6, 0.1];
+const rounds = T.map((t, i) => {
+  const d = V * t / 2;
+  const fmt = (x) => String(Math.round(x * 10) / 10).replace('.', ',');
+  if (i % 2 === 0) return { lvl: i < 4 ? 1 : 2, visual: dessin(t), prompt: `Tu cries, l'écho revient après <b>${String(t).replace('.', ',')} s</b>. À quelle distance est la falaise ? (son : 340 m/s)`, options: [`${fmt(d)} m`, `${fmt(V * t)} m`, `${fmt(d / 2)} m`, `${fmt(V / t)} m`], answer: `${fmt(d)} m`, explain: `Le son fait l'aller et le retour : distance = 340 × ${String(t).replace('.', ',')} ÷ 2 = ${fmt(d)} m. Sans le ÷ 2, on compte deux fois le trajet.` };
+  return { lvl: 2, visual: dessin(t), prompt: `La falaise est à <b>${fmt(d)} m</b>. Au bout de combien de temps l'écho revient-il ?`, options: [`${String(t).replace('.', ',')} s`, `${String(t / 2).replace('.', ',')} s`, `${String(t * 2).replace('.', ',')} s`, `${fmt(d / V)} s`], answer: `${String(t).replace('.', ',')} s`, explain: `Aller et retour : 2 × ${fmt(d)} = ${fmt(2 * d)} m ; temps = ${fmt(2 * d)} ÷ 340 = ${String(t).replace('.', ',')} s.` };
+});
+rounds.push({ lvl: 1, prompt: 'Le son a besoin de quoi pour se propager ?', options: ['d\'un milieu matériel (air, eau, acier)', 'du vide', 'de la lumière', 'd\'un aimant'], answer: 'd\'un milieu matériel (air, eau, acier)', explain: 'Le son est une vibration transmise de proche en proche par la matière. Dans le vide, rien ne vibre : pas de son.' });
+rounds.push({ lvl: 1, prompt: 'Vitesse du son dans l\'air, à retenir :', options: ['environ 340 m/s', 'environ 300 000 km/s', 'environ 34 m/s', 'environ 3 400 m/s'], answer: 'environ 340 m/s', explain: '340 m/s dans l\'air. La lumière, elle, va à 300 000 km/s : c\'est pour cela qu\'on voit l\'éclair avant d\'entendre le tonnerre.' });
+rounds.push({ lvl: 2, prompt: 'Un éclair, puis le tonnerre 3 s plus tard. L\'orage est à environ…', options: ['1 km', '3 km', '340 m', '10 km'], answer: '1 km', explain: '340 × 3 = 1 020 m, soit environ 1 km. Ici pas de ÷ 2 : le son ne fait que l\'aller.' });
+rounds.push({ lvl: 3, prompt: 'Le domaine audible humain va d\'environ…', options: ['20 Hz à 20 000 Hz', '2 Hz à 200 Hz', '20 000 Hz à 200 000 Hz', '0 Hz à 20 Hz'], answer: '20 Hz à 20 000 Hz', explain: 'En dessous de 20 Hz : infrasons. Au-dessus de 20 000 Hz : ultrasons, inaudibles pour nous, entendus par les chauves-souris.' });
+rounds.push({ lvl: 3, prompt: 'Au-delà de quel niveau sonore une exposition prolongée abîme l\'audition ?', options: ['environ 85 dB', 'environ 20 dB', 'environ 150 dB', 'environ 40 dB'], answer: 'environ 85 dB', explain: 'À partir de 85 dB sur une longue durée, l\'oreille interne s\'use ; à 120 dB, la douleur. Un concert dépasse souvent 100 dB : les bouchons protègent.' });
+rounds.push({ lvl: 2, prompt: 'Dans l\'eau, le son va à environ 1 500 m/s. Comparé à l\'air, il va…', options: ['plus vite', 'moins vite', 'à la même vitesse', 'il ne se propage pas'], answer: 'plus vite', explain: 'Plus le milieu est dense et rigide, plus le son va vite : air 340 m/s, eau 1 500 m/s, acier 5 000 m/s.' });
+QuizGame({ id: '2d-61-echo-distance', code: '2D·61', title: 'L\'écho et la distance', duree: '8 min', domain: { label: 'Physique-Chimie', color: '#C2481B' },
+  intro: { greet: 'Tu cries face à une falaise. L\'écho te dit à quelle distance elle est.', rule: 'Le son va à 340 m/s dans l\'air. Un écho fait l\'aller et le retour : distance = 340 × temps ÷ 2.', how: ['Lis le temps de l\'écho.', 'Multiplie par 340, puis divise par 2.', 'Choisis la bonne distance.'], objectif: 'Calculer une distance à partir d\'un écho, et connaître les repères du son.', hint: 'Aller et retour : le son parcourt deux fois la distance.', why: 'Les sonars des bateaux et les chauves-souris font exactement ce calcul.' },
+  learned: ['Vitesse du son dans l\'air : 340 m/s.', 'Écho : distance = 340 × t ÷ 2.', 'Domaine audible : 20 Hz à 20 000 Hz ; danger dès 85 dB prolongés.'], perRun: 10, rounds });
+</script></body></html>

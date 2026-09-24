@@ -650,7 +650,7 @@ function construireDonneesSite() {
     '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
     + 'window.PROGRAMME = ' + JSON.stringify(programme, null, 2) + ';\n');
   // A21 : la version de Sterenn se passe des attendus, thèmes et compétences (lus par le professeur seul).
-  const programmeEleve = { ...programme, matieres: programme.matieres.map((m) => { const { attendus, themes, competences, ...reste } = m; return reste; }) };
+  const programmeEleve = { ...programme, matieres: programme.matieres.map((m) => { const reste = { ...m }; delete reste.attendus; delete reste.themes; delete reste.competences; return reste; }) };
   fs.writeFileSync(path.join(SORTIE, 'data', 'programme-eleve.js'),
     '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
     + 'window.PROGRAMME = ' + JSON.stringify(programmeEleve) + ';\n');

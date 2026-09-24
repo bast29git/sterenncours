@@ -15,14 +15,13 @@
     { cible: '#e-opale-bouton', titre: 'Opale', texte: 'C\'est moi. Je suis là sur tous les écrans. Je peux t\'expliquer une notion, te donner une piste ou t\'aider à t\'organiser. Je ne donne pas les réponses : c\'est toi qui les trouves.' },
     { cible: '#e-btn-confort', titre: 'Confort de lecture', texte: 'Ce bouton règle la taille du texte, les couleurs, les animations et la lecture à voix haute. Tout est modifiable à tout moment, rien n\'est définitif.' },
   ];
-  let i = 0; let voile = null; let carte = null; let cible = null;
+  let i = 0; let voile = null; let carte = null;
 
   const AVATAR = '<svg class="e-visite-avatar" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="visite-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7FF0C8"/><stop offset=".4" stop-color="#2BB5A0"/><stop offset=".72" stop-color="#2A7FA6"/><stop offset="1" stop-color="#C79CE6"/></linearGradient></defs><path d="M32 6 54 26 32 60 10 26Z" fill="url(#visite-g)"/><path d="M10 26h44L32 34Z" fill="#fff" opacity=".35"/><circle cx="25" cy="32" r="3.2" fill="#0b1a3a"/><circle cx="39" cy="32" r="3.2" fill="#0b1a3a"/><path d="M27 40q5 4 10 0" stroke="#0b1a3a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
   function placer() {
     const e = ETAPES[i];
     const el = document.querySelector(e.cible);
-    cible = el;
     document.querySelectorAll('.e-visite-cible').forEach((x) => x.classList.remove('e-visite-cible'));
     if (el) {
       el.classList.add('e-visite-cible');

@@ -169,7 +169,7 @@ const shell = window.Konstrio.createGame({
     "La couche de sortie la plus active donne la classe prédite.",
   ],
   onReady:(api)=>init(api),
-  onStart:(m,api)=>{ mode=m; api.mode=m; if(m==='cours'){ api.setScore(0); startCours(); } else { clearQuiz(); api.setLevel('libre'); shell.api.say("Mode Détente : explore, propage un signal, entraîne, change les réglages… à toi de jouer !",'joyeux'); } },
+  onStart:(m,api)=>{ mode=m; api.mode=m; if(m==='cours'){ api.setScore(0); startCours(); } else { clearQuiz(); api.setLevel('libre'); shell.api.say("Mode Détente : explore, propage un signal, entraîne, change les réglages. Commence par toucher un objet.",'joyeux'); } },
   onRestart:(api)=>{ if(mode==='cours'){ api.setScore(0); startCours(); } },
   onTheme:()=>{ applyTheme(); drawLoss(); drawPad(); },
 });

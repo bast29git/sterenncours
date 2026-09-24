@@ -336,7 +336,6 @@
     const cible = vedette && (vedette.lecons || []).length
       ? ((vedette.lecons || []).map((r) => N.libelleLecon(r)).find((x) => x && x.m.id !== 'module') || ouverte)
       : ouverte;
-    const c = N.chiffres();
 
     const moduleVedette = vedette && (vedette.lecons || []).map((r) => N.libelleLecon(r)).find((x) => x && x.m.id === 'module');
     const titre = vedette
@@ -375,6 +374,7 @@
        ${blocMotNouveau()}
        ${blocARevoir()}
        ${blocEtoiles()}
+       ${blocDefi()}
 
        <div class="e-orbite-titre">
          <h2>Mes matières</h2>
@@ -2376,6 +2376,22 @@
   }
 
   /* ---------- Jeux : l'arcade rattachée au programme ------------------------- */
+  /** D18 : le défi de la semaine, un jeu tiré au sort parmi les leçons ouvertes, le même toute la semaine. */
+  function defiSemaine() {
+    const jeux = (window.JEUX || []).filter((j) => N.accesJeu(j.id) && j.lecons.some((c) => { const [mid, ref] = c.split(':'); const m = N.matiere(mid); const l = m && N.lecon(m, ref); return l && N.accessible(mid, ref) && docsVisibles(l).length; }));
+    if (!jeux.length) return null;
+    const lundi = N.lundiDe(N.jourIso());
+    const graine = Number(lundi.replace(/-/g, '')) % 9973;
+    const j = jeux[graine % jeux.length];
+    const r = N.etat.resultats['jeu/' + j.id];
+    const releve = !!(r && r.maj_le && String(r.maj_le).slice(0, 10) >= lundi && r.meilleur >= 70);
+    return { j, releve, lundi };
+  }
+  function blocDefi() {
+    const d = defiSemaine(); if (!d) return '';
+    return `<section class="e-bloc-fixe e-defi" aria-labelledby="e-h-defi"><h2 id="e-h-defi">${N.ic('ic-etincelle')} Le défi de la semaine</h2>
+      <p>${d.releve ? `Défi relevé : tu as gagné <b>${N.ech(d.j.titre)}</b> cette semaine. Bravo.` : `Cette semaine, le jeu tiré au sort est <b>${N.ech(d.j.titre)}</b>. Gagne-le avec deux étoiles avant dimanche.`} ${d.releve ? '' : lienJeu(d.j, 'e-lien-doux')}</p></section>`;
+  }
   function vueJeux(mid) {
     const jeux = window.JEUX || [];
     const gagnes = jeux.filter(jeuGagne).length;
@@ -2394,9 +2410,13 @@
             <span>${j.type === '3d' ? 'Monde 3D · ' : ''}${N.ech(lecons.join(' · '))}</span></a></li>`;
         }).join('')}</ul>`;
     }).join('');
+    // D30 : le carnet de jeux, par matière : gagnés, essayés, jamais ouverts.
+    const carnet = matieres.map((m) => { const liste = jeuxMatiere(m.id); const g = liste.filter(jeuGagne).length; const e = liste.filter((j) => N.etat.resultats['jeu/' + j.id] && !jeuGagne(j)).length; return `<li><a href="#/jeux/${m.id}">${m.icone} ${N.ech(N.nomCourt(m.id))}</a><b>${g}</b> gagné(s) · ${e} essayé(s) · ${liste.length - g - e} à découvrir</li>`; }).join('');
     afficher(
       `<h1>Jeux</h1>
        <p class="e-intro">${jeux.length} jeux et mondes 3D, chacun rattaché à une leçon du programme. Une partie terminée vaut une étoile, comme une série réussie.${gagnes ? ` Déjà ${gagnes} gagné(s).` : ''}</p>
+       ${mid ? '' : blocDefi()}
+       ${mid ? '' : `<ul class="e-carnet-jeux">${carnet}</ul>`}
        <p class="e-filtre-jeux"><a href="#/jeux" class="${mid ? '' : 'actif'}">Tout</a>${matieres.map((m) => `<a href="#/jeux/${m.id}" class="${mid === m.id ? 'actif' : ''}">${m.icone} ${N.ech(N.nomCourt(m.id))}</a>`).join('')}</p>
        ${blocs || '<p class="e-vide">Aucun jeu pour le moment.</p>'}`,
     );

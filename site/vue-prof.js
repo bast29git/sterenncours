@@ -42,6 +42,7 @@
       items: [
         { route: 'matieres', ico: 'ic-planete', texte: 'Matières' },
         { route: 'programme', ico: 'ic-livre', texte: 'Programme officiel' },
+        { route: 'jeux', ico: 'ic-etincelle', texte: 'Jeux et mondes' },
         { route: 'documents', ico: 'ic-telecharger', texte: 'Dossiers PDF' },
       ],
     },
@@ -1384,6 +1385,26 @@
     N.api('/tuteur/journal').then((d) => { const z = document.getElementById('j-opale'); if (!z) return; z.innerHTML = (d.journal || []).length ? `<ul class="p-journal">${d.journal.map((q) => `<li><time>${N.ech(N.dateCourte(q.quand))}</time> <b>${N.ech(q.role)}</b> ${N.ech(q.mode || '')} ${N.ech(q.matiere ? q.matiere + '/' + (q.ref || '') : '')}<br>« ${N.ech(q.question)} » <small>${N.ech(q.controle || '')}</small></li>`).join('')}</ul><p class="p-aide">La question, le mode et le contrôle appliqué. Jamais la réponse d'Opale.</p>` : '<p class="p-vide">Aucune question encore.</p>'; }).catch(() => { const z = document.getElementById('j-opale'); if (z) z.innerHTML = '<p class="p-vide">Journal indisponible.</p>'; });
   }
 
+  /** D17 : les jeux et mondes, avec ce que Sterenn y a fait : parties, meilleur score, dernière fois, questions ratées. */
+  function vueJeuxProf() {
+    const jeux = window.JEUX || [];
+    const lignes = jeux.map((j) => {
+      const r = N.etat.resultats['jeu/' + j.id];
+      let detail = null; try { detail = r && r.detail ? (typeof r.detail === 'string' ? JSON.parse(r.detail) : r.detail) : null; } catch (e) { detail = null; }
+      const lecons = (j.lecons || []).map((c) => { const [mid, ref] = c.split(':'); const m = N.matiere(mid); const l = m && N.lecon(m, ref); return l ? `<a href="#/lecon/${mid}/${ref}">${m.icone} ${N.ech(l.titre)}</a>` : N.ech(c); }).join(', ');
+      return { j, r, detail, lecons };
+    });
+    const joues = lignes.filter((x) => x.r).length;
+    const gagnes = lignes.filter((x) => x.r && x.r.meilleur >= 70).length;
+    afficher(entete('Jeux et mondes', `${jeux.length} jeux · ${joues} joués par Sterenn · ${gagnes} gagnés (deux étoiles ou plus)`,
+      `<a class="p-bouton p-bouton-fantome" href="#/acces">Accès des jeux</a>`)
+      + bloc('Ce que Sterenn a joué', `<div class="p-tableau-defilant"><table class="p-table"><thead><tr><th>Jeu</th><th>Leçon servie</th><th>Parties</th><th>Meilleur</th><th>Dernière fois</th><th>Questions ratées à la dernière partie</th></tr></thead><tbody>
+        ${lignes.sort((a, b) => (b.r ? b.r.maj_le : '').localeCompare(a.r ? a.r.maj_le : '')).map((x) => `<tr class="${x.r ? '' : 'p-faible'}"><td>${x.j.ico} <a href="${x.j.url}" target="_blank" rel="noopener">${N.ech(x.j.titre)}</a>${x.j.type === '3d' ? ' <span class="p-puce">3D</span>' : ''}</td><td>${x.lecons}</td><td class="num">${x.r ? x.r.series : '·'}</td><td class="num">${x.r ? `<span class="p-etat ${x.r.meilleur >= 70 ? 'p-etat-satisfaisant' : 'p-etat-fragile'}">${x.r.meilleur}</span>` : '·'}</td><td class="num">${x.r ? N.ech(N.dateCourte(x.r.maj_le)) : '·'}</td><td>${x.detail && x.detail.ratees && x.detail.ratees.length ? `<small>${x.detail.ratees.map(N.ech).join(' · ')}</small>` : (x.detail ? `<small class="p-faible">${x.detail.justes}/${x.detail.total}, aucune ratée</small>` : '<span class="p-faible">·</span>')}</td></tr>`).join('')}
+        </tbody></table></div>
+        <p class="p-aide">Le détail (questions ratées, difficulté) n'est envoyé que par les jeux à questions ; les mondes 3D envoient leurs étoiles.</p>`, String(jeux.length)),
+    [{ t: 'Ressources' }, { t: 'Jeux et mondes' }]);
+  }
+
   /** B50 : les règles du système en une page. */
   function vueAideProf() {
     const R = [
@@ -2499,6 +2520,7 @@
       case 'socle': return vueSocle();
       case 'aide': return vueAideProf();
       case 'journal': return vueJournal();
+      case 'jeux': return vueJeuxProf();
       case 'bulletin': return vueBulletin(p[1]);
       case 'periodes': return vuePeriodes();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);

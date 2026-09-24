@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Opaline · English: opinions and reasons</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../lang-engine.js"></script></head>
+<body><script>
+const rounds = [
+  { lvl: 1, prompt: 'Complete: « ___, mangas are better than films. »', options: ['In my opinion', 'Because', 'However', 'For example'], answer: 'In my opinion', explain: '« In my opinion » ouvre une opinion. « Because » donne une raison, « however » une opposition.' },
+  { lvl: 1, prompt: 'Complete: « I like drawing ___ it helps me relax. »', options: ['because', 'however', 'in my opinion', 'but'], answer: 'because', explain: '« because » introduit la raison : pourquoi j\'aime dessiner.' },
+  { lvl: 1, prompt: 'Which sentence gives an opinion AND a reason?', options: ['I think auroras are beautiful because the colours move.', 'Auroras are green.', 'I saw an aurora.', 'Auroras happen near the poles.'], answer: 'I think auroras are beautiful because the colours move.', explain: '« I think » = opinion, « because » = raison. Les autres phrases sont des faits ou des récits.' },
+  { lvl: 2, prompt: 'Complete: « The book is long. ___, it is easy to read. »', options: ['However', 'Because', 'In my opinion', 'So'], answer: 'However', explain: '« However » oppose deux idées : long, mais facile.' },
+  { lvl: 2, prompt: 'Complete: « I agree ___ you: paper books are nicer. »', options: ['with', 'to', 'at', 'for'], answer: 'with', explain: 'On dit « agree with someone ». « I disagree with you » pour le contraire.' },
+  { lvl: 2, prompt: 'Which word means « à mon avis »?', options: ['In my opinion', 'For instance', 'Moreover', 'Although'], answer: 'In my opinion', explain: '« In my opinion » ou « I think that » : à mon avis. « For instance » = par exemple.' },
+  { lvl: 2, prompt: 'Complete: « I think Maomao is clever ___ she notices every detail. »', options: ['because', 'however', 'although', 'so that'], answer: 'because', explain: 'La raison de l\'opinion : « because ».' },
+  { lvl: 3, prompt: 'Choose the best reply to « Do you like the city? »', options: ['Yes, I do, because there is always something to see. However, it is noisy.', 'City.', 'Yes.', 'I go to the city.'], answer: 'Yes, I do, because there is always something to see. However, it is noisy.', explain: 'Une réponse complète : opinion, raison avec « because », nuance avec « however ».' },
+  { lvl: 3, prompt: 'Complete: « ___ it was raining, we went out. »', options: ['Although', 'Because', 'So', 'In my opinion'], answer: 'Although', explain: '« Although » = bien que : la pluie n\'a pas empêché la sortie.' },
+  { lvl: 3, prompt: 'Which sentence is a fact, not an opinion?', options: ['The Earth goes around the Sun.', 'I think space is fascinating.', 'In my opinion, stars are pretty.', 'I believe the Moon is boring.'], answer: 'The Earth goes around the Sun.', explain: 'Un fait se vérifie. « I think », « I believe », « in my opinion » annoncent une opinion.' },
+  { lvl: 3, prompt: 'Complete: « I disagree. ___, mornings are the best time to study. »', options: ['In my opinion', 'Because', 'For example', 'Although'], answer: 'In my opinion', explain: 'Après « I disagree », on donne son propre avis : « In my opinion ».' },
+  { lvl: 2, prompt: 'Complete: « Sports are good for you. ___, football keeps you fit. »', options: ['For example', 'However', 'Because', 'Although'], answer: 'For example', explain: '« For example » introduit un exemple qui appuie l\'opinion.' },
+];
+LangGame({ id: '2d-63-en-opinions', code: '2D·63', title: 'English: opinions and reasons', lang: 'en', mode: 'mcq', duree: '7 min', domain: { label: 'Anglais', color: '#3A45A8' },
+  intro: { greet: 'Say what you think, and say why.', rule: 'Tu complètes des phrases avec « I think », « in my opinion », « because », « however », « although », « for example ».', how: ['Lis la phrase.', 'Choisis le mot qui convient.', 'Lis l\'explication, même quand c\'est juste.'], objectif: 'Donner une opinion, une raison, une nuance, en anglais.', hint: 'because = raison ; however = opposition ; in my opinion = avis.', why: 'Donner son avis avec une raison : c\'est ce qu\'on attend dans un débat ou un e-mail.' },
+  learned: ['I think / In my opinion : donner son avis.', 'because : la raison ; for example : l\'exemple.', 'however / although : nuancer, opposer.'], rounds });
+</script></body></html>

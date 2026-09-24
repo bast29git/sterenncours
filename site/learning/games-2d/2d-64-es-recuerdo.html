@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Opaline · Español: contar un recuerdo</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../lang-engine.js"></script></head>
+<body><script>
+/* Indefinido : une action passée, finie, datée. Imperfecto : le décor, l'habitude, la durée. */
+const rounds = [
+  { lvl: 1, prompt: 'Ayer ___ (comer) paella con mi familia.', options: ['comí', 'comía', 'como', 'comeré'], answer: 'comí', explain: '« Ayer » date l\'action, finie : indefinido, « comí ».' },
+  { lvl: 1, prompt: 'Cuando era pequeña, ___ (jugar) en el parque todos los días.', options: ['jugaba', 'jugué', 'juego', 'jugaré'], answer: 'jugaba', explain: '« todos los días » = habitude dans le passé : imperfecto, « jugaba ».' },
+  { lvl: 1, prompt: 'El sábado pasado ___ (ver) una aurora boreal.', options: ['vi', 'veía', 'veo', 'veré'], answer: 'vi', explain: 'Un événement unique et daté (« el sábado pasado ») : indefinido, « vi ».' },
+  { lvl: 2, prompt: '___ (ser) de noche y la ciudad ___ (estar) tranquila.', options: ['Era / estaba', 'Fue / estuvo', 'Es / está', 'Era / estuvo'], answer: 'Era / estaba', explain: 'Le décor du récit se pose à l\'imperfecto : « era de noche », « estaba tranquila ».' },
+  { lvl: 2, prompt: 'De repente, alguien ___ (llamar) a la puerta.', options: ['llamó', 'llamaba', 'llama', 'llamará'], answer: 'llamó', explain: '« De repente » annonce une action soudaine qui fait avancer le récit : indefinido.' },
+  { lvl: 2, prompt: 'Mientras ___ (leer), mi hermano ___ (entrar).', options: ['leía / entró', 'leí / entraba', 'leo / entra', 'leía / entraba'], answer: 'leía / entró', explain: 'L\'action longue en fond (imperfecto « leía ») est coupée par une action brève (indefinido « entró »).' },
+  { lvl: 2, prompt: 'Antes, mi abuela ___ (vivir) en Sevilla.', options: ['vivía', 'vivió', 'vive', 'vivirá'], answer: 'vivía', explain: '« Antes » et une situation durable : imperfecto, « vivía ».' },
+  { lvl: 3, prompt: 'En 2020 ___ (cambiar) de colegio.', options: ['cambié', 'cambiaba', 'cambio', 'cambiaría'], answer: 'cambié', explain: 'Une date précise et un fait accompli : indefinido, « cambié ».' },
+  { lvl: 3, prompt: 'Todos los veranos ___ (ir) a la playa con mis primos.', options: ['íbamos', 'fuimos', 'vamos', 'iremos'], answer: 'íbamos', explain: '« Todos los veranos » = répétition dans le passé : imperfecto, « íbamos » (ir est irrégulier : iba, ibas, iba…).' },
+  { lvl: 3, prompt: 'Aquel día ___ (hacer) mucho frío y no ___ (salir).', options: ['hacía / salí', 'hizo / salía', 'hacía / salía', 'hizo / salí'], answer: 'hacía / salí', explain: 'Le temps qu\'il faisait = décor (imperfecto « hacía ») ; la décision de ne pas sortir = fait (indefinido « salí »).' },
+  { lvl: 3, prompt: 'Mi madre me ___ (decir) que ___ (tener) que estudiar.', options: ['dijo / tenía', 'decía / tuvo', 'dice / tiene', 'dijo / tuvo'], answer: 'dijo / tenía', explain: 'Elle l\'a dit une fois (indefinido « dijo ») ; l\'obligation dure (imperfecto « tenía »).' },
+  { lvl: 2, prompt: '¿Qué tiempo cuenta el decorado de un recuerdo (la hora, el tiempo, los sentimientos)?', options: ['el imperfecto', 'el indefinido', 'el presente', 'el futuro'], answer: 'el imperfecto', explain: 'L\'imperfecto pose le cadre ; l\'indefinido fait avancer l\'histoire.' },
+];
+LangGame({ id: '2d-64-es-recuerdo', code: '2D·64', title: 'Español: contar un recuerdo', lang: 'es', mode: 'mcq', duree: '7 min', domain: { label: 'Espagnol', color: '#A3154F' },
+  intro: { greet: 'Un recuerdo se cuenta con dos pasados.', rule: 'Indefinido pour l\'action finie et datée, imperfecto pour le décor, l\'habitude, la durée. Tu choisis la forme qui convient.', how: ['Lis la phrase et cherche l\'indice : ayer, de repente, todos los días, mientras…', 'Décide : action brève et finie, ou décor et habitude ?', 'Choisis la forme verbale.'], objectif: 'Choisir entre indefinido et imperfecto pour raconter un souvenir.', hint: 'ayer, de repente, en 2020 = indefinido ; antes, mientras, todos los días = imperfecto.', why: 'Raconter un souvenir, c\'est la base d\'un récit, d\'une lettre, d\'un exposé.' },
+  learned: ['Indefinido : action passée, finie, datée (ayer comí).', 'Imperfecto : décor, habitude, durée (antes vivía).', 'Mientras + imperfecto, coupé par un indefinido.'], rounds });
+</script></body></html>

@@ -829,5 +829,60 @@ window.JEUX = [
    "physique-chimie:L05"
   ],
   "apprend": "Aéronautique · Physique"
- }
+ },
+{
+ "id": "2d-60-cosinus-viser",
+ "type": "2d",
+ "url": "learning/games-2d/2d-60-cosinus-viser.html",
+ "titre": "Viser un angle avec le cosinus",
+ "ico": "📐",
+ "lecons": [
+  "maths:L13"
+ ],
+ "apprend": "Cosinus, côté adjacent, hypoténuse, cos⁻¹"
+},
+{
+ "id": "2d-61-echo-distance",
+ "type": "2d",
+ "url": "learning/games-2d/2d-61-echo-distance.html",
+ "titre": "L'écho et la distance",
+ "ico": "🔊",
+ "lecons": [
+  "physique-chimie:L09"
+ ],
+ "apprend": "Vitesse du son, écho, fréquences, niveau sonore"
+},
+{
+ "id": "2d-62-ville-procedes",
+ "type": "2d",
+ "url": "learning/games-2d/2d-62-ville-procedes.html",
+ "titre": "La ville : repérer les procédés",
+ "ico": "🏙️",
+ "lecons": [
+  "francais:L11"
+ ],
+ "apprend": "Personnification, énumération, contraste, regards sur la ville"
+},
+{
+ "id": "2d-63-en-opinions",
+ "type": "2d",
+ "url": "learning/games-2d/2d-63-en-opinions.html",
+ "titre": "English: opinions and reasons",
+ "ico": "💬",
+ "lecons": [
+  "anglais-lv1:L06"
+ ],
+ "apprend": "I think, because, however, in my opinion"
+},
+{
+ "id": "2d-64-es-recuerdo",
+ "type": "2d",
+ "url": "learning/games-2d/2d-64-es-recuerdo.html",
+ "titre": "Español: contar un recuerdo",
+ "ico": "📖",
+ "lecons": [
+  "espagnol-lv2:L06"
+ ],
+ "apprend": "Indefinido et imperfecto dans un récit"
+}
 ];

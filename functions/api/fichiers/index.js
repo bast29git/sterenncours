@@ -99,6 +99,6 @@ export const onRequestPost = gerer(async (context) => {
   ).bind(ligne.id, ligne.nom, ligne.type, ligne.taille, ligne.cle_r2,
     ligne.auteur, ligne.matiere, ligne.ref, ligne.note, ligne.cree_le).run();
 
-  const { cle_r2: _, ...publique } = ligne;
+  const publique = { ...ligne }; delete publique.cle_r2;
   return json(publique, 201);
 });

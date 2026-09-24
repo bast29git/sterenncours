@@ -1,5 +1,5 @@
 /* ============================================================
-   KONSTRIO — Coquille de jeu commune (game shell)
+   KONSTRIO : Coquille de jeu commune (game shell)
    Dépend de : tokens.css + konstrio.js
    Usage dans un jeu :
      const shell = Konstrio.createGame({ id, code, title, type, domain, intro, learned, onStart, ... });
@@ -26,7 +26,8 @@
   .ksh-mode b { width: 7px; height: 7px; border-radius: 999px; background: var(--brand-teal); }
   .ksh-mode[data-mode="cours"] b { background: var(--accent); }
   .ksh-btns { display: flex; gap: 6px; }
-  .ksh-ib { width: 40px; height: 40px; border-radius: 11px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); cursor: pointer; display: grid; place-items: center; transition: transform .12s, background .2s; flex: none; }
+  .ksh-b:focus-visible, .ksh-ib:focus-visible, .ksh-mode:focus-visible, .ksh-back:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .ksh-ib { width: 44px; height: 44px; border-radius: 11px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); cursor: pointer; display: grid; place-items: center; transition: transform .12s, background .2s; flex: none; }
   .ksh-ib:hover { transform: translateY(-1px); background: var(--surface-2); }
   .ksh-ib:focus-visible { outline: none; box-shadow: var(--ring); }
   .ksh-ib svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -65,6 +66,16 @@
   .ksh-apprendre h4 { font-size: 13px; font-family: var(--font-title); margin: 0 0 6px; color: var(--accent-text); }
   .ksh-apprendre ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.5; }
   .ksh-seuils { text-align: center; font-size: 12.5px; color: var(--fg-muted); margin: 0 0 14px; line-height: 1.5; }
+  .ksh-chargement { position: absolute; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--bg); }
+  .ksh-chargement[hidden] { display: none; }
+  .ksh-chargement .ksh-card { text-align: center; }
+  .ksh-chargement .progress { width: 100%; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin: 14px 0; }
+  .ksh-chargement .progress i { display: block; height: 100%; width: 10%; background: var(--accent); transition: width .3s; }
+  .ksh-conseil { color: var(--fg-muted); font-size: 14px; line-height: 1.5; }
+  .ksh-diff { display: flex; gap: 6px; margin: 0 0 16px; flex-wrap: wrap; align-items: center; }
+  .ksh-diff span { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-muted); margin-right: 4px; }
+  .ksh-diff button { font-family: var(--font-body); font-weight: 700; font-size: 13px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); cursor: pointer; }
+  .ksh-diff button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
   .ksh-finscore { font-family: var(--font-data); font-weight: 700; font-size: 40px; text-align: center; line-height: 1; }
   .ksh-finlabel { text-align:center; font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 4px; }
   @media (max-width: 640px) {
@@ -131,6 +142,7 @@
         </div>
       </header>
       <main class="ksh-stage" tabindex="-1"></main>
+      <div class="ksh-chargement" role="status" aria-live="polite"><div class="ksh-card"><h2 class="ksh-h">${cfg.title || 'Chargement'}</h2><div class="progress"><i></i></div><p class="ksh-conseil" id="ksh-conseil">Le jeu se prépare…</p></div></div>
       <div class="ksh-screen ksh-accueil"></div>
       <div class="ksh-screen ksh-pause" hidden></div>
       <div class="ksh-screen ksh-fin" hidden></div>
@@ -157,13 +169,17 @@
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || .12, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
       o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + .02);
     }
+    // D20 : quatre sons, ceux de l'identité sonore commune quand le moteur audio est chargé.
+    const COMMUN = { click: 'clic', good: 'indice', bad: 'erreur', win: 'bravo', tick: 'clic', pop: 'indice' };
+    const commun = (k) => { if (muted || !window.KonstrioAudio || !window.KonstrioAudio.play) return false; try { window.KonstrioAudio.play(COMMUN[k] || k); return true; } catch (e) { return false; } };
+    const vibrer = (ms) => { try { if (navigator.vibrate && !muted) navigator.vibrate(ms); } catch (e) { /* pas de retour haptique */ } };
     const SND = {
-      click: () => tone(440, .06, 'triangle', .07),
-      good: () => { tone(660, .12, 'sine', .12); tone(990, .16, 'sine', .1, .08); },
-      bad: () => { tone(180, .22, 'sawtooth', .09); },
-      win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .3, 'sine', .12, i * .1)),
-      tick: () => tone(880, .03, 'square', .04),
-      pop: () => tone(520, .08, 'sine', .08),
+      click: () => commun('click') || tone(440, .06, 'triangle', .07),
+      good: () => { vibrer(15); if (!commun('good')) { tone(660, .12, 'sine', .12); tone(990, .16, 'sine', .1, .08); } },
+      bad: () => { vibrer([20, 40, 20]); if (!commun('bad')) tone(180, .22, 'sawtooth', .09); },
+      win: () => { vibrer([30, 40, 30]); if (!commun('win')) [523, 659, 784, 1047].forEach((f, i) => tone(f, .3, 'sine', .12, i * .1)); },
+      tick: () => commun('tick') || tone(880, .03, 'square', .04),
+      pop: () => commun('pop') || tone(520, .08, 'sine', .08),
     };
     function syncSound() { $('.ksh-sound').innerHTML = muted ? ICON.mute : ICON.sound; }
     syncSound();
@@ -176,7 +192,12 @@
     const timer = {
       show(up) { tUp = !!up; $('.ksh-timer-wrap').hidden = false; },
       set(s) { tSec = s; $('.ksh-timer').textContent = fmt(s); },
-      start() { if (tInt) return; $('.ksh-timer-wrap').hidden = false; tInt = setInterval(() => { tSec += tUp ? 1 : -1; if (!tUp && tSec <= 0) { tSec = 0; this.stop(); if (api.onTimeout) api.onTimeout(); } $('.ksh-timer').textContent = fmt(tSec); }, 1000); },
+      start() {
+        if (tInt) return;
+        // D7 : en temps libre (panneau de confort), le chronomètre compte, il ne menace pas.
+        if (document.documentElement.getAttribute('data-confort-temps') === 'libre' && !tUp) { tUp = true; tSec = 0; }
+        $('.ksh-timer-wrap').hidden = false; tInt = setInterval(() => { tSec += tUp ? 1 : -1; if (!tUp && tSec <= 0) { tSec = 0; this.stop(); if (api.onTimeout) api.onTimeout(); } $('.ksh-timer').textContent = fmt(tSec); }, 1000);
+      },
       stop() { clearInterval(tInt); tInt = null; },
       reset(s) { this.stop(); tSec = s || 0; $('.ksh-timer').textContent = fmt(tSec); },
       get value() { return tSec; },
@@ -201,6 +222,23 @@
       load(k, d) { return (k in saved) ? saved[k] : d; },
       win(o) { showFin(true, o || {}); },
       lose(o) { showFin(false, o || {}); },
+      /* D22 : progression du chargement, avec un conseil de la leçon. */
+      chargement(fraction, texte) { const c = $('.ksh-chargement'); if (!c) return; if (fraction >= 1) { c.hidden = true; return; } c.hidden = false; c.querySelector('.progress i').style.width = Math.max(5, Math.min(100, fraction * 100)) + '%'; if (texte) $('#ksh-conseil').textContent = texte; },
+      /* D10 : la difficulté choisie avant de jouer, mémorisée par jeu (1 facile, 2 moyen, 3 expert). */
+      get difficulte() { return Number(saved.diff) || 2; },
+      /* D28 : une graine de tirage ; « même tirage » la reprend. */
+      graine() { if (!api._graine) api._graine = Math.floor(Math.random() * 1e9); return api._graine; },
+      nouvelleGraine() { api._graine = Math.floor(Math.random() * 1e9); return api._graine; },
+      aleatoire(graine) { let x = (graine || api.graine()) >>> 0; return () => { x = (x + 0x6D2B79F5) >>> 0; let t = x; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; },
+      /* D24 : les questions ratées en série pour la leçon servie (indices dans la banque), lues dans le profil. */
+      aRevoir() {
+        return leconServie().then((lecons) => fetch('/api/etat', { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+          const tout = d && d.profil && d.profil['moi.arevoir'] || {};
+          const idx = [];
+          lecons.forEach((l) => { const e = tout[l.mid + '/' + l.ref]; if (e && Array.isArray(e.idx)) idx.push(...e.idx); });
+          return idx;
+        }).catch(() => []));
+      },
     };
 
     /* ---------- écran Accueil : le même pour tous les jeux ---------- */
@@ -260,6 +298,10 @@
             <button class="ksh-b ksh-play-autre" title="${modeParDefaut === 'cours' ? 'Sans les questions du cours' : 'Avec les questions du cours'}">${modeParDefaut === 'cours' ? '🌿 Plutôt en détente' : '🎓 Plutôt en mode cours'}</button>
           </div>
         </div>`;
+      const diffActuelle = Number(saved.diff) || 2;
+      $('.ksh-obj, .ksh-row').insertAdjacentHTML('beforebegin', `<div class="ksh-diff" role="group" aria-label="Difficulté"><span>Difficulté</span>${[['1', 'Facile'], ['2', 'Moyen'], ['3', 'Expert']].map(([v, t]) => `<button type="button" data-diff="${v}" aria-pressed="${String(diffActuelle) === v}">${t}</button>`).join('')}</div>`);
+      root.querySelectorAll('[data-diff]').forEach((b) => { b.onclick = () => { api.save({ diff: Number(b.getAttribute('data-diff')) }); root.querySelectorAll('[data-diff]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); if (cfg.onDifficulte) cfg.onDifficulte(Number(b.getAttribute('data-diff')), api); }; });
+      api.chargement(1);
       $('.ksh-play').onclick = () => begin(modeParDefaut);
       $('.ksh-play-autre').onclick = () => begin(modeParDefaut === 'cours' ? 'detente' : 'cours');
       $('.ksh-acc-instr').onclick = showInstr;
@@ -268,6 +310,8 @@
         if (!lecons.length) { zone.innerHTML = '<span class="ksh-lecon-attente">Jeu libre, hors programme.</span>'; return; }
         zone.innerHTML = 'Leçon servie : ' + lecons.map((l) => `<a class="ksh-lecon-lien" href="${l.url}">${l.icone} ${esc(l.titre)}</a>`).join(' · ');
         const notions = [...new Set(lecons.flatMap((l) => l.notions))].slice(0, 3);
+        api.notionsLecon = notions; api.lienFiche = lecons[0] ? lecons[0].url : null;
+        const conseil = $('#ksh-conseil'); if (conseil && notions.length) conseil.textContent = 'Dans cette leçon : ' + notions.join(', ') + '.';
         const app = $('#ksh-apprendre');
         if (app && notions.length) { app.hidden = false; app.innerHTML = `<h4>📘 Ce que tu vas apprendre</h4><ul>${notions.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>`; }
       });
@@ -284,6 +328,8 @@
       setMode(m);
       $('.ksh-accueil').hidden = true;
       started = true; paused = false;
+      // D12 : un compteur discret du temps de jeu, si le jeu n'en affiche pas lui-même.
+      setTimeout(() => { if (started && $('.ksh-timer-wrap').hidden) { timer.show(true); timer.reset(0); timer.start(); } }, 800);
       try { ac() && ac().resume && ac().resume(); } catch (e) {}
       if (cfg.onStart) cfg.onStart(m, api);
       // Prévisibilité (profil autisme/TSA) : annoncer « ce qui va se passer »
@@ -340,7 +386,7 @@
       if (cfg.onQuit) { try { cfg.onQuit(api); } catch (e) {} }
       liberer3d();
       // Retour CONTEXTUEL au HUB éducatif (et non la vitrine ni l'accueil brut).
-      // Priorité 1 : le referrer interne /learning* — il conserve la query string
+      // Priorité 1 : le referrer interne /learning* : il conserve la query string
       // (?view=…&mat=…) que le hub SPA encode → on revient à la BONNE vue.
       try {
         const ref = document.referrer ? new URL(document.referrer) : null;
@@ -382,8 +428,8 @@
       const best = api.load('best', 0); const sc = o.score != null ? o.score : 0;
       if (sc > best) api.save({ best: sc });
       // Sync best-effort du score → Konstrio (D1 tenant-scopé). N'altère jamais le jeu (mode public/hors-ligne).
-      if (won || o.score != null) { try { fetch('/api/learning/game-score', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ gameId: cfg.id, title: cfg.title, score: Math.round(sc), stars: stars, won: !!won, lowerIsBetter: !!cfg.lowerIsBetter }) }).catch(function () {}); } catch (e) {} }
-      const learned = o.learned || cfg.learned || [];
+      if (won || o.score != null) { try { fetch('/api/learning/game-score', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ gameId: cfg.id, title: cfg.title, score: Math.round(sc), stars: stars, won: !!won, lowerIsBetter: !!cfg.lowerIsBetter, mode, detail: o.detail || null }) }).catch(function () {}); } catch (e) {} }
+      const learned = (o.learned || cfg.learned || []).length ? (o.learned || cfg.learned) : (api.notionsLecon || []).map((n) => 'Cette partie travaille : ' + n + '.');
       $('.ksh-fin').innerHTML = `
         <div class="ksh-card" role="dialog" aria-label="Fin de partie">
           <div class="ksh-fin-stars">${star(stars >= 1) + star(stars >= 2) + star(stars >= 3)}</div>
@@ -395,6 +441,8 @@
           <div class="ksh-row" style="justify-content:center">
             <button class="ksh-b primary ksh-frestart">↺ Rejouer</button>
             ${o.onNext ? `<button class="ksh-b ksh-fnext">${o.nextLabel || 'Niveau suivant'} ▸</button>` : ''}
+            ${o.memeTirage ? '<button class="ksh-b ksh-fmeme" title="La même série de questions, dans le même ordre">Même tirage</button>' : ''}
+            ${api.lienFiche ? `<a class="ksh-b" href="${api.lienFiche}">Revenir à la fiche</a>` : ''}
             <button class="ksh-b ksh-fquit">Quitter</button>
           </div>
         </div>`;
@@ -404,6 +452,7 @@
       $('.ksh-frestart').onclick = restart;
       $('.ksh-fquit').onclick = quit;
       if (o.onNext) $('.ksh-fnext').onclick = () => { $('.ksh-fin').hidden = true; o.onNext(); };
+      if (o.memeTirage) $('.ksh-fmeme').onclick = () => { $('.ksh-fin').hidden = true; o.memeTirage(); };
     }
 
     /* ---------- HUD events ---------- */
@@ -422,6 +471,8 @@
     $('.ksh-full').onclick = () => { if (!document.fullscreenElement) root.requestFullscreen && root.requestFullscreen(); else document.exitFullscreen && document.exitFullscreen(); };
     root.querySelector('.ksh-pause');
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (paused) resume(); else if (started && $('.ksh-fin').hidden) showPause(); } });
+    // D21 : l'onglet perd le focus, le jeu se met en pause.
+    document.addEventListener('visibilitychange', () => { if (document.hidden && started && !paused && $('.ksh-fin').hidden && $('.ksh-accueil').hidden) showPause(); });
     buddy.addEventListener('hint', () => { if (cfg.onHint) cfg.onHint(api); else api.hint(cfg.intro && cfg.intro.hint ? cfg.intro.hint : 'Observe bien les indices à l\'écran !'); });
     buddy.addEventListener('why', () => { if (cfg.onWhy) cfg.onWhy(api); else api.say(cfg.intro && cfg.intro.why ? cfg.intro.why : 'Chaque bonne réponse renforce ta compréhension du sujet.', 'idee'); });
     buddy.addEventListener('mute-change', (e) => { muted = e.detail; syncSound(); });

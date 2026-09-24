@@ -15,7 +15,7 @@ export const onRequestGet = gerer(async (context) => {
 
   const [suivi, resultats, fiches, ouvertures, messages, reglages, felicitations, acces, profil, passees] = await Promise.all([
     DB.prepare('SELECT cle, niveau, note, maj_le, maj_par FROM suivi').all(),
-    DB.prepare('SELECT cle, justes, total, meilleur, series, maj_le FROM resultats').all(),
+    DB.prepare('SELECT cle, justes, total, meilleur, series, maj_le, detail FROM resultats').all().catch(() => DB.prepare('SELECT cle, justes, total, meilleur, series, maj_le FROM resultats').all()),
     DB.prepare('SELECT cle, termine_le FROM fiches_lues').all(),
     DB.prepare('SELECT cle, etat FROM ouvertures').all(),
     DB.prepare('SELECT COUNT(*) AS n FROM messages WHERE auteur != ? AND lu_le IS NULL AND (envoyer_le IS NULL OR envoyer_le <= ?)').bind(session.role, new Date().toISOString()).all()

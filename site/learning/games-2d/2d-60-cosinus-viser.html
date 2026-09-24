@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Opaline · Viser un angle avec le cosinus</title><link rel="icon" href="../assets/favicon-512.png"/>
+<link rel="stylesheet" href="../tokens.css"/><script src="../konstrio.js"></script><script src="../shell.js"></script><script src="../quiz-engine.js"></script>
+<style>.tri{width:min(300px,80vw);height:auto;display:block;margin:0 auto 8px}.tri text{font-family:var(--font-data);font-size:15px;font-weight:700;fill:var(--fg)}.tri .h{stroke:var(--accent);stroke-width:4}.tri .a{stroke:var(--brand-violet);stroke-width:4}.tri .o{stroke:var(--fg-muted);stroke-width:3}</style></head>
+<body><script>
+/* Le cosinus d'un angle aigu : cos(α) = côté adjacent ÷ hypoténuse. Une échelle contre un mur :
+   l'hypoténuse est l'échelle, le côté adjacent est la distance du pied au mur. */
+function figure(a, h, angle, montrerAngle) {
+  const o = Math.sqrt(h * h - a * a);
+  const k = 220 / Math.max(a, o, h) * 0.9;
+  const x0 = 30, y0 = 230, xa = x0 + a * k, yo = y0 - o * k;
+  return `<svg class="tri" viewBox="0 0 320 260" aria-label="Triangle rectangle : échelle contre un mur"><line class="a" x1="${x0}" y1="${y0}" x2="${xa}" y2="${y0}"/><line class="o" x1="${xa}" y1="${y0}" x2="${xa}" y2="${yo}"/><line class="h" x1="${x0}" y1="${y0}" x2="${xa}" y2="${yo}"/><rect x="${xa - 14}" y="${y0 - 14}" width="14" height="14" fill="none" stroke="var(--fg-muted)"/><text x="${(x0 + xa) / 2 - 24}" y="${y0 + 22}">adjacent ${a} m</text><text x="${(x0 + xa) / 2 - 40}" y="${(y0 + yo) / 2 - 8}">hypoténuse ${h} m</text><text x="${x0 + 26}" y="${y0 - 10}">${montrerAngle ? 'α = ' + angle + '°' : 'α'}</text></svg>`;
+}
+const arrondi = (x, n) => Number(x.toFixed(n));
+/* Des couples (adjacent, hypoténuse) qui donnent des angles nets. */
+const CAS = [[3, 5, 53], [4, 5, 37], [5, 10, 60], [8.7, 10, 30], [7.1, 10, 45], [6, 10, 53], [9.4, 10, 20], [1, 2, 60], [3.5, 5, 46], [2, 4, 60], [12, 13, 23], [5, 13, 67], [2.5, 5, 60], [8, 10, 37]];
+const rounds = [];
+CAS.forEach(([a, h, angle], i) => {
+  const cosv = arrondi(a / h, 2);
+  // Niveau 1 : quel côté est l'adjacent ? Niveau 2 : la valeur du cosinus. Niveau 3 : l'angle avec cos⁻¹.
+  if (i % 3 === 0) rounds.push({ lvl: 1, visual: figure(a, h, angle, false), prompt: `L'échelle mesure ${h} m, son pied est à ${a} m du mur. Quel est le côté <b>adjacent</b> à l'angle α ?`, options: [`le côté de ${a} m (au sol)`, `le côté de ${h} m (l'échelle)`, 'le côté vertical (le mur)'], answer: `le côté de ${a} m (au sol)`, explain: `Le côté adjacent touche l'angle α sans être l'hypoténuse. L'hypoténuse est l'échelle (${h} m), en face de l'angle droit.` });
+  else if (i % 3 === 1) rounds.push({ lvl: 2, visual: figure(a, h, angle, false), prompt: `Adjacent ${a} m, hypoténuse ${h} m. Que vaut <b>cos(α)</b> (arrondi au centième) ?`, options: [String(cosv).replace('.', ','), String(arrondi(h / a, 2)).replace('.', ','), String(arrondi(Math.sqrt(h * h - a * a) / h, 2)).replace('.', ','), String(arrondi(a / (h + a), 2)).replace('.', ',')], answer: String(cosv).replace('.', ','), explain: `cos(α) = adjacent ÷ hypoténuse = ${a} ÷ ${h} = ${String(cosv).replace('.', ',')}. Un cosinus est toujours entre 0 et 1.` });
+  else rounds.push({ lvl: 3, visual: figure(a, h, angle, false), prompt: `Adjacent ${a} m, hypoténuse ${h} m. Quel est l'angle <b>α</b> (au degré près) ?`, options: [`${angle}°`, `${90 - angle}°`, `${Math.min(89, angle + 15)}°`, `${Math.max(5, angle - 12)}°`], answer: `${angle}°`, explain: `cos(α) = ${a} ÷ ${h} = ${String(cosv).replace('.', ',')}, donc α = cos⁻¹(${String(cosv).replace('.', ',')}) ≈ ${angle}°. Sur la calculatrice : touche cos⁻¹ (ou arccos), en degrés.` });
+});
+rounds.push({ lvl: 1, prompt: 'Dans un triangle rectangle, le cosinus d\'un angle aigu est toujours…', options: ['entre 0 et 1', 'plus grand que 1', 'négatif', 'égal à 90'], answer: 'entre 0 et 1', explain: 'L\'adjacent est plus court que l\'hypoténuse : leur quotient est plus petit que 1.' });
+rounds.push({ lvl: 2, prompt: 'Une échelle de 6 m fait un angle de 60° avec le sol. À quelle distance du mur est son pied ? (cos 60° = 0,5)', options: ['3 m', '6 m', '12 m', '0,5 m'], answer: '3 m', explain: 'adjacent = hypoténuse × cos(α) = 6 × 0,5 = 3 m.' });
+QuizGame({ id: '2d-60-cosinus-viser', code: '2D·60', title: 'Viser un angle avec le cosinus', duree: '8 min', domain: { label: 'Mathématiques', color: '#2E7FC2' },
+  intro: { greet: 'Une échelle contre un mur : le cosinus dit où poser son pied.', rule: 'Pour chaque triangle rectangle, tu identifies le côté adjacent, tu calcules le cosinus, puis tu retrouves l\'angle.', how: ['Regarde la figure : l\'échelle est l\'hypoténuse, le sol est le côté adjacent.', 'Calcule cos(α) = adjacent ÷ hypoténuse.', 'Pour l\'angle, utilise cos⁻¹ sur la calculatrice, en degrés.'], objectif: 'Calculer un cosinus et retrouver un angle dans un triangle rectangle.', hint: 'Adjacent : le côté qui touche l\'angle, sans être l\'hypoténuse.', why: 'Le cosinus sert à poser une échelle, tracer une pente, viser une hauteur.' },
+  learned: ['cos(α) = adjacent ÷ hypoténuse, toujours entre 0 et 1.', 'adjacent = hypoténuse × cos(α).', 'α = cos⁻¹(adjacent ÷ hypoténuse), calculatrice en degrés.'], perRun: 10, rounds });
+</script></body></html>
