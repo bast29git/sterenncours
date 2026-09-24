@@ -12,7 +12,7 @@ import { lireAcces, accesOuvert } from './api/acces.js';
 // contenu pédagogique, ni donnée de suivi. Les modules de vue, les données
 // du programme et toutes les API restent derrière la session.
 const PUBLIC_EXACT = new Set([
-  '/', '/index.html', '/socle.css', '/portail.css', '/eleve.css', '/prof.css',
+  '/', '/index.html', '/socle.css', '/portail.css', '/eleve.css', '/calme.css', '/prof.css',
   '/lecture.css', '/app.js', '/favicon.svg', '/favicon.ico', '/manifeste.json',
   '/robots.txt', '/api/connexion', '/api/moi',
 ]);
