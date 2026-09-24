@@ -96,8 +96,10 @@ async function baseD1() {
 }
 
 async function migrerD1(idBase) {
-  const fichier = path.join(RACINE, 'migrations', '0001-schema.sql');
-  const sql = fs.readFileSync(fichier, 'utf8');
+  // Toutes les migrations, dans l'ordre de leur numéro : chacune est rejouable.
+  const dossier = path.join(RACINE, 'migrations');
+  const sql = fs.readdirSync(dossier).filter((f) => f.endsWith('.sql')).sort()
+    .map((f) => fs.readFileSync(path.join(dossier, f), 'utf8')).join('\n');
   const instructions = sql
     .split(';')
     .map((s) => s.split('\n').filter((l) => !l.trim().startsWith('--')).join('\n').trim())

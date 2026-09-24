@@ -3,17 +3,19 @@
  * Le site l'appelle au démarrage puis après chaque modification.
  */
 import { json, gerer, exigerSession } from '../_commun.js';
+import { lireReglages } from './reglages.js';
 
 export const onRequestGet = gerer(async (context) => {
   const session = await exigerSession(context);
   const { DB } = context.env;
 
-  const [suivi, resultats, fiches, ouvertures, messages] = await Promise.all([
+  const [suivi, resultats, fiches, ouvertures, messages, reglages] = await Promise.all([
     DB.prepare('SELECT cle, niveau, note, maj_le, maj_par FROM suivi').all(),
     DB.prepare('SELECT cle, justes, total, meilleur, series, maj_le FROM resultats').all(),
     DB.prepare('SELECT cle, termine_le FROM fiches_lues').all(),
     DB.prepare('SELECT cle, etat FROM ouvertures').all(),
     DB.prepare('SELECT COUNT(*) AS n FROM messages WHERE auteur != ? AND lu_le IS NULL').bind(session.role).all(),
+    lireReglages(DB),
   ]);
 
   const enObjet = (lignes, cleChamp) => {
@@ -31,6 +33,7 @@ export const onRequestGet = gerer(async (context) => {
     resultats: enObjet(resultats.results || [], 'cle'),
     fiches: enObjet(fiches.results || [], 'cle'),
     ouvertures: enObjet(ouvertures.results || [], 'cle'),
+    reglages,
     messagesNonLus: (messages.results && messages.results[0] && messages.results[0].n) || 0,
   });
 });

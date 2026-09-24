@@ -740,3 +740,7 @@ body.corps-eleve {
 }
 .e-filtre-jeux a.actif { color: #fff; background: var(--e-vif); border-color: var(--e-vif); }
 .e-tuiles-jeux li.gagne a { border-color: var(--e-vif); box-shadow: 0 0 0 2px color-mix(in srgb, var(--e-vif) 30%, transparent), var(--e-ombre); }
+
+/* ---------- Réglages professeur portés par <html> --------------------------- */
+/* Points de pause désactivés : les blocs disparaissent des fiches lues à l'écran. */
+html[data-pauses="0"] .eleve .bloc-pause { display: none; }

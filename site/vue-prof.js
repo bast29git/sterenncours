@@ -45,6 +45,7 @@
       titre: 'Outils',
       items: [
         { route: 'planning', ico: 'ic-etincelle', texte: 'Générateur d\'année' },
+        { route: 'reglages', ico: 'ic-reglage', texte: 'Réglages' },
       ],
     },
   ];
@@ -1429,6 +1430,55 @@
     return undefined;
   }
 
+  /* ---------- Réglages : ce que Sterenn voit ---------------------------------- */
+  const REGLAGES_TEXTES = {
+    pauses: ['Points de pause dans les fiches',
+      'Les blocs « Pause conseillée » qui rythment chaque fiche. Désactivés, ils disparaissent de l\'écran de Sterenn ; ils restent dans les PDF.'],
+    tuteur: ['Opale, la tutrice, dans tout l\'espace de Sterenn',
+      'Le bouton Opale est présent sur chaque écran. Elle guide sans donner les réponses et connaît le programme et la leçon ouverte.'],
+    calculatrice: ['Calculatrice d\'Opale',
+      'Une calculatrice simple dans le panneau d\'Opale. Elle est toujours coupée pendant une évaluation et dans les exercices de mathématiques.'],
+    reactions: ['Réactions animées sur les messages',
+      'Sterenn et toi pouvez réagir à un message avec une petite icône animée.'],
+    formatage: ['Mise en forme du texte dans les messages',
+      'Gras, italique et listes avec des étoiles et des tirets. Désactivée, les messages restent en texte simple.'],
+    fils: ['Fils de discussion par matière',
+      'La messagerie propose un fil par matière en plus du fil général.'],
+    felicitations: ['Message d\'encouragement automatique',
+      'Quand Sterenn réussit une série ou termine un monde 3D, Opale la félicite sur l\'écran, dans la limite d\'un message par réussite.'],
+  };
+
+  function vueReglages() {
+    const r = N.etat.reglages || {};
+    const lignes = Object.keys(REGLAGES_TEXTES).map((c) => {
+      const actif = c in r ? !!r[c] : !!N.REGLAGES_DEFAUT[c];
+      const [titre, aide] = REGLAGES_TEXTES[c];
+      return `<li>
+        <div class="p-reglage-texte"><b id="reg-${c}">${N.ech(titre)}</b><span>${N.ech(aide)}</span></div>
+        <button type="button" class="p-interrupteur" role="switch" aria-checked="${actif}" aria-labelledby="reg-${c}" data-cle="${c}">
+          <span class="p-interrupteur-texte">${actif ? 'Activé' : 'Désactivé'}</span></button>
+      </li>`;
+    }).join('');
+    afficher(entete('Réglages', 'Ce que Sterenn voit dans son espace. Chaque changement s\'applique chez elle en moins de trente secondes.')
+      + bloc('Affichage et aides', `<ul class="p-reglages">${lignes}</ul>`)
+      + bloc('Ce qui ne se règle pas ici', `<p class="p-aide">Les codes d\'accès, les palettes et le thème sombre appartiennent à chaque écran : Sterenn choisit sa palette et son thème elle-même, dans son espace.</p>`),
+    [{ t: 'Réglages' }]);
+    vue().querySelectorAll('.p-interrupteur').forEach((b) => b.addEventListener('click', async () => {
+      const cle = b.getAttribute('data-cle');
+      const valeur = b.getAttribute('aria-checked') !== 'true';
+      b.disabled = true;
+      try {
+        const d = await N.api('/reglages', { method: 'PUT', body: JSON.stringify({ cle, valeur }) });
+        N.etat.reglages = d.reglages || N.etat.reglages;
+        N.appliquerReglages();
+        b.setAttribute('aria-checked', String(valeur));
+        b.querySelector('.p-interrupteur-texte').textContent = valeur ? 'Activé' : 'Désactivé';
+        N.signaler(valeur ? 'Réglage activé.' : 'Réglage désactivé.', 'succes');
+      } catch (e) { N.signaler(e.message); }
+      b.disabled = false;
+    }));
+  }
+
   /* ---------- Routage ------------------------------------------------------- */
   function rendre(p) {
     brancherChromeUneFois();
@@ -1447,6 +1497,7 @@
       case 'exos': return vueExos(p[1], p[2]);
       case 'programme': return vueProgramme();
       case 'documents': return vueDocuments();
+      case 'reglages': return vueReglages();
       case 'recherche': return vueRecherche(p[1] ? decodeURIComponent(p.slice(1).join('/')) : '');
       default: return vueIntrouvable();
     }

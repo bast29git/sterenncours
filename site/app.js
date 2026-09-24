@@ -57,7 +57,21 @@
     role: null,
     suivi: {}, resultats: {}, fiches: {}, ouvertures: {}, messagesNonLus: 0,
     seances: [],
+    reglages: {},
   };
+  /** Valeurs par défaut des réglages professeur, si le serveur ne répond pas. */
+  const REGLAGES_DEFAUT = {
+    pauses: true, tuteur: true, calculatrice: true,
+    reactions: true, formatage: false, fils: true, felicitations: true,
+  };
+  const reglage = (c) => (c in etat.reglages ? etat.reglages[c] : REGLAGES_DEFAUT[c]);
+  /** Les réglages qui changent l'affichage sont portés par <html> : le CSS s'en sert. */
+  function appliquerReglages() {
+    const h = document.documentElement;
+    ['pauses', 'tuteur', 'calculatrice', 'reactions', 'formatage', 'fils'].forEach((c) => {
+      h.setAttribute('data-' + c, reglage(c) ? '1' : '0');
+    });
+  }
   let minuteur = null;
 
   /* ---------- Stockage local ------------------------------------------------ */
@@ -267,7 +281,7 @@
   function retourPortail() {
     etat.role = null;
     etat.suivi = {}; etat.resultats = {}; etat.fiches = {};
-    etat.ouvertures = {}; etat.seances = []; etat.messagesNonLus = 0;
+    etat.ouvertures = {}; etat.seances = []; etat.messagesNonLus = 0; etat.reglages = {};
     if (minuteur) { clearInterval(minuteur); minuteur = null; }
     location.hash = '';
     document.getElementById('code').value = '';
@@ -321,8 +335,10 @@
       etat.resultats = d.resultats || {};
       etat.fiches = d.fiches || {};
       etat.ouvertures = d.ouvertures || {};
+      etat.reglages = d.reglages || {};
       etat.messagesNonLus = d.messagesNonLus || 0;
       etat.role = d.role || etat.role;
+      appliquerReglages();
     } catch (e) {
       if (e.message !== 'Session expirée') signaler('Données indisponibles : ' + e.message);
     }
@@ -336,6 +352,10 @@
       const d = await api('/etat');
       const avant = etat.messagesNonLus;
       etat.messagesNonLus = d.messagesNonLus || 0;
+      if (d.reglages && JSON.stringify(d.reglages) !== JSON.stringify(etat.reglages)) {
+        etat.reglages = d.reglages;
+        appliquerReglages();
+      }
       if (etat.messagesNonLus !== avant) {
         vueActive().nav();
         if (etat.messagesNonLus > avant) signaler('Nouveau message.', 'info');
@@ -439,6 +459,7 @@
     jourIso, decaler, lundiDe, enFrancais, dateCourte, poids,
     chargerContenu, chargerSeances, chargerScript, rafraichirEtat, rafraichirSeances,
     majReussites, reussites, decision, reglementaire, router, lire, ecrire,
+    reglage, appliquerReglages, REGLAGES_DEFAUT,
     NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES, ic,
     appliquerTheme, appliquerPalette,
   };
