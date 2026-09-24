@@ -153,7 +153,7 @@ Ordre correct : **b**, **d**, **e**, **a**, **c**.
 :::
 
 ::: exercice 9 | entrainement | 7 min | main
-Construis une gradation en cinq étapes à partir de cette situation de départ : un bruit dans le grenier.
+Construis une gradation en cinq étapes à partir de cette situation de départ : un bruit dans le grenier. Yuzu entend un bruit dans la maison de l'ogre.
 
 ::: corrige
 Production attendue, à adapter :
@@ -282,7 +282,7 @@ Remarque : aucun de ces motifs n'est fantastique en lui-même. Ce qui les rend t
 ## Série D : écriture et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Rédige les cinq premières lignes d'un récit fantastique.
+Rédige les cinq premières lignes d'un récit fantastique. Le récit peut commencer dans l'apothicairerie de Maomao, un soir d'orage.
 Contraintes : une date précise, un lieu identifiable, un narrateur à la première personne, un ton neutre, et un tout dernier détail qui cloche légèrement.
 
 ::: corrige

@@ -34,7 +34,7 @@ objectifs:
 ## Série A : noyau et repérage
 
 ::: exercice 1 | application | 4 min | ecran
-Souligne le noyau de chaque groupe nominal.
+Souligne le noyau de chaque groupe nominal. Ces groupes nominaux viennent d'un manga que lit Sterenn.
 
 1. la grande table
 2. le chapeau de paille
@@ -106,7 +106,7 @@ Dans chaque phrase, indique si le groupe en gras est une **expansion du nom** ou
 :::
 
 ::: exercice 5 | entrainement | 6 min | main
-Voici un groupe nominal très développé.
+Maomao décrit un flacon de remède. Voici un groupe nominal très développé.
 `la vieille maison de pierre de mes grands-parents qui domine encore le village`
 
 1. Donne le noyau.
@@ -317,7 +317,7 @@ Analyse le groupe nominal suivant.
 ## Série D : rédaction et devoir type
 
 ::: exercice 17 | application | 6 min | main
-Enrichis chaque groupe nominal en ajoutant les trois expansions demandées.
+Enrichis chaque groupe nominal en ajoutant les trois expansions demandées. Décris les objets de l'atelier de papier de Myne.
 
 1. `un couloir` → ajoute un adjectif, puis un complément du nom, puis une relative.
 2. `une lampe` → même consigne.
@@ -333,7 +333,7 @@ Le critère de réussite : chaque ajout apporte une **information nouvelle**. Un
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-Voici une description pauvre.
+Voici une description pauvre. Il s'agit de la chambre de Yuzu dans la maison de l'ogre.
 
 « Il y avait une maison. Devant, il y avait un jardin. Dans le jardin, il y avait un arbre. »
 

@@ -326,7 +326,7 @@ Sur un quadrillage, on place `A(1 ; 1)`, `B(4 ; 1)`, `C(4 ; 3)` et leurs images 
 ## Série D : frises, pavages et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Observe une frise formée d'un motif en forme de `L` répété horizontalement, chaque motif étant décalé de 2 carreaux vers la droite, tous à l'endroit.
+Sterenn dessine aux feutres une frise pour la couverture de son carnet. Observe une frise formée d'un motif en forme de `L` répété horizontalement, chaque motif étant décalé de 2 carreaux vers la droite, tous à l'endroit.
 
 1. Quel est le motif de base ?
 2. Quelle transformation passe d'un motif au suivant ?

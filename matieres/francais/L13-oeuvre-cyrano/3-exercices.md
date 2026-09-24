@@ -57,7 +57,7 @@ Chaque acte change de lieu : c'est un repère pour retenir l'ordre.
 :::
 
 ::: exercice 3 | application | 3 min | ecran
-Dire si chaque énoncé est une réplique, une tirade, un aparté ou une didascalie :
+Dans un manga, les bulles jouent le rôle des répliques ; au théâtre, quatre termes se distinguent. Dire si chaque énoncé est une réplique, une tirade, un aparté ou une didascalie :
 a) *(à part, bas)* ; b) la longue liste des « Non, merci ! » adressée à Le Bret ; c) « Vous… vous avez un nez… heu… un nez… très grand. » ; d) Cyrano murmure pour lui seul ce que Roxane ne doit pas entendre.
 
 ::: corrige
@@ -84,7 +84,7 @@ Un **monologue** est prononcé par un personnage **seul** en scène, pour lui-m�
 :::
 
 ::: exercice 6 | application | 4 min | main
-À l'acte I, Cyrano compose une ballade pendant son duel et annonce : « À la fin de l'envoi, je touche. » Que montre cette scène sur le personnage ? Répondre en deux phrases.
+Dans les mangas que lit Sterenn, les héros annoncent souvent leur coup avant de le porter. À l'acte I, Cyrano compose une ballade pendant son duel et annonce : « À la fin de l'envoi, je touche. » Que montre cette scène sur le personnage ? Répondre en deux phrases.
 
 ::: corrige
 Elle montre que Cyrano est **à la fois** un bretteur et un poète : il se bat et il rime en même temps, sans se tromper. Elle montre aussi son **panache** : il annonce à l'avance le moment où il va toucher, et il tient parole, avec élégance et sans peur.
@@ -113,7 +113,7 @@ Il fait **rire** parce que Christian bafouille au début et que Roxane est tromp
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-À l'acte IV, Roxane dit à Christian qu'elle l'aimerait même laid. Pourquoi cette phrase bouleverse-t-elle Christian ? Que demande-t-il alors à Cyrano ?
+Yuzu, elle aussi, voudrait être aimée pour ce qu'elle est et non pour ce qu'on voit d'elle. À l'acte IV, Roxane dit à Christian qu'elle l'aimerait même laid. Pourquoi cette phrase bouleverse-t-elle Christian ? Que demande-t-il alors à Cyrano ?
 
 ::: corrige
 Roxane dit qu'elle aime son **âme**, c'est-à-dire les lettres et les mots. Or ces mots sont ceux de **Cyrano**. Christian comprend qu'elle aime, sans le savoir, un autre homme.

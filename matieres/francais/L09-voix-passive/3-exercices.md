@@ -72,7 +72,7 @@ Applique le test de l'agent à chaque phrase. Note « passif » ou « non ».
 :::
 
 ::: exercice 3 | application | 6 min | ecran
-Transforme ces phrases à la voix passive.
+Transforme ces phrases à la voix passive. Ces phrases décrivent le travail de l'atelier de papier de Myne.
 
 1. `Le vent a renversé l'arbre.`
 2. `Un architecte italien dessinera la nouvelle gare.`
@@ -247,7 +247,7 @@ Retiens la méthode : devant un passif sans agent dans un texte officiel, la que
 ## Série C : les trois règles d'accord
 
 ::: exercice 12 | application | 5 min | main
-Accorde le participe passé employé seul.
+Accorde le participe passé employé seul. Les mots viennent de l'apothicairerie de Maomao : remèdes, fioles, plantes.
 
 1. `(Fatigué) ………, elle s'assit sur un banc.`
 2. `Les fenêtres, (ouvert) ……… depuis l'aube, laissaient entrer le froid.`
@@ -345,7 +345,7 @@ Remarque que le texte mobilise les **trois règles**, et que l'expression `m'a d
 ## Série D : produire et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Écris six phrases de ton invention, une par consigne.
+Écris six phrases de ton invention, une par consigne. Tu peux prendre pour sujet les aurores boréales, ou un remède de Maomao.
 
 1. Une phrase active avec un COD.
 2. Sa transformation au passif, avec agent.

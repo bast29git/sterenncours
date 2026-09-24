@@ -70,7 +70,7 @@ Vrai ou faux ? Justifie chaque réponse en une phrase.
 :::
 
 ::: exercice 3 | application | 5 min | ecran
-Complète ce tableau comparatif.
+Maomao, apothicaire, connaît bien le corps humain. Complète ce tableau comparatif.
 
 | | Spermatozoïde | Ovule |
 |---|---|---|
@@ -145,7 +145,7 @@ Par convention, le jour 1 du cycle est le **premier jour des règles**. C'est un
 :::
 
 ::: exercice 7 | entrainement | 6 min | main
-Trois personnes ont des cycles de durées différentes : 24 jours, 28 jours et 33 jours.
+Maomao note les cycles de trois dames de la cour impériale. Trois personnes ont des cycles de durées différentes : 24 jours, 28 jours et 33 jours.
 
 Sachant que la phase qui suit l'ovulation dure environ 14 jours dans tous les cas :
 
@@ -210,7 +210,7 @@ Le critère est simple : les caractères **primaires** existent dès la naissanc
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Lis ces données réelles sur l'âge de début de la puberté.
+Yuzu et sa sœur n'ont pas grandi au même rythme. Lis ces données réelles sur l'âge de début de la puberté.
 
 ::: chiffres
 - âge moyen de début : environ **11 ans** chez les filles, **12 ans** chez les garçons
@@ -326,7 +326,7 @@ Cet exercice illustre un principe général en sciences : on choisit comme point
 ## Série D : maîtrise, comparaison et devoir type
 
 ::: exercice 17 | entrainement | 7 min | main
-Pour chaque méthode de contraception, indique sur quelle étape elle agit.
+Maomao, apothicaire, explique à une dame de la cour impériale les méthodes de contraception. Pour chaque méthode de contraception, indique sur quelle étape elle agit.
 
 1. La pilule. · 2. Le préservatif. · 3. Le dispositif intra-utérin. · 4. L'implant.
 

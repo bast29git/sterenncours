@@ -80,7 +80,7 @@ C'est la confusion la plus fréquente du chapitre. Retiens la règle d'exécutio
 :::
 
 ::: exercice 4 | application | 5 min | ecran
-Écris un algorithme qui demande deux nombres, calcule leur moyenne et l'affiche.
+Maomao veut un programme qui calcule la moyenne de deux mesures de remède. Écris un algorithme qui demande deux nombres, calcule leur moyenne et l'affiche.
 
 ::: corrige
 ```
@@ -142,7 +142,7 @@ Le point 2 est le piège : avec `≥`, le programme aurait affiché « grand ».
 :::
 
 ::: exercice 7 | entrainement | 6 min | main
-Écris un algorithme qui demande un nombre et affiche « positif », « nul » ou « négatif ».
+Pour ses relevés de température des nuits d'aurores boréales, Sterenn veut un programme simple. Écris un algorithme qui demande un nombre et affiche « positif », « nul » ou « négatif ».
 
 ::: corrige
 ```
@@ -392,7 +392,7 @@ Vérification : `12 = 3 × 4 + 0` et `7 = 3 × 2 + 1`. Les restes sont bien 0 et
 :::
 
 ::: exercice 16 | approfondissement | 8 min | main
-Écris un algorithme qui demande dix nombres et affiche le plus grand.
+Benno veut connaître la plus grosse vente de la semaine à l'atelier de papier. Écris un algorithme qui demande dix nombres et affiche le plus grand.
 
 ::: corrige
 ```
@@ -467,7 +467,7 @@ Vérification : pour `n = 6` et `c = 80`, le programme tourne de `360 ÷ 6 = 60�
 :::
 
 ::: exercice 19 | approfondissement | 8 min | main
-Écris un programme qui trace une suite de cinq carrés de tailles croissantes : 20, 40, 60, 80 et 100 pixels de côté, tous partant du même point.
+Sterenn programme le motif de la couverture de son carnet de dessins aux feutres. Écris un programme qui trace une suite de cinq carrés de tailles croissantes : 20, 40, 60, 80 et 100 pixels de côté, tous partant du même point.
 
 ::: corrige
 ```

@@ -215,7 +215,7 @@ Un radar de recul de voiture émet un ultrason et reçoit l'écho 0,01 s plus ta
 :::
 
 ::: exercice 17 | approfondissement | 8 min | main
-Le « la » du diapason vibre à 440 Hz. Combien de vibrations fait-il en 3 secondes ? En une minute ?
+Yuzu accorde son instrument pour la fête des ayakashi. Le « la » du diapason vibre à 440 Hz. Combien de vibrations fait-il en 3 secondes ? En une minute ?
 
 ::: corrige
 440 Hz signifie 440 vibrations **par seconde**.

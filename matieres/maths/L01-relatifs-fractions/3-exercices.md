@@ -257,7 +257,7 @@ Myne compte ses stocks de papier en fractions de rame et veut savoir lequel est 
 :::
 
 ::: exercice 13 | approfondissement | 10 min | main
-Dans une classe de 30 élèves, `2/5` des élèves font de l'espagnol, et `1/3` font de l'allemand. Les autres font une troisième langue.
+Dans la classe de Yuzu, qui compte 30 élèves, `2/5` des élèves font de l'espagnol, et `1/3` font de l'allemand. Les autres font une troisième langue.
 
 1. Combien d'élèves font de l'espagnol ?
 2. Combien font de l'allemand ?
@@ -326,7 +326,7 @@ Calcule ces expressions avec des fractions et des relatifs.
 :::
 
 ::: exercice 16 | approfondissement | 10 min | main
-Voici un calcul rendu par un élève. Trouve les erreurs, explique-les, et donne le résultat exact.
+Voici un calcul rendu par Lutz, l'élève de l'atelier de papier de Myne. Trouve les erreurs, explique-les, et donne le résultat exact.
 
 ```
 1/2 + 1/3 = 2/5
@@ -389,7 +389,7 @@ Un plongeur descend à `-24 m`. Il remonte de `9 m`, puis redescend de `15 m`.
 :::
 
 ::: exercice 19 | approfondissement | 12 min | main
-Une bibliothèque contient 240 livres.
+La bibliothèque du temple où travaille Myne contient 240 livres.
 `3/8` sont des romans, `1/4` sont des bandes dessinées, `1/6` sont des documentaires. Le reste, ce sont des revues.
 
 1. Calcule le nombre de romans, de bandes dessinées et de documentaires.

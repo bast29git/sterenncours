@@ -330,7 +330,7 @@ La **liste des vidéos regardées** en est une pour la même raison : un histori
 :::
 
 ::: exercice 15 | approfondissement | 10 min | main
-Une application de retouche photo est gratuite. À l'installation, elle demande l'accès aux photos, aux contacts, au micro et à la position.
+Sterenn installe une application pour retoucher les photos de ses dessins aux feutres. Une application de retouche photo est gratuite. À l'installation, elle demande l'accès aux photos, aux contacts, au micro et à la position.
 
 1. Quelles demandes te semblent justifiées par le service rendu ?
 2. Comment l'application est-elle financée ?
@@ -349,7 +349,7 @@ Une application de retouche photo est gratuite. À l'installation, elle demande 
 :::
 
 ::: exercice 16 | approfondissement | 10 min | main
-Tu veux publier sur un réseau social une photo de groupe prise à la fin d'un match, où huit personnes sont reconnaissables.
+Yuzu veut publier une photo de son club. Tu veux publier sur un réseau social une photo de groupe prise à la fin d'un match, où huit personnes sont reconnaissables.
 
 1. Quel droit est en jeu ?
 2. Que dois-tu faire avant de publier ?

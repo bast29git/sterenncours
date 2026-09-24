@@ -161,7 +161,7 @@ Choisis entre `be going to` et le présent continu.
 :::
 
 ::: exercice 9 | entrainement | 7 min | main
-Pour chaque situation, écris une phrase avec la forme qui convient, et justifie ton choix en français.
+Pour chaque situation, écris une phrase avec la forme qui convient, et justifie ton choix en français. Les situations peuvent concerner Yuzu, Myne ou Maomao.
 
 1. Tu viens de décider d'aider ton voisin à porter ses courses.
 2. Tu as acheté tes billets de train pour samedi à 9 h.
@@ -264,7 +264,7 @@ Justifications : A demande les intentions, donc `going to`. B a un rendez-vous a
 :::
 
 ::: exercice 15 | entrainement | 8 min | main
-Écris un dialogue de six répliques entre deux amis qui organisent une sortie.
+Écris un dialogue de six répliques entre deux amis qui organisent une sortie. Les deux amis peuvent organiser une sortie pour voir les aurores boréales.
 
 **Contraintes :** employer au moins une fois chacune des trois formes, et au moins une question.
 
@@ -285,7 +285,7 @@ Les trois formes apparaissent : `going to` pour l'intention, le présent continu
 :::
 
 ::: exercice 16 | approfondissement | 8 min | main
-Enregistre-toi en répondant à ces trois questions, à l'oral, sans lire.
+Enregistre-toi en répondant à ces trois questions, à l'oral, sans lire. Tu peux parler de tes mangas, de tes feutres ou des aurores boréales.
 
 1. `What are you going to do this weekend?`
 2. `What do you think the weather will be like tomorrow?`
@@ -305,7 +305,7 @@ Réponses attendues, à comparer à l'enregistrement :
 ## Série D : production et devoir type
 
 ::: exercice 17 | entrainement | 10 min | main
-Écris cinq phrases sur tes projets pour les prochaines vacances.
+Écris cinq phrases sur tes projets pour les prochaines vacances. Par exemple : un voyage vers les aurores boréales, un stage de dessin aux feutres.
 
 **Contraintes :** employer les trois formes au moins une fois, et deux expressions de temps de la liste du cours.
 

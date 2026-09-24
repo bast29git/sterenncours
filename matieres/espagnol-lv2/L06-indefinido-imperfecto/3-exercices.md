@@ -34,7 +34,7 @@ objectifs:
 ## Série A : les deux conjugaisons
 
 ::: exercice 1 | application | 5 min | ecran
-Conjugue à l'indefinido, aux six personnes.
+Conjugue à l'indefinido, aux six personnes. Ces formes serviront à raconter une histoire de manga.
 
 1. `hablar` · 2. `comer` · 3. `vivir`
 
@@ -200,7 +200,7 @@ Remarque que le français fait exactement la même distinction : là où il empl
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Écris six phrases de ton invention, une par consigne.
+Écris six phrases de ton invention, une par consigne. Tu peux raconter un souvenir de Yuzu ou de Myne.
 
 1. Une description à l'imperfecto.
 2. Une habitude passée à l'imperfecto.
@@ -312,7 +312,7 @@ Voici cinq phrases fausses. Corrige chacune et nomme le piège concerné.
 ## Série D : raconter et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Raconte un souvenir en dix lignes, en suivant la méthode en cinq étapes : situer le cadre, décrire, raconter l'événement déclencheur, enchaîner les actions, conclure.
+Raconte un souvenir en dix lignes, en suivant la méthode en cinq étapes : situer le cadre, décrire, raconter l'événement déclencheur, enchaîner les actions, conclure. Ou raconte la première nuit d'aurores boréales de Sterenn.
 
 ::: corrige
 Exemple de réponse attendue.

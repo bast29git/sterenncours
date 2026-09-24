@@ -34,7 +34,7 @@ objectifs:
 ## Série A : construire le temps
 
 ::: exercice 1 | application | 4 min | ecran
-Donne le participe passé de chaque verbe.
+Donne le participe passé de chaque verbe. Ces verbes serviront à dire ce que Myne a déjà fait dans l'atelier de papier.
 
 1. work · 2. study · 3. live · 4. see · 5. write · 6. take · 7. buy · 8. come · 9. know · 10. speak
 
@@ -206,7 +206,7 @@ Voici deux phrases par situation. Explique en une phrase ce qui change de sens.
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Rédige trois paires de phrases de ton invention, sur le modèle de l'exercice 10 : une au present perfect, une au prétérit, qui décrivent la même action mais ne veulent pas dire la même chose. Explique la différence à chaque fois.
+Rédige trois paires de phrases de ton invention, sur le modèle de l'exercice 10 : une au present perfect, une au prétérit, qui décrivent la même action mais ne veulent pas dire la même chose. Explique la différence à chaque fois. Tu peux parler de Yuzu, de Myne ou de Maomao.
 
 ::: corrige
 Exemple de réponse attendue.
@@ -315,7 +315,7 @@ Voici cinq phrases fausses écrites par un élève. Corrige chacune et classe l'
 ## Série D : produire et devoir type
 
 ::: exercice 17 | approfondissement | 10 min | main
-Écris cinq phrases vraies sur toi au present perfect, une par consigne. Chaque phrase doit contenir l'élément demandé.
+Écris cinq phrases vraies sur toi au present perfect, une par consigne. Chaque phrase doit contenir l'élément demandé. Par exemple sur tes mangas, tes feutres ou les aurores boréales.
 
 1. Une expérience que tu as déjà vécue, avec `have`.
 2. Une expérience que tu n'as jamais vécue, avec `never`.
@@ -337,7 +337,7 @@ Critères de réussite : cinq phrases au present perfect, aucun complément de t
 :::
 
 ::: exercice 18 | approfondissement | 10 min | main
-Rédige un paragraphe de huit à dix lignes en anglais sur une activité que tu pratiques depuis un certain temps. Suis la méthode en quatre étapes de la fiche de cours.
+Rédige un paragraphe de huit à dix lignes en anglais sur une activité que tu pratiques depuis un certain temps. Suis la méthode en quatre étapes de la fiche de cours. Le dessin aux feutres à alcool convient très bien.
 
 1. Annonce l'expérience au present perfect.
 2. Précise depuis quand avec `since` ou `for`.

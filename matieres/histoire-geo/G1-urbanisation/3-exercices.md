@@ -52,7 +52,7 @@ Complète avec les chiffres du chapitre.
 :::
 
 ::: exercice 2 | application | 4 min | ecran
-Donne une définition courte de chacun de ces mots.
+Myne découvre la grande ville en arrivant de son quartier pauvre. Donne une définition courte de chacun de ces mots.
 
 1. Urbanisation
 2. Exode rural
@@ -162,7 +162,7 @@ Compare l'emplacement du quartier d'affaires à New York et à Paris.
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-Un couple quitte un appartement du centre-ville pour une maison située à 25 kilomètres, dans une commune périurbaine.
+Les parents de Yuzu déménagent. Un couple quitte un appartement du centre-ville pour une maison située à 25 kilomètres, dans une commune périurbaine.
 
 1. Cite deux raisons qui expliquent ce choix.
 2. Cite deux conséquences pour ce couple.
@@ -326,7 +326,7 @@ Lagos comptait environ 300 000 habitants en 1950. Son agglomération en compte a
 :::
 
 ::: exercice 19 | approfondissement | 10 min | main
-Une municipalité annonce un « écoquartier » : toitures végétalisées, panneaux solaires, matériaux biosourcés. Le quartier est construit sur d'anciennes terres agricoles, à 28 kilomètres du centre, sans desserte en transport en commun.
+Sterenn dessine aux feutres le projet d'écoquartier de sa ville. Une municipalité annonce un « écoquartier » : toitures végétalisées, panneaux solaires, matériaux biosourcés. Le quartier est construit sur d'anciennes terres agricoles, à 28 kilomètres du centre, sans desserte en transport en commun.
 
 1. Cite deux éléments réellement favorables à l'environnement.
 2. Cite trois éléments qui contredisent l'objectif affiché.

@@ -127,7 +127,7 @@ lave fluide · nuées ardentes · volcan en bouclier · éruptions rares · coul
 :::
 
 ::: exercice 7 | application | 5 min | main
-Pour chaque volcan, indique le type de volcanisme.
+Yuzu vit au Japon, un pays de volcans ; Sterenn pense aux volcans d'Islande, sous les aurores boréales. Pour chaque volcan, indique le type de volcanisme.
 
 1. Le Piton de la Fournaise
 2. La Montagne Pelée
@@ -230,6 +230,7 @@ Zones : dorsale océanique · zone de subduction · point chaud.
 :::
 
 ::: exercice 14 | entrainement | 7 min | main
+L'Islande, où Sterenn rêve de voir les aurores boréales, a des volcans actifs.
 **Document.** En 2010, l'éruption de l'Eyjafjöll, en Islande, projette des cendres jusqu'à `9 000 m` d'altitude. Aucune victime n'est à déplorer, mais plus de `100 000` vols sont annulés en Europe pendant une semaine.
 
 1. Dans quelle situation géologique se trouve l'Islande ?

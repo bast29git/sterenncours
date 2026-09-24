@@ -83,7 +83,7 @@ La croûte océanique est plus fine, plus dense, et beaucoup plus jeune.
 :::
 
 ::: exercice 4 | entrainement | 6 min | ecran
-Le rayon de la Terre mesure `6 370 km`. La croûte continentale mesure en moyenne `35 km`.
+Maomao compare l'épaisseur de la croûte à celle de la peau d'une pomme dans son atelier. Le rayon de la Terre mesure `6 370 km`. La croûte continentale mesure en moyenne `35 km`.
 
 1. Quelle fraction du rayon la croûte représente-t-elle ? Donne le résultat en pourcentage, arrondi au centième.
 2. Explique en une phrase pourquoi on compare souvent la croûte à la peau d'une pomme.
@@ -199,7 +199,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 ## Série C : exploiter des données
 
 ::: exercice 12 | application | 6 min | main
-La plaque africaine se rapproche de la plaque eurasiatique à la vitesse de `2 cm` par an.
+Sterenn lit un manga qui se passe en Méditerranée et se demande si la mer rétrécit. La plaque africaine se rapproche de la plaque eurasiatique à la vitesse de `2 cm` par an.
 
 1. De combien se rapprochent-elles en `100 ans` ?
 2. En `1 million` d'années ? Donne le résultat en kilomètres.
@@ -288,7 +288,7 @@ Dans les années **1960**, la découverte de l'**expansion océanique** aux dors
 ## Série D : problèmes et devoir type
 
 ::: exercice 17 | entrainement | 10 min | main
-La mer Rouge s'élargit d'environ `1,5 cm` par an. Elle mesure aujourd'hui environ `300 km` de large à son point le plus large.
+Sur une carte du manga qu'elle lit, Sterenn voit la mer Rouge. La mer Rouge s'élargit d'environ `1,5 cm` par an. Elle mesure aujourd'hui environ `300 km` de large à son point le plus large.
 
 1. Quelle sorte de frontière se trouve donc au fond de la mer Rouge ?
 2. En combien de temps s'est-elle élargie de 300 km ? Donne le résultat en millions d'années.
@@ -317,7 +317,7 @@ L'Himalaya continue de s'élever d'environ `1 cm` par an, alors que l'érosion e
 :::
 
 ::: exercice 19 | approfondissement | 10 min | main
-Voici trois observations faites sur l'archipel du Japon.
+Yuzu vit au Japon, où la terre tremble souvent. Voici trois observations faites sur l'archipel du Japon.
 
 - Une fosse océanique de `8 000 m` de profondeur se trouve à l'est de l'archipel.
 - Une chaîne de volcans actifs traverse l'archipel du nord au sud.

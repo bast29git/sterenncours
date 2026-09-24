@@ -62,7 +62,7 @@ Relève les trois marques du discours direct dans cette phrase.
 :::
 
 ::: exercice 3 | application | 5 min | ecran
-Ponctue correctement ce dialogue.
+Ponctue correctement ce dialogue. Maomao et Jinshi discutent d'un remède.
 
 Elle s'arrêta sur le seuil et demanda Tu viens Dans une minute répondit-il sans lever les yeux Tu as dit ça il y a une heure Je sais
 
@@ -92,7 +92,7 @@ Ces phrases contiennent une erreur de ponctuation ou d'incise. Corrige-les.
 :::
 
 ::: exercice 5 | entrainement | 5 min | main
-Remplace le verbe `dit` par un verbe de parole plus précis, correspondant à l'intention indiquée.
+Remplace le verbe `dit` par un verbe de parole plus précis, correspondant à l'intention indiquée. Yuzu parle à sa sœur.
 
 1. « Sors d'ici », dit-il. (avec autorité)
 2. « Ce n'est rien », dit-elle. (à voix très basse)
@@ -264,7 +264,7 @@ Ces transformations de questions sont fautives. Corrige-les.
 :::
 
 ::: exercice 15 | entrainement | 6 min | main
-Réécris le même contenu dans les quatre formes de discours rapporté.
+Réécris le même contenu dans les quatre formes de discours rapporté. Le contenu : Myne annonce à Lutz qu'elle a réussi sa première feuille de papier.
 
 Contenu : un personnage pense qu'il est perdu et que personne ne le croira.
 
@@ -311,7 +311,7 @@ Le discours indirect libre est très employé par les romanciers réalistes.
 ## Série D : écriture et devoir type
 
 ::: exercice 18 | entrainement | 10 min | main
-Rédige un dialogue de huit à dix répliques entre deux personnages qui ne sont pas d'accord.
+Rédige un dialogue de huit à dix répliques entre deux personnages qui ne sont pas d'accord. Par exemple : Benno et Myne discutent du prix du papier.
 Contraintes : ponctuation complète et correcte, trois incises avec inversion, quatre verbes de parole différents dont au moins deux expressifs, et au moins une réplique où un personnage pose une question.
 
 ::: corrige

@@ -144,7 +144,7 @@ BD = 4 × 1,5 = **6 cm**.
 :::
 
 ::: exercice 10 | entrainement | 7 min | main
-Une carte est à l'échelle 1/25 000. Sur la carte, un sentier en ligne droite mesure 3,2 cm. Quelle distance réelle représente-t-il, en mètres ? Puis en kilomètres ?
+Sterenn prépare un voyage vers les aurores boréales et lit une carte de randonnée. Une carte est à l'échelle 1/25 000. Sur la carte, un sentier en ligne droite mesure 3,2 cm. Quelle distance réelle représente-t-il, en mètres ? Puis en kilomètres ?
 
 ::: corrige
 L'échelle 1/25 000 signifie que la carte est une **réduction de coefficient 1/25 000** : 1 cm sur la carte représente 25 000 cm dans la réalité.
@@ -154,7 +154,7 @@ Une carte est un exemple de réduction : tous les angles sont conservés, toutes
 :::
 
 ::: exercice 11 | entrainement | 7 min | main
-Pour mesurer la hauteur d'un phare, on plante un bâton vertical de 1,2 m. Au même moment, l'ombre du bâton mesure 0,8 m et l'ombre du phare mesure 24 m. Calculer la hauteur du phare. Expliquer pourquoi les triangles sont semblables.
+Sur la côte, en attendant la nuit des aurores boréales, Sterenn mesure un phare. Pour mesurer la hauteur d'un phare, on plante un bâton vertical de 1,2 m. Au même moment, l'ombre du bâton mesure 0,8 m et l'ombre du phare mesure 24 m. Calculer la hauteur du phare. Expliquer pourquoi les triangles sont semblables.
 
 ::: corrige
 Le Soleil est si loin que ses rayons arrivent **parallèles** : l'angle du rayon avec le sol est le même pour le bâton et pour le phare. Les deux triangles (objet, ombre, rayon) ont un angle droit et cet angle commun : ils sont **semblables**.

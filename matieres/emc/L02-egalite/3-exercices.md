@@ -67,7 +67,7 @@ Les trois sens ne s'opposent pas, ils se complètent. Les points 2 et 4 supposen
 :::
 
 ::: exercice 3 | entrainement | 6 min | ecran
-Un élève écrit : « L'égalité, c'est que tout le monde ait la même chose. »
+Lutz, l'élève de l'atelier de papier, écrit : « L'égalité, c'est que tout le monde ait la même chose. »
 
 1. Cette définition est-elle exacte ? Justifie.
 2. Donne un contre-exemple tiré du chapitre.
@@ -177,7 +177,7 @@ Un magasin affiche : « Entrée interdite aux personnes accompagnées d'un anima
 :::
 
 ::: exercice 10 | entrainement | 6 min | main
-Une entreprise exige une taille minimale de 1,80 m pour un poste de vendeur en magasin.
+Yuzu, petite, aurait été refusée. Une entreprise exige une taille minimale de 1,80 m pour un poste de vendeur en magasin.
 
 1. La règle vise-t-elle explicitement un groupe ?
 2. Qui désavantage-t-elle en pratique ?
@@ -193,7 +193,7 @@ Une entreprise exige une taille minimale de 1,80 m pour un poste de vendeur en m
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Rédige trois cas de ton invention : un qui constitue une discrimination, un qui constitue une différence de traitement licite, et un qui est injuste sans être juridiquement une discrimination. Justifie chacun.
+Rédige trois cas de ton invention : un qui constitue une discrimination, un qui constitue une différence de traitement licite, et un qui est injuste sans être juridiquement une discrimination. Justifie chacun. Tu peux situer les cas dans la ville de Myne ou au lycée de Yuzu.
 
 ::: corrige
 Exemple de réponse attendue.
@@ -306,7 +306,7 @@ Lis ce cas.
 ## Série D : argumenter et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Un camarade affirme : « Les mesures d'égalité, c'est de la discrimination à l'envers. »
+Un camarade de Yuzu affirme : « Les mesures d'égalité, c'est de la discrimination à l'envers. »
 
 Rédige une réponse argumentée de six à huit lignes, fondée sur le droit et non sur l'opinion.
 

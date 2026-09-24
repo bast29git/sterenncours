@@ -264,7 +264,7 @@ Donc, d'après la réciproque du théorème de Pythagore, ce triangle **n'est pa
 :::
 
 ::: exercice 13 | entrainement | 8 min | main
-Une échelle de **4 m** est appuyée contre un mur vertical. Son pied est posé à **1,5 m**
+Dans l'atelier de papier, une échelle sert à atteindre les claies de séchage. Une échelle de **4 m** est appuyée contre un mur vertical. Son pied est posé à **1,5 m**
 du mur. À quelle hauteur l'échelle touche-t-elle le mur ? Arrondir au dixième de mètre.
 
 ::: corrige
@@ -289,7 +289,7 @@ ces expressions annoncent toutes un **angle droit**. C'est la première chose à
 :::
 
 ::: exercice 14 | entrainement | 8 min | main
-Un écran de télévision rectangulaire mesure **1,10 m** de largeur et **0,62 m** de hauteur.
+Chez Yuzu, l'écran du salon est rectangulaire. Un écran de télévision rectangulaire mesure **1,10 m** de largeur et **0,62 m** de hauteur.
 Quelle est la longueur de sa diagonale, arrondie au centimètre ?
 
 ::: corrige
@@ -333,7 +333,7 @@ Fin de la séance 2. Reprends à l'exercice 16.
 Ces exercices demandent **deux raisonnements** : trouver ce qu'il faut calculer, puis calculer.
 
 ::: exercice 16 | approfondissement | 10 min | main
-Un terrain rectangulaire mesure **60 m** de long et **25 m** de large.
+Le jardin des plantes à remèdes de Maomao est un terrain rectangulaire. Un terrain rectangulaire mesure **60 m** de long et **25 m** de large.
 Pour aller d'un coin au coin opposé, on peut longer deux côtés, ou couper en diagonale.
 **Combien de mètres économise-t-on en coupant en diagonale ?**
 
@@ -415,7 +415,7 @@ Un triangle rectangle est déterminé par les **trois** longueurs, jamais par de
 :::
 
 ::: exercice 19 | approfondissement | 10 min | main
-La charpente d'une maison a la forme d'un triangle isocèle.
+La charpente de la maison de l'ogre, où vit Yuzu, a la forme d'un triangle isocèle.
 La **portée** (la largeur au sol) mesure **8 m** et la hauteur au faîtage (le sommet) mesure **3 m**.
 1. Calculer la longueur d'un versant du toit.
 2. En déduire la longueur totale de bois nécessaire pour les deux versants.
@@ -439,7 +439,7 @@ Dans un triangle isocèle, la hauteur issue du sommet principal le coupe en
 :::
 
 ::: exercice 20 | approfondissement | 8 min | main
-Un mât vertical est maintenu par un hauban (un câble tendu).
+Sur la barque qui porte le papier de Myne au marché, un mât est tenu par un câble. Un mât vertical est maintenu par un hauban (un câble tendu).
 Le hauban est fixé sur le mât à **9 m** de hauteur, et ancré au sol à **12 m**
 du pied du mât.
 Quelle est la longueur du hauban ?

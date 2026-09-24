@@ -136,7 +136,7 @@ Observe la colonne de droite : presque tous les convertisseurs produisent de l'�
 :::
 
 ::: exercice 7 | entrainement | 6 min | main
-Construis la chaîne énergétique d'une lampe de poche.
+Pour observer les aurores boréales, Sterenn emporte une lampe de poche. Construis la chaîne énergétique d'une lampe de poche.
 
 ::: corrige
 `Pile` → énergie **chimique** → `Ampoule` → énergie **lumineuse** vers l'extérieur
@@ -247,7 +247,7 @@ Un appareil reçoit `500 J` et a un rendement de `35 %`.
 :::
 
 ::: exercice 14 | entrainement | 7 min | main
-On compare deux ampoules qui éclairent autant : une ampoule à incandescence de `60 W` et une ampoule à diodes de `10 W`.
+Sterenn choisit l'ampoule de son atelier de dessin. On compare deux ampoules qui éclairent autant : une ampoule à incandescence de `60 W` et une ampoule à diodes de `10 W`.
 
 1. Calcule l'énergie consommée par chacune sur `1 000 heures`, en kWh.
 2. Calcule l'économie réalisée.
@@ -302,7 +302,7 @@ Ce raisonnement porte un nom : l'analyse sur l'**ensemble du cycle de vie**. Com
 ## Série D : sources, consommation et devoir type
 
 ::: exercice 17 | application | 5 min | main
-Classe ces sources en renouvelables et non renouvelables, puis indique leur origine profonde.
+En Norvège, pays des aurores boréales, l'électricité vient surtout des barrages. Classe ces sources en renouvelables et non renouvelables, puis indique leur origine profonde.
 
 `solaire` · `charbon` · `éolien` · `uranium` · `géothermie` · `pétrole` · `hydraulique`
 

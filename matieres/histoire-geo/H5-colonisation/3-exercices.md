@@ -125,7 +125,7 @@ En 1885, deux hommes politiques s'opposent à l'Assemblée.
 ## Série B : conquête et partage
 
 ::: exercice 6 | application | 5 min | main
-Cite cinq moyens qui ont rendu la conquête possible, avec une précision pour chacun.
+Benno, marchand, sait qu'une conquête coûte cher. Cite cinq moyens qui ont rendu la conquête possible, avec une précision pour chacun.
 
 ::: corrige
 1. La **supériorité des armes** : fusil à répétition, puis mitrailleuse à partir de 1884.
@@ -181,7 +181,7 @@ La conférence de Berlin voulait éviter les conflits entre puissances européen
 :::
 
 ::: exercice 10 | entrainement | 7 min | main
-Complète ce tableau des empires en 1914.
+Yuzu complète le tableau avec sa sœur. Complète ce tableau des empires en 1914.
 
 | Puissance | Deux possessions |
 |---|---|
@@ -225,7 +225,7 @@ Samory Touré résiste à l'avancée française pendant dix-sept ans, de 1881 à
 ## Série C : documents et sociétés coloniales
 
 ::: exercice 12 | entrainement | 7 min | main
-Distingue les trois statuts de territoire.
+Distingue les trois statuts de territoire. Comme Maomao distingue trois sortes de plantes, distingue trois statuts.
 
 1. Une colonie. · 2. Un protectorat. · 3. Un dominion.
 

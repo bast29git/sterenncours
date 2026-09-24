@@ -50,7 +50,7 @@ f. **Futur simple** : `visitaré`, projet lointain avec `algún día`.
 :::
 
 ::: exercice 2 | application | 8 min | ecran
-Conjugue au futur simple.
+Conjugue au futur simple. Ces verbes serviront à dire ce que Myne fera de son papier.
 
 1. `cantar`, `yo`
 2. `aprender`, `tú`
@@ -405,7 +405,7 @@ Traduis en espagnol.
 :::
 
 ::: exercice 18 | approfondissement | 12 min | main
-Rédige un paragraphe de **six à huit phrases** sur tes projets pour l'année prochaine.
+Rédige un paragraphe de **six à huit phrases** sur tes projets pour l'année prochaine. Un voyage vers les aurores boréales, un stage de dessin aux feutres : à toi de choisir.
 
 Ton texte doit contenir : un marqueur temporel en ouverture, une phrase avec `ir a`, une phrase au futur simple avec un verbe irrégulier, une phrase avec `cuando` + subjonctif, une phrase avec `si` + indicatif, et une formule de projet comme `pienso` ou `me gustaría`.
 
@@ -432,7 +432,7 @@ Ton texte doit contenir : un marqueur temporel en ouverture, une phrase avec `ir
 :::
 
 ::: exercice 19 | approfondissement | 12 min | main
-Prépare un dialogue de **huit répliques** entre deux amis qui parlent du week-end prochain. L'un a des projets précis, l'autre hésite.
+Prépare un dialogue de **huit répliques** entre deux amis qui parlent du week-end prochain. L'un a des projets précis, l'autre hésite. Par exemple Yuzu et sa sœur.
 
 Le dialogue doit contenir : une question avec `¿Qué vas a hacer...?`, une réponse avec `ir a`, une phrase au futur simple, une hypothèse avec `si`, un futur de probabilité, et une formule comme `tengo ganas de`.
 

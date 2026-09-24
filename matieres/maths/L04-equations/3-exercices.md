@@ -93,7 +93,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 
 ::: exercice 5 | entrainement | 5 min | main
-Un élève écrit ceci pour résoudre `4x + 6 = 18`.
+Lutz, l'élève de l'atelier de papier, écrit ceci pour résoudre `4x + 6 = 18`.
 
 `4x + 6 = 18`
 `4x = 18` puis `x = 4,5`
@@ -302,7 +302,7 @@ Résous et conclus précisément.
 ## Série D : mise en équation et devoir type
 
 ::: exercice 17 | application | 6 min | main
-Traduis chaque phrase en équation. Ne résous pas.
+Maomao écrit ses problèmes de dosage de remèdes sous forme d'équations. Traduis chaque phrase en équation. Ne résous pas.
 
 1. Le double d'un nombre vaut 26.
 2. Un nombre augmenté de 12 vaut 30.
@@ -318,7 +318,7 @@ Traduis chaque phrase en équation. Ne résous pas.
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-« Le triple d'un nombre, augmenté de 7, est égal au double de ce nombre augmenté de 15. Quel est ce nombre ? »
+Yuzu propose une énigme à sa sœur. « Le triple d'un nombre, augmenté de 7, est égal au double de ce nombre augmenté de 15. Quel est ce nombre ? »
 
 Rédige une solution complète : choix de l'inconnue, mise en équation, résolution, vérification, conclusion.
 
@@ -345,7 +345,7 @@ Les deux membres sont égaux.
 :::
 
 ::: exercice 19 | approfondissement | 10 min | main
-« Dans une salle, il y a trois fois plus de chaises que de tables. On ajoute 8 tables et 4 chaises. Il y a alors deux fois plus de chaises que de tables. Combien y avait-il de tables au départ ? »
+Dans l'atelier de Myne, on installe la salle des copistes. « Dans une salle, il y a trois fois plus de chaises que de tables. On ajoute 8 tables et 4 chaises. Il y a alors deux fois plus de chaises que de tables. Combien y avait-il de tables au départ ? »
 
 Rédige une solution complète.
 

@@ -107,7 +107,7 @@ Les points 1 et 2 illustrent le déplacement de la négation : l'anglais la port
 :::
 
 ::: exercice 5 | entrainement | 6 min | main
-Écris cinq phrases sur toi, une par degré de certitude imposé.
+Écris cinq phrases sur toi, une par degré de certitude imposé. Par exemple sur les mangas, le dessin aux feutres ou les aurores boréales.
 
 1. Une certitude, avec `I'm sure`.
 2. Une probabilité, avec `probably`.
@@ -197,7 +197,7 @@ Chaque phrase contient une erreur. Corrige-la.
 :::
 
 ::: exercice 10 | entrainement | 6 min | main
-Donne une raison à chacune de ces opinions, avec un connecteur différent à chaque fois.
+Donne une raison à chacune de ces opinions, avec un connecteur différent à chaque fois. Réponds comme le ferait Maomao : toujours avec une raison.
 
 1. `I prefer travelling by train.`
 2. `I think students should learn two foreign languages.`
@@ -214,7 +214,7 @@ Critères de réussite : trois connecteurs différents, correctement construits,
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Écris six phrases exprimant une opinion sur un sujet de ton choix, en employant six connecteurs différents parmi : `because`, `because of`, `since`, `so`, `therefore`, `that's why`.
+Écris six phrases exprimant une opinion sur un sujet de ton choix, en employant six connecteurs différents parmi : `because`, `because of`, `since`, `so`, `therefore`, `that's why`. Le sujet peut être un manga.
 
 ::: corrige
 Exemple de réponse attendue, sur le thème des transports.

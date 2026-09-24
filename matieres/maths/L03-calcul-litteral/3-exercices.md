@@ -207,7 +207,7 @@ Ces développements sont faux. Corrige-les et explique l'erreur en une ligne.
 :::
 
 ::: exercice 11 | approfondissement | 7 min | main
-On considère l'expression `A = 5(x + 2) − 3(x − 4)`.
+Maomao compare deux façons d'écrire la même recette de remède. On considère l'expression `A = 5(x + 2) − 3(x − 4)`.
 
 1. Développe et réduis `A`.
 2. Calcule `A` pour `x = 3`, en utilisant l'expression réduite.
@@ -319,7 +319,7 @@ Factorise ces expressions dont le facteur commun est une parenthèse.
 :::
 
 ::: exercice 17 | approfondissement | 8 min | main
-Un élève écrit : « Développer et factoriser, c'est la même chose puisqu'on obtient toujours le même résultat. »
+Lutz, l'élève de l'atelier de papier, écrit : « Développer et factoriser, c'est la même chose puisqu'on obtient toujours le même résultat. »
 
 1. Cette affirmation est-elle exacte ? Explique.
 2. Prends l'expression `4x + 20` et montre le lien entre les deux opérations.
@@ -338,7 +338,7 @@ Un élève écrit : « Développer et factoriser, c'est la même chose puisqu'on
 ## Série D : problèmes et devoir type
 
 ::: exercice 18 | entrainement | 8 min | main
-Un rectangle a pour longueur `x + 3` et pour largeur `4`.
+Myne découpe une feuille de papier rectangulaire. Un rectangle a pour longueur `x + 3` et pour largeur `4`.
 
 1. Exprime son périmètre en fonction de `x`, sous forme réduite.
 2. Exprime son aire en fonction de `x`, sous forme développée.
@@ -356,7 +356,7 @@ Un rectangle a pour longueur `x + 3` et pour largeur `4`.
 :::
 
 ::: exercice 19 | approfondissement | 10 min | main
-On considère un carré de côté `x`, auquel on ajoute un rectangle de dimensions `x` et `5` accolé sur un côté.
+Dans l'atelier de papier, on assemble deux planches à sécher. On considère un carré de côté `x`, auquel on ajoute un rectangle de dimensions `x` et `5` accolé sur un côté.
 
 1. Fais un schéma de la figure obtenue.
 2. Exprime l'aire totale de deux façons : en additionnant les deux aires, puis en considérant la figure comme un seul rectangle.

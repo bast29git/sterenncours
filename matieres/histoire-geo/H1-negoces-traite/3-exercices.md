@@ -53,7 +53,7 @@ révolte de Saint-Domingue · Code noir · abolition définitive · rétablissem
 :::
 
 ::: exercice 2 | application | 4 min | ecran
-Donne une définition courte de chaque mot.
+Myne apprend chez Benno les mots du commerce ; voici ceux du commerce atlantique. Donne une définition courte de chaque mot.
 
 1. Négoce
 2. Produit colonial
@@ -85,7 +85,7 @@ Sur un planisphère, situe et nomme :
 :::
 
 ::: exercice 4 | entrainement | 5 min | ecran
-Vrai ou faux ? Corrige les phrases fausses.
+Lutz, l'ami de Myne, a écrit ces phrases après le cours. Vrai ou faux ? Corrige les phrases fausses.
 
 1. Le navire négrier part d'Afrique.
 2. L'esclavage a été aboli une seule fois en France.
@@ -187,7 +187,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 ## Série C : analyser des documents
 
 ::: exercice 11 | application | 6 min | main
-Rappelle les cinq questions à se poser devant un document historique, dans l'ordre.
+Maomao applique la même méthode à un document de la cour impériale. Rappelle les cinq questions à se poser devant un document historique, dans l'ordre.
 
 ::: corrige
 1. Quelle est la **nature** du document ?

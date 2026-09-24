@@ -35,7 +35,7 @@ objectifs:
 ## Série A : conjuguer
 
 ::: exercice 1 | application | 4 min | ecran
-Complète avec la bonne forme de `ser`.
+Complète avec la bonne forme de `ser`. Ces formes serviront à présenter Maomao, Myne et Yuzu.
 
 1. Yo ……… española.
 2. Tú ……… muy amable.
@@ -215,7 +215,7 @@ C'est exactement la nuance que le français ne marque pas : « elle est gaie » 
 :::
 
 ::: exercice 11 | approfondissement | 7 min | main
-Un élève affirme : « On emploie `ser` pour ce qui ne change jamais et `estar` pour ce qui change. »
+Lutz, l'élève de l'atelier de papier, affirme : « On emploie `ser` pour ce qui ne change jamais et `estar` pour ce qui change. »
 
 1. Cette règle fonctionne-t-elle dans tous les cas ? Cherche un contre-exemple.
 2. Pourquoi dit-on `Madrid está en España`, alors que Madrid ne bouge pas ?
@@ -319,7 +319,7 @@ Complète avec `ser` ou `estar`, puis traduis chaque phrase.
 ## Série D : description et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Décris une personne de ton entourage en cinq phrases, en suivant la méthode du cours.
+Décris une personne de ton entourage en cinq phrases, en suivant la méthode du cours. Tu peux aussi décrire Maomao ou Yuzu.
 Contraintes : le physique et le caractère avec `ser`, l'âge avec `tener`, l'état du jour avec `estar`.
 
 ::: corrige
@@ -337,7 +337,7 @@ Critères d'évaluation :
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-Décris la pièce où tu travailles, en six phrases.
+Ta table de dessin aux feutres en fait partie. Décris la pièce où tu travailles, en six phrases.
 Contraintes : au moins deux phrases avec `hay`, deux avec `estar` pour situer, une avec `ser` pour donner une impression générale, et trois prépositions de lieu différentes.
 
 ::: corrige

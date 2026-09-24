@@ -169,7 +169,7 @@ Les ondes sismiques les plus rapides se propagent à environ `6 km/s` dans la cr
 :::
 
 ::: exercice 10 | approfondissement | 8 min | main
-Deux villes A et B se trouvent à la même distance de l'épicentre d'un séisme. La ville A est bâtie sur du granite, la ville B sur des alluvions sableuses d'un ancien lit de rivière. Les dégâts sont bien plus importants à B.
+Le village de Yuzu et celui de l'ogre subissent le même séisme. Deux villes A et B se trouvent à la même distance de l'épicentre d'un séisme. La ville A est bâtie sur du granite, la ville B sur des alluvions sableuses d'un ancien lit de rivière. Les dégâts sont bien plus importants à B.
 
 1. Propose une explication.
 2. Quelle conséquence cela a-t-il pour l'urbanisme ?
@@ -308,7 +308,7 @@ Deux séismes de magnitude `7` se produisent la même année. Le premier frappe 
 :::
 
 ::: exercice 19 | approfondissement | 10 min | main
-Une commune située en zone sismique modérée doit construire une nouvelle école.
+La commune de Yuzu, au Japon, doit construire une nouvelle école. Une commune située en zone sismique modérée doit construire une nouvelle école.
 
 1. Cite trois critères à examiner avant de choisir le terrain.
 2. Cite trois mesures à prévoir dans la construction elle-même.

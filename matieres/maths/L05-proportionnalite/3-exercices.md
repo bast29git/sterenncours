@@ -108,7 +108,7 @@ Un abonnement de téléphone coûte `12 €` par mois, plus `0,05 €` par minut
 :::
 
 ::: exercice 5 | entrainement | 5 min | main
-Un tissu coûte `12 €` le mètre.
+Yuzu achète du tissu pour coudre un kimono de fête. Un tissu coûte `12 €` le mètre.
 
 1. Quel est le coefficient pour passer de la longueur au prix ?
 2. Quel est le coefficient pour passer du prix à la longueur ?
@@ -319,7 +319,7 @@ Un trajet aller-retour de `120 km` dans chaque sens se fait à `60 km/h` à l'al
 ## Série D : problèmes et devoir type
 
 ::: exercice 18 | entrainement | 8 min | main
-Un robinet remplit une baignoire de `180 L` en `12 min`.
+Dans l'atelier de papier, on remplit la cuve à fibres au robinet. Un robinet remplit une baignoire de `180 L` en `12 min`.
 
 1. Quel est son débit, en litres par minute ?
 2. Combien de temps pour remplir `300 L` ?

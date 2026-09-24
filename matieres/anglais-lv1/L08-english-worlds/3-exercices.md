@@ -68,7 +68,7 @@ Nations : England, Scotland, Wales, Northern Ireland.
 :::
 
 ::: exercice 3 | application | 5 min | ecran
-Donne la capitale de chacun de ces pays, puis sa ville la plus peuplée quand elle est différente.
+Sterenn, pour son voyage vers les aurores boréales, repère les capitales. Donne la capitale de chacun de ces pays, puis sa ville la plus peuplée quand elle est différente.
 
 a. The United States
 b. Canada
@@ -274,7 +274,7 @@ e. `eventually`
 :::
 
 ::: exercice 13 | entrainement | 10 min | main
-Écris un court message de **six phrases** à un correspondant, entièrement en **anglais britannique**, puis récris-le entièrement en **anglais américain**.
+Écris un court message de **six phrases** à un correspondant, entièrement en **anglais britannique**, puis récris-le entièrement en **anglais américain**. Parle-lui de tes mangas ou de tes dessins aux feutres.
 
 Sujet libre : ta journée type, ton quartier, tes vacances.
 
@@ -375,7 +375,7 @@ Tu dois écouter un document audio en classe.
 :::
 
 ::: exercice 17 | approfondissement | 12 min | main
-Prépare le plan d'un exposé de trois minutes sur l'un de ces sujets :
+Prépare le plan d'un exposé de trois minutes sur l'un de ces sujets : Les aurores boréales en Écosse ou au Canada peuvent aussi faire un sujet.
 
 - `St Patrick's Day`
 - `The Union Jack`
@@ -438,7 +438,7 @@ f. `According to some estimates, more than a hundred parades take place in the U
 :::
 
 ::: exercice 19 | approfondissement | 12 min | main
-Prépare les réponses à cinq questions probables après ton exposé.
+Prépare les réponses à cinq questions probables après ton exposé. Prépare-les comme Maomao prépare une enquête : une réponse courte et une preuve.
 
 1. `Could you repeat that, please?`
 2. `Where did you find this information?`

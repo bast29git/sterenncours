@@ -64,7 +64,7 @@ Aucun -ed à entendre : ce sont les formes irrégulières et le repère « in th
 :::
 
 ::: exercice 3 | application | 4 min | ecran
-Écouter et noter les connecteurs dans l'ordre. Les classer : début, suite, rupture, fin.
+Écouter et noter les connecteurs dans l'ordre. Les classer : début, suite, rupture, fin. Comme dans un manga, l'histoire a un début, une rupture et une fin.
 
 ::: audio en Connectors
 At first the party was boring. Then my cousin arrived with her guitar. Suddenly everyone was singing. Finally, at midnight, the neighbours asked us to stop.
@@ -90,7 +90,7 @@ Trois phrases : « Last Sunday the dog disappeared from the garden. The family l
 :::
 
 ::: exercice 5 | application | 5 min | main
-Écouter la nouvelle et répondre aux cinq questions : who, what, where, when, why.
+Sterenn suit les nouvelles d'une école anglaise avec laquelle sa classe échange des lettres et des mangas. Écouter la nouvelle et répondre aux cinq questions : who, what, where, when, why.
 
 ::: audio en A school news item
 Students at Riverside School planted two hundred trees in the park behind the school on Friday morning. The head teacher said the project was a response to last summer's heatwave, to give the town more shade.
@@ -130,7 +130,7 @@ Le dernier événement (la prof malade) est appris **par** le coup de téléphon
 :::
 
 ::: exercice 8 | entrainement | 6 min | main
-Écouter le bulletin. Compléter le tableau pour les deux nouvelles : what happened, where, numbers.
+Sterenn lit les nouvelles anglaises pendant son voyage vers les aurores boréales. Écouter le bulletin. Compléter le tableau pour les deux nouvelles : what happened, where, numbers.
 
 ::: audio en Two news items
 Firstly, a fire damaged a bakery in the centre of Bristol early this morning. Nobody was hurt, but the shop will be closed for at least three weeks. And in weather news, temperatures reached thirty-four degrees in London yesterday, the hottest day of the year so far. Doctors advise people to drink water regularly and to stay out of the sun between noon and four.

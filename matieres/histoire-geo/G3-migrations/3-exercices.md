@@ -106,7 +106,7 @@ Le critère n'est **pas la distance**, c'est le franchissement d'une **frontièr
 :::
 
 ::: exercice 5 | entrainement | 6 min | main
-Rédige trois phrases, une par mot, qui montrent que tu comprends la différence entre **migrant**, **réfugié** et **demandeur d'asile**. Chaque phrase doit contenir un élément qui distingue le mot des deux autres.
+Myne, qui a changé de quartier puis de ville, connaît ces mots. Rédige trois phrases, une par mot, qui montrent que tu comprends la différence entre **migrant**, **réfugié** et **demandeur d'asile**. Chaque phrase doit contenir un élément qui distingue le mot des deux autres.
 
 ::: corrige
 Exemple de réponse attendue.
@@ -207,7 +207,7 @@ Le mot « explosion » n'est pas une information, c'est une **appréciation**. U
 :::
 
 ::: exercice 11 | entrainement | 6 min | main
-Pour chaque cause, indique s'il s'agit d'un **facteur de départ** ou d'un **facteur d'attraction**.
+Pour chaque cause, indique s'il s'agit d'un **facteur de départ** ou d'un **facteur d'attraction**. Pense à Myne, qui quitte son quartier pour l'atelier du temple.
 
 1. Un taux de chômage de 40 % chez les jeunes du pays d'origine.
 2. Un système universitaire réputé dans le pays de destination.
@@ -358,7 +358,7 @@ Critères de réussite : trois raisons distinctes, un chiffre exact, une conclus
 :::
 
 ::: exercice 18 | approfondissement | 8 min | main
-Un pays d'accueil envisage deux mesures. Pour chacune, indique un effet attendu et une limite.
+Un pays d'accueil envisage deux mesures. Pour chacune, indique un effet attendu et une limite. Le pays d'accueil pourrait être le Japon de Yuzu.
 
 1. Reconnaître plus rapidement les diplômes obtenus à l'étranger.
 2. Limiter le regroupement familial.

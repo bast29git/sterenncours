@@ -117,7 +117,7 @@ Remarque : dans les cas 3 et 4, la forme tonique est indispensable au sens. Sans
 :::
 
 ::: exercice 6 | entrainement | 6 min | main
-Un élève écrit : « En espagnol, on met toujours `me` avant `gustar`, c'est comme en français sauf qu'on inverse les mots. »
+Lutz, l'élève de l'atelier de papier, écrit : « En espagnol, on met toujours `me` avant `gustar`, c'est comme en français sauf qu'on inverse les mots. »
 
 1. Que cette phrase contient-elle d'exact ?
 2. Que contient-elle d'inexact ?
@@ -267,7 +267,7 @@ Ces réponses sont fautives. Corrige-les et explique.
 :::
 
 ::: exercice 15 | entrainement | 6 min | main
-Écris six phrases sur tes goûts, en employant les six niveaux d'intensité, sans jamais répéter la même formule.
+Écris six phrases sur tes goûts, en employant les six niveaux d'intensité, sans jamais répéter la même formule. Mangas, feutres, aurores boréales : tu as de quoi dire.
 
 ::: corrige
 Production attendue, à adapter :
@@ -284,7 +284,7 @@ Critères d'évaluation : les six niveaux sont présents et distincts ; l'accord
 :::
 
 ::: exercice 16 | approfondissement | 7 min | main
-Écris un court dialogue de six répliques entre deux personnes qui comparent leurs goûts.
+Écris un court dialogue de six répliques entre deux personnes qui comparent leurs goûts. Par exemple Yuzu et sa sœur.
 Contraintes : au moins un `también`, un `tampoco`, un `a mí no` et une forme tonique.
 
 ::: corrige
@@ -344,7 +344,7 @@ Remarque de méthode : un goût seul n'est pas une opinion. Ce qui est évalué,
 :::
 
 ::: exercice 19 | approfondissement | 10 min | main
-Rédige une opinion en cinq phrases sur ce sujet : « ¿Es útil aprender idiomas? »
+Rédige une opinion en cinq phrases sur ce sujet : « ¿Es útil aprender idiomas? » Pense à Myne, qui apprend à lire pour fabriquer des livres.
 Respecte la structure en cinq temps du cours et emploie quatre connecteurs différents.
 
 ::: corrige

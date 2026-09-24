@@ -64,7 +64,7 @@ La présomption d'innocence.
 :::
 
 ::: exercice 3 | application | 5 min | ecran
-Pour chaque situation, dis s'il s'agit de justice **civile** ou **pénale**.
+Maomao, dans ses enquêtes à la cour impériale, distingue aussi les affaires. Pour chaque situation, dis s'il s'agit de justice **civile** ou **pénale**.
 
 1. Un couple divorce.
 2. Une personne est poursuivie pour vol.
@@ -84,7 +84,7 @@ Le critère est simple : y a-t-il une **infraction** à la loi que la société 
 :::
 
 ::: exercice 4 | entrainement | 6 min | ecran
-Un conducteur grille un feu rouge et blesse un piéton.
+Un accident devant le lycée de Yuzu. Un conducteur grille un feu rouge et blesse un piéton.
 
 1. Devant quelle justice le conducteur peut-il être poursuivi ?
 2. Comment le piéton peut-il obtenir réparation de son préjudice ?
@@ -146,7 +146,7 @@ Que signifie le principe « pas d'infraction, pas de peine sans loi » ?
 :::
 
 ::: exercice 8 | application | 5 min | main
-Pour chaque cas, nomme la juridiction compétente.
+Pour chaque cas, nomme la juridiction compétente. Dans la ville de Myne, ce serait le tribunal du prince ; en France, c'est plus précis.
 
 1. Un salarié conteste son licenciement.
 2. Deux voisins se disputent une limite de terrain.
@@ -303,7 +303,7 @@ La justice des mineurs.
 ## Série D : argumenter et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Un camarade affirme : « Les avocats qui défendent des coupables sont complices. »
+Un camarade de Yuzu affirme : « Les avocats qui défendent des coupables sont complices. »
 
 Rédige une réponse argumentée de six à huit lignes.
 

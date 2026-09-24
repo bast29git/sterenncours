@@ -69,7 +69,7 @@ Classe ces actions en contact ou à distance.
 :::
 
 ::: exercice 3 | application | 5 min | ecran
-Fais le bilan des actions mécaniques s'exerçant sur un livre posé sur une table. Présente-le dans un tableau.
+Un manga de Sterenn est posé sur la table de son atelier. Fais le bilan des actions mécaniques s'exerçant sur un livre posé sur une table. Présente-le dans un tableau.
 
 ::: corrige
 Objet d'étude : le **livre**.
@@ -186,7 +186,7 @@ Pour chacune de ces forces, donne la direction et le sens.
 :::
 
 ::: exercice 10 | approfondissement | 6 min | main
-Un objet est suspendu à un dynamomètre et reste immobile. Le dynamomètre indique `12 N`.
+Maomao pèse un sachet de plantes à remède avec un dynamomètre. Un objet est suspendu à un dynamomètre et reste immobile. Le dynamomètre indique `12 N`.
 
 1. Fais le bilan des forces s'exerçant sur l'objet.
 2. Que peut-on dire de ces deux forces ?
@@ -227,7 +227,7 @@ Complète le tableau.
 :::
 
 ::: exercice 12 | application | 5 min | main
-Calcule les poids sur Terre, avec `g = 9,8 N/kg`.
+Sterenn pèse son matériel de voyage pour les aurores boréales. Calcule les poids sur Terre, avec `g = 9,8 N/kg`.
 
 1. Une masse de `10 kg`.
 2. Une masse de `60 kg`.

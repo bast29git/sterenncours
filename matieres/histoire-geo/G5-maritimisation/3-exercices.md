@@ -125,7 +125,7 @@ C'est ce mécanisme, appelé économie d'échelle, qui pousse les armateurs à c
 :::
 
 ::: exercice 5 | application | 8 min | main
-Un tee-shirt fabriqué au Bangladesh est vendu 8 € en France. Son transport maritime coûte environ 0,04 €.
+Le tee-shirt que Sterenn porte pour dessiner aux feutres vient de loin. Un tee-shirt fabriqué au Bangladesh est vendu 8 € en France. Son transport maritime coûte environ 0,04 €.
 
 1. Quelle part du prix de vente le transport représente-t-il ? Exprime-la en pourcentage.
 2. Explique en trois phrases ce que ce chiffre permet aux entreprises.
@@ -213,7 +213,7 @@ Une flèche partant de Shanghai, passant par Malacca, l'océan Indien, la mer Ro
 :::
 
 ::: exercice 8 | entrainement | 10 min | main
-Un navire va de Shanghai à Rotterdam. Deux itinéraires sont possibles : par le canal de Suez, environ 19 000 km, ou en contournant l'Afrique par le cap de Bonne-Espérance, environ 25 500 km.
+Le papier de l'atelier de Myne, s'il voyageait aujourd'hui, prendrait cette route. Un navire va de Shanghai à Rotterdam. Deux itinéraires sont possibles : par le canal de Suez, environ 19 000 km, ou en contournant l'Afrique par le cap de Bonne-Espérance, environ 25 500 km.
 
 1. Quelle est la différence de distance ?
 2. À 20 nœuds, soit 37 km/h, combien de jours dure chaque trajet ? Arrondis au jour.
@@ -321,7 +321,7 @@ Marseille dispose d'un bon port, mais le Rhône ne pénètre pas aussi loin et s
 :::
 
 ::: exercice 11 | entrainement | 8 min | main
-Environ 99 % des données internet intercontinentales passent par des câbles sous-marins.
+Les mangas que Sterenn lit en ligne passent par ces câbles. Environ 99 % des données internet intercontinentales passent par des câbles sous-marins.
 
 1. Pourquoi cette information surprend-elle souvent ?
 2. Combien de câbles environ sont en service, et sur quelle longueur totale ?
@@ -474,7 +474,7 @@ Deux États se font face de part et d'autre d'une mer large de 300 milles marins
 :::
 
 ::: exercice 17 | approfondissement | 10 min | main
-Un îlot inhabité de 300 m² est revendiqué par trois États.
+Un îlot comme celui des ayakashi, dans le monde de Yuzu. Un îlot inhabité de 300 m² est revendiqué par trois États.
 
 1. Quelle surface de ZEE cet îlot peut-il générer ? On prend un rayon de 370 km et on utilise la formule de l'aire du disque.
 2. Compare cette surface à celle de la France métropolitaine, environ 550 000 km².

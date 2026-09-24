@@ -188,7 +188,7 @@ Trois erreurs sur cinq viennent de la même cause : on applique la règle régul
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Écris six phrases de ton invention, une par marqueur, toutes au pretérito perfecto.
+Écris six phrases de ton invention, une par marqueur, toutes au pretérito perfecto. Tu peux raconter ce que Myne a fait à l'atelier de papier.
 
 `hoy` · `esta semana` · `este año` · `ya` · `todavía no` · `nunca`
 
@@ -301,7 +301,7 @@ Trois changements systématiques : `he` devient `hemos`, le pronom réfléchi `m
 ## Série D : raconter et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Raconte ta journée en cinq phrases, au pretérito perfecto, en suivant la méthode de la fiche de cours : le lever, le trajet, une activité, le repas, l'après-midi.
+Raconte ta journée en cinq phrases, au pretérito perfecto, en suivant la méthode de la fiche de cours : le lever, le trajet, une activité, le repas, l'après-midi. Ou la journée de Maomao.
 
 ::: corrige
 Exemple de réponse attendue.
@@ -313,7 +313,7 @@ Critères de réussite : cinq phrases minimum, toutes au pretérito perfecto, au
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-Écris un dialogue de huit répliques entre deux amis qui se racontent leur semaine.
+Écris un dialogue de huit répliques entre deux amis qui se racontent leur semaine. Par exemple Yuzu et une amie.
 
 Ton dialogue doit contenir : deux questions au pretérito perfecto, une phrase avec `ya`, une avec `todavía no`, une avec `nunca`, un participe irrégulier, une relance du type `¿Y tú?`.
 
@@ -334,7 +334,7 @@ Critères de réussite : les six éléments imposés présents, pronoms et néga
 :::
 
 ::: exercice 19 | approfondissement | 8 min | main
-Écris cinq phrases sur tes expériences, une par formule imposée.
+C'est une des phrases possibles. Écris cinq phrases sur tes expériences, une par formule imposée. As-tu déjà vu des aurores boréales ?
 
 `Ya he ...` · `Todavía no he ...` · `Nunca he ...` · `¿Alguna vez has ...?` · `Este año he ...`
 

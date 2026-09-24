@@ -51,7 +51,7 @@ Range ces six dates de 1789 dans l'ordre et indique l'événement.
 :::
 
 ::: exercice 2 | application | 4 min | ecran
-Complète.
+Yuzu révise avec sa sœur. Complète.
 
 1. La société d'Ancien Régime est divisée en ……… ordres.
 2. Le ……… représente environ 98 % de la population.
@@ -67,7 +67,7 @@ Complète.
 :::
 
 ::: exercice 3 | application | 5 min | ecran
-Vrai ou faux ? Justifie en une phrase.
+Lutz, l'ami de Myne, a écrit ces phrases après le cours. Vrai ou faux ? Justifie en une phrase.
 
 1. Le tiers état est composé uniquement de paysans pauvres.
 2. Les nobles paient les mêmes impôts que le reste de la population.
@@ -304,7 +304,7 @@ Les historiens proposent trois explications de la Terreur : par les circonstance
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-Classe ces huit éléments en deux colonnes : conservé par Napoléon, ou supprimé par Napoléon.
+Classe ces huit éléments en deux colonnes : conservé par Napoléon, ou supprimé par Napoléon. Comme Maomao trie les ingrédients d'un remède, classe ces huit éléments.
 
 égalité devant la loi · liberté de la presse · vente des biens nationaux · élections libres · fin des privilèges de naissance · souveraineté du peuple · liberté de conscience · abolition de l'esclavage
 
@@ -321,7 +321,7 @@ Formule de synthèse attendue : Napoléon conserve l'**égalité civile** et sup
 :::
 
 ::: exercice 19 | approfondissement | 10 min | main
-En 1789, plus de trois cents journaux paraissent à Paris. En 1811, il n'en reste que quatre.
+Myne sait ce que vaut la liberté d'imprimer. En 1789, plus de trois cents journaux paraissent à Paris. En 1811, il n'en reste que quatre.
 
 1. Quel article de la Déclaration ce chiffre met-il en cause ?
 2. Cet article a-t-il été formellement abrogé ?

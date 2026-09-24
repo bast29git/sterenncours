@@ -63,7 +63,7 @@ Vrai ou faux, avec une phrase de justification : « Le message moteur va du musc
 :::
 
 ::: exercice 4 | application | 4 min | ecran
-Un chat entend une porte claquer et bondit. Écrire la chaîne complète de cet exemple, en nommant chaque élément.
+Le chat de l'ogre, chez Yuzu, réagit. Un chat entend une porte claquer et bondit. Écrire la chaîne complète de cet exemple, en nommant chaque élément.
 
 ::: corrige
 Stimulation : le **bruit** de la porte. Récepteur : les cellules de l'**oreille**. Message sensitif par le **nerf auditif** jusqu'au **cerveau**. Message moteur par les **nerfs moteurs** jusqu'aux **muscles** des pattes. Réponse : le **bond**.
@@ -111,7 +111,7 @@ Un nerf contient les deux sortes de fibres : le couper interrompt les deux traje
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-Test de la règle : une règle lâchée est rattrapée après 10 cm de chute le matin, et après 20 cm le soir après une longue journée. Que mesure cette distance ? Que montre la différence ?
+Sterenn fait le test dans son atelier de dessin. Test de la règle : une règle lâchée est rattrapée après 10 cm de chute le matin, et après 20 cm le soir après une longue journée. Que mesure cette distance ? Que montre la différence ?
 
 ::: corrige
 La distance parcourue par la règle mesure le **temps de réaction** : plus la règle tombe loin, plus le temps entre la stimulation (voir la règle bouger) et la réponse (serrer les doigts) est long.
@@ -140,7 +140,7 @@ Elle peut expliquer que le **sommeil fixe la mémoire** : ce qui a été appris 
 ## Niveau Approfondissement : exercices 12 à 15
 
 ::: exercice 12 | approfondissement | 7 min | main
-Tableau : temps de réaction moyen de conducteurs. Sans alcool : 0,7 s. Avec une dose d'alcool : 1,0 s. Avec deux doses : 1,3 s. À 50 km/h (environ 14 m/s), calculer la distance parcourue pendant le temps de réaction dans chaque cas. Conclure.
+Maomao, apothicaire, sait que l'alcool est un poison pour les nerfs. Tableau : temps de réaction moyen de conducteurs. Sans alcool : 0,7 s. Avec une dose d'alcool : 1,0 s. Avec deux doses : 1,3 s. À 50 km/h (environ 14 m/s), calculer la distance parcourue pendant le temps de réaction dans chaque cas. Conclure.
 
 ::: corrige
 Distance = vitesse × temps.

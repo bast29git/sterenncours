@@ -78,7 +78,7 @@ Les replis, les **villosités**, multiplient la **surface** de contact entre les
 :::
 
 ::: exercice 6 | application | 4 min | main
-Associer chaque aliment à la famille de nutriments qu'il apporte surtout : pâtes, huile d'olive, œuf, orange.
+Maomao compose le repas d'une dame de la cour impériale. Associer chaque aliment à la famille de nutriments qu'il apporte surtout : pâtes, huile d'olive, œuf, orange.
 
 ::: corrige
 - Pâtes : **glucides** (amidon).
@@ -110,7 +110,7 @@ Le cœur bat plus vite pour **transporter** plus vite l'oxygène et les nutrimen
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-Étiquette pour 100 g de céréales du petit-déjeuner : glucides 75 g dont sucres 30 g, lipides 5 g, protéines 8 g. Une portion fait 40 g. Calculer la quantité de sucres dans une portion, puis dire si ces céréales sont surtout une source de glucides, de lipides ou de protéines.
+Sterenn lit l'étiquette de ses céréales avant une séance de dessin aux feutres. Étiquette pour 100 g de céréales du petit-déjeuner : glucides 75 g dont sucres 30 g, lipides 5 g, protéines 8 g. Une portion fait 40 g. Calculer la quantité de sucres dans une portion, puis dire si ces céréales sont surtout une source de glucides, de lipides ou de protéines.
 
 ::: corrige
 Sucres dans 40 g : 30 × 40 ÷ 100 = **12 g**, soit environ deux morceaux et demi de sucre.
@@ -157,7 +157,7 @@ Conséquence : le sang livre moins d'oxygène aux muscles ; la personne est **es
 :::
 
 ::: exercice 14 | approfondissement | 8 min | main
-Comparer deux goûters : A, une pomme et une tranche de pain complet ; B, une barre chocolatée et un soda. Pour chacun, dire quelles familles de nutriments sont apportées, puis expliquer lequel convient mieux avant deux heures de sport.
+Yuzu prépare le goûter de sa sœur. Comparer deux goûters : A, une pomme et une tranche de pain complet ; B, une barre chocolatée et un soda. Pour chacun, dire quelles familles de nutriments sont apportées, puis expliquer lequel convient mieux avant deux heures de sport.
 
 ::: corrige
 A : glucides (pain), fibres, vitamines (pomme), un peu de protéines : **plusieurs familles**, et une énergie qui se libère lentement.

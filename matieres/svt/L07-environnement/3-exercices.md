@@ -100,7 +100,7 @@ L'eau douce représente **2,5 %** de l'eau de la planète.
 :::
 
 ::: exercice 4 | application | 8 min | ecran
-Produire 1 kg de blé demande environ 1 500 litres d'eau. Produire 1 kg de bœuf en demande environ 15 000 litres.
+Benno, le marchand qui emploie Myne, calcule ce que coûte en eau la nourriture de l'atelier. Produire 1 kg de blé demande environ 1 500 litres d'eau. Produire 1 kg de bœuf en demande environ 15 000 litres.
 
 1. Combien de fois plus d'eau faut-il pour le bœuf que pour le blé ?
 2. Un habitant de France consomme environ 148 litres d'eau par jour à la maison. Combien de jours de consommation domestique représente 1 kg de bœuf ? Arrondis à l'unité.
@@ -372,7 +372,7 @@ Fin de la série B. Treize exercices faits. Reprends dans un moment.
 ## Série C : risques et gestion durable
 
 ::: exercice 14 | approfondissement | 10 min | main
-Pour chaque situation, identifie l'**aléa**, l'**enjeu** et la **vulnérabilité**, puis dis si le risque est fort ou faible.
+Yuzu vit dans une région du Japon exposée aux typhons. Pour chaque situation, identifie l'**aléa**, l'**enjeu** et la **vulnérabilité**, puis dis si le risque est fort ou faible.
 
 a. Un séisme de magnitude 7 dans un désert inhabité.
 b. Un séisme de magnitude 7 sous une ville aux constructions anciennes.

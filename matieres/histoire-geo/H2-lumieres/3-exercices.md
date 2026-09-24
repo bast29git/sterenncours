@@ -216,6 +216,8 @@ Compare les positions de Voltaire et de Rousseau sur l'origine du pouvoir légit
 ## Série C : diffuser et censurer
 
 ::: exercice 12 | application | 5 min | main
+Myne rêve d'un livre qui rassemble tout le savoir : c'est le projet de l'Encyclopédie.
+
 1. Qui dirige l'*Encyclopédie* ?
 2. Entre quelles dates paraît-elle ?
 3. Combien de volumes de texte et de planches comporte-t-elle ?
@@ -272,7 +274,7 @@ Réponse attendue :
 :::
 
 ::: exercice 16 | approfondissement | 8 min | main
-L'*Encyclopédie* est condamnée par le pouvoir royal en 1759. Sa publication se poursuit pourtant jusqu'en 1772.
+Dans la ville de Myne, les livres sont surveillés par les puissants ; en France aussi. L'*Encyclopédie* est condamnée par le pouvoir royal en 1759. Sa publication se poursuit pourtant jusqu'en 1772.
 
 1. Cite trois moyens utilisés au XVIIIᵉ siècle pour contourner la censure.
 2. Comment expliquer qu'un ouvrage condamné continue de paraître ?

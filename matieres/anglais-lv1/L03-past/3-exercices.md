@@ -34,7 +34,7 @@ objectifs:
 ## Série A : le prétérit simple
 
 ::: exercice 1 | application | 5 min | ecran
-Mets les verbes réguliers au prétérit.
+Mets les verbes réguliers au prétérit. Pour raconter une scène de manga, il faut le prétérit.
 
 1. work
 2. live
@@ -54,7 +54,7 @@ Mets les verbes réguliers au prétérit.
 :::
 
 ::: exercice 2 | application | 5 min | ecran
-Donne le prétérit de ces verbes irréguliers.
+Donne le prétérit de ces verbes irréguliers. Pour raconter la nuit des aurores boréales, tu auras besoin de ces irréguliers.
 
 1. go
 2. see
@@ -142,7 +142,7 @@ Ces phrases contiennent une erreur. Corrige-les et explique.
 ## Série B : le prétérit continu
 
 ::: exercice 7 | application | 5 min | main
-Mets au prétérit continu.
+Mets au prétérit continu. Le prétérit continu pose le décor, comme la première case d'un manga.
 
 1. I (watch) a film.
 2. She (cook) dinner.
@@ -304,7 +304,7 @@ Les trois erreurs à ne pas commettre : traduire « actuellement » par `actuall
 ## Série D : rédaction et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Écris le début d'un récit en cinq phrases.
+Écris le début d'un récit en cinq phrases. Le récit peut suivre Maomao, Myne ou Yuzu.
 Contraintes : deux phrases au prétérit continu pour poser le décor, une phrase au prétérit simple pour l'élément déclencheur, deux connecteurs différents.
 
 ::: corrige

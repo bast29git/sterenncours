@@ -171,7 +171,7 @@ Complète avec `mustn't` ou `don't have to`.
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-Voici quatre panneaux. Écris pour chacun la phrase anglaise qui lui correspond.
+Voici quatre panneaux. Écris pour chacun la phrase anglaise qui lui correspond. Ces panneaux pourraient être ceux de l'atelier de papier de Myne.
 
 1. Un panneau « Entrée interdite ».
 2. Un panneau « Casque obligatoire ».
@@ -277,7 +277,7 @@ De la moins forte à la plus forte : **b**, **d**, **c**, **a**.
 :::
 
 ::: exercice 15 | entrainement | 7 min | main
-Réponds à chaque situation par un conseil en anglais, en variant les formes.
+Réponds à chaque situation par un conseil en anglais, en variant les formes. Les situations peuvent être celles de Yuzu ou de Myne.
 
 1. Ton ami dort mal depuis une semaine.
 2. Ta cousine a un contrôle demain matin et regarde une série.
@@ -320,7 +320,7 @@ Ce dernier échange illustre parfaitement la distinction du chapitre : laisser s
 ## Série D : production et devoir type
 
 ::: exercice 17 | entrainement | 10 min | main
-Rédige le règlement de ta salle de travail, en cinq phrases.
+Rédige le règlement de ta salle de travail, en cinq phrases. Ta salle de travail, c'est aussi ton atelier de dessin aux feutres.
 Contraintes : une phrase avec `must`, une avec `mustn't`, une avec `have to`, une avec `don't have to`, une avec `can`.
 
 ::: corrige
@@ -340,7 +340,7 @@ Critères d'évaluation :
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-Écris un court message à une amie qui arrive en France pour la première fois.
+Écris un court message à une amie qui arrive en France pour la première fois. L'amie peut être une lectrice de mangas qui vient pour un salon.
 Donne-lui trois conseils avec `should`, une chose interdite avec `mustn't`, et une chose facultative avec `don't have to`.
 
 ::: corrige

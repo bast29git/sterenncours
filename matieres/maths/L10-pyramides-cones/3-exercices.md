@@ -203,7 +203,7 @@ Retiens la formulation générale : les solides **à pointe** valent un tiers du
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Un récipient conique de `6 cm` de rayon et `15 cm` de hauteur est rempli d'eau.
+Maomao filtre un remède dans un entonnoir conique. Un récipient conique de `6 cm` de rayon et `15 cm` de hauteur est rempli d'eau.
 
 1. Calcule son volume en cm³, valeur exacte puis arrondie au dixième.
 2. Convertis ce volume en mL, puis en L.
@@ -316,7 +316,7 @@ Ce résultat est le plus contre-intuitif du chapitre : couper à mi-hauteur lais
 ## Série D : problèmes et devoir type
 
 ::: exercice 17 | entrainement | 7 min | main
-Un cornet de glace a la forme d'un cône de `3 cm` de rayon et `12 cm` de hauteur.
+À la fête d'été, Yuzu achète une glace. Un cornet de glace a la forme d'un cône de `3 cm` de rayon et `12 cm` de hauteur.
 
 1. Calcule son volume, valeur exacte et arrondie.
 2. Convertis en mL puis en cL.
@@ -332,7 +332,7 @@ Contrôle de vraisemblance : 113 cm³ correspond à peu près au contenu d'un pe
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-Un tas de sable a la forme d'un cône de `4 m` de diamètre et `1,5 m` de hauteur.
+Devant l'atelier de papier de Myne, on a livré du sable pour le four. Un tas de sable a la forme d'un cône de `4 m` de diamètre et `1,5 m` de hauteur.
 
 1. Calcule son volume, arrondi au centième.
 2. Convertis en litres.
@@ -351,7 +351,7 @@ Remarque au point 3 : le résultat de la division n'est pas entier, et l'on **ar
 :::
 
 ::: exercice 19 | approfondissement | 9 min | main
-Un sablier est formé de deux cônes identiques réunis par leur sommet. Chaque cône a un rayon de `2,5 cm` et une hauteur de `6 cm`.
+Maomao mesure le temps d'infusion de ses remèdes avec un sablier. Un sablier est formé de deux cônes identiques réunis par leur sommet. Chaque cône a un rayon de `2,5 cm` et une hauteur de `6 cm`.
 
 1. Calcule le volume d'un cône.
 2. Calcule le volume total du sablier.

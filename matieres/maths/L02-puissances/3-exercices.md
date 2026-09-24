@@ -299,7 +299,7 @@ Calcule.
 :::
 
 ::: exercice 17 | application | 5 min | main
-Écris en notation scientifique.
+Voici des quantités relevées dans les comptes de l'atelier de papier de Myne. Écris en notation scientifique.
 
 1. `4 500`
 2. `0,0032`
@@ -346,7 +346,7 @@ En écriture décimale : `8 800 < 9 700 < 51 000 < 230 000`. Cela confirme.
 :::
 
 ::: exercice 20 | entrainement | 6 min | main
-Convertis, en utilisant les préfixes.
+Maomao pèse et mesure ses remèdes avec précision. Convertis, en utilisant les préfixes.
 
 1. `2,5 km` en mètres
 2. `4 Go` en octets
@@ -386,7 +386,7 @@ Cette dernière étape est celle qu'on oublie le plus souvent : il faut toujours
 ## Série D : problèmes et devoir type
 
 ::: exercice 22 | entrainement | 8 min | main
-La Terre est distante du Soleil d'environ `150 000 000 km`.
+Pour comprendre d'où viennent les aurores boréales, Sterenn s'intéresse au Soleil. La Terre est distante du Soleil d'environ `150 000 000 km`.
 
 1. Écris cette distance en notation scientifique, en kilomètres.
 2. Convertis-la en mètres, en notation scientifique.
@@ -405,7 +405,7 @@ La lumière du Soleil met donc environ **8 minutes et 20 secondes** à nous parv
 :::
 
 ::: exercice 23 | entrainement | 8 min | main
-Un atome a un diamètre d'environ `0,1 nm`.
+Maomao broie ses poudres de remède si finement qu'elle se demande jusqu'où va le très petit. Un atome a un diamètre d'environ `0,1 nm`.
 
 1. Écris ce diamètre en mètres, en notation scientifique.
 2. Combien d'atomes faudrait-il aligner pour faire `1 mm` ?

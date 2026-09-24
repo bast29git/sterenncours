@@ -97,7 +97,7 @@ Le cas du dollar est discutable : il relève du hard power par la dépendance qu
 :::
 
 ::: exercice 4 | application | 8 min | ecran
-Un téléphone est vendu 1 000 €. La conception est américaine, les composants viennent d'Asie de l'Est, l'assemblage se fait en Asie. L'assemblage représente environ 3 % du prix, les composants environ 40 %.
+C'est le téléphone avec lequel Sterenn photographie ses dessins aux feutres. Un téléphone est vendu 1 000 €. La conception est américaine, les composants viennent d'Asie de l'Est, l'assemblage se fait en Asie. L'assemblage représente environ 3 % du prix, les composants environ 40 %.
 
 1. Calcule la valeur de l'assemblage et celle des composants, en euros.
 2. Quelle part reste-t-il pour la conception, la marque et la distribution ?
@@ -313,7 +313,7 @@ Les marchandises arrivent donc désormais par le **Pacifique**, ce qui a fait du
 :::
 
 ::: exercice 12 | entrainement | 10 min | main
-Un habitant d'Atlanta parcourt 50 km pour aller travailler, matin et soir, cinq jours par semaine.
+Un habitant d'Atlanta parcourt 50 km pour aller travailler, matin et soir, cinq jours par semaine. Comme le père de Yuzu, qui travaille loin de chez lui.
 
 1. Combien de kilomètres parcourt-il par semaine ?
 2. Et sur une année de 45 semaines travaillées ?
@@ -472,7 +472,7 @@ Dans l'industrie automobile nord-américaine, une même pièce peut franchir la 
 :::
 
 ::: exercice 18 | approfondissement | 10 min | main
-Des millions d'Américains vivent dans des *gated communities*, quartiers résidentiels fermés et surveillés.
+Yuzu, qui vit dans une maison isolée, s'interroge sur ces quartiers fermés. Des millions d'Américains vivent dans des *gated communities*, quartiers résidentiels fermés et surveillés.
 
 1. Donne la définition de la ségrégation urbaine.
 2. Explique en trois phrases en quoi le *gated community* en est une forme extrême.

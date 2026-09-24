@@ -206,7 +206,7 @@ Le point 5 emploie un irrégulier : `salir` donne `sal` en tutoiement. Attention
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Écris cinq consignes de ton invention pour aller de ton collège à un lieu de ta ville, en tutoiement. Chaque consigne doit contenir un verbe différent.
+Écris cinq consignes de ton invention pour aller de ton collège à un lieu de ta ville, en tutoiement. Chaque consigne doit contenir un verbe différent. Le lieu peut être la librairie où tu achètes tes mangas.
 
 ::: corrige
 Exemple de réponse attendue.
@@ -328,7 +328,7 @@ Cinq changements : `Perdone` devient `Perdona`, `Siga` devient `Sigue`, `gire` d
 ## Série D : indiquer un chemin et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Rédige un itinéraire de cinq lignes, en **tutoiement**, pour aller de la gare à la mairie. Suis la méthode en cinq étapes de la fiche de cours.
+Rédige un itinéraire de cinq lignes, en **tutoiement**, pour aller de la gare à la mairie. Suis la méthode en cinq étapes de la fiche de cours. Dans la ville de Myne, ce serait de la porte au temple.
 
 ::: corrige
 Exemple de réponse attendue.
@@ -340,7 +340,7 @@ Critères de réussite : cinq impératifs au moins, tous au tutoiement, trois pr
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-Écris un dialogue de huit répliques entre un touriste et un habitant, en **vouvoiement**. Le touriste cherche le musée.
+Écris un dialogue de huit répliques entre un touriste et un habitant, en **vouvoiement**. Le touriste cherche le musée. Le touriste peut être Sterenn, de passage en Espagne avant son voyage vers les aurores boréales.
 
 Ton dialogue doit contenir : une formule de politesse, une question avec `¿Dónde está?`, trois impératifs affirmatifs, un impératif négatif, une question sur la distance, une formule de remerciement.
 
@@ -361,7 +361,7 @@ Critères de réussite : les sept éléments imposés présents, vouvoiement ten
 :::
 
 ::: exercice 19 | approfondissement | 8 min | main
-Écris cinq consignes de sécurité pour un piéton en ville, en **tutoiement**, dont trois à la forme négative.
+Écris cinq consignes de sécurité pour un piéton en ville, en **tutoiement**, dont trois à la forme négative. Yuzu les écrirait pour sa petite sœur.
 
 ::: corrige
 Exemple de réponse attendue.

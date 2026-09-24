@@ -65,7 +65,7 @@ Aucune terminaison régulière à entendre pour ces cinq verbes : on les reconna
 :::
 
 ::: exercice 3 | application | 4 min | ecran
-Écouter et noter les connecteurs dans l'ordre. Les classer : début, suite, rupture, fin.
+Écouter et noter les connecteurs dans l'ordre. Les classer : début, suite, rupture, fin. Comme dans un manga, l'histoire a un début, une rupture et une fin.
 
 ::: audio es Conectores
 Al principio la fiesta era aburrida. Luego llegó mi prima con su guitarra. De repente todo el mundo cantaba. Al final, a medianoche, los vecinos nos pidieron que parásemos.
@@ -91,7 +91,7 @@ Trois phrases : « El domingo pasado el perro desapareció del jardín. La famil
 :::
 
 ::: exercice 5 | application | 5 min | main
-Écouter la nouvelle et répondre aux cinq questions : quién, qué, dónde, cuándo, por qué.
+Sterenn suit les nouvelles d'un lycée espagnol avec lequel sa classe échange des lettres et des mangas. Écouter la nouvelle et répondre aux cinq questions : quién, qué, dónde, cuándo, por qué.
 
 ::: audio es Una noticia del instituto
 Los alumnos del instituto Río Verde plantaron doscientos árboles en el parque detrás del instituto el viernes por la mañana. La directora dijo que el proyecto era una respuesta a la ola de calor del verano pasado, para dar más sombra al pueblo.
@@ -131,7 +131,7 @@ Le dernier événement (la prof malade) est appris **par** le coup de téléphon
 :::
 
 ::: exercice 8 | entrainement | 6 min | main
-Écouter le bulletin. Compléter le tableau pour les deux nouvelles : qué pasó, dónde, cifras.
+Sterenn lit les nouvelles espagnoles avant son voyage vers les aurores boréales. Écouter le bulletin. Compléter le tableau pour les deux nouvelles : qué pasó, dónde, cifras.
 
 ::: audio es Dos noticias
 En primer lugar, un incendio ha dañado una panadería en el centro de Bilbao esta madrugada. Nadie resultó herido, pero la tienda estará cerrada al menos tres semanas. Y en el tiempo, las temperaturas alcanzaron ayer los treinta y cuatro grados en Madrid, el día más caluroso del año hasta ahora. Los médicos aconsejan beber agua con frecuencia y no salir al sol entre las doce y las cuatro.

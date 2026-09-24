@@ -57,7 +57,7 @@ L'ordre suit les cinq étapes du parcours.
 :::
 
 ::: exercice 3 | application | 3 min | ecran
-Associer chaque personnage à l'idée qu'il porte : Javert, Monseigneur Myriel, Fantine, Gavroche ; la bonté qui transforme, la loi sans pitié, la misère qui détruit, le courage des enfants des rues.
+Associer chaque personnage à l'idée qu'il porte : Javert, Monseigneur Myriel, Fantine, Gavroche ; la bonté qui transforme, la loi sans pitié, la misère qui détruit, le courage des enfants des rues. Comme dans un manga, chaque personnage porte une idée.
 
 ::: corrige
 **Javert** → la loi sans pitié. **Monseigneur Myriel** → la bonté qui transforme. **Fantine** → la misère qui détruit une femme honnête. **Gavroche** → le courage des enfants des rues.
@@ -113,7 +113,7 @@ Il **choisit de parler** : il se rend au tribunal d'Arras et déclare « Je suis
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-Décrire la scène du seau dans la forêt de Montfermeil (deuxième partie). Quel contraste Hugo construit-il, et quel effet cela produit-il sur le lecteur ?
+Yuzu, elle aussi, a grandi rabaissée par sa famille. Décrire la scène du seau dans la forêt de Montfermeil (deuxième partie). Quel contraste Hugo construit-il, et quel effet cela produit-il sur le lecteur ?
 
 ::: corrige
 La nuit de Noël, les Thénardier envoient Cosette, huit ans, chercher de l'eau à la source dans la forêt, dans le noir et le froid. Le seau est trop lourd, elle s'arrête, elle a peur. Une main prend le seau : c'est Jean Valjean.
@@ -132,7 +132,7 @@ Il ne peut plus **arrêter** un homme qui l'a sauvé, ni **laisser libre** un ho
 :::
 
 ::: exercice 11 | entrainement | 7 min | main
-Dans un tableau à deux colonnes, classer cinq épisodes selon qu'ils montrent la société qui écrase ou la bonté qui relève. Que remarque-t-on ?
+Myne voit la hiérarchie de sa ville écraser les pauvres ; Hugo montre la même chose. Dans un tableau à deux colonnes, classer cinq épisodes selon qu'ils montrent la société qui écrase ou la bonté qui relève. Que remarque-t-on ?
 
 ::: corrige
 | La société qui écrase | La bonté qui relève |

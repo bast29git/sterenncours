@@ -293,7 +293,7 @@ Explique en une ou deux phrases chacun de ces trois phénomènes, avec un exempl
 :::
 
 ::: exercice 13 | entrainement | 10 min | main
-Écris un texte de **six phrases** présentant un pays hispanophone d'Amérique de ton choix. Il doit contenir : la capitale, un chiffre, une fête ou une tradition, une langue indigène ou un mot d'origine indigène, et une phrase d'opinion.
+Écris un texte de **six phrases** présentant un pays hispanophone d'Amérique de ton choix. Il doit contenir : la capitale, un chiffre, une fête ou une tradition, une langue indigène ou un mot d'origine indigène, et une phrase d'opinion. Sterenn choisirait le Chili ou l'Argentine, d'où l'on voit parfois des aurores australes.
 
 ::: corrige
 **Un texte possible, sur le Pérou.**
@@ -393,7 +393,7 @@ f. `esperar`
 :::
 
 ::: exercice 17 | approfondissement | 12 min | main
-Prépare le plan d'un exposé de trois minutes sur l'un de ces sujets :
+Prépare le plan d'un exposé de trois minutes sur l'un de ces sujets : Les mangas sont très lus en Espagne et au Mexique : c'est un sujet possible.
 
 - `San Fermín`
 - `El Día de Muertos`
@@ -454,7 +454,7 @@ f. `Según la UNESCO, es patrimonio de la humanidad desde 2008.`
 :::
 
 ::: exercice 19 | approfondissement | 12 min | main
-Prépare les réponses à cinq questions probables après ton exposé.
+Prépare les réponses à cinq questions probables après ton exposé. Prépare-les comme Maomao prépare une enquête : une réponse courte et une preuve.
 
 1. `¿Puedes repetir, por favor?`
 2. `¿Dónde has encontrado esta información?`

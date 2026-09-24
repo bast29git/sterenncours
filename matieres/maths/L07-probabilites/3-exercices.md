@@ -95,7 +95,7 @@ Contrôle systématique : chacune de ces cinq valeurs est bien comprise entre 0 
 :::
 
 ::: exercice 4 | application | 5 min | ecran
-Un sac contient 4 boules rouges, 3 boules vertes et 5 boules bleues. On en tire une au hasard.
+Yuzu prépare une tombola pour la fête des ayakashi. Un sac contient 4 boules rouges, 3 boules vertes et 5 boules bleues. On en tire une au hasard.
 
 1. Combien y a-t-il d'issues ?
 2. Calcule la probabilité de tirer une boule rouge.
@@ -205,7 +205,7 @@ C'est exactement la même erreur que celle qui consisterait à compter les somme
 :::
 
 ::: exercice 10 | entrainement | 7 min | main
-Un sac contient 3 boules numérotées 1, 2 et 3. On en tire deux **sans** remise.
+Maomao tire au sort l'ordre dans lequel elle prépare ses remèdes. Un sac contient 3 boules numérotées 1, 2 et 3. On en tire deux **sans** remise.
 
 1. Combien y a-t-il d'issues ?
 2. Liste-les toutes.
@@ -333,7 +333,7 @@ Pour chacune de ces affirmations, dis si elle est vraie ou fausse, et explique l
 ## Série D : raisonner et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Une roue de loterie comporte 8 secteurs égaux : 1 est marqué « gros lot », 3 sont marqués « petit lot », 4 sont marqués « perdu ».
+À la fête des ayakashi, une roue de loterie tourne. Une roue de loterie comporte 8 secteurs égaux : 1 est marqué « gros lot », 3 sont marqués « petit lot », 4 sont marqués « perdu ».
 
 1. Calcule la probabilité de chaque résultat.
 2. Vérifie la somme.
@@ -352,7 +352,7 @@ Une roue de loterie comporte 8 secteurs égaux : 1 est marqué « gros lot », 3
 :::
 
 ::: exercice 18 | approfondissement | 9 min | main
-Dans une classe de 30 élèves, 18 font de l'anglais en première langue, et parmi eux 7 font aussi de l'espagnol. Les 12 autres élèves font tous de l'espagnol.
+Dans la classe de Yuzu, qui compte 30 élèves, 18 font de l'anglais en première langue, et parmi eux 7 font aussi de l'espagnol. Les 12 autres élèves font tous de l'espagnol.
 
 On choisit un élève au hasard.
 

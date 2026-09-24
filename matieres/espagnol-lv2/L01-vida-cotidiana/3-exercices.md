@@ -264,7 +264,7 @@ Ne pas oublier le signe ouvrant `¿` ni l'accent sur le mot interrogatif.
 :::
 
 ::: exercice 15 | entrainement | 8 min | main
-Écris un dialogue de six répliques entre deux élèves qui font connaissance.
+Écris un dialogue de six répliques entre deux élèves qui font connaissance. Les deux élèves peuvent être Yuzu et une nouvelle camarade.
 
 **Contraintes :** au moins quatre questions différentes, les signes `¿` et `?`, et une réponse contenant un verbe pronominal.
 
@@ -285,7 +285,7 @@ Quatre questions différentes, signes ouvrants présents, et deux verbes pronomi
 :::
 
 ::: exercice 16 | approfondissement | 8 min | main
-Enregistre-toi en répondant à ces questions, à l'oral, sans lire.
+Enregistre-toi en répondant à ces questions, à l'oral, sans lire. Tu peux parler de tes mangas, de tes feutres ou des aurores boréales.
 
 1. `¿Cómo te llamas?`
 2. `¿Cuántos años tienes?`
@@ -307,7 +307,7 @@ Réponses attendues, à comparer à l'enregistrement :
 ## Série D : production et devoir type
 
 ::: exercice 17 | entrainement | 10 min | main
-Présente-toi en cinq phrases.
+Présente-toi en cinq phrases. Tu peux parler de tes mangas et de tes feutres.
 
 **Contraintes :** employer `llamarse`, `tener`, `ser`, `vivir` et un verbe de ton choix.
 
@@ -325,7 +325,7 @@ Exemple correct :
 :::
 
 ::: exercice 18 | entrainement | 10 min | main
-Raconte ta journée en six phrases.
+Raconte ta journée en six phrases. Ou raconte la journée de Maomao à la cour impériale.
 
 **Contraintes :** au moins trois verbes pronominaux, deux indications d'heure, deux moments de la journée, et deux connecteurs de la liste (`primero`, `después`, `luego`, `más tarde`, `finalmente`).
 

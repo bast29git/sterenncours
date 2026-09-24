@@ -34,7 +34,7 @@ objectifs:
 ## Série A : l'adjectif et sa forme
 
 ::: exercice 1 | application | 4 min | ecran
-Classe ces adjectifs en **courts** ou **longs**.
+Classe ces adjectifs en **courts** ou **longs**. Ces adjectifs serviront à comparer tes feutres et tes mangas.
 
 `tall` · `expensive` · `happy` · `modern` · `big` · `easy` · `difficult` · `old` · `famous` · `funny`
 
@@ -208,7 +208,7 @@ Chaque phrase doit s'appuyer sur un chiffre du tableau. Une phrase juste en gram
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Écris un paragraphe de six lignes comparant deux objets que tu possèdes, par exemple deux paires de chaussures ou deux jeux. Ton texte doit contenir au moins un comparatif court, un comparatif long, une structure `as ... as` et un superlatif.
+Écris un paragraphe de six lignes comparant deux objets que tu possèdes, par exemple deux paires de chaussures ou deux jeux. Ton texte doit contenir au moins un comparatif court, un comparatif long, une structure `as ... as` et un superlatif. Deux feutres à alcool de couleurs différentes conviennent.
 
 ::: corrige
 Exemple de réponse attendue.
@@ -304,7 +304,7 @@ Voici cinq phrases fausses. Corrige chacune et explique l'erreur en une phrase.
 ## Série D : décrire et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Décris une personne de ton entourage en six phrases, une par consigne.
+Décris une personne de ton entourage en six phrases, une par consigne. Tu peux aussi décrire Yuzu ou Maomao.
 
 1. Son âge, avec `to be`.
 2. Sa taille, avec un comparatif.
@@ -342,7 +342,7 @@ Critères de réussite : les six structures imposées présentes, `there are` co
 :::
 
 ::: exercice 19 | approfondissement | 10 min | main
-Rédige un paragraphe de dix lignes comparant deux villes, deux collèges ou deux saisons, en suivant la méthode en cinq étapes de la fiche de cours.
+Rédige un paragraphe de dix lignes comparant deux villes, deux collèges ou deux saisons, en suivant la méthode en cinq étapes de la fiche de cours. Ou deux mangas.
 
 1. Présente les deux éléments.
 2. Donne un point commun avec `as ... as`.

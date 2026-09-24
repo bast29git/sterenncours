@@ -79,7 +79,7 @@ E **(0 ; 0 ; 2)**, F **(5 ; 0 ; 2)**, G **(5 ; 3 ; 2)**, H **(0 ; 3 ; 2)**.
 :::
 
 ::: exercice 5 | application | 4 min | main
-Un pavé a pour dimensions 8 × 4 × 6, origine en A, mêmes conventions que le pavé de référence. Donner les coordonnées de C, de E et de G.
+Une caisse de papier de l'atelier de Myne a la forme d'un pavé. Un pavé a pour dimensions 8 × 4 × 6, origine en A, mêmes conventions que le pavé de référence. Donner les coordonnées de C, de E et de G.
 
 ::: corrige
 C : longueur et largeur, au sol : **(8 ; 4 ; 0)**.
@@ -120,7 +120,7 @@ On peut aussi calculer le milieu de la diagonale [AC] : (0 + 5) ÷ 2 = 2,5 et (0
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-Décrire, étape par étape, le chemin depuis A pour placer le point P (4 ; 1 ; 2) dans le pavé de référence. Ce point est-il un sommet ?
+Yuzu guide sa sœur dans le grenier de la maison de l'ogre. Décrire, étape par étape, le chemin depuis A pour placer le point P (4 ; 1 ; 2) dans le pavé de référence. Ce point est-il un sommet ?
 
 ::: corrige
 1. Depuis A, avancer de **4** le long de [AB].
@@ -185,7 +185,7 @@ R et S ne diffèrent que par l'ordonnée : 0 et 3. La longueur de [RS] est 3 −
 :::
 
 ::: exercice 15 | approfondissement | 9 min | main
-Un cube a des arêtes de 4 cm, origine en A avec les conventions habituelles. Donner les coordonnées du centre du cube. Puis calculer la distance de ce centre au centre de la face du dessus.
+Maomao range ses remèdes dans une boîte cubique. Un cube a des arêtes de 4 cm, origine en A avec les conventions habituelles. Donner les coordonnées du centre du cube. Puis calculer la distance de ce centre au centre de la face du dessus.
 
 ::: corrige
 Le cube a pour dimensions 4 × 4 × 4. Son centre est à mi-chemin dans les trois directions : **(2 ; 2 ; 2)**.

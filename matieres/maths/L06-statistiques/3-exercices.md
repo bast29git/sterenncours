@@ -141,7 +141,7 @@ Retiens la méthode : quand la somme des fréquences ne vaut pas 1, recalcule-le
 ## Série B : les trois indicateurs
 
 ::: exercice 6 | application | 4 min | main
-Calcule la moyenne de chaque série.
+Maomao relève chaque jour la température de ses infusions de remèdes ; voici ses séries. Calcule la moyenne de chaque série.
 
 1. `12, 15, 9, 14, 10`
 2. `6, 6, 6, 6`
@@ -260,7 +260,7 @@ Conclusion de méthode : la moyenne seule ne décrit pas une série. Il faut lui
 ## Série C : choisir et interpréter
 
 ::: exercice 12 | entrainement | 8 min | main
-Voici les salaires mensuels, en euros, des six employés d'une entreprise.
+Benno, le marchand qui emploie Myne à l'atelier, tient ses comptes. Voici les salaires mensuels, en euros, des six employés d'une entreprise.
 
 `1500, 1600, 1600, 1700, 1800, 12000`
 

@@ -54,7 +54,7 @@ Vrai ou faux, avec justification : « Un virus peut se multiplier tout seul dans
 :::
 
 ::: exercice 3 | application | 3 min | ecran
-Donner deux exemples de microbes utiles et dire à quoi ils servent.
+Maomao, apothicaire, utilise des microbes dans ses remèdes. Donner deux exemples de microbes utiles et dire à quoi ils servent.
 
 ::: corrige
 Deux exemples parmi : les **bactéries de l'intestin** (digestion, vitamines), les **bactéries du yaourt** (transformation du lait), la **levure du pain** (le fait lever), les **bactéries du sol** (décomposition des feuilles mortes), les bactéries de la peau (occupent la place).
@@ -92,7 +92,7 @@ La **peau** (ou les muqueuses) est la première barrière. Les **phagocytes** av
 ## Niveau Entraînement : exercices 7 à 11
 
 ::: exercice 7 | entrainement | 5 min | main
-Un élève a un rhume et demande un antibiotique. Expliquer en trois phrases pourquoi le médecin refuse.
+Lutz, l'ami de Myne, a un rhume. Un élève a un rhume et demande un antibiotique. Expliquer en trois phrases pourquoi le médecin refuse.
 
 ::: corrige
 1. Le rhume est dû à un **virus**.
@@ -129,7 +129,7 @@ C'est exactement le principe du **vaccin**, découvert de cette façon à la fin
 :::
 
 ::: exercice 11 | entrainement | 7 min | main
-Une bactérie se divise toutes les 20 minutes. On part d'une seule bactérie. Combien y en a-t-il après 1 heure ? Après 2 heures ? Pourquoi faut-il conserver les aliments au froid ?
+Maomao observe une bactérie dans une infusion de remède oubliée. Une bactérie se divise toutes les 20 minutes. On part d'une seule bactérie. Combien y en a-t-il après 1 heure ? Après 2 heures ? Pourquoi faut-il conserver les aliments au froid ?
 
 ::: corrige
 Toutes les 20 minutes, le nombre double. En 1 heure, trois doublements : 1 → 2 → 4 → **8**.

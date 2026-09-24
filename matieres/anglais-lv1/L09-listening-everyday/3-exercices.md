@@ -65,7 +65,7 @@ Bibliothèque : **8 h 30** (half past eight). Film : **19 h 15** (quarter past s
 :::
 
 ::: exercice 3 | application | 4 min | ecran
-Écouter la phrase une fois. Noter seulement les mots entendus fort. Puis reconstituer le sens en français.
+Sterenn s'entraîne avant son voyage vers les aurores boréales. Écouter la phrase une fois. Noter seulement les mots entendus fort. Puis reconstituer le sens en français.
 
 ::: audio en Stressed words
 Sorry, the museum is closed on Mondays, but it's open every other day from ten till five.
@@ -96,7 +96,7 @@ Prix : **four pounds** : 2 £ for a kilo of apples, plus 2 £ for half a kilo of
 :::
 
 ::: exercice 5 | application | 5 min | main
-Écouter et noter : le jour, la date, l'heure et le lieu du rendez-vous.
+Sterenn, en séjour en Angleterre pour un salon du manga, reçoit ce message. Écouter et noter : le jour, la date, l'heure et le lieu du rendez-vous.
 
 ::: audio en A dentist's appointment
 Hello, this is Greenfield Dental Practice. Your appointment is on Thursday, the fourteenth of May, at ten forty-five in the morning. Please come to the second floor, room seven, and arrive ten minutes early.
@@ -154,7 +154,7 @@ Une réponse complète reprend les mots de la question : « She orders… », «
 :::
 
 ::: exercice 9 | entrainement | 7 min | main
-Écouter les directions. Dessiner le trajet sur un croquis simple, puis écrire les trois étapes en anglais.
+Sterenn cherche la piscine dans une ville anglaise, son carnet de dessin aux feutres sous le bras. Écouter les directions. Dessiner le trajet sur un croquis simple, puis écrire les trois étapes en anglais.
 
 ::: audio en To the swimming pool
 Go straight on for about two hundred metres, then turn right at the roundabout. Go past the supermarket. The swimming pool is on your left, opposite the school. You can't miss it.

@@ -411,7 +411,7 @@ Le blanc diffuse tout, donc il prend la couleur de l'éclairage ; le noir absorb
 :::
 
 ::: exercice 15 | approfondissement | 10 min | main
-Sur une scène de spectacle, un projecteur éclaire les danseurs en lumière bleue.
+Sterenn prépare un dégradé aux feutres et se demande ce que fait la lumière colorée. Sur une scène de spectacle, un projecteur éclaire les danseurs en lumière bleue.
 Une danseuse porte un costume qui paraît **noir** sous ce projecteur, alors qu'il est **jaune** en plein jour.
 
 1. Explique pourquoi le costume paraît noir.

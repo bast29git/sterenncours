@@ -122,7 +122,7 @@ La lecture du tableau est simple : `G` et `I` sont **toujours intérieurs**, `O`
 ## Série B : constructions
 
 ::: exercice 6 | application | 6 min | main
-Trace un segment `[AB]` de `7 cm`, puis construis sa médiatrice au compas. Décris tes étapes.
+Sterenn prépare un dessin aux feutres et trace d'abord la construction au crayon. Trace un segment `[AB]` de `7 cm`, puis construis sa médiatrice au compas. Décris tes étapes.
 
 ::: corrige
 Étapes :
@@ -263,7 +263,7 @@ Retiens le rapport le plus commode à manipuler : `AG = 2 × GA'`. Il évite les
 :::
 
 ::: exercice 14 | entrainement | 6 min | main
-Un triangle rectangle a une hypoténuse de `10 cm`.
+Maomao plie un carré de papier en deux pour obtenir un triangle rectangle. Un triangle rectangle a une hypoténuse de `10 cm`.
 
 1. Où se trouve le centre de son cercle circonscrit ?
 2. Quel est le rayon de ce cercle ?
@@ -316,7 +316,7 @@ Cette démonstration est un modèle du genre : on part d'une coïncidence consta
 ## Série D : démontrer et devoir type
 
 ::: exercice 17 | entrainement | 7 min | main
-Un point `M` vérifie `MA = MB`. Que peut-on dire de sa position ? Rédige la réponse en deux phrases.
+Myne cherche où planter un poteau à égale distance de deux séchoirs de l'atelier. Un point `M` vérifie `MA = MB`. Que peut-on dire de sa position ? Rédige la réponse en deux phrases.
 
 ::: corrige
 « Puisque `MA = MB`, le point `M` est à égale distance des deux extrémités du segment `[AB]`. Or un point est à égale distance des deux extrémités d'un segment si et seulement si il appartient à sa **médiatrice** : le point `M` appartient donc à la médiatrice de `[AB]`. »
@@ -344,7 +344,7 @@ Cette démonstration est remarquable : elle établit **en même temps** l'existe
 :::
 
 ::: exercice 19 | approfondissement | 8 min | main
-Explique en deux paragraphes pourquoi deux droites d'une même famille suffisent à déterminer le point de concours, et à quoi peut servir la troisième.
+Lutz pose la question à Myne : « Pourquoi deux droites suffisent-elles ? » Explique en deux paragraphes pourquoi deux droites d'une même famille suffisent à déterminer le point de concours, et à quoi peut servir la troisième.
 
 ::: corrige
 « Les trois droites d'une même famille sont **concourantes** : elles se coupent toutes en un même point. Deux droites sécantes se coupent en un point unique, et ce point appartient nécessairement à la troisième. Tracer deux droites détermine donc entièrement le point de concours, et la troisième n'apporte aucune information nouvelle.

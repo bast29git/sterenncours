@@ -29,7 +29,7 @@ Une feuille, un crayon, une règle pour les frises. Les exercices marqués `à l
 ## Série A : repères, régimes, suffrage
 
 ::: exercice 1 | application | 8 min | ecran
-Trace une frise de 1815 à 1914 sur une ligne de 20 cm, soit 1 cm pour 5 ans.
+Sterenn trace la frise aux feutres, une couleur par régime. Trace une frise de 1815 à 1914 sur une ligne de 20 cm, soit 1 cm pour 5 ans.
 Place et légende ces sept dates : 1815, 1830, 1848, 1852, 1870, 1882, 1905.
 
 ::: corrige
@@ -237,7 +237,7 @@ Lis cet extrait de la loi du 28 mars 1882.
 :::
 
 ::: exercice 11 | entrainement | 10 min | main
-En 1830, environ 50 % des conscrits savent lire et écrire. En 1900, ils sont plus de 95 %.
+Myne, qui apprend à lire dans une ville où presque personne ne sait, s'intéresserait à ces chiffres. En 1830, environ 50 % des conscrits savent lire et écrire. En 1900, ils sont plus de 95 %.
 
 1. Calcule l'augmentation en points de pourcentage.
 2. Cite les trois principes de l'école de Jules Ferry et leur date.

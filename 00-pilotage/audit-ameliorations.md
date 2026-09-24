@@ -374,7 +374,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Contenu vivant
 
-- ✅ **C99 · P2 · S** Un énoncé sur trois relié à ses univers, vérifié au build par un compteur de mots-clés par leçon (aujourd'hui ce n'est pas mesuré).
+- ✅ **C99 · P2 · S** Un énoncé sur trois relié à ses univers, vérifié au build par un compteur de mots-clés par leçon (aujourd'hui ce n'est pas mesuré). Passage de 5 % à 21 % : 262 énoncés habillés (Maomao, Myne, Yuzu, aurores, feutres), chaque leçon au moins à 20 %, données et corrigés inchangés.
 - ✅ **C100 · P3 · M** Une « fiche curiosité » par matière et par période (les aurores en physique, le papier en histoire, la ville en français), hors programme, sans étoile, pour le plaisir. (livré : huit fiches dans `outils/curiosites/`, une par matière, page « Curiosités » de l'espace de Sterenn)
 
 ## 7. Axe D : jeux 2D (30)

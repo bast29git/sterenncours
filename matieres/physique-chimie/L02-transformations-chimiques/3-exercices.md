@@ -85,7 +85,7 @@ Vrai ou faux ? Justifie chaque réponse en une phrase.
 :::
 
 ::: exercice 4 | entrainement | 6 min | ecran
-On verse du vinaigre sur du bicarbonate de sodium. Il se forme une mousse abondante, le mélange refroidit légèrement, et un gaz s'échappe. Ce gaz éteint une allumette enflammée.
+Maomao teste une poudre de son atelier de remèdes. On verse du vinaigre sur du bicarbonate de sodium. Il se forme une mousse abondante, le mélange refroidit légèrement, et un gaz s'échappe. Ce gaz éteint une allumette enflammée.
 
 1. Cite deux signes qui indiquent une transformation chimique.
 2. Quel gaz est vraisemblablement formé ? Justifie par le test décrit.
@@ -313,7 +313,7 @@ Le zinc réagit avec l'acide chlorhydrique : `Zn + HCl → ZnCl₂ + H₂`.
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-On chauffe `7 g` de fer avec `4 g` de soufre dans un tube fermé. Après réaction, il reste `11 g` de solide, dont une partie n'a pas réagi.
+Dans l'atelier de Myne, on chauffe du fer et du soufre pour fabriquer un pigment d'encre. On chauffe `7 g` de fer avec `4 g` de soufre dans un tube fermé. Après réaction, il reste `11 g` de solide, dont une partie n'a pas réagi.
 
 1. Écris l'équation équilibrée de la réaction, sachant que le produit est le sulfure de fer `FeS`.
 2. Explique pourquoi la masse finale vaut `11 g`.

@@ -131,7 +131,7 @@ Le texte donne des détails précis (la lumière, le retour progressif de l'imag
 :::
 
 ::: exercice 11 | entrainement | 7 min | main
-Dans un tableau à deux colonnes, classer cinq faits du récit selon qu'ils sont observés par le narrateur seul ou confirmés par une autre personne. Que remarque-t-on ?
+Dans un tableau à deux colonnes, classer cinq faits du récit selon qu'ils sont observés par le narrateur seul ou confirmés par une autre personne. Que remarque-t-on ? Comme Maomao dans ses enquêtes, sépare ce qui est vu d'une seule personne de ce que d'autres confirment.
 
 ::: corrige
 | Vu par le narrateur seul | Confirmé par d'autres |

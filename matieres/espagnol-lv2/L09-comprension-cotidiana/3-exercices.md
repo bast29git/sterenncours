@@ -65,7 +65,7 @@ Bibliothèque : **8 h 30** (las ocho y media). Film : **19 h 15** (las siete y c
 :::
 
 ::: exercice 3 | application | 4 min | ecran
-Écouter la phrase une fois. Noter seulement les mots entendus fort. Puis reconstituer le sens en français.
+Sterenn s'entraîne avant un séjour en Espagne, puis un voyage vers les aurores boréales. Écouter la phrase une fois. Noter seulement les mots entendus fort. Puis reconstituer le sens en français.
 
 ::: audio es Palabras fuertes
 Lo siento, el museo está cerrado los lunes, pero abre los demás días de diez a cinco.
@@ -96,7 +96,7 @@ Prix : **cuatro euros** : 2 € le kilo de pommes, plus 2 € pour un demi-kilo 
 :::
 
 ::: exercice 5 | application | 5 min | main
-Écouter et noter : le jour, la date, l'heure et le lieu du rendez-vous.
+Sterenn, en séjour en Espagne pour un salon du manga, reçoit ce message. Écouter et noter : le jour, la date, l'heure et le lieu du rendez-vous.
 
 ::: audio es Una cita con el dentista
 Hola, le llamamos de la clínica dental Sol. Su cita es el jueves catorce de mayo a las diez y cuarenta y cinco de la mañana. Suba a la segunda planta, consulta siete, y venga diez minutos antes, por favor.
@@ -153,7 +153,7 @@ Une réponse complète reprend les mots de la question : « Pide… », « No qu
 :::
 
 ::: exercice 9 | entrainement | 7 min | main
-Écouter les directions. Dessiner le trajet sur un croquis simple, puis écrire les trois étapes en espagnol.
+Sterenn cherche la piscine dans une ville espagnole, son carnet de dessin aux feutres sous le bras. Écouter les directions. Dessiner le trajet sur un croquis simple, puis écrire les trois étapes en espagnol.
 
 ::: audio es A la piscina
 Sigue todo recto unos doscientos metros y luego gira a la derecha en la rotonda. Pasa el supermercado. La piscina está a la izquierda, enfrente del colegio. No tiene pérdida.

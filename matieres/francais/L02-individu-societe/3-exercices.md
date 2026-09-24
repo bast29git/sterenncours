@@ -64,7 +64,7 @@ Vrai ou faux ? Corrige les phrases fausses.
 :::
 
 ::: exercice 3 | application | 5 min | ecran
-Dans cet extrait, relève les didascalies et dis ce que chacune apprend.
+Dans cet extrait, relève les didascalies et dis ce que chacune apprend. Imagine que Sterenn adapte une scène de manga pour le théâtre : il lui faut des didascalies.
 
 > HARPAGON, *seul.*
 > Je suis perdu, je suis assassiné ! *(Il court en tous sens.)* On m'a coupé la gorge : on m'a dérobé mon argent !
@@ -176,7 +176,7 @@ Le déséquilibre entre ces deux enjeux est ce qui rend Harpagon **ridicule** au
 :::
 
 ::: exercice 11 | entrainement | 7 min | main
-Un adolescent veut arrêter le sport de haut niveau pour se consacrer à la musique. Ses parents s'y opposent, au nom des sacrifices déjà consentis.
+Le frère de Yuzu veut arrêter le sport de haut niveau pour se consacrer à la musique. Ses parents s'y opposent, au nom des sacrifices déjà consentis.
 
 Applique les quatre questions.
 
@@ -204,7 +204,7 @@ Oeuvres : *Antigone* · *Le Misanthrope* · *L'Avare*
 :::
 
 ::: exercice 13 | approfondissement | 8 min | main
-Invente une situation de conflit de valeurs, en quelques lignes, puis analyse-la avec les quatre questions.
+Invente une situation de conflit de valeurs, en quelques lignes, puis analyse-la avec les quatre questions. Pense à Myne, qui veut fabriquer des livres dans une ville où les pauvres n'ont pas le droit de lire.
 
 **Contraintes :** deux personnages, deux valeurs nommées en un mot chacune, et une échéance qui force la décision.
 
@@ -324,7 +324,7 @@ Cet argument est mal construit. Explique pourquoi, puis corrige-le.
 :::
 
 ::: exercice 20 | approfondissement | 8 min | main
-Écris deux arguments opposés sur la question : **« Faut-il interdire les écrans aux moins de 13 ans ? »**
+Écris deux arguments opposés sur la question : **« Faut-il interdire les écrans aux moins de 13 ans ? »** Yuzu et sa sœur ne sont pas d'accord.
 
 Un argument qui **convainc**, un argument qui **persuade**. Chacun peut défendre le camp que tu veux.
 
@@ -382,7 +382,7 @@ Exemple de paragraphe correct.
 :::
 
 ::: exercice 23 | approfondissement | 10 min | main
-Écris une courte scène de théâtre, une douzaine de répliques, mettant en scène un conflit de valeurs.
+Écris une courte scène de théâtre, une douzaine de répliques, mettant en scène un conflit de valeurs. Tu peux placer la scène dans l'atelier de papier de Myne ou dans la maison de l'ogre où vit Yuzu.
 
 **Contraintes :** deux personnages, au moins trois didascalies, une valeur nommée de chaque côté, et une échéance qui force la décision.
 

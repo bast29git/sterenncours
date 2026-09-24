@@ -183,7 +183,7 @@ Pour chacune de ces trois situations, la méthode du déplacement d'eau échoue.
 :::
 
 ::: exercice 11 | approfondissement | 7 min | main
-On dispose de trois cubes de `2 cm` de côté : un en liège, un en aluminium, un en plomb.
+Lutz apporte à l'atelier de papier trois cubes de matières différentes. On dispose de trois cubes de `2 cm` de côté : un en liège, un en aluminium, un en plomb.
 
 1. Calcule le volume commun.
 2. Calcule la masse de chacun.
@@ -222,7 +222,7 @@ Ces corps flottent-ils sur l'eau ? Justifie par une comparaison chiffrée.
 :::
 
 ::: exercice 13 | entrainement | 6 min | main
-On verse dans un tube, dans cet ordre : du miel de masse volumique `1,4 g/cm³`, de l'eau, de l'huile de masse volumique `0,92 g/cm³`.
+Maomao superpose des liquides dans un tube pour un remède. On verse dans un tube, dans cet ordre : du miel de masse volumique `1,4 g/cm³`, de l'eau, de l'huile de masse volumique `0,92 g/cm³`.
 
 1. Dans quel ordre ces trois liquides vont-ils se disposer, de bas en haut ?
 2. Justifie ta réponse.
@@ -267,7 +267,7 @@ On souhaite identifier un objet métallique. Sa masse vaut `192 g`. On le plonge
 :::
 
 ::: exercice 16 | approfondissement | 8 min | main
-Un bijoutier veut vérifier qu'une bague est bien en or. Elle a une masse de `9,65 g`. Plongée dans l'eau, elle fait monter le niveau de `0,7 mL`.
+Jinshi demande à Maomao de vérifier un bijou de la cour impériale. Un bijoutier veut vérifier qu'une bague est bien en or. Elle a une masse de `9,65 g`. Plongée dans l'eau, elle fait monter le niveau de `0,7 mL`.
 
 1. Calcule sa masse volumique.
 2. Compare à la valeur de l'or.

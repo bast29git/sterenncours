@@ -231,7 +231,7 @@ Le classement en une ligne : graine pour les annuelles, organe souterrain pour l
 :::
 
 ::: exercice 11 | entrainement | 12 min | main
-On place des graines de haricot dans cinq conditions différentes pendant une semaine.
+Myne fait germer des graines pour l'atelier de papier. On place des graines de haricot dans cinq conditions différentes pendant une semaine.
 
 ::: grille
 | Essai | Eau | Température | Air | Lumière | Germination |

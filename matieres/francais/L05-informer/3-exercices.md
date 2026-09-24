@@ -86,7 +86,7 @@ Critères de réussite : plus aucun adjectif évaluatif, au moins deux sources m
 :::
 
 ::: exercice 4 | application | 5 min | ecran
-Classe ces sources de la plus fiable à la moins fiable, et justifie.
+Maomao ne croit une rumeur de la cour impériale que si la source est fiable. Classe ces sources de la plus fiable à la moins fiable, et justifie.
 
 1. Un billet de blog commentant un article de presse.
 2. Le rapport publié par l'institut qui a mené l'étude.
@@ -232,7 +232,7 @@ Critères de réussite : chaque réponse appuyée sur un élément **précis** d
 ## Série C : rumeur et manipulation
 
 ::: exercice 12 | application | 5 min | main
-Quelles sont les trois conditions de naissance d'une rumeur ? Applique-les à cette situation : « Une coupure d'électricité touche un quartier un soir d'hiver, sans explication du fournisseur. »
+Maomao, dans ses enquêtes, voit naître les rumeurs de la cour impériale. Quelles sont les trois conditions de naissance d'une rumeur ? Applique-les à cette situation : « Une coupure d'électricité touche un quartier un soir d'hiver, sans explication du fournisseur. »
 
 ::: corrige
 Les trois conditions : un sujet **important**, une **incertitude**, un **manque de confiance** envers les sources habituelles.
@@ -249,7 +249,7 @@ Conclusion pratique : le meilleur moyen d'éviter une rumeur n'est pas de la dé
 :::
 
 ::: exercice 13 | entrainement | 6 min | main
-Une phrase entendue : « Il y a eu un incident près du gymnase, la police est venue. »
+Une phrase entendue : « Il y a eu un incident près du gymnase, la police est venue. » Comme Maomao, ne conclus pas trop vite.
 Après cinq relais : « La police a bouclé le quartier, il paraît que c'est grave. »
 
 1. Quelles transformations se sont produites ? Nomme-les.
@@ -323,7 +323,7 @@ Retiens ce signal : une demande explicite de **partage massif** est l'un des ind
 ## Série D : vérifier, rédiger et devoir type
 
 ::: exercice 17 | entrainement | 7 min | main
-Un camarade te dit : « J'ai vérifié, vingt sites disent la même chose. »
+Lutz, l'ami de Myne, est sûr de lui. Un camarade te dit : « J'ai vérifié, vingt sites disent la même chose. »
 
 1. Est-ce une vérification suffisante ? Justifie.
 2. Que faudrait-il vérifier en plus ?

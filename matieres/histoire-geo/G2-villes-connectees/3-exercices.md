@@ -81,7 +81,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 
 ::: exercice 4 | entrainement | 6 min | ecran
-Pour aller de Brest à Hô Chi Minh-Ville, il n'existe aucun vol direct : il faut passer par Paris, puis par Dubaï ou Doha.
+Sterenn cherche un vol pour aller voir une amie au Vietnam, lectrice de mangas comme elle. Pour aller de Brest à Hô Chi Minh-Ville, il n'existe aucun vol direct : il faut passer par Paris, puis par Dubaï ou Doha.
 
 1. Que montre cet exemple sur l'organisation du réseau aérien ?
 2. Comment appelle-t-on Paris et Dubaï dans ce trajet ?
@@ -95,7 +95,7 @@ Pour aller de Brest à Hô Chi Minh-Ville, il n'existe aucun vol direct : il fau
 :::
 
 ::: exercice 5 | entrainement | 6 min | main
-Un produit électronique est conçu en Californie, ses composants fabriqués à Taïwan et en Corée, il est assemblé en Chine et vendu dans le monde entier.
+Le téléphone avec lequel Sterenn photographie ses dessins aux feutres a beaucoup voyagé. Un produit électronique est conçu en Californie, ses composants fabriqués à Taïwan et en Corée, il est assemblé en Chine et vendu dans le monde entier.
 
 1. Comment appelle-t-on ce découpage de la production ?
 2. Pourquoi les entreprises procèdent-elles ainsi ?
@@ -261,7 +261,7 @@ Rappelle les cinq étapes de la méthode d'analyse d'une carte de flux ou d'un c
 :::
 
 ::: exercice 16 | approfondissement | 8 min | main
-L'installation d'un câble sous-marin sur une côte africaine fait chuter le prix de l'accès à internet et permet l'essor de services nouveaux. Elle rend aussi le pays dépendant d'une infrastructure détenue par des entreprises étrangères.
+Sterenn lit ses mangas en ligne ; sans câble, pas de lecture. L'installation d'un câble sous-marin sur une côte africaine fait chuter le prix de l'accès à internet et permet l'essor de services nouveaux. Elle rend aussi le pays dépendant d'une infrastructure détenue par des entreprises étrangères.
 
 1. Relève deux effets positifs.
 2. Relève deux effets négatifs.
@@ -291,7 +291,7 @@ L'installation d'un câble sous-marin sur une côte africaine fait chuter le pri
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-De nombreuses démarches administratives sont devenues exclusivement numériques : impôts, demandes d'aide, inscriptions.
+La sœur de Yuzu aide leur grand-mère à faire ses démarches. De nombreuses démarches administratives sont devenues exclusivement numériques : impôts, demandes d'aide, inscriptions.
 
 1. Quel problème cela pose-t-il pour certaines personnes ?
 2. Quels sont les trois niveaux de difficulté qu'elles peuvent rencontrer ?

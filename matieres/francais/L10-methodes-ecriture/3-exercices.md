@@ -141,7 +141,7 @@ L'élément perturbateur est l'étape décisive : sans lui, une suite d'actions 
 :::
 
 ::: exercice 7 | entrainement | 7 min | main
-Écris la situation initiale et l'élément perturbateur d'un récit, en une dizaine de lignes.
+Écris la situation initiale et l'élément perturbateur d'un récit, en une dizaine de lignes. Le récit peut suivre Yuzu, Myne ou Maomao.
 
 Contraintes : récit au passé, narrateur à la première personne, l'élément perturbateur doit tenir en une phrase courte.
 
@@ -259,7 +259,7 @@ Ce qui manque : le **nom de l'établissement** et de la commune, la **date préc
 :::
 
 ::: exercice 13 | entrainement | 7 min | main
-Rédige un article de dix lignes rendant compte de l'inauguration de la nouvelle bibliothèque de ton collège.
+Rédige un article de dix lignes rendant compte de l'inauguration de la nouvelle bibliothèque de ton collège. Tu peux imaginer que la bibliothèque porte le nom de Myne, la faiseuse de livres.
 
 Ton article doit comporter un titre, un chapeau, une attaque, un corps organisé en pyramide inversée, et répondre aux cinq questions.
 
@@ -340,7 +340,7 @@ Retiens le principe : un texte qui ignore l'argument adverse paraît faible, par
 ## Série D : relire et devoir type
 
 ::: exercice 17 | application | 6 min | main
-Applique la grille de relecture à ce texte et relève toutes les erreurs.
+Applique la grille de relecture à ce texte et relève toutes les erreurs. Relis comme Maomao vérifie un remède : point par point.
 
 « Les élèves de quatrième a visité le musée. Ils ont beaucoup aimés l'exposition. Ensuite on est rentrés au collège. La visite était super intéressante. »
 

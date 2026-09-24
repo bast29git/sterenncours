@@ -35,7 +35,7 @@ objectifs:
 ## Série A : définitions et chiffres
 
 ::: exercice 1 | application | 5 min | ecran
-Pour chaque situation, dis s'il s'agit de tourisme, et justifie en quelques mots.
+Sterenn part voir les aurores boréales : est-ce du tourisme ? Pour chaque situation, dis s'il s'agit de tourisme, et justifie en quelques mots.
 
 1. Une famille passe une semaine en Espagne.
 2. Un habitant de Rennes va à Paris pour la journée.
@@ -75,7 +75,7 @@ Les points 4 et 5 sont les plus importants : ils corrigent l'impression, très r
 :::
 
 ::: exercice 3 | entrainement | 6 min | ecran
-Une personne effectue en un seul voyage : trois nuits en Italie, deux nuits en Autriche, quatre nuits en Allemagne.
+Sterenn prépare un voyage vers les aurores boréales. Une personne effectue en un seul voyage : trois nuits en Italie, deux nuits en Autriche, quatre nuits en Allemagne.
 
 1. Combien d'arrivées touristiques internationales cela représente-t-il ?
 2. Combien de personnes cela représente-t-il ?
@@ -163,7 +163,7 @@ Remarque que l'espace **urbain** est le seul où le tourisme d'affaires pèse lo
 :::
 
 ::: exercice 9 | entrainement | 7 min | main
-Un village de montagne possède un lac remarquable, mais aucune route carrossable et aucun hébergement.
+Le village de l'ogre, où vit Yuzu, ressemble à celui-ci. Un village de montagne possède un lac remarquable, mais aucune route carrossable et aucun hébergement.
 
 1. Est-ce un espace touristique ? Justifie.
 2. Quelles conditions manquent ?
@@ -197,7 +197,7 @@ Ce modèle explique pourquoi les stations investissent en pleine réussite : att
 :::
 
 ::: exercice 11 | approfondissement | 8 min | main
-Une commune littorale compte 4 000 habitants l'hiver et 40 000 en août.
+Le village de Yuzu, en bord de mer, vit la même chose l'été. Une commune littorale compte 4 000 habitants l'hiver et 40 000 en août.
 
 1. Par combien sa population est-elle multipliée ?
 2. Pour quelle population doit-elle dimensionner son réseau d'eau et sa collecte de déchets ?

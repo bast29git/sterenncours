@@ -122,7 +122,7 @@ Corrige ces formes fautives et explique.
 :::
 
 ::: exercice 6 | entrainement | 6 min | main
-Mets ce passage au passé simple.
+Mets ce passage au passé simple. Ce passage raconte une soirée de Yuzu dans la maison de l'ogre.
 
 `Il entre dans la pièce, allume la lampe, s'assoit et ouvre le tiroir. Il prend une lettre et la lit.`
 
@@ -166,7 +166,7 @@ Quelle valeur du passé simple ? Action brève, succession ou action soudaine.
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-Complète avec l'imparfait ou le passé simple, et justifie chaque choix.
+Complète avec l'imparfait ou le passé simple, et justifie chaque choix. Maomao enquête dans les cuisines de la cour impériale.
 
 1. `La nuit ……… (tomber) quand il ……… (arriver).`
 2. `Chaque matin, elle ……… (prendre) le même chemin.`
@@ -262,7 +262,7 @@ Les trois temps se répartissent donc sur trois plans temporels : avant, pendant
 :::
 
 ::: exercice 15 | entrainement | 6 min | main
-Réécris ce passage dans le système du présent.
+Réécris ce passage dans le système du présent. Ce passage décrit Myne à l'atelier.
 
 `Il entra dans la pièce. La lampe était allumée. Quelqu'un avait déplacé les meubles. Il comprit qu'il n'était pas seul.`
 
@@ -301,7 +301,7 @@ Remarque : un basculement au présent **peut** être un effet de style volontair
 ## Série D : écriture et devoir type
 
 ::: exercice 17 | entrainement | 8 min | main
-Rédige un paragraphe de six à huit lignes.
+Rédige un paragraphe de six à huit lignes. Raconte la première nuit d'aurores boréales de Sterenn, ou une soirée dans l'atelier de papier de Myne.
 Contraintes : trois verbes à l'imparfait pour le décor, quatre au passé simple pour les événements, et un plus-que-parfait pour une information antérieure.
 
 ::: corrige

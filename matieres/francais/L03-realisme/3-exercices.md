@@ -286,7 +286,7 @@ Un même chapitre commence ainsi : « La ville de Verrières passe pour la plus 
 ## Série D : écriture et devoir type
 
 ::: exercice 17 | entrainement | 10 min | main
-Rédige en huit à dix lignes la description d'une chambre d'hôtel bon marché.
+Rédige en huit à dix lignes la description d'une chambre d'hôtel bon marché. Myne, arrivée en ville, découvre une auberge misérable.
 Contraintes : au moins quatre procédés de l'effet de réel, dont un détail gratuit et deux notations non visuelles, et un ordre de description explicite.
 
 ::: corrige
@@ -302,7 +302,7 @@ Critères d'évaluation :
 :::
 
 ::: exercice 18 | entrainement | 8 min | main
-Décris en six à huit lignes l'intérieur d'un personnage que tu veux caractériser comme **ambitieux mais désargenté**.
+Décris en six à huit lignes l'intérieur d'un personnage que tu veux caractériser comme **ambitieux mais désargenté**. Ce personnage pourrait être Benno, le marchand ambitieux qui emploie Myne à l'atelier de papier.
 Ne dis jamais qu'il est ambitieux ni qu'il manque d'argent : fais-le comprendre par les objets.
 
 ::: corrige

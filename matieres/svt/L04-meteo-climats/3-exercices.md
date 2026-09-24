@@ -35,7 +35,7 @@ objectifs:
 ## Série A : météo, climat, paramètres
 
 ::: exercice 1 | application | 4 min | ecran
-Météo ou climat ?
+Sterenn prépare son voyage vers les aurores boréales et lit les prévisions. Météo ou climat ?
 
 1. « Demain, 14 °C et averses sur la Bretagne. »
 2. « En Provence, les étés sont chauds et secs. »
@@ -121,7 +121,7 @@ Un élève écrit : « L'hiver dernier a été très froid, donc le réchauffeme
 :::
 
 ::: exercice 7 | entrainement | 6 min | main
-Un élève affirme : « Il fait froid aux pôles parce qu'ils sont plus éloignés du Soleil. »
+En Norvège, sous les aurores boréales, il fait très froid : Lutz, l'ami de Myne, croit savoir pourquoi. Un élève affirme : « Il fait froid aux pôles parce qu'ils sont plus éloignés du Soleil. »
 
 1. Cette explication est-elle correcte ?
 2. Compare les ordres de grandeur en jeu.
@@ -154,7 +154,7 @@ Cet ordre se retrouve dans les deux hémisphères, en miroir de part et d'autre 
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-Brest et Strasbourg sont à peu près à la même latitude. Brest connaît des hivers doux, autour de `7 °C` en janvier. Strasbourg descend souvent sous `2 °C`.
+Sterenn compare les climats avant de choisir où voir les aurores boréales. Brest et Strasbourg sont à peu près à la même latitude. Brest connaît des hivers doux, autour de `7 °C` en janvier. Strasbourg descend souvent sous `2 °C`.
 
 1. La latitude explique-t-elle cet écart ?
 2. Quel facteur l'explique ?
@@ -186,7 +186,7 @@ Une masse d'air humide venue de l'ouest rencontre une chaîne de montagnes.
 :::
 
 ::: exercice 11 | approfondissement | 7 min | main
-La banquise arctique fond, laissant place à de l'eau libre.
+Sous les aurores boréales, la banquise change. La banquise arctique fond, laissant place à de l'eau libre.
 
 1. Compare l'albédo de la glace et de l'eau.
 2. Quelle conséquence sur l'énergie absorbée ?

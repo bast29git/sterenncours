@@ -254,7 +254,7 @@ Complète avec le mot qui convient : `unless`, `as long as`, `in case`, `even if
 :::
 
 ::: exercice 12 | entrainement | 10 min | main
-Pour chaque situation, écris une phrase hypothétique du type qui convient, et indique le type choisi.
+Pour chaque situation, écris une phrase hypothétique du type qui convient, et indique le type choisi. Les situations peuvent concerner Yuzu ou Myne.
 
 1. Tu expliques que le chocolat fond quand on le chauffe.
 2. Tu préviens un ami qu'il va rater son bus s'il ne se dépêche pas.
@@ -370,7 +370,7 @@ Voici cinq phrases correctes en anglais. Pour chacune, explique ce qu'elle dit d
 :::
 
 ::: exercice 17 | approfondissement | 12 min | main
-Écris cinq phrases personnelles, une de chaque catégorie.
+Écris cinq phrases personnelles, une de chaque catégorie. Par exemple sur un voyage vers les aurores boréales.
 
 1. Une vérité générale sur toi (type 0).
 2. Un projet réel pour le week-end prochain (type 1).
@@ -426,7 +426,7 @@ Ton texte doit contenir au moins **un type 0**, **deux types 1**, **deux types 2
 :::
 
 ::: exercice 19 | approfondissement | 12 min | main
-Prépare une prise de parole de **une minute** répondant à cette question :
+Prépare une prise de parole de **une minute** répondant à cette question : Tu peux t'appuyer sur un manga que tu connais pour donner un exemple.
 
 `What would you do if you could change one thing about your school?`
 

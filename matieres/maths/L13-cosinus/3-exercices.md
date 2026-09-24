@@ -179,7 +179,7 @@ Contrôle : 3,29 < 3,5, la hauteur est plus courte que l'échelle.
 :::
 
 ::: exercice 12 | entrainement | 6 min | main
-Un toboggan a une longueur de 9 m et forme un angle de 50° avec le sol. Quelle distance au sol sépare le pied du toboggan du point situé juste sous son sommet ? Arrondir au dixième.
+À la fête d'été de Yuzu, un toboggan est installé sur la place. Un toboggan a une longueur de 9 m et forme un angle de 50° avec le sol. Quelle distance au sol sépare le pied du toboggan du point situé juste sous son sommet ? Arrondir au dixième.
 
 ::: corrige
 Le triangle formé par le toboggan, le sol et la verticale est rectangle au sol.

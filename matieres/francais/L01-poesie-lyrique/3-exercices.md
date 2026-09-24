@@ -172,7 +172,7 @@ Dis si chaque rime est pauvre, suffisante ou riche. Compte les sons communs.
 :::
 
 ::: exercice 9 | approfondissement | 8 min | main
-Invente deux vers de 8 syllabes qui riment ensemble, sur le thème du souvenir.
+Invente deux vers de 8 syllabes qui riment ensemble, sur le thème du souvenir. Yuzu écrit dans son carnet, le soir, en pensant à sa famille.
 
 1. Écris tes deux vers.
 2. Compte les syllabes de chacun et montre tes coupes.
@@ -248,7 +248,7 @@ Transforme chaque comparaison en métaphore.
 :::
 
 ::: exercice 13 | entrainement | 8 min | main
-Relève le champ lexical demandé dans ce court texte, puis compte les mots trouvés.
+Relève le champ lexical demandé dans ce court texte, puis compte les mots trouvés. Maomao lit un poème de la cour impériale et y cherche des mots.
 
 > Mon cœur bat, ma main tremble, et mon souffle se perd.
 > Je t'aime comme on brûle, et ce feu me dévore.
@@ -280,7 +280,7 @@ Pour chaque image, nomme le procédé puis dis son effet en une phrase.
 :::
 
 ::: exercice 15 | approfondissement | 10 min | main
-Écris trois phrases sur le même sujet, la pluie : une comparaison, une métaphore, une personnification. Souligne dans chacune ce qui permet de la reconnaître.
+Écris trois phrases sur le même sujet, la pluie : une comparaison, une métaphore, une personnification. Souligne dans chacune ce qui permet de la reconnaître. Sterenn regarde tomber la pluie sur la fenêtre de son atelier de dessin.
 
 ::: corrige
 Il n'y a pas de réponse unique. Voici un exemple correct.
@@ -359,7 +359,7 @@ Voici un paragraphe correct, à comparer au travail rendu.
 :::
 
 ::: exercice 19 | approfondissement | 15 min | main
-Écris un quatrain lyrique de ton choix, sur le thème du souvenir ou de l'absence.
+Écris un quatrain lyrique de ton choix, sur le thème du souvenir ou de l'absence. Comme Yuzu, qui écrit pour dire ce qu'elle ne dit pas à voix haute, compose.
 
 **Contraintes à respecter :**
 1. Quatre vers de 8 syllabes chacun.

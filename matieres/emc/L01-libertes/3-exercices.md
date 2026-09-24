@@ -74,7 +74,7 @@ Déclaration des droits de l'homme et du citoyen · Déclaration universelle des
 :::
 
 ::: exercice 4 | entrainement | 5 min | ecran
-Un élève écrit : « Être libre, c'est pouvoir faire tout ce que je veux, sans que personne ne m'en empêche. »
+Lutz, l'élève de l'atelier de papier, écrit : « Être libre, c'est pouvoir faire tout ce que je veux, sans que personne ne m'en empêche. »
 
 1. Que faut-il corriger dans cette phrase ?
 2. Réécris-la correctement en t'appuyant sur l'article 4 de 1789.
@@ -200,7 +200,7 @@ Rappelle les cinq étapes pour traiter un conflit entre deux libertés.
 :::
 
 ::: exercice 13 | entrainement | 8 min | main
-Un journal publie des photographies d'une personne célèbre prises chez elle, sans son accord.
+Maomao connaît les rumeurs qui courent à la cour impériale sur Jinshi. Un journal publie des photographies d'une personne célèbre prises chez elle, sans son accord.
 
 1. Quelles libertés s'opposent ici ?
 2. Comment le juge tranche-t-il habituellement ?
@@ -231,7 +231,7 @@ Un cortège de manifestants bloque un axe routier important pendant trois heures
 :::
 
 ::: exercice 15 | entrainement | 7 min | main
-Un établissement scolaire interdit l'usage du téléphone portable pendant les cours.
+Au lycée de Yuzu, la règle est la même. Un établissement scolaire interdit l'usage du téléphone portable pendant les cours.
 
 1. Quelle liberté est limitée ?
 2. Cette limite passe-t-elle le test des quatre questions ? Examine-les une par une.
@@ -249,7 +249,7 @@ La limite passe donc le test : elle est légitime.
 :::
 
 ::: exercice 16 | approfondissement | 8 min | main
-Deux élèves discutent.
+Deux élèves, Yuzu et une camarade, discutent.
 
 *Lina* : « Un professeur n'a pas le droit de me demander d'enlever ma casquette, c'est ma liberté. »
 *Samir* : « Tu n'as aucune liberté à l'école, c'est un lieu de règles. »

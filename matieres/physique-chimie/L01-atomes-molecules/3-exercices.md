@@ -238,7 +238,7 @@ Fin de la série B. Prends cinq minutes avant la suite.
 ## Série C : classer la matière
 
 ::: exercice 13 | application | 5 min | main
-Corps pur ou mélange ? Justifie en quelques mots.
+Maomao trie les ingrédients de son atelier de remèdes. Corps pur ou mélange ? Justifie en quelques mots.
 
 1. L'eau distillée
 2. L'air
@@ -274,7 +274,7 @@ Atome, molécule ou ion ?
 :::
 
 ::: exercice 15 | entrainement | 6 min | main
-Le sel de cuisine a pour formule `NaCl`.
+Maomao utilise du sel pour conserver ses remèdes. Le sel de cuisine a pour formule `NaCl`.
 
 1. De quels ions est-il formé ?
 2. Pourquoi l'eau salée conduit-elle le courant électrique, alors que l'eau distillée le conduit très mal ?
@@ -307,7 +307,7 @@ Le liquide est le seul état qui a un volume propre mais pas de forme propre : c
 :::
 
 ::: exercice 17 | approfondissement | 8 min | main
-On place `250 g` de glace dans un flacon fermé hermétiquement. On laisse la glace fondre complètement, puis on pèse de nouveau.
+Maomao veut savoir si la glace qui fond change de masse : elle fait l'expérience dans l'apothicairerie. On place `250 g` de glace dans un flacon fermé hermétiquement. On laisse la glace fondre complètement, puis on pèse de nouveau.
 
 1. Quelle masse va-t-on lire ? Justifie.
 2. Le volume a-t-il changé ? Dans quel sens ?
@@ -324,7 +324,7 @@ On place `250 g` de glace dans un flacon fermé hermétiquement. On laisse la gl
 ## Série D : problèmes et devoir type
 
 ::: exercice 18 | entrainement | 8 min | main
-La molécule d'éthanol, l'alcool des boissons, a pour formule `C₂H₆O`.
+Dans l'apothicairerie, l'alcool sert à extraire les principes actifs des plantes à remèdes. La molécule d'éthanol, l'alcool des boissons, a pour formule `C₂H₆O`.
 
 1. Combien d'atomes de chaque sorte contient-elle ?
 2. Combien d'atomes au total ?

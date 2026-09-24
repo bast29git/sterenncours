@@ -163,7 +163,7 @@ Méthode de contrôle : convertir systématiquement en `km/h`, l'unité dont on 
 :::
 
 ::: exercice 9 | entrainement | 6 min | main
-Un cycliste parcourt `45 km` en `1 h 30`.
+Sterenn s'entraîne à vélo avant son voyage vers les aurores boréales. Un cycliste parcourt `45 km` en `1 h 30`.
 
 1. Convertis la durée en heures décimales.
 2. Calcule sa vitesse moyenne en `km/h`.
@@ -179,7 +179,7 @@ Un cycliste parcourt `45 km` en `1 h 30`.
 :::
 
 ::: exercice 10 | entrainement | 6 min | main
-Un trajet de `30 km` dure `30 min`. Pendant ce trajet, le conducteur s'est arrêté deux fois à un feu rouge et a roulé à `90 km/h` sur une portion.
+Benno livre du papier de l'atelier de Myne à la ville voisine. Un trajet de `30 km` dure `30 min`. Pendant ce trajet, le conducteur s'est arrêté deux fois à un feu rouge et a roulé à `90 km/h` sur une portion.
 
 1. Calcule la vitesse moyenne.
 2. Le véhicule a-t-il roulé à cette vitesse pendant tout le trajet ?
@@ -228,7 +228,7 @@ Rappel : l'intervalle de temps entre deux prises de vue est **constant**. C'est 
 :::
 
 ::: exercice 13 | entrainement | 7 min | main
-Une chronophotographie est prise toutes les `0,1 s`. On mesure les distances successives suivantes : `2,0 cm`, `2,0 cm`, `2,0 cm`, `2,0 cm`.
+Sterenn photographie la chute d'un feutre à alcool depuis sa table. Une chronophotographie est prise toutes les `0,1 s`. On mesure les distances successives suivantes : `2,0 cm`, `2,0 cm`, `2,0 cm`, `2,0 cm`.
 
 1. Calcule la vitesse sur le premier intervalle, en `m/s`.
 2. Que peut-on dire du mouvement ?
@@ -308,6 +308,8 @@ Remarque : sur un graphique distance-temps, la **pente** de la courbe représent
 :::
 
 ::: exercice 18 | entrainement | 7 min | main
+Sur la route des aurores boréales, en Norvège, la vitesse est limitée à 90 km/h.
+
 1. Convertis `90 km/h` en `m/s`.
 2. Quelle distance parcourt-on pendant une seconde de réaction à cette vitesse ?
 3. Si le temps de réaction passe à `2 s`, de combien la distance d'arrêt augmente-t-elle ?

@@ -97,7 +97,7 @@ Vrai ou faux ? Justifie en une phrase.
 :::
 
 ::: exercice 5 | entrainement | 6 min | main
-Une ancienne guirlande de Noël comporte 20 ampoules. Quand une seule grille, toute la guirlande s'éteint.
+Chez Yuzu, on décore la maison pour la fête d'hiver. Une ancienne guirlande de Noël comporte 20 ampoules. Quand une seule grille, toute la guirlande s'éteint.
 
 1. De quel montage s'agit-il ? Justifie.
 2. Pourquoi les 20 ampoules brillent-elles faiblement ?
@@ -131,7 +131,7 @@ Complète.
 :::
 
 ::: exercice 7 | application | 5 min | main
-Un générateur débite une intensité de `0,8 A`. Le circuit se sépare en deux branches. Dans la première, on mesure `0,3 A`.
+Sterenn câble la lampe de son atelier de dessin aux feutres. Un générateur débite une intensité de `0,8 A`. Le circuit se sépare en deux branches. Dans la première, on mesure `0,3 A`.
 
 1. Quelle loi appliques-tu ?
 2. Calcule l'intensité dans la seconde branche.
@@ -269,7 +269,7 @@ Compare les points 2 et 3 : un four tire environ 33 fois plus de courant qu'une 
 :::
 
 ::: exercice 15 | entrainement | 7 min | main
-Un radiateur de `2 000 W` fonctionne 3 heures par jour pendant 30 jours. Le kilowattheure coûte `0,20 €`.
+La chambre de Sterenn, où elle dessine aux feutres, est chauffée par un radiateur. Un radiateur de `2 000 W` fonctionne 3 heures par jour pendant 30 jours. Le kilowattheure coûte `0,20 €`.
 
 1. Convertis la puissance en kilowatts.
 2. Calcule la durée totale de fonctionnement.
@@ -289,7 +289,7 @@ Le point 5 montre pourquoi le kilowattheure est employé en pratique domestique 
 :::
 
 ::: exercice 16 | approfondissement | 8 min | main
-Une multiprise supporte au maximum `16 A` sous `230 V`.
+Dans l'atelier de dessin de Sterenn, tout est branché sur une multiprise. Une multiprise supporte au maximum `16 A` sous `230 V`.
 
 1. Calcule la puissance maximale qu'elle peut supporter.
 2. On y branche un four de `2 000 W`, une bouilloire de `2 200 W` et un grille-pain de `900 W`. Calcule la puissance totale.
