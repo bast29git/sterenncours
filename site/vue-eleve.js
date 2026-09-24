@@ -395,6 +395,8 @@
            <b>Mes matières</b><span>Ouvrir un parcours</span></a></li>
          <li><a href="#/jeux"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-etincelle"/></svg></span>
            <b>Jeux</b><span>${(window.JEUX || []).length} jeux et mondes 3D</span></a></li>
+         <li><a href="#/curiosites"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-etincelle"/></svg></span>
+           <b>Curiosités</b><span>Pour le plaisir, sans étoile</span></a></li>
          <li><a href="#/notes"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-crayon"/></svg></span>
            <b>Mes notes</b><span>Ce que j'ai écrit dans les fiches</span></a></li>
          <li><a href="#/aide"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#ic-livre"/></svg></span>
@@ -657,7 +659,7 @@
     afficher(N.squelette('fiche'));
     if (actif === 'evaluation') return vueEvaluation(m, l, mid, ref, ouverts);
 
-    N.chargerContenu(mid).then((contenu) => {
+    N.chargerContenu(mid, ref).then((contenu) => {
       const doc = contenu && contenu[ref] && contenu[ref][actif];
       if (!doc) return afficher('<p class="e-vide">Cette fiche n\'est pas encore disponible.</p>');
       const cleFiche = N.cle(mid, ref) + '/' + actif;
@@ -1014,18 +1016,8 @@
 
   /* ---------- Lecteur de fiche : en diapositives, ou en page ------------------- */
   const CLE_LECTURE = 'opaline.lecture';
-  /** Découpe le HTML d'une fiche en sections, sur ses titres de niveau 2. */
-  function decouperFiche(html) {
-    const morceaux = String(html || '').split(/(?=<h2 id=")/);
-    const sections = [];
-    morceaux.forEach((m) => {
-      const t = /^<h2 id="([^"]*)">([\s\S]*?)<\/h2>/.exec(m);
-      if (t) sections.push({ id: t[1], titre: t[2].replace(/<[^>]+>/g, '').trim(), html: m.slice(t[0].length) });
-      else if (m.replace(/<[^>]+>/g, '').trim()) sections.push({ id: 'debut', titre: 'Avant de commencer', html: m, debut: true });
-    });
-    return sections;
-  }
-  const titreCourt = (t) => t.replace(/^\d+[.)]\s*/, '');
+  /** A28 : le découpage vient du lecteur partagé (site/lecteur.js). */
+  const decouperFiche = (html) => window.LECTEUR.decouper(html);
 
   /**
    * Une fiche se lit une section à la fois : un pas à gauche et à droite, une
@@ -1059,70 +1051,14 @@
       clearTimeout(attenteServeur);
       attenteServeur = setTimeout(() => { if (Number(N.profil(cleServeur, 0)) !== k) N.enregistrerProfil(cleServeur, k).catch(() => {}); }, 1500);
     };
-    // C13 : le temps de lecture, par diapositive et en tout, d'après les mots (110 mots par minute).
-    const mots = (html) => (html.replace(/<[^>]+>/g, ' ').match(/[\p{L}\p{N}]+/gu) || []).length;
-    const minutes = sections.map((x) => Math.max(1, Math.round(mots(x.html) / 110)));
-    const totalMinutes = minutes.reduce((a, b) => a + b, 0);
-
-    hote.innerHTML = `<section class="e-diapo" aria-label="Fiche en diapositives">
-      <div class="e-diapo-barre">
-        <ol class="e-diapo-etapes" id="e-diapo-etapes">${sections.map((x, k) => `<li><button type="button" data-diapo="${k}" title="${N.ech(x.titre)}"><b>${k + 1}</b><span>${N.ech(titreCourt(x.titre))}</span></button></li>`).join('')}</ol>
-        <button type="button" class="e-diapo-mode" id="e-mode-page" title="Afficher toute la fiche sur une page">${N.ic('ic-livre')}<span>Page entière</span></button>
-      </div>
-      <p class="e-diapo-temps">${N.ic('ic-horloge')} ${sections.length} diapositives, environ ${totalMinutes} min de lecture en tout${doc.duree ? ` · fiche prévue pour ${N.ech(doc.duree)}` : ''}.</p>
-      ${barreOutilsLecture()}
-      <div class="e-diapo-jauge" role="progressbar" aria-valuemin="1" aria-valuemax="${sections.length}" aria-valuenow="1" aria-label="Avancement dans la fiche"><i id="e-diapo-jauge"></i></div>
-      <article class="e-fiche e-diapo-corps" id="e-diapo-corps" tabindex="-1"></article>
-      <div class="e-diapo-pied">
-        <button type="button" class="e-bouton e-bouton-doux" id="e-diapo-prec">${N.ic('ic-gauche')} Précédent</button>
-        <span class="e-diapo-compte" id="e-diapo-compte"></span>
-        <button type="button" class="e-bouton" id="e-diapo-suiv">Suivant ${N.ic('ic-droite')}</button>
-      </div>
-    </section>`;
-
-    const corps = document.getElementById('e-diapo-corps');
-    const montrer = (k, defiler) => {
-      i = Math.min(sections.length - 1, Math.max(0, k));
-      memoriser(i);
-      const x = sections[i];
-      corps.innerHTML = `<h2 id="${N.ech(x.id)}">${N.ech(x.titre)}</h2>${x.html}`;
-      outilsLecture.apresRendu(hote, corps, cleFiche, i, sections);
-      hote.querySelectorAll('[data-diapo]').forEach((b) => {
-        const actif = Number(b.getAttribute('data-diapo')) === i;
-        b.classList.toggle('actif', actif);
-        b.classList.toggle('vu', Number(b.getAttribute('data-diapo')) < i);
-        if (actif) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
-        if (actif) {
-          // On fait défiler la liste des étapes seule, jamais la page entière.
-          const liste = b.closest('.e-diapo-etapes');
-          if (liste) liste.scrollLeft = Math.max(0, b.offsetLeft - liste.clientWidth / 2 + b.offsetWidth / 2);
-        }
-      });
-      document.getElementById('e-diapo-jauge').style.width = Math.round(((i + 1) / sections.length) * 100) + '%';
-      hote.querySelector('.e-diapo-jauge').setAttribute('aria-valuenow', String(i + 1));
-      document.getElementById('e-diapo-compte').textContent = `${i + 1} sur ${sections.length} · ${minutes[i]} min`;
-      const prec = document.getElementById('e-diapo-prec');
-      const suiv = document.getElementById('e-diapo-suiv');
-      prec.disabled = i === 0;
-      const dernier = i === sections.length - 1;
-      suiv.innerHTML = dernier ? `${N.ic('ic-coche')} J'ai terminé la fiche` : `Suivant ${N.ic('ic-droite')}`;
-      suiv.classList.toggle('e-bouton-fin', false);
-      if (defiler) {
-        const haut = hote.getBoundingClientRect().top + window.scrollY - 90;
-        window.scrollTo({ top: Math.max(0, haut), behavior: 'smooth' });
-        corps.focus({ preventScroll: true });
-      }
-    };
-    hote.querySelectorAll('[data-diapo]').forEach((b) => b.addEventListener('click', () => montrer(Number(b.getAttribute('data-diapo')), true)));
-    document.getElementById('e-diapo-prec').addEventListener('click', () => montrer(i - 1, true));
-    document.getElementById('e-diapo-suiv').addEventListener('click', () => {
-      if (i === sections.length - 1) { if (terminer) terminer(); return; }
-      montrer(i + 1, true);
+    // A28 : le lecteur partagé monte les diapositives ; l'espace de Sterenn y branche sa mémoire de position et ses outils.
+    const api = window.LECTEUR.monter(hote, {
+      sections, position: i, duree: doc.duree, outilsHtml: barreOutilsLecture(),
+      surMontrer: (k, corps) => { memoriser(k); outilsLecture.apresRendu(hote, corps, cleFiche, k, sections); },
+      surTerminer: terminer,
+      surPage: () => { N.ecrire(CLE_LECTURE, 'page'); rendreFiche(hote, doc, cleFiche, terminer); },
     });
-    document.getElementById('e-mode-page').addEventListener('click', () => { N.ecrire(CLE_LECTURE, 'page'); rendreFiche(hote, doc, cleFiche, terminer); });
-    hote.__diapo = { avancer: () => montrer(i + 1, true), reculer: () => montrer(i - 1, true), aller: (k) => montrer(k, true), sections };
-    outilsLecture.brancher(hote, cleFiche, sections, () => i);
-    montrer(i, false);
+    outilsLecture.brancher(hote, cleFiche, sections, () => api.courant());
   }
 
   /* ---------- Outils de lecture : voix, largeur, une phrase à la fois, surligneur, notes, mots, pauses, zoom ---------- */
@@ -2196,6 +2132,31 @@
       <div class="e-actions"><a class="e-bouton e-bouton-fin" href="#/reussites">← Mes réussites</a></div>`);
   }
 
+  /* ---------- C100 : les fiches curiosité, hors programme, sans étoile ---------- */
+  function vueCuriosites(id) {
+    if (!window.CURIOSITES) {
+      afficher(N.squelette('fiche'));
+      N.chargerScript('data/curiosites.js').then(() => vueCuriosites(id)).catch(() => afficher('<p class="e-vide">Les curiosités n\'ont pas pu être chargées. Recharge la page.</p>'));
+      return;
+    }
+    const liste = window.CURIOSITES || [];
+    if (id) {
+      const c = liste.find((x) => x.id === id); if (!c) return vueIntrouvable();
+      const m = N.matiere(c.matiere);
+      afficher(`<div class="e-lecteur"><header class="e-lecteur-tete"><nav class="e-ariane" aria-label="Fil d'Ariane"><a href="#/hub">Accueil</a> › <a href="#/curiosites">Curiosités</a></nav>
+        <p style="margin:0;color:var(--e-encre-doux);font-size:.85rem">${m ? m.icone + ' ' + N.ech(m.nom) + ' · ' : ''}pour le plaisir, sans étoile · période ${c.periode}</p>
+        <h1>${N.ech(c.titre)}</h1>${c.resume ? `<p style="margin:0;color:var(--e-encre-doux)">${N.ech(c.resume)}</p>` : ''}</header>
+        <div id="e-fiche-hote"></div>
+        <div class="e-actions"><a class="e-bouton e-bouton-fin" href="#/curiosites">← Toutes les curiosités</a></div></div>`);
+      rendreFiche(document.getElementById('e-fiche-hote'), c, 'curiosite/' + c.id, () => { N.signaler('Fiche lue. Rien à cocher : c\'était pour le plaisir.', 'info'); location.hash = '#/curiosites'; });
+      return;
+    }
+    const parMatiere = PROGRAMME.matieres.map((m) => ({ m, fiches: liste.filter((x) => x.matiere === m.id).sort((a, b) => a.periode - b.periode) })).filter((x) => x.fiches.length);
+    afficher(`<h1>Curiosités</h1><p class="e-intro">Une fiche par matière, hors programme, sans étoile et sans question : des choses vraies, belles ou étonnantes, à lire quand tu en as envie.</p>
+      ${parMatiere.map((x) => `<h2 class="e-titre-section">${x.m.icone} ${N.ech(x.m.nom)}</h2><ul class="e-tuiles e-tuiles-curiosites">${x.fiches.map((c) => `<li><a href="#/curiosites/${c.id}"><span class="ico" aria-hidden="true">${N.ic('ic-etincelle')}</span><b>${N.ech(c.titre)}</b><span>${N.ech(c.resume || '')}${c.duree ? ' · ' + N.ech(c.duree) : ''}</span></a></li>`).join('')}</ul>`).join('')}
+      ${liste.length ? '' : '<p class="e-vide">Aucune curiosité pour l\'instant.</p>'}`);
+  }
+
   /* ---------- C51 : mon carnet, les mots de Bastien par matière ---------- */
   function vueCarnet() {
     const mots = [];
@@ -2713,6 +2674,7 @@
       case 'comparer': return vueComparer(p[1], p[2]);
       case 'exos': return p[1] === 'melange' ? vueMelange() : vueExos(p[1], p[2], p[3]);
       case 'annales': return vueAnnales();
+      case 'curiosites': return vueCuriosites(p[1]);
       case 'carnet': return vueCarnet();
       case 'recherche': return vueRecherche(p.slice(1).join('/'));
       case 'perso': return vuePerso(p[1]);

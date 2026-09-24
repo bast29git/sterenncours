@@ -75,6 +75,7 @@ const TYPES_DOC = {
   evaluation: "Grille d'évaluation",
   pilotage:   'Document de pilotage',
   outil:      'Outil complémentaire',
+  curiosite:  'Fiche curiosité',
   index:      'Sommaire',
 };
 
@@ -390,8 +391,8 @@ function construirePaquets() {
   const crypto = require('node:crypto');
   const lire = (f) => fs.readFileSync(path.join(RACINE, 'site', f), 'utf8');
   const paquets = {
-    'paquet-eleve.js': ['vue-eleve.js', 'messagerie.js', 'tuteur.js', 'planificateur.js'],
-    'paquet-prof.js': ['vue-prof.js', 'messagerie.js', 'planificateur.js'],
+    'paquet-eleve.js': ['lecteur.js', 'vue-eleve.js', 'messagerie.js', 'tuteur.js', 'planificateur.js'],
+    'paquet-prof.js': ['lecteur.js', 'vue-prof.js', 'messagerie.js', 'planificateur.js'],
   };
   let version = '';
   for (const [nom, fichiers] of Object.entries(paquets)) {
@@ -812,6 +813,11 @@ function construireContenuSite(programme) {
       entete + `window.CONTENU[${JSON.stringify(m.id)}] = ${JSON.stringify(parLecon)};\n`);
     fs.writeFileSync(path.join(racineEleve, `${m.id}.js`),
       entete + `window.CONTENU[${JSON.stringify(m.id)}] = ${JSON.stringify(parLeconEleve)};\n`);
+    // A25 : un fichier par leçon, chargé en premier par le lecteur ; le fichier par matière reste pour la recherche et la comparaison.
+    fs.mkdirSync(path.join(racineContenu, m.id), { recursive: true }); fs.mkdirSync(path.join(racineEleve, m.id), { recursive: true });
+    const enteteLecon = entete + `window.CONTENU[${JSON.stringify(m.id)}] = window.CONTENU[${JSON.stringify(m.id)}] || {};\n`;
+    for (const [ref, docs] of Object.entries(parLecon)) fs.writeFileSync(path.join(racineContenu, m.id, `${ref}.js`), enteteLecon + `window.CONTENU[${JSON.stringify(m.id)}][${JSON.stringify(ref)}] = ${JSON.stringify(docs)};\n`);
+    for (const [ref, docs] of Object.entries(parLeconEleve)) fs.writeFileSync(path.join(racineEleve, m.id, `${ref}.js`), enteteLecon + `window.CONTENU[${JSON.stringify(m.id)}][${JSON.stringify(ref)}] = ${JSON.stringify(docs)};\n`);
   }
 
   console.log(`   📖 ${documents} document(s) lisibles dans le site`
@@ -820,6 +826,24 @@ function construireContenuSite(programme) {
 }
 
 construireContenuSite(programmeSite);
+
+/* ── C100 : les fiches curiosité, hors programme, sans étoile, une par matière et par période ── */
+function construireCuriosites() {
+  const dossier = path.join(RACINE, 'outils', 'curiosites');
+  if (!fs.existsSync(dossier)) return 0;
+  const liste = [];
+  for (const f of fs.readdirSync(dossier).filter((x) => x.endsWith('.md')).sort()) {
+    const { meta, corps } = lireFrontMatter(fs.readFileSync(path.join(dossier, f), 'utf8'));
+    if (meta.type !== 'curiosite') continue;
+    const rendu = ancrer(appliquerClassesListes(md.render(normaliserConteneurs(corps))));
+    liste.push({ id: String(meta.id || f.replace(/\.md$/, '')).replace(/[^A-Za-z0-9]/g, ''), matiere: meta.matiere, periode: Number(meta.periode) || 1, titre: meta.titre || f, resume: meta.resume || '', duree: meta.duree || '', plan: rendu.plan, html: rendu.html });
+  }
+  fs.mkdirSync(path.join(SORTIE, 'data'), { recursive: true });
+  fs.writeFileSync(path.join(SORTIE, 'data', 'curiosites.js'), '/* Généré par build/build.mjs : ne pas modifier à la main. */\nwindow.CURIOSITES = ' + JSON.stringify(liste) + ';\n');
+  console.log(`   🔭 ${liste.length} fiche(s) curiosité`);
+  return liste.length;
+}
+construireCuriosites();
 
 /* ── Sujets d'évaluation : un fichier par leçon, servi par le serveur selon
       l'accès décidé par le professeur (functions/_middleware.js) ────────────── */

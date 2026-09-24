@@ -14,7 +14,9 @@
     "test:unit": "node --test tests/unitaires.mjs",
     "verifier": "node build/verifier.mjs",
     "lint": "eslint site functions build tests",
-    "audit:jeux": "node tests/jeux.mjs"
+    "audit:jeux": "node tests/jeux.mjs",
+    "audit:visuel": "node tests/visuel.mjs",
+    "audit:visuel:reference": "node tests/visuel.mjs --reference"
   },
   "dependencies": {
     "markdown-it": "^15.0.0",

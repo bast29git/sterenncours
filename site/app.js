@@ -564,17 +564,21 @@
    * sans les corrigés ni les grilles d'évaluation. Le serveur refuse l'autre
    * chemin à son rôle : ce n'est pas seulement un masquage côté navigateur.
    */
-  function chargerContenu(mid) {
-    if (window.CONTENU && window.CONTENU[mid]) return Promise.resolve(window.CONTENU[mid]);
-    if (enCours[mid]) return enCours[mid];
-    enCours[mid] = new Promise((res) => {
+  const matieresCompletes = new Set();
+  /** A25 : avec `ref`, on charge le seul fichier de la leçon (douze fois plus léger) ; sans `ref`, toute la matière. */
+  function chargerContenu(mid, ref) {
+    if (ref && window.CONTENU && window.CONTENU[mid] && window.CONTENU[mid][ref]) return Promise.resolve(window.CONTENU[mid]);
+    if (!ref && matieresCompletes.has(mid) && window.CONTENU && window.CONTENU[mid]) return Promise.resolve(window.CONTENU[mid]);
+    const cle = ref ? mid + '/' + ref : mid;
+    if (enCours[cle]) return enCours[cle];
+    enCours[cle] = new Promise((res) => {
       const s = document.createElement('script');
-      s.src = (estProf() ? 'data/contenu/' : 'data/eleve/') + mid + '.js';
-      s.onload = () => res((window.CONTENU || {})[mid] || null);
-      s.onerror = () => res(null);
+      s.src = (estProf() ? 'data/contenu/' : 'data/eleve/') + (ref ? mid + '/' + ref : mid) + '.js';
+      s.onload = () => { if (!ref) matieresCompletes.add(mid); res((window.CONTENU || {})[mid] || null); };
+      s.onerror = () => { if (ref) { chargerContenu(mid).then(res); return; } res(null); };
       document.head.appendChild(s);
     });
-    return enCours[mid];
+    return enCours[cle];
   }
   const chargerSeances = (du, au) => api(`/seances?du=${du}&au=${au}`).then((d) => d.seances || []).catch(() => []);
 

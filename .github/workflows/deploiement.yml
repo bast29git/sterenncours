@@ -70,6 +70,27 @@ jobs:
           CODE_PROF_TEST: prof-test
         run: npm test
 
+      - name: Non-régression visuelle (informative)
+        # A59 : les écrans clés sont comparés au pixel près aux références ; un écart ne bloque pas
+        # le déploiement, il produit un rapport à regarder (captures et différences en rouge).
+        continue-on-error: true
+        env:
+          CODE_ELEVE_TEST: eleve-test
+          CODE_PROF_TEST: prof-test
+          PORT: '8798'
+        run: |
+          (npx wrangler pages dev --port 8798 --local > /tmp/wrangler-visuel.log 2>&1 &)
+          for i in $(seq 1 40); do curl -sf http://127.0.0.1:8798/ > /dev/null && break; sleep 2; done
+          node tests/visuel.mjs
+
+      - name: Publier le rapport visuel
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: non-regression-visuelle
+          path: tests/visuel-sortie/
+          if-no-files-found: ignore
+
       - name: Générer les PDF
         env:
           CHROME_BIN: /usr/bin/google-chrome

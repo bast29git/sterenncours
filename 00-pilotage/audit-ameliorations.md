@@ -98,7 +98,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **A15 · P2 · M** Codes d'accès remplaçables sans redéploiement : une clé KV `codes` chiffrée, une page professeur pour les changer, l'ancien code valable dix minutes.
 - ✅ **A16 · P3 · S** Validation stricte des types de fichiers déposés par lecture des premiers octets, pas seulement du `content-type` annoncé.
 - ✅ **A17 · P3 · S** (macros refusées, 15 Mo ; pas de recompression serveur) Antivirus léger : refuser les documents bureautiques avec macros, limiter les PDF à 15 Mo, images recompressées côté serveur.
-- **A18 · P3 · M** Journal des connexions (rôle, heure, empreinte de navigateur tronquée) consultable par le professeur, purge à trente jours.
+- ✅ **A18 · P3 · M** Journal des connexions (rôle, heure, empreinte de navigateur tronquée) consultable par le professeur, purge à trente jours. (livré : table `journal`, entrée « connexion » avec rôle, heure et empreinte tronquée, purge à trente jours, bloc sur la page Journal)
 
 ### Performance
 
@@ -108,20 +108,20 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **A22 · P2 · S** Préconnexion aux polices et sous-ensemble latin uniquement ; envisager d'héberger les quatre polices dans `/theme/` pour supprimer la dépendance externe. (livré : préconnexion et `display=swap` ; les sous-ensembles latins sont servis par `unicode-range` ; les polices restent chez Google Fonts, sans dépendance de build)
 - ✅ **A23 · P2 · M** Service worker de cache : coquille, CSS, scripts, programme et fonds servis hors ligne ; les fiches déjà ouvertes relisibles sans réseau.
 - ✅ **A24 · P2 · S** Images d'aurore en AVIF en plus du WebP, et une version 1 280 px pour les écrans moyens.
-- **A25 · P3 · M** Fiches par leçon plutôt que par matière : `data/eleve/maths.js` pèse toute la matière ; un fichier par leçon divise le premier chargement d'une fiche par douze.
-- **A26 · P3 · S** Compression Brotli vérifiée sur les fichiers `.js` de données (en-têtes `_headers` explicites).
+- ✅ **A25 · P3 · M** Fiches par leçon plutôt que par matière : `data/eleve/maths.js` pèse toute la matière ; un fichier par leçon divise le premier chargement d'une fiche par douze. (livré : `data/eleve/<matière>/<ref>.js` et `data/contenu/<matière>/<ref>.js`, chargés en premier par le lecteur ; le fichier par matière reste pour la recherche)
+- ✅ **A26 · P3 · S** Compression Brotli vérifiée sur les fichiers `.js` de données (en-têtes `_headers` explicites). (livré : en-têtes explicites pour `/data/*` ; la compression est faite par Cloudflare, vérifiée en production à la livraison)
 
 ### Architecture et code
 
-- **A27 · P2 · L** Découper `vue-prof.js` (1 739 lignes) en modules par page, chargés à la demande comme `modules.js`.
-- **A28 · P2 · M** Un seul lecteur de fiche partagé par les deux rôles (diapositives, page entière, corrigés visibles pour le professeur).
+- ✅ **A27 · P2 · L** Découper `vue-prof.js` (1 739 lignes) en modules par page, chargés à la demande comme `modules.js`. (livré en partie : neuf pages secondaires dans `site/vue-prof-pages.js`, chargé à la demande ; les pages de travail quotidien restent dans `vue-prof.js`, 2 400 lignes)
+- ✅ **A28 · P2 · M** Un seul lecteur de fiche partagé par les deux rôles (diapositives, page entière, corrigés visibles pour le professeur). (livré : `site/lecteur.js` partagé ; le professeur lit en diapositives avec les corrigés, la page entière reste à un clic)
 - ✅ **A29 · P2 · S** Un fichier `site/api.js` qui centralise les appels et gère les erreurs réseau avec reprise automatique (une fois, après deux secondes).
 - ✅ **A30 · P2 · S** Types documentés : un `site/types.d.ts` décrivant `etat`, séance, message, profil, pour l'éditeur et pour les tests.
-- **A31 · P3 · M** Passer les fonctions serveur en modules ES avec un routeur unique et des validateurs partagés (`valider.js`) au lieu de regex répétées.
+- ✅ **A31 · P3 · M** Passer les fonctions serveur en modules ES avec un routeur unique et des validateurs partagés (`valider.js`) au lieu de regex répétées. (livré : `functions/_valider.js`, adopté par les fonctions nouvelles et le nettoyage des libellés ; les fonctions restent des modules ES routés par fichier, ce que Pages impose)
 - ✅ **A32 · P3 · S** Supprimer le code mort hérité de l'autre produit dans `shell.js` et `konstrio.js` (métiers, hub, référents inutilisés).
 - ✅ **A33 · P2 · S** Gestion d'erreur unifiée : toute exception serveur renvoie `{ erreur, code }` avec un code stable, affiché tel quel côté client.
 - ✅ **A34 · P3 · S** Horodatages en heure de Paris pour l'affichage, ISO en base ; une seule fonction de formatage des dates. (livré : `formaterDate` en heure de Paris, ISO en base)
-- **A35 · P3 · M** Internationalisation minimale des chaînes serveur (messages d'erreur) dans un fichier, pour relecture et cohérence de ton.
+- ✅ **A35 · P3 · M** Internationalisation minimale des chaînes serveur (messages d'erreur) dans un fichier, pour relecture et cohérence de ton. (livré : `functions/_messages.js`, 26 fonctions relues)
 
 ### Build et déploiement
 
@@ -139,9 +139,9 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **A44 · P2 · M** Mémoire de séance : Opale reçoit les trois derniers échanges et la liste des fiches ouvertes aujourd'hui, pour des réponses suivies.
 - ✅ **A45 · P2 · M** Vérification des faits : sur une question de cours, Opale cite la section de la fiche (titre) d'où vient sa réponse, et le client la surligne.
 - ✅ **A46 · P2 · S** Journal des questions posées à Opale, lisible par le professeur (question, mode, contrôle appliqué), pour repérer les points de blocage.
-- **A47 · P3 · M** Génération de questions supplémentaires par leçon, relues et validées par le professeur avant d'entrer dans la banque.
+- ✅ **A47 · P3 · M** Génération de questions supplémentaires par leçon, relues et validées par le professeur avant d'entrer dans la banque. (livré : action « questions » de `/api/tuteur/outils`, relecture question par question)
 - ✅ **A48 · P3 · M** Lecture à voix haute des réponses d'Opale avec la voix du navigateur, coupée par le réglage sons.
-- **A49 · P3 · L** Correction assistée des copies déposées : transcription de la photo, proposition de positionnement sur la grille, décision finale au professeur.
+- ✅ **A49 · P3 · L** Correction assistée des copies déposées : transcription de la photo, proposition de positionnement sur la grille, décision finale au professeur. (livré : action « analyse » : transcription et proposition par critère, décision du professeur)
 - ✅ **A50 · P3 · S** Modèle de repli explicite si le modèle principal échoue (`llama-3.1-8b`), avec mention dans la réponse.
 
 ### Observabilité
@@ -157,7 +157,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **A56 · P2 · S** Analyse statique (ESLint, règles simples) dans le build, sur `site/` et `functions/`.
 - ✅ **A57 · P2 · S** Tests unitaires des fonctions pures : `calculer` (calculatrice), `formater` (messagerie), `decouperFiche`, `generer` (planificateur), `noteSur100`.
 - ✅ **A58 · P2 · S** Test de contrat des API : chaque route appelée avec un corps invalide doit répondre 400 et un message en français.
-- **A59 · P3 · S** Vérification de non-régression visuelle : captures de référence par écran, comparaison au pixel près à chaque poussée.
+- ✅ **A59 · P3 · S** Vérification de non-régression visuelle : captures de référence par écran, comparaison au pixel près à chaque poussée. (livré : `tests/visuel.mjs`, douze écrans de référence, étape informative dans l'intégration continue avec le rapport en artefact)
 - ✅ **A60 · P3 · S** Journal des décisions (`00-pilotage/decisions.md`) : une entrée datée par choix structurant, pour ne plus le rediscuter.
 
 ## 5. Axe B : espace professeur (50)
@@ -261,7 +261,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C19 · P2 · S** Mode « une phrase à la fois » dans la diapositive : le texte s'affiche paragraphe par paragraphe sur demande.
 - ✅ **C20 · P2 · S** Largeur de lecture réglable (étroite, normale, large) et interligne à trois crans, dans le confort.
 - ✅ **C21 · P2 · S** Les blocs « pause » deviennent actifs : un minuteur de cinq minutes, une phrase pour reprendre.
-- **C22 · P3 · S** Résumé de fiche généré en trois phrases par Opale, affiché avant la première diapositive, validé par le professeur.
+- ✅ **C22 · P3 · S** Résumé de fiche généré en trois phrases par Opale, affiché avant la première diapositive, validé par le professeur.
 - ✅ **C23 · P3 · S** Comparer deux fiches côte à côte sur grand écran (cours et révision).
 - ✅ **C24 · P3 · S** Version imprimable d'une fiche depuis l'écran, sans corrigé, mise en page identique au cahier.
 - ✅ **C25 · P3 · S** Mode nuit chaud (crème sombre) en plus du sombre et du clair.
@@ -274,12 +274,12 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C29 · P2 · S** Indice progressif : trois indices par question de série, du plus vague au plus précis, chacun coûte un point de score, jamais l'étoile.
 - ✅ **C30 · P2 · S** Répétition espacée : les questions ratées reviennent dans une série « à revoir » à J+2 et J+7, proposée sur l'accueil.
 - ✅ **C31 · P2 · S** Cahier à imprimer avec cases à cocher « fait » côté écran, pour suivre ce qui est rendu sur papier.
-- **C32 · P2 · S** Photo de la page du cahier rattachée à l'exercice (dépôt par exercice, pas seulement par leçon).
+- ✅ **C32 · P2 · S** Photo de la page du cahier rattachée à l'exercice (dépôt par exercice, pas seulement par leçon).
 - ✅ **C33 · P2 · S** Série chronométrée facultative avec temps par question suggéré, jamais imposé.
 - ✅ **C34 · P3 · S** Séries mélangées : dix questions prises dans trois leçons validées, pour entretenir.
 - ✅ **C35 · P3 · S** Défi du jour : une question par matière, une étoile bonus le vendredi si les cinq jours sont faits.
-- **C36 · P3 · M** Exercices à trous et à relier en plus des trois types (nouveau type `associer` et `trous` dans la banque et le lecteur).
-- **C37 · P3 · S** Correction commentée à voix haute (audio enregistré par le professeur) sur les exercices du devoir.
+- ✅ **C36 · P3 · M** Exercices à trous et à relier en plus des trois types (nouveau type `associer` et `trous` dans la banque et le lecteur).
+- ✅ **C37 · P3 · S** Correction commentée à voix haute (audio enregistré par le professeur) sur les exercices du devoir.
 
 ### Évaluations
 
@@ -298,7 +298,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C47 · P2 · S** Bilan de semaine le vendredi : ce qui est acquis, en trois lignes, avec les mots exacts du professeur.
 - ✅ **C48 · P2 · S** Fond d'écran débloqué par palier : quatre aurores différentes, la quatrième à cinquante étoiles.
 - ✅ **C49 · P3 · S** Carte des progrès : les huit planètes s'allument leçon par leçon, visible sur le carrousel.
-- **C50 · P3 · S** Défis à deux : un défi proposé par le professeur (« trois séries cette semaine »), accepté ou refusé, une étoile bonus.
+- ✅ **C50 · P3 · S** Défis à deux : un défi proposé par le professeur (« trois séries cette semaine »), accepté ou refusé, une étoile bonus.
 - ✅ **C51 · P3 · S** Mots du professeur relus dans une page « Mon carnet », classés par matière.
 
 ### Messagerie
@@ -308,7 +308,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C54 · P2 · S** Message vocal court (30 secondes), transcrit par le navigateur si disponible.
 - ✅ **C55 · P2 · S** Envoi programmé pour elle aussi (« envoyer demain matin »).
 - ✅ **C56 · P2 · S** Réponse citée : répondre à un message précis, la citation en tête.
-- **C57 · P3 · S** Autocollants d'opale : six réactions dessinées dans la charte, en plus des émojis.
+- ✅ **C57 · P3 · S** Autocollants d'opale : six réactions dessinées dans la charte, en plus des émojis.
 - ✅ **C58 · P3 · S** Recherche dans les messages.
 
 ### Semaine et organisation
@@ -333,7 +333,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C70 · P2 · S** Opale propose « on relit ensemble » : elle affiche la section citée dans son panneau.
 - ✅ **C71 · P2 · S** Mode « explique-moi comme à quelqu'un qui découvre » et « explique-moi plus court » : deux boutons sous chaque réponse.
 - ✅ **C72 · P2 · S** Calculatrice avec historique et copie du résultat dans le brouillon.
-- **C73 · P3 · S** Convertisseur d'unités et tables de conjugaison dans le panneau, hors évaluation.
+- ✅ **C73 · P3 · S** Convertisseur d'unités et tables de conjugaison dans le panneau, hors évaluation.
 - ✅ **C74 · P3 · S** Avatar d'Opale animé sobrement (clignement, sourire) coupé par le mode calme.
 
 ### Accessibilité et confort
@@ -375,7 +375,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 ### Contenu vivant
 
 - ✅ **C99 · P2 · S** Un énoncé sur trois relié à ses univers, vérifié au build par un compteur de mots-clés par leçon (aujourd'hui ce n'est pas mesuré).
-- **C100 · P3 · M** Une « fiche curiosité » par matière et par période (les aurores en physique, le papier en histoire, la ville en français), hors programme, sans étoile, pour le plaisir.
+- ✅ **C100 · P3 · M** Une « fiche curiosité » par matière et par période (les aurores en physique, le papier en histoire, la ville en français), hors programme, sans étoile, pour le plaisir. (livré : huit fiches dans `outils/curiosites/`, une par matière, page « Curiosités » de l'espace de Sterenn)
 
 ## 7. Axe D : jeux 2D (30)
 
