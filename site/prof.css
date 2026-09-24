@@ -574,3 +574,5 @@ body.corps-prof {
 .p-tableau-defilant { overflow-x: auto; }
 .p-faible { color: var(--p-faible); }
 .p-acces thead th { position: static; }
+.p-case { display: flex !important; align-items: center; gap: 0.45rem; font-size: 0.8rem !important; color: var(--p-encre) !important; margin: 0.4rem 0 0.6rem !important; }
+.p-evt-abs { margin-left: 0.3rem; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--p-alerte); }

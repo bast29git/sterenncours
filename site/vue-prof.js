@@ -481,7 +481,7 @@
         </div>
         ${liste.map((s) => `<a class="p-evt ${s.type === 'travail' ? 'travail' : ''} ${s.statut === 'faite' ? 'faite' : ''}"
             href="#/seance/${s.id}" style="display:block;text-decoration:none;color:inherit">
-          <span class="p-evt-h">${N.ech(s.debut || '')} à ${N.ech(s.fin || '')}</span>
+          <span class="p-evt-h">${N.ech(s.debut || '')} à ${N.ech(s.fin || '')}${s.absence ? ' <b class="p-evt-abs">absente</b>' : ''}</span>
           <span class="p-evt-t">${N.ech(court(s.objectif || (s.type === 'travail' ? 'Travail personnel' : 'Séance'), 68))}</span>
           <span class="p-evt-m">${resumeMatieres(s) || (s.type === 'travail' ? 'perso' : 'cours')}</span>
         </a>`).join('')
@@ -577,9 +577,11 @@
           <div><label for="f-bilan">Bilan de la séance</label>
             <textarea id="f-bilan" rows="3" maxlength="800">${N.ech(s.bilan || '')}</textarea>
             <p class="p-aide">Ce qui a été acquis, ce qui reste à reprendre. Trois lignes suffisent.</p></div>
+          <label class="p-case"><input type="checkbox" id="f-meme-jour"> Appliquer cet horaire à toutes les séances de cours à venir du même jour de la semaine</label>
           <button class="p-bouton" type="submit">Enregistrer</button>
         </form>`)
       + '</div><div>'
+      + (s.absence ? bloc('Absence déclarée par Sterenn', `<p class="p-bandeau p-bandeau-erreur" style="border-radius:7px;margin:0">Sterenn a prévenu qu'elle sera absente.${s.commentaire_eleve ? ' Son mot : « ' + N.ech(s.commentaire_eleve) + ' »' : ''}</p>`) : '')
       + bloc('Aperçu', carteSeance(s, { sansActions: true }))
       + ((s.choix || []).length
         ? bloc('Choix proposé à Sterenn',
@@ -626,6 +628,14 @@
           }),
         });
         await N.rafraichirSeances();
+        if (document.getElementById('f-meme-jour').checked) {
+          const r = await N.api('/seances/horaire', { method: 'POST', body: JSON.stringify({
+            jour: new Date(document.getElementById('f-date').value + 'T12:00:00').getDay(),
+            debut: document.getElementById('f-debut').value, fin: document.getElementById('f-fin').value,
+            depuis: document.getElementById('f-date').value,
+          }) });
+          N.signaler(`Horaire appliqué à ${r.modifiees} séance(s).`, 'succes');
+        }
         N.signaler('Séance enregistrée.', 'succes');
         vueSeance(id);
       } catch (e) { N.signaler(e.message); }

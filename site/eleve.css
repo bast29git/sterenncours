@@ -690,7 +690,7 @@ body.corps-eleve {
 .e-evt .l { margin: 0.3rem 0 0; display: flex; flex-wrap: wrap; gap: 0.25rem; }
 .e-evt .o {
   font-size: 0.74rem; font-weight: 700; text-decoration: none;
-  color: var(--e-vif); background: var(--e-voile); border-radius: 999px; padding: 0.1rem 0.5rem;
+  color: var(--e-vif-fonce); background: var(--e-voile); border-radius: 999px; padding: 0.1rem 0.5rem;
 }
 .e-evt .o:hover { background: var(--e-vif); color: #fff; }
 .e-semaine-pied { margin: 0.9rem 0 0; text-align: center; }
@@ -1012,3 +1012,14 @@ html[data-tuteur="0"] .e-opale-bouton, html[data-tuteur="0"] .e-opale { display:
 .e-eval-limite { margin: 0.6rem 0 0; font-weight: 700; color: #9A5B00; display: flex; align-items: center; gap: 0.3rem; }
 .e-eval-criteres summary { cursor: pointer; font-weight: 800; font-family: 'Archivo', sans-serif; display: flex; align-items: center; gap: 0.4rem; }
 .e-eval-criteres[open] summary { margin-bottom: 0.8rem; }
+
+/* ---------- Semaine : absences et déplacements ------------------------------ */
+.e-evt .o { font: inherit; cursor: pointer; }
+.e-evt.absente { border-left-color: #B42318; }
+.e-evt-absence { margin: 0.2rem 0; font-size: 0.8rem; font-weight: 700; color: #B42318; display: flex; align-items: center; gap: 0.25rem; }
+.e-evt-absence .ic { width: 0.9rem; height: 0.9rem; }
+.e-evt-form { display: grid; gap: 0.4rem; margin-top: 0.5rem; padding: 0.6rem; border-radius: 10px; background: var(--e-voile); }
+.e-evt-form label { display: grid; gap: 0.2rem; font-size: 0.78rem; font-weight: 700; color: var(--e-encre-doux); }
+.e-evt-form input { font: inherit; font-size: 0.9rem; padding: 0.35rem 0.5rem; border-radius: 8px; border: 1px solid var(--e-trait-fort); background: var(--e-carte); color: var(--e-encre); }
+.e-evt-form-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.e-evt-form-actions .e-bouton { font-size: 0.82rem; padding: 0.4rem 0.7rem; }

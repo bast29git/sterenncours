@@ -779,14 +779,63 @@
     vue().querySelectorAll('[data-mois]').forEach((b) => b.addEventListener('click',
       () => { location.hash = '#/calendrier/' + b.getAttribute('data-mois'); }));
     brancherChoix(() => vueCalendrier(ancre));
+    brancherSemaine(() => vueCalendrier(ancre));
+  }
+
+  /** Absences et déplacements : ce que Sterenn règle elle-même dans sa semaine. */
+  function brancherSemaine(apres) {
+    vue().querySelectorAll('[data-annuler]').forEach((b) => b.addEventListener('click', () => { b.closest('form').hidden = true; }));
+    vue().querySelectorAll('[data-absence]').forEach((b) => b.addEventListener('click', async () => {
+      const id = b.getAttribute('data-absence');
+      const s = N.etat.seances.find((x) => x.id === id) || {};
+      if (s.absence) {
+        try {
+          await N.api(`/seances/${id}/eleve`, { method: 'PATCH', body: JSON.stringify({ absence: false }) });
+          await N.rafraichirSeances(); N.signaler('C\'est noté : tu seras là.', 'succes'); apres();
+        } catch (e) { N.signaler(e.message); }
+        return;
+      }
+      const f = vue().querySelector(`[data-form-absence="${id}"]`);
+      f.hidden = false; f.querySelector('input').focus();
+    }));
+    vue().querySelectorAll('[data-form-absence]').forEach((f) => f.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const id = f.getAttribute('data-form-absence');
+      try {
+        await N.api(`/seances/${id}/eleve`, { method: 'PATCH', body: JSON.stringify({ absence: true, commentaire: f.commentaire.value.trim() }) });
+        await N.rafraichirSeances(); N.signaler('Bastien est prévenu de ton absence.', 'succes'); apres();
+      } catch (e) { N.signaler(e.message); }
+    }));
+    vue().querySelectorAll('[data-deplacer]').forEach((b) => b.addEventListener('click', () => {
+      const f = vue().querySelector(`[data-form-deplacer="${b.getAttribute('data-deplacer')}"]`);
+      f.hidden = !f.hidden;
+    }));
+    vue().querySelectorAll('[data-form-deplacer]').forEach((f) => f.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const id = f.getAttribute('data-form-deplacer');
+      try {
+        await N.api(`/seances/${id}/eleve`, { method: 'PATCH', body: JSON.stringify({ date: f.date.value, debut: f.debut.value, fin: f.fin.value }) });
+        await N.rafraichirSeances(); N.signaler('Temps de travail déplacé.', 'succes');
+        location.hash = '#/calendrier/' + f.date.value;
+        if (location.hash === '#/calendrier/' + f.date.value) apres();
+      } catch (e) { N.signaler(e.message); }
+    }));
   }
 
   function evenement(s) {
+    const futur = s.date >= N.jourIso();
     if (s.type === 'travail') {
-      return `<article class="e-evt perso">
+      return `<article class="e-evt perso" data-evt="${s.id}">
         <p class="h">${N.ech(s.debut)} · 15 min</p>
         <p class="t">Temps perso</p>
         <p class="d">${N.ech(court(String(s.travail || 'À voir ensemble'), 78))}</p>
+        ${futur ? `<p class="l"><button type="button" class="o" data-deplacer="${s.id}">${N.ic('ic-horloge')} Déplacer</button></p>
+        <form class="e-evt-form" data-form-deplacer="${s.id}" hidden>
+          <label>Jour <input type="date" name="date" value="${N.ech(s.date)}" required></label>
+          <label>Début <input type="time" name="debut" value="${N.ech(s.debut)}" required></label>
+          <label>Fin <input type="time" name="fin" value="${N.ech(s.fin)}" required></label>
+          <span class="e-evt-form-actions"><button type="submit" class="e-bouton">Valider</button><button type="button" class="e-bouton e-bouton-fin" data-annuler>Annuler</button></span>
+        </form>` : ''}
       </article>`;
     }
     const liens = (s.lecons || []).map((r) => {
@@ -795,9 +844,15 @@
       return `<a class="o" href="#/lecon/${info.m.id}/${info.l.ref}/cours">${info.m.icone} Ouvrir</a>`;
     }).filter(Boolean).join('');
     const titres = String(s.objectif || 'Séance').split(' · ');
-    return `<article class="e-evt cours${s.statut === 'faite' ? ' faite' : ''}">
+    return `<article class="e-evt cours${s.statut === 'faite' ? ' faite' : ''}${s.absence ? ' absente' : ''}" data-evt="${s.id}">
       <p class="h">${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
+      ${s.absence ? `<p class="e-evt-absence">${N.ic('ic-croix')} Tu as prévenu : absente${s.commentaire_eleve ? ' · ' + N.ech(s.commentaire_eleve) : ''}</p>` : ''}
       ${titres.map((t) => `<p class="t">${N.ech(t)}</p>`).join('')}
+      ${futur ? `<p class="l"><button type="button" class="o" data-absence="${s.id}">${s.absence ? 'Finalement je serai là' : 'Je serai absente'}</button></p>
+      <form class="e-evt-form" data-form-absence="${s.id}" hidden>
+        <label>Pourquoi, en quelques mots (facultatif) <input type="text" name="commentaire" maxlength="300" placeholder="rendez-vous, sortie, fatigue…"></label>
+        <span class="e-evt-form-actions"><button type="submit" class="e-bouton">Prévenir Bastien</button><button type="button" class="e-bouton e-bouton-fin" data-annuler>Annuler</button></span>
+      </form>` : ''}
       ${(s.choix || []).length >= 2 && s.date >= N.jourIso() ? `<p class="c"><a href="#/choix">${N.ic('ic-etincelle')} ${s.choisi_le ? 'changer mon choix' : 'à toi de choisir'}</a></p>` : ''}
       ${liens ? `<p class="l">${liens}</p>` : ''}
     </article>`;
