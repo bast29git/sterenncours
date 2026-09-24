@@ -201,7 +201,7 @@
   }
 
   /**
-   * Accès progressif : Sterenn n'a pas les 69 leçons d'un bloc. Le professeur
+   * Accès progressif : Sterenn n'a pas les 72 leçons d'un bloc. Le professeur
    * pousse ou retient une leçon quand il le décide ; sans décision, la règle
    * automatique s'applique (première de la matière, précédente validée, ou
    * déjà mise au programme d'une séance passée).

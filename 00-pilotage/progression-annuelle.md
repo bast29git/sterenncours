@@ -2,7 +2,7 @@
 type: pilotage
 matiere: pilotage
 titre: Progression annuelle sur 5 périodes
-resume: Le rythme des trois séances hebdomadaires, la répartition des 69 leçons sur les 5 périodes, le cycle d'une leçon et les semaines de reprise.
+resume: Le rythme des trois séances hebdomadaires, la répartition des 72 leçons sur les 5 périodes, le cycle d'une leçon et les semaines de reprise.
 duree: Lecture 12 min
 niveau: Classe de 4ᵉ
 objectifs:
@@ -14,7 +14,7 @@ objectifs:
 ::: plan
 1. Le rythme de la semaine
 2. Le cycle d'une leçon
-3. La répartition des 69 leçons sur les 5 périodes
+3. La répartition des 72 leçons sur les 5 périodes
 4. Les semaines de reprise
 5. Les évaluations de l'année
 6. Le calendrier à compléter
@@ -25,12 +25,12 @@ objectifs:
 Trois séances, **lundi, mercredi et vendredi de 13 h à 14 h 30**, à la maison ou en visio. Deux matières par séance, en deux blocs de 30 minutes séparés par une pause. Entre les cours, deux temps courts de travail personnel, le mardi et le jeudi.
 
 ::: info Ce que ça donne sur l'année
-36 semaines × 3 séances × 2 blocs = **216 blocs de travail encadré**, pour **207 blocs nécessaires** (69 leçons × 3 blocs). La marge sert aux reprises.
+36 semaines × 3 séances × 2 blocs = **216 blocs de travail encadré**, pour **216 blocs nécessaires** (72 leçons × 3 blocs). Les reprises se prennent sur les séances au choix et sur les temps de travail personnel : le générateur d'année ajuste la répartition.
 Répartition obtenue : 36 blocs de maths, 36 d'histoire-géographie, 30 de français, 24 de physique-chimie, 24 d'anglais, 24 d'espagnol, 21 de SVT, 12 d'EMC. C'est exactement le volume de chaque matière.
 :::
 
 ::: info Le planning se pré-génère
-Dans l'espace professeur, « Configurer le planning » répartit automatiquement les 69 leçons sur l'année, fait tourner les matières, place les temps de travail personnel et réserve une séance sur quatre au choix de Sterenn. Tout reste modifiable séance par séance.
+Dans l'espace professeur, « Configurer le planning » répartit automatiquement les 72 leçons sur l'année, fait tourner les matières, place les temps de travail personnel et réserve une séance sur quatre au choix de Sterenn. Tout reste modifiable séance par séance.
 :::
 
 ## 2. Le cycle d'une leçon
@@ -53,7 +53,7 @@ Certaines leçons demandent 4 blocs plutôt que 3 : Pythagore, la Révolution fr
 Mieux vaut l'assumer dès le départ que de les compresser : une leçon bâclée coûte deux reprises plus tard.
 :::
 
-## 3. La répartition des 69 leçons sur les 5 périodes
+## 3. La répartition des 72 leçons sur les 5 périodes
 
 ::: frise
 <svg viewBox="0 0 900 96" role="img" aria-label="Frise des cinq périodes de l'année, de septembre à juin.">

@@ -32,7 +32,7 @@ Matières couvertes : `maths`, `francais`, `physique-chimie`, `svt`,
 
 ## 1 bis. Sources de vérité
 
-- **`00-pilotage/programme.json`** : le programme officiel de 4ᵉ et les **69 leçons**
+- **`00-pilotage/programme.json`** : le programme officiel de 4ᵉ et les **72 leçons**
   (matières, thèmes, attendus de fin d'année, compétences, période de traitement).
   Toute nouvelle leçon se déclare **d'abord** ici. Le build échoue si un dossier de
   leçon existe sur le disque sans être déclaré.
@@ -92,12 +92,34 @@ plan et ses métadonnées, chargé à la demande par le lecteur. On n'écrit jam
 Chaque question porte une **explication rédigée** : une réponse fausse doit apprendre
 quelque chose, pas seulement signaler l'erreur.
 
+## 3 quater. Ce que l'espace de Sterenn embarque
+
+- **Opale, la tutrice** (`site/tuteur.js`, `functions/api/tuteur.js`) : panneau flottant sur
+  tous les écrans élève, contexte de la fiche ouverte, suggestions, calculatrice coupée en
+  exercices de maths et en évaluation. Serveur sur Workers AI (liaison `[ai] binding = "AI"`
+  dans `wrangler.toml.modele`), programme résumé généré au build dans `functions/_programme.js`.
+  Elle ne donne jamais la réponse : la réponse attendue de l'exercice en cours est filtrée et
+  un second passage du modèle contrôle. Sans liaison IA, elle renvoie le plan et le message
+  au professeur.
+- **Réglages professeur** (`/api/reglages`, page Réglages) : points de pause des fiches,
+  tutrice, calculatrice, réactions, mise en forme, fils par matière, célébrations.
+- **Félicitations** (`/api/felicitations`, page Dépôts) : un mot pour un devoir rendu, une
+  étoile, affiché sur l'accueil, dans Mes réussites et dans les messages.
+- **Étoiles** : fiche terminée 1, série réussie 1, monde ou jeu gagné avec au moins deux
+  étoiles 1, leçon validée 3, félicitation 1. Une célébration s'affiche à chaque gain.
+- **Messagerie** (`site/messagerie.js`) : émojis par groupes, mise en forme légère
+  (option), réactions animées, fils par matière (`messages.fil`, table `reactions`).
+- **Jeux** (`site/learning/`) : 20 mondes 3D et 53 jeux 2D rattachés aux leçons
+  (`site/data/jeux.js`), score envoyé à `/api/learning/game-score`.
+- **Migrations** : `migrations/*.sql`, toutes rejouables, appliquées dans l'ordre par
+  `build/provisionner.mjs` au déploiement.
+
 ## 3 ter. Rythme de travail et supports
 
 - **Trois séances par semaine** : lundi, mercredi et vendredi, **13 h à 14 h 30**,
   à la maison ou en visio. Jamais prolongées, même quand ça se passe bien.
   Deux temps de travail personnel entre les cours, mardi et jeudi.
-- **Le planning se pré-génère** : `site/planificateur.js` répartit les 69 leçons
+- **Le planning se pré-génère** : `site/planificateur.js` répartit les 72 leçons
   sur l'année (trois blocs par leçon), fait tourner les matières pour qu'aucune
   semaine ne se répète, place les temps de travail personnel, et réserve **une
   séance sur quatre au choix de Sterenn** parmi trois leçons. Tout reste

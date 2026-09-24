@@ -68,7 +68,7 @@ Sortie : `public/dossiers/<matiere>.html` et `public/pdf/dossiers/<matiere>.pdf`
 | `outils/methode-probleme-maths.md` | Passer de l'énoncé au calcul en 6 étapes |
 | `outils/cartes-revision.md` | Fabriquer et utiliser des cartes de répétition espacée |
 | `outils/planificateur-seance.md` | Préparer une séance minutée et prévisible |
-| `outils/suivi-acquis.md` | Suivre les 69 leçons et programmer les reprises |
+| `outils/suivi-acquis.md` | Suivre les 72 leçons et programmer les reprises |
 
 ## Les 4 documents de chaque leçon
 
@@ -81,13 +81,13 @@ Toute leçon possède **quatre** documents, jamais moins :
 
 L'échelle des grilles est celle du **livret scolaire officiel**, celle-là même qui est convertie en points pour le brevet en fin de 3ᵉ.
 
-## Les 8 matières · 69 leçons
+## Les 8 matières · 72 leçons
 
 | Matière | Dossier | Leçons |
 |---|---|---|
-| Mathématiques | `matieres/maths/` | 12 |
-| Français | `matieres/francais/` | 10 |
-| Physique-Chimie | `matieres/physique-chimie/` | 8 |
+| Mathématiques | `matieres/maths/` | 13 |
+| Français | `matieres/francais/` | 11 |
+| Physique-Chimie | `matieres/physique-chimie/` | 9 |
 | SVT | `matieres/svt/` | 7 |
 | Histoire-Géographie | `matieres/histoire-geo/` | 12 |
 | EMC | `matieres/emc/` | 4 |
