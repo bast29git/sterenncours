@@ -2,14 +2,14 @@
  * confort.js — « Accessibilité & confort » du Learning Hub (vitrine).
  *
  * Panneau d'accessibilité pensé pour les enfants EN DIFFICULTÉ (scolaire
- * classique) ET NEURO-ATYPIQUES (dys-, TDAH, TSA, malvoyance). 100 % autonome
+ * classique) et à tous les besoins de lecture et d'attention. 100 % autonome
  * (aucune dépendance), réglages RÉELS persistés en localStorage, appliqués à
  * <html>. Se recharge sur navigation SPA Astro (astro:after-swap).
  * Respecte prefers-reduced-motion.
  *
  * Organisation : bouton d'accessibilité universel (pictogramme ISO « personne »)
  * toujours visible + panneau en 2 onglets :
- *  — « Profils » : presets 1-clic (Dyslexie, Concentration/TDAH, Sérénité/autisme,
+ *  — « Profils » : presets 1-clic (Lecture facilitée, Concentration, Sérénité,
  *    Grand texte/malvoyance, Neutre), modifiables ensuite finement ;
  *  — « Réglages fins » : police lisible, taille (4 crans), interligne (3 crans),
  *    lettres espacées, thème (auto/clair/sombre/crème), contraste élevé, moins
@@ -44,7 +44,7 @@
     curseur: false,     // grand curseur
     regle: false,       // règle de lecture (bandeau qui suit le pointeur)
     masque: false,      // masque de lecture (assombrit tout sauf la ligne)
-    focus: false,       // mode focus TDAH (une chose à la fois)
+    focus: false,       // mode focus (une chose à la fois)
     sons: true,         // sons des activités
     voix: 'normal',     // lent | normal (lecture audio)
     pause: 0,           // 0 | 15 | 20 | 30 minutes (rappel de pause)
@@ -79,12 +79,12 @@
     /* Polices lisibles : appliquées au contenu, JAMAIS au panneau (.cf-ui) */
     'html.cf-font-lisible body :not(.cf-ui):not(.cf-ui *){font-family:Verdana,Tahoma,"Segoe UI",system-ui,sans-serif!important}',
     'html.cf-font-dys body :not(.cf-ui):not(.cf-ui *){font-family:"Comic Sans MS","Trebuchet MS",Verdana,Tahoma,sans-serif!important;letter-spacing:.02em}',
-    /* Interligne (3 crans) & espacement des lettres (confort dys) */
+    /* Interligne (3 crans) & espacement des lettres */
     'html.cf-lh-1 body :not(.cf-ui):not(.cf-ui *){line-height:1.75!important}',
     'html.cf-lh-2 body :not(.cf-ui):not(.cf-ui *){line-height:2.05!important}',
     'html.cf-space body :not(.cf-ui):not(.cf-ui *){letter-spacing:.06em!important;word-spacing:.18em!important}',
     'html.cf-lh-2 p,html.cf-lh-2 li,html.cf-space p,html.cf-space li{max-width:66ch}',
-    /* Thème crème (fond doux recommandé dys / hypersensibilité au blanc) */
+    /* Thème crème (fond doux, moins de blanc pur) */
     'html.cf-creme{--bg:#F6EFDD;--surface:#FFFBEF;--surface-2:#F3EAD3;--surface-3:#EDE2C6;--border:#E2D6B6;--color-paper:#FFFBEF;--color-surface:#F3EAD3;--color-line:#E2D6B6;--grid-fade:rgba(90,74,30,.05)}',
     'html.cf-creme body{background:#F6EFDD}',
     /* Contraste élevé : renforce les tokens de la DA (clair ET sombre) */
@@ -97,7 +97,7 @@
     'html.cf-calme .lh-hero,html.cf-calme .rk-home-hero,html.cf-calme .rk-hero{background:var(--color-surface,var(--surface,#f2f2f6))!important;color:var(--color-ink,var(--fg,#111))!important;box-shadow:none!important}',
     'html.cf-calme .lh-pcard-ban,html.cf-calme .lh-dom-ban,html.cf-calme .lh-mat-ban,html.cf-calme .lh-pcard-wm,html.cf-calme .lh-dom-wm,html.cf-calme .lh-mat-wm{display:none!important}',
     'html.cf-calme .lh-badge,html.cf-calme .rk-home-eyebrow{background:var(--color-surface,var(--surface,#f2f2f6))!important;color:var(--color-ink-mute,var(--fg-muted,#555))!important}',
-    /* Mode focus (TDAH) : une chose à la fois, on masque le hors-tâche */
+    /* Mode focus : une chose à la fois, on masque le hors-tâche */
     'html.cf-focus .lh-hero,html.cf-focus .rk-home-hero,html.cf-focus .rk-hero,html.cf-focus .lh-pcard-ban,html.cf-focus .lh-dom-ban,html.cf-focus .lh-mat-ban,html.cf-focus .lh-pcard-wm,html.cf-focus .lh-dom-wm,html.cf-focus .lh-mat-wm,html.cf-focus footer{display:none!important}',
     'html.cf-focus .ksh-stat.opt,html.cf-focus .ksh-prog-wrap{display:none!important}',
     'html.cf-focus .lh-badge,html.cf-focus .rk-home-eyebrow{background:var(--color-surface,var(--surface,#f2f2f6))!important;color:var(--color-ink-mute,var(--fg-muted,#555))!important}',
@@ -261,7 +261,7 @@
     } else if (maskEl) { maskEl.remove(); maskEl = null; }
   }
 
-  // ── Minuteur de pauses (TDAH) : rappel bienveillant, jamais bloquant ───────
+  // ── Minuteur de pauses : rappel bienveillant, jamais bloquant ───────
   var pauseInt = null, pausePill = null, remindEl = null;
   function pauseStart() {
     var t = 0;
@@ -388,13 +388,13 @@
 
   // ── Profils 1-clic (presets combinés, modifiables ensuite) ─────────────────
   var PROFILS = [
-    { id: 'dyslexie', color: '#9B2BB0', ic: IC.book, titre: 'Dyslexie',
+    { id: 'dyslexie', color: '#9B2BB0', ic: IC.book, titre: 'Lecture facilitée',
       sub: 'Police lisible, texte grand et aéré, fond crème, règle de lecture.' },
-    { id: 'tdah', color: '#F5A623', ic: IC.focus, titre: 'Concentration (TDAH)',
+    { id: 'tdah', color: '#F5A623', ic: IC.focus, titre: 'Concentration',
       sub: 'Une chose à la fois : décors masqués, rappel de pause toutes les 20 min.' },
-    { id: 'autisme', color: '#1E8C7A', ic: IC.leaf, titre: 'Sérénité (autisme)',
+    { id: 'autisme', color: '#1E8C7A', ic: IC.leaf, titre: 'Sérénité',
       sub: 'Zéro animation, sons coupés, couleurs douces, étapes annoncées à l\'avance.' },
-    { id: 'malvoyance', color: '#1B6FB8', ic: IC.eye, titre: 'Grand texte (malvoyance)',
+    { id: 'malvoyance', color: '#1B6FB8', ic: IC.eye, titre: 'Grands caractères',
       sub: 'Texte très grand, contraste élevé, grand curseur bien visible.' },
     { id: '', color: '#565B75', ic: IC.reset, titre: 'Neutre',
       sub: 'Tout remettre comme au départ.' },

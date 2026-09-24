@@ -712,10 +712,13 @@
       worlds = Array.isArray(worlds) ? worlds : [];
       if (!el || !worlds.length) return { dispose: function () {} };
       if (el.__kwo) { try { el.__kwo.dispose(); } catch (e) {} }
+      // Mode calme ou mouvement réduit : la galerie 3D reste, immobile (pas de
+      // flottement ni de rotation automatique). Le repli DOM n'intervient que si
+      // three.js ou WebGL manquent, ou si l'hôte demande opts.flat.
       var reduced = !!opts.reduced || prefersReduced();
-      var handle = reduced
+      var handle = opts.flat
         ? mountFlat(el, worlds, opts)
-        : mount3d(el, worlds, { onOpen: opts.onOpen, reduced: false });
+        : mount3d(el, worlds, { onOpen: opts.onOpen, reduced: reduced });
       el.__kwo = handle;
       var wrapped = {
         dispose: function () {

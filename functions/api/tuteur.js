@@ -52,7 +52,7 @@ function systeme(contexte, reglages) {
     '7. Le programme de 4e couvert par Opaline :',
     programme,
     'Situation : ' + MODES[mode] + fiche + question,
-    reglages.calculatrice && mode !== 'evaluation' && !(mode === 'exercices' && contexte.matiere === 'maths')
+    reglages.calculatrice && !(mode === 'evaluation' && !reglages.calculatrice_evaluation) && !(mode === 'exercices' && contexte.matiere === 'maths' && !reglages.calculatrice_maths)
       ? 'Une calculatrice est disponible dans ton panneau, onglet Calculatrice.'
       : 'La calculatrice est coupée ici : Sterenn calcule à la main, tu peux rappeler une méthode de calcul.',
   ].join('\n');

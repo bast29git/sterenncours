@@ -62,7 +62,7 @@
   };
   /** Valeurs par défaut des réglages professeur, si le serveur ne répond pas. */
   const REGLAGES_DEFAUT = {
-    pauses: true, tuteur: true, calculatrice: true,
+    pauses: true, tuteur: true, calculatrice: true, calculatrice_maths: true, calculatrice_evaluation: false,
     reactions: true, formatage: false, fils: true, felicitations: true,
   };
   const reglage = (c) => (c in etat.reglages ? etat.reglages[c] : REGLAGES_DEFAUT[c]);
@@ -493,6 +493,10 @@
       panneau.hidden = true;
     }));
   }
+  document.getElementById('e-btn-confort').addEventListener('click', () => {
+    if (window.__konstrioConfort && window.__konstrioConfort.open) window.__konstrioConfort.open();
+    else chargerScript('moteurs/confort.js').then(() => window.__konstrioConfort && window.__konstrioConfort.open()).catch(() => signaler('Le panneau de confort n\'est pas disponible.'));
+  });
   document.getElementById('e-btn-palette').addEventListener('click', () => {
     const p = document.getElementById('e-palette-panneau');
     p.hidden = !p.hidden;

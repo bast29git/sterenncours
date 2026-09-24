@@ -75,24 +75,87 @@
     return null;
   }
 
+  /** Les séances à choix à venir, de la plus proche à la plus lointaine. */
+  const seancesAChoix = (seances) => seances
+    .filter((s) => (s.choix || []).length >= 2 && s.date >= N.jourIso())
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  /** Le choix se fait au plus tard deux jours avant la séance. */
+  const dateLimiteChoix = (s) => N.decaler(s.date, -2);
+  function etatChoix(s) {
+    const aujourd = N.jourIso();
+    const limite = dateLimiteChoix(s);
+    const jours = Math.round((new Date(limite + 'T12:00:00') - new Date(aujourd + 'T12:00:00')) / 86400000);
+    if (s.choisi_le) return { code: 'fait', texte: 'Choix fait. Tu peux encore changer d\'avis jusqu\'au ' + N.enFrancais(s.date, true) + '.' };
+    if (jours < 0) return { code: 'retard', texte: 'La date limite est passée : choisis maintenant, sinon Bastien prendra la première leçon.' };
+    if (jours === 0) return { code: 'urgent', texte: 'C\'est le dernier jour pour choisir.' };
+    if (jours <= 3) return { code: 'bientot', texte: `Il te reste ${jours} jour${jours > 1 ? 's' : ''} pour choisir (avant le ${N.enFrancais(limite, true)}).` };
+    return { code: 'ok', texte: `À choisir avant le ${N.enFrancais(limite, true)}.` };
+  }
+  /** Le choix actuel d'une séance : la leçon de la séance qui fait partie des choix. */
+  const leconChoisie = (s) => (s.lecons || []).find((r) => (s.choix || []).indexOf(r) !== -1) || null;
+
+  function carteChoix(s, ouverte) {
+    const e = etatChoix(s);
+    const choisie = leconChoisie(s);
+    const info = choisie ? N.libelleLecon(choisie) : null;
+    const liste = `<ul class="e-choix-liste">${(s.choix || []).map((r) => {
+      const x = N.libelleLecon(r);
+      if (!x) return '';
+      const actuelle = s.choisi_le && r === choisie;
+      return `<li><button type="button" data-seance="${s.id}" data-lecon="${r}" class="${actuelle ? 'actuelle' : ''}" aria-pressed="${actuelle ? 'true' : 'false'}">
+        <span class="m">${x.m.icone} ${N.ech(x.m.nom)}</span>
+        <b>${N.ech(x.l.titre)}</b>
+        <span>${x.l.notions.slice(0, 3).map(N.ech).join(' · ')}</span>
+        ${actuelle ? '<span class="coche">✓ ton choix</span>' : ''}</button></li>`;
+    }).join('')}</ul>`;
+    return `<article class="e-choix-carte etat-${e.code}" data-choix="${s.id}">
+      <p class="e-choix-quand">${N.ic('ic-calendrier')} Séance du ${N.ech(N.enFrancais(s.date, true))}, de ${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
+      <p class="e-choix-etat">${e.code === 'retard' || e.code === 'urgent' ? N.ic('ic-horloge') : ''} ${N.ech(e.texte)}</p>
+      ${s.choisi_le && !ouverte
+    ? `<p class="e-choix-fait">Tu as choisi : <b>${info ? N.ech(info.m.icone + ' ' + info.l.titre) : '?'}</b>
+         <button type="button" class="e-bouton e-bouton-fin" data-changer="${s.id}">Changer</button></p>`
+    : liste}
+    </article>`;
+  }
+
+  /** Sur l'accueil : les trois prochaines séances à choix, la plus proche ouverte. */
   function blocChoix(seances) {
-    const ouverts = seances.filter((s) => (s.choix || []).length >= 2 && !s.choisi_le && s.date >= N.jourIso());
-    if (!ouverts.length) return '';
-    const s = ouverts[0];
-    return `<section class="e-choix-jour" data-choix="${s.id}">
-      <h2>${N.ic('ic-etincelle')} À toi de choisir</h2>
-      <p class="aide">Pour la séance du ${N.ech(N.enFrancais(s.date, true))}, tu décides de la deuxième leçon. Les trois sont au programme : prends celle qui te tente.</p>
-      <ul class="e-choix-liste">${(s.choix || []).map((r) => {
-    const info = N.libelleLecon(r);
-    if (!info) return '';
-    return `<li><button type="button" data-seance="${s.id}" data-lecon="${r}">
-      <span class="m">${info.m.icone} ${N.ech(info.m.nom)}</span>
-      <b>${N.ech(info.l.titre)}</b>
-      <span>${info.l.notions.slice(0, 3).map(N.ech).join(' · ')}</span></button></li>`;
-  }).join('')}</ul></section>`;
+    const liste = seancesAChoix(seances);
+    if (!liste.length) return '';
+    const proches = liste.slice(0, 3);
+    return `<section class="e-choix-jour" aria-labelledby="e-choix-titre">
+      <h2 id="e-choix-titre">${N.ic('ic-etincelle')} À toi de choisir</h2>
+      <p class="aide">Une séance sur quatre, la deuxième leçon est à toi. Trois leçons sont proposées, toutes au programme : <b>clique sur celle que tu veux</b>. Tu peux changer d'avis jusqu'au jour de la séance.</p>
+      ${proches.map((s, k) => carteChoix(s, k === 0 && !s.choisi_le)).join('')}
+      ${liste.length > 3 ? `<p class="e-actions"><a class="e-bouton e-bouton-doux" href="#/choix">Voir tous mes choix (${liste.length})</a></p>` : ''}
+    </section>`;
+  }
+
+  /** Bandeau de rappel : un choix en retard ou à faire dans les trois jours. */
+  function rappelChoix(seances) {
+    const s = seancesAChoix(seances).find((x) => !x.choisi_le && ['retard', 'urgent', 'bientot'].indexOf(etatChoix(x).code) !== -1);
+    if (!s) return '';
+    const e = etatChoix(s);
+    return `<p class="e-rappel ${e.code === 'retard' ? 'e-rappel-fort' : ''}">${N.ic('ic-horloge')} <b>Un choix t'attend</b> pour la séance du ${N.ech(N.enFrancais(s.date, true))}. ${N.ech(e.texte)} <a href="#/choix">Choisir maintenant</a></p>`;
+  }
+
+  /** Page « Mes choix » : toutes les séances à choix à venir, modifiables. */
+  function vueChoix() {
+    const liste = seancesAChoix(N.etat.seances);
+    afficher(`<h1>Mes choix</h1>
+      <p class="e-intro">Une séance sur quatre, tu décides de la deuxième leçon. Ici, tu vois tous les choix à venir et tu peux en changer un, jusqu'au jour de la séance.</p>
+      ${liste.length ? liste.map((s) => carteChoix(s, !s.choisi_le)).join('') : '<div class="e-carte e-vide"><p>Aucune séance à choix pour l\'instant. Elles apparaîtront ici dès que le planning en proposera.</p></div>'}`);
+    brancherChoix(vueChoix);
   }
 
   function brancherChoix(apres) {
+    vue().querySelectorAll('[data-changer]').forEach((b) => b.addEventListener('click', () => {
+      const s = N.etat.seances.find((x) => x.id === b.getAttribute('data-changer'));
+      const carte = b.closest('.e-choix-carte');
+      if (!s || !carte) return;
+      carte.outerHTML = carteChoix(s, true);
+      brancherChoix(apres);
+    }));
     vue().querySelectorAll('[data-seance][data-lecon]').forEach((b) => {
       b.addEventListener('click', async () => {
         try {
@@ -160,6 +223,7 @@
         </p>
        </section>
 
+       ${rappelChoix(N.etat.seances)}
        ${blocMotNouveau()}
        ${blocChoix(N.etat.seances)}
 
@@ -308,7 +372,7 @@
           return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${N.ic(info.ico)} ${info.libelle}</a>`;
         }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} M'entraîner</a>` : ''}${jeuxDe(mid, ref).map((j) => lienJeu(j)).join('')}</nav>
           </header>
-          <article class="e-fiche">${doc.html}</article>
+          <div id="e-fiche-hote"></div>
           <div class="e-actions">
             <button class="e-bouton" id="e-fini" type="button">${lu ? '↺ Pas encore terminée' : '✓ J\'ai terminé'}</button>
             ${N.banque(mid, ref) ? `<a class="e-bouton e-bouton-doux" href="#/exos/${mid}/${ref}">M'entraîner</a>` : ''}
@@ -317,6 +381,8 @@
           </div>
          </div>`,
       );
+
+      rendreFiche(document.getElementById('e-fiche-hote'), doc, cleFiche, () => document.getElementById('e-fini').click());
 
       document.getElementById('e-fini').addEventListener('click', async () => {
         const termine = !N.etat.fiches[cleFiche];
@@ -336,6 +402,106 @@
       });
     });
   }
+
+  /* ---------- Lecteur de fiche : en diapositives, ou en page ------------------- */
+  const CLE_LECTURE = 'opaline.lecture';
+  /** Découpe le HTML d'une fiche en sections, sur ses titres de niveau 2. */
+  function decouperFiche(html) {
+    const morceaux = String(html || '').split(/(?=<h2 id=")/);
+    const sections = [];
+    morceaux.forEach((m) => {
+      const t = /^<h2 id="([^"]*)">([\s\S]*?)<\/h2>/.exec(m);
+      if (t) sections.push({ id: t[1], titre: t[2].replace(/<[^>]+>/g, '').trim(), html: m.slice(t[0].length) });
+      else if (m.replace(/<[^>]+>/g, '').trim()) sections.push({ id: 'debut', titre: 'Avant de commencer', html: m, debut: true });
+    });
+    return sections;
+  }
+  const titreCourt = (t) => t.replace(/^\d+[.)]\s*/, '');
+
+  /**
+   * Une fiche se lit une section à la fois : un pas à gauche et à droite, une
+   * jauge, les étapes en haut. Le mode « page entière » reste à un clic et se
+   * mémorise. Les flèches du clavier passent d'une diapositive à l'autre.
+   */
+  function rendreFiche(hote, doc, cleFiche, terminer) {
+    const sections = decouperFiche(doc.html);
+    const mode = N.lire(CLE_LECTURE, 'diapo');
+    if (mode === 'page' || sections.length < 2) {
+      hote.innerHTML = `<div class="e-lecture-mode"><button type="button" class="e-bouton e-bouton-fin" id="e-mode-diapo">${N.ic('ic-droite')} Lire en diapositives</button></div>
+        <article class="e-fiche e-fiche-page">${doc.html}</article>`;
+      const b = document.getElementById('e-mode-diapo');
+      if (b) b.addEventListener('click', () => { N.ecrire(CLE_LECTURE, 'diapo'); rendreFiche(hote, doc, cleFiche, terminer); });
+      return;
+    }
+    const clePos = 'opaline.diapo.' + cleFiche;
+    let i = 0;
+    try { i = Math.min(sections.length - 1, Math.max(0, Number(sessionStorage.getItem(clePos)) || 0)); } catch (e) { i = 0; }
+
+    hote.innerHTML = `<section class="e-diapo" aria-label="Fiche en diapositives">
+      <div class="e-diapo-barre">
+        <ol class="e-diapo-etapes" id="e-diapo-etapes">${sections.map((x, k) => `<li><button type="button" data-diapo="${k}" title="${N.ech(x.titre)}"><b>${k + 1}</b><span>${N.ech(titreCourt(x.titre))}</span></button></li>`).join('')}</ol>
+        <button type="button" class="e-diapo-mode" id="e-mode-page" title="Afficher toute la fiche sur une page">${N.ic('ic-livre')}<span>Page entière</span></button>
+      </div>
+      <div class="e-diapo-jauge" role="progressbar" aria-valuemin="1" aria-valuemax="${sections.length}" aria-valuenow="1" aria-label="Avancement dans la fiche"><i id="e-diapo-jauge"></i></div>
+      <article class="e-fiche e-diapo-corps" id="e-diapo-corps" tabindex="-1"></article>
+      <div class="e-diapo-pied">
+        <button type="button" class="e-bouton e-bouton-doux" id="e-diapo-prec">${N.ic('ic-gauche')} Précédent</button>
+        <span class="e-diapo-compte" id="e-diapo-compte"></span>
+        <button type="button" class="e-bouton" id="e-diapo-suiv">Suivant ${N.ic('ic-droite')}</button>
+      </div>
+    </section>`;
+
+    const corps = document.getElementById('e-diapo-corps');
+    const montrer = (k, defiler) => {
+      i = Math.min(sections.length - 1, Math.max(0, k));
+      try { sessionStorage.setItem(clePos, String(i)); } catch (e) { /* privé */ }
+      const x = sections[i];
+      corps.innerHTML = `<h2 id="${N.ech(x.id)}">${N.ech(x.titre)}</h2>${x.html}`;
+      hote.querySelectorAll('[data-diapo]').forEach((b) => {
+        const actif = Number(b.getAttribute('data-diapo')) === i;
+        b.classList.toggle('actif', actif);
+        b.classList.toggle('vu', Number(b.getAttribute('data-diapo')) < i);
+        if (actif) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+        if (actif) {
+          // On fait défiler la liste des étapes seule, jamais la page entière.
+          const liste = b.closest('.e-diapo-etapes');
+          if (liste) liste.scrollLeft = Math.max(0, b.offsetLeft - liste.clientWidth / 2 + b.offsetWidth / 2);
+        }
+      });
+      document.getElementById('e-diapo-jauge').style.width = Math.round(((i + 1) / sections.length) * 100) + '%';
+      hote.querySelector('.e-diapo-jauge').setAttribute('aria-valuenow', String(i + 1));
+      document.getElementById('e-diapo-compte').textContent = `${i + 1} sur ${sections.length}`;
+      const prec = document.getElementById('e-diapo-prec');
+      const suiv = document.getElementById('e-diapo-suiv');
+      prec.disabled = i === 0;
+      const dernier = i === sections.length - 1;
+      suiv.innerHTML = dernier ? `${N.ic('ic-coche')} J'ai terminé la fiche` : `Suivant ${N.ic('ic-droite')}`;
+      suiv.classList.toggle('e-bouton-fin', false);
+      if (defiler) {
+        const haut = hote.getBoundingClientRect().top + window.scrollY - 90;
+        window.scrollTo({ top: Math.max(0, haut), behavior: 'smooth' });
+        corps.focus({ preventScroll: true });
+      }
+    };
+    hote.querySelectorAll('[data-diapo]').forEach((b) => b.addEventListener('click', () => montrer(Number(b.getAttribute('data-diapo')), true)));
+    document.getElementById('e-diapo-prec').addEventListener('click', () => montrer(i - 1, true));
+    document.getElementById('e-diapo-suiv').addEventListener('click', () => {
+      if (i === sections.length - 1) { if (terminer) terminer(); return; }
+      montrer(i + 1, true);
+    });
+    document.getElementById('e-mode-page').addEventListener('click', () => { N.ecrire(CLE_LECTURE, 'page'); rendreFiche(hote, doc, cleFiche, terminer); });
+    hote.__diapo = { avancer: () => montrer(i + 1, true), reculer: () => montrer(i - 1, true) };
+    montrer(i, false);
+  }
+  // Flèches du clavier : uniquement quand une fiche en diapositives est à l'écran.
+  document.addEventListener('keydown', (ev) => {
+    const hote = document.getElementById('e-fiche-hote');
+    if (!hote || !hote.__diapo || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    const cible = ev.target;
+    if (cible && (cible.tagName === 'INPUT' || cible.tagName === 'TEXTAREA' || cible.isContentEditable)) return;
+    if (ev.key === 'ArrowRight') { ev.preventDefault(); hote.__diapo.avancer(); }
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); hote.__diapo.reculer(); }
+  });
 
   /* ---------- Exercices ---------------------------------------------------------- */
   let session = null;
@@ -586,7 +752,7 @@
     return `<article class="e-evt cours${s.statut === 'faite' ? ' faite' : ''}">
       <p class="h">${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
       ${titres.map((t) => `<p class="t">${N.ech(t)}</p>`).join('')}
-      ${(s.choix || []).length && !s.choisi_le ? `<p class="c">${N.ic('ic-etincelle')} à toi de choisir</p>` : ''}
+      ${(s.choix || []).length >= 2 && s.date >= N.jourIso() ? `<p class="c"><a href="#/choix">${N.ic('ic-etincelle')} ${s.choisi_le ? 'changer mon choix' : 'à toi de choisir'}</a></p>` : ''}
       ${liens ? `<p class="l">${liens}</p>` : ''}
     </article>`;
   }
@@ -1076,6 +1242,7 @@
       case 'lecon': return vueLecon(p[1], p[2], p[3]);
       case 'exos': return vueExos(p[1], p[2]);
       case 'calendrier': return vueCalendrier(p[1]);
+      case 'choix': return vueChoix();
       case 'jeux': return vueJeux(p[1]);
       case 'progres': case 'reussites': return vueReussites();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);

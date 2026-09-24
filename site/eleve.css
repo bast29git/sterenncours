@@ -39,14 +39,14 @@ body.corps-eleve {
   --e-encre: #211C28;
   --e-encre-doux: #6B6478;
   --e-carte: #FFFFFF;
-  --e-trait: #EDE6EF;
-  --e-trait-fort: #DCD2E0;
+  --e-trait: #D8CFE0;
+  --e-trait-fort: #BFB2CA;
   --e-r: 22px;
   --e-r-petit: 14px;
   /* Couleur vive assombrie : du texte blanc dessus atteint le contraste 4,5:1, et
      comme texte sur fond clair aussi. La couleur vive pure garde les grands aplats. */
   --e-vif-fonce: color-mix(in srgb, var(--e-vif) 70%, #0b1a3a);
-  --e-ombre: 0 1px 2px rgba(33, 28, 40, .04), 0 8px 24px rgba(33, 28, 40, .06);
+  --e-ombre: 0 1px 2px rgba(33, 28, 40, .10), 0 10px 28px rgba(33, 28, 40, .18);
   --e-ombre-forte: 0 2px 6px rgba(33, 28, 40, .06), 0 18px 44px rgba(33, 28, 40, .12);
 
   margin: 0;
@@ -55,34 +55,32 @@ body.corps-eleve {
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
   font-size: 16.5px;
   line-height: 1.6;
-  /* Une aurore boréale en fond, pâle sur le thème clair : les cartes restent
-     opaques, aucun texte long n'est posé directement sur l'image. */
   /* Une vraie photographie d'aurore boréale (NASA, domaine public) sous un
-     voile clair : la couleur affleure, le texte reste sur des cartes opaques. */
+     voile léger : l'aurore se voit, tout le contenu vit sur des cartes opaques. */
   background:
-    linear-gradient(180deg, rgba(246, 250, 251, .30) 0%, rgba(246, 250, 251, .62) 45%, rgba(246, 250, 251, .92) 100%),
-    image-set(url('fond/aurore-jour.webp') type('image/webp'), url('fond/aurore-jour.jpg') type('image/jpeg')) center top / cover no-repeat,
+    linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%),
+    image-set(url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat,
     var(--e-fond);
   background-attachment: fixed;
 }
-@media (max-aspect-ratio: 3/4) { body.corps-eleve { background-image: linear-gradient(180deg, rgba(246, 250, 251, .30) 0%, rgba(246, 250, 251, .62) 45%, rgba(246, 250, 251, .92) 100%), image-set(url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); background-size: auto, cover; } }
+@media (max-aspect-ratio: 3/4) { body.corps-eleve { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%), image-set(url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); background-size: auto, cover; } }
 
 [data-theme="dark"] body.corps-eleve {
   --e-encre: #F1ECF5;
   --e-encre-doux: #A9A2B6;
   --e-carte: #1B1722;
-  --e-trait: #2E2739;
-  --e-trait-fort: #3C3349;
+  --e-trait: #46405A;
+  --e-trait-fort: #5A5270;
   --e-fond: #12101A;
   --e-voile: #1E1929;
   --e-ombre: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
   --e-ombre-forte: 0 2px 8px rgba(0,0,0,.5), 0 22px 50px rgba(0,0,0,.5);
   background:
-    linear-gradient(180deg, rgba(11, 16, 32, .10) 0%, rgba(11, 16, 32, .48) 55%, rgba(11, 16, 32, .84) 100%),
+    linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%),
     image-set(url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat fixed,
     var(--e-fond);
 }
-@media (max-aspect-ratio: 3/4) { [data-theme="dark"] body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .10) 0%, rgba(11, 16, 32, .48) 55%, rgba(11, 16, 32, .84) 100%), image-set(url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); } }
+@media (max-aspect-ratio: 3/4) { [data-theme="dark"] body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%), image-set(url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); } }
 
 .eleve { display: flex; flex-direction: column; min-height: 100vh; }
 .eleve h1, .eleve h2, .eleve h3 {
@@ -310,12 +308,12 @@ body.corps-eleve {
 }
 .e-etape.ouverte .e-pastille { border-color: var(--e-vif); color: var(--e-vif); }
 .e-etape.faite .e-pastille { background: var(--e-vif); border-color: var(--e-vif); color: #fff; }
-.e-etape.verrouillee { opacity: .72; }
+.e-etape.verrouillee .e-etape-titre, .e-etape.verrouillee .e-etape-note { color: var(--e-encre-doux); }
 .e-etape-corps {
   background: var(--e-carte); border: 1px solid var(--e-trait);
   border-radius: var(--e-r-petit); padding: 0.85rem 1rem; box-shadow: var(--e-ombre);
 }
-.e-etape.verrouillee .e-etape-corps { background: transparent; box-shadow: none; border-style: dashed; }
+.e-etape.verrouillee .e-etape-corps { background: color-mix(in srgb, var(--e-carte) 88%, var(--e-voile)); border-style: dashed; border-color: var(--e-trait-fort); }
 .e-etape-titre { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1.02rem; margin: 0; }
 .e-etape-note { margin: 0.15rem 0 0; font-size: 0.86rem; color: var(--e-encre-doux); }
 .e-etape-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.65rem; }
@@ -330,7 +328,7 @@ body.corps-eleve {
 .e-cadenas { font-size: 0.86rem; color: var(--e-encre-doux); display: flex; gap: 0.35rem; align-items: center; }
 
 /* ---------- Lecteur de fiche --------------------------------------------- */
-.e-lecteur { display: grid; gap: 1.2rem; }
+.e-lecteur { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2rem; }
 .e-lecteur-tete {
   background: var(--e-carte); border: 1px solid var(--e-trait);
   border-radius: var(--e-r); box-shadow: var(--e-ombre); padding: 1.2rem 1.35rem;
@@ -899,3 +897,111 @@ html[data-tuteur="0"] .e-opale-bouton, html[data-tuteur="0"] .e-opale { display:
 .m-eclat { position: fixed; z-index: 90; font-size: 1.3rem; pointer-events: none; transform: translate(-50%, -50%); animation: m-eclat 0.9s ease-out forwards; }
 @keyframes m-eclat { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4) rotate(20deg); } }
 @media (prefers-reduced-motion: reduce) { .e-reactions-menu button { transition: none; } .m-eclat { display: none; } }
+
+/* ---------- Titres de page sur plaque : lisibles sur la photographie -------- */
+.e-vue > h1 {
+  display: inline-block; max-width: 100%;
+  margin: 0; padding: 0.55rem 1rem 0.5rem;
+  background: var(--e-carte); color: var(--e-encre);
+  border: 1px solid var(--e-trait); border-bottom: 0;
+  border-radius: var(--e-r-petit) var(--e-r-petit) 0 0;
+}
+.e-vue > h1 + .e-intro {
+  margin: 0 0 1.4rem; padding: 0.65rem 1rem 0.75rem;
+  background: var(--e-carte); color: var(--e-encre-doux);
+  border: 1px solid var(--e-trait);
+  border-radius: 0 var(--e-r-petit) var(--e-r-petit) var(--e-r-petit);
+  box-shadow: var(--e-ombre);
+}
+.e-vue > h1:not(:has(+ .e-intro)) { border-bottom: 1px solid var(--e-trait); border-radius: var(--e-r-petit); margin-bottom: 1.2rem; box-shadow: var(--e-ombre); }
+.e-titre-section {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.35rem 0.9rem; margin: 1.8rem 0 0.8rem;
+  background: var(--e-carte); color: var(--e-encre);
+  border: 1px solid var(--e-trait); border-radius: 999px; box-shadow: var(--e-ombre);
+}
+.e-orbite-titre { background: var(--e-carte); border: 1px solid var(--e-trait); border-radius: var(--e-r-petit); padding: 0.5rem 0.9rem; box-shadow: var(--e-ombre); }
+.e-orbite-titre h2 { margin: 0; }
+.e-note-fin { display: inline-block; padding: 0.4rem 0.9rem; background: var(--e-carte); border: 1px solid var(--e-trait); border-radius: 999px; }
+.e-jour-sep span { background: var(--e-carte); border: 1px solid var(--e-trait); }
+/* Le bouton flottant du confort disparaît : la commande vit dans la barre du haut. */
+.cf-fab { display: none !important; }
+
+/* ---------- Fiche en diapositives ------------------------------------------- */
+.e-diapo { min-width: 0; background: var(--e-carte); border: 1px solid var(--e-trait); border-radius: var(--e-r); box-shadow: var(--e-ombre); overflow: hidden; }
+.e-diapo-barre { display: flex; min-width: 0; align-items: center; gap: 0.5rem; padding: 0.7rem 0.8rem 0.5rem; }
+.e-diapo-etapes { flex: 1; min-width: 0; display: flex; gap: 0.35rem; margin: 0; padding: 0.2rem 0; list-style: none; overflow-x: auto; scrollbar-width: thin; }
+.e-diapo-etapes li { flex: none; }
+.e-diapo-etapes button {
+  display: inline-flex; align-items: center; gap: 0.4rem; max-width: 15rem;
+  font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+  padding: 0.3rem 0.7rem 0.3rem 0.3rem; border-radius: 999px;
+  border: 1px solid var(--e-trait); background: var(--e-carte); color: var(--e-encre-doux);
+}
+.e-diapo-etapes button b { flex: none; width: 1.5rem; height: 1.5rem; display: grid; place-items: center; border-radius: 50%; background: var(--e-voile); color: var(--e-encre); font-size: 0.78rem; }
+.e-diapo-etapes button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.e-diapo-etapes button.vu b { background: var(--e-vif-fonce); color: #fff; }
+.e-diapo-etapes button.actif { border-color: var(--e-vif-fonce); color: var(--e-encre); background: color-mix(in srgb, var(--e-vif) 12%, var(--e-carte)); }
+.e-diapo-etapes button.actif b { background: var(--e-vif-fonce); color: #fff; }
+.e-diapo-etapes button:focus-visible { outline: 3px solid var(--e-vif); outline-offset: 1px; }
+.e-diapo-mode { flex: none; display: inline-flex; align-items: center; gap: 0.35rem; font: inherit; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.7rem; border-radius: 999px; border: 1px solid var(--e-trait); background: transparent; color: var(--e-encre-doux); cursor: pointer; }
+.e-diapo-mode .ic { width: 1rem; height: 1rem; }
+.e-diapo-mode:hover { border-color: var(--e-vif); color: var(--e-vif-fonce); }
+.e-diapo-jauge { height: 0.35rem; background: var(--e-voile); }
+.e-diapo-jauge i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--e-vif), var(--e-doux)); transition: width 0.25s; }
+.e-diapo-corps { padding: 1.3rem 1.5rem 1rem; outline: none; }
+.e-diapo-corps > h2 { font-family: 'Archivo', sans-serif; font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 1rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--e-trait); }
+.e-diapo-pied { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.8rem 1.2rem 1.1rem; border-top: 1px solid var(--e-trait); background: color-mix(in srgb, var(--e-voile) 55%, var(--e-carte)); }
+.e-diapo-compte { font-size: 0.85rem; font-weight: 700; color: var(--e-encre-doux); }
+.e-diapo-pied .e-bouton:disabled { opacity: 0.4; cursor: default; }
+.e-lecture-mode { display: flex; justify-content: flex-end; margin-bottom: 0.6rem; }
+
+/* Dans une diapositive, les blocs se rangent sur deux colonnes quand la place le
+   permet : une définition à côté de son exemple, un piège à côté d'une méthode.
+   Le texte courant, les plans, les schémas et les exercices gardent toute la largeur. */
+@media (min-width: 58rem) {
+  .e-diapo-corps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem 1rem; align-items: start; }
+  .e-diapo-corps > * { grid-column: 1 / -1; min-width: 0; }
+  .e-diapo-corps > .bloc-definition, .e-diapo-corps > .bloc-exemple, .e-diapo-corps > .bloc-piege,
+  .e-diapo-corps > .bloc-retenir, .e-diapo-corps > .bloc-info, .e-diapo-corps > .bloc-aide,
+  .e-diapo-corps > .bloc-formule { grid-column: auto; }
+  .e-diapo-corps > .bloc { margin: 0; }
+  .e-diapo-corps > .bloc + .bloc { margin-top: 0; }
+}
+/* Les blocs : un contour, une couleur sur la tranche et le titre, pas d'aplat massif. */
+.e-fiche .bloc { background: var(--e-carte); border: 1px solid var(--e-trait); border-left-width: 5px; box-shadow: none; }
+.e-fiche .bloc-plan, .e-fiche .bloc-materiel, .e-fiche .bloc-objectif { background: color-mix(in srgb, var(--e-voile) 70%, var(--e-carte)); }
+.e-fiche .bloc-retenir { background: color-mix(in srgb, #fdf7ea 60%, var(--e-carte)); }
+.e-fiche .bloc-piege { background: color-mix(in srgb, #fdecec 45%, var(--e-carte)); }
+.e-fiche .bloc-formule { background: color-mix(in srgb, #f2eefb 60%, var(--e-carte)); }
+[data-theme="dark"] .e-fiche .bloc-retenir, [data-theme="dark"] .e-fiche .bloc-piege, [data-theme="dark"] .e-fiche .bloc-formule { background: var(--e-carte); }
+@media (max-width: 40rem) {
+  .e-diapo-corps { padding: 1rem 1rem 0.8rem; }
+  .e-diapo-pied { padding: 0.7rem 0.8rem 0.9rem; }
+  .e-diapo-pied .e-bouton { padding: 0.55rem 0.8rem; font-size: 0.9rem; }
+  .e-diapo-etapes button span { display: none; }
+  .e-diapo-etapes button.actif span { display: inline; }
+}
+
+/* ---------- Choix de leçon : cartes datées, état, changement ---------------- */
+.e-choix-carte { border: 1px solid var(--e-trait); border-radius: var(--e-r-petit); padding: 0.9rem 1rem; margin-top: 0.8rem; background: var(--e-carte); }
+.e-choix-carte.etat-retard { border-color: #B42318; }
+.e-choix-carte.etat-urgent, .e-choix-carte.etat-bientot { border-color: #C77700; }
+.e-choix-carte.etat-fait { border-color: var(--e-trait); }
+.e-choix-quand { margin: 0 0 0.2rem; font-weight: 800; display: flex; align-items: center; gap: 0.4rem; }
+.e-choix-quand .ic { width: 1rem; height: 1rem; }
+.e-choix-etat { margin: 0 0 0.7rem; font-size: 0.88rem; color: var(--e-encre-doux); display: flex; align-items: center; gap: 0.3rem; }
+.e-choix-etat .ic { width: 1rem; height: 1rem; }
+.etat-retard .e-choix-etat { color: #B42318; font-weight: 700; }
+.etat-urgent .e-choix-etat, .etat-bientot .e-choix-etat { color: #9A5B00; font-weight: 700; }
+.e-choix-fait { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.e-choix-liste button { position: relative; }
+.e-choix-liste button.actuelle { border-color: var(--e-vif-fonce); background: color-mix(in srgb, var(--e-vif) 10%, var(--e-carte)); }
+.e-choix-liste .coche { display: inline-block; margin-top: 0.3rem; font-size: 0.78rem; font-weight: 800; color: var(--e-vif-fonce); }
+.e-rappel { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0 0 1rem; padding: 0.7rem 1rem; border-radius: var(--e-r-petit); background: #FFF4E0; color: #6B4300; border: 1px solid #F0C36B; font-size: 0.95rem; }
+.e-rappel .ic { width: 1.1rem; height: 1.1rem; }
+.e-rappel a { font-weight: 800; color: inherit; }
+.e-rappel-fort { background: #FDECEC; color: #7A1B14; border-color: #E9A6A0; }
+[data-theme="dark"] .e-rappel { background: #3A2A10; color: #FFD9A0; border-color: #7A5A20; }
+[data-theme="dark"] .e-rappel-fort { background: #3D1A18; color: #FFC2BD; border-color: #8A3A34; }
+.e-evt .c a { color: inherit; text-decoration: underline; }

@@ -86,8 +86,8 @@
 
   function calculatriceAutorisee(c) {
     if (!N.reglage('calculatrice')) return false;
-    if (c.mode === 'evaluation') return false;
-    if (c.mode === 'exercices' && c.matiere === 'maths') return false;
+    if (c.mode === 'evaluation' && !N.reglage('calculatrice_evaluation')) return false;
+    if (c.mode === 'exercices' && c.matiere === 'maths' && !N.reglage('calculatrice_maths')) return false;
     return true;
   }
   function libelleContexte(c) {
@@ -244,7 +244,7 @@
     const coupe = document.getElementById('e-opale-calc-coupe');
     coupe.hidden = ok;
     coupe.textContent = !N.reglage('calculatrice') ? 'La calculatrice est désactivée par ton professeur.'
-      : contexteCourant.matiere === 'maths' ? 'Pas de calculatrice pendant les exercices de mathématiques : tu calcules à la main, c\'est ce qui est évalué.'
+      : contexteCourant.matiere === 'maths' && contexteCourant.mode === 'exercices' ? 'Ton professeur a coupé la calculatrice pendant les exercices de mathématiques : tu calcules à la main.'
         : 'Pas de calculatrice pendant une évaluation.';
     document.getElementById('e-opale-calc').hidden = !ok;
     if (!ok && onglet === 'calculer') choisirOnglet('parler');

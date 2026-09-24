@@ -11,7 +11,9 @@ import { json, erreur, gerer, exigerSession, exigerProf, maintenant } from '../_
 export const REGLAGES = {
   pauses:        { defaut: true,  type: 'boolean', libelle: 'Points de pause dans les fiches' },
   tuteur:        { defaut: true,  type: 'boolean', libelle: 'Opale, la tutrice, dans l\'espace de Sterenn' },
-  calculatrice:  { defaut: true,  type: 'boolean', libelle: 'Calculatrice d\'Opale (jamais en évaluation ni en exercices de maths)' },
+  calculatrice:  { defaut: true,  type: 'boolean', libelle: 'Calculatrice d\'Opale' },
+  calculatrice_maths: { defaut: true, type: 'boolean', libelle: 'Calculatrice autorisée pendant les exercices de mathématiques' },
+  calculatrice_evaluation: { defaut: false, type: 'boolean', libelle: 'Calculatrice autorisée pendant une évaluation' },
   reactions:     { defaut: true,  type: 'boolean', libelle: 'Réactions animées sur les messages' },
   formatage:     { defaut: false, type: 'boolean', libelle: 'Mise en forme du texte dans les messages' },
   fils:          { defaut: true,  type: 'boolean', libelle: 'Fils de discussion séparés par matière' },
