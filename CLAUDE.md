@@ -32,7 +32,7 @@ Matières couvertes : `maths`, `francais`, `physique-chimie`, `svt`,
 
 ## 1 bis. Sources de vérité
 
-- **`00-pilotage/programme.json`** : le programme officiel de 4ᵉ et les **72 leçons**
+- **`00-pilotage/programme.json`** : le programme officiel de 4ᵉ et les **84 leçons**
   (matières, thèmes, attendus de fin d'année, compétences, période de traitement).
   Toute nouvelle leçon se déclare **d'abord** ici. Le build échoue si un dossier de
   leçon existe sur le disque sans être déclaré.
@@ -118,8 +118,24 @@ quelque chose, pas seulement signaler l'erreur.
 - **Exercices** : les exercices **1 à 4** sont `ecran` (faits ensemble en séance), tous les autres
   `main`. Le build génère un **cahier à imprimer** par leçon (`public/cahiers/<matiere>/<ref>.html`),
   sans corrigé, avec les seuls exercices à la main.
-- **Fiches en diapositives** : le lecteur élève découpe une fiche sur ses titres de niveau 2 ; la
-  page entière reste à un clic.
+- **Fiches en diapositives** (`site/lecteur.js`, lecteur partagé) : la fiche est découpée sur ses
+  titres de niveau 2 ; Sterenn y branche sa position mémorisée et ses outils, le professeur lit la
+  même fiche avec les corrigés ; la page entière reste à un clic. Le contenu est chargé par leçon
+  (`public/data/eleve/<matiere>/<ref>.js`, `public/data/contenu/<matiere>/<ref>.js`).
+- **Scripts d'écoute** (`::: audio en Titre`, `::: audio es Titre`) : bloc lu à voix haute par le
+  navigateur dans la langue du bloc, bouton Écouter branché par le lecteur, un peu lent à la première
+  écoute. Le cahier à imprimer remplace le script par une consigne d'écoute dans le site.
+- **Curiosités** (`outils/curiosites/*.md`, type `curiosite`) : huit fiches hors programme, une par
+  matière, sans étoile, page « Curiosités » de l'espace de Sterenn.
+- **Défis** : le défi du jour sur l'accueil (une question tirée de ce qu'elle a travaillé, une
+  étoile bonus par semaine de cinq), et le défi à deux proposé par Bastien (`prof.defis`, accepté
+  ou refusé par Sterenn, coché réussi : une étoile).
+- **Opale pour le professeur** (`/api/tuteur/outils`) : résumé de fiche à valider, questions
+  proposées pour la banque, lecture d'une copie photographiée avec proposition de positionnement ;
+  la décision reste au professeur, réponse explicite sans liaison IA.
+- **Univers de Sterenn dans les énoncés** : un exercice sur cinq au moins par leçon cite Maomao,
+  Myne, Yuzu, les aurores boréales ou les feutres ; le build compte les mots-clés par leçon
+  (`public/data/univers.json`). La fiction habille l'énoncé, jamais les données ni le corrigé.
 - **Modules de début d'année** (`site/modules.js`, `site/visite.js`) : « Faire connaissance »,
   « Où j'en suis », visite guidée ; réponses dans le profil partagé (`/api/profil`, clés `moi.*`),
   lues par le professeur sur la page « Sterenn ». Le générateur d'année les place sur la première
@@ -135,7 +151,7 @@ quelque chose, pas seulement signaler l'erreur.
 - **Trois séances par semaine** : lundi, mercredi et vendredi, **13 h à 14 h 30**,
   à la maison ou en visio. Jamais prolongées, même quand ça se passe bien.
   Deux temps de travail personnel entre les cours, mardi et jeudi.
-- **Le planning se pré-génère** : `site/planificateur.js` répartit les 72 leçons
+- **Le planning se pré-génère** : `site/planificateur.js` répartit les 84 leçons
   sur l'année (trois blocs par leçon), fait tourner les matières pour qu'aucune
   semaine ne se répète, place les temps de travail personnel, et réserve **une
   séance sur quatre au choix de Sterenn** parmi trois leçons. Tout reste
@@ -168,7 +184,14 @@ npm run pdf          # PDF : un dossier complet par matière, le pilotage, les o
 npm run pdf:tout     # en plus, un PDF par fiche individuelle
 npm run all          # build + pdf
 npm run serve        # relecture sur http://localhost:4321
+npm run lint         # eslint sur site, functions, build, tests
+npm test             # tests unitaires et 12 scénarios de bout en bout (CODE_ELEVE_TEST, CODE_PROF_TEST)
+npm run audit:jeux   # les 88 jeux : chargement, erreurs, accessibilité (axe)
+npm run audit:visuel # 12 écrans comparés aux références de tests/references/ (:reference pour les refaire)
 ```
+
+Les scripts et feuilles de style de `public/` sont **minifiés** par esbuild au build ; les sources
+de `site/` restent lisibles, l'empreinte de version se calcule sur elles.
 
 Le build **échoue** (`exit 1`) si un front-matter est incomplet, si une clé a absorbé
 la ligne suivante, ou si un lien interne est cassé. Ne jamais committer sur un build rouge.
