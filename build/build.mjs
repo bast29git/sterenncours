@@ -519,6 +519,12 @@ function construireDonneesSite() {
     return 0;
   }
   const programme = JSON.parse(fs.readFileSync(source, 'utf8'));
+  // Ordre logique de l'année : chaque matière liste ses leçons par période, puis
+  // par référence. L'accès progressif (leçon précédente validée) et le générateur
+  // d'année suivent cet ordre, pas celui de la déclaration.
+  for (const m of programme.matieres) {
+    m.lecons.sort((a, b) => (Number(a.periode) - Number(b.periode)) || String(a.ref).localeCompare(String(b.ref), 'fr', { numeric: true }));
+  }
   const attendus = new Set();
   let incomplets = 0;
 
