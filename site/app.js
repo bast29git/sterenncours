@@ -58,6 +58,7 @@
     suivi: {}, resultats: {}, fiches: {}, ouvertures: {}, messagesNonLus: 0,
     seances: [],
     reglages: {},
+    felicitations: [],
   };
   /** Valeurs par défaut des réglages professeur, si le serveur ne répond pas. */
   const REGLAGES_DEFAUT = {
@@ -216,14 +217,59 @@
   function reussites() {
     const fiches = Object.keys(etat.fiches).length;
     let series = 0;
-    Object.values(etat.resultats).forEach((r) => {
-      if (r.total > 0 && r.meilleur / r.total >= SERIE_REUSSIE) series += 1;
+    let jeux = 0;
+    Object.entries(etat.resultats).forEach(([k, r]) => {
+      if (!(r.total > 0 && r.meilleur / r.total >= SERIE_REUSSIE)) return;
+      if (k.indexOf('jeu/') === 0) jeux += 1; else series += 1;
     });
     let lecons = 0;
     Object.values(etat.suivi).forEach((s) => {
       if (s.niveau === 'satisfaisant' || s.niveau === 'tresbien') lecons += 1;
     });
-    return { fiches, series, lecons, total: fiches + series + lecons * 3 };
+    const felicitations = (etat.felicitations || []).length;
+    return { fiches, series, jeux, lecons, felicitations, total: fiches + series + jeux + lecons * 3 + felicitations };
+  }
+
+  /**
+   * Fête d'une étoile gagnée : comparée à la dernière valeur connue sur cet
+   * appareil, la première augmentation déclenche une célébration. Le message
+   * dit d'où vient l'étoile. Coupée par le réglage « felicitations ».
+   */
+  const CLE_ETOILES = 'opaline.etoiles';
+  function celebrer(titre, detail) {
+    if (!reglage('felicitations') || !document.getElementById('app-eleve')) return;
+    const ancien = document.getElementById('e-fete'); if (ancien) ancien.remove();
+    const el = document.createElement('div');
+    el.id = 'e-fete'; el.className = 'e-fete'; el.setAttribute('role', 'status');
+    el.innerHTML = `<div class="e-fete-carte">
+      <svg class="e-fete-opale" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="fete-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7FF0C8"/><stop offset=".4" stop-color="#2BB5A0"/><stop offset=".72" stop-color="#2A7FA6"/><stop offset="1" stop-color="#C79CE6"/></linearGradient></defs><path d="M32 6 54 26 32 60 10 26Z" fill="url(#fete-g)"/><path d="M10 26h44L32 34Z" fill="#fff" opacity=".35"/><circle cx="25" cy="32" r="3.2" fill="#0b1a3a"/><circle cx="39" cy="32" r="3.2" fill="#0b1a3a"/><path d="M27 40q5 4 10 0" stroke="#0b1a3a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <p class="e-fete-titre">${ech(titre)}</p>
+      ${detail ? `<p class="e-fete-detail">${ech(detail)}</p>` : ''}
+      <span class="e-fete-etoiles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <button type="button" class="e-bouton e-fete-ok">Continuer</button>
+    </div>`;
+    document.body.appendChild(el);
+    const fermer = () => { el.classList.add('fin'); setTimeout(() => el.remove(), 250); };
+    el.querySelector('.e-fete-ok').addEventListener('click', fermer);
+    el.addEventListener('click', (ev) => { if (ev.target === el) fermer(); });
+    setTimeout(fermer, 7000);
+    try { if (window.KonstrioAudio && window.KonstrioAudio.play) window.KonstrioAudio.play('bravo'); } catch (e) { /* silence */ }
+  }
+  function feterNouvellesEtoiles() {
+    const r = reussites();
+    const avant = lire(CLE_ETOILES, null);
+    ecrire(CLE_ETOILES, { total: r.total, fiches: r.fiches, series: r.series, jeux: r.jeux, lecons: r.lecons, felicitations: r.felicitations });
+    if (!avant || typeof avant.total !== 'number' || r.total <= avant.total) return;
+    const gain = r.total - avant.total;
+    let detail = '';
+    if (r.felicitations > (avant.felicitations || 0)) {
+      const f = (etat.felicitations || [])[0];
+      detail = f ? 'Bastien te félicite : ' + f.texte : 'Bastien te félicite pour ton devoir.';
+    } else if (r.lecons > (avant.lecons || 0)) detail = 'Une leçon validée par Bastien, trois étoiles.';
+    else if (r.jeux > (avant.jeux || 0)) detail = 'Un monde terminé avec au moins deux étoiles.';
+    else if (r.series > (avant.series || 0)) detail = 'Une série réussie à 70 % ou plus.';
+    else if (r.fiches > (avant.fiches || 0)) detail = 'Une fiche terminée.';
+    celebrer(gain > 1 ? `${gain} étoiles de plus` : 'Une étoile de plus', detail);
   }
 
   /* ---------- Chargement ------------------------------------------------------ */
@@ -281,7 +327,7 @@
   function retourPortail() {
     etat.role = null;
     etat.suivi = {}; etat.resultats = {}; etat.fiches = {};
-    etat.ouvertures = {}; etat.seances = []; etat.messagesNonLus = 0; etat.reglages = {};
+    etat.ouvertures = {}; etat.seances = []; etat.messagesNonLus = 0; etat.reglages = {}; etat.felicitations = [];
     if (minuteur) { clearInterval(minuteur); minuteur = null; }
     location.hash = '';
     document.getElementById('code').value = '';
@@ -337,6 +383,7 @@
       etat.fiches = d.fiches || {};
       etat.ouvertures = d.ouvertures || {};
       etat.reglages = d.reglages || {};
+      etat.felicitations = d.felicitations || [];
       etat.messagesNonLus = d.messagesNonLus || 0;
       etat.role = d.role || etat.role;
       appliquerReglages();
@@ -357,6 +404,13 @@
         etat.reglages = d.reglages;
         appliquerReglages();
       }
+      if (etat.role === 'eleve') {
+        etat.suivi = d.suivi || etat.suivi;
+        etat.resultats = d.resultats || etat.resultats;
+        etat.fiches = d.fiches || etat.fiches;
+        etat.felicitations = d.felicitations || etat.felicitations;
+        majReussites();
+      }
       if (etat.messagesNonLus !== avant) {
         vueActive().nav();
         if (etat.messagesNonLus > avant) signaler('Nouveau message.', 'info');
@@ -371,6 +425,7 @@
     el.textContent = String(n);
     const jeton = document.getElementById('e-reussites');
     if (jeton) jeton.setAttribute('aria-label', `${n} étoile${n > 1 ? 's' : ''} gagnée${n > 1 ? 's' : ''}`);
+    feterNouvellesEtoiles();
   }
 
   /* ---------- Connexion ------------------------------------------------------------ */
@@ -460,7 +515,7 @@
     jourIso, decaler, lundiDe, enFrancais, dateCourte, poids,
     chargerContenu, chargerSeances, chargerScript, rafraichirEtat, rafraichirSeances,
     majReussites, reussites, decision, reglementaire, router, lire, ecrire,
-    reglage, appliquerReglages, REGLAGES_DEFAUT,
+    reglage, appliquerReglages, REGLAGES_DEFAUT, celebrer,
     NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES, ic,
     appliquerTheme, appliquerPalette,
   };

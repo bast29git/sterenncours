@@ -823,3 +823,44 @@ html[data-tuteur="0"] .e-opale-bouton, html[data-tuteur="0"] .e-opale { display:
   .e-opale-bouton span { position: absolute; left: -9999px; }
   .e-opale-bouton { padding: 0.3rem; }
 }
+
+/* ---------- Fête d'une étoile gagnée ---------------------------------------- */
+.e-fete { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(11, 26, 58, 0.45); animation: fete-voile 0.25s ease-out; }
+.e-fete.fin { opacity: 0; transition: opacity 0.25s; }
+.e-fete-carte { position: relative; width: min(22rem, calc(100vw - 2rem)); padding: 1.6rem 1.4rem 1.3rem; text-align: center; background: var(--e-carte); color: var(--e-encre); border-radius: var(--e-r); box-shadow: var(--e-ombre-forte); animation: fete-carte 0.45s cubic-bezier(.2, 1.4, .4, 1); }
+.e-fete-opale { width: 5rem; height: 5rem; filter: drop-shadow(0 6px 14px rgba(42, 127, 166, 0.35)); animation: fete-opale 1.6s ease-in-out infinite; }
+.e-fete-titre { margin: 0.6rem 0 0.2rem; font-family: 'Archivo', sans-serif; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+.e-fete-detail { margin: 0 0 0.9rem; color: var(--e-encre-doux); line-height: 1.5; }
+.e-fete-etoiles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; border-radius: inherit; }
+.e-fete-etoiles i { position: absolute; top: -1rem; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--e-vif); animation: fete-pluie 2.4s linear infinite; }
+.e-fete-etoiles i:nth-child(1) { left: 12%; animation-delay: 0s; background: #7FF0C8; }
+.e-fete-etoiles i:nth-child(2) { left: 28%; animation-delay: 0.5s; background: #C79CE6; }
+.e-fete-etoiles i:nth-child(3) { left: 45%; animation-delay: 1.1s; background: #F5C24C; }
+.e-fete-etoiles i:nth-child(4) { left: 62%; animation-delay: 0.3s; background: #2A7FA6; }
+.e-fete-etoiles i:nth-child(5) { left: 78%; animation-delay: 0.9s; background: #7FF0C8; }
+.e-fete-etoiles i:nth-child(6) { left: 90%; animation-delay: 1.6s; background: #C79CE6; }
+@keyframes fete-voile { from { opacity: 0; } }
+@keyframes fete-carte { from { transform: scale(0.7); opacity: 0; } }
+@keyframes fete-opale { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes fete-pluie { from { transform: translateY(0) rotate(0); opacity: 1; } to { transform: translateY(24rem) rotate(360deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .e-fete, .e-fete-carte, .e-fete-opale, .e-fete-etoiles i { animation: none; } }
+
+/* ---------- Les mots de Bastien, journal des réussites ----------------------- */
+.e-mots, .e-journal { list-style: none; padding: 0; margin: 0 0 1.6rem; display: grid; gap: 0.55rem; }
+.e-mots > li, .e-journal > li { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.9rem; background: var(--e-carte); border: 1px solid var(--e-trait); border-radius: var(--e-r-petit); box-shadow: var(--e-ombre); }
+.e-mots > li.nouveau { border-color: var(--e-vif); }
+.e-mot-ico, .e-journal-ico { flex: none; width: 2.2rem; height: 2.2rem; display: grid; place-items: center; border-radius: 50%; background: var(--e-voile); color: var(--e-vif); }
+.e-mot-ico .ic, .e-journal-ico .ic { width: 1.15rem; height: 1.15rem; }
+.e-mot-corps, .e-journal-corps { flex: 1; min-width: 0; display: grid; }
+.e-mot-corps b { font-weight: 600; line-height: 1.45; }
+.e-mot-corps em, .e-journal-corps em { font-style: normal; font-size: 0.8rem; color: var(--e-encre-doux); }
+.e-mot-nouveau { flex: none; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; background: var(--e-vif); padding: 0.15rem 0.5rem; border-radius: 999px; }
+.e-journal-etoiles { flex: none; display: inline-flex; align-items: center; gap: 0.2rem; font-weight: 800; color: var(--e-vif); font-size: 0.9rem; }
+.e-journal-etoiles .ic { width: 0.95rem; height: 0.95rem; }
+.e-journal time { flex: none; font-size: 0.78rem; color: var(--e-encre-doux); }
+.e-mot-vedette { display: flex; gap: 0.9rem; align-items: flex-start; margin-bottom: 1.4rem; border-color: var(--e-vif); }
+.e-mot-vedette .e-mot-ico { width: 2.8rem; height: 2.8rem; }
+.e-mot-vedette .quand { margin: 0 0 0.2rem; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--e-vif); }
+.e-mot-texte { margin: 0 0 0.6rem; font-size: 1.05rem; font-weight: 600; line-height: 1.5; }
+.e-mot-vedette .e-actions { margin: 0; }
+@media (max-width: 40rem) { .e-journal > li { flex-wrap: wrap; } .e-journal time { width: 100%; padding-left: 2.95rem; } }

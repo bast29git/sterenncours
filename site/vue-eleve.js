@@ -107,6 +107,26 @@
     });
   }
 
+  /** Sur l'accueil : la dernière félicitation pas encore vue, mise en avant. */
+  function blocMotNouveau() {
+    const f = (N.etat.felicitations || []).find((x) => !x.vu_le);
+    if (!f) return '';
+    return `<section class="e-carte e-mot-vedette" aria-label="Un mot de Bastien">
+      <span class="e-mot-ico" aria-hidden="true">${N.ic('ic-trophee')}</span>
+      <div><p class="quand">Un mot de Bastien</p><p class="e-mot-texte">${N.ech(f.texte)}</p>
+      <p class="e-actions"><a class="e-bouton e-bouton-doux" href="#/reussites">Voir mes réussites</a>
+      <button class="e-bouton e-bouton-fin" type="button" id="e-mot-vu">J'ai lu</button></p></div>
+    </section>`;
+  }
+  async function marquerMotsVus() {
+    if (!(N.etat.felicitations || []).some((x) => !x.vu_le)) return;
+    try {
+      await N.api('/felicitations', { method: 'PATCH' });
+      const le = new Date().toISOString();
+      N.etat.felicitations.forEach((x) => { if (!x.vu_le) x.vu_le = le; });
+    } catch (e) { /* on réessaiera à la prochaine visite */ }
+  }
+
   function vueHub() {
     const jour = seanceDuJour();
     const suivante = prochaineSeance();
@@ -140,6 +160,7 @@
         </p>
        </section>
 
+       ${blocMotNouveau()}
        ${blocChoix(N.etat.seances)}
 
        ${travail ? `<div class="e-carte" style="margin-bottom:1.4rem">
@@ -167,6 +188,8 @@
     );
     brancherChoix(vueHub);
     monterOrbite();
+    const vu = document.getElementById('e-mot-vu');
+    if (vu) vu.addEventListener('click', async () => { await marquerMotsVus(); vueHub(); });
   }
 
   async function monterOrbite() {
@@ -302,6 +325,7 @@
           if (termine) {
             N.etat.fiches[cleFiche] = { termine_le: r.termine_le };
             N.signaler('Bravo, fiche terminée.', 'succes');
+            N.majReussites();
             try { window.KonstrioAch && window.KonstrioAch.recordWin && window.KonstrioAch.recordWin('fiche-' + cleFiche, 100); } catch (e) { /* ignore */ }
           } else { delete N.etat.fiches[cleFiche]; }
           vueLecon(mid, ref, actif);
@@ -375,7 +399,7 @@
     });
     const f = document.getElementById('e-form-saisie');
     if (f) { f.querySelector('input').disabled = true; f.querySelector('button').disabled = true; }
-    try { window.KonstrioAudio && window.KonstrioAudio[juste ? 'good' : 'soft'] && window.KonstrioAudio[juste ? 'good' : 'soft'](); } catch (e) { /* ignore */ }
+    try { window.KonstrioAudio && window.KonstrioAudio.play(juste ? 'bravo' : 'indice'); } catch (e) { /* ignore */ }
 
     const dernier = s.index === s.items.length - 1;
     document.getElementById('e-retour').innerHTML =
@@ -610,9 +634,16 @@
        <ul class="e-stats">
          <li><strong>${r.fiches}</strong><span>fiches terminées<em>1 étoile chacune</em></span></li>
          <li><strong>${r.series}</strong><span>séries réussies<em>1 étoile chacune</em></span></li>
+         <li><strong>${r.jeux}</strong><span>mondes et jeux gagnés<em>1 étoile chacun</em></span></li>
          <li><strong>${r.lecons}</strong><span>leçons validées<em>3 étoiles chacune</em></span></li>
+         <li><strong>${r.felicitations}</strong><span>félicitations de Bastien<em>1 étoile chacune</em></span></li>
          <li><strong>${parfaits}</strong><span>séries sans faute<em>le maximum</em></span></li>
        </ul>
+
+       ${motsDeBastien()}
+
+       <h2 class="e-titre-section">Tes dernières réussites</h2>
+       ${journalReussites()}
 
        <h2 class="e-titre-section">Les paliers</h2>
        <ul class="e-badges">${PALIERS.map((b) => `<li class="${r.total >= b.s ? 'obtenu' : ''}">
@@ -629,6 +660,63 @@
   }).join('')}</ul>
        <p class="e-note-fin">${c.validees} leçon(s) validée(s) sur les ${c.total} de l'année.</p>`,
     );
+    marquerMotsVus();
+  }
+
+  /** Les félicitations écrites par Bastien, la plus récente en premier. */
+  function motsDeBastien() {
+    const liste = N.etat.felicitations || [];
+    if (!liste.length) {
+      return `<h2 class="e-titre-section">Les mots de Bastien</h2>
+        <p class="e-vide">Quand tu rends un devoir écrit, Bastien peut t'écrire un mot ici. Chaque mot vaut une étoile.</p>`;
+    }
+    return `<h2 class="e-titre-section">Les mots de Bastien</h2>
+      <ul class="e-mots">${liste.slice(0, 12).map((f) => {
+      const l = f.matiere && f.ref ? N.libelleLecon(f.matiere + '/' + f.ref) : null;
+      const ou = l ? `${l.m.icone} ${N.ech(l.m.nom)} · ${N.ech(l.l.titre)}` : (f.matiere && N.matiere(f.matiere) ? N.ech(N.matiere(f.matiere).nom) : '');
+      return `<li class="${f.vu_le ? '' : 'nouveau'}">
+        <span class="e-mot-ico" aria-hidden="true">${N.ic('ic-trophee')}</span>
+        <span class="e-mot-corps"><b>${N.ech(f.texte)}</b><em>${ou ? ou + ' · ' : ''}${N.ech(N.dateCourte(f.cree_le))}</em></span>
+        ${f.vu_le ? '' : '<span class="e-mot-nouveau">nouveau</span>'}
+      </li>`;
+    }).join('')}</ul>`;
+  }
+
+  /** Journal : les huit derniers acquis, toutes origines confondues, datés. */
+  function journalReussites() {
+    const ev = [];
+    Object.entries(N.etat.fiches).forEach(([k, v]) => {
+      const [mid, ref, type] = k.split('/');
+      const l = N.libelleLecon(mid + '/' + ref);
+      const info = N.TYPES_DOC.find((x) => x.id === type);
+      if (l) ev.push({ le: v.termine_le, ico: 'ic-livre', t: `Fiche ${info ? info.libelle.toLowerCase() : type} terminée`, d: `${l.m.nom} · ${l.l.titre}`, e: 1 });
+    });
+    Object.entries(N.etat.resultats).forEach(([k, r]) => {
+      if (!(r.total > 0 && r.meilleur / r.total >= 0.7)) return;
+      if (k.indexOf('jeu/') === 0) {
+        const j = (window.JEUX || []).find((x) => x.id === k.slice(4));
+        ev.push({ le: r.maj_le, ico: 'ic-etincelle', t: j ? `${j.type === '3d' ? 'Monde' : 'Jeu'} gagné : ${j.titre}` : 'Jeu gagné', d: `${r.meilleur} sur 100`, e: 1 });
+      } else {
+        const l = N.libelleLecon(k);
+        if (l) ev.push({ le: r.maj_le, ico: 'ic-cible', t: `Série réussie : ${r.meilleur} sur ${r.total}`, d: `${l.m.nom} · ${l.l.titre}`, e: 1 });
+      }
+    });
+    Object.entries(N.etat.suivi).forEach(([k, v]) => {
+      if (v.niveau !== 'satisfaisant' && v.niveau !== 'tresbien') return;
+      const l = N.libelleLecon(k);
+      if (l) ev.push({ le: v.maj_le, ico: 'ic-coche', t: `Leçon validée : ${v.niveau === 'tresbien' ? 'très bien' : 'satisfaisant'}`, d: `${l.m.nom} · ${l.l.titre}`, e: 3 });
+    });
+    (N.etat.felicitations || []).forEach((f) => {
+      ev.push({ le: f.cree_le, ico: 'ic-trophee', t: 'Félicitations de Bastien', d: f.texte, e: 1 });
+    });
+    if (!ev.length) return '<p class="e-vide">Tes réussites s\'afficheront ici, datées, au fur et à mesure.</p>';
+    ev.sort((a, b) => String(b.le).localeCompare(String(a.le)));
+    return `<ol class="e-journal">${ev.slice(0, 8).map((x) => `<li>
+      <span class="e-journal-ico" aria-hidden="true">${N.ic(x.ico)}</span>
+      <span class="e-journal-corps"><b>${N.ech(x.t)}</b><em>${N.ech(x.d)}</em></span>
+      <span class="e-journal-etoiles">${N.ic('ic-etoile', 'ic-plein')} ${x.e > 1 ? '+' + x.e : '+1'}</span>
+      <time datetime="${N.ech(x.le || '')}">${N.ech(N.dateCourte(x.le))}</time>
+    </li>`).join('')}</ol>`;
   }
 
   /* ---------- Conversation : messages et travail au même endroit ------------ */

@@ -1067,6 +1067,13 @@
   /* =======================================================================
      Dépôts de fichiers
      ======================================================================= */
+  const MODELES_FELICITATION = [
+    'Ton devoir est rendu complet et dans les temps. La consigne est respectée du début à la fin.',
+    'Ta rédaction est structurée : une introduction, des paragraphes, une conclusion. Le raisonnement se suit sans effort.',
+    'Tes calculs sont posés, chaque étape est écrite. Le résultat est juste et l\'unité est là.',
+    'Tu as relu ton travail : pas de faute d\'accord dans le texte. C\'est un acquis.',
+  ];
+
   async function vueDepots() {
     afficher(entete('Dépôts', 'Ce que Sterenn rend, et ce que je lui transmets.')
       + '<p class="p-vide">Chargement…</p>', [{ t: 'Échanges' }, { t: 'Dépôts' }]);
@@ -1075,6 +1082,7 @@
     try { donnees = await N.api('/fichiers'); } catch (e) { N.signaler(e.message); }
     const fichiers = donnees.fichiers || [];
     const delle = fichiers.filter((f) => f.auteur === 'eleve');
+    const felicite = new Set((N.etat.felicitations || []).map((x) => x.fichier_id).filter(Boolean));
 
     afficher(
       entete('Dépôts', `${fichiers.length} fichier(s) · ${delle.length} déposé(s) par Sterenn`)
@@ -1088,11 +1096,28 @@
                 <a href="/api/fichiers/${f.id}" download>${N.ech(f.nom)}</a>
                 <span>${f.auteur === 'eleve' ? 'Sterenn' : 'Moi'} · ${N.ech(N.dateCourte(f.cree_le))} · ${N.ech(N.poids(f.taille))}${f.note ? ' · ' + N.ech(f.note) : ''}</span>
               </span>
+              ${f.auteur === 'eleve' ? `<button class="p-bouton p-bouton-mini" data-feliciter="${f.id}" data-matiere="${N.ech(f.matiere || '')}" data-ref="${N.ech(f.ref || '')}" type="button">${felicite.has(f.id) ? '🏆 Félicitée' : 'Féliciter'}</button>` : ''}
               <button class="p-bouton p-bouton-danger p-bouton-mini" data-fichier="${f.id}" type="button">Supprimer</button>
             </li>`).join('')}</ul>`
           : '<p class="p-vide">Aucun fichier déposé.</p>',
         fichiers.length ? String(fichiers.length) : '')
       + '</div><div>'
+      + bloc('Féliciter Sterenn', `
+        <form class="p-form" id="p-form-feliciter">
+          <p class="p-aide">Pour un devoir rendu, sur l'écran ou sur papier. Le mot s'affiche sur son accueil, dans ses réussites et dans les messages. Il vaut une étoile. Nomme l'acquis, pas l'effort.</p>
+          <input type="hidden" id="f-fichier" value="">
+          <div class="p-modeles">${MODELES_FELICITATION.map((t, i) => `<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-modele="${i}">${N.ech(t.slice(0, 38))}…</button>`).join('')}</div>
+          <div><label for="f-texte">Le mot</label><textarea id="f-texte" rows="3" maxlength="600" required placeholder="Ta rédaction est structurée en trois parties, avec une thèse claire dès l'introduction."></textarea></div>
+          <div class="ligne">
+            <div><label for="f-matiere">Matière</label><select id="f-matiere">
+              <option value="">aucune</option>
+              ${PROGRAMME.matieres.map((m) => `<option value="${m.id}">${N.ech(m.nom)}</option>`).join('')}
+            </select></div>
+            <div><label for="f-ref">Leçon</label><input id="f-ref" type="text" maxlength="10" placeholder="L08"></div>
+          </div>
+          <p class="p-aide" id="f-cible"></p>
+          <button class="p-bouton" type="submit">Envoyer les félicitations</button>
+        </form>`)
       + bloc('Transmettre un fichier', `
         <form class="p-form" id="p-form-depot">
           <div><label for="d-fichier">Fichier</label><input id="d-fichier" type="file" required></div>
@@ -1110,6 +1135,35 @@
       + '</div></div>',
       [{ t: 'Échanges' }, { t: 'Dépôts' }],
     );
+
+    vue().querySelectorAll('[data-feliciter]').forEach((b) => b.addEventListener('click', () => {
+      document.getElementById('f-fichier').value = b.getAttribute('data-feliciter');
+      document.getElementById('f-matiere').value = b.getAttribute('data-matiere') || '';
+      document.getElementById('f-ref').value = b.getAttribute('data-ref') || '';
+      const nom = b.closest('li').querySelector('a').textContent;
+      document.getElementById('f-cible').textContent = 'Pour le dépôt « ' + nom + ' ».';
+      document.getElementById('f-texte').focus();
+      document.getElementById('p-form-feliciter').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }));
+    vue().querySelectorAll('[data-modele]').forEach((b) => b.addEventListener('click', () => {
+      document.getElementById('f-texte').value = MODELES_FELICITATION[Number(b.getAttribute('data-modele'))];
+      document.getElementById('f-texte').focus();
+    }));
+    document.getElementById('p-form-feliciter').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const texte = document.getElementById('f-texte').value.trim();
+      if (!texte) return;
+      try {
+        await N.api('/felicitations', { method: 'POST', body: JSON.stringify({
+          texte, matiere: document.getElementById('f-matiere').value || null,
+          ref: document.getElementById('f-ref').value.trim() || null,
+          fichier_id: document.getElementById('f-fichier').value || null,
+        }) });
+        N.signaler('Félicitations envoyées à Sterenn : une étoile de plus pour elle.', 'succes');
+        await N.rafraichirEtat();
+        vueDepots();
+      } catch (e) { N.signaler(e.message); }
+    });
 
     vue().querySelectorAll('[data-fichier]').forEach((b) => b.addEventListener('click', async () => {
       if (!window.confirm('Supprimer ce fichier ?')) return;

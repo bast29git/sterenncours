@@ -520,3 +520,5 @@ body.corps-prof {
 .p-interrupteur:focus-visible { outline: 3px solid var(--p-accent); outline-offset: 2px; }
 .p-interrupteur .p-interrupteur-texte { position: absolute; left: -9999px; }
 @media (prefers-reduced-motion: reduce) { .p-interrupteur, .p-interrupteur::after { transition: none; } }
+.p-modeles { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.6rem; }
+.p-form textarea { width: 100%; font: inherit; font-size: 0.86rem; padding: 0.45rem 0.6rem; border-radius: var(--p-r); border: 1px solid var(--p-trait); background: var(--p-surface); color: var(--p-encre); resize: vertical; }
