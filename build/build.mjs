@@ -416,8 +416,10 @@ function construirePaquets() {
   let version = '';
   for (const [nom, fichiers] of Object.entries(paquets)) {
     const corps = fichiers.map((f) => `/* ---- ${f} ---- */\n` + lire(f)).join('\n;\n') + '\nwindow.PAQUET_CHARGE = window.PAQUET_CHARGE || {};\n' + fichiers.map((f) => `window.PAQUET_CHARGE[${JSON.stringify(f)}] = true;`).join('\n') + '\n';
-    fs.writeFileSync(path.join(SORTIE, nom), corps);
     version += crypto.createHash('sha1').update(corps).digest('hex').slice(0, 8);
+    let sortie = corps;
+    try { sortie = require('esbuild').transformSync(corps, { minify: true, loader: 'js', charset: 'utf8', legalComments: 'none', target: 'es2020' }).code; } catch (e) { console.warn(`   ⚠️  minification impossible pour ${nom} : ${String(e.message || e).split('\n')[0]}`); }
+    fs.writeFileSync(path.join(SORTIE, nom), sortie);
   }
   version = crypto.createHash('sha1').update(version + lire('app.js') + lire('eleve.css') + lire('prof.css')).digest('hex').slice(0, 10);
   const index = path.join(SORTIE, 'index.html');
@@ -434,6 +436,29 @@ function construirePaquets() {
   console.log(`   📦 paquets par rôle générés, version ${version}`);
 }
 copierDossier(path.join(RACINE, 'site'), SORTIE);
+
+/* ── Minification des scripts et des feuilles de style servis par le site.
+      Les sources restent lisibles dans site/ ; seule la copie de public/ est
+      compactée. L'empreinte de version se calcule toujours sur les sources. ── */
+function minifierSite() {
+  const { transformSync } = require('esbuild');
+  const cibles = ['app.js', 'vue-prof-pages.js', 'sw.js', 'data/exercices.js', 'data/jeux.js',
+    'socle.css', 'lecture.css', 'portail.css', 'eleve.css', 'prof.css', 'moteurs/aurora.css', 'theme/cours.css'];
+  let avant = 0; let apres = 0;
+  for (const rel of cibles) {
+    const f = path.join(SORTIE, rel);
+    if (!fs.existsSync(f)) continue;
+    const src = fs.readFileSync(f, 'utf8');
+    try {
+      const out = transformSync(src, { minify: true, loader: rel.endsWith('.css') ? 'css' : 'js', charset: 'utf8', legalComments: 'none', target: 'es2020' }).code;
+      avant += src.length; apres += out.length;
+      fs.writeFileSync(f, out);
+    } catch (e) {
+      console.warn(`   ⚠️  minification impossible pour ${rel} : ${String(e.message || e).split('\n')[0]}`);
+    }
+  }
+  return { avant, apres };
+}
 
 /* A24 : les fonds d'aurore en AVIF, plus une version 1 280 px pour les écrans moyens.
    Produits dans public/ seulement, à partir des JPEG de site/fond. Sans sharp, on s'en passe. */
@@ -465,6 +490,7 @@ await (async () => {
   } catch (e) { console.warn(`   ⚠️  icônes : ${e.message}`); }
 })();
 construirePaquets();
+{ const m = minifierSite(); if (m.avant) console.log(`   🗜  scripts et styles minifiés : ${Math.round(m.avant / 1024)} Ko → ${Math.round(m.apres / 1024)} Ko`); }
 
 const fiches = [];
 let avertissements = 0;
