@@ -50,6 +50,7 @@
       items: [
         { route: 'planning', ico: 'ic-etincelle', texte: 'Générateur d\'année' },
         { route: 'reglages', ico: 'ic-reglage', texte: 'Réglages' },
+        { route: 'journal', ico: 'ic-loupe', texte: 'Journal et santé' },
         { route: 'aide', ico: 'ic-livre', texte: 'Aide' },
       ],
     },
@@ -559,6 +560,7 @@
           <li class="${aClore.length ? 'neg' : ''}"><span class="v">${aClore.length}</span><span class="l">séances à clore</span></li>
           <li class="${N.etat.messagesNonLus ? 'att' : ''}"><span class="v">${N.etat.messagesNonLus}</span><span class="l">messages non lus</span></li>
         </ul>`
+      + (sante && sante.sante && (!sante.sante.sauvegarde || sante.sante.sauvegarde.age_heures > 48) ? `<p class="p-bandeau p-bandeau-erreur" style="border-radius:7px;margin-bottom:.8rem">${sante.sante.sauvegarde ? 'La dernière sauvegarde de la base date de ' + sante.sante.sauvegarde.age_heures + ' heures.' : 'Aucune sauvegarde de la base n\'a été trouvée.'} <a href="#/journal">Voir la santé</a> · <a href="#/reglages">Sauvegarder maintenant</a></p>` : '')
       + (absences.length ? `<div class="p-bandeau p-bandeau-erreur p-absences">${absences.map((s) => `<p>Sterenn a prévenu qu'elle sera <b>absente le ${N.ech(N.enFrancais(s.date, true))}</b>${s.commentaire_eleve ? ' : « ' + N.ech(s.commentaire_eleve) + ' »' : ''}.
           ${s.statut !== 'reportee' ? `<button type="button" class="p-bouton p-bouton-mini" data-reporter="${s.id}">Reporter ses leçons à la séance suivante</button>` : '<span class="p-etat p-etat-vide">reportée</span>'}</p>`).join('')}</div>` : '')
       + '<div class="p-grille2"><div>'
@@ -1350,6 +1352,38 @@
 
   const DOMAINES = { D1: 'Les langages pour penser et communiquer', D2: 'Les méthodes et outils pour apprendre', D3: 'La formation de la personne et du citoyen', D4: 'Les systèmes naturels et les systèmes techniques', D5: 'Les représentations du monde et l\'activité humaine' };
   const POIDS = { insuffisant: 1, fragile: 2, satisfaisant: 3, tresbien: 4 };
+  /** A4, A46, A51, A52, A53, A54, A55 : journal d'audit, questions à Opale, santé, usage, erreurs. */
+  async function vueJournal() {
+    afficher(entete('Journal et santé', 'Ce qui a été écrit, ce qui a été demandé à Opale, l\'état du déploiement.') + N.squelette('serie'), [{ t: 'Outils' }, { t: 'Journal et santé' }]);
+    const [moi, journal, usage, erreurs] = await Promise.all([N.api('/moi').catch(() => ({})), N.api('/journal?n=150').catch(() => ({ journal: [] })), N.api('/usage?jours=14').catch(() => ({ usage: [] })), N.api('/erreur').catch(() => ({ erreurs: [] }))]);
+    const sa = moi.sante || {};
+    const LIB = { acces: 'accès', reglage: 'réglage', ouverture: 'ouverture', seance: 'séance', felicitation: 'félicitation', code: 'code d\'accès', profil: 'profil' };
+    const parJour = {};
+    (usage.usage || []).forEach((u) => { (parJour[u.jour] = parJour[u.jour] || {})[u.cle] = u.n; });
+    const cles = ['connexion', 'fiche', 'serie', 'jeu', 'message', 'opale', 'evaluation', 'perso'];
+    const alerte = sa.sauvegarde ? (sa.sauvegarde.age_heures > 48 ? `<p class="p-bandeau p-bandeau-erreur" style="border-radius:7px">La dernière sauvegarde date de ${sa.sauvegarde.age_heures} heures : le travail planifié de nuit ne tourne plus. Vérifie le secret CODE_PROF du dépôt, ou sauvegarde à la main dans Réglages.</p>` : '') : '<p class="p-bandeau p-bandeau-erreur" style="border-radius:7px">Aucune sauvegarde trouvée dans le stockage. Lance-en une depuis Réglages.</p>';
+    afficher(entete('Journal et santé', `Version ${N.ech(sa.version || '?')} · ${Object.values(sa.tables || {}).reduce((a, b) => a + (b || 0), 0)} lignes en base`,
+      '<a class="p-bouton p-bouton-fantome" href="#/reglages">Réglages et sauvegardes</a>')
+      + alerte
+      + '<div class="p-grille2"><div>'
+      + bloc('Santé', `<dl class="p-fiche-carte">
+          <dt>Version déployée</dt><dd><code>${N.ech(sa.version || '?')}</code></dd>
+          <dt>Liaisons</dt><dd>${['kv', 'db', 'r2', 'ia'].map((k) => `<span class="p-etat ${moi.relie && moi.relie[k] ? 'p-etat-satisfaisant' : 'p-etat-insuffisant'}">${k.toUpperCase()}</span>`).join(' ')}</dd>
+          <dt>Dernière sauvegarde</dt><dd>${sa.sauvegarde ? `${N.ech(N.dateCourte(sa.sauvegarde.quand))} · ${N.ech(N.poids(sa.sauvegarde.octets))} · il y a ${sa.sauvegarde.age_heures} h` : 'aucune'}</dd>
+          <dt>Temps de réponse (aujourd'hui)</dt><dd>${sa.perf ? `${sa.perf.n} requêtes · moyenne ${sa.perf.moyenne_ms} ms · maximum ${sa.perf.max_ms} ms` : 'pas encore mesuré'}</dd>
+        </dl>
+        <table class="p-table" style="margin-top:.6rem"><thead><tr><th>Table</th><th>Lignes</th></tr></thead><tbody>${Object.entries(sa.tables || {}).map(([t, n]) => `<tr><td>${N.ech(t)}</td><td class="num">${n === null ? '<span class="p-faible">absente</span>' : n}</td></tr>`).join('')}</tbody></table>`)
+      + bloc('Usage des quatorze derniers jours', Object.keys(parJour).length ? `<div class="p-tableau-defilant"><table class="p-table"><thead><tr><th>Jour</th>${cles.map((c) => `<th>${c}</th>`).join('')}</tr></thead><tbody>${Object.keys(parJour).sort().reverse().map((j) => `<tr><td class="num">${N.ech(j.slice(5))}</td>${cles.map((c) => `<td class="num">${parJour[j][c] || '·'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : '<p class="p-vide">Rien de compté encore : les compteurs démarrent avec la première action.</p>')
+      + '</div><div>'
+      + bloc('Journal d\'audit', (journal.journal || []).length ? `<ul class="p-journal">${journal.journal.map((j) => `<li><time>${N.ech(N.dateCourte(j.quand))}</time> <b>${N.ech(LIB[j.quoi] || j.quoi)}</b> ${N.ech(j.cle || '')} <small>${N.ech(j.avant || '∅')} → ${N.ech(j.apres || '∅')}</small></li>`).join('')}</ul>` : '<p class="p-vide">Aucune écriture journalisée encore.</p>', String((journal.journal || []).length))
+      + bloc('Erreurs du navigateur', (erreurs.erreurs || []).length ? `<ul class="p-journal">${erreurs.erreurs.map((e) => `<li><time>${N.ech(N.dateCourte(e.derniere))}</time> <b>×${e.n}</b> ${N.ech(e.message)} <small>${N.ech(e.source || '')} ${N.ech(e.ecran || '')} (${N.ech(e.role || '')})</small></li>`).join('')}</ul><p><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="j-vider">Vider la liste</button></p>` : '<p class="p-vide">Aucune erreur remontée. C\'est bon signe.</p>', String((erreurs.erreurs || []).length))
+      + bloc('Questions posées à Opale', '<div id="j-opale"><p class="p-aide">Chargement…</p></div>')
+      + '</div></div>',
+    [{ t: 'Outils' }, { t: 'Journal et santé' }]);
+    const vider = document.getElementById('j-vider'); if (vider) vider.addEventListener('click', async () => { await N.api('/erreur', { method: 'DELETE' }); vueJournal(); });
+    N.api('/tuteur/journal').then((d) => { const z = document.getElementById('j-opale'); if (!z) return; z.innerHTML = (d.journal || []).length ? `<ul class="p-journal">${d.journal.map((q) => `<li><time>${N.ech(N.dateCourte(q.quand))}</time> <b>${N.ech(q.role)}</b> ${N.ech(q.mode || '')} ${N.ech(q.matiere ? q.matiere + '/' + (q.ref || '') : '')}<br>« ${N.ech(q.question)} » <small>${N.ech(q.controle || '')}</small></li>`).join('')}</ul><p class="p-aide">La question, le mode et le contrôle appliqué. Jamais la réponse d'Opale.</p>` : '<p class="p-vide">Aucune question encore.</p>'; }).catch(() => { const z = document.getElementById('j-opale'); if (z) z.innerHTML = '<p class="p-vide">Journal indisponible.</p>'; });
+  }
+
   /** B50 : les règles du système en une page. */
   function vueAideProf() {
     const R = [
@@ -2464,6 +2498,7 @@
       case 'suivi': return vueSuivi();
       case 'socle': return vueSocle();
       case 'aide': return vueAideProf();
+      case 'journal': return vueJournal();
       case 'bulletin': return vueBulletin(p[1]);
       case 'periodes': return vuePeriodes();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);

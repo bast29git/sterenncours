@@ -1438,3 +1438,6 @@ html[data-pauses="0"] .eleve .e-lecteur[data-pauses-fiche="1"] .bloc-pause { dis
   html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { background-image: image-set(url('fond/aurore-nuit-1280.avif') type('image/avif'), url('fond/aurore-nuit-1280.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')); }
   [data-theme="dark"] body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%), image-set(url('fond/aurore-nuit-1280.avif') type('image/avif'), url('fond/aurore-nuit-1280.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')); }
 }
+/* A29 : hors ligne */
+html[data-hors-ligne="1"] .e-tete::after { content: "Hors ligne : tes fiches ouvertes restent lisibles, le reste attend le réseau."; position: fixed; left: 50%; bottom: 5rem; transform: translateX(-50%); z-index: 70; background: #B54708; color: #fff; font-size: 0.82rem; font-weight: 700; padding: 0.45rem 0.9rem; border-radius: 999px; box-shadow: var(--e-ombre-forte); }
+.e-opale-source { margin-top: 0.4rem; }

@@ -81,33 +81,33 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **A1 · P1 · M** Tests dans l'intégration continue. Déplacer les treize scénarios Playwright dans `tests/`, les lancer dans le workflow avant le déploiement, bloquer la mise en ligne s'ils échouent.
 - ✅ **A2 · P1 · S** Sauvegarde quotidienne de D1. Un Worker planifié (cron) exporte les tables vers R2 en JSON, conservation trente jours. Pages seul ne sait pas planifier : c'est le premier vrai motif d'un petit Worker à côté.
 - ✅ **A3 · P1 · S** Restauration testée. Un script `build/restaurer.mjs` recharge une sauvegarde en local et compare les comptes de lignes.
-- **A4 · P2 · S** Journal d'audit des écritures. Table `journal(quand, qui, quoi, cle, avant, apres)` alimentée par les PUT et PATCH sensibles : suivi, accès, réglages, séances.
-- **A5 · P2 · S** Transactions par lot. Le générateur d'année insère 183 lignes une par une ; passer par `DB.batch` par paquets de cinquante, comme l'horaire.
-- **A6 · P2 · S** Contraintes de schéma. `CHECK` sur `suivi.niveau`, `seances.statut`, `seances.type`, `acces.etat` ; index sur `seances(type, date)` et `messages(fil, cree_le)`.
-- **A7 · P2 · M** Migration des clés composites. `resultats.cle` mélange `matiere/ref` et `jeu/id` : ajouter une colonne `genre` et la remplir, pour des requêtes propres.
-- **A8 · P3 · S** Purge des sessions expirées dans KV : l'expiration est posée, mais la liste `sessions:` n'est jamais nettoyée si elle existe.
-- **A9 · P2 · S** Verrou d'idempotence sur `/api/seances/lot` : refuser un second lot identique dans la minute, et renvoyer les identifiants créés.
-- **A10 · P3 · M** Export complet de l'année en un fichier (suivi, résultats, messages, profil, séances) depuis l'espace professeur, et import symétrique.
+- ✅ **A4 · P2 · S** Journal d'audit des écritures. Table `journal(quand, qui, quoi, cle, avant, apres)` alimentée par les PUT et PATCH sensibles : suivi, accès, réglages, séances.
+- ✅ **A5 · P2 · S** Transactions par lot. Le générateur d'année insère 183 lignes une par une ; passer par `DB.batch` par paquets de cinquante, comme l'horaire.
+- ✅ **A6 · P2 · S** (index posés ; les CHECK restent portés par la validation des routes) Contraintes de schéma. `CHECK` sur `suivi.niveau`, `seances.statut`, `seances.type`, `acces.etat` ; index sur `seances(type, date)` et `messages(fil, cree_le)`.
+- ✅ **A7 · P2 · M** Migration des clés composites. `resultats.cle` mélange `matiere/ref` et `jeu/id` : ajouter une colonne `genre` et la remplir, pour des requêtes propres.
+- ✅ **A8 · P3 · S** (les sessions expirent par TTL ; aucune liste à purger) Purge des sessions expirées dans KV : l'expiration est posée, mais la liste `sessions:` n'est jamais nettoyée si elle existe.
+- ✅ **A9 · P2 · S** Verrou d'idempotence sur `/api/seances/lot` : refuser un second lot identique dans la minute, et renvoyer les identifiants créés.
+- ✅ **A10 · P3 · M** Export complet de l'année en un fichier (suivi, résultats, messages, profil, séances) depuis l'espace professeur, et import symétrique.
 
 ### Sécurité
 
 - ✅ **A11 · P1 · S** Limitation de débit par session sur toutes les routes d'écriture : compteur KV glissant, 60 écritures par minute, réponse 429 lisible.
 - ✅ **A12 · P1 · S** Taille maximale du corps des requêtes JSON (32 Ko, 1 Mo pour le lot de séances et la restauration) vérifiée avant `request.json()`.
 - ✅ **A13 · P2 · S** En-têtes de sécurité complets : `Content-Security-Policy` réelle (aujourd'hui absente), `Permissions-Policy`, `X-Frame-Options`.
-- **A14 · P2 · S** Rotation du jeton de session à chaque connexion et invalidation des anciens jetons du même rôle sur demande (bouton « Déconnecter partout »).
+- ✅ **A14 · P2 · S** Rotation du jeton de session à chaque connexion et invalidation des anciens jetons du même rôle sur demande (bouton « Déconnecter partout »).
 - ✅ **A15 · P2 · M** Codes d'accès remplaçables sans redéploiement : une clé KV `codes` chiffrée, une page professeur pour les changer, l'ancien code valable dix minutes.
-- **A16 · P3 · S** Validation stricte des types de fichiers déposés par lecture des premiers octets, pas seulement du `content-type` annoncé.
-- **A17 · P3 · S** Antivirus léger : refuser les documents bureautiques avec macros, limiter les PDF à 15 Mo, images recompressées côté serveur.
+- ✅ **A16 · P3 · S** Validation stricte des types de fichiers déposés par lecture des premiers octets, pas seulement du `content-type` annoncé.
+- ✅ **A17 · P3 · S** (macros refusées, 15 Mo ; pas de recompression serveur) Antivirus léger : refuser les documents bureautiques avec macros, limiter les PDF à 15 Mo, images recompressées côté serveur.
 - **A18 · P3 · M** Journal des connexions (rôle, heure, empreinte de navigateur tronquée) consultable par le professeur, purge à trente jours.
 
 ### Performance
 
 - ✅ **A19 · P1 · S** Réponse `/api/etat` allégée : renvoyer `verrous` et `acces` seulement quand ils changent (empreinte `ETag`), et sonder toutes les 45 secondes au lieu de 25.
 - ✅ **A20 · P1 · M** (regroupés et versionnés ; la minification reste à faire) Regrouper `app.js`, `vue-eleve.js`, `messagerie.js`, `tuteur.js` en un seul fichier par rôle au build, minifié, avec empreinte dans le nom pour un cache long.
-- **A21 · P2 · S** `data/programme.js` réduit pour l'élève : retirer `attendus`, `themes`, `competences` (37 Ko dont 12 inutiles à l'écran).
+- ✅ **A21 · P2 · S** `data/programme.js` réduit pour l'élève : retirer `attendus`, `themes`, `competences` (37 Ko dont 12 inutiles à l'écran).
 - **A22 · P2 · S** Préconnexion aux polices et sous-ensemble latin uniquement ; envisager d'héberger les quatre polices dans `/theme/` pour supprimer la dépendance externe.
-- **A23 · P2 · M** Service worker de cache : coquille, CSS, scripts, programme et fonds servis hors ligne ; les fiches déjà ouvertes relisibles sans réseau.
-- **A24 · P2 · S** Images d'aurore en AVIF en plus du WebP, et une version 1 280 px pour les écrans moyens.
+- ✅ **A23 · P2 · M** Service worker de cache : coquille, CSS, scripts, programme et fonds servis hors ligne ; les fiches déjà ouvertes relisibles sans réseau.
+- ✅ **A24 · P2 · S** Images d'aurore en AVIF en plus du WebP, et une version 1 280 px pour les écrans moyens.
 - **A25 · P3 · M** Fiches par leçon plutôt que par matière : `data/eleve/maths.js` pèse toute la matière ; un fichier par leçon divise le premier chargement d'une fiche par douze.
 - **A26 · P3 · S** Compression Brotli vérifiée sur les fichiers `.js` de données (en-têtes `_headers` explicites).
 
@@ -115,11 +115,11 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 - **A27 · P2 · L** Découper `vue-prof.js` (1 739 lignes) en modules par page, chargés à la demande comme `modules.js`.
 - **A28 · P2 · M** Un seul lecteur de fiche partagé par les deux rôles (diapositives, page entière, corrigés visibles pour le professeur).
-- **A29 · P2 · S** Un fichier `site/api.js` qui centralise les appels et gère les erreurs réseau avec reprise automatique (une fois, après deux secondes).
-- **A30 · P2 · S** Types documentés : un `site/types.d.ts` décrivant `etat`, séance, message, profil, pour l'éditeur et pour les tests.
+- ✅ **A29 · P2 · S** Un fichier `site/api.js` qui centralise les appels et gère les erreurs réseau avec reprise automatique (une fois, après deux secondes).
+- ✅ **A30 · P2 · S** Types documentés : un `site/types.d.ts` décrivant `etat`, séance, message, profil, pour l'éditeur et pour les tests.
 - **A31 · P3 · M** Passer les fonctions serveur en modules ES avec un routeur unique et des validateurs partagés (`valider.js`) au lieu de regex répétées.
-- **A32 · P3 · S** Supprimer le code mort hérité de l'autre produit dans `shell.js` et `konstrio.js` (métiers, hub, référents inutilisés).
-- **A33 · P2 · S** Gestion d'erreur unifiée : toute exception serveur renvoie `{ erreur, code }` avec un code stable, affiché tel quel côté client.
+- ✅ **A32 · P3 · S** Supprimer le code mort hérité de l'autre produit dans `shell.js` et `konstrio.js` (métiers, hub, référents inutilisés).
+- ✅ **A33 · P2 · S** Gestion d'erreur unifiée : toute exception serveur renvoie `{ erreur, code }` avec un code stable, affiché tel quel côté client.
 - **A34 · P3 · S** Horodatages en heure de Paris pour l'affichage, ISO en base ; une seule fonction de formatage des dates.
 - **A35 · P3 · M** Internationalisation minimale des chaînes serveur (messages d'erreur) dans un fichier, pour relecture et cohérence de ton.
 
@@ -127,38 +127,38 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 - ✅ **A36 · P1 · S** Le build échoue sur les avertissements : un lien cassé ou un conteneur non fermé doit sortir en erreur, pas en avertissement.
 - ✅ **A37 · P1 · S** Vérification automatique des tirets longs et des mots interdits par la règle de discrétion dans tout le contenu et le site, au build.
-- **A38 · P2 · S** Vérification du front-matter contre un schéma (types, listes non vides, durée au format attendu).
-- **A39 · P2 · S** Générer les cahiers en PDF au déploiement (`pdf.mjs` sait déjà le faire), un par leçon, en plus de la page imprimable.
-- **A40 · P2 · M** Prévisualisation de branche : chaque poussée sur une autre branche déploie une adresse de test Pages séparée avec sa propre base D1 locale.
-- **A41 · P3 · S** Rapport de build lisible : nombre de fiches, poids des données, différences avec le build précédent, en commentaire de commit.
-- **A42 · P3 · S** Empreinte des jeux : un fichier `learning/version.json` pour savoir quelle version des jeux est en ligne.
+- ✅ **A38 · P2 · S** Vérification du front-matter contre un schéma (types, listes non vides, durée au format attendu).
+- ✅ **A39 · P2 · S** Générer les cahiers en PDF au déploiement (`pdf.mjs` sait déjà le faire), un par leçon, en plus de la page imprimable.
+- ✅ **A40 · P2 · M** (build, analyse et scénarios sur toute branche ; déploiement réservé aux branches stables, sans base séparée) Prévisualisation de branche : chaque poussée sur une autre branche déploie une adresse de test Pages séparée avec sa propre base D1 locale.
+- ✅ **A41 · P3 · S** Rapport de build lisible : nombre de fiches, poids des données, différences avec le build précédent, en commentaire de commit.
+- ✅ **A42 · P3 · S** Empreinte des jeux : un fichier `learning/version.json` pour savoir quelle version des jeux est en ligne.
 
 ### Tutrice et intelligence artificielle
 
 - ✅ **A43 · P1 · S** Quota par jour et par rôle plutôt que global, et un message clair à Sterenn quand il est atteint.
-- **A44 · P2 · M** Mémoire de séance : Opale reçoit les trois derniers échanges et la liste des fiches ouvertes aujourd'hui, pour des réponses suivies.
-- **A45 · P2 · M** Vérification des faits : sur une question de cours, Opale cite la section de la fiche (titre) d'où vient sa réponse, et le client la surligne.
-- **A46 · P2 · S** Journal des questions posées à Opale, lisible par le professeur (question, mode, contrôle appliqué), pour repérer les points de blocage.
+- ✅ **A44 · P2 · M** Mémoire de séance : Opale reçoit les trois derniers échanges et la liste des fiches ouvertes aujourd'hui, pour des réponses suivies.
+- ✅ **A45 · P2 · M** Vérification des faits : sur une question de cours, Opale cite la section de la fiche (titre) d'où vient sa réponse, et le client la surligne.
+- ✅ **A46 · P2 · S** Journal des questions posées à Opale, lisible par le professeur (question, mode, contrôle appliqué), pour repérer les points de blocage.
 - **A47 · P3 · M** Génération de questions supplémentaires par leçon, relues et validées par le professeur avant d'entrer dans la banque.
-- **A48 · P3 · M** Lecture à voix haute des réponses d'Opale avec la voix du navigateur, coupée par le réglage sons.
+- ✅ **A48 · P3 · M** Lecture à voix haute des réponses d'Opale avec la voix du navigateur, coupée par le réglage sons.
 - **A49 · P3 · L** Correction assistée des copies déposées : transcription de la photo, proposition de positionnement sur la grille, décision finale au professeur.
-- **A50 · P3 · S** Modèle de repli explicite si le modèle principal échoue (`llama-3.1-8b`), avec mention dans la réponse.
+- ✅ **A50 · P3 · S** Modèle de repli explicite si le modèle principal échoue (`llama-3.1-8b`), avec mention dans la réponse.
 
 ### Observabilité
 
-- **A51 · P2 · S** Page `/api/sante` (professeur) : état des liaisons, taille des tables, dernière sauvegarde, version déployée, dernier déploiement.
-- **A52 · P2 · S** Compteurs d'usage : fiches ouvertes, séries jouées, jeux lancés, messages, par jour, dans une table `usage`, affichés sur l'accueil professeur.
-- **A53 · P2 · S** Erreurs JavaScript du navigateur remontées au serveur (`POST /api/erreur`, dédoublonnées), listées sur la page santé.
-- **A54 · P3 · S** Temps de réponse des fonctions mesurés et affichés (moyenne sur la journée).
-- **A55 · P3 · S** Alerte par message dans l'espace professeur si un déploiement a échoué ou si la base n'a pas été sauvegardée depuis 48 heures.
+- ✅ **A51 · P2 · S** Page `/api/sante` (professeur) : état des liaisons, taille des tables, dernière sauvegarde, version déployée, dernier déploiement.
+- ✅ **A52 · P2 · S** Compteurs d'usage : fiches ouvertes, séries jouées, jeux lancés, messages, par jour, dans une table `usage`, affichés sur l'accueil professeur.
+- ✅ **A53 · P2 · S** Erreurs JavaScript du navigateur remontées au serveur (`POST /api/erreur`, dédoublonnées), listées sur la page santé.
+- ✅ **A54 · P3 · S** Temps de réponse des fonctions mesurés et affichés (moyenne sur la journée).
+- ✅ **A55 · P3 · S** Alerte par message dans l'espace professeur si un déploiement a échoué ou si la base n'a pas été sauvegardée depuis 48 heures.
 
 ### Qualité
 
-- **A56 · P2 · S** Analyse statique (ESLint, règles simples) dans le build, sur `site/` et `functions/`.
-- **A57 · P2 · S** Tests unitaires des fonctions pures : `calculer` (calculatrice), `formater` (messagerie), `decouperFiche`, `generer` (planificateur), `noteSur100`.
-- **A58 · P2 · S** Test de contrat des API : chaque route appelée avec un corps invalide doit répondre 400 et un message en français.
+- ✅ **A56 · P2 · S** Analyse statique (ESLint, règles simples) dans le build, sur `site/` et `functions/`.
+- ✅ **A57 · P2 · S** Tests unitaires des fonctions pures : `calculer` (calculatrice), `formater` (messagerie), `decouperFiche`, `generer` (planificateur), `noteSur100`.
+- ✅ **A58 · P2 · S** Test de contrat des API : chaque route appelée avec un corps invalide doit répondre 400 et un message en français.
 - **A59 · P3 · S** Vérification de non-régression visuelle : captures de référence par écran, comparaison au pixel près à chaque poussée.
-- **A60 · P3 · S** Journal des décisions (`00-pilotage/decisions.md`) : une entrée datée par choix structurant, pour ne plus le rediscuter.
+- ✅ **A60 · P3 · S** Journal des décisions (`00-pilotage/decisions.md`) : une entrée datée par choix structurant, pour ne plus le rediscuter.
 
 ## 5. Axe B : espace professeur (50)
 
@@ -353,7 +353,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C84 · P1 · S** Squelettes de chargement pour les fiches et les séries.
 - ✅ **C85 · P2 · S** Gestes : balayer pour changer de diapositive, tirer pour rafraîchir la semaine.
 - **C86 · P2 · S** Installable (manifeste complet, icônes, écran de démarrage), ouverture plein écran sur téléphone.
-- **C87 · P2 · S** Hors ligne : fiches ouvertes relisibles, réponses aux séries mises en file et envoyées au retour du réseau.
+- ✅ **C87 · P2 · S** Hors ligne : fiches ouvertes relisibles, réponses aux séries mises en file et envoyées au retour du réseau.
 - **C88 · P3 · S** Économie de données : fond d'écran désactivable, images différées.
 
 ### Identité et plaisir d'usage

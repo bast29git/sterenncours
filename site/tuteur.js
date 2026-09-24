@@ -84,6 +84,13 @@
     } else if (p[0] === 'jeux') c.mode = 'jeux';
     else if (p[0] === 'messages' || p[0] === 'travail') c.mode = 'messages';
     else if (p[0] === 'reussites' || p[0] === 'progres') c.mode = 'reussites';
+    // A44 : ce qu'elle a ouvert aujourd'hui, pour des réponses qui suivent la séance.
+    try {
+      const auj = N.jourIso();
+      const ouvertes = JSON.parse(sessionStorage.getItem('opaline.ouvertes') || '[]');
+      const terminees = Object.entries(N.etat.fiches).filter(([, f]) => String(f.termine_le || '').slice(0, 10) === auj).map(([k]) => k);
+      c.fichesDuJour = [...new Set(ouvertes.concat(terminees))].slice(-8).map((k) => { const [mid, ref, t] = k.split('/'); const m = N.matiere(mid); const l = m && N.lecon(m, ref); return l ? `${l.titre} (${t || 'cours'})` : k; });
+    } catch (e) { /* facultatif */ }
     return c;
   }
 
@@ -295,6 +302,12 @@
       ${m.role === 'assistant' ? avatar() : ''}<div class="e-opale-bulle">${paragraphes(m.content)}${m.extra || ''}${m.role === 'assistant' && k === dernierIdx && k > 0 && !occupe ? suites() : ''}</div></div>`).join('')
       + (occupe ? `<div class="e-opale-msg opale">${avatar()}<div class="e-opale-bulle e-opale-attente"><span></span><span></span><span></span></div></div>` : '');
     el.querySelectorAll('[data-suite]').forEach((b) => b.addEventListener('click', () => envoyer(b.getAttribute('data-suite'))));
+    el.querySelectorAll('[data-section]').forEach((b) => b.addEventListener('click', () => { const ok = window.VUE_ELEVE && window.VUE_ELEVE.allerSection && window.VUE_ELEVE.allerSection(b.getAttribute('data-section')); if (!ok) N.signaler('Ouvre la fiche pour retrouver cette section.', 'info'); }));
+    el.querySelectorAll('[data-lire]').forEach((b) => b.addEventListener('click', () => {
+      if (!window.speechSynthesis) return;
+      if (speechSynthesis.speaking) { speechSynthesis.cancel(); return; }
+      const u = new SpeechSynthesisUtterance(b.closest('.e-opale-bulle').textContent.replace(/Plus simple|Plus court|On relit ensemble|Écouter/g, '').trim()); u.lang = 'fr-FR'; speechSynthesis.speak(u);
+    }));
     el.querySelectorAll('[data-relire]').forEach((b) => b.addEventListener('click', () => relire(b)));
     el.scrollTop = el.scrollHeight;
   }
@@ -302,7 +315,8 @@
   function suites() {
     const c = contexteCourant || {};
     const relire = c.plan && c.plan.length && c.matiere ? `<button type="button" class="e-opale-suite" data-relire="1">${N.ic('ic-livre')} On relit ensemble</button>` : '';
-    return `<div class="e-opale-suites"><button type="button" class="e-opale-suite" data-suite="Explique-moi la même chose comme à quelqu'un qui découvre, avec un exemple simple.">Plus simple</button><button type="button" class="e-opale-suite" data-suite="Redis-le en deux phrases, pas plus.">Plus court</button>${relire}</div>`;
+    const voix = window.speechSynthesis && document.documentElement.getAttribute('data-confort-sons') !== 'off' ? `<button type="button" class="e-opale-suite" data-lire="1" title="Lire cette réponse à voix haute">${N.ic('ic-envoyer')} Écouter</button>` : '';
+    return `<div class="e-opale-suites"><button type="button" class="e-opale-suite" data-suite="Explique-moi la même chose comme à quelqu'un qui découvre, avec un exemple simple.">Plus simple</button><button type="button" class="e-opale-suite" data-suite="Redis-le en deux phrases, pas plus.">Plus court</button>${relire}${voix}</div>`;
   }
   /** C70 : la section de la fiche, choisie dans le plan, affichée dans le panneau. */
   function relire(bouton) {
@@ -327,7 +341,12 @@
     });
     return sections.filter((x) => x.html.trim());
   }
-  const paragraphes = (t) => String(t).split(/\n{2,}|\n/).filter(Boolean).map((p) => `<p>${N.ech(p)}</p>`).join('');
+  /* A45 : une ligne « Source : titre » devient un bouton qui ouvre la section dans la fiche. */
+  const paragraphes = (t) => String(t).split(/\n{2,}|\n/).filter(Boolean).map((p) => {
+    const m = /^\s*Source\s*:\s*(.+?)\s*\.?\s*$/i.exec(p);
+    if (m) return `<p class="e-opale-source"><button type="button" class="e-opale-suite" data-section="${N.ech(m[1])}">${N.ic('ic-livre')} Source : ${N.ech(m[1])}</button></p>`;
+    return `<p>${N.ech(p)}</p>`;
+  }).join('');
 
   async function envoyer(texte) {
     texte = String(texte || '').trim();

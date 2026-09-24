@@ -377,7 +377,6 @@
     /* ---------- Fin ---------- */
     function showFin(won, o) {
       timer.stop();
-      const careers = [];
       if (won) ach(K => K.recordWin(cfg.id, { stars: o.stars != null ? o.stars : 3, score: o.score || 0, mode }));
       const stars = o.stars != null ? o.stars : (won ? 3 : 0);
       const best = api.load('best', 0); const sc = o.score != null ? o.score : 0;
@@ -393,7 +392,6 @@
           ${o.score != null ? `<div class="ksh-finscore" style="color:${dom.color}">${Math.round(sc)}</div><div class="ksh-finlabel" style="margin-bottom:16px">points${sc >= best && sc > 0 ? ' · nouveau record !' : ''}</div>` : ''}
           <p class="ksh-seuils">${cfg.seuils || 'Les étoiles : 1 dès que la partie est finie, 2 à partir de 70 % de réussite, 3 à partir de 90 %. Dans Opaline, une étoile est gagnée à partir de 2 étoiles ici.'}</p>
           ${learned.length ? `<div class="ksh-learned"><h4>💡 Ce que tu as appris</h4><ul>${learned.map(l => `<li>${l}</li>`).join('')}</ul></div>` : ''}
-          ${careers.length ? `<div class="ksh-learned" style="background:var(--surface-2)"><h4>💼 Métiers liés à ce domaine</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${careers.map(c => `<span style="font-family:var(--font-mono);font-size:11.5px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:4px 11px">${c}</span>`).join('')}</div></div>` : ''}
           <div class="ksh-row" style="justify-content:center">
             <button class="ksh-b primary ksh-frestart">↺ Rejouer</button>
             ${o.onNext ? `<button class="ksh-b ksh-fnext">${o.nextLabel || 'Niveau suivant'} ▸</button>` : ''}

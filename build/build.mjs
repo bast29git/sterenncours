@@ -403,6 +403,9 @@ function construirePaquets() {
   const index = path.join(SORTIE, 'index.html');
   fs.writeFileSync(index, fs.readFileSync(index, 'utf8').replace('<script src="app.js"></script>', `<script>window.OPALINE_VERSION = ${JSON.stringify(version)};</script>\n<script src="app.js?v=${version}"></script>`));
   fs.writeFileSync(path.join(SORTIE, 'version.json'), JSON.stringify({ version, le: new Date().toISOString() }));
+  // A23 : le service worker porte la version du build dans le nom de son cache.
+  const sw = path.join(SORTIE, 'sw.js');
+  if (fs.existsSync(sw)) fs.writeFileSync(sw, fs.readFileSync(sw, 'utf8').replace('__VERSION__', version));
   // A42 : l'empreinte des jeux, pour savoir quelle version est en ligne.
   const jeux = ['games-2d', 'games-3d'].flatMap((d) => fs.readdirSync(path.join(RACINE, 'site', 'learning', d)).filter((f) => f.endsWith('.html')).map((f) => d + '/' + f));
   const empreinteJeux = crypto.createHash('sha1').update(jeux.map((f) => fs.readFileSync(path.join(RACINE, 'site', 'learning', f))).reduce((h, b) => h + crypto.createHash('sha1').update(b).digest('hex'), '') + fs.readFileSync(path.join(RACINE, 'site', 'learning', 'shell.js'), 'utf8')).digest('hex').slice(0, 10);
@@ -516,7 +519,7 @@ function construireSommaire() {
     const lecon = lecons.get(cle);
     lecon.docs[fiche.meta.type] = fiche.relatif.replace(/\.md$/, '.html').split(path.sep).join('/');
     if (fiche.meta.type === 'cours' && fiche.meta.titre) lecon.titre = fiche.meta.titre;
-    if (!lecon.titre && fiche.meta.titre) lecon.titre = fiche.meta.titre.replace(/  : .*$/, '');
+    if (!lecon.titre && fiche.meta.titre) lecon.titre = fiche.meta.titre.replace(/ {2}: .*$/, '');
   }
 
   const sections = [];
@@ -646,6 +649,11 @@ function construireDonneesSite() {
   fs.writeFileSync(cible,
     '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
     + 'window.PROGRAMME = ' + JSON.stringify(programme, null, 2) + ';\n');
+  // A21 : la version de Sterenn se passe des attendus, thèmes et compétences (lus par le professeur seul).
+  const programmeEleve = { ...programme, matieres: programme.matieres.map((m) => { const { attendus, themes, competences, ...reste } = m; return reste; }) };
+  fs.writeFileSync(path.join(SORTIE, 'data', 'programme-eleve.js'),
+    '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
+    + 'window.PROGRAMME = ' + JSON.stringify(programmeEleve) + ';\n');
 
   // Résumé du programme pour la tutrice Opale (fonction serveur) : matières,
   // leçons, notions. Assez pour situer une question, sans le contenu des fiches.

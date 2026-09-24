@@ -452,7 +452,7 @@
       document.getElementById('e-perso-suiv').addEventListener('click', () => {
         if (minuteur) { clearInterval(minuteur); minuteur = null; }
         if (etape < taches.length - 1) { etape += 1; reste = taches[etape].duree * 60; rendre(); }
-        else { N.marquerJour(); N.enregistrerProfil('moi.perso.' + s.id, { fait: true, le: new Date().toISOString() }).catch(() => {}); N.signaler('Temps perso noté comme fait.', 'succes'); location.hash = '#/hub'; }
+        else { N.marquerJour(); N.enregistrerProfil('moi.perso.' + s.id, { fait: true, le: new Date().toISOString() }).catch(() => {}); N.api('/usage', { method: 'POST', body: JSON.stringify({ cle: 'perso' }) }).catch(() => {}); N.signaler('Temps perso noté comme fait.', 'succes'); location.hash = '#/hub'; }
       });
     };
     rendre();
@@ -657,6 +657,7 @@
       if (!doc) return afficher('<p class="e-vide">Cette fiche n\'est pas encore disponible.</p>');
       const cleFiche = N.cle(mid, ref) + '/' + actif;
       const lu = N.etat.fiches[cleFiche];
+      try { const o = JSON.parse(sessionStorage.getItem('opaline.ouvertes') || '[]'); if (o.indexOf(cleFiche) === -1) { o.push(cleFiche); sessionStorage.setItem('opaline.ouvertes', JSON.stringify(o.slice(-12))); } } catch (e) { /* privé */ }
 
       afficher(
         `<div class="e-lecteur">
@@ -887,7 +888,7 @@
           <a class="e-bouton e-bouton-fin" href="#/matiere/${mid}">← Mon parcours</a>
         </div>`}
     </div>`);
-    if (e && decision === true) { brancherChronoEvaluation(dureeMin, N.cle(mid, ref)); brancherDepotEvaluation(m, l); brancherAutoEvaluation(N.cle(mid, ref)); }
+    if (e && decision === true) { brancherChronoEvaluation(dureeMin, N.cle(mid, ref)); brancherDepotEvaluation(m, l); brancherAutoEvaluation(N.cle(mid, ref)); N.api('/usage', { method: 'POST', body: JSON.stringify({ cle: 'evaluation' }) }).catch(() => {}); }
   }
   /** Les critères de la grille, lus dans la première colonne du tableau. */
   function criteresDe(e) {
@@ -1094,7 +1095,7 @@
       montrer(i + 1, true);
     });
     document.getElementById('e-mode-page').addEventListener('click', () => { N.ecrire(CLE_LECTURE, 'page'); rendreFiche(hote, doc, cleFiche, terminer); });
-    hote.__diapo = { avancer: () => montrer(i + 1, true), reculer: () => montrer(i - 1, true) };
+    hote.__diapo = { avancer: () => montrer(i + 1, true), reculer: () => montrer(i - 1, true), aller: (k) => montrer(k, true), sections };
     outilsLecture.brancher(hote, cleFiche, sections, () => i);
     montrer(i, false);
   }
@@ -1517,10 +1518,11 @@
     noterARevoir(s);
     if (s.rejouees) return;
     const justes = s.reponses.filter(Boolean).length;
+    const corpsResultat = JSON.stringify({ matiere: s.mid, ref: s.ref, justes, total: s.items.length });
     try {
-      const ligne = await N.api('/resultats', {
-        method: 'PUT', body: JSON.stringify({ matiere: s.mid, ref: s.ref, justes, total: s.items.length }),
-      });
+      let ligne;
+      try { ligne = await N.api('/resultats', { method: 'PUT', body: corpsResultat }); }
+      catch (e) { if (e.statut) throw e; N.mettreEnAttente('/resultats', { method: 'PUT', body: corpsResultat }); N.signaler('Pas de réseau : ton résultat est gardé et partira dès le retour de la connexion.', 'info'); return; }
       N.etat.resultats[N.cle(s.mid, s.ref)] = ligne;
       try {
         if (window.KonstrioAch) {
@@ -2439,6 +2441,16 @@
     }
   }
 
-  window.VUE_ELEVE = { nav, rendre, afficher };
+  /** A45 : ouvrir la section d'une fiche par son titre (depuis Opale). */
+  function allerSection(titre) {
+    const hote = document.getElementById('e-fiche-hote');
+    if (!hote || !hote.__diapo || !hote.__diapo.sections) return false;
+    const norm = (t) => String(t || '').toLowerCase().replace(/^\d+[.)]\s*/, '').trim();
+    const k = hote.__diapo.sections.findIndex((x) => norm(x.titre) === norm(titre) || norm(x.titre).indexOf(norm(titre)) !== -1 || norm(titre).indexOf(norm(x.titre)) !== -1);
+    if (k === -1) return false;
+    hote.__diapo.aller(k);
+    return true;
+  }
+  window.VUE_ELEVE = { nav, rendre, afficher, allerSection };
   N.VUE = window.VUE_ELEVE;
 })();

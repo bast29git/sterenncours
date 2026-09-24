@@ -97,19 +97,71 @@
   const ecrire = (c, v) => { try { localStorage.setItem(c, JSON.stringify(v)); } catch (e) { /* privé */ } };
 
   /* ---------- Réseau -------------------------------------------------------- */
+  /* A29 : une lecture qui échoue sur le réseau est reprise une fois, deux secondes plus tard.
+     Une écriture n'est jamais rejouée d'elle-même. Hors ligne, le bandeau le dit. */
   async function api(chemin, options = {}) {
-    const reponse = await fetch('/api' + chemin, {
+    const methode = (options.method || 'GET').toUpperCase();
+    const appel = () => fetch('/api' + chemin, {
       credentials: 'same-origin',
       ...options,
       headers: options.body && !(options.body instanceof FormData)
         ? { 'content-type': 'application/json', ...(options.headers || {}) }
         : (options.headers || {}),
     });
+    let reponse;
+    try { reponse = await appel(); } catch (e) {
+      if (methode !== 'GET' || options.sansReprise) { horsLigne(true); throw new Error(navigator.onLine === false ? 'Pas de connexion : réessaie quand le réseau revient.' : 'Le serveur ne répond pas.'); }
+      await new Promise((r) => setTimeout(r, 2000));
+      try { reponse = await appel(); } catch (e2) { horsLigne(true); throw new Error(navigator.onLine === false ? 'Pas de connexion : réessaie quand le réseau revient.' : 'Le serveur ne répond pas.'); }
+    }
+    horsLigne(false);
     if (reponse.status === 401) { retourPortail(); throw new Error('Session expirée'); }
     const donnees = await reponse.json().catch(() => ({}));
-    if (!reponse.ok) throw new Error(donnees.erreur || 'Erreur serveur');
+    if (!reponse.ok) { const err = new Error(donnees.erreur || 'Erreur serveur'); err.code = donnees.code; err.statut = reponse.status; throw err; }
     return donnees;
   }
+  let etaitHorsLigne = false;
+  function horsLigne(oui) {
+    if (oui === etaitHorsLigne) return;
+    etaitHorsLigne = oui;
+    document.documentElement.setAttribute('data-hors-ligne', oui ? '1' : '0');
+    if (!oui) rejouerAttente();
+  }
+  window.addEventListener('online', () => { horsLigne(false); });
+  window.addEventListener('offline', () => { horsLigne(true); });
+  /* C87 : les écritures faites hors ligne attendent dans l'appareil et repartent au retour du réseau. */
+  const CLE_ATTENTE = 'opaline.attente';
+  function mettreEnAttente(chemin, options) {
+    const liste = lire(CLE_ATTENTE, []);
+    liste.push({ chemin, options: { method: options.method, body: options.body }, le: Date.now() });
+    ecrire(CLE_ATTENTE, liste.slice(-50));
+  }
+  let rejeuEnCours = false;
+  async function rejouerAttente() {
+    if (rejeuEnCours || !etat.role) return;
+    const liste = lire(CLE_ATTENTE, []);
+    if (!liste.length) return;
+    rejeuEnCours = true;
+    const restantes = [];
+    for (const x of liste) {
+      try { await api(x.chemin, { ...x.options, sansReprise: true }); } catch (e) { if (!e.statut) restantes.push(x); }
+    }
+    ecrire(CLE_ATTENTE, restantes);
+    rejeuEnCours = false;
+    if (liste.length !== restantes.length) { signaler((liste.length - restantes.length) + ' action(s) envoyée(s) au retour du réseau.', 'succes'); rafraichirEtat(); }
+  }
+  /* A53 : les erreurs JavaScript sont remontées, dix par minute au plus, sans jamais gêner l'écran. */
+  const erreursVues = new Set();
+  function remonterErreur(message, source) {
+    try {
+      const cle = String(message).slice(0, 80);
+      if (!etat.role || erreursVues.has(cle) || erreursVues.size > 10) return;
+      erreursVues.add(cle);
+      fetch('/api/erreur', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message: String(message).slice(0, 300), source: String(source || '').slice(0, 200), ecran: location.hash.slice(0, 120) }) }).catch(() => {});
+    } catch (e) { /* jamais d'erreur dans le rapport d'erreur */ }
+  }
+  window.addEventListener('error', (ev) => remonterErreur(ev.message || 'Erreur', (ev.filename || '') + ':' + (ev.lineno || '')));
+  window.addEventListener('unhandledrejection', (ev) => remonterErreur('Promesse rejetée : ' + (ev.reason && ev.reason.message ? ev.reason.message : String(ev.reason)), ''));
 
   function signaler(message, type = 'erreur') {
     const id = estProf() ? 'p-bandeau' : 'e-bandeau';
@@ -520,7 +572,7 @@
       ]).then(() => { etat.secondairesPrets = true; });
       await Promise.all([
         chargerScript(role === 'prof' ? 'vue-prof.js' : 'vue-eleve.js'),
-        chargerScript('data/programme.js'),
+        chargerScript(role === 'prof' ? 'data/programme.js' : 'data/programme-eleve.js').catch(() => chargerScript('data/programme.js')),
         chargerScript('planificateur.js'),
         rafraichirEtat(), rafraichirSeances(),
         role === 'prof' ? secondaires : null,
@@ -556,6 +608,11 @@
     minuteur = setInterval(sonder, Math.max(20, Math.min(300, Number(reglage('sonde')) || 45)) * 1000);
     if (role === 'prof') appliquerPilotage();
     if (!reprendreDernier()) router();
+    rejouerAttente();
+    // A23 : le service worker garde la coquille et les fiches ouvertes pour le hors-ligne.
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
   }
   /** B39, B48 : accent et densité de l'espace professeur, retenus sur l'appareil. */
   const CLE_PILOTAGE = 'opaline.pilotage';
@@ -827,7 +884,7 @@
     majReussites, reussites, decision, reglementaire, router, lire, ecrire,
     reglage, appliquerReglages, REGLAGES_DEFAUT, celebrer,
     NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES, ic, paletteOuverte, prochainPalier,
-    majTitre, rappelActif, activerRappel, verifierRappel, piegerFocus, squelette,
+    majTitre, rappelActif, activerRappel, verifierRappel, piegerFocus, squelette, mettreEnAttente, rejouerAttente,
     gemme, AURORES, auroreCourante, auroreOuverte, periodeCourante, serieJours, marquerJour, cranTaille, appliquerPilotage,
     appliquerTheme, appliquerPalette,
   };
