@@ -16,6 +16,8 @@ const TYPES_AUTORISES = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  // Messages vocaux courts (trente secondes au plus), enregistrés par le navigateur.
+  'audio/webm', 'audio/ogg', 'audio/mp4', 'audio/mpeg', 'audio/wav',
 ];
 
 export const onRequestGet = gerer(async (context) => {

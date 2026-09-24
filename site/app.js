@@ -123,6 +123,74 @@
     signaler.t = setTimeout(() => { zone.hidden = true; }, 5000);
   }
 
+  /** C89 : l'opale d'une matière, dessinée dans ses couleurs. */
+  let nGemme = 0;
+  function gemme(mid, classe) {
+    const [c1, c2] = DEGRADES[mid] || ['#2BB5A0', '#C79CE6'];
+    nGemme += 1; const id = 'gemme-' + nGemme;
+    return `<svg class="e-gemme ${classe || ''}" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c2}"/><stop offset="1" stop-color="${c1}"/></linearGradient></defs><path d="M32 4 56 24 32 60 8 24Z" fill="url(#${id})"/><path d="M8 24h48L32 34Z" fill="#fff" opacity=".32"/><path d="M32 4 20 24h24Z" fill="#fff" opacity=".18"/></svg>`;
+  }
+
+  /** C92, C48 : l'aurore du fond. Une teinte par période de l'année, ou celle qu'elle a choisie parmi les paliers. */
+  const AURORES = [
+    { id: 'verte', nom: 'Aurore verte', teinte: 0, palier: 0 },
+    { id: 'violette', nom: 'Aurore violette', teinte: 70, palier: 10 },
+    { id: 'rose', nom: 'Aurore rose', teinte: 200, palier: 25 },
+    { id: 'doree', nom: 'Aurore dorée', teinte: 300, palier: 50 },
+  ];
+  const CLE_AURORE = 'opaline.aurore';
+  function periodeCourante(d = new Date()) {
+    const m = d.getMonth() + 1;
+    return m >= 9 && m <= 10 ? 1 : m >= 11 ? 2 : m <= 2 ? 3 : m <= 4 ? 4 : 5;
+  }
+  const auroreOuverte = (a) => !a.palier || estProf() || reussites().total >= a.palier;
+  function auroreCourante() {
+    const choisie = AURORES.find((a) => a.id === lire(CLE_AURORE, null));
+    if (choisie && auroreOuverte(choisie)) return choisie;
+    return AURORES[(periodeCourante() - 1) % AURORES.length];
+  }
+  function appliquerAurore() {
+    const a = auroreCourante();
+    document.documentElement.setAttribute('data-aurore', a.id);
+    document.documentElement.style.setProperty('--e-aurore-teinte', a.teinte + 'deg');
+    document.documentElement.setAttribute('data-periode', String(periodeCourante()));
+  }
+  function choisirAurore(id) { ecrire(CLE_AURORE, id); appliquerAurore(); }
+
+  /** C46 : les jours où elle a travaillé, pour la série de jours (sans pénalité de rupture). */
+  const CLE_JOURS = 'opaline.jours';
+  function marquerJour() {
+    const jours = lire(CLE_JOURS, []);
+    const auj = jourIso();
+    if (jours.indexOf(auj) === -1) { jours.push(auj); ecrire(CLE_JOURS, jours.slice(-120)); }
+  }
+  function serieJours() {
+    const jours = new Set(lire(CLE_JOURS, []));
+    Object.values(etat.fiches).forEach((f) => { if (f.termine_le) jours.add(String(f.termine_le).slice(0, 10)); });
+    Object.values(etat.resultats).forEach((r) => { if (r.maj_le) jours.add(String(r.maj_le).slice(0, 10)); });
+    const auj = jourIso();
+    let n = 0; let d = jours.has(auj) ? auj : decaler(auj, -1);
+    while (jours.has(d)) { n += 1; d = decaler(d, -1); }
+    return { n, aujourdhui: jours.has(auj), reprise: n === 0 && jours.size > 0 };
+  }
+
+  /** C78 : la taille du texte en trois crans, depuis la barre du haut, en accord avec le panneau de confort. */
+  function cranTaille(sens) {
+    let s = {};
+    try { s = JSON.parse(localStorage.getItem('konstrio-confort') || '{}') || {}; } catch (e) { s = {}; }
+    const actuel = Number(s.taille) > 0 ? Math.min(2, Number(s.taille)) : 0;
+    const suivant = sens === undefined ? (actuel + 1) % 3 : Math.max(0, Math.min(2, actuel + sens));
+    s.taille = suivant;
+    try { localStorage.setItem('konstrio-confort', JSON.stringify(s)); } catch (e) { /* privé */ }
+    const h = document.documentElement;
+    h.classList.remove('cf-scale-n1', 'cf-scale-1', 'cf-scale-2', 'cf-scale-3');
+    if (suivant > 0) h.classList.add('cf-scale-' + suivant);
+    if (window.__konstrioConfort && window.__konstrioConfort.state) { try { window.__konstrioConfort.state().taille = suivant; } catch (e) { /* ignore */ } }
+    const b = document.getElementById('e-btn-taille');
+    if (b) { b.setAttribute('aria-label', 'Taille du texte : ' + ['normale', 'grande', 'très grande'][suivant] + '. Cliquer pour changer.'); b.setAttribute('data-cran', String(suivant)); }
+    signaler('Texte ' + ['normal', 'plus grand', 'très grand'][suivant] + '.', 'info');
+  }
+
   /** C84 : un squelette de chargement, à la forme de ce qui arrive (fiche ou série). */
   function squelette(genre) {
     const lignes = (n) => Array.from({ length: n }, (_, i) => `<i style="width:${[92, 78, 85, 60, 88, 70][i % 6]}%"></i>`).join('');
@@ -469,6 +537,9 @@
       construirePalette();
       majBoutonTheme();
       majReussites();
+      appliquerAurore();
+      const bt = document.getElementById('e-btn-taille');
+      if (bt && !bt.__branche) { bt.__branche = true; bt.addEventListener('click', () => cranTaille()); }
     }
 
     if (minuteur) clearInterval(minuteur);
@@ -636,6 +707,16 @@
       aria-pressed="${p.id === courante}" aria-disabled="${!ouverte}" title="${libelle}" aria-label="${libelle}"
       style="background:linear-gradient(135deg,${p.c1},${p.c2})">${ouverte ? '' : '<svg class="ic" aria-hidden="true"><use href="#ic-verrou"/></svg>'}</button>`;
     }).join('');
+    const zoneAurore = document.getElementById('e-aurore-choix');
+    if (zoneAurore) {
+      const courante = auroreCourante();
+      zoneAurore.innerHTML = AURORES.map((a) => { const ouverte = auroreOuverte(a); return `<button type="button" data-aurore="${a.id}" class="${ouverte ? '' : 'fermee'}" aria-pressed="${a.id === courante.id}" aria-disabled="${!ouverte}" title="${ouverte ? a.nom : a.nom + ' : à ' + a.palier + ' étoiles'}" style="--t:${a.teinte}deg"><i></i><span>${a.nom.replace('Aurore ', '')}</span>${ouverte ? '' : ' 🔒'}</button>`; }).join('');
+      zoneAurore.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+        const a = AURORES.find((x) => x.id === b.getAttribute('data-aurore'));
+        if (!auroreOuverte(a)) { signaler(`« ${a.nom} » s'ouvre à ${a.palier} étoiles. Tu en as ${reussites().total}.`, 'info'); return; }
+        choisirAurore(a.id); construirePalette();
+      }));
+    }
     const suivant = prochainPalier();
     const legende = document.getElementById('e-palette-legende');
     if (legende) legende.textContent = suivant ? `Prochaine palette « ${suivant.nom} » à ${suivant.palier} étoiles (tu en as ${reussites().total}).` : 'Toutes les palettes sont ouvertes.';
@@ -688,7 +769,7 @@
     const parts = (location.hash || '#/').replace(/^#\/?/, '').split('/');
     vue.rendre(parts);
     // C8 : on retient le dernier écran de travail de Sterenn (fiche, série, jeu, semaine).
-    if (etat.role === 'eleve' && ['lecon', 'exos', 'calendrier', 'matiere', 'choix', 'notes'].indexOf(parts[0]) !== -1) ecrire(CLE_DERNIER, { hash: location.hash, le: Date.now() });
+    if (etat.role === 'eleve' && ['lecon', 'exos', 'calendrier', 'matiere', 'choix', 'notes'].indexOf(parts[0]) !== -1) { ecrire(CLE_DERNIER, { hash: location.hash, le: Date.now() }); if (parts[0] === 'lecon' || parts[0] === 'exos') marquerJour(); }
   }
   window.addEventListener('hashchange', router);
   /** C8 : à l'ouverture, revenir là où elle était, avec une ligne qui le dit. */
@@ -725,6 +806,7 @@
     reglage, appliquerReglages, REGLAGES_DEFAUT, celebrer,
     NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES, ic, paletteOuverte, prochainPalier,
     majTitre, rappelActif, activerRappel, verifierRappel, piegerFocus, squelette,
+    gemme, AURORES, auroreCourante, auroreOuverte, periodeCourante, serieJours, marquerJour, cranTaille,
     appliquerTheme, appliquerPalette,
   };
 

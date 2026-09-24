@@ -49,7 +49,7 @@
   /** C4 : l'écran parent de chaque route ; le bouton de retour y mène, toujours à la même place. */
   const PARENT = { matieres: '#/hub', matiere: '#/matieres', lecon: (p) => '#/matiere/' + p[1], exos: (p) => '#/lecon/' + p[1] + '/' + p[2] + '/exercices',
     calendrier: '#/hub', choix: '#/hub', jeux: (p) => (p[1] ? '#/jeux' : '#/hub'), reussites: '#/hub', progres: '#/hub', messages: '#/hub', travail: '#/hub',
-    decouverte: '#/hub', positionnement: '#/hub', visite: '#/hub', donnees: '#/reussites', recherche: '#/matieres', aide: '#/hub', notes: '#/hub' };
+    decouverte: '#/hub', positionnement: '#/hub', visite: '#/hub', donnees: '#/reussites', recherche: '#/matieres', aide: '#/hub', notes: '#/hub', perso: '#/hub' };
   const LIBELLE_RETOUR = { matieres: 'Accueil', matiere: 'Mes matières', lecon: 'Le parcours', exos: 'La fiche', jeux: 'Les jeux', donnees: 'Mes réussites', recherche: 'Mes matières' };
   function boutonRetour() {
     const p = (location.hash || '#/hub').replace(/^#\/?/, '').split('/');
@@ -123,7 +123,9 @@
         <span class="m">${x.m.icone} ${N.ech(x.m.nom)}</span>
         <b>${N.ech(x.l.titre)}</b>
         <span>${x.l.notions.slice(0, 3).map(N.ech).join(' · ')}</span>
-        ${actuelle ? '<span class="coche">✓ ton choix</span>' : ''}</button></li>`;
+        <span class="pourquoi">${N.ech(pourquoiProposee(x.m, x.l))}</span>
+        ${actuelle ? '<span class="coche">✓ ton choix</span>' : ''}</button>
+        <button type="button" class="e-apercu-bouton" data-apercu="${x.m.id}/${x.l.ref}" aria-label="Aperçu de la fiche ${N.ech(x.l.titre)}">${N.ic('ic-loupe')} aperçu</button></li>`;
     }).join('')}</ul>`;
     return `<article class="e-choix-carte etat-${e.code}" data-choix="${s.id}">
       <p class="e-choix-quand">${N.ic('ic-calendrier')} Séance du ${N.ech(N.enFrancais(s.date, true))}, de ${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
@@ -133,6 +135,32 @@
          <button type="button" class="e-bouton e-bouton-fin" data-changer="${s.id}">Changer</button></p>`
     : liste}
     </article>`;
+  }
+
+  /** C65 : pourquoi cette leçon est proposée maintenant, en une phrase. */
+  function pourquoiProposee(m, l) {
+    const i = m.lecons.findIndex((x) => x.ref === l.ref);
+    const prec = i > 0 ? m.lecons[i - 1] : null;
+    if (N.etat.fiches[N.cle(m.id, l.ref) + '/cours']) return 'Tu as déjà lu le cours : c\'est le moment de l\'entraînement.';
+    if (prec && N.estValidee(m.id, prec.ref)) return `La suite de « ${prec.titre} », que tu as validée.`;
+    if (i === 0) return `La première leçon de ${m.nom} : tout part de là.`;
+    return `Au programme de la période ${l.periode} en ${m.nom}.`;
+  }
+  /** C66 : l'aperçu d'une fiche (plan et durée) sans quitter le choix. */
+  async function montrerApercu(bouton) {
+    const [mid, ref] = bouton.getAttribute('data-apercu').split('/');
+    const m = N.matiere(mid); const l = N.lecon(m, ref);
+    document.querySelectorAll('.e-apercu').forEach((x) => x.remove());
+    const boite = document.createElement('div'); boite.className = 'e-apercu'; boite.setAttribute('role', 'dialog'); boite.setAttribute('aria-label', 'Aperçu');
+    boite.innerHTML = `<p class="e-aide">Chargement…</p>`;
+    bouton.closest('li').appendChild(boite);
+    try {
+      const contenu = await N.chargerContenu(mid);
+      const doc = contenu && contenu[ref] && contenu[ref].cours;
+      const plan = (doc && doc.plan || []).slice(0, 8);
+      boite.innerHTML = `<button type="button" class="e-apercu-fermer" aria-label="Fermer">${N.ic('ic-croix')}</button><b>${N.ech(l.titre)}</b>${doc && doc.duree ? `<p class="e-aide">${N.ic('ic-horloge')} ${N.ech(doc.duree)}</p>` : ''}${plan.length ? `<ol>${plan.map((x) => `<li>${N.ech(typeof x === 'string' ? x : x.titre || x.t || '')}</li>`).join('')}</ol>` : '<p class="e-aide">Le plan arrive avec la fiche.</p>'}`;
+      boite.querySelector('.e-apercu-fermer').addEventListener('click', () => boite.remove());
+    } catch (e) { boite.innerHTML = '<p class="e-aide">Aperçu indisponible.</p>'; }
   }
 
   /** Sur l'accueil : les trois prochaines séances à choix, la plus proche ouverte. */
@@ -166,6 +194,7 @@
   }
 
   function brancherChoix(apres) {
+    vue().querySelectorAll('[data-apercu]').forEach((b) => { if (!b.__branche) { b.__branche = true; b.addEventListener('click', () => montrerApercu(b)); } });
     vue().querySelectorAll('[data-changer]').forEach((b) => b.addEventListener('click', () => {
       const s = N.etat.seances.find((x) => x.id === b.getAttribute('data-changer'));
       const carte = b.closest('.e-choix-carte');
@@ -258,10 +287,44 @@
     const travaux = N.etat.seances.filter((s) => s.type === 'travail' && s.date >= auj && (!suivante || s.date <= suivante.date) && s.statut !== 'annulee').sort((a, b) => a.date.localeCompare(b.date));
     const lignes = travaux.slice(0, 2).map((t) => `<li><b>${N.ech(t.date === auj ? 'Aujourd\'hui' : N.enFrancais(t.date))}</b> ${t.debut ? N.ech(t.debut) + ' · ' : ''}${N.ech(t.travail || 'Un temps court de révision, quinze minutes.')}
       ${(t.lecons || []).map((r) => N.libelleLecon(r)).filter((x) => x && x.m.id !== 'module').map((x) => `<a class="e-lien-doux" href="#/lecon/${x.m.id}/${x.l.ref}/revision">${x.m.icone} ${N.ech(x.l.titre)}</a>`).join(' ')}</li>`);
+    const perso = travaux[0];
     return `<section class="e-bloc-fixe e-avant" aria-labelledby="e-h-avant">
       <h2 id="e-h-avant">${N.ic('ic-horloge')} À faire avant la prochaine fois</h2>
       ${lignes.length ? `<ul class="e-liste-avant">${lignes.join('')}</ul>` : `<p>Rien d'annoncé pour l'instant. ${suivante ? 'Prochaine séance ' + N.ech(N.enFrancais(suivante.date, true)) + '.' : ''}</p>`}
+      ${perso ? `<p class="e-actions" style="margin:.6rem 0 0"><a class="e-bouton e-bouton-doux e-bouton-mini" href="#/perso/${perso.id}">${N.ic('ic-horloge')} Lancer mon temps perso guidé</a></p>` : ''}
+      <div id="e-materiel"></div>
     </section>`;
+  }
+
+  /** C47 : le vendredi et le week-end, les bilans de la semaine avec les mots exacts de Bastien. */
+  function blocBilanSemaine() {
+    const auj = N.jourIso();
+    const j = new Date(auj + 'T12:00:00').getDay();
+    if (j !== 5 && j !== 6 && j !== 0) return '';
+    const lundi = N.lundiDe(auj);
+    const faites = N.etat.seances.filter((s) => s.type === 'cours' && s.statut === 'faite' && s.date >= lundi && s.date <= auj && s.bilan);
+    if (!faites.length) return '';
+    return `<section class="e-bloc-fixe e-bilan-semaine" aria-labelledby="e-h-bilan"><h2 id="e-h-bilan">${N.ic('ic-coche')} Le bilan de ta semaine</h2>
+      <ul class="e-liste-avant">${faites.map((s) => `<li><b>${N.ech(N.enFrancais(s.date))}</b><span class="e-bilan-texte">${N.ech(s.bilan).replace(/\n/g, '<br>')}</span></li>`).join('')}</ul>
+      <p class="e-aide">Ce sont les mots de Bastien, tels qu'il les a écrits en fin de séance.</p></section>`;
+  }
+  /** C61 : le matériel des fiches prévues à la prochaine séance, lu dans les blocs « Matériel ». */
+  async function remplirMateriel(seance) {
+    const zone = document.getElementById('e-materiel');
+    if (!zone || !seance) return;
+    const infos = (seance.lecons || []).map((r) => N.libelleLecon(r)).filter((x) => x && x.m.id !== 'module');
+    const mids = [...new Set(infos.map((x) => x.m.id))];
+    await Promise.all(mids.map((mid) => N.chargerContenu(mid).catch(() => null)));
+    const bac = document.createElement('div');
+    const items = new Set();
+    infos.forEach((x) => {
+      const doc = window.CONTENU && window.CONTENU[x.m.id] && window.CONTENU[x.m.id][x.l.ref] && window.CONTENU[x.m.id][x.l.ref].cours;
+      if (!doc) return;
+      bac.innerHTML = doc.html;
+      bac.querySelectorAll('.bloc-materiel li').forEach((li) => { const t = li.textContent.trim().replace(/\.$/, ''); if (t && t.length < 90) items.add(t); });
+    });
+    if (!zone.isConnected) return;
+    zone.innerHTML = items.size ? `<p class="e-materiel"><b>À préparer :</b> ${[...items].slice(0, 8).map(N.ech).join(' · ')}</p>` : '';
   }
 
   function vueHub() {
@@ -303,6 +366,7 @@
        </section>
 
        ${blocAvant(suivante)}
+       ${blocBilanSemaine()}
        <section class="e-bloc-fixe e-bloc-choix" aria-labelledby="e-h-choix">
          <h2 id="e-h-choix">${N.ic('ic-cible')} Mes prochains choix</h2>
          ${rappelChoix(N.etat.seances)}
@@ -350,6 +414,48 @@
     const vu = document.getElementById('e-mot-vu');
     if (vu) vu.addEventListener('click', async () => { await marquerMotsVus(); vueHub(); });
     minuteurHeure = setInterval(() => { const h = document.getElementById('e-heure'); if (h) h.textContent = ligneHeure(jour || travail); else clearInterval(minuteurHeure); }, 30000);
+    remplirMateriel(jour || suivante);
+  }
+
+  /* ---------- C62 : le temps personnel guidé, deux fois quinze minutes ---------- */
+  function vuePerso(id) {
+    const s = N.etat.seances.find((x) => x.id === id && x.type === 'travail');
+    if (!s) return vueIntrouvable();
+    const infos = (s.lecons || []).map((r) => N.libelleLecon(r)).filter((x) => x && x.m.id !== 'module');
+    const total = Math.max(10, dureeMinutes(s));
+    const moitie = Math.round(total / 2);
+    const taches = [
+      { titre: 'Relire', duree: moitie, texte: infos.length ? `Relis la fiche de révision de « ${infos[0].l.titre} », une diapositive à la fois.` : 'Relis la dernière fiche ouverte, une diapositive à la fois.', lien: infos.length ? `#/lecon/${infos[0].m.id}/${infos[0].l.ref}/revision` : '#/matieres', action: 'Ouvrir la fiche de révision' },
+      { titre: 'Faire', duree: total - moitie, texte: s.travail || (infos.length ? `Fais deux exercices à la main de « ${infos[infos.length - 1].l.titre} » dans le cahier.` : 'Fais deux exercices à la main dans le cahier.'), lien: infos.length ? `#/lecon/${infos[infos.length - 1].m.id}/${infos[infos.length - 1].l.ref}/exercices` : '#/matieres', action: 'Voir les exercices' },
+    ];
+    let etape = 0; let reste = taches[0].duree * 60; let minuteur = null;
+    const rendre = () => {
+      const t = taches[etape];
+      afficher(`<div class="e-perso"><h1>Mon temps perso</h1>
+        <p class="e-intro">${N.ech(N.enFrancais(s.date, true))} · ${total} minutes en deux temps. Tu lances, tu fais, tu t'arrêtes quand la sonnerie douce arrive.</p>
+        <ol class="e-perso-etapes">${taches.map((x, k) => `<li class="${k < etape ? 'faite' : k === etape ? 'en-cours' : ''}"><b>${k + 1}. ${N.ech(x.titre)}</b> <span>${x.duree} min</span></li>`).join('')}</ol>
+        <section class="e-carte e-perso-tache">
+          <h2>${N.ech(t.titre)} · ${t.duree} min</h2>
+          <p>${N.ech(t.texte)}</p>
+          <output class="e-perso-temps" id="e-perso-temps">${String(Math.floor(reste / 60)).padStart(2, '0')}:${String(reste % 60).padStart(2, '0')}</output>
+          <div class="e-actions"><button class="e-bouton" id="e-perso-go" type="button">${minuteur ? 'Pause' : 'Démarrer'}</button><a class="e-bouton e-bouton-doux" href="${t.lien}">${N.ech(t.action)}</a><button class="e-bouton e-bouton-fin" id="e-perso-suiv" type="button">${etape < taches.length - 1 ? 'Passer à la suite' : 'J\'ai fini'}</button></div>
+        </section></div>`);
+      document.getElementById('e-perso-go').addEventListener('click', () => {
+        if (minuteur) { clearInterval(minuteur); minuteur = null; document.getElementById('e-perso-go').textContent = 'Reprendre'; return; }
+        document.getElementById('e-perso-go').textContent = 'Pause';
+        minuteur = setInterval(() => {
+          const out = document.getElementById('e-perso-temps'); if (!out) { clearInterval(minuteur); minuteur = null; return; }
+          reste -= 1; out.textContent = `${String(Math.floor(Math.max(0, reste) / 60)).padStart(2, '0')}:${String(Math.max(0, reste) % 60).padStart(2, '0')}`;
+          if (reste <= 0) { clearInterval(minuteur); minuteur = null; try { window.KonstrioAudio && window.KonstrioAudio.play('bravo'); } catch (e) { /* silence */ } N.signaler(etape < taches.length - 1 ? 'Premier temps fini. Une minute de pause, puis la suite.' : 'Temps perso terminé. Bravo.', 'succes'); }
+        }, 1000);
+      });
+      document.getElementById('e-perso-suiv').addEventListener('click', () => {
+        if (minuteur) { clearInterval(minuteur); minuteur = null; }
+        if (etape < taches.length - 1) { etape += 1; reste = taches[etape].duree * 60; rendre(); }
+        else { N.marquerJour(); N.enregistrerProfil('moi.perso.' + s.id, { fait: true, le: new Date().toISOString() }).catch(() => {}); N.signaler('Temps perso noté comme fait.', 'succes'); location.hash = '#/hub'; }
+      });
+    };
+    rendre();
   }
 
   async function monterOrbite() {
@@ -474,7 +580,7 @@
         const p = N.progression(m);
         const prets = m.lecons.filter((l) => docsVisibles(l).length).length;
         return `<li><a href="#/matiere/${m.id}">
-          <span class="ico" aria-hidden="true">${m.icone}</span>
+          <span class="ico ico-gemme" aria-hidden="true">${N.gemme(m.id)}<em>${m.icone}</em></span>
           <b>${N.ech(m.nom)}</b>
           <span>${prets ? `${prets} leçon(s) disponible(s) · ${p.faites} validée(s)` : 'Bientôt disponible'}</span>
         </a></li>`;
@@ -511,7 +617,7 @@
 
     afficher(
       `<section class="e-matiere-tete">
-        <span class="e-matiere-emoji" aria-hidden="true">${m.icone}</span>
+        <span class="e-matiere-emoji" aria-hidden="true">${N.gemme(mid, 'e-gemme-grande')}<em>${m.icone}</em></span>
         <div>
           <h1>${N.ech(m.nom)}</h1>
           <p class="e-sous">${p.faites} leçon(s) validée(s) sur ${p.total}</p>
@@ -760,6 +866,8 @@
         </section>
         <article class="e-fiche e-fiche-page e-eval-sujet">${e.sujet}</article>
         ${e.criteres ? `<details class="e-carte e-eval-criteres"><summary>${N.ic('ic-cible')} Ce qui est attendu : la grille des critères</summary><div class="e-fiche e-fiche-page">${e.criteres}</div></details>` : ''}
+        ${blocResultatEvaluation(N.cle(mid, ref))}
+        ${blocAutoEvaluation(e, N.cle(mid, ref))}
         <section class="e-carte e-eval-depot" aria-labelledby="e-h-depot">
           <h2 id="e-h-depot">${N.ic('ic-photo')} Envoyer ma copie</h2>
           <ol class="e-eval-depot-etapes">
@@ -779,7 +887,43 @@
           <a class="e-bouton e-bouton-fin" href="#/matiere/${mid}">← Mon parcours</a>
         </div>`}
     </div>`);
-    if (e && decision === true) { brancherChronoEvaluation(dureeMin, N.cle(mid, ref)); brancherDepotEvaluation(m, l); }
+    if (e && decision === true) { brancherChronoEvaluation(dureeMin, N.cle(mid, ref)); brancherDepotEvaluation(m, l); brancherAutoEvaluation(N.cle(mid, ref)); }
+  }
+  /** Les critères de la grille, lus dans la première colonne du tableau. */
+  function criteresDe(e) {
+    if (!e || !e.criteres) return [];
+    const bac = document.createElement('div'); bac.innerHTML = e.criteres;
+    return [...bac.querySelectorAll('tbody tr')].map((tr) => { const td = tr.querySelector('td'); return td ? td.textContent.trim().replace(/^\d+\.\s*/, '') : ''; }).filter(Boolean).slice(0, 10);
+  }
+  /** C41 : avant la correction, elle coche ses critères ; Bastien voit l'écart. */
+  function blocAutoEvaluation(e, cle) {
+    const criteres = criteresDe(e);
+    if (!criteres.length) return '';
+    const actuel = N.profil('moi.autoeval.' + cle, {}) || {};
+    return `<section class="e-carte e-autoeval" aria-labelledby="e-h-autoeval"><h2 id="e-h-autoeval">${N.ic('ic-cible')} Mon auto-positionnement ${VU_PROF}</h2>
+      <p class="e-aide">Avant la correction, dis où tu penses en être sur chaque critère. Ce n'est pas noté : Bastien compare avec sa correction et vous en parlez.</p>
+      <ul class="e-autoeval-liste">${criteres.map((c, i) => `<li><span>${i + 1}. ${N.ech(c)}</span><span class="e-autoeval-choix" role="radiogroup" aria-label="${N.ech(c)}">${N.NIVEAUX.map((n) => `<label class="niv-${n.id}"><input type="radio" name="ae-${i}" value="${n.id}" ${actuel[i] === n.id ? 'checked' : ''}><span>${n.picto || ''} ${N.ech(n.libelle)}</span></label>`).join('')}</span></li>`).join('')}</ul>
+      <p class="e-autoeval-etat" id="e-autoeval-etat" role="status">${Object.keys(actuel).length ? 'Enregistré.' : ''}</p></section>`;
+  }
+  function brancherAutoEvaluation(cle) {
+    const zone = document.querySelector('.e-autoeval'); if (!zone) return;
+    zone.querySelectorAll('input[type=radio]').forEach((r) => r.addEventListener('change', async () => {
+      const valeurs = {};
+      zone.querySelectorAll('input[type=radio]:checked').forEach((x) => { valeurs[x.name.replace('ae-', '')] = x.value; });
+      try { await N.enregistrerProfil('moi.autoeval.' + cle, valeurs); document.getElementById('e-autoeval-etat').textContent = 'Enregistré.'; } catch (err) { N.signaler(err.message); }
+    }));
+  }
+  /** C40 : le résultat rendu par Bastien dans l'application : grille, mot, note, positionnement, ce qu'elle refait. */
+  function blocResultatEvaluation(cle) {
+    const r = N.profil('eval.' + cle, null);
+    if (!r || !r.rendu_le) return '';
+    const auto = N.profil('moi.autoeval.' + cle, {}) || {};
+    const niv = (id) => N.NIVEAUX.find((n) => n.id === id);
+    return `<section class="e-carte e-eval-resultat" aria-labelledby="e-h-resultat"><h2 id="e-h-resultat">${N.ic('ic-graphique')} Ton résultat</h2>
+      <p class="e-eval-resultat-tete">${r.note != null ? `<b class="e-note">${N.ech(String(r.note))}</b><span>sur 20</span>` : ''}${r.positionnement ? `<span class="e-etat-niveau niv-${r.positionnement}">${N.ech((niv(r.positionnement) || {}).libelle || r.positionnement)}</span>` : ''}<span class="e-aide">rendu le ${N.ech(N.dateCourte(r.rendu_le))}</span></p>
+      ${r.mot ? `<blockquote class="e-eval-mot">« ${N.ech(r.mot)} »</blockquote>` : ''}
+      ${Array.isArray(r.criteres) && r.criteres.length ? `<table class="e-eval-grille"><thead><tr><th>Critère</th><th>Bastien</th><th>Toi</th></tr></thead><tbody>${r.criteres.map((c, i) => `<tr><td>${i + 1}. ${N.ech(c.libelle || '')}</td><td><span class="e-etat-niveau niv-${c.niveau}">${N.ech((niv(c.niveau) || {}).libelle || c.niveau || '')}</span></td><td>${auto[i] ? `<span class="e-etat-niveau niv-${auto[i]} ${auto[i] === c.niveau ? 'accord' : ''}">${N.ech((niv(auto[i]) || {}).libelle || auto[i])}</span>` : '<span class="e-aide">non dit</span>'}</td></tr>`).join('')}</tbody></table>` : ''}
+      ${r.refaire ? `<p class="e-eval-refaire"><b>Ce que je refais :</b> ${N.ech(r.refaire)}</p>` : ''}</section>`;
   }
   /** C38 : le chronomètre de l'évaluation. Le départ est mémorisé sur l'appareil : recharger la page ne le remet pas à zéro. */
   function brancherChronoEvaluation(dureeMin, cle) {
@@ -1542,6 +1686,7 @@
       if (s.absence) {
         try {
           await N.api(`/seances/${id}/eleve`, { method: 'PATCH', body: JSON.stringify({ absence: false }) });
+          if (N.profil('moi.remplacement.' + id, null)) await N.enregistrerProfil('moi.remplacement.' + id, null).catch(() => {});
           await N.rafraichirSeances(); N.signaler('C\'est noté : tu seras là.', 'succes'); apres();
         } catch (e) { N.signaler(e.message); }
         return;
@@ -1560,6 +1705,15 @@
     vue().querySelectorAll('[data-deplacer]').forEach((b) => b.addEventListener('click', () => {
       const f = vue().querySelector(`[data-form-deplacer="${b.getAttribute('data-deplacer')}"]`);
       f.hidden = !f.hidden;
+    }));
+    vue().querySelectorAll('[data-remplacer]').forEach((b) => b.addEventListener('click', async () => {
+      const id = b.getAttribute('data-remplacer'); const c = b.getAttribute('data-creneau');
+      const s = N.etat.seances.find((x) => x.id === id) || {};
+      try {
+        await N.enregistrerProfil('moi.remplacement.' + id, c);
+        await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: `Pour la séance du ${N.enFrancais(s.date, true)} où je serai absente, je propose de rattraper : ${c}.`, contexte: 'Absence et rattrapage' }) });
+        N.signaler('Créneau proposé à Bastien.', 'succes'); apres();
+      } catch (e) { N.signaler(e.message); }
     }));
     vue().querySelectorAll('[data-form-deplacer]').forEach((f) => f.addEventListener('submit', async (ev) => {
       ev.preventDefault();
@@ -1586,7 +1740,7 @@
         <p class="h">${N.ech(s.debut)} · ${dureeMinutes(s)} min</p>
         <p class="t">Temps perso</p>
         <p class="d">${N.ech(court(String(s.travail || 'À voir ensemble'), 78))}</p>
-        ${futur ? `<p class="l"><button type="button" class="o" data-deplacer="${s.id}">${N.ic('ic-horloge')} Déplacer</button></p>
+        ${futur ? `<p class="l"><a class="o" href="#/perso/${s.id}">${N.ic('ic-droite')} Guidé</a><button type="button" class="o" data-deplacer="${s.id}">${N.ic('ic-horloge')} Déplacer</button></p>
         <form class="e-evt-form" data-form-deplacer="${s.id}" hidden>
           <label>Jour <input type="date" name="date" value="${N.ech(s.date)}" required></label>
           <label>Début <input type="time" name="debut" value="${N.ech(s.debut)}" required></label>
@@ -1603,7 +1757,7 @@
     const titres = String(s.objectif || 'Séance').split(' · ');
     return `<article class="e-evt cours${s.statut === 'faite' ? ' faite' : ''}${s.absence ? ' absente' : ''}" data-evt="${s.id}">
       <p class="h">${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
-      ${s.absence ? `<p class="e-evt-absence">${N.ic('ic-croix')} Tu as prévenu : absente${s.commentaire_eleve ? ' · ' + N.ech(s.commentaire_eleve) : ''}</p>` : ''}
+      ${s.absence ? `<p class="e-evt-absence">${N.ic('ic-croix')} Tu as prévenu : absente${s.commentaire_eleve ? ' · ' + N.ech(s.commentaire_eleve) : ''}</p>${creneauxRemplacement(s)}` : ''}
       ${titres.map((t) => `<p class="t">${N.ech(t)}</p>`).join('')}
       ${futur ? `<p class="l"><button type="button" class="o" data-absence="${s.id}">${s.absence ? 'Finalement je serai là' : 'Je serai absente'}</button></p>
       <form class="e-evt-form" data-form-absence="${s.id}" hidden>
@@ -1613,6 +1767,15 @@
       ${(s.choix || []).length >= 2 && s.date >= N.jourIso() ? `<p class="c"><a href="#/choix">${N.ic('ic-etincelle')} ${s.choisi_le ? 'changer mon choix' : 'à toi de choisir'}</a></p>` : ''}
       ${liens ? `<p class="l">${liens}</p>` : ''}
     </article>`;
+  }
+
+  /** C63 : après une absence, les créneaux de remplacement que Bastien a laissés dans son profil. */
+  function creneauxRemplacement(s) {
+    const liste = N.profil('prof.creneaux', []) || [];
+    if (!Array.isArray(liste) || !liste.length) return '';
+    const propose = N.profil('moi.remplacement.' + s.id, null);
+    if (propose) return `<p class="e-evt-remplacement">Tu as proposé : <b>${N.ech(propose)}</b>. Bastien confirme par message.</p>`;
+    return `<p class="e-evt-remplacement">Pour rattraper, Bastien propose : ${liste.slice(0, 4).map((c) => `<button type="button" class="o" data-remplacer="${s.id}" data-creneau="${N.ech(c)}">${N.ech(c)}</button>`).join(' ')}</p>`;
   }
 
   /** Coupe sur un espace, sans casser un mot en deux. */
@@ -1697,6 +1860,12 @@
             <p class="e-etoiles-suite">Encore ${suivant.s - r.total} pour ${N.ech(suivant.n.toLowerCase())}.</p>`
     : '<p class="e-etoiles-suite">Tous les paliers sont atteints.</p>'}
        </section>
+
+       ${(() => { const sj = N.serieJours(); return `<p class="e-serie-jours">${N.ic('ic-horloge')} ${sj.n >= 2 ? `<b>${sj.n} jours de suite</b> avec au moins une fiche ou une série.` : sj.n === 1 ? `<b>Un jour</b> de travail dans la série${sj.aujourdhui ? ', aujourd\'hui' : ', hier'}. Reviens demain pour la continuer.` : sj.reprise ? '<b>Reprise</b> : la série de jours repart dès ta prochaine fiche ou série.' : 'La série de jours commence avec ta première fiche.'}</p>`; })()}
+
+       <h2 class="e-titre-section">Ma collection d'opales</h2>
+       <p class="e-aide">Une opale par leçon validée, aux couleurs de sa matière. ${c.validees} sur ${c.total}.</p>
+       <ul class="e-opales">${PROGRAMME.matieres.map((m) => m.lecons.map((l) => `<li class="${N.estValidee(m.id, l.ref) ? 'gagnee' : ''}" title="${N.ech(m.nom + ' · ' + l.titre)}${N.estValidee(m.id, l.ref) ? '' : ' (à venir)'}">${N.gemme(m.id)}</li>`).join('')).join('')}</ul>
 
        <h2 class="e-titre-section">D'où viennent tes étoiles</h2>
        <ul class="e-stats">
@@ -1839,6 +2008,20 @@
              <svg class="ic" aria-hidden="true"><use href="#ic-croix"/></svg></button>
          </div>
 
+         <div class="e-cite-zone" id="e-cite-zone" hidden>
+           <svg class="ic" aria-hidden="true"><use href="#ic-message"/></svg>
+           <span id="e-cite-texte"></span>
+           <button type="button" id="e-cite-retirer" aria-label="Ne plus citer ce message"><svg class="ic" aria-hidden="true"><use href="#ic-croix"/></svg></button>
+         </div>
+         <div class="e-differe-zone" id="e-differe-zone" hidden>
+           <svg class="ic" aria-hidden="true"><use href="#ic-horloge"/></svg>
+           <span id="e-differe-texte"></span>
+           <button type="button" id="e-differe-retirer" aria-label="Envoyer tout de suite"><svg class="ic" aria-hidden="true"><use href="#ic-croix"/></svg></button>
+         </div>
+         <div class="e-vocal-zone" id="e-vocal-zone" hidden>
+           <span class="e-vocal-point" aria-hidden="true"></span><span id="e-vocal-etat">Enregistrement… 30 s</span>
+           <button type="button" class="e-bouton e-bouton-mini" id="e-vocal-stop">Arrêter</button>
+         </div>
          <div class="e-piece" id="e-piece" hidden>
            <span class="apercu" id="e-piece-apercu" aria-hidden="true"></span>
            <span class="infos"><b id="e-piece-nom"></b><span id="e-piece-poids"></span></span>
@@ -1859,6 +2042,10 @@
              <svg class="ic" aria-hidden="true"><use href="#ic-etincelle"/></svg></button>
            <button type="button" class="e-outil" id="e-btn-sujet" title="Choisir la leçon concernée" aria-label="Choisir la leçon concernée">
              <svg class="ic" aria-hidden="true"><use href="#ic-livre"/></svg></button>
+           <button type="button" class="e-outil" id="e-btn-vocal" title="Message vocal de trente secondes" aria-label="Enregistrer un message vocal">
+             <svg class="ic" aria-hidden="true"><use href="#ic-emoji"/></svg></button>
+           <button type="button" class="e-outil" id="e-btn-differe" title="Envoyer plus tard" aria-label="Envoyer plus tard">
+             <svg class="ic" aria-hidden="true"><use href="#ic-horloge"/></svg></button>
            <span class="e-compteur" id="e-compteur">0 / 2000</span>
            <button class="e-bouton" type="submit" id="e-envoi">
              <svg class="ic" aria-hidden="true"><use href="#ic-envoyer"/></svg>Envoyer</button>
@@ -1866,6 +2053,10 @@
 
          <div class="e-humeurs" id="e-humeurs" hidden>${M ? M.selecteurEmojis('e-emojis') : HUMEURS.map((h) => `<button type="button" data-emoji-insere="${h}">${h}</button>`).join('')}</div>
 
+         <div class="e-sujets e-differes" id="e-differes" hidden>
+           <p>Envoyer quand ?</p>
+           <ul><li><button type="button" data-differe="soir">Ce soir à 18 h</button></li><li><button type="button" data-differe="matin">Demain matin à 8 h</button></li><li><button type="button" data-differe="lundi">Lundi à 8 h</button></li></ul>
+         </div>
          <div class="e-sujets" id="e-sujets" hidden>
            <p>De quelle leçon veux-tu parler ?</p>
            <ul>${lecons.map((x) => `<li><button type="button" data-sujet="${N.ech(x.v)}">
@@ -1885,15 +2076,76 @@
     const piece = document.getElementById('e-piece');
     let ctx = contexte || null;
     let joint = null;
+    let reponseA = null;
+    let envoyerLe = null;
+    let listeMessages = [];
 
-    /* --- Brouillon : ce qui est tapé n'est jamais perdu en changeant d'écran --- */
-    const brouillon = N.lire(CLE_BROUILLON, '');
+    /* --- Brouillon par fil : ce qui est tapé n'est jamais perdu en changeant d'écran ou de fil --- */
+    const cleBrouillon = () => CLE_BROUILLON + (filActif ? '.' + filActif : '');
+    const brouillon = N.lire(cleBrouillon(), '');
     if (brouillon && !contexte) champT.value = brouillon;
     const majCompteur = () => {
       compteur.textContent = `${champT.value.length} / 2000`;
       compteur.classList.toggle('plein', champT.value.length > 1900);
-      N.ecrire(CLE_BROUILLON, champT.value);
+      N.ecrire(cleBrouillon(), champT.value);
     };
+    /* --- C56 : répondre à un message précis --- */
+    const poserCitation = (id) => {
+      reponseA = id || null;
+      const m = listeMessages.find((x) => x.id === id);
+      document.getElementById('e-cite-zone').hidden = !m;
+      if (m) document.getElementById('e-cite-texte').textContent = (m.auteur === 'eleve' ? 'Moi' : 'Bastien') + ' : ' + court(m.texte, 90);
+    };
+    document.getElementById('e-cite-retirer').addEventListener('click', () => poserCitation(null));
+    /* --- C55 : envoyer plus tard --- */
+    const dateDifferee = (quand) => {
+      const d = new Date();
+      if (quand === 'soir') { if (d.getHours() >= 18) d.setDate(d.getDate() + 1); d.setHours(18, 0, 0, 0); }
+      else if (quand === 'matin') { d.setDate(d.getDate() + 1); d.setHours(8, 0, 0, 0); }
+      else { const j = d.getDay(); d.setDate(d.getDate() + ((8 - j) % 7 || 7)); d.setHours(8, 0, 0, 0); }
+      return d;
+    };
+    const poserDiffere = (d) => {
+      envoyerLe = d || null;
+      document.getElementById('e-differe-zone').hidden = !d;
+      if (d) document.getElementById('e-differe-texte').textContent = 'Sera envoyé ' + N.enFrancais(N.jourIso(d), true) + ' à ' + d.getHours() + ' h';
+    };
+    const panneauDifferes = document.getElementById('e-differes');
+    document.getElementById('e-btn-differe').addEventListener('click', () => { panneauDifferes.hidden = !panneauDifferes.hidden; });
+    vue().querySelectorAll('[data-differe]').forEach((b) => b.addEventListener('click', () => { poserDiffere(dateDifferee(b.getAttribute('data-differe'))); panneauDifferes.hidden = true; champT.focus(); }));
+    document.getElementById('e-differe-retirer').addEventListener('click', () => poserDiffere(null));
+    /* --- C54 : message vocal de trente secondes, transcrit si le navigateur sait le faire --- */
+    let enregistreur = null; let vocalMinuteur = null;
+    const zoneVocal = document.getElementById('e-vocal-zone');
+    const finVocal = () => { clearTimeout(vocalMinuteur); if (enregistreur && enregistreur.state !== 'inactive') enregistreur.stop(); };
+    document.getElementById('e-btn-vocal').addEventListener('click', async () => {
+      if (!navigator.mediaDevices || typeof MediaRecorder === 'undefined') { N.signaler('Ton navigateur ne sait pas enregistrer de message vocal.'); return; }
+      try {
+        const flux = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const type = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+        enregistreur = new MediaRecorder(flux, type ? { mimeType: type } : undefined);
+        const morceaux = [];
+        enregistreur.addEventListener('dataavailable', (ev) => { if (ev.data.size) morceaux.push(ev.data); });
+        enregistreur.addEventListener('stop', () => {
+          flux.getTracks().forEach((t) => t.stop());
+          zoneVocal.hidden = true;
+          const blob = new Blob(morceaux, { type: (enregistreur.mimeType || 'audio/webm').split(';')[0] });
+          const ext = blob.type.indexOf('mp4') !== -1 ? 'm4a' : blob.type.indexOf('ogg') !== -1 ? 'ogg' : 'webm';
+          poserPiece(new File([blob], 'message-vocal.' + ext, { type: blob.type }));
+          if (!champT.value.trim()) { champT.value = 'Message vocal'; majCompteur(); }
+        });
+        let reste = 30;
+        const etat = document.getElementById('e-vocal-etat');
+        zoneVocal.hidden = false; etat.textContent = 'Enregistrement… 30 s';
+        const tic = () => { reste -= 1; etat.textContent = `Enregistrement… ${reste} s`; if (reste <= 0) finVocal(); else vocalMinuteur = setTimeout(tic, 1000); };
+        vocalMinuteur = setTimeout(tic, 1000);
+        enregistreur.start();
+        // Transcription locale, si disponible : le texte remplace « Message vocal ».
+        const Reco = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (Reco) { try { const r = new Reco(); r.lang = 'fr-FR'; r.continuous = true; r.interimResults = false; let texte = ''; r.onresult = (ev) => { for (let i = ev.resultIndex; i < ev.results.length; i += 1) texte += ev.results[i][0].transcript + ' '; }; r.onend = () => { if (texte.trim()) { champT.value = 'Message vocal (transcription) : ' + texte.trim(); majCompteur(); } }; r.start(); enregistreur.addEventListener('stop', () => { try { r.stop(); } catch (e) { /* ignore */ } }); } catch (e) { /* pas de transcription */ } }
+      } catch (e) { N.signaler('Le micro n\'est pas disponible : ' + e.message); }
+    });
+    document.getElementById('e-vocal-stop').addEventListener('click', finVocal);
     champT.addEventListener('input', majCompteur);
     majCompteur();
 
@@ -1992,6 +2244,7 @@
         messages = rep[0].messages || [];
         fichiers = rep[1].fichiers || [];
         stockage = rep[1].stockage !== false;
+        listeMessages = messages;
       } catch (e) { N.signaler(e.message); return; }
       if (!stockage) {
         document.getElementById('e-btn-fichier').disabled = true;
@@ -2002,7 +2255,9 @@
       if (M && zoneFils) {
         zoneFils.innerHTML = M.barreFils(messages, filActif, 'e-fils-barre');
         zoneFils.querySelectorAll('[data-fil]').forEach((b) => b.addEventListener('click', () => {
+          N.ecrire(cleBrouillon(), champT.value);
           filActif = b.getAttribute('data-fil') || null;
+          champT.value = N.lire(cleBrouillon(), ''); majCompteur();
           charger();
         }));
       }
@@ -2035,7 +2290,9 @@
           const apercu = estImage(f.type)
             ? `<a class="e-jointe-img" href="/api/fichiers/${f.id}" target="_blank" rel="noopener">
                  <img src="/api/fichiers/${f.id}" alt="${N.ech(f.nom)}" loading="lazy"></a>`
-            : `<a class="e-jointe-doc" href="/api/fichiers/${f.id}">
+            : String(f.type || '').indexOf('audio/') === 0
+              ? `<audio class="e-jointe-audio" controls preload="none" src="/api/fichiers/${f.id}" aria-label="Message vocal"></audio>`
+              : `<a class="e-jointe-doc" href="/api/fichiers/${f.id}">
                  <svg class="ic" aria-hidden="true"><use href="#ic-boite"/></svg>
                  <span><b>${N.ech(f.nom)}</b><span>${N.ech(N.poids(f.taille))}</span></span>
                  <svg class="ic" aria-hidden="true"><use href="#ic-telecharger"/></svg></a>`;
@@ -2049,13 +2306,24 @@
         const m = x.d;
         const lu = moi && m.lu_le ? '<span class="e-lu" title="Lu">✓✓</span>' : '';
         const corpsTexte = M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte);
-        return `${avant}<article class="e-msg ${moi ? 'moi' : ''}" data-message="${m.id}">
+        const cite = m.reponse_a ? messages.find((y) => y.id === m.reponse_a) : null;
+        const differe = m.envoyer_le && m.envoyer_le > new Date().toISOString();
+        const recent = moi && (differe || Date.now() - new Date(m.cree_le).getTime() < 5 * 60 * 1000);
+        return `${avant}<article class="e-msg ${moi ? 'moi' : ''}${differe ? ' differe' : ''}" data-message="${m.id}">
           <span class="e-msg-pastille" aria-hidden="true">${moi ? 'S' : 'B'}</span>
           <div>${tete}<div class="e-bulle">
             ${m.contexte ? `<span class="contexte">${N.ech(m.contexte)}</span>` : ''}
-            <div class="texte">${corpsTexte}</div>${lu}</div>${M ? M.reactionsHTML(m, 'eleve', 'e-reactions') : ''}</div></article>`;
+            ${cite ? `<blockquote class="e-cite">${cite.auteur === 'eleve' ? 'Moi' : 'Bastien'} : ${N.ech(court(cite.texte, 120))}</blockquote>` : ''}
+            ${differe ? `<span class="e-differe-badge">${N.ic('ic-horloge')} programmé pour ${N.ech(N.dateCourte(m.envoyer_le))}</span>` : ''}
+            <div class="texte">${corpsTexte}</div>${lu}</div>
+            <p class="e-msg-actions"><button type="button" class="e-msg-action" data-repondre="${m.id}">${N.ic('ic-message')} Répondre</button>${recent ? `<button type="button" class="e-msg-action" data-retirer="${m.id}">${N.ic('ic-croix')} Retirer</button>` : ''}</p>
+            ${M ? M.reactionsHTML(m, 'eleve', 'e-reactions') : ''}</div></article>`;
       }).join('');
 
+      zoneT.querySelectorAll('[data-repondre]').forEach((b) => b.addEventListener('click', () => { poserCitation(b.getAttribute('data-repondre')); champT.focus(); }));
+      zoneT.querySelectorAll('[data-retirer]').forEach((b) => b.addEventListener('click', async () => {
+        try { await N.api('/messages/' + b.getAttribute('data-retirer'), { method: 'DELETE' }); N.signaler('Message retiré.', 'succes'); charger(false); } catch (e) { N.signaler(e.message); }
+      }));
       if (defiler !== false) zoneT.scrollTop = zoneT.scrollHeight;
       try {
         await N.api('/messages', { method: 'PATCH' });
@@ -2081,12 +2349,13 @@
           await N.api('/fichiers', { method: 'POST', body: d });
         } else {
           const matCtx = ctx ? PROGRAMME.matieres.find((x) => ctx.toLowerCase().indexOf(x.nom.toLowerCase()) === 0) : null;
-          await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte, contexte: ctx, fil: matCtx ? matCtx.id : filActif }) });
+          await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte, contexte: ctx, fil: matCtx ? matCtx.id : filActif, reponse_a: reponseA, envoyer_le: envoyerLe ? envoyerLe.toISOString() : null }) });
+          if (envoyerLe) N.signaler('Message programmé. Tu peux encore le retirer d\'ici là.', 'succes');
         }
         champT.value = '';
-        poserPiece(null);
+        poserPiece(null); poserCitation(null); poserDiffere(null);
         champF.value = ''; champP.value = '';
-        N.ecrire(CLE_BROUILLON, '');
+        N.ecrire(cleBrouillon(), '');
         majCompteur();
         await charger();
       } catch (e) {
@@ -2150,6 +2419,7 @@
       case 'lecon': return vueLecon(p[1], p[2], p[3]);
       case 'exos': return vueExos(p[1], p[2], p[3]);
       case 'recherche': return vueRecherche(p.slice(1).join('/'));
+      case 'perso': return vuePerso(p[1]);
       case 'aide': return vueAide();
       case 'notes': return vueNotes();
       case 'calendrier': return vueCalendrier(p[1]);

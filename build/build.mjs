@@ -656,6 +656,32 @@ function retirerCorriges(html) {
   return { html: sortie, retires };
 }
 
+/* C99 : un énoncé sur trois relié aux univers de Sterenn. On compte, par leçon, les
+   exercices qui citent au moins un mot-clé de ces univers ; le rapport est écrit dans
+   public/data/univers.json et résumé à l'écran. Ce n'est pas bloquant. */
+const MOTS_UNIVERS = ['maomao', 'apothicaire', 'jinshi', 'myne', 'faiseuse', 'benno', 'lutz', 'papier', 'encre', 'yuzu', 'ogre', 'ayakashi', 'aurore', 'boréal', 'feutre', 'turquoise', 'bleu indien', 'violet pastel', 'manga', 'nuancier', 'dégradé', 'cour impériale', 'remède', 'poison', 'atelier'];
+function rapportUnivers(programme) {
+  const rapport = {}; let exercices = 0; let relies = 0; const faibles = [];
+  for (const m of programme.matieres) {
+    for (const l of m.lecons) {
+      if (!l.dossier) continue;
+      const source = path.join(RACINE, 'matieres', m.id, l.dossier, '3-exercices.md');
+      if (!fs.existsSync(source)) continue;
+      const corps = lireFrontMatter(fs.readFileSync(source, 'utf8')).corps;
+      const blocs = corps.split(/^::: exercice /m).slice(1);
+      const total = blocs.length;
+      const n = blocs.filter((b) => { const t = b.toLowerCase(); return MOTS_UNIVERS.some((mot) => t.includes(mot)); }).length;
+      rapport[m.id + '/' + l.ref] = { exercices: total, relies: n };
+      exercices += total; relies += n;
+      if (total >= 6 && n / total < 0.2) faibles.push(`${m.id}/${l.ref} (${n}/${total})`);
+    }
+  }
+  fs.mkdirSync(path.join(SORTIE, 'data'), { recursive: true });
+  fs.writeFileSync(path.join(SORTIE, 'data', 'univers.json'), JSON.stringify({ genere_le: new Date().toISOString(), exercices, relies, lecons: rapport }, null, 1));
+  console.log(`   🎨 ${relies}/${exercices} exercices reliés aux univers de Sterenn (${Math.round((relies / Math.max(1, exercices)) * 100)} %)${faibles.length ? ' ; sous 20 % : ' + faibles.length + ' leçon(s)' : ''}`);
+  return faibles;
+}
+
 function construireContenuSite(programme) {
   if (!programme) return 0;
   const racineContenu = path.join(SORTIE, 'data', 'contenu');
@@ -831,6 +857,7 @@ ${sections.map((x) => x.replace('</section>', '<div class="reponse-libre" aria-h
   return n;
 }
 construireCahiers(programmeSite);
+if (programmeSite) rapportUnivers(programmeSite);
 
 /* ── Dossiers complets par matière (un seul document imprimable) ────────── */
 function construireDossiersMatiere(programme) {

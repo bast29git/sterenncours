@@ -18,7 +18,8 @@ export const onRequestGet = gerer(async (context) => {
     DB.prepare('SELECT cle, justes, total, meilleur, series, maj_le FROM resultats').all(),
     DB.prepare('SELECT cle, termine_le FROM fiches_lues').all(),
     DB.prepare('SELECT cle, etat FROM ouvertures').all(),
-    DB.prepare('SELECT COUNT(*) AS n FROM messages WHERE auteur != ? AND lu_le IS NULL').bind(session.role).all(),
+    DB.prepare('SELECT COUNT(*) AS n FROM messages WHERE auteur != ? AND lu_le IS NULL AND (envoyer_le IS NULL OR envoyer_le <= ?)').bind(session.role, new Date().toISOString()).all()
+      .catch(() => DB.prepare('SELECT COUNT(*) AS n FROM messages WHERE auteur != ? AND lu_le IS NULL').bind(session.role).all()),
     lireReglages(DB),
     lireFelicitations(DB),
     lireAcces(DB),

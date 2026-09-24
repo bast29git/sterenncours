@@ -42,8 +42,11 @@
   let occupe = false;
   let contexteCourant = { mode: 'autre' };
 
-  const lire = () => { try { return JSON.parse(sessionStorage.getItem(CLE_FIL)) || []; } catch (e) { return []; } };
-  const ecrire = () => { try { sessionStorage.setItem(CLE_FIL, JSON.stringify(fil.slice(-20))); } catch (e) { /* privé */ } };
+  /* Un fil par leçon : la conversation se retrouve quand on revient sur la même fiche. */
+  let cleFil = CLE_FIL;
+  const cleDe = (c) => CLE_FIL + (c && c.matiere && c.ref ? '.' + c.matiere + '/' + c.ref : '');
+  const lire = () => { try { return JSON.parse(sessionStorage.getItem(cleFil)) || []; } catch (e) { return []; } };
+  const ecrire = () => { try { sessionStorage.setItem(cleFil, JSON.stringify(fil.slice(-20))); } catch (e) { /* privé */ } };
 
   /* ---------- Où est Sterenn ? ------------------------------------------------ */
   function contexte() {
@@ -178,6 +181,7 @@
           <input id="e-opale-expr" class="e-opale-expr" type="text" inputmode="decimal" autocomplete="off" placeholder="Exemple : (3 + 5) × 2">
           <output class="e-opale-resultat" id="e-opale-resultat" for="e-opale-expr" aria-live="polite"></output>
           <div class="e-opale-touches" id="e-opale-touches"></div>
+          <ul class="e-opale-historique" id="e-opale-historique" aria-label="Derniers calculs"></ul>
         </div>
       </section>`;
     document.getElementById('app-eleve').append(b, panneau);
@@ -201,9 +205,16 @@
     };
     expr.addEventListener('input', montrer);
     expr.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); egal(); } });
+    const historique = [];
+    function rendreHistorique() {
+      const ul = document.getElementById('e-opale-historique');
+      ul.innerHTML = historique.slice(-8).reverse().map((h, k) => `<li><span>${N.ech(h.e)} = <b>${N.ech(h.v)}</b></span><button type="button" data-copier="${N.ech(h.v)}" title="Copier le résultat">copier</button>${document.getElementById('e-brouillon-texte') ? `<button type="button" data-brouillon="${N.ech(h.e + ' = ' + h.v)}" title="Ajouter à mon brouillon">brouillon</button>` : ''}</li>`).join('');
+      ul.querySelectorAll('[data-copier]').forEach((b) => b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(b.getAttribute('data-copier')); N.signaler('Résultat copié.', 'succes'); } catch (e) { expr.value = b.getAttribute('data-copier'); } }));
+      ul.querySelectorAll('[data-brouillon]').forEach((b) => b.addEventListener('click', () => { const t = document.getElementById('e-brouillon-texte'); if (!t) return; t.value = (t.value ? t.value + '\n' : '') + b.getAttribute('data-brouillon'); t.dispatchEvent(new Event('input', { bubbles: true })); N.signaler('Ajouté à ton brouillon.', 'succes'); }));
+    }
     function egal() {
       const out = document.getElementById('e-opale-resultat');
-      try { const v = calculer(expr.value); out.textContent = v === '' ? '' : '= ' + v; out.classList.remove('erreur'); }
+      try { const v = calculer(expr.value); out.textContent = v === '' ? '' : '= ' + v; out.classList.remove('erreur'); if (v !== '') { historique.push({ e: expr.value, v }); rendreHistorique(); } }
       catch (e) { out.textContent = 'Je ne comprends pas ce calcul (' + e.message + ').'; out.classList.add('erreur'); }
     }
     document.getElementById('e-opale-touches').addEventListener('click', (ev) => {
@@ -231,6 +242,8 @@
 
   function majContexte() {
     contexteCourant = contexte();
+    const nouvelleCle = cleDe(contexteCourant);
+    if (nouvelleCle !== cleFil) { ecrire(); cleFil = nouvelleCle; fil = lire(); rendreFil(); }
     document.getElementById('e-opale-contexte').textContent = libelleContexte(contexteCourant);
     const sugg = SUGGESTIONS[contexteCourant.mode] || SUGGESTIONS.autre;
     document.getElementById('e-opale-suggestions').innerHTML = sugg.map((s) =>
@@ -277,10 +290,42 @@
   }
   function rendreFil() {
     const el = document.getElementById('e-opale-fil');
-    el.innerHTML = fil.map((m) => `<div class="e-opale-msg ${m.role === 'user' ? 'moi' : 'opale'}">
-      ${m.role === 'assistant' ? avatar() : ''}<div class="e-opale-bulle">${paragraphes(m.content)}${m.extra || ''}</div></div>`).join('')
+    const dernierIdx = fil.map((m) => m.role).lastIndexOf('assistant');
+    el.innerHTML = fil.map((m, k) => `<div class="e-opale-msg ${m.role === 'user' ? 'moi' : 'opale'}">
+      ${m.role === 'assistant' ? avatar() : ''}<div class="e-opale-bulle">${paragraphes(m.content)}${m.extra || ''}${m.role === 'assistant' && k === dernierIdx && k > 0 && !occupe ? suites() : ''}</div></div>`).join('')
       + (occupe ? `<div class="e-opale-msg opale">${avatar()}<div class="e-opale-bulle e-opale-attente"><span></span><span></span><span></span></div></div>` : '');
+    el.querySelectorAll('[data-suite]').forEach((b) => b.addEventListener('click', () => envoyer(b.getAttribute('data-suite'))));
+    el.querySelectorAll('[data-relire]').forEach((b) => b.addEventListener('click', () => relire(b)));
     el.scrollTop = el.scrollHeight;
+  }
+  /** Sous la dernière réponse : « plus simple », « plus court », et « on relit ensemble » quand une fiche est ouverte. */
+  function suites() {
+    const c = contexteCourant || {};
+    const relire = c.plan && c.plan.length && c.matiere ? `<button type="button" class="e-opale-suite" data-relire="1">${N.ic('ic-livre')} On relit ensemble</button>` : '';
+    return `<div class="e-opale-suites"><button type="button" class="e-opale-suite" data-suite="Explique-moi la même chose comme à quelqu'un qui découvre, avec un exemple simple.">Plus simple</button><button type="button" class="e-opale-suite" data-suite="Redis-le en deux phrases, pas plus.">Plus court</button>${relire}</div>`;
+  }
+  /** C70 : la section de la fiche, choisie dans le plan, affichée dans le panneau. */
+  function relire(bouton) {
+    const c = contexteCourant || {};
+    const contenu = window.CONTENU && window.CONTENU[c.matiere] && window.CONTENU[c.matiere][c.ref];
+    const doc = contenu && (contenu[c.mode] || contenu.cours);
+    if (!doc) { ajouter('assistant', 'Je ne retrouve pas la fiche ouverte. Rouvre-la et redemande.'); return; }
+    const sections = decouper(doc.html);
+    const boite = document.createElement('div'); boite.className = 'e-opale-relire';
+    boite.innerHTML = `<label for="e-opale-section">Quelle section relit-on ?</label><select id="e-opale-section">${sections.map((x, k) => `<option value="${k}">${N.ech(x.titre)}</option>`).join('')}</select><div class="e-opale-section e-fiche" id="e-opale-section-corps"></div>`;
+    bouton.closest('.e-opale-bulle').appendChild(boite); bouton.disabled = true;
+    const montrer = () => { const k = Number(document.getElementById('e-opale-section').value); document.getElementById('e-opale-section-corps').innerHTML = `<h3>${N.ech(sections[k].titre)}</h3>${sections[k].html}`; };
+    document.getElementById('e-opale-section').addEventListener('change', montrer); montrer();
+  }
+  function decouper(html) {
+    const bac = document.createElement('div'); bac.innerHTML = html;
+    const sections = []; let courante = null;
+    [...bac.childNodes].forEach((n) => {
+      if (n.nodeType === 1 && n.tagName === 'H2') { courante = { titre: n.textContent.trim(), html: '' }; sections.push(courante); return; }
+      if (!courante) { courante = { titre: 'Introduction', html: '' }; sections.push(courante); }
+      courante.html += n.outerHTML || n.textContent;
+    });
+    return sections.filter((x) => x.html.trim());
   }
   const paragraphes = (t) => String(t).split(/\n{2,}|\n/).filter(Boolean).map((p) => `<p>${N.ech(p)}</p>`).join('');
 
@@ -336,12 +381,12 @@
     fermerBulle();
     const pistes = (SUGGESTIONS[c.mode] || []).slice(0, 2);
     bulle = document.createElement('div');
-    bulle.className = 'e-opale-bulle'; bulle.setAttribute('role', 'status');
-    bulle.innerHTML = `<button type="button" class="e-opale-bulle-fermer" aria-label="Fermer">${N.ic('ic-croix')}</button>
+    bulle.className = 'e-opale-accueil'; bulle.setAttribute('role', 'status');
+    bulle.innerHTML = `<button type="button" class="e-opale-accueil-fermer" aria-label="Fermer">${N.ic('ic-croix')}</button>
       <p><b>Opale</b> ${N.ech(ACCUEILS[c.mode])}</p>
-      <div class="e-opale-bulle-pistes">${pistes.map((x) => `<button type="button" class="e-opale-puce">${N.ech(x)}</button>`).join('')}</div>`;
+      <div class="e-opale-accueil-pistes">${pistes.map((x) => `<button type="button" class="e-opale-puce">${N.ech(x)}</button>`).join('')}</div>`;
     document.body.appendChild(bulle);
-    bulle.querySelector('.e-opale-bulle-fermer').addEventListener('click', fermerBulle);
+    bulle.querySelector('.e-opale-accueil-fermer').addEventListener('click', fermerBulle);
     bulle.querySelectorAll('.e-opale-puce').forEach((b) => b.addEventListener('click', () => { const t = b.textContent; fermerBulle(); ouvrir(); envoyer(t); }));
     bulleMinuteur = setTimeout(fermerBulle, 14000);
   }

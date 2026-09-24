@@ -7,7 +7,7 @@ import { json, erreur, gerer, exigerSession, maintenant } from '../_commun.js';
 
 /* Une clé : des segments séparés par des points ; le dernier peut porter une référence
    de fiche (« maths/L01/cours »). Exemples : moi.carte, moi.trace.maths/L01/cours. */
-const CLE = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,3}(\.[a-z][a-z0-9-]*\/[A-Za-z0-9]+(\/[a-z]+)?)?$/;
+const CLE = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_-]*(\/[A-Za-z0-9]+)*){1,4}$/;
 const TAILLE_MAX = 20000;
 
 export async function lireProfil(DB) {

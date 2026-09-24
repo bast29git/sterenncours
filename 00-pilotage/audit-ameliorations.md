@@ -241,26 +241,26 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C2 · P1 · S** Le héros dit l'heure qu'il est et le temps restant avant la séance (« dans 2 h 10 »), pas seulement la date.
 - ✅ **C3 · P1 · S** Barre de navigation mobile en bas de l'écran, cinq icônes avec libellé, zone de pouce.
 - ✅ **C4 · P1 · S** Retour arrière cohérent : chaque écran a un seul bouton de retour, à la même place.
-- **C5 · P2 · S** Fil d'Ariane sur les fiches (Matière › Leçon › Fiche), cliquable.
-- **C6 · P2 · S** Recherche pour Sterenn : une leçon, un mot du cours, un jeu, depuis la barre du haut.
-- **C7 · P2 · S** Raccourcis clavier documentés : flèches dans les fiches, `Échap` partout, `?` pour l'aide.
-- **C8 · P2 · S** Mémoire du dernier écran : rouvrir l'application ramène où elle était, avec une ligne « tu étais ici ».
+- ✅ **C5 · P2 · S** Fil d'Ariane sur les fiches (Matière › Leçon › Fiche), cliquable.
+- ✅ **C6 · P2 · S** Recherche pour Sterenn : une leçon, un mot du cours, un jeu, depuis la barre du haut.
+- ✅ **C7 · P2 · S** Raccourcis clavier documentés : flèches dans les fiches, `Échap` partout, `?` pour l'aide.
+- ✅ **C8 · P2 · S** Mémoire du dernier écran : rouvrir l'application ramène où elle était, avec une ligne « tu étais ici ».
 - **C9 · P3 · S** Mode « une seule chose » : un bouton qui masque tout sauf le bloc en cours (le mode focus du panneau de confort, branché sur nos écrans).
-- **C10 · P3 · S** Page « Aide » écrite pour elle : douze questions, douze réponses de trois lignes.
+- ✅ **C10 · P3 · S** Page « Aide » écrite pour elle : douze questions, douze réponses de trois lignes.
 
 ### Fiches et lecture
 
 - ✅ **C11 · P1 · S** Reprendre où elle en était : la diapositive courante mémorisée côté serveur, pas seulement dans l'onglet.
 - ✅ **C12 · P1 · S** « Terminer » une fiche demande une trace : une phrase à écrire (« ce que je retiens ») ou trois cases, enregistrée et visible du professeur.
 - ✅ **C13 · P1 · S** Temps de lecture affiché par diapositive et total, à partir de la durée de la fiche.
-- **C14 · P2 · S** Lecture à voix haute par diapositive (voix du navigateur), bouton par bloc, vitesse réglable.
-- **C15 · P2 · S** Surligneur personnel : sélectionner un passage le garde en couleur (turquoise, bleu, violet), enregistré par fiche.
-- **C16 · P2 · S** Notes en marge : une note par diapositive, reprise dans un carnet « Mes notes » par matière.
-- **C17 · P2 · S** Mots difficiles : les mots des blocs « définition » soulignés dans le texte, définition au survol ou au toucher.
-- **C18 · P2 · S** Schémas agrandissables au clic, plein écran, avec zoom.
-- **C19 · P2 · S** Mode « une phrase à la fois » dans la diapositive : le texte s'affiche paragraphe par paragraphe sur demande.
-- **C20 · P2 · S** Largeur de lecture réglable (étroite, normale, large) et interligne à trois crans, dans le confort.
-- **C21 · P2 · S** Les blocs « pause » deviennent actifs : un minuteur de cinq minutes, une phrase pour reprendre.
+- ✅ **C14 · P2 · S** Lecture à voix haute par diapositive (voix du navigateur), bouton par bloc, vitesse réglable.
+- ✅ **C15 · P2 · S** Surligneur personnel : sélectionner un passage le garde en couleur (turquoise, bleu, violet), enregistré par fiche.
+- ✅ **C16 · P2 · S** Notes en marge : une note par diapositive, reprise dans un carnet « Mes notes » par matière.
+- ✅ **C17 · P2 · S** Mots difficiles : les mots des blocs « définition » soulignés dans le texte, définition au survol ou au toucher.
+- ✅ **C18 · P2 · S** Schémas agrandissables au clic, plein écran, avec zoom.
+- ✅ **C19 · P2 · S** Mode « une phrase à la fois » dans la diapositive : le texte s'affiche paragraphe par paragraphe sur demande.
+- ✅ **C20 · P2 · S** Largeur de lecture réglable (étroite, normale, large) et interligne à trois crans, dans le confort.
+- ✅ **C21 · P2 · S** Les blocs « pause » deviennent actifs : un minuteur de cinq minutes, une phrase pour reprendre.
 - **C22 · P3 · S** Résumé de fiche généré en trois phrases par Opale, affiché avant la première diapositive, validé par le professeur.
 - **C23 · P3 · S** Comparer deux fiches côte à côte sur grand écran (cours et révision).
 - **C24 · P3 · S** Version imprimable d'une fiche depuis l'écran, sans corrigé, mise en page identique au cahier.
@@ -270,12 +270,12 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 - ✅ **C26 · P1 · S** Écran de fin de série avec les questions ratées rejouables tout de suite, une par une, avant de revenir.
 - ✅ **C27 · P1 · S** Exercices 1 à 4 affichés en « mode séance » : un exercice par écran, chronomètre discret, bouton « on corrige ensemble ».
-- **C28 · P2 · S** Brouillon numérique sous chaque exercice sur écran (zone de texte libre, enregistrée), pour poser les calculs.
-- **C29 · P2 · S** Indice progressif : trois indices par question de série, du plus vague au plus précis, chacun coûte un point de score, jamais l'étoile.
-- **C30 · P2 · S** Répétition espacée : les questions ratées reviennent dans une série « à revoir » à J+2 et J+7, proposée sur l'accueil.
-- **C31 · P2 · S** Cahier à imprimer avec cases à cocher « fait » côté écran, pour suivre ce qui est rendu sur papier.
+- ✅ **C28 · P2 · S** Brouillon numérique sous chaque exercice sur écran (zone de texte libre, enregistrée), pour poser les calculs.
+- ✅ **C29 · P2 · S** Indice progressif : trois indices par question de série, du plus vague au plus précis, chacun coûte un point de score, jamais l'étoile.
+- ✅ **C30 · P2 · S** Répétition espacée : les questions ratées reviennent dans une série « à revoir » à J+2 et J+7, proposée sur l'accueil.
+- ✅ **C31 · P2 · S** Cahier à imprimer avec cases à cocher « fait » côté écran, pour suivre ce qui est rendu sur papier.
 - **C32 · P2 · S** Photo de la page du cahier rattachée à l'exercice (dépôt par exercice, pas seulement par leçon).
-- **C33 · P2 · S** Série chronométrée facultative avec temps par question suggéré, jamais imposé.
+- ✅ **C33 · P2 · S** Série chronométrée facultative avec temps par question suggéré, jamais imposé.
 - **C34 · P3 · S** Séries mélangées : dix questions prises dans trois leçons validées, pour entretenir.
 - **C35 · P3 · S** Défi du jour : une question par matière, une étoile bonus le vendredi si les cinq jours sont faits.
 - **C36 · P3 · M** Exercices à trous et à relier en plus des trois types (nouveau type `associer` et `trous` dans la banque et le lecteur).
@@ -285,18 +285,18 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 - ✅ **C38 · P1 · S** Écran d'évaluation avec chronomètre visible et alerte à mi-temps, démarré par elle, arrêté par elle.
 - ✅ **C39 · P1 · S** Dépôt de copie guidé : trois photos maximum, aperçu, recadrage, envoi en une fois, confirmation.
-- **C40 · P2 · S** Résultat d'évaluation rendu dans l'application : grille remplie par le professeur, mot, note, positionnement, et « ce que je refais ».
-- **C41 · P2 · S** Auto-positionnement avant la correction : elle coche ses huit critères, le professeur voit l'écart.
+- ✅ **C40 · P2 · S** Résultat d'évaluation rendu dans l'application : grille remplie par le professeur, mot, note, positionnement, et « ce que je refais ».
+- ✅ **C41 · P2 · S** Auto-positionnement avant la correction : elle coche ses huit critères, le professeur voit l'écart.
 - **C42 · P3 · S** Annales personnelles : ses évaluations passées relisibles, avec la copie et la correction.
 
 ### Étoiles, réussites, motivation
 
 - ✅ **C43 · P1 · S** Étoiles en attente : « il te manque une série pour la prochaine étoile » sur l'accueil, avec le lien.
 - ✅ **C44 · P1 · S** Paliers annoncés à l'avance : « à 12 étoiles, tu débloques la palette Faiseuse de livres » (une palette de couleurs par palier).
-- **C45 · P2 · S** Collection d'opales : chaque leçon validée ajoute une opale de la couleur de la matière à une vitrine, une par leçon, 72 au total.
-- **C46 · P2 · S** Série de jours : le compteur de jours consécutifs avec au moins une action, sans pénalité de rupture, juste un « reprise ».
-- **C47 · P2 · S** Bilan de semaine le vendredi : ce qui est acquis, en trois lignes, avec les mots exacts du professeur.
-- **C48 · P2 · S** Fond d'écran débloqué par palier : quatre aurores différentes, la quatrième à cinquante étoiles.
+- ✅ **C45 · P2 · S** Collection d'opales : chaque leçon validée ajoute une opale de la couleur de la matière à une vitrine, une par leçon, 72 au total.
+- ✅ **C46 · P2 · S** Série de jours : le compteur de jours consécutifs avec au moins une action, sans pénalité de rupture, juste un « reprise ».
+- ✅ **C47 · P2 · S** Bilan de semaine le vendredi : ce qui est acquis, en trois lignes, avec les mots exacts du professeur.
+- ✅ **C48 · P2 · S** Fond d'écran débloqué par palier : quatre aurores différentes, la quatrième à cinquante étoiles.
 - **C49 · P3 · S** Carte des progrès : les huit planètes s'allument leçon par leçon, visible sur le carrousel.
 - **C50 · P3 · S** Défis à deux : un défi proposé par le professeur (« trois séries cette semaine »), accepté ou refusé, une étoile bonus.
 - **C51 · P3 · S** Mots du professeur relus dans une page « Mon carnet », classés par matière.
@@ -304,10 +304,10 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 ### Messagerie
 
 - ✅ **C52 · P1 · S** Notification visible sans son : point rouge sur l'onglet, titre de page qui change, bandeau doux.
-- **C53 · P2 · S** Brouillon par fil (aujourd'hui un seul brouillon global).
-- **C54 · P2 · S** Message vocal court (30 secondes), transcrit par le navigateur si disponible.
-- **C55 · P2 · S** Envoi programmé pour elle aussi (« envoyer demain matin »).
-- **C56 · P2 · S** Réponse citée : répondre à un message précis, la citation en tête.
+- ✅ **C53 · P2 · S** Brouillon par fil (aujourd'hui un seul brouillon global).
+- ✅ **C54 · P2 · S** Message vocal court (30 secondes), transcrit par le navigateur si disponible.
+- ✅ **C55 · P2 · S** Envoi programmé pour elle aussi (« envoyer demain matin »).
+- ✅ **C56 · P2 · S** Réponse citée : répondre à un message précis, la citation en tête.
 - **C57 · P3 · S** Autocollants d'opale : six réactions dessinées dans la charte, en plus des émojis.
 - **C58 · P3 · S** Recherche dans les messages.
 
@@ -315,24 +315,24 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 - ✅ **C59 · P1 · S** Vue « aujourd'hui » dans la semaine : la journée en grand, les autres réduites, sur mobile.
 - ✅ **C60 · P1 · S** Rappel du temps personnel une heure avant (notification navigateur, si acceptée).
-- **C61 · P2 · S** Liste de matériel pour la prochaine séance, prise dans les fiches prévues.
-- **C62 · P2 · S** Temps personnel guidé : un écran qui enchaîne les deux fois quinze minutes avec un minuteur et deux tâches nommées.
-- **C63 · P2 · S** Absence : proposer directement un créneau de remplacement parmi ceux du professeur.
+- ✅ **C61 · P2 · S** Liste de matériel pour la prochaine séance, prise dans les fiches prévues.
+- ✅ **C62 · P2 · S** Temps personnel guidé : un écran qui enchaîne les deux fois quinze minutes avec un minuteur et deux tâches nommées.
+- ✅ **C63 · P2 · S** Absence : proposer directement un créneau de remplacement parmi ceux du professeur.
 - **C64 · P3 · S** Vue mois pour elle, avec les vacances et les évaluations.
 
 ### Choix
 
-- **C65 · P2 · S** Choix expliqué : chaque option dit en une phrase pourquoi elle est proposée maintenant.
-- **C66 · P2 · S** Aperçu de la fiche au survol de l'option (plan et durée).
+- ✅ **C65 · P2 · S** Choix expliqué : chaque option dit en une phrase pourquoi elle est proposée maintenant.
+- ✅ **C66 · P2 · S** Aperçu de la fiche au survol de l'option (plan et durée).
 - **C67 · P3 · S** Historique de ses choix, et ce qu'ils lui ont rapporté.
 
 ### Tutrice Opale
 
 - ✅ **C68 · P1 · S** Opale réagit au contexte sans qu'on lui demande : à l'ouverture d'une fiche, une phrase d'accueil et deux suggestions ; jamais plus.
-- **C69 · P2 · S** Mémoire de fil par leçon : la conversation se retrouve quand on revient sur la même fiche.
-- **C70 · P2 · S** Opale propose « on relit ensemble » : elle affiche la section citée dans son panneau.
-- **C71 · P2 · S** Mode « explique-moi comme à quelqu'un qui découvre » et « explique-moi plus court » : deux boutons sous chaque réponse.
-- **C72 · P2 · S** Calculatrice avec historique et copie du résultat dans le brouillon.
+- ✅ **C69 · P2 · S** Mémoire de fil par leçon : la conversation se retrouve quand on revient sur la même fiche.
+- ✅ **C70 · P2 · S** Opale propose « on relit ensemble » : elle affiche la section citée dans son panneau.
+- ✅ **C71 · P2 · S** Mode « explique-moi comme à quelqu'un qui découvre » et « explique-moi plus court » : deux boutons sous chaque réponse.
+- ✅ **C72 · P2 · S** Calculatrice avec historique et copie du résultat dans le brouillon.
 - **C73 · P3 · S** Convertisseur d'unités et tables de conjugaison dans le panneau, hors évaluation.
 - **C74 · P3 · S** Avatar d'Opale animé sobrement (clignement, sourire) coupé par le mode calme.
 
@@ -341,8 +341,8 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **C75 · P1 · S** Contrôle de contraste automatique sur les palettes : la variante foncée calculée par palette, vérifiée au build.
 - ✅ **C76 · P1 · S** Ordre de focus vérifié sur chaque écran, piège de focus dans les panneaux (Opale, choix, fête).
 - **C77 · P2 · S** Annonces vocales cohérentes : une seule région `aria-live` pour tous les bandeaux.
-- **C78 · P2 · S** Taille de police en trois crans dans la barre du haut, sans passer par le panneau.
-- **C79 · P2 · S** Police « lisible » appliquée aussi aux fiches et aux jeux, pas seulement à l'interface.
+- ✅ **C78 · P2 · S** Taille de police en trois crans dans la barre du haut, sans passer par le panneau.
+- ✅ **C79 · P2 · S** Police « lisible » appliquée aussi aux fiches et aux jeux, pas seulement à l'interface.
 - **C80 · P2 · S** Réduction des animations respectée dans les jeux 2D (certains ignorent la préférence).
 - **C81 · P3 · S** Sous-titres des sons : chaque son d'interface a un équivalent visuel.
 - **C82 · P3 · S** Curseur agrandi et règle de lecture dans les diapositives.
@@ -351,30 +351,30 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 - ✅ **C83 · P1 · S** Premier écran en moins de deux secondes : rendu de l'accueil dès `/api/etat`, données secondaires ensuite.
 - ✅ **C84 · P1 · S** Squelettes de chargement pour les fiches et les séries.
-- **C85 · P2 · S** Gestes : balayer pour changer de diapositive, tirer pour rafraîchir la semaine.
+- ✅ **C85 · P2 · S** Gestes : balayer pour changer de diapositive, tirer pour rafraîchir la semaine.
 - **C86 · P2 · S** Installable (manifeste complet, icônes, écran de démarrage), ouverture plein écran sur téléphone.
 - **C87 · P2 · S** Hors ligne : fiches ouvertes relisibles, réponses aux séries mises en file et envoyées au retour du réseau.
 - **C88 · P3 · S** Économie de données : fond d'écran désactivable, images différées.
 
 ### Identité et plaisir d'usage
 
-- **C89 · P2 · S** Illustrations d'opale par matière (huit gemmes, une par planète), utilisées dans les tuiles et les fêtes.
-- **C90 · P2 · S** Micro-animations utiles : coche qui se dessine, jauge qui avance, sans rebond ni secousse.
+- ✅ **C89 · P2 · S** Illustrations d'opale par matière (huit gemmes, une par planète), utilisées dans les tuiles et les fêtes.
+- ✅ **C90 · P2 · S** Micro-animations utiles : coche qui se dessine, jauge qui avance, sans rebond ni secousse.
 - **C91 · P2 · S** Sons courts et doux, quatre au total, réglables, désactivés par défaut en évaluation.
-- **C92 · P2 · S** Thème de saison : une teinte d'aurore différente par période, annoncée.
+- ✅ **C92 · P2 · S** Thème de saison : une teinte d'aurore différente par période, annoncée.
 - **C93 · P3 · S** Écran de fin de leçon validée : la page qui récapitule les quatre fiches, les étoiles, le mot du professeur.
 - **C94 · P3 · S** Fond d'écran choisi parmi les photographies déjà débloquées.
 
 ### Données personnelles et confiance
 
 - ✅ **C95 · P1 · S** Page « Ce que l'application sait de moi » : ses données listées, exportables, effaçables sur demande au professeur.
-- **C96 · P2 · S** Ce qui est vu par le professeur marqué d'une icône partout où elle écrit (notes, questions à Opale).
-- **C97 · P2 · S** Suppression d'un message envoyé par erreur dans les cinq minutes.
+- ✅ **C96 · P2 · S** Ce qui est vu par le professeur marqué d'une icône partout où elle écrit (notes, questions à Opale).
+- ✅ **C97 · P2 · S** Suppression d'un message envoyé par erreur dans les cinq minutes.
 - **C98 · P3 · S** Historique des connexions visible pour elle (« tu t'es connectée hier à 17 h »).
 
 ### Contenu vivant
 
-- **C99 · P2 · S** Un énoncé sur trois relié à ses univers, vérifié au build par un compteur de mots-clés par leçon (aujourd'hui ce n'est pas mesuré).
+- ✅ **C99 · P2 · S** Un énoncé sur trois relié à ses univers, vérifié au build par un compteur de mots-clés par leçon (aujourd'hui ce n'est pas mesuré).
 - **C100 · P3 · M** Une « fiche curiosité » par matière et par période (les aurores en physique, le papier en histoire, la ville en français), hors programme, sans étoile, pour le plaisir.
 
 ## 7. Axe D : jeux 2D (30)
