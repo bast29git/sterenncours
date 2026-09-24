@@ -232,6 +232,23 @@ body {
 .bloc-aide       { border-left-color: var(--texte-doux); }
 .bloc-info       { border-left-color: var(--trait-fort); }
 .bloc-materiel   { border-left-color: var(--texte-doux); }
+.bloc-audio      { border-left-color: #0f6b63; }
+.bloc-audio      > .bloc-titre { color: #0f6b63; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.bloc-audio .audio-ecouter {
+  margin-left: auto;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f6b63;
+  background: transparent;
+  border: 1.5px solid #0f6b63;
+  border-radius: 999px;
+  padding: 0.2rem 0.8rem;
+  cursor: pointer;
+}
+.bloc-audio .audio-ecouter[aria-pressed="true"] { background: #0f6b63; color: #fff; }
+.bloc-audio .audio-script p { font-style: normal; }
+@media print { .bloc-audio .audio-ecouter { display: none; } }
 .bloc-pause {
   border: 2px dashed var(--trait-fort);
   border-left-width: 2px;

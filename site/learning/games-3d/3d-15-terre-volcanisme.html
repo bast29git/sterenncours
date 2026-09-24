@@ -85,20 +85,20 @@ const R = 3.4;                 // rayon de la croûte (surface)
 // fractions de rayon (exagérées pour la lisibilité enfant)
 const FR = { inner:0.20, outer:0.42, mantle:0.90, crust:1.0 };
 const LAYERS = [
-  { id:'inner',  name:'Noyau interne', sub:'5 100 – 6 370 km', col:'#fff0c0', emis:1.15, r:FR.inner*R,
+  { id:'inner',  name:'Noyau interne', sub:'5 100 à 6 370 km', col:'#fff0c0', emis:1.15, r:FR.inner*R,
     facts:[['État','solide'],['Température','~5 400 °C'],['Matière','fer + nickel']],
     info:["Une boule de fer solide aussi chaude que la surface du Soleil : environ 5 400 °C !","L'énorme pression au centre de la Terre l'empêche de fondre malgré la chaleur."],
     fun:"C'est le point le plus profond de la Terre : impossible à visiter, on l'étudie grâce aux ondes des séismes." },
-  { id:'outer',  name:'Noyau externe', sub:'2 900 – 5 100 km', col:'#F5A623', emis:0.95, r:FR.outer*R,
+  { id:'outer',  name:'Noyau externe', sub:'2 900 à 5 100 km', col:'#F5A623', emis:0.95, r:FR.outer*R,
     facts:[['État','liquide'],['Rôle','champ magnétique'],['Matière','fer + nickel']],
     info:["Du métal liquide en fusion qui bouge sans arrêt. Ses courants créent le champ magnétique de la Terre.","Sans lui, pas de boussole… et pas de bouclier contre le vent solaire."],
     fun:"C'est ce noyau liquide qui fait pointer l'aiguille de ta boussole vers le Nord." },
-  { id:'mantle', name:'Manteau', sub:'70 – 2 900 km', col:'#c1440e', emis:0.30, r:FR.mantle*R,
+  { id:'mantle', name:'Manteau', sub:'70 à 2 900 km', col:'#c1440e', emis:0.30, r:FR.mantle*R,
     facts:[['Épaisseur','~2 800 km'],['État','roche molle'],['Mouvement','convection']],
     info:["La couche la plus épaisse, faite de roche brûlante qui s'écoule très, très lentement, comme du miel.","Ces lents mouvements de convection déplacent les plaques et nourrissent les volcans."],
     fun:"La roche du manteau met des millions d'années à faire un seul tour de « brassage »." },
-  { id:'crust',  name:'Croûte terrestre', sub:'0 – 70 km', col:'#3a7a4a', emis:0.0, r:FR.crust*R,
-    facts:[['Épaisseur','5 – 70 km'],['État','solide, fragile'],['On y vit','oui !']],
+  { id:'crust',  name:'Croûte terrestre', sub:'0 à 70 km', col:'#3a7a4a', emis:0.0, r:FR.crust*R,
+    facts:[['Épaisseur','5 à 70 km'],['État','solide, fragile'],['On y vit','oui !']],
     info:["La fine couche solide sur laquelle nous vivons. Très mince : comme la peau sur une pomme.","Elle est cassée en morceaux géants, les plaques tectoniques, qui glissent lentement."],
     fun:"Sous les océans la croûte n'a que ~7 km d'épaisseur ; sous les montagnes elle atteint 70 km." },
 ];

@@ -1,9 +1,9 @@
 /* ============================================================
-   KONSTRIO — Compagnon-tuteur & chatbot IA (v2)
+   KONSTRIO : Compagnon-tuteur & chatbot IA (v2)
    <konstrio-buddy emotion message context [inline] [collapsed] [chat] [show-hint] [show-why] [endpoint]>
    - Avatar robot voxel SVG animé (12 émotions, expressions yeux + antenne + bouche parlante)
    - Bulle repliable (réduire / agrandir), aria-live, sous-titres
-   - Voix conversationnelle GRATUITE (Web Speech API, fr-FR) — désactivable
+   - Voix conversationnelle GRATUITE (Web Speech API, fr-FR) : désactivable
    - Chatbot : el.ask(prompt) → window.claude.complete OU endpoint Workers AI OU évènement 'ask'
    - Contextualisé par zone (attribut context) pour toute la suite Konstrio
    - API rétro-compatible : emotion, message, say(t,e,{speak}), celebrate(), toggle(), muted

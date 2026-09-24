@@ -1075,6 +1075,9 @@ html[data-tuteur="0"] .e-opale-bouton, html[data-tuteur="0"] .e-opale { display:
 :is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-piege > .bloc-titre { color: #F5A99A; }
 :is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-retenir > .bloc-titre { color: #F2C77A; }
 :is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-methode > .bloc-titre { color: #8FD9CD; }
+:is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-audio > .bloc-titre { color: #8FD9CD; }
+:is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-audio .audio-ecouter { color: #8FD9CD; border-color: #8FD9CD; }
+:is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-audio .audio-ecouter[aria-pressed="true"] { background: #8FD9CD; color: #10221f; }
 :is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-objectif > .bloc-titre, :is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-plan > .bloc-titre { color: var(--e-encre); }
 :is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-definition { border-left-color: #8FC1F0; }
 :is([data-theme="dark"], [data-theme="chaud"]) .e-fiche .bloc-formule { border-left-color: #C9B3F5; }

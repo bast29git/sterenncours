@@ -178,6 +178,30 @@
             "Calcul d'une longueur",
             "Calcul d'un angle avec cos⁻¹"
           ]
+        },
+        {
+          "ref": "L14",
+          "dossier": "L14-triangles-semblables",
+          "titre": "Triangles semblables, agrandissement et réduction",
+          "periode": 4,
+          "notions": [
+            "Triangles semblables : angles égaux, côtés proportionnels",
+            "Coefficient d'agrandissement ou de réduction",
+            "Calcul d'une longueur par la proportionnalité",
+            "Effet sur les aires"
+          ]
+        },
+        {
+          "ref": "L15",
+          "dossier": "L15-reperage-espace",
+          "titre": "Se repérer dans l'espace : le pavé droit",
+          "periode": 5,
+          "notions": [
+            "Repère du plan : abscisse et ordonnée",
+            "Repère de l'espace : la cote",
+            "Coordonnées des sommets d'un pavé droit",
+            "Lire et placer un point dans l'espace"
+          ]
         }
       ]
     },
@@ -335,6 +359,42 @@
             "Personnification, énumération, contraste",
             "Promesse et menace",
             "Poème en prose, flâneur, allégorie"
+          ]
+        },
+        {
+          "ref": "L12",
+          "dossier": "L12-oeuvre-le-horla",
+          "titre": "Œuvre intégrale : Le Horla, de Maupassant",
+          "periode": 3,
+          "notions": [
+            "Lire une nouvelle fantastique en entier",
+            "Le journal intime comme forme du récit",
+            "Le doute : réel ou surnaturel ?",
+            "Le narrateur à la première personne et sa fiabilité"
+          ]
+        },
+        {
+          "ref": "L13",
+          "dossier": "L13-oeuvre-cyrano",
+          "titre": "Œuvre intégrale : Cyrano de Bergerac, d'Edmond Rostand",
+          "periode": 4,
+          "notions": [
+            "Lire une pièce de théâtre en entier",
+            "Le héros et ses valeurs : panache, honneur, sincérité",
+            "Tirade, réplique, aparté",
+            "Le conflit entre l'individu et le regard des autres"
+          ]
+        },
+        {
+          "ref": "L14",
+          "dossier": "L14-oeuvre-les-miserables",
+          "titre": "Œuvre intégrale : Les Misérables, de Victor Hugo",
+          "periode": 2,
+          "notions": [
+            "Lire un roman long par un parcours de chapitres",
+            "Personnages : Jean Valjean, Fantine, Cosette, Gavroche, Javert",
+            "Le roman qui interroge le réel : misère, justice, ville",
+            "Description réaliste et point de vue du narrateur"
           ]
         }
       ]
@@ -566,6 +626,44 @@
             "Ressources",
             "Risques",
             "Gestion durable"
+          ]
+        },
+        {
+          "ref": "L08",
+          "dossier": "L08-systeme-nerveux",
+          "titre": "Le système nerveux et la commande du mouvement",
+          "periode": 3,
+          "notions": [
+            "Organes des sens et récepteurs",
+            "Nerfs, message nerveux, centres nerveux",
+            "Cerveau et moelle épinière",
+            "Muscles : effecteurs du mouvement",
+            "Sommeil, écrans et substances : ce qui perturbe le système nerveux"
+          ]
+        },
+        {
+          "ref": "L09",
+          "dossier": "L09-nutrition",
+          "titre": "La nutrition : digestion, respiration, circulation",
+          "periode": 4,
+          "notions": [
+            "Besoins des organes : nutriments et oxygène",
+            "Digestion et absorption intestinale",
+            "Échanges gazeux dans les poumons",
+            "Le sang et la circulation",
+            "Équilibre alimentaire"
+          ]
+        },
+        {
+          "ref": "L10",
+          "dossier": "L10-monde-microbien",
+          "titre": "Le monde microbien et la santé",
+          "periode": 5,
+          "notions": [
+            "Bactéries, virus, champignons : des êtres vivants microscopiques",
+            "Microbes utiles et microbes pathogènes",
+            "Contamination, infection, défenses de l'organisme",
+            "Antibiotiques, vaccins, gestes d'hygiène"
           ]
         }
       ]
@@ -924,6 +1022,30 @@
             "Exposé",
             "Compréhension de documents"
           ]
+        },
+        {
+          "ref": "L09",
+          "dossier": "L09-listening-everyday",
+          "titre": "Listening 1 : understanding everyday situations",
+          "periode": 2,
+          "notions": [
+            "Repérer les mots clés d'un dialogue",
+            "Comprendre une annonce, un message, une consigne",
+            "Nombres, heures, prix, dates à l'oral",
+            "Stratégies : anticiper, écouter deux fois, noter"
+          ]
+        },
+        {
+          "ref": "L10",
+          "dossier": "L10-listening-stories",
+          "titre": "Listening 2 : understanding stories and news",
+          "periode": 4,
+          "notions": [
+            "Comprendre un récit court au passé",
+            "Suivre un reportage ou une interview simple",
+            "Repérer l'opinion et le ton",
+            "Reformuler ce qu'on a compris"
+          ]
         }
       ]
     },
@@ -1037,6 +1159,30 @@
             "Fêtes",
             "Traditions",
             "Exposé"
+          ]
+        },
+        {
+          "ref": "L09",
+          "dossier": "L09-comprension-cotidiana",
+          "titre": "Comprensión oral 1 : la vida cotidiana",
+          "periode": 2,
+          "notions": [
+            "Repérer les mots clés d'un diálogo",
+            "Comprendre une présentation, une consigne, un message",
+            "Nombres, heures et prix à l'oral",
+            "Stratégies : anticiper, écouter deux fois, noter"
+          ]
+        },
+        {
+          "ref": "L10",
+          "dossier": "L10-comprension-relatos",
+          "titre": "Comprensión oral 2 : relatos y noticias",
+          "periode": 4,
+          "notions": [
+            "Comprendre un récit court au passé",
+            "Suivre une notice ou une entrevue simple",
+            "Repérer l'opinion et l'intention",
+            "Reformuler en français ce qu'on a compris"
           ]
         }
       ]

@@ -653,7 +653,7 @@ function buildUI(){
   stage.appendChild(hint);
 }
 function metricRow(id, label, unit){
-  return `<div class="nu-metric"><div class="nu-mrow"><span class="k">${label}</span><span class="v" id="num-${id}">–</span></div><div class="nu-gauge"><i id="nug-${id}"></i></div></div>`;
+  return `<div class="nu-metric"><div class="nu-mrow"><span class="k">${label}</span><span class="v" id="num-${id}">-</span></div><div class="nu-gauge"><i id="nug-${id}"></i></div></div>`;
 }
 function setRods(v){ rods = v; scram = false; const el = document.getElementById('nuRods'); if(el) el.value = v; const lbl = document.getElementById('nuRodsV'); if(lbl) lbl.textContent = Math.round(v)+'%'; }
 
@@ -792,7 +792,7 @@ const CHALLS = [
   { type:'click', target:'turbine', tier:0, title:'Vapeur → électricité', ask:"Quel composant transforme la vapeur en électricité ? Clique-le.", done:"Exact : la turbine entraîne l'alternateur qui produit l'électricité." },
   { type:'click', target:'rods', tier:0, title:'Le frein du réacteur', ask:"À quoi sert-on pour régler la puissance ? Clique les BARRES DE CONTRÔLE.", done:"Bien vu ! Les barres absorbent les neutrons et pilotent la réaction." },
   { type:'click', target:'tower', tier:0, title:'Le panache blanc', ask:"Clique ce qui laisse échapper le panache de VAPEUR D'EAU.", done:"Oui : la tour de refroidissement évacue la chaleur : c'est de la vapeur d'eau, pas de la fumée." },
-  { type:'power', tier:1, title:'Pilotage fin', ask:"Règle la PUISSANCE à 900 MW (850–950) sans surchauffer, et tiens 10 s.", done:"Parfait : réaction critique, stable et sûre à 900 MW !" },
+  { type:'power', tier:1, title:'Pilotage fin', ask:"Règle la PUISSANCE à 900 MW (850-950) sans surchauffer, et tiens 10 s.", done:"Parfait : réaction critique, stable et sûre à 900 MW !" },
   { type:'scram', tier:1, title:'Arrêt d\'urgence', ask:"Déclenche un SCRAM (bouton rouge ou barre Espace).", done:"Bravo ! Les barres tombent et la réaction s'arrête net : la sûreté d'abord." },
   { type:'click', target:'steamgen', tier:1, title:'Fabriquer la vapeur', ask:"Clique le composant qui transforme l'eau en VAPEUR.", done:"Exact : le générateur de vapeur : un échangeur entre primaire et secondaire." },
   { type:'click', target:'containment', tier:2, title:'Confiner la radioactivité', ask:"Clique la BARRIÈRE en béton qui confine la radioactivité.", done:"Oui ! L'enceinte de confinement : la dernière barrière de la défense en profondeur." },

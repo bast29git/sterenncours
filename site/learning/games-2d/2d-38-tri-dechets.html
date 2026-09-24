@@ -80,7 +80,7 @@ const shell = window.Konstrio.createGame({
     greet:"Devenons écolo-malins ! Attrape chaque déchet et dépose-le dans la bonne poubelle. Je t'explique à chaque fois pourquoi.",
     rule:"Bien trier, c'est permettre le recyclage. Fais glisser chaque déchet dans la bonne poubelle : <b>emballages</b>, <b>verre</b>, <b>compost</b>, <b>ordures</b> ou <b>déchèterie</b>.",
     how:["Attrape le déchet au centre et dépose-le sur la bonne poubelle.","Bonne poubelle = points et bravo ; mauvaise = Konstrio t'explique la règle.","Au clavier : touches 1 à 5 pour envoyer le déchet dans la poubelle correspondante."],
-    keys:"Touches 1–5 = les cinq poubelles, dans l'ordre affiché.",
+    keys:"Touches 1-5 = les cinq poubelles, dans l'ordre affiché.",
     objectif:"Trier correctement 12 déchets et connaître les 5 grandes familles de tri.",
     hint:"Un emballage (plastique, métal, carton, brique) va au bac jaune. Le verre a son propre conteneur.",
     why:"Trier économise des matières premières et de l'énergie : recycler une tonne d'aluminium évite d'extraire 4 tonnes de minerai !"
@@ -102,7 +102,7 @@ function build(api){
     <div class="tr-top">
       <div class="tr-queue" id="trQueue"></div>
       <div class="tr-item" id="trItem" tabindex="0" role="button" aria-label="Déchet à trier"></div>
-      <div class="tr-instr">Glisse-moi vers la bonne poubelle 👇 (ou tape 1–5)</div>
+      <div class="tr-instr">Glisse-moi vers la bonne poubelle 👇 (ou tape 1-5)</div>
     </div>
     <div class="tr-bins" id="trBins"></div>`;
   api.stage.appendChild(stageEl);

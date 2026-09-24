@@ -1,5 +1,5 @@
 /* ============================================================
-   KONSTRIO — audio-engine.js (§32.2 / §31.4)
+   KONSTRIO : audio-engine.js (§32.2 / §31.4)
    Couche audio commune des 20 jeux 3D (et utilisable en 2D).
    - Web Audio NATIF (aucune dépendance, aucun fichier son requis :
      identité sonore procédurale → reste auto-hébergé & sans licence).

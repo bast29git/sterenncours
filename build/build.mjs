@@ -42,6 +42,7 @@ const TRACES = {
   horloge:  '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>',
   main:     '<path d="M16.1 3.9a2.2 2.2 0 0 1 3.1 3.1L8.3 17.9 4 19.3l1.4-4.3Z"/><path d="M14.4 5.6 17.6 8.8"/>',
   ecran:    '<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/>',
+  son:      '<path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5Z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/>',
 };
 const picto = (nom) => '<svg class="ic-bloc" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
   + TRACES[nom] + '</svg>';
@@ -137,6 +138,24 @@ for (const [nom, def] of Object.entries(BLOCS)) {
     },
   });
 }
+
+// ::: audio en-GB Titre optionnel  → script d'écoute, lu à voix haute par le
+// navigateur dans la langue indiquée (bouton branché par lecteur.js). Le texte
+// reste lisible et imprimable : la transcription est le document lui-même.
+md.use(container, 'audio', {
+  render(tokens, idx) {
+    if (tokens[idx].nesting !== 1) return '</div>\n</div>\n';
+    const args = tokens[idx].info.trim().slice('audio'.length).trim();
+    const m = args.match(/^([a-z]{2}(?:-[A-Z]{2})?)\s*(.*)$/);
+    const langue = m ? m[1] : 'fr-FR';
+    const titre = m && m[2] ? m[2] : 'Script à écouter';
+    return `<div class="bloc bloc-audio" data-audio-langue="${echapper(langue)}">\n`
+         + `<p class="bloc-titre"><span class="picto" aria-hidden="true">${picto('son')}</span>`
+         + `<span>Écoute : ${echapper(titre)}</span>`
+         + `<button type="button" class="audio-ecouter" data-ecouter="${echapper(langue)}" aria-pressed="false">Écouter</button></p>\n`
+         + `<div class="audio-script" lang="${echapper(langue.slice(0, 2))}">\n`;
+  },
+});
 
 // ::: exercice 3 | entrainement | 10 min
 md.use(container, 'exercice', {
@@ -917,7 +936,10 @@ function construireCahiers(programme) {
       while ((t = re.exec(html))) {
         if (!t[0].includes('support-main')) continue;
         // Sur papier, pas de renvoi au corrigé : l'espace de réponse suffit.
-        sections.push(t[0].replace(/<p class="corrige-cache">[\s\S]*?<\/p>/g, ''));
+        // Un script d'écoute ne s'imprime pas : on l'écoute dans le site, on écrit sur le cahier.
+        sections.push(t[0].replace(/<p class="corrige-cache">[\s\S]*?<\/p>/g, '')
+          .replace(/<button type="button" class="audio-ecouter"[^>]*>Écouter<\/button>/g, '')
+          .replace(/<div class="audio-script"[^>]*>[\s\S]*?<\/div>\n<\/div>/g, '<div class="audio-script"><p><em>Script à écouter dans le site, avec le bouton Écouter, autant de fois que nécessaire. Le texte n\'est pas imprimé : on écrit ses réponses ici après l\'écoute.</em></p></div>\n</div>'));
       }
       if (!sections.length) continue;
       const dossier = path.join(racine, m.id);

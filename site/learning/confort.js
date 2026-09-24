@@ -1,5 +1,5 @@
 /* ============================================================================
- * confort.js — « Accessibilité & confort » du Learning Hub (vitrine).
+ * confort.js : « Accessibilité & confort » du Learning Hub (vitrine).
  *
  * Panneau d'accessibilité pensé pour les enfants EN DIFFICULTÉ (scolaire
  * classique) ET NEURO-ATYPIQUES (dys-, TDAH, TSA, malvoyance). 100 % autonome
@@ -9,9 +9,9 @@
  *
  * Organisation : bouton d'accessibilité universel (pictogramme ISO « personne »)
  * toujours visible + panneau en 2 onglets :
- *  — « Profils » : presets 1-clic (Dyslexie, Concentration/TDAH, Sérénité/autisme,
+ *  : « Profils » : presets 1-clic (Dyslexie, Concentration/TDAH, Sérénité/autisme,
  *    Grand texte/malvoyance, Neutre), modifiables ensuite finement ;
- *  — « Réglages fins » : police lisible, taille (4 crans), interligne (3 crans),
+ *  : « Réglages fins » : police lisible, taille (4 crans), interligne (3 crans),
  *    lettres espacées, thème (auto/clair/sombre/crème), contraste élevé, moins
  *    d'animations, grand curseur, règle de lecture, masque de lecture, lecture
  *    audio (vitesse lente/normale), sons on/off, minuteur de pauses bienveillant
@@ -290,7 +290,7 @@
     remindEl.setAttribute('role', 'alertdialog');
     remindEl.setAttribute('aria-label', 'Pause conseillée');
     remindEl.innerHTML =
-      '<p>Tu travailles depuis ' + mins + ' min — une petite pause ? Bouge un peu, bois de l\'eau, regarde au loin. Tu reprendras encore mieux.</p>' +
+      '<p>Tu travailles depuis ' + mins + ' min : une petite pause ? Bouge un peu, bois de l\'eau, regarde au loin. Tu reprendras encore mieux.</p>' +
       '<div class="cf-actions">' +
         '<button class="cf-btn primary" data-pz-ok>Je fais une pause</button>' +
         '<button class="cf-btn" data-pz-later>Encore 5 min</button>' +
@@ -442,7 +442,7 @@
   }
 
   function profPane() {
-    var h = '<p style="margin:0 0 12px;font-size:.8rem;color:var(--fg-muted,var(--color-ink-mute,#666));line-height:1.5">Choisis un profil en 1 clic — il applique plusieurs réglages d\'un coup. Tu peux ensuite tout ajuster dans « Réglages fins ».</p>';
+    var h = '<p style="margin:0 0 12px;font-size:.8rem;color:var(--fg-muted,var(--color-ink-mute,#666));line-height:1.5">Choisis un profil en 1 clic : il applique plusieurs réglages d\'un coup. Tu peux ensuite tout ajuster dans « Réglages fins ».</p>';
     for (var i = 0; i < PROFILS.length; i++) {
       var p = PROFILS[i];
       var on = state.profil === p.id && (p.id !== '' || false);

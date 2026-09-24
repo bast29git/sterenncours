@@ -1,5 +1,5 @@
 /* ============================================================
-   KONSTRIO — Trophées & Achievements (XP, badges, secrets)
+   KONSTRIO : Trophées & Achievements (XP, badges, secrets)
    + Boucle de rétention quotidienne :
      · Objectifs du jour (3 mini-quêtes déterministes par date, récompense
        bonus XP + 1 ticket 🎫)
@@ -35,16 +35,16 @@
     { id:'iss', icon:'🛰️', name:'Houston, ça capte', desc:'Repérer la Station spatiale dans le système solaire.', secret:true },
     { id:'astronomer', icon:'🔭', name:'Astronome', desc:'Ouvrir la vue planétarium.', secret:true },
     { id:'completionist', icon:'👑', name:'Légende Konstrio', desc:'Jouer aux 60 jeux de l’arcade.', secret:true },
-    // Parcours « façon Duolingo » (langues & matières) — débloqués par le joueur de leçon.
+    // Parcours « façon Duolingo » (langues & matières) : débloqués par le joueur de leçon.
     { id:'lang_first', icon:'🗣️', name:'Premier mot', desc:'Terminer ta toute première leçon de parcours.' },
     { id:'lang_check', icon:'📋', name:'Connaissances validées', desc:'Réussir un contrôle de connaissances.' },
     { id:'lang_perfect', icon:'💎', name:'Sans-faute (parcours)', desc:'Terminer une leçon de parcours à 100 %.' },
     { id:'streak7', icon:'🔥', name:'Une semaine en feu', desc:'Tenir une série de 7 jours d’affilée.', secret:true },
-    // Séquences du Programme (lecon-player) — déclenchés par le lecteur via unlock().
+    // Séquences du Programme (lecon-player) : déclenchés par le lecteur via unlock().
     { id:'controle-parfait', icon:'💯', name:'Sans faute', desc:'Réussir un contrôle de séquence à 100 %.' },
     { id:'prog-complet', icon:'📚', name:'Programme terminé', desc:'Terminer les 3 séquences d’un même programme.' },
     { id:'niveau-complet', icon:'🏆', name:'Champion d’un niveau', desc:'Terminer toutes les séquences d’un niveau.' },
-    // Compagnon (avatar) — déclenchés via unlock() par lecon-player.js / avatar.js (jamais re-crédités).
+    // Compagnon (avatar) : déclenchés via unlock() par lecon-player.js / avatar.js (jamais re-crédités).
     { id:'fidele', icon:'🐾', name:'Inséparables', desc:'Jouer 10 séquences avec ton compagnon à tes côtés.' },
     { id:'styliste', icon:'🎨', name:'Question de style', desc:'Équiper 3 cosmétiques sur ton compagnon.' },
     // Boucle quotidienne
@@ -170,10 +170,10 @@
         else if (gap === 1) st.count++;
         else if (gap === 2 && st.freezes > 0) {
           st.freezes--; st.count++; st.savedOn = d;
-          toast({ icon:'🧊', name:'Série sauvée !', desc:'Ton gel a couvert le jour manqué — ta série continue.' }, 'Gel de série');
+          toast({ icon:'🧊', name:'Série sauvée !', desc:'Ton gel a couvert le jour manqué : ta série continue.' }, 'Gel de série');
         } else {
           st.lostFrom = st.count;
-          if (st.count >= 3) toast({ icon:'🌱', name:'Ta série repart', desc: st.count >= 7 ? 'Ton gel t’a manqué de peu ! Chaque jour compte, on repart ensemble.' : 'Pas grave du tout — aujourd’hui compte déjà pour ta nouvelle série.' }, 'Série');
+          if (st.count >= 3) toast({ icon:'🌱', name:'Ta série repart', desc: st.count >= 7 ? 'Ton gel t’a manqué de peu ! Chaque jour compte, on repart ensemble.' : 'Pas grave du tout : aujourd’hui compte déjà pour ta nouvelle série.' }, 'Série');
           st.count = 1;
         }
       }
@@ -187,12 +187,12 @@
           toast({ icon:'🧊', name:'+1 gel de série', desc:'Semaine complète ! Ce gel protégera ta série si tu rates un jour.' }, 'Récompense');
         }
       }
-      // Semaine (coffre) — la semaine change → nouvelle jauge.
+      // Semaine (coffre) : la semaine change → nouvelle jauge.
       if (state.week.key !== weekKey()) state.week = { key: weekKey(), days: [], claimed:false, opened: state.week.opened||0 };
       if (state.week.days.indexOf(d) < 0) {
         state.week.days.push(d);
         if (state.week.days.length === 7 && !state.week.claimed)
-          toast({ icon:'🎁', name:'Coffre de la semaine prêt !', desc:'7 jours d’activité — ouvre ton coffre sur la page Avatar.' }, 'Coffre');
+          toast({ icon:'🎁', name:'Coffre de la semaine prêt !', desc:'7 jours d’activité : ouvre ton coffre sur la page Avatar.' }, 'Coffre');
       }
       // Saison : 1 jour actif = +1 au compteur de la saison en cours.
       const sn = seasonOf();

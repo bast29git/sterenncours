@@ -92,7 +92,7 @@ const COL = { cold:0x2ea6ff, hot:0xE6633A, ok:0x35E08A, amber:0xF5A623, red:0xE6
 /* ====== FICHES PÉDAGOGIQUES ====== */
 const EQUIP = {
   rack:{ icon:'🖥️', name:'Baie de serveurs', sub:'Rack · puissance de calcul', color:'#1E8C7A',
-    stats:[['Format','42 U (rack standard)'],['Serveurs','~20 lames 1U/2U'],['CPU / lame','2 × 32 cœurs'],['RAM / lame','256–512 Go'],['Disques','NVMe SSD'],['Rôle','calcul & hébergement']],
+    stats:[['Format','42 U (rack standard)'],['Serveurs','~20 lames 1U/2U'],['CPU / lame','2 × 32 cœurs'],['RAM / lame','256-512 Go'],['Disques','NVMe SSD'],['Rôle','calcul & hébergement']],
     desc:["Une baie (ou « rack ») empile des dizaines de serveurs dans une armoire métallique. Chaque serveur est un ordinateur : processeurs (CPU), mémoire (RAM) et disques.","Les LED vertes clignotent au rythme de l'activité : plus la charge monte, plus elles s'agitent. Un serveur en panne passe au rouge, mais ses voisins prennent le relais."],
     fun:"Un seul rack moderne peut aligner plus de 1 000 cœurs de calcul et téraoctets de RAM." },
   storage:{ icon:'💽', name:'Baie de stockage', sub:'Stockage · disques en RAID', color:'#2E7FD6',
@@ -100,7 +100,7 @@ const EQUIP = {
     desc:["La baie de stockage garde toutes les données : bases de données, fichiers, sauvegardes. Les disques sont groupés en RAID.","Le RAID duplique l'information sur plusieurs disques : si l'un lâche, aucune donnée n'est perdue et on le remplace à chaud."],
     fun:"En RAID, on peut retirer un disque en panne sans éteindre la baie : les données restent accessibles." },
   switch:{ icon:'🔀', name:'Switch (commutateur)', sub:'Réseau local · aiguillage', color:'#29B6E0',
-    stats:[['Rôle','relier les serveurs'],['Adresse lue','MAC'],['Ports','24–48 (souvent)'],['Débit','10–100 Gb/s'],['Redondance','2 switchs (A + B)'],['Emplacement','haut de baie (ToR)']],
+    stats:[['Rôle','relier les serveurs'],['Adresse lue','MAC'],['Ports','24-48 (souvent)'],['Débit','10-100 Gb/s'],['Redondance','2 switchs (A + B)'],['Emplacement','haut de baie (ToR)']],
     desc:["Le switch relie les serveurs d'une même rangée et aiguille les paquets vers le bon port grâce à l'adresse MAC.","Ici, deux switchs (A et B) fonctionnent en parallèle : si l'un tombe, le trafic bascule instantanément sur l'autre (failover)."],
     fun:"Un switch de datacenter peut commuter des milliards de paquets par seconde sans jamais souffler." },
   router:{ icon:'🧭', name:'Routeur', sub:'Aiguilleur inter-réseaux', color:'#6E6BFF',
@@ -116,7 +116,7 @@ const EQUIP = {
     desc:["L'onduleur (UPS) contient de grosses batteries. En cas de coupure de courant, il alimente instantanément les serveurs : sans la moindre interruption.","Il tient le temps que le générateur diesel démarre : la chaîne d'énergie ne s'arrête jamais."],
     fun:"Un datacenter double tout : deux arrivées électriques, deux UPS, deux chemins : c'est la haute disponibilité." },
   generator:{ icon:'⚡', name:'Générateur', sub:'Énergie · autonomie longue', color:'#94A0B4',
-    stats:[['Rôle','produire de l\'électricité'],['Carburant','diesel / gaz'],['Démarrage','~10–15 s'],['Autonomie','heures → jours'],['Relais de','l\'onduleur'],['Test','démarrage régulier']],
+    stats:[['Rôle','produire de l\'électricité'],['Carburant','diesel / gaz'],['Démarrage','~10-15 s'],['Autonomie','heures → jours'],['Relais de','l\'onduleur'],['Test','démarrage régulier']],
     desc:["Le générateur prend le relais de l'onduleur lors d'une coupure prolongée. Il produit sa propre électricité tant que dure la panne du réseau.","On le teste régulièrement pour être sûr qu'il démarrera le jour où il faudra."],
     fun:"Les datacenters stockent assez de carburant pour tenir des jours sans électricité du réseau." },
   crac:{ icon:'❄️', name:'Groupe froid (CRAC)', sub:'Climatisation · refroidissement', color:'#3AC7C7',
@@ -579,7 +579,7 @@ function buildUI(){
   stage.appendChild(hint);
 }
 function metricRow(id, label, unit){
-  return `<div class="dc-metric"><div class="dc-mrow"><span class="k">${label}</span><span class="v" id="dcm-${id}">–</span></div><div class="dc-gauge"><i id="dcg-${id}"></i></div></div>`;
+  return `<div class="dc-metric"><div class="dc-mrow"><span class="k">${label}</span><span class="v" id="dcm-${id}">-</span></div><div class="dc-gauge"><i id="dcg-${id}"></i></div></div>`;
 }
 
 /* ====== TÉLÉMÉTRIE ====== */

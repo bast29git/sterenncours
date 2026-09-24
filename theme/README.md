@@ -20,6 +20,7 @@ Syntaxe : `::: nom Titre optionnel` … `:::`
 | `aide` | 🆘 | Coup de pouce | Indice, sans donner la réponse |
 | `pause` | 🔁 | Pause conseillée | Point d'arrêt sans perte du fil |
 | `info` | ℹ️ | Bon à savoir | Complément non exigible |
+| `audio en-GB Titre` | 🔊 | Écoute | Script d'écoute lu à voix haute par le navigateur dans la langue donnée (langues vivantes) |
 
 ## Blocs de structure
 

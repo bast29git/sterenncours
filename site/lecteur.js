@@ -95,5 +95,33 @@
     return api;
   }
 
+  /* Scripts d'écoute (::: audio) : lecture à voix haute dans la langue du bloc,
+     à une vitesse un peu lente la première fois, normale ensuite. Un seul
+     script joue à la fois ; un clic sur le bouton actif arrête la lecture. */
+  const LANGUES_AUDIO = { en: 'en-GB', es: 'es-ES', fr: 'fr-FR', de: 'de-DE' };
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-ecouter]');
+    if (!b) return;
+    if (!window.speechSynthesis) { b.disabled = true; b.textContent = 'Lecture indisponible'; return; }
+    const tous = () => document.querySelectorAll('[data-ecouter][aria-pressed="true"]').forEach((x) => { x.setAttribute('aria-pressed', 'false'); x.textContent = 'Écouter'; });
+    if (b.getAttribute('aria-pressed') === 'true') { speechSynthesis.cancel(); tous(); return; }
+    speechSynthesis.cancel(); tous();
+    const bloc = b.closest('.bloc-audio');
+    const script = bloc && bloc.querySelector('.audio-script');
+    const texte = script ? [...script.querySelectorAll('p, li, dt, dd, td')].map((e) => e.textContent.trim()).filter(Boolean).join('. ') : '';
+    if (!texte) return;
+    const code = b.getAttribute('data-ecouter') || 'fr-FR';
+    const u = new SpeechSynthesisUtterance(texte);
+    u.lang = code.length === 2 ? (LANGUES_AUDIO[code] || code) : code;
+    const voix = speechSynthesis.getVoices().filter((v) => v.lang.replace('_', '-').toLowerCase().startsWith(u.lang.slice(0, 2).toLowerCase()));
+    if (voix.length) u.voice = voix.find((v) => v.lang.replace('_', '-') === u.lang) || voix[0];
+    const deja = bloc.getAttribute('data-ecoute-faite') === '1';
+    u.rate = deja ? 1 : 0.85;
+    u.onend = () => { b.setAttribute('aria-pressed', 'false'); b.textContent = 'Écouter'; bloc.setAttribute('data-ecoute-faite', '1'); };
+    u.onerror = u.onend;
+    b.setAttribute('aria-pressed', 'true'); b.textContent = 'Arrêter';
+    speechSynthesis.speak(u);
+  });
+
   window.LECTEUR = { decouper, monter, titreCourt };
 })();
