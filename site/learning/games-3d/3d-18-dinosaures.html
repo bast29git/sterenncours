@@ -173,7 +173,7 @@ const ERA_SET=[
   ['brachiosaure','diplodocus','stegosaure','allosaure','archaeopteryx','pterosaure'],
   ['trex','triceratops','velociraptor','ankylosaure','parasaurolophus','spinosaure','quetzalcoatlus'],
 ];
-const MAXLEN=27; // Diplodocus — référence pour la jauge de taille
+const MAXLEN=27; // Diplodocus : référence pour la jauge de taille
 
 let era=1, scaleHuman=false, labelsOn=true, mode='detente', impacted=false, skeletonOn=false, focusKey=null;
 let scene,camera,renderer,controls,raycaster,pointer,ground,human,volcano,smoke,skyDome,sunSprite,sunLight,hemi,rimLight;
@@ -192,7 +192,7 @@ const shell=window.Konstrio.createGame({
     keys:"Glisser = pivoter · molette = zoom.",
     objectif:"Reconnaître les dinosaures, leur ère et leur régime (herbivore / carnivore).",
     hint:"Indice régime : les carnivores ont souvent une grande tête et marchent sur 2 pattes ; les herbivores sont massifs, souvent sur 4 pattes.",
-    why:"Les dinosaures ont régné 165 millions d'années. Un astéroïde il y a 66 millions d'années a causé leur extinction — sauf les oiseaux, leurs descendants à plumes !"
+    why:"Les dinosaures ont régné 165 millions d'années. Un astéroïde il y a 66 millions d'années a causé leur extinction : sauf les oiseaux, leurs descendants à plumes !"
   },
   learned:["Trois grandes ères : Trias, Jurassique, Crétacé, sur plus de 165 millions d'années.","Certains dinosaures avaient des plumes (Vélociraptor, Archæopteryx) : les oiseaux en descendent.","La science distingue ce qui est confirmé par les fossiles de ce qui reste une hypothèse d'artiste."],
   onReady:(api)=>init(api),
@@ -209,7 +209,7 @@ function init(api){
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
   renderer.shadowMap.enabled=!REDUCED; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   _maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
-  // Garde-fou runtime : détecte un rendu logiciel (SwiftShader/llvmpipe) — l'AO écran (GTAO) y produirait du noir → chaîne robuste sans GTAO (l'occlusion vient des cartes AO bakées)
+  // Garde-fou runtime : détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produirait du noir → chaîne robuste sans GTAO (l'occlusion vient des cartes AO bakées)
   let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render|mesa|microsoft basic/i.test(rn); }catch(e){}
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
@@ -456,7 +456,7 @@ function dinoBuilder(d){
     const snout=new THREE.Mesh(new THREE.BoxGeometry(0.1*L,0.07*L,0.13*L),flat(0x8a7250,0.7)); snout.position.set(0.13*L,-0.02*L,0); snout.castShadow=true; head.add(snout);
     [-1,1].forEach(s=>{ const h=new THREE.Mesh(new THREE.ConeGeometry(0.03*L,0.09*L,4),boneCol); h.position.set(-0.06*L,0.02*L,s*0.09*L); h.rotation.z=0.4; h.rotation.x=-s*0.6; head.add(h); });
     head.add(eye(0.05*L,0.01*L,0.08*L,0.012*L)); head.add(eye(0.05*L,0.01*L,-0.08*L,0.012*L)); body.add(head);
-    // ostéodermes dorsaux — plaques d'armure dans le ton du corps
+    // ostéodermes dorsaux : plaques d'armure dans le ton du corps
     const arm=skinMat(0x565a44,'scales'); const kerat=flat(0x5a4c32,0.55);
     for(let r=0;r<4;r++){ const px=(0.18-r*0.13)*L; const nz=3-r%2; for(let ci=0;ci<nz;ci++){ const cz=(ci-(nz-1)/2); const dome=new THREE.Mesh(new THREE.SphereGeometry(0.055*L*(1-Math.abs(cz)*0.14),9,7,0,7,0,Math.PI/2),arm); dome.position.set(px,H*1.12,cz*0.12*L); dome.castShadow=true; body.add(dome); } }
     [-1,1].forEach(s=>{ for(let i=0;i<3;i++){ const spk=new THREE.Mesh(new THREE.ConeGeometry(0.035*L,0.13*L,5),kerat); spk.position.set((0.14-i*0.15)*L,H*1.02,s*0.3*L); spk.rotation.z=s>0?-1.0:1.0; spk.rotation.x=s>0?0.25:-0.25; spk.castShadow=true; body.add(spk); } });
@@ -770,8 +770,8 @@ function checkQuiz(k){ if(!quiz||!quiz.cur||quiz.cur.type!=='find')return; const
 function resolve(ok,msg){ if(ok){ shell.sound('good'); shell.api.addScore(150); quiz.score++; shell.api.say('✅ '+msg,'fier'); } else { shell.sound('bad'); shell.api.say('❌ '+msg,'rassurant'); }
   quiz.asked++; shell.api.setProgress(quiz.asked/quiz.total); setTimeout(()=>{ if(quiz) askQuiz(); },1300); }
 function winQuiz(){ const bar=document.getElementById('dnQuiz'); if(bar)bar.remove(); const st=quiz.score>=6?3:quiz.score>=4?2:1;
-  shell.api.win({ score:quiz.score*150, stars:st, title:`${quiz.score}/6 — paléontologue !`, learned:shell.cfg.learned,
-    buddy: st===3?"Tu connais tes dinosaures sur le bout des griffes !":"Bien — souviens-toi : 2 pattes + grande tête = souvent carnivore.",
+  shell.api.win({ score:quiz.score*150, stars:st, title:`${quiz.score}/6 : paléontologue !`, learned:shell.cfg.learned,
+    buddy: st===3?"Tu connais tes dinosaures sur le bout des griffes !":"Bien : souviens-toi : 2 pattes + grande tête = souvent carnivore.",
     onNext:()=>{ shell.api.setScore(0); startQuiz(); }, nextLabel:'Rejouer' }); quiz=null; }
 
 /* ===== Audio immersif procédural ===== */
@@ -798,7 +798,7 @@ const DTOUR=[
   { ph:'Il y a 201 millions d\'années', ti:'Le Jurassique', era:1, cam:[[16,11,25],[0,5,0]], txt:"Le climat devient humide, les forêts explosent. C'est l'<b>âge des géants</b> : les sauropodes comme le <b>Brachiosaure</b> atteignent 25 m. Dans le ciel apparaît <b>Archæopteryx</b>, mi-dino mi-oiseau.", say:"Le Jurassique : l'âge des géants au long cou et du premier oiseau.", roar:false },
   { ph:'Il y a 145 millions d\'années', ti:'Le Crétacé', era:2, cam:[[-14,10,23],[0,4,0]], txt:"Les premières fleurs apparaissent. C'est le règne du <b>Tyrannosaure</b>, du <b>Tricératops</b> et du <b>Spinosaure</b>. Les dinosaures sont au sommet de leur diversité… mais une catastrophe approche.", say:"Le Crétacé : le roi T-Rex règne… mais pour peu de temps encore.", roar:true },
   { ph:'Il y a 66 millions d\'années', ti:'L\'extinction', era:2, impact:true, cam:[[0,14,32],[0,4,0]], txt:"Un <b>astéroïde de 10 km</b> percute la Terre (Chicxulub, Mexique). Incendies planétaires, tsunamis et un <b>hiver d'impact</b> qui bloque le Soleil : <b>75 % des espèces disparaissent</b>.", say:"L'astéroïde frappe… c'est la fin du règne des dinosaures." },
-  { ph:'Aujourd\'hui', ti:'Les survivants', era:2, cam:[[0,8,23],[0,4,0]], txt:"Les grands dinosaures ont disparu, mais une lignée a survécu : les petits dinosaures à plumes. Leurs descendants nous entourent — les <b>oiseaux</b> SONT des dinosaures !", say:"Regarde un oiseau : tu observes un dinosaure vivant. La vie continue !" },
+  { ph:'Aujourd\'hui', ti:'Les survivants', era:2, cam:[[0,8,23],[0,4,0]], txt:"Les grands dinosaures ont disparu, mais une lignée a survécu : les petits dinosaures à plumes. Leurs descendants nous entourent : les <b>oiseaux</b> SONT des dinosaures !", say:"Regarde un oiseau : tu observes un dinosaure vivant. La vie continue !" },
 ];
 function moveCam(p,l,dur=1.8){ camAnim={ t:0, dur, t0:performance.now(), p0:camera.position.clone(), l0:controls.target.clone(), p1:new THREE.Vector3(...p), l1:new THREE.Vector3(...l) }; }
 function startTour(){ if(tour)return; startAmbient(); tour={i:-1}; controls.autoRotate=false;

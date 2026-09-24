@@ -106,7 +106,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============================================================
-   VOYAGE DANS LE TEMPS — frise chronologique 3D navigable
+   VOYAGE DANS LE TEMPS : frise chronologique 3D navigable
    8 stations, chacune = une scène emblématique procédurale.
    ============================================================ */
 const GAP = 74;                       // distance entre deux stations sur la frise
@@ -141,7 +141,7 @@ const ERAS = [
   { id:'industrie', name:'Révolution industrielle', yr:'≈ 1850', accent:'#9a6a4a',
     sky:0xb6a894, fog:0xc4b6a2, sun:0xf0d6a8, sunI:0.95, hemiS:0xd8cdbc, hemiG:0x6a5c4a, sunOp:0.5, ground:0x8a7f6a,
     cam:[21,13,23,8], pick:'cheminee',
-    tour:{ txt:"La <b>machine à vapeur</b> transforme le monde : usines, chemins de fer, grandes villes. Le charbon fume, la production explose — mais aussi les inégalités et la pollution.", say:"La Révolution industrielle : vapeur, usines et fumées de charbon." } },
+    tour:{ txt:"La <b>machine à vapeur</b> transforme le monde : usines, chemins de fer, grandes villes. Le charbon fume, la production explose : mais aussi les inégalités et la pollution.", say:"La Révolution industrielle : vapeur, usines et fumées de charbon." } },
   { id:'moderne', name:'Époque contemporaine', yr:'aujourd\'hui', accent:'#2e8bd6',
     sky:0x7ec0ee, fog:0xcfe3f2, sun:0xffffff, sunI:1.35, hemiS:0xeaf4ff, hemiG:0x8892a0, sunOp:1, ground:0x8f97a2,
     cam:[24,17,28,12], pick:'gratteciel',
@@ -253,7 +253,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   composer=new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene,camera));
   if(!software){
-    // GPU réel : occlusion ambiante espace-écran (GTAO) — creuse les jointures de pierre
+    // GPU réel : occlusion ambiante espace-écran (GTAO) : creuse les jointures de pierre
     const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=0.85;
     try{ gtao.updateGtaoMaterial({ radius:2.2, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
     composer.addPass(gtao); composer.gtao=gtao;
@@ -345,7 +345,7 @@ function crenels(w,d,y,th,m,parent){ const n=Math.max(3,Math.round(w/1.4));
 const _groundBase=stoneRock(0xffffff,8);   // base terrain partagée (clonée + teintée par époque)
 function buildStations(){
   ERAS.forEach((e,i)=>{ const g=new THREE.Group(); g.position.x=sx(i); scene.add(g);
-    // plateforme circulaire de l'époque — terrain rocheux réel (PBR), teinté selon l'époque
+    // plateforme circulaire de l'époque : terrain rocheux réel (PBR), teinté selon l'époque
     const platMat=_groundBase.clone(); platMat.color.setHex(e.ground);
     const plat=new THREE.Mesh(new THREE.CylinderGeometry(24,25,1.2,48), platMat); plat.position.y=-0.6; g.add(plat);
     const rim=new THREE.Mesh(new THREE.TorusGeometry(24,0.5,8,48), M(0x6a5a3a,0.8,0.1)); rim.rotation.x=Math.PI/2; rim.position.y=0.02; g.add(rim);
@@ -505,7 +505,7 @@ function buildGothique(g,e,idx){ const st=stoneCut(0xc4bcae,3); const st2=stoneC
 function buildIndustrie(g,e,idx){ const brick=stoneCut(0x9a5040,4); const brick2=stoneCut(0x7c3e30,4); const metal=metalMat(0x707880,2);
   // corps d'usine
   const b=box(14,7,9,brick,0,3.5,0); g.add(b); g.userData.fiche='cheminee';
-  // toit en dents de scie (sawtooth) — tôle ondulée métallique
+  // toit en dents de scie (sawtooth) : tôle ondulée métallique
   const roofIron=ironMat(0x8a8f96,2);
   for(let i=0;i<4;i++){ const x=-5.2+i*3.4; const tt=box(3,2,9,roofIron,x,8,0); tt.rotation.z=0; g.add(tt); g.add(box(3.2,0.2,9,new THREE.MeshStandardMaterial({color:0x2a3a4a,emissive:0x3a5a7a,emissiveIntensity:0.35,roughness:0.4}),x+0.3,8.6,0)); }
   // fenêtres à petits carreaux
@@ -715,12 +715,12 @@ function answer(ok,btn){ if(!quiz||quiz.locked)return; quiz.locked=true; if(ok){
 }
 function checkFind(key,era){ if(!quiz||!quiz.cur||quiz.cur.kind!=='find'||quiz.locked)return; quiz.locked=true; const ok=era===quiz.cur.target;
   if(ok){ shell.sound('good'); shell.addScore(150); quiz.score++; shell.say('Bien trouvé !','fier'); openFiche(key); }
-  else { shell.sound('bad'); shell.say("Ce n'était pas celui-là — la bonne époque était : "+ERAS[quiz.cur.target].name+". On continue !",'rassurant'); }
+  else { shell.sound('bad'); shell.say("Ce n'était pas celui-là : la bonne époque était : "+ERAS[quiz.cur.target].name+". On continue !",'rassurant'); }
   quiz.idx++; shell.setProgress(quiz.idx/quiz.total); setTimeout(()=>{ if(quiz) askQuiz(); },1300);
 }
 function winQuiz(){ const bar=document.getElementById('hiQuiz'); if(bar)bar.remove(); const st=quiz.score>=6?3:quiz.score>=4?2:1;
-  shell.win({ score:quiz.score*150, stars:st, title:`${quiz.score}/6 — explorateur du temps !`, learned:shell.cfg.learned,
-    buddy: st===3?"Tu maîtrises la frise du temps du bout des doigts !":"Bien joué — souviens-toi de l'ordre : Antiquité, Moyen Âge, industrie, aujourd'hui.",
+  shell.win({ score:quiz.score*150, stars:st, title:`${quiz.score}/6 : explorateur du temps !`, learned:shell.cfg.learned,
+    buddy: st===3?"Tu maîtrises la frise du temps du bout des doigts !":"Bien joué : souviens-toi de l'ordre : Antiquité, Moyen Âge, industrie, aujourd'hui.",
     onNext:()=>{ shell.setScore(0); startQuiz(); }, nextLabel:'Rejouer' }); quiz=null; }
 function clearQuiz(){ quiz=null; const bar=document.getElementById('hiQuiz'); if(bar)bar.remove(); document.getElementById('hiHint').style.display=mode==='cours'?'none':''; }
 

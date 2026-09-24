@@ -173,7 +173,7 @@ const NOTIONS = [
   ['Surface d\'attaque',"C'est l'ensemble des points par lesquels on pourrait être attaqué : postes, comptes, logiciels, services exposés. On la réduit au minimum nécessaire."],
   ['Le facteur humain',"La plupart des attaques commencent par un humain piégé (phishing). La formation et la méfiance sont un rempart aussi important que la technique."],
   ['Pare-feu & filtrage',"Le pare-feu n'autorise que le trafic prévu et bloque le reste. C'est le mur d'enceinte du réseau."],
-  ['Détection (IDS/IPS)',"On surveille en continu les comportements anormaux pour repérer — et bloquer — un intrus avant qu'il n'agisse."],
+  ['Détection (IDS/IPS)',"On surveille en continu les comportements anormaux pour repérer : et bloquer : un intrus avant qu'il n'agisse."],
   ['Chiffrement',"Rendre les données illisibles sans la clé : même interceptées, elles ne révèlent rien. HTTPS, VPN, disques chiffrés."],
   ['Mises à jour',"Un logiciel à jour n'a pas la faille connue que l'attaquant cherchait. Corriger vite est une protection majeure."],
   ['Antivirus / EDR',"Sur chaque machine, il détecte et isole les logiciels malveillants, y compris par leur comportement."],
@@ -198,7 +198,7 @@ const shell = window.Konstrio.createGame({
   id:'3d-07-cyberdefense', code:'3D·07', title:'Cyber-défense 3D', type:'3D',
   domain:{ label:'Cybersécurité', color:'#E63329' },
   intro:{
-    greet:"Bienvenue au centre de sécurité (SOC) ! Autour du cœur de l'entreprise, huit remparts en couches. Des menaces arrivent d'Internet — active les bons remparts et regarde-les neutraliser chaque attaque en direct.",
+    greet:"Bienvenue au centre de sécurité (SOC) ! Autour du cœur de l'entreprise, huit remparts en couches. Des menaces arrivent d'Internet : active les bons remparts et regarde-les neutraliser chaque attaque en direct.",
     rule:"C'est la <b>défense en profondeur</b> : des couches concentriques protègent le cœur de l'entreprise. Chaque <b>menace</b> (rouge, venue d'Internet) a son <b>rempart</b> : phishing→sensibilisation, DDoS→pare-feu, malware→antivirus, vol de mot de passe→2FA, rançongiciel→sauvegarde… <b>Active</b> les remparts et vois la <b>posture de sécurité</b> monter.",
     how:[
       "Glisse pour tourner · molette pour zoomer · clique un rempart pour l'activer et lire sa fiche.",
@@ -424,7 +424,7 @@ function buildUI(){
     <div class="cy-metric"><div class="cy-mrow"><span class="k">Niveau de risque</span><span class="v" id="cyRisk">Élevé</span></div></div>
     <div class="cy-status" id="cyStatus">Active des remparts pour protéger le cœur.</div>`;
   stage.appendChild(tel);
-  // Barre d'actions (haut-centre) — visible en Détente
+  // Barre d'actions (haut-centre) : visible en Détente
   const act = document.createElement('div'); act.className='cy-panel cy-actions'; act.id='cyActions';
   act.innerHTML = `
     <button class="cy-ab go" id="cyAll">🛡️ Bouclier max</button>
@@ -446,7 +446,7 @@ function buildUI(){
   act.querySelector('#cyView').onclick = ()=>{ camera.position.set(0,17,24); controls.target.set(0,2,0); shell.sound('click'); };
   // Dock des remparts (bas-centre)
   const dock = document.createElement('div'); dock.className='cy-panel cy-dock'; dock.id='cyDock';
-  dock.innerHTML = `<span class="cap">Remparts — clique pour activer un rempart</span>
+  dock.innerHTML = `<span class="cap">Remparts : clique pour activer un rempart</span>
     <div class="cy-chips" id="cyChips">${DEF.map(d=>`<button class="cy-chip" data-d="${d.id}" aria-pressed="false" title="${d.name}"><span class="led"></span><span class="ic">${d.icon}</span><span class="nm">${d.name}</span></button>`).join('')}</div>`;
   stage.appendChild(dock);
   dock.querySelectorAll('[data-d]').forEach(b=> b.onclick = ()=>{ toggleDefense(b.dataset.d); });
@@ -542,7 +542,7 @@ function openInternetFiche(){
       <div class="cy-sec">Types de menaces</div>
       <div class="cy-block">${THREAT_IDS.map(t=>`<span class="cy-tag"><span class="d" style="background:#ff5a45"></span>${THREATS[t].name}</span>`).join('')}</div>
       <div class="cy-sec">À comprendre</div>
-      <p>Internet relie l'entreprise au monde — et laisse aussi passer des attaques : e-mails piégés, logiciels malveillants, tentatives d'intrusion, saturation…</p>
+      <p>Internet relie l'entreprise au monde : et laisse aussi passer des attaques : e-mails piégés, logiciels malveillants, tentatives d'intrusion, saturation…</p>
       <p>Chaque menace a un <b>rempart</b> adapté. Le jeu consiste à activer le bon rempart pour chaque type d'attaque, et à empiler les couches pour que rien n'atteigne le cœur.</p>
       <div class="cy-fun">💡 On ne « rend jamais Internet sûr » : on rend l'entreprise <b>résiliente</b>, capable d'encaisser et de se remettre d'une attaque.</div>
     </div>`;
@@ -636,10 +636,10 @@ function playRansomDemo(){
   shell.say("Scénario rançongiciel : un fichier piégé arrive. Étape par étape, voyons comment on s'en protège.", 'concentre');
   shell.toast('🔒 Simulation rançongiciel');
   const steps = [
-    { t:1200, run:()=>{ spawnThreat('ransom'); shell.say("1/4 — Le rançongiciel entre : il veut chiffrer tous les fichiers pour exiger une rançon.", 'surpris'); } },
-    { t:2600, run:()=>{ if(!hadAv){ setDefense('av', true); syncChips(); } shell.say("2/4 — L'antivirus/EDR détecte le comportement anormal (chiffrement massif) et isole la machine.", 'concentre'); } },
-    { t:2400, run:()=>{ if(!hadBackup){ setDefense('backup', true); syncChips(); } spawnThreat('ransom'); shell.say("3/4 — Même si des fichiers étaient touchés, la sauvegarde hors ligne garde une copie saine.", 'joyeux'); } },
-    { t:2400, run:()=>{ shell.say("4/4 — On restaure depuis la sauvegarde : aucune rançon payée, activité repartie. C'est la résilience !", 'celebration'); shell.sound('win'); demo=null; } },
+    { t:1200, run:()=>{ spawnThreat('ransom'); shell.say("1/4 : Le rançongiciel entre : il veut chiffrer tous les fichiers pour exiger une rançon.", 'surpris'); } },
+    { t:2600, run:()=>{ if(!hadAv){ setDefense('av', true); syncChips(); } shell.say("2/4 : L'antivirus/EDR détecte le comportement anormal (chiffrement massif) et isole la machine.", 'concentre'); } },
+    { t:2400, run:()=>{ if(!hadBackup){ setDefense('backup', true); syncChips(); } spawnThreat('ransom'); shell.say("3/4 : Même si des fichiers étaient touchés, la sauvegarde hors ligne garde une copie saine.", 'joyeux'); } },
+    { t:2400, run:()=>{ shell.say("4/4 : On restaure depuis la sauvegarde : aucune rançon payée, activité repartie. C'est la résilience !", 'celebration'); shell.sound('win'); demo=null; } },
   ];
   runSteps(steps);
 }
@@ -664,7 +664,7 @@ function startWave(){
   wave = { on:true, left: REDUCED ? 8 : 16, every:0.55, acc:0 };
   document.getElementById('cyWave').setAttribute('aria-pressed', true);
   shell.sound('pop'); shell.toast('⚔️ Vague d\'attaques en cours');
-  shell.say("Vague d'attaques ! Une rafale de menaces variées arrive. Tes remparts actifs les neutralisent — active-en d'autres si le cœur est touché.", 'surpris');
+  shell.say("Vague d'attaques ! Une rafale de menaces variées arrive. Tes remparts actifs les neutralisent : active-en d'autres si le cœur est touché.", 'surpris');
 }
 function endWave(){ if(wave) wave.on=false; wave=null; const b=document.getElementById('cyWave'); if(b) b.setAttribute('aria-pressed', false);
   shell.say(`Vague terminée : ${blocked} menaces bloquées au total. Plus tu as de remparts, plus le cœur reste intact.`, 'fier'); }
@@ -681,11 +681,11 @@ function refreshTelemetry(){
   const dot = document.getElementById('cyDot'), st = document.getElementById('cyStatus');
   let msg='● Nominal', dc='#35E08A';
   const missing = DEF.filter(d=>!d.active);
-  if(posture>=100){ msg='● Forteresse — défense en profondeur complète'; dc='#35E08A'; }
+  if(posture>=100){ msg='● Forteresse : défense en profondeur complète'; dc='#35E08A'; }
   else if(coreFlash>0.4){ msg='✖ Intrusion au cœur !'; dc='#E63329'; }
   else if(missing.length){ msg='⚠ '+missing.length+' rempart(s) à activer'; dc = posture>=45?'#F5A623':'#E63329'; }
   if(dot){ dot.style.background=dc; dot.style.boxShadow='0 0 8px '+dc; }
-  if(st){ st.textContent = wave&&wave.on ? 'Vague d\'attaques en cours…' : (posture>=100 ? 'Le cœur est protégé sur toutes les couches.' : 'Chaque menace a son rempart — active-les.'); }
+  if(st){ st.textContent = wave&&wave.on ? 'Vague d\'attaques en cours…' : (posture>=100 ? 'Le cœur est protégé sur toutes les couches.' : 'Chaque menace a son rempart : active-les.'); }
 }
 
 /* ====== SON D'AMBIANCE ====== */
@@ -715,11 +715,11 @@ function onDown(e){ setP(e); const h = pick(); if(!h.length) return;
 const CHALLS = [
   { target:'awareness', threat:'phishing', tier:0, title:'Le piège humain', ask:"Un e-mail piégé (phishing) arrive. Active le rempart qui protège l'utilisateur.", done:"Oui ! La sensibilisation apprend à repérer les faux e-mails." },
   { target:'firewall', threat:'ddos', tier:0, title:'Le déluge', ask:"Une attaque DDoS veut saturer le service. Active le rempart qui filtre le trafic.", done:"Bravo ! Le pare-feu filtre le trafic illégitime." },
-  { target:'av', threat:'malware', tier:0, title:'Le virus', ask:"Un logiciel malveillant vise une machine. Active le rempart qui le met en quarantaine.", done:"Exact — l'antivirus/EDR détecte et isole le malware." },
+  { target:'av', threat:'malware', tier:0, title:'Le virus', ask:"Un logiciel malveillant vise une machine. Active le rempart qui le met en quarantaine.", done:"Exact : l'antivirus/EDR détecte et isole le malware." },
   { target:'mfa', threat:'creds', tier:0, title:'Le mot de passe volé', ask:"Un mot de passe a été volé. Active le rempart qui bloque quand même la connexion.", done:"Parfait ! La 2FA rend un mot de passe volé inutilisable." },
   { target:'backup', threat:'ransom', tier:1, title:'La rançon', ask:"Un rançongiciel chiffre les fichiers. Active le rempart qui permet de tout restaurer.", done:"Oui ! La sauvegarde hors ligne restaure sans payer." },
-  { target:'patch', threat:'exploit', tier:1, title:'La faille', ask:"Un logiciel non à jour a une faille connue. Active le rempart qui la referme.", done:"Bien vu — le correctif corrige la vulnérabilité." },
-  { target:'ids', threat:'scan', tier:2, title:'La reconnaissance', ask:"Un intrus sonde le réseau (scan). Active le rempart qui détecte l'anormal.", done:"Exact — l'IDS/IPS repère et bloque le comportement suspect." },
+  { target:'patch', threat:'exploit', tier:1, title:'La faille', ask:"Un logiciel non à jour a une faille connue. Active le rempart qui la referme.", done:"Bien vu : le correctif corrige la vulnérabilité." },
+  { target:'ids', threat:'scan', tier:2, title:'La reconnaissance', ask:"Un intrus sonde le réseau (scan). Active le rempart qui détecte l'anormal.", done:"Exact : l'IDS/IPS repère et bloque le comportement suspect." },
   { target:'crypto', threat:'sniff', tier:2, title:'L\'espion', ask:"On tente d'intercepter les données. Active le rempart qui les rend illisibles.", done:"Parfait ! Le chiffrement protège la confidentialité." },
 ];
 function startMode(m){
@@ -781,7 +781,7 @@ function winQuiz(){
   shell.win({
     score: sc*150, stars: st, title: sc+'/'+tot+' remparts activés',
     learned: shell.cfg.learned,
-    buddy: st===3 ? "Sans faute ! Tu maîtrises la défense en profondeur : chaque menace, son rempart. L'entreprise est une forteresse." : "Bien joué — relis les fiches des remparts et retente pour le sans-faute.",
+    buddy: st===3 ? "Sans faute ! Tu maîtrises la défense en profondeur : chaque menace, son rempart. L'entreprise est une forteresse." : "Bien joué : relis les fiches des remparts et retente pour le sans-faute.",
     onNext: ()=>{ shell.setScore(0); chooseDifficulty(); }, nextLabel:'Rejouer',
   });
   challenge = null;

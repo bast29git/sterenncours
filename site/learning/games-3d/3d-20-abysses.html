@@ -154,7 +154,7 @@ const SPECIES={
     fun:"Jeune, il ne ressemble en rien à l'adulte : les scientifiques les ont longtemps pris pour deux espèces différentes." },
   vers:{ n:'Vers de Riftia', sub:'Vers tubicoles', col:'#e0584f', glow:0, biolum:false,
     zone:'Abyssale (sources)', depthTxt:'2000 – 4000 m', pressTxt:'200 – 400 bar', size:'jusqu\'à 2 m', diet:'Bactéries symbiotiques',
-    adapt:"Il vit SANS lumière ni bouche : des bactéries logées en lui transforment les composés soufrés des sources chaudes en nourriture. C'est la chimiosynthèse — la vie sans Soleil.",
+    adapt:"Il vit SANS lumière ni bouche : des bactéries logées en lui transforment les composés soufrés des sources chaudes en nourriture. C'est la chimiosynthèse : la vie sans Soleil.",
     info:"Il colonise les fumeurs noirs par colonies denses. Son panache rouge est plein de sang qui transporte le soufre jusqu'aux bactéries.",
     fun:"Il pousse parmi les plus vite du règne animal, mais peut aussi vivre plus de 250 ans." },
   baleine:{ n:'Cachalot', sub:'Mammifère plongeur', col:'#3a3f4a', glow:0, biolum:false,
@@ -163,22 +163,22 @@ const SPECIES={
     info:"Il émet des clics parmi les sons les plus puissants du monde animal et écoute leur écho pour cartographier le noir et repérer ses proies.",
     fun:"Une seule plongée peut durer plus d'une heure sans respirer." },
   vent:{ n:'Source hydrothermale', sub:'Fumeur noir', col:'#c0451e', glow:0, biolum:false,
-    zone:'Fond abyssal', depthTxt:'2000 – 4000 m', pressTxt:'200 – 400 bar', size:'cheminée jusqu\'à 60 m', diet:'—',
+    zone:'Fond abyssal', depthTxt:'2000 – 4000 m', pressTxt:'200 – 400 bar', size:'cheminée jusqu\'à 60 m', diet:'…',
     adapt:"L'eau de mer s'infiltre dans la roche chaude du plancher, ressort à plus de 350 °C chargée de minéraux et de soufre, et noircit en refroidissant. Autour, la vie prospère sans aucune lumière.",
     info:"Des bactéries y font la chimiosynthèse (elles tirent leur énergie du soufre) ; vers, crabes et crevettes vivent grâce à elles. Une oasis de vie dans le désert noir.",
-    fun:"Ces sources ont été découvertes seulement en 1977 — et ont bouleversé notre idée de ce dont la vie a besoin." },
+    fun:"Ces sources ont été découvertes seulement en 1977 : et ont bouleversé notre idée de ce dont la vie a besoin." },
 };
 const ZONE_FAUNA=[ ['thon','meduse','baleine'], ['lanterne','hache','calmar','meduse'], ['vipere','baudroie','ogre','meduse'], ['baudroie','ogre','vers'], ['ogre','vers'] ];
 
 /* ===== Notions ===== */
 const NOTIONS=[
-  { id:'zones', n:'Les zones océaniques', p:["L'océan se découpe en couches selon la lumière : épipélagique (0–200 m, éclairée), mésopélagique (200–1000 m, pénombre), bathypélagique (1000–4000 m, nuit), abyssale (4000–6000 m) et hadale (les fosses, jusqu'à 11 000 m).","Plus on descend, moins il y a de lumière, de nourriture et de chaleur — mais toujours de la vie."] },
+  { id:'zones', n:'Les zones océaniques', p:["L'océan se découpe en couches selon la lumière : épipélagique (0–200 m, éclairée), mésopélagique (200–1000 m, pénombre), bathypélagique (1000–4000 m, nuit), abyssale (4000–6000 m) et hadale (les fosses, jusqu'à 11 000 m).","Plus on descend, moins il y a de lumière, de nourriture et de chaleur : mais toujours de la vie."] },
   { id:'lumiere', n:'La lumière disparaît', p:["La lumière du Soleil est absorbée par l'eau : le rouge disparaît dès 15 m, puis le orange, le jaune… À 200 m il ne reste qu'un bleu sombre, et vers 1000 m, c'est le noir total.","Sans lumière, la photosynthèse est impossible : la vie profonde dépend de ce qui tombe d'en haut ou de la chimiosynthèse."] },
-  { id:'pression', n:'La pression écrasante', p:["La pression augmente d'environ 1 bar tous les 10 mètres. À 1000 m elle vaut 100 fois celle de la surface ; au fond de la fosse des Mariannes (11 000 m), plus de 1000 bars — une tonne par cm² !","Les animaux résistent car ils n'ont pas de poche d'air à écraser : leur corps est mou et rempli d'eau, à la même pression que le milieu."] },
+  { id:'pression', n:'La pression écrasante', p:["La pression augmente d'environ 1 bar tous les 10 mètres. À 1000 m elle vaut 100 fois celle de la surface ; au fond de la fosse des Mariannes (11 000 m), plus de 1000 bars : une tonne par cm² !","Les animaux résistent car ils n'ont pas de poche d'air à écraser : leur corps est mou et rempli d'eau, à la même pression que le milieu."] },
   { id:'biolum', n:'La bioluminescence', p:["Dans le noir, de nombreux animaux fabriquent leur propre lumière grâce à une réaction chimique (ou à des bactéries symbiotiques).","Elle sert à attirer des proies (leurre de la baudroie), à se camoufler par contre-éclairage, à communiquer, ou à aveugler un prédateur. On estime que 3 animaux marins sur 4 en profondeur sont bioluminescents."] },
-  { id:'neige', n:'La neige marine', p:["Faute de lumière, les abysses se nourrissent de la « neige marine » : une pluie continue de débris (plancton mort, déjections) qui tombe de la surface.","Cette manne lente est la principale source de nourriture des grands fonds — d'où des animaux au métabolisme économe."] },
+  { id:'neige', n:'La neige marine', p:["Faute de lumière, les abysses se nourrissent de la « neige marine » : une pluie continue de débris (plancton mort, déjections) qui tombe de la surface.","Cette manne lente est la principale source de nourriture des grands fonds : d'où des animaux au métabolisme économe."] },
   { id:'chimio', n:'La chimiosynthèse', p:["Près des sources hydrothermales, des bactéries tirent leur énergie non pas du Soleil mais des composés soufrés de l'eau chaude : c'est la chimiosynthèse.","Elles nourrissent tout un écosystème (vers de Riftia, crabes, crevettes) : la preuve qu'une vie riche peut exister totalement sans lumière."] },
-  { id:'adapt', n:'S\'adapter à l\'extrême', p:["Grands yeux ou au contraire yeux atrophiés, corps mou, dents démesurées, estomac élastique, métabolisme lent, bioluminescence : chaque trait répond au froid, au noir, à la pression et à la rareté de nourriture.","Les abysses sont le plus grand habitat de la planète — et l'un des moins explorés."] },
+  { id:'adapt', n:'S\'adapter à l\'extrême', p:["Grands yeux ou au contraire yeux atrophiés, corps mou, dents démesurées, estomac élastique, métabolisme lent, bioluminescence : chaque trait répond au froid, au noir, à la pression et à la rareté de nourriture.","Les abysses sont le plus grand habitat de la planète : et l'un des moins explorés."] },
 ];
 
 let depth=0, targetVel=0, depthTarget=null, lights=true, mode='detente';
@@ -482,7 +482,7 @@ function openInfo(key){ const sp=SPECIES[key]; if(!sp)return; const el=document.
         <div><span class="k">Profondeur</span><span class="v">${sp.depthTxt}</span></div>
         <div><span class="k">Pression</span><span class="v">${sp.pressTxt}</span></div>
         <div><span class="k">Taille</span><span class="v">${sp.size}</span></div>
-        ${sp.diet!=='—'?`<div style="grid-column:1/3"><span class="k">Régime</span><span class="v">${sp.diet}</span></div>`:''}
+        ${sp.diet!=='…'?`<div style="grid-column:1/3"><span class="k">Régime</span><span class="v">${sp.diet}</span></div>`:''}
       </div>
       <div class="ab-sec">Adaptation</div><p>${sp.adapt}</p>
       <div class="ab-sec">À savoir</div><p>${sp.info}</p>
@@ -566,7 +566,7 @@ function coursOnDepth(){ if(!cours||!cours.phase)return; const step=cours.phase;
   if(step.type==='find'&&step.key==='vent'){ /* validé au clic d'une source */ } }
 function coursOnPick(key){ if(!cours||!cours.phase)return; const step=cours.phase; if(step.type!=='find')return;
   if(key===step.key){ passPhase(160,'Trouvé et identifié !'); }
-  else { shell.sound('bad'); shell.api.say("Pas encore la bonne cible — continue de chercher dans cette zone.",'rassurant'); } }
+  else { shell.sound('bad'); shell.api.say("Pas encore la bonne cible : continue de chercher dans cette zone.",'rassurant'); } }
 function passPhase(pts,msg){ if(!cours||!cours.phase)return; const wasType=cours.phase.type; cours.phase=null;
   shell.sound('good'); shell.api.addScore(pts); cours.score+=pts; shell.api.say('Bravo ! '+msg,'fier');
   setTimeout(()=>{ if(cours) nextPhase(); }, 900); }
@@ -576,11 +576,11 @@ function askMcq(step){ let bar=document.getElementById('abQuiz'); if(!bar){ bar=
   shell.api.say(step.q,'curieux');
   bar.querySelectorAll('.ab-qo').forEach(b=> b.onclick=()=>{ const ok=(+b.dataset.i)===step.correct;
     if(ok){ shell.sound('good'); shell.api.addScore(160); cours.score+=160; cours.quizOk++; shell.api.say('Exact ! '+step.explain,'fier'); bar.remove(); setTimeout(()=>{ if(cours) nextPhase(); },900); }
-    else { shell.sound('bad'); shell.api.say('Presque — '+step.explain,'rassurant'); b.style.background='rgba(255,120,90,.5)'; } }); }
+    else { shell.sound('bad'); shell.api.say('Presque : '+step.explain,'rassurant'); b.style.background='rgba(255,120,90,.5)'; } }); }
 function finishCours(){ const bar=document.getElementById('abQuiz'); if(bar)bar.remove(); const cbn=document.getElementById('abCbn'); if(cbn)cbn.classList.remove('show');
   const st=cours.quizOk>=3?3:cours.quizOk>=2?2:1; const score=Math.max(700,cours.score);
   shell.api.win({ score, stars:st, title:'Plongée jusqu\'aux abysses !', learned:shell.cfg.learned,
-    buddy: st===3?"Océanographe émérite ! Tu maîtrises zones, pression, lumière, bioluminescence et chimiosynthèse.":"Belle plongée — retiens : +1 bar tous les 10 m, noir total dès 1000 m, et la vie sans Soleil près des fumeurs noirs.",
+    buddy: st===3?"Océanographe émérite ! Tu maîtrises zones, pression, lumière, bioluminescence et chimiosynthèse.":"Belle plongée : retiens : +1 bar tous les 10 m, noir total dès 1000 m, et la vie sans Soleil près des fumeurs noirs.",
     onNext:()=>{ shell.api.setScore(0); startCours(); }, nextLabel:'Replonger' });
   cours=null; }
 
@@ -601,7 +601,7 @@ const EXPED=[
   { ph:'200 – 1000 m', ti:'La pénombre', d:600, cam:[0,0,-5], txt:"La lumière s'éteint vite. Apparaissent les premiers poissons à <b>photophores</b> (poisson-lanterne, poisson-hache). La <b>pression</b> atteint déjà 60 bars : 60 fois celle de la surface.", say:"Pénombre : braque tes phares, les premiers poissons lumineux arrivent." },
   { ph:'1000 – 4000 m', ti:'La nuit permanente', d:2200, cam:[0,-1,-6], txt:"Plus aucune lumière du Soleil. Règne de la <b>bioluminescence</b> : la baudroie agite son leurre, le poisson-vipère ses photophores. Éteins les phares pour voir l'obscurité réelle !", say:"Nuit totale : seules les créatures bioluminescentes brillent dans le noir." },
   { ph:'≈ 3000 m', ti:'Sources hydrothermales', d:3200, cam:[0,-3,-10], txt:"Au fond, des <b>fumeurs noirs</b> crachent une eau brûlante chargée de minéraux. Ici, sans Soleil, des bactéries font de la <b>chimiosynthèse</b> ; les vers de Riftia en vivent. Une oasis de vie dans le désert noir.", say:"Regarde le fond : les cheminées hydrothermales, une oasis de vie sans Soleil !" },
-  { ph:'6000 – 11000 m', ti:'Les fosses hadales', d:8000, cam:[0,-2,-7], txt:"Les <b>fosses</b> les plus profondes (jusqu'à 11 000 m, fosse des Mariannes). Plus de 1000 bars de pression — une tonne par cm² ! Et pourtant, la vie résiste encore. Fin de l'expédition.", say:"Les fosses hadales : 1000 bars de pression, le point le plus profond de la planète." },
+  { ph:'6000 – 11000 m', ti:'Les fosses hadales', d:8000, cam:[0,-2,-7], txt:"Les <b>fosses</b> les plus profondes (jusqu'à 11 000 m, fosse des Mariannes). Plus de 1000 bars de pression : une tonne par cm² ! Et pourtant, la vie résiste encore. Fin de l'expédition.", say:"Les fosses hadales : 1000 bars de pression, le point le plus profond de la planète." },
 ];
 function startExpedition(){ if(expedition)return; startAmbient(); expedition={i:-1}; document.getElementById('abHint').style.display='none'; document.getElementById('abInfo').classList.remove('show'); document.getElementById('abExpP').classList.add('show'); setExpStep(0); }
 function setExpStep(i){ if(!expedition)return; expedition.i=i; const s=EXPED[i]; const dots=EXPED.map((_,k)=>k<=i?'●':'○').join(' ');

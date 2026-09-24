@@ -115,11 +115,11 @@ const PARTS = {
   moteur:{ icon:'⚙️', name:'Le moteur', sub:'Récepteur · fait du mouvement', color:'#94A0B4',
     role:"Le moteur transforme l'électricité en mouvement : il tourne quand le courant passe. On en trouve dans les jouets, les ventilateurs, les robots et les voitures électriques.",
     facts:[['Rôle','Faire tourner'],['Transforme','Électricité → mouvement'],['Tourne si','le courant passe'],['Symbole','Ⓜ']],
-    fun:"Un moteur et un générateur, c'est presque la même machine — l'une à l'envers de l'autre !" },
+    fun:"Un moteur et un générateur, c'est presque la même machine : l'une à l'envers de l'autre !" },
   buzzer:{ icon:'🔔', name:'Le buzzer', sub:'Récepteur · fait du son', color:'#8A7BFF',
     role:"Le buzzer transforme l'électricité en son : une pastille vibre très vite pour produire un « bip ». On l'utilise dans les alarmes, les minuteurs et les jouets.",
     facts:[['Rôle','Faire du son'],['Transforme','Électricité → son'],['Sonne si','le courant passe'],['Symbole','♪']],
-    fun:"Le buzzer vibre des milliers de fois par seconde — bien trop vite pour que l'œil le voie bouger !" },
+    fun:"Le buzzer vibre des milliers de fois par seconde : bien trop vite pour que l'œil le voie bouger !" },
   fil:{ icon:'➰', name:'Les fils', sub:'Conducteurs · le chemin', color:'#D98A3A',
     role:"Les fils conduisent le courant d'un composant à l'autre et forment la boucle du circuit. Ils sont en cuivre, un métal qui laisse très bien passer les électrons.",
     facts:[['Rôle','Relier les composants'],['Matériau','Cuivre'],['Propriété','Conducteur'],['Contraire','Isolant']],
@@ -154,7 +154,7 @@ const shell = window.Konstrio.createGame({
     hint:"Si l'ampoule reste éteinte, vérifie que l'interrupteur est FERMÉ : un circuit ouvert ne laisse pas passer le courant.",
     why:"Les électrons ne circulent que dans une boucle fermée. Plus la tension est forte ou la résistance faible, plus l'intensité (le débit d'électrons) est grande."
   },
-  learned:["Le courant ne circule que dans un circuit fermé.","Chaque composant a un rôle : pile (source), fils (chemin), ampoule/moteur/buzzer (récepteurs), interrupteur (commande).","Loi d'Ohm : I = U / R — trop de courant provoque une surcharge."],
+  learned:["Le courant ne circule que dans un circuit fermé.","Chaque composant a un rôle : pile (source), fils (chemin), ampoule/moteur/buzzer (récepteurs), interrupteur (commande).","Loi d'Ohm : I = U / R : trop de courant provoque une surcharge."],
   onReady:(api)=>init(api),
   onStart:(m,api)=>{ if(m==='cours'){ api.setScore(0); chooseCourse(); } else { setMode('explore'); api.setLevel('libre'); } },
   onRestart:(api)=>{ if(shell.api && shell.api.mode==='cours'){ api.setScore(0); chooseCourse(); } },
@@ -178,7 +178,7 @@ function init(api){
   const W=stage.clientWidth, H=stage.clientHeight;
   composer = new EffectComposer(renderer);
   if(softwareGL){
-    // rendu logiciel : pas d'AO écran (produirait du noir) — l'occlusion vient des cartes AO bakées + ombre de contact
+    // rendu logiciel : pas d'AO écran (produirait du noir) : l'occlusion vient des cartes AO bakées + ombre de contact
     composer.addPass(new RenderPass(scene,camera));
   } else {
     // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu produit (creux des pistes, sous les composants)
@@ -247,7 +247,7 @@ function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.
 
 /* ============ ÉTABLI / PLAN DE TRAVAIL ============ */
 function buildWorkbench(){
-  // établi métallique brossé réel (Poly Haven CC0), tuilé + AO bakée — ancre la scène et reçoit l'ombre
+  // établi métallique brossé réel (Poly Haven CC0), tuilé + AO bakée : ancre la scène et reçoit l'ombre
   const benchMat=new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.7, metalness:0.6, envMapIntensity:0.55});
   applyPBR(benchMat,'metal_plate','1k',{repeat:6,normal:0.8,metal:true,ao:true});
   const geo=new THREE.PlaneGeometry(80,52); enableAO(geo);
@@ -553,7 +553,7 @@ function shade(hex,p){ const n=parseInt(hex.replace('#',''),16); let r=(n>>16)&2
 function toggleSwitch(){
   closed=!closed; const sb=document.getElementById('elSwitch'); if(sb)sb.setAttribute('aria-pressed',closed);
   shell.sound(closed?'good':'click');
-  shell.api.say(closed?"Circuit fermé ! Les électrons circulent : l'ampoule s'allume, le moteur tourne, le buzzer bipe.":"Circuit ouvert : plus de chemin pour les électrons — tout s'éteint.", closed?'enthousiaste':'concentre');
+  shell.api.say(closed?"Circuit fermé ! Les électrons circulent : l'ampoule s'allume, le moteur tourne, le buzzer bipe.":"Circuit ouvert : plus de chemin pour les électrons : tout s'éteint.", closed?'enthousiaste':'concentre');
   updateReadout(); evalDefi();
 }
 function updateReadout(){
@@ -607,7 +607,7 @@ function showDefi(){ const d=DEFIS[defiIdx]; let b=document.getElementById('elQu
 }
 function evalDefi(){ if(emode!=='defi'||defiDone)return; const d=DEFIS[defiIdx]; if(d.ok()){ defiDone=true; shell.sound('good'); shell.api.addScore(150); shell.api.say(d.done,'fier'); shell.api.toast('✅ '+d.title); setTimeout(()=>{ defiIdx++; if(defiIdx>=DEFIS.length){ winDefis(); } else { shell.api.setProgress(defiIdx/DEFIS.length); showDefi(); } },1400); } }
 function winDefis(){ clearQuiz(); const sc=parseInt(document.querySelector('.ksh-score').textContent||'0',10); shell.api.setProgress(1);
-  shell.api.win({ score:sc, stars:3, title:"Circuit maîtrisé — défis réussis !", learned:shell.cfg.learned, buddy:"Tu sais fermer un circuit, doser le courant et comparer série et parallèle. Bravo, petit·e électronicien·ne !", onNext:()=>{ shell.api.setScore(0); startDefis(); }, nextLabel:'Rejouer' }); }
+  shell.api.win({ score:sc, stars:3, title:"Circuit maîtrisé : défis réussis !", learned:shell.cfg.learned, buddy:"Tu sais fermer un circuit, doser le courant et comparer série et parallèle. Bravo, petit·e électronicien·ne !", onNext:()=>{ shell.api.setScore(0); startDefis(); }, nextLabel:'Rejouer' }); }
 
 /* ============ MODE « Trouve le composant » ============ */
 const FIND_LIST=[
@@ -621,8 +621,8 @@ function askTrouve(){ if(!trouve)return; if(trouve.idx>=trouve.total){ winTrouve
   shell.api.setLevel((trouve.idx+1)+'/'+trouve.total); shell.api.setProgress(trouve.idx/trouve.total);
   shell.api.say('Repère le bon composant en 3D et clique dessus.','curieux');
 }
-function checkTrouve(part){ if(!trouve)return; const want=trouve.order[trouve.idx]; openFiche(part); if(part===want[0]){ trouve.score++; trouve.idx++; shell.sound('good'); shell.api.addScore(160); shell.api.setProgress(trouve.idx/trouve.total); shell.api.say('Exact ! '+PARTS[part].name+'.','fier'); focusOn(part); setTimeout(askTrouve,1050); } else { shell.sound('bad'); shell.api.say("Pas celui-ci — c'est "+PARTS[part].name.toLowerCase()+". Relis la consigne et réessaie.",'rassurant'); } }
-function winTrouve(){ clearQuiz(); const st=trouve.score>=6?3:trouve.score>=4?2:1; shell.api.win({ score:trouve.score*160, stars:st, title:trouve.score+'/'+trouve.total+' — composants identifiés !', learned:shell.cfg.learned, buddy: st===3?"Sans faute ! Tu reconnais tous les composants d'un circuit.":"Bien joué — révise les fiches et retente pour la perfection.", onNext:()=>{ shell.api.setScore(0); startTrouve(); }, nextLabel:'Rejouer' }); trouve=null; }
+function checkTrouve(part){ if(!trouve)return; const want=trouve.order[trouve.idx]; openFiche(part); if(part===want[0]){ trouve.score++; trouve.idx++; shell.sound('good'); shell.api.addScore(160); shell.api.setProgress(trouve.idx/trouve.total); shell.api.say('Exact ! '+PARTS[part].name+'.','fier'); focusOn(part); setTimeout(askTrouve,1050); } else { shell.sound('bad'); shell.api.say("Pas celui-ci : c'est "+PARTS[part].name.toLowerCase()+". Relis la consigne et réessaie.",'rassurant'); } }
+function winTrouve(){ clearQuiz(); const st=trouve.score>=6?3:trouve.score>=4?2:1; shell.api.win({ score:trouve.score*160, stars:st, title:trouve.score+'/'+trouve.total+' : composants identifiés !', learned:shell.cfg.learned, buddy: st===3?"Sans faute ! Tu reconnais tous les composants d'un circuit.":"Bien joué : révise les fiches et retente pour la perfection.", onNext:()=>{ shell.api.setScore(0); startTrouve(); }, nextLabel:'Rejouer' }); trouve=null; }
 
 function clearQuiz(){ const b=document.getElementById('elQuiz'); if(b)b.remove(); }
 
@@ -649,7 +649,7 @@ function enterSandbox(){ if(sandboxOn)return; sandboxOn=true; emode='sandbox'; c
   panel.querySelector('#sbQuit').onclick=()=>{ exitSandbox(); setMode('explore'); };
   focusPoint=null; flying=false; camera.position.set(0,2,19); controls.target.set(0,0,0);
   if(sandboxTried.par) sbParallel=true; else { sandboxTried.par=true; }
-  shell.api.say("Bac à sable : ajoute des ampoules, choisis série ou parallèle, change la tension — compare la luminosité et le courant !",'enthousiaste');
+  shell.api.say("Bac à sable : ajoute des ampoules, choisis série ou parallèle, change la tension : compare la luminosité et le courant !",'enthousiaste');
   rebuildSandbox();
 }
 function exitSandbox(){ if(!sandboxOn)return; sandboxOn=false; const pn=document.getElementById('elSb'); if(pn)pn.remove();

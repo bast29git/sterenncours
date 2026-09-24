@@ -38,7 +38,7 @@
   .gg-btn { font-family:var(--font-body); font-weight:700; font-size:12.5px; padding:10px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; min-height:42px; width:100%; transition:.15s; }
   .gg-btn[aria-pressed="true"] { background:var(--brand-amber); border-color:var(--brand-amber); color:#13142B; }
   .gg-btn:disabled { opacity:.38; cursor:not-allowed; }
-  /* panneau droit — mesures */
+  /* panneau droit : mesures */
   .gg-right { top:14px; right:14px; width:226px; padding:16px; max-height:calc(100% - 28px); overflow:auto; }
   .gg-right .name { font-family:var(--font-title); font-weight:800; font-size:19px; margin-bottom:3px; display:flex; align-items:center; gap:8px; }
   .gg-right .name .swatch { width:14px; height:14px; border-radius:5px; flex:none; box-shadow:0 1px 4px rgba(0,0,0,.25); }
@@ -91,7 +91,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============================================================
-   ATELIER DE GÉOMÉTRIE 3D — solides, patrons, sections,
+   ATELIER DE GÉOMÉTRIE 3D : solides, patrons, sections,
    transformations, révolution, mesures & Euler.
    ============================================================ */
 
@@ -161,7 +161,7 @@ const shell = window.Konstrio.createGame({
   domain:{ label:'Maths', color:'#9B2BB0' },
   intro:{
     greet:"Bienvenue dans l'atelier de géométrie ! Choisis un solide, fais-le tourner, coupe-le, déplie son patron, applique des transformations et lis ses mesures en direct.",
-    rule:"Un véritable atelier de géométrie dans l'espace : polyèdres de Platon en <b>verre</b>, <b>métal</b> ou plastique, <b>patrons</b> qui se déplient, <b>sections</b> planes, <b>solides de révolution</b> et <b>transformations</b>. Toutes les mesures (V, A, F, volume, aire) se calculent en temps réel — avec la formule d'Euler <b>V − A + F = 2</b>.",
+    rule:"Un véritable atelier de géométrie dans l'espace : polyèdres de Platon en <b>verre</b>, <b>métal</b> ou plastique, <b>patrons</b> qui se déplient, <b>sections</b> planes, <b>solides de révolution</b> et <b>transformations</b>. Toutes les mesures (V, A, F, volume, aire) se calculent en temps réel : avec la formule d'Euler <b>V − A + F = 2</b>.",
     how:["Choisis un solide et change sa matière (verre, métal…).","Déplie son patron, coupe-le par un plan, ou applique une transformation.","En mode Cours, relève 7 défis : faces, sommets, arêtes, volumes, patrons."],
     keys:"Glisser = tourner · molette = zoomer · clic sur une face = la mesurer · R = rotation auto.",
     objectif:"Comprendre les solides : compter V/A/F, vérifier Euler, reconnaître un patron et estimer un volume.",
@@ -275,7 +275,7 @@ function vertColor(){ return 0xF5A623; }
 function solidMaterial(){
   const c = currentColor();
   if(st.matMode==='verre'){
-    // verre transmissif — gagne les vrais reflets IBL du studio muséal
+    // verre transmissif : gagne les vrais reflets IBL du studio muséal
     return new THREE.MeshPhysicalMaterial({ color:c, metalness:0, roughness:0.04, transmission:1.0,
       thickness:1.4, ior:1.5, envMapIntensity:1.9, clearcoat:1, clearcoatRoughness:0.05, reflectivity:0.6, specularIntensity:1,
       transparent:true, side:THREE.DoubleSide, attenuationColor:c, attenuationDistance:3.5 });
@@ -294,7 +294,7 @@ function solidMaterial(){
     return m;
   }
   if(st.matMode==='bois'){
-    // bois noble (planches usées) — matité chaude, léger vernis
+    // bois noble (planches usées) : matité chaude, léger vernis
     const m = new THREE.MeshPhysicalMaterial({ color:0xffffff, metalness:0.0, roughness:0.75, envMapIntensity:0.7,
       clearcoat:0.25, clearcoatRoughness:0.4, side:THREE.DoubleSide });
     applyPBR(m, 'worn_planks', '1k', { repeat:1.5, normal:1.0, ao:true, aoInt:1.0 });
@@ -303,7 +303,7 @@ function solidMaterial(){
   if(st.matMode==='filaire'){
     return new THREE.MeshBasicMaterial({ color:c, wireframe:true });
   }
-  // plein — plastique coloré premium
+  // plein : plastique coloré premium
   return new THREE.MeshPhysicalMaterial({ color:c, metalness:0.04, roughness:0.34, envMapIntensity:1.1,
     clearcoat:0.6, clearcoatRoughness:0.25, side:THREE.DoubleSide });
 }
@@ -485,7 +485,7 @@ function playTransform(kind){
   else if(kind==='symetrie'){ orig.position.set(1.9,0,0); ghost.position.set(1.9,0,0);
     const pl=new THREE.Mesh(new THREE.PlaneGeometry(6,6), new THREE.MeshBasicMaterial({color:0x33C481,transparent:true,opacity:0.16,side:THREE.DoubleSide})); scene.add(pl); ghostObjs.push(pl); }
   else if(kind==='homothetie'){ orig.position.set(0,0,0); const dot=new THREE.Mesh(new THREE.SphereGeometry(0.12,16,12),new THREE.MeshBasicMaterial({color:0xF5A623})); scene.add(dot); ghostObjs.push(dot); }
-  const msg={translation:"Translation : on glisse le solide sans le déformer ni le tourner.",rotation:"Rotation : le solide pivote autour d'un axe (ici l'axe vertical).",symetrie:"Symétrie : le solide se reflète comme dans un miroir (plan vert).",homothetie:"Homothétie : on agrandit le solide depuis un centre — les proportions restent."}[kind];
+  const msg={translation:"Translation : on glisse le solide sans le déformer ni le tourner.",rotation:"Rotation : le solide pivote autour d'un axe (ici l'axe vertical).",symetrie:"Symétrie : le solide se reflète comme dans un miroir (plan vert).",homothetie:"Homothétie : on agrandit le solide depuis un centre : les proportions restent."}[kind];
   shell.api.say(msg,'idee'); shell.sound('pop');
   ghostTween={ kind, orig, ghost, helper, t0:performance.now(), dur:REDUCED?900:2600 };
 }
@@ -525,7 +525,7 @@ function updateRev(now){
 }
 
 /* ============================================================ MESURES / READOUT */
-function fmt(x){ if(!isFinite(x)) return '—'; return (Math.round(x*100)/100).toLocaleString('fr-FR'); }
+function fmt(x){ if(!isFinite(x)) return '…'; return (Math.round(x*100)/100).toLocaleString('fr-FR'); }
 function updateReadout(){
   const S=SOLIDS[st.solid]; const { g, dims } = buildGeom(); const m=measureGeom(g);
   document.getElementById('ggName').textContent=S.name;
@@ -723,7 +723,7 @@ function askQuiz(){
     const opts=q.opts.map(o=>`<button class="gg-opt" data-o="${o}">${q.num?fmt(o):o}${q.unit||''}</button>`).join('');
     bar.innerHTML=`<span class="qn">Défi ${quiz.idx+1}/${quiz.total}</span><div class="q">${q.prompt}</div><div class="gg-opts">${opts}</div>`;
     bar.querySelectorAll('.gg-opt').forEach(b=> b.onclick=()=>answer(b, q));
-    shell.api.say("Observe le solide et choisis ta réponse. Aucune pénalité — on apprend !",'curieux');
+    shell.api.say("Observe le solide et choisis ta réponse. Aucune pénalité : on apprend !",'curieux');
   }
 }
 function answer(btn, q){
@@ -732,15 +732,15 @@ function answer(btn, q){
   document.querySelectorAll('#ggQuiz .gg-opt').forEach(b=>b.disabled=true);
   if(good){ btn.classList.add('good'); shell.sound('good'); shell.api.addScore(150); quiz.score++; shell.api.say("Exact, bravo ! 🎉",'fier'); }
   else { btn.classList.add('bad'); shell.sound('bad'); document.querySelectorAll('#ggQuiz .gg-opt').forEach(b=>{ const bv=q.num?parseFloat(b.dataset.o):(q.kind==='name'?b.dataset.o:parseFloat(b.dataset.o)); if((q.kind==='name'?bv===q.answer:Math.abs(bv-q.answer)<0.02)) b.classList.add('good'); });
-    shell.api.say(`Ce n'est pas grave — la bonne réponse est ${q.kind==='name'?q.answer:(q.num?fmt(q.answer)+(q.unit||''):q.answer)}. On continue !`,'rassurant'); }
+    shell.api.say(`Ce n'est pas grave : la bonne réponse est ${q.kind==='name'?q.answer:(q.num?fmt(q.answer)+(q.unit||''):q.answer)}. On continue !`,'rassurant'); }
   nextSoon();
 }
-function resolveAction(){ if(!quiz||!quiz.q||quiz.q.kind!=='action')return; shell.sound('good'); shell.api.addScore(150); quiz.score++; shell.api.say("Patron déplié — parfait ! Un patron sert à calculer l'aire de surface.",'fier'); flashMsg('Défi réussi ! +150'); nextSoon(); }
+function resolveAction(){ if(!quiz||!quiz.q||quiz.q.kind!=='action')return; shell.sound('good'); shell.api.addScore(150); quiz.score++; shell.api.say("Patron déplié : parfait ! Un patron sert à calculer l'aire de surface.",'fier'); flashMsg('Défi réussi ! +150'); nextSoon(); }
 function nextSoon(){ quiz.idx++; shell.api.setProgress(quiz.idx/quiz.total); quiz.q=null; setTimeout(()=>{ if(quiz) askQuiz(); }, 1500); }
 function winQuiz(){ const bar=document.getElementById('ggQuiz'); if(bar)bar.remove();
   const s=quiz.score, total=quiz.total; const pct=s/total; const stars=pct>=0.85?3:pct>=0.5?2:1;
   shell.api.win({ score:s*150, stars, title:`${s}/${total} défis réussis`, learned:shell.cfg.learned,
-    buddy: stars===3?"Maître des solides ! Tu maîtrises Euler, les patrons et les volumes.":"Beau parcours — retiens : V − A + F = 2, et le patron sert à calculer l'aire.",
+    buddy: stars===3?"Maître des solides ! Tu maîtrises Euler, les patrons et les volumes.":"Beau parcours : retiens : V − A + F = 2, et le patron sert à calculer l'aire.",
     onNext:()=>{ shell.api.setScore(0); shell.api.setStars(0); startQuiz(); }, nextLabel:'Rejouer' });
   quiz=null;
 }

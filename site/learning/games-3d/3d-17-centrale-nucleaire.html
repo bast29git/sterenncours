@@ -123,7 +123,7 @@ const EQUIP = {
   pressurizer:{ icon:'🫧', name:'Pressuriseur', sub:'Circuit primaire · pression', color:'#2E7FD6',
     stats:[['Circuit','primaire'],['Pression','~155 bar'],['Rôle','garder l\'eau liquide'],['Effet','évite l\'ébullition'],['Contient','eau + vapeur'],['Régule','la pression']],
     desc:["Le circuit primaire est sous très haute pression (~155 bar). À cette pression, l'eau reste <b>liquide</b> même à 320 °C au lieu de bouillir.","Le pressuriseur maintient cette pression stable : garder l'eau du cœur liquide est essentiel pour évacuer la chaleur efficacement."],
-    fun:"Sous 155 bar, l'eau ne bout qu'au-dessus de 340 °C — trois fois plus chaud que dans ta bouilloire." },
+    fun:"Sous 155 bar, l'eau ne bout qu'au-dessus de 340 °C : trois fois plus chaud que dans ta bouilloire." },
   steamgen:{ icon:'♨️', name:'Générateur de vapeur', sub:'Échangeur primaire ↔ secondaire', color:'#1E8C7A',
     stats:[['Rôle','fabriquer la vapeur'],['Côté chaud','circuit primaire'],['Côté vapeur','circuit secondaire'],['Séparation','les eaux ne se mélangent pas'],['Sortie','vapeur sous pression'],['Sûreté','confine la radioactivité']],
     desc:["Le générateur de vapeur est un <b>échangeur de chaleur</b> : l'eau brûlante du circuit primaire circule dans des milliers de tubes et chauffe l'eau du circuit secondaire, qui se transforme en <b>vapeur</b>.","Les deux eaux ne se touchent jamais : la vapeur qui part vers la turbine n'est pas radioactive."],
@@ -138,12 +138,12 @@ const EQUIP = {
     fun:"Recondenser la vapeur crée un léger vide qui « aspire » la turbine et augmente son rendement." },
   tower:{ icon:'☁️', name:'Tour de refroidissement', sub:'Circuit tertiaire · évacue la chaleur', color:'#94A0B4',
     stats:[['Forme','hyperboloïde'],['Circuit','tertiaire (ouvert)'],['Panache','vapeur d\'eau'],['Rôle','évacuer la chaleur'],['Source froide','air / rivière'],['Pollution','aucune (juste de l\'eau)']],
-    desc:["La tour de refroidissement évacue la chaleur restante du circuit tertiaire dans l'air. Sa forme hyperboloïde crée un tirage naturel qui aspire l'air.","Le grand panache blanc au sommet est de la simple <b>vapeur d'eau</b> qui se condense au contact de l'air froid — pas de la fumée polluante."],
+    desc:["La tour de refroidissement évacue la chaleur restante du circuit tertiaire dans l'air. Sa forme hyperboloïde crée un tirage naturel qui aspire l'air.","Le grand panache blanc au sommet est de la simple <b>vapeur d'eau</b> qui se condense au contact de l'air froid : pas de la fumée polluante."],
     fun:"Toute centrale thermique (nucléaire, gaz, charbon) a besoin d'une source froide : c'est une loi de la physique, pas un défaut." },
   containment:{ icon:'🛡️', name:'Enceinte de confinement', sub:'Sûreté · défense en profondeur', color:'#5c6b82',
     stats:[['Matière','béton armé épais'],['Épaisseur','~1 mètre'],['Rôle','confiner la radioactivité'],['Barrières','pastille · gaine · cuve · enceinte'],['Résiste à','pression, chocs'],['Principe','défense en profondeur']],
     desc:["Le dôme de béton armé enferme tout le circuit primaire. C'est la dernière des barrières qui confinent la radioactivité : la <b>défense en profondeur</b>.","Plusieurs barrières empilées (la pastille, sa gaine, la cuve, puis l'enceinte) : si l'une cède, la suivante retient. La sûreté ne repose jamais sur un seul rempart."],
-    fun:"L'enceinte est conçue pour résister à des pressions internes énormes — et, dehors, à des chocs violents." },
+    fun:"L'enceinte est conçue pour résister à des pressions internes énormes : et, dehors, à des chocs violents." },
 };
 
 const NOTIONS = [
@@ -156,7 +156,7 @@ const NOTIONS = [
   ['Générateur de vapeur',"Échangeur où l'eau chaude du primaire fait bouillir l'eau du secondaire sans jamais la toucher : la vapeur produite n'est pas radioactive."],
   ['Turbine & alternateur',"La vapeur fait tourner la turbine ; l'alternateur, sur le même axe, transforme ce mouvement en électricité par induction."],
   ['Condenseur',"Après la turbine, la vapeur est recondensée en eau par le circuit froid, puis renvoyée en boucle vers le générateur de vapeur."],
-  ['Tour de refroidissement',"Elle rejette la chaleur restante dans l'air. Le panache blanc est de la vapeur d'eau — toute centrale thermique a besoin d'une source froide."],
+  ['Tour de refroidissement',"Elle rejette la chaleur restante dans l'air. Le panache blanc est de la vapeur d'eau : toute centrale thermique a besoin d'une source froide."],
   ['SCRAM (arrêt d\'urgence)',"En cas de problème, toutes les barres tombent d'un coup dans le cœur et arrêtent net la réaction. La sûreté est conçue pour être « passive »."],
   ['Défense en profondeur',"Plusieurs barrières successives (pastille, gaine, cuve, enceinte de béton) confinent la radioactivité : si l'une cède, la suivante retient."],
 ];
@@ -175,7 +175,7 @@ const shell = window.Konstrio.createGame({
   id:'3d-17-centrale-nucleaire', code:'3D·17', title:'Centrale nucléaire', type:'3D',
   domain:{ label:'Physique & Énergie', color:'#F5A623' },
   intro:{
-    greet:"Bienvenue en salle de commande ! Pilote la réaction avec les barres de contrôle, regarde la vapeur faire tourner la turbine, la ville s'allumer — et garde tout sous contrôle.",
+    greet:"Bienvenue en salle de commande ! Pilote la réaction avec les barres de contrôle, regarde la vapeur faire tourner la turbine, la ville s'allumer : et garde tout sous contrôle.",
     rule:"Comprends comment une centrale transforme la <b>fission</b> de l'uranium en électricité. Règle les <b>barres de contrôle</b> pour piloter la réaction, suis la chaleur qui devient <b>vapeur → turbine → électricité</b>, et surveille la <b>sûreté</b>.",
     how:[
       "Glisse pour explorer le site · molette pour zoomer · clique un composant pour sa fiche.",
@@ -217,7 +217,7 @@ function init(){
   const W = stage.clientWidth, H = stage.clientHeight;
   composer = new EffectComposer(renderer);
   if(software || REDUCED){
-    // Rendu logiciel : pas d'AO écran (produirait du noir) — l'occlusion vient des cartes AO bakées.
+    // Rendu logiciel : pas d'AO écran (produirait du noir) : l'occlusion vient des cartes AO bakées.
     composer.addPass(new RenderPass(scene, camera));
   } else {
     // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu béton/métal réaliste.
@@ -275,7 +275,7 @@ function init(){
 const mat = (c, metal, rough, o={}) => new THREE.MeshStandardMaterial(Object.assign({ color:c, metalness:metal, roughness:rough, envMapIntensity:1.0 }, o));
 const emiss = c => new THREE.MeshBasicMaterial({ color:c });
 
-/* ====== TEXTURES PBR CC0 (Poly Haven) — béton / métal / voiries ====== */
+/* ====== TEXTURES PBR CC0 (Poly Haven) : béton / métal / voiries ====== */
 const texLoader = new THREE.TextureLoader();
 const PBR_BASE = '../assets/3d/pbr2k/';
 function loadTex(url, srgb, rep){ const t = texLoader.load(url, undefined, undefined, ()=>{}); t.wrapS = t.wrapT = THREE.RepeatWrapping; if(rep) t.repeat.set(rep, rep); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = maxAniso; return t; }
@@ -298,7 +298,7 @@ function buildSky(){
   const g = x.createLinearGradient(0,0,0,256); g.addColorStop(0,'#5b8fd0'); g.addColorStop(0.5,'#9fc0e6'); g.addColorStop(1,'#d8e6f4');
   x.fillStyle = g; x.fillRect(0,0,16,256);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
-  // Dôme dégradé : ciel de secours (jamais noir) — masqué dès que le ciel HDRI réel est chargé.
+  // Dôme dégradé : ciel de secours (jamais noir) : masqué dès que le ciel HDRI réel est chargé.
   skyDome = new THREE.Mesh(new THREE.SphereGeometry(200, 24, 16), new THREE.MeshBasicMaterial({ map:t, side:THREE.BackSide, fog:false }));
   scene.add(skyDome);
 }
@@ -479,7 +479,7 @@ function hyperboloidPoints(baseR, topR, waistR, h){
   return pts;
 }
 function buildCoolingTowers(){
-  // Béton des tours (texture béton CC0 + AO bakée) — chaque tour a son matériau (tuilage vertical propre)
+  // Béton des tours (texture béton CC0 + AO bakée) : chaque tour a son matériau (tuilage vertical propre)
   const makeTowerMat = ()=>{ const m = new THREE.MeshStandardMaterial({ roughness:0.9, metalness:0.04, envMapIntensity:0.55, side:THREE.DoubleSide });
     applyPBR(m, 'concrete_floor_02', '1k', { repeat:4, normal:0.9, ao:true, color:0xe4e8ec }); if(m.map) m.map.repeat.set(8, 3); if(m.normalMap) m.normalMap.repeat.set(8, 3); if(m.roughnessMap) m.roughnessMap.repeat.set(8, 3); if(m.aoMap) m.aoMap.repeat.set(8, 3); return m; };
   [P.tower1, P.tower2].forEach((pos, k)=>{
@@ -633,7 +633,7 @@ function buildUI(){
   c.querySelector('#nuScram').onclick = doScram;
   c.querySelector('#nuTour').onclick = startTour;
   c.querySelector('#nuCut').onclick = e=>{ cutaway = !cutaway; e.currentTarget.setAttribute('aria-pressed', cutaway); labelsOn = cutaway ? true : labelsOn; applyCutaway(); shell.sound('click');
-    shell.say(cutaway ? "Vue en coupe : suis les 3 circuits d'eau colorés — rouge (primaire), blanc (vapeur), bleu (refroidissement)." : "Retour à la vue extérieure du site.", cutaway?'concentre':'joyeux'); };
+    shell.say(cutaway ? "Vue en coupe : suis les 3 circuits d'eau colorés : rouge (primaire), blanc (vapeur), bleu (refroidissement)." : "Retour à la vue extérieure du site.", cutaway?'concentre':'joyeux'); };
   c.querySelector('#nuNot').onclick = openNotions;
   c.querySelector('#nuLabels').onclick = e=>{ labelsOn = !labelsOn; e.currentTarget.setAttribute('aria-pressed', labelsOn); shell.sound('click'); };
   c.querySelector('#nuView').onclick = ()=>{ camAnim = null; camera.position.set(17,11,20); controls.target.set(-1,2.5,0); shell.sound('click'); };
@@ -642,7 +642,7 @@ function buildUI(){
   // Parcours guidé
   const tr = document.createElement('div'); tr.className = 'nu-panel nu-tour'; tr.id = 'nuTourP'; stage.appendChild(tr);
   // Warn
-  const warn = document.createElement('div'); warn.className = 'nu-warn'; warn.id = 'nuWarn'; warn.textContent = '⚠ SURCHAUFFE — enfonce les barres ou refroidis'; stage.appendChild(warn);
+  const warn = document.createElement('div'); warn.className = 'nu-warn'; warn.id = 'nuWarn'; warn.textContent = '⚠ SURCHAUFFE : enfonce les barres ou refroidis'; stage.appendChild(warn);
   // Hint
   const hint = document.createElement('div'); hint.className = 'nu-hint'; hint.id = 'nuHint';
   hint.textContent = 'Règle les barres de contrôle · clique un composant · ne surchauffe pas';
@@ -671,12 +671,12 @@ function refreshTelemetry(){
   const dot = document.getElementById('nuDot'); const status = document.getElementById('nuStatus');
   let st = '● Réacteur stable', dc = '#2ee08a';
   const diff = targetPower() - power;
-  if(scram){ st = '■ SCRAM — réacteur à l\'arrêt'; dc = '#29B6E0'; }
-  else if(temp>360){ st = '▲ Surchauffe — refroidis vite'; dc = '#E63329'; }
+  if(scram){ st = '■ SCRAM : réacteur à l\'arrêt'; dc = '#29B6E0'; }
+  else if(temp>360){ st = '▲ Surchauffe : refroidis vite'; dc = '#E63329'; }
   else if(safety<45){ st = '▲ Marge de sûreté faible'; dc = '#F5A623'; }
   else if(diff>90){ st = '▲ Sur-critique (montée)'; dc = '#F5A623'; }
   else if(diff<-90){ st = '▼ Sous-critique (baisse)'; dc = '#29B6E0'; }
-  else if(power>50){ st = '● Critique — régime stable'; dc = '#2ee08a'; }
+  else if(power>50){ st = '● Critique : régime stable'; dc = '#2ee08a'; }
   else { st = '○ Réacteur au ralenti'; dc = '#94A0B4'; }
   if(dot){ dot.style.background = dc; dot.style.boxShadow = '0 0 8px '+dc; }
   if(status) status.textContent = st;
@@ -785,15 +785,15 @@ function endTour(){ if(!tour) return; tour = null; document.getElementById('nuTo
 /* ====== MODE COURS ====== */
 const CHALLS = [
   { type:'click', target:'core', tier:0, title:'Où a lieu la fission ?', ask:"Clique le COMPOSANT où l'uranium subit la fission.", done:"Oui ! Le cœur du réacteur : la fission de l'uranium y libère la chaleur." },
-  { type:'click', target:'turbine', tier:0, title:'Vapeur → électricité', ask:"Quel composant transforme la vapeur en électricité ? Clique-le.", done:"Exact — la turbine entraîne l'alternateur qui produit l'électricité." },
+  { type:'click', target:'turbine', tier:0, title:'Vapeur → électricité', ask:"Quel composant transforme la vapeur en électricité ? Clique-le.", done:"Exact : la turbine entraîne l'alternateur qui produit l'électricité." },
   { type:'click', target:'rods', tier:0, title:'Le frein du réacteur', ask:"À quoi sert-on pour régler la puissance ? Clique les BARRES DE CONTRÔLE.", done:"Bien vu ! Les barres absorbent les neutrons et pilotent la réaction." },
-  { type:'click', target:'tower', tier:0, title:'Le panache blanc', ask:"Clique ce qui laisse échapper le panache de VAPEUR D'EAU.", done:"Oui — la tour de refroidissement évacue la chaleur : c'est de la vapeur d'eau, pas de la fumée." },
-  { type:'power', tier:1, title:'Pilotage fin', ask:"Règle la PUISSANCE à 900 MW (850–950) sans surchauffer, et tiens 10 s.", done:"Parfait — réaction critique, stable et sûre à 900 MW !" },
+  { type:'click', target:'tower', tier:0, title:'Le panache blanc', ask:"Clique ce qui laisse échapper le panache de VAPEUR D'EAU.", done:"Oui : la tour de refroidissement évacue la chaleur : c'est de la vapeur d'eau, pas de la fumée." },
+  { type:'power', tier:1, title:'Pilotage fin', ask:"Règle la PUISSANCE à 900 MW (850–950) sans surchauffer, et tiens 10 s.", done:"Parfait : réaction critique, stable et sûre à 900 MW !" },
   { type:'scram', tier:1, title:'Arrêt d\'urgence', ask:"Déclenche un SCRAM (bouton rouge ou barre Espace).", done:"Bravo ! Les barres tombent et la réaction s'arrête net : la sûreté d'abord." },
-  { type:'click', target:'steamgen', tier:1, title:'Fabriquer la vapeur', ask:"Clique le composant qui transforme l'eau en VAPEUR.", done:"Exact — le générateur de vapeur : un échangeur entre primaire et secondaire." },
+  { type:'click', target:'steamgen', tier:1, title:'Fabriquer la vapeur', ask:"Clique le composant qui transforme l'eau en VAPEUR.", done:"Exact : le générateur de vapeur : un échangeur entre primaire et secondaire." },
   { type:'click', target:'containment', tier:2, title:'Confiner la radioactivité', ask:"Clique la BARRIÈRE en béton qui confine la radioactivité.", done:"Oui ! L'enceinte de confinement : la dernière barrière de la défense en profondeur." },
-  { type:'click', target:'condenser', tier:2, title:'Vapeur → eau', ask:"Clique le composant qui recondense la vapeur en eau.", done:"Bien joué — le condenseur, refroidi par le circuit tertiaire." },
-  { type:'click', target:'pressurizer', tier:2, title:'Garder l\'eau liquide', ask:"Clique le composant qui maintient la pression du circuit primaire.", done:"Exact — le pressuriseur garde l'eau liquide malgré la chaleur." },
+  { type:'click', target:'condenser', tier:2, title:'Vapeur → eau', ask:"Clique le composant qui recondense la vapeur en eau.", done:"Bien joué : le condenseur, refroidi par le circuit tertiaire." },
+  { type:'click', target:'pressurizer', tier:2, title:'Garder l\'eau liquide', ask:"Clique le composant qui maintient la pression du circuit primaire.", done:"Exact : le pressuriseur garde l'eau liquide malgré la chaleur." },
 ];
 function startMode(m){
   mode = m; startHum();
@@ -853,7 +853,7 @@ function winQuiz(){
   shell.win({
     score: sc*150, stars: st, title: sc+'/'+tot+' défis réussis',
     learned: shell.cfg.learned,
-    buddy: st===3 ? "Sans faute ! Tu comprends comment une centrale transforme la fission en électricité, en toute sûreté." : "Bien joué — relis les fiches des composants et retente pour le sans-faute.",
+    buddy: st===3 ? "Sans faute ! Tu comprends comment une centrale transforme la fission en électricité, en toute sûreté." : "Bien joué : relis les fiches des composants et retente pour le sans-faute.",
     onNext: ()=>{ shell.setScore(0); chooseDifficulty(); }, nextLabel:'Rejouer',
   });
   challenge = null;

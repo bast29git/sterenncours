@@ -120,7 +120,7 @@ function validate(){
   if(ok){ shell.sound('win'); shell.api.addScore(300); shell.api.say('Parfait ! Chronologie exacte. '+set.events.sort((a,b)=>a.y-b.y).map(e=>e.l+' ('+fmtY(e.y)+')')[0]+' ouvre la frise.', 'celebration');
     setIdx++; if(setIdx<SETS.length){ shell.api.setProgress(1); setTimeout(()=>{ reset(shell.api); },2200); shell.api.toast('Frise réussie ! Thème suivant…'); }
     else finish(true); }
-  else { shell.sound('bad'); shell.api.addScore(good*30); shell.api.say(`${good}/${set.events.length} bien placés. Les cases rouges sont à revoir — observe les dates révélées !`,'rassurant'); validateBtn.disabled=false;
+  else { shell.sound('bad'); shell.api.addScore(good*30); shell.api.say(`${good}/${set.events.length} bien placés. Les cases rouges sont à revoir : observe les dates révélées !`,'rassurant'); validateBtn.disabled=false;
     // permit reordering of wrong ones
     setTimeout(()=>{ slots.querySelectorAll('.fr-slot.no').forEach(sl=>{ sl.classList.remove('no'); const c=sl.querySelector('.fr-card'); if(c){ c.classList.remove('revealed'); } }); },2600); }
 }

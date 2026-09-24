@@ -46,10 +46,10 @@ function render(){
 }
 function answer(g,t){ root.querySelectorAll('.cm-c').forEach(x=>x.style.pointerEvents='none');
  const ok=g.dataset.id===t[0];
- if(ok){ g.classList.add('ok'); correct++; api.addScore(100); api.sound('good'); api.say(`Exact ! ${t[1]} — capitale ${t[2]}.`,'fier'); }
+ if(ok){ g.classList.add('ok'); correct++; api.addScore(100); api.sound('good'); api.say(`Exact ! ${t[1]} : capitale ${t[2]}.`,'fier'); }
  else { g.classList.add('no'); const good=root.querySelector(`.cm-c[data-id="${t[0]}"]`); if(good)good.classList.add('ok'); api.sound('bad'); api.say(`C'était ${t[1]} (en vert). ${t[2]} en est la capitale.`,'rassurant'); }
  idx++; api.setProgress(idx/queue.length);
  const nb=document.createElement('button'); nb.textContent=idx<queue.length?'▸ Suivant':'🏁 Résultat'; nb.style.cssText='min-height:44px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--font-body);font-weight:700;font-size:15px;cursor:pointer;padding:0 22px'; root.appendChild(nb); nb.focus(); nb.onclick=render;
 }
-function finish(){ const acc=correct/queue.length, st=acc>=0.9?3:acc>=0.7?2:1; api.win({ score:correct*100, stars:st, title:`${correct}/${queue.length} pays trouvés`, learned:shell.cfg.learned, buddy:acc>=0.9?"Tu connais l'Europe sur le bout des doigts !":"Bien — observe les positions pour progresser.", onNext:reset, nextLabel:'Rejouer' }); }
+function finish(){ const acc=correct/queue.length, st=acc>=0.9?3:acc>=0.7?2:1; api.win({ score:correct*100, stars:st, title:`${correct}/${queue.length} pays trouvés`, learned:shell.cfg.learned, buddy:acc>=0.9?"Tu connais l'Europe sur le bout des doigts !":"Bien : observe les positions pour progresser.", onNext:reset, nextLabel:'Rejouer' }); }
 </script></body></html>

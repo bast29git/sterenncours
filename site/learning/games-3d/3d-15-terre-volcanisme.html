@@ -198,7 +198,7 @@ function rockNoise(base){
   const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,3); return t;
 }
 
-/* ======================= TEXTURES PBR CC0 (Poly Haven) — roche/terrain ======================= */
+/* ======================= TEXTURES PBR CC0 (Poly Haven) : roche/terrain ======================= */
 // Cartes réelles CC0 (rock_boulder_dry, rocky_terrain) : grain, relief (normal) et AO bakée
 // donnent une roche crédible qui reste lisible même en rendu logiciel (l'AO ne dépend pas de l'écran).
 const texLoader=new THREE.TextureLoader();
@@ -227,7 +227,7 @@ function init(){
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.06; renderer.localClippingEnabled=true;
   stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
-  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) — l'AO écran (GTAO) y produirait du noir.
+  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produirait du noir.
   let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
 
   const W=stage.clientWidth, H=stage.clientHeight;
@@ -237,7 +237,7 @@ function init(){
     const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=1.0;
     try{ gtao.updateGtaoMaterial({ radius:0.4, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
     composer.addPass(gtao); composer.gtao=gtao;
-  } // en rendu logiciel : pas de GTAO — l'occlusion vient des cartes AO bakées de la roche (jamais noir)
+  } // en rendu logiciel : pas de GTAO : l'occlusion vient des cartes AO bakées de la roche (jamais noir)
   // bloom fort sur la lave incandescente / le noyau
   bloom=new UnrealBloomPass(new THREE.Vector2(W,H), 0.85, 0.6, 0.72); composer.addPass(bloom);
   composer.addPass(new SMAAPass(W,H));       // anti-aliasing (le composer court-circuite le MSAA du canvas)
@@ -310,7 +310,7 @@ function buildAtmosphere(){
 function buildVolcano(){
   volcano=new THREE.Group(); volcano.position.set(0,R-0.05,0); scene.add(volcano);
   const H=1.95, RB=1.5, RT=0.42;
-  // roche réelle CC0 (rock_boulder_dry) : grain, relief normal, AO bakée — flancs volcaniques crédibles
+  // roche réelle CC0 (rock_boulder_dry) : grain, relief normal, AO bakée : flancs volcaniques crédibles
   const rockMat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:1.0, metalness:0.0 });
   applyPBR(rockMat,'rock_boulder_dry','1k',{repeat:2.4,normal:1.35,ao:true,aoInt:1.1,color:0x8a7360});
   // terrain d'assise (rocky_terrain) : pierrailles plus claires pour le rebord & les roches éparses
@@ -328,7 +328,7 @@ function buildVolcano(){
   const rimGeo=new THREE.CylinderGeometry(RT+0.06,RT+0.16,0.22,32); enableAO(rimGeo);
   const rimMat=rockMat.clone(); rimMat.color.setHex(0x5f4c3d);
   const rim=new THREE.Mesh(rimGeo, rimMat); rim.position.y=H-0.02; rim.castShadow=true; rim.userData={fiche:'cratere'}; volcano.add(rim);
-  // lac de lave (cratère) — émissif procédural + relief de roche (croûte de lave)
+  // lac de lave (cratère) : émissif procédural + relief de roche (croûte de lave)
   craterLava=new THREE.Mesh(new THREE.CircleGeometry(RT+0.02,32), new THREE.MeshStandardMaterial({ color:0xff8a2a, emissive:0xff5a1e, emissiveIntensity:1.7, roughness:.5, side:THREE.DoubleSide, normalMap:rockNormal(3), normalScale:new THREE.Vector2(0.6,0.6) }));
   craterLava.rotation.x=-Math.PI/2; craterLava.position.y=H+0.02; craterLava.userData={fiche:'cratere'}; volcano.add(craterLava);
   // roches éparses
@@ -551,7 +551,7 @@ function checkLayerAnswer(id){
   if(!quiz) return; const it=quiz.seq[quiz.idx]; if(!it||it.type!=='layer') return;
   if(id===it.id){ good(); } else { const L=LAYERS.find(x=>x.id===it.id); shell.sound('bad'); shell.say(`Presque ! Cherche plutôt : ${L.name}. Regarde bien la coupe.`,'rassurant'); }
 }
-function answerMCQ(ok){ if(!quiz) return; if(ok){ good(); } else { shell.sound('bad'); shell.say("Pas tout à fait — réfléchis et réessaie, tu vas trouver !",'rassurant'); } }
+function answerMCQ(ok){ if(!quiz) return; if(ok){ good(); } else { shell.sound('bad'); shell.say("Pas tout à fait : réfléchis et réessaie, tu vas trouver !",'rassurant'); } }
 function good(){ if(!quiz) return; quiz.score++; quiz.idx++; shell.addScore(150); shell.sound('good'); shell.setProgress(quiz.idx/quiz.total); shell.say(['Exact !','Bravo !','Parfait !','Bien joué !'][quiz.score%4],'celebration'); document.getElementById('teQuiz').classList.remove('on'); setTimeout(askQuiz, 850); }
 function winQuiz(){
   const st=quiz.score>=quiz.total-1?3:quiz.score>=Math.ceil(quiz.total/2)?2:1;

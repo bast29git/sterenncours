@@ -26,7 +26,7 @@ const shell=window.Konstrio.createGame({
   intro:{
     greet:"Mesure des angles et calcule des aires ! Observe la figure et choisis la bonne réponse.",
     rule:"Deux notions de géométrie : la <b>nature d'un angle</b> (aigu, droit, obtus) et l'<b>aire d'une figure</b> (rectangle, carré, triangle). Observe et réponds.",
-    how:["Pour un angle : compare-le à l'angle droit (90°) — plus petit = aigu, plus grand = obtus.","Pour une aire : applique la formule (rectangle = L×l, triangle = base×hauteur÷2).","Choisis la bonne réponse parmi les propositions."],
+    how:["Pour un angle : compare-le à l'angle droit (90°) : plus petit = aigu, plus grand = obtus.","Pour une aire : applique la formule (rectangle = L×l, triangle = base×hauteur÷2).","Choisis la bonne réponse parmi les propositions."],
     keys:"Clique une réponse.",
     objectif:"Reconnaître les angles et calculer les aires de figures simples.",
     hint:"Aire du rectangle = Longueur × largeur. Aire du triangle = (base × hauteur) ÷ 2. Angle droit = 90°.",
@@ -70,7 +70,7 @@ function pick(o,btn){ document.querySelectorAll('.aa-opt').forEach(b=>b.style.po
   shell.api.setProgress(asked/10); setTimeout(next, ok?1000:1800); }
 function finish(){ const stars=right>=9?3:right>=6?2:1;
   shell.api.win({ score:right*70, stars, title:`${right}/10 bonnes réponses`,
-    buddy: stars===3?"Géométrie maîtrisée ! Angles et aires n'ont plus de secret.":"Bien — rectangle = L×l, triangle = base×hauteur÷2.",
+    buddy: stars===3?"Géométrie maîtrisée ! Angles et aires n'ont plus de secret.":"Bien : rectangle = L×l, triangle = base×hauteur÷2.",
     learned:shell.cfg.learned, onNext:()=>{ asked=0; right=0; shell.api.setScore(0); next(); }, nextLabel:'Rejouer' }); }
 </script>
 </body>

@@ -78,7 +78,7 @@ function submit(){ if(!answer)return; const A=document.getElementById('pcA'); co
 }
 function finish(){ const sc=parseInt(document.querySelector('.ksh-score').textContent,10); const stars=right>=9?3:right>=6?2:1;
   shell.api.win({ score:sc, stars, title:`${right}/10 problèmes résolus`,
-    buddy: stars===3?"Les pourcentages n'ont plus de secret pour toi !":"Bien — souviens-toi : X% de Y = X/100 × Y.",
+    buddy: stars===3?"Les pourcentages n'ont plus de secret pour toi !":"Bien : souviens-toi : X% de Y = X/100 × Y.",
     learned:shell.cfg.learned, onNext:()=>start(shell.api), nextLabel:'Rejouer' }); }
 </script>
 </body>

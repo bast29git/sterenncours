@@ -94,7 +94,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============================================================
-   TEXTURES PBR CC0 (Poly Haven) — helpers du gabarit photoréaliste
+   TEXTURES PBR CC0 (Poly Haven) : helpers du gabarit photoréaliste
    ============================================================ */
 const texLoader=new THREE.TextureLoader();
 const PBR_BASE='../assets/3d/pbr2k/';
@@ -153,7 +153,7 @@ const shell=window.Konstrio.createGame({
   domain:{ label:'Physique', color:'#F5A623' },
   intro:{
     greet:"Bienvenue dans ton laboratoire de physique ! Ici tu manipules les lois de Newton : règle la gravité, lance des objets, lâche des dominos… et observe la vérité en direct.",
-    rule:"Un vrai <b>bac à sable de physique</b> : ajoute des objets, ils tombent, roulent et rebondissent avec une <b>vraie simulation</b>. Change la <b>gravité</b>, l'<b>élasticité</b>, la <b>friction</b>, le <b>vent</b> et le <b>temps</b> — tout réagit.",
+    rule:"Un vrai <b>bac à sable de physique</b> : ajoute des objets, ils tombent, roulent et rebondissent avec une <b>vraie simulation</b>. Change la <b>gravité</b>, l'<b>élasticité</b>, la <b>friction</b>, le <b>vent</b> et le <b>temps</b> : tout réagit.",
     how:[
       "Choisis une <b>démo</b> en bas (pendule, dominos, berceau de Newton, ressort…) : chacune est une petite leçon.",
       "Joue avec les réglages à gauche (gravité Terre/Lune/Mars/0g, rebond, friction, vent, ralenti).",
@@ -195,7 +195,7 @@ function init(){
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
   if(software){
-    // rendu logiciel : pas de GTAO (noir) — l'occlusion vient des cartes AO bakées + ombre de contact
+    // rendu logiciel : pas de GTAO (noir) : l'occlusion vient des cartes AO bakées + ombre de contact
     composer.addPass(new RenderPass(scene,camera));
   } else {
     const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=1.0;
@@ -224,7 +224,7 @@ function init(){
   arrowGroup=new THREE.Group(); scene.add(arrowGroup);
   buildTrajLine(); buildTarget();
 
-  // IBL HDRI studio réel (PMREM) — reflets crédibles sur billes/caisses, chargé en tâche de fond
+  // IBL HDRI studio réel (PMREM) : reflets crédibles sur billes/caisses, chargé en tâche de fond
   const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
   const rgbe=new RGBELoader();
   rgbe.load('../assets/3d/hdri/studio_small_09_1k.hdr', hdr=>{
@@ -263,7 +263,7 @@ function buildTray(){
   // repères 1 m
   const ringMat=new THREE.MeshBasicMaterial({color:0x6E6BFF,transparent:true,opacity:.14,side:THREE.DoubleSide});
   const ring=new THREE.Mesh(new THREE.RingGeometry(6.4,6.6,80),ringMat); ring.rotation.x=-Math.PI/2; ring.position.y=.02; scene.add(ring);
-  // 4 parois basses en verre (statique) — contiennent les objets
+  // 4 parois basses en verre (statique) : contiennent les objets
   tray=new THREE.Group(); scene.add(tray);
   const wallMat=new THREE.MeshPhysicalMaterial({color:0x9fb4d8,roughness:.15,metalness:0,transmission:.72,transparent:true,opacity:.34,thickness:.4,side:THREE.DoubleSide,envMapIntensity:1});
   const wh=TRAY.h, wt=0.35;
@@ -292,7 +292,7 @@ function buildTarget(){
 }
 
 /* ============================================================
-   MOTEUR PHYSIQUE — corps rigides simples (sphères + boîtes)
+   MOTEUR PHYSIQUE : corps rigides simples (sphères + boîtes)
    Intégration semi-implicite d'Euler · impulsions séquentielles
    ============================================================ */
 function addBody(o){
@@ -493,7 +493,7 @@ function mkStaticBox(pos,half,col,opts={}){
 }
 function countDynamic(){ let n=0; for(const b of bodies) if(b.invMass>0) n++; return n; }
 function addObject(kind){
-  if(countDynamic()>=MAXBODIES){ shell.toast('Bac plein — vide un peu !'); return; }
+  if(countDynamic()>=MAXBODIES){ shell.toast('Bac plein : vide un peu !'); return; }
   const x=(Math.random()-.5)*10, z=(Math.random()-.5)*6, y=TRAY.h+2+Math.random()*2;
   if(kind==='sphere'){ const r=0.45+Math.random()*0.3; mkSphere(new THREE.Vector3(x,y,z),r,BALLCOL[colIdx++%BALLCOL.length]); }
   else if(kind==='box'){ const s=0.5+Math.random()*0.25; mkBox(new THREE.Vector3(x,y,z),new THREE.Vector3(s,s,s),0xC98A3C,{rough:.7,tex:'worn_planks',rep:1}); }
@@ -517,7 +517,7 @@ const decor=new Set();
 function addDecor(o){ scene.add(o); decor.add(o); return o; }
 
 /* ============================================================
-   DÉMOS GUIDÉES (mode Détente) — chaque preset = une leçon
+   DÉMOS GUIDÉES (mode Détente) : chaque preset = une leçon
    ============================================================ */
 const PENDROD=[], SPRINGS=[];
 function loadPreset(id, silent){
@@ -530,7 +530,7 @@ function loadPreset(id, silent){
   afterChange();
 }
 const PRESETS={
-  chute:{ label:'Chute libre', say:"Chute libre : je lâche une grosse boule et une petite bille en même temps. Sans air, elles touchent le sol ENSEMBLE — la gravité accélère tout pareil (Galilée). Active « Air » pour voir la plume traîner !",
+  chute:{ label:'Chute libre', say:"Chute libre : je lâche une grosse boule et une petite bille en même temps. Sans air, elles touchent le sol ENSEMBLE : la gravité accélère tout pareil (Galilée). Active « Air » pour voir la plume traîner !",
     hint:"Active/désactive « Air » : sans air, les deux tombent à la même vitesse.",
     build:()=>{ const big=mkSphere(new THREE.Vector3(-4,TRAY.h+7,-1.5),0.85,0x6E6BFF,{density:2.4}); mkSphere(new THREE.Vector3(-1,TRAY.h+7,-1.5),0.35,0x29B6E0,{density:2.4}); const feather=mkSphere(new THREE.Vector3(2,TRAY.h+7,1.5),0.5,0xF5A623,{density:0.05}); feather.mesh.scale.set(1.4,0.25,1.4); tracked=big; } },
   incline:{ label:'Plan incliné', say:"Plan incliné : la bille roule et prend de la vitesse en descendant. Plus la pente est raide, plus l'accélération est grande. Baisse la friction pour la voir filer !",
@@ -566,7 +566,7 @@ function mkPost(anchor,barLen){
 function mkCoil(){ const g=new THREE.CylinderGeometry(0.16,0.16,1,10,1,true); const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xbfc7d6,metalness:.7,roughness:.3,wireframe:true})); addDecor(m); return m; }
 
 /* ============================================================
-   DÉFIS (mode Cours) — ≥6, feedback non punitif
+   DÉFIS (mode Cours) : ≥6, feedback non punitif
    ============================================================ */
 const CHALLENGES=[
   { id:'cible', ph:'Défi 1', ti:'Vise la cible', txt:"Règle l'angle et la force du lanceur pour faire passer un projectile dans l'anneau orange. Astuce : à 45°, on va le plus loin.",
@@ -604,7 +604,7 @@ function startChallenge(i){
   if(C.lock){ lockLauncher=true; launchAngle=C.angle; launchForce=C.force; syncLauncherUI(); } else lockLauncher=false, syncLauncherUI();
   renderChallengeCard();
   shell.setLevel((i+1)+'/'+CHALLENGES.length); shell.setProgress(i/CHALLENGES.length);
-  shell.say(C.ti+' — '+C.goal,'curieux');
+  shell.say(C.ti+' : '+C.goal,'curieux');
 }
 function renderChallengeCard(){
   const C=chActive.def; const el=document.getElementById('phCard');
@@ -626,7 +626,7 @@ function answerQuiz(k){
   const ok=k===C.correct;
   document.getElementById('chNext').disabled=false;
   if(ok){ chActive.done=true; shell.addScore(150); shell.sound('good'); shell.say('Exact ! '+C.explain,'celebration'); }
-  else { shell.addScore(40); shell.sound('bad'); shell.say('Pas tout à fait — '+C.explain+' Regarde la démo !','rassurant'); }
+  else { shell.addScore(40); shell.sound('bad'); shell.say('Pas tout à fait : '+C.explain+' Regarde la démo !','rassurant'); }
   // lance la démo visuelle
   if(C.id==='course'){ for(const b of bodies){ if(b.invMass>0&&b.type==='sphere'){ b.vel.set(0.5,0,0);} } }
   if(C.id==='berceau'){ /* déjà armé : première bille écartée retombe */ }
@@ -639,7 +639,7 @@ function markChallengeDone(){
   shell.toast('Défi réussi ! +'+bonus);
 }
 function nextChallenge(requireDone){
-  if(requireDone && chActive && !chActive.done){ shell.say("Tu peux réussir ce défi — ou clique « Passer » pour continuer.",'encourageant'); return; }
+  if(requireDone && chActive && !chActive.done){ shell.say("Tu peux réussir ce défi : ou clique « Passer » pour continuer.",'encourageant'); return; }
   lockLauncher=false;
   if(chIndex>=CHALLENGES.length-1){ finishCourse(); return; }
   startChallenge(chIndex+1);
@@ -738,7 +738,7 @@ function buildUI(){
 
   // Rail de démos
   const dm=document.createElement('div'); dm.className='ph-panel ph-demos';
-  dm.innerHTML=`<div class="lbl">Démos guidées — chaque expérience est une leçon</div><div class="ph-demorow" id="phDemos">${Object.keys(PRESETS).map(k=>`<button class="ph-chip" data-p="${k}">${PRESETS[k].label}</button>`).join('')}</div>`;
+  dm.innerHTML=`<div class="lbl">Démos guidées : chaque expérience est une leçon</div><div class="ph-demorow" id="phDemos">${Object.keys(PRESETS).map(k=>`<button class="ph-chip" data-p="${k}">${PRESETS[k].label}</button>`).join('')}</div>`;
   stage.appendChild(dm);
 
   // Carte défi / démo

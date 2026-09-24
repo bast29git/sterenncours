@@ -92,7 +92,7 @@ function validate(){
 }
 function finish(){ if(synth)synth.cancel(); const acc=right/queue.length, stars=acc>=.8?3:acc>=.5?2:1;
   shell.api.win({ score:parseInt(document.querySelector('.ksh-score').textContent,10), stars, title:`${right}/${queue.length} dictées parfaites`,
-    buddy: acc>=.8?"Quelle orthographe ! Tu écris sans faute.":"Bien — relis-toi mot à mot et surveille les accords.",
+    buddy: acc>=.8?"Quelle orthographe ! Tu écris sans faute.":"Bien : relis-toi mot à mot et surveille les accords.",
     learned:shell.cfg.learned, onNext:()=>{ idx=0; right=0; shell.api.setScore(0); queue=PHRASES.map((_,i)=>i).sort(()=>Math.random()-.5); show(); }, nextLabel:'Rejouer' }); }
 </script>
 </body>

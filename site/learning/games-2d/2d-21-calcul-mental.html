@@ -38,7 +38,7 @@ const shell=window.Konstrio.createGame({
   domain:{ label:'Mathématiques', color:'#9B2BB0' },
   intro:{
     greet:"Échauffe tes neurones ! Réponds aux calculs le plus vite possible. Les bonnes réponses d'affilée font monter ton combo !",
-    rule:"Calcule de tête et tape ta réponse. Chaque bonne réponse rapporte des points, et les séries (combos) les multiplient. Choisis ta difficulté — ça monte tout seul si tu enchaînes !",
+    rule:"Calcule de tête et tape ta réponse. Chaque bonne réponse rapporte des points, et les séries (combos) les multiplient. Choisis ta difficulté : ça monte tout seul si tu enchaînes !",
     how:["Tape ta réponse au clavier ou sur le pavé, puis Entrée (ou OK).","Enchaîne les bonnes réponses : le combo multiplie tes points.","Mode Cours = 60 secondes chrono. Mode Détente = 15 calculs à ton rythme."],
     keys:"Chiffres 0–9, Retour arrière pour corriger, Entrée pour valider, « - » pour un résultat négatif.",
     objectif:"Marquer un maximum de points en 60 secondes et gagner en rapidité de calcul.",
@@ -117,7 +117,7 @@ function finish(){
   const sc=parseInt(document.querySelector('.ksh-score').textContent,10);
   const stars = sc>=600?3:sc>=300?2:1;
   shell.api.win({ score:sc, stars, title:`${right} bonnes réponses`,
-    buddy: stars===3?"Calculateur express ! Ta rapidité est impressionnante.":"Bien joué — vise les combos pour exploser ton score.",
+    buddy: stars===3?"Calculateur express ! Ta rapidité est impressionnante.":"Bien joué : vise les combos pour exploser ton score.",
     learned: shell.cfg.learned, onNext:()=>start(shell.api), nextLabel:'Rejouer' });
 }
 </script>

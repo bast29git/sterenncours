@@ -87,7 +87,7 @@ function pick(cid,btn){ const w=WORDS[queue[idx]]; wrap.querySelectorAll('.nm-ca
 }
 function finish(){ const acc=right/queue.length, stars=acc>=.9?3:acc>=.7?2:1;
   shell.api.win({ score:right*100, stars, title:`${right}/${queue.length} mots bien classés`,
-    buddy: acc>=.9?"Grammaire au top ! Tu reconnais chaque nature de mot.":"Bien — le déterminant accompagne le nom, l'adjectif le décrit.",
+    buddy: acc>=.9?"Grammaire au top ! Tu reconnais chaque nature de mot.":"Bien : le déterminant accompagne le nom, l'adjectif le décrit.",
     learned:shell.cfg.learned, onNext:()=>{ idx=0; right=0; shell.api.setScore(0); queue=WORDS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,10); show(); }, nextLabel:'Rejouer' }); }
 </script>
 </body>

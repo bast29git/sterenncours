@@ -71,13 +71,13 @@ function validate(){
     if(errs.has(i)){ if(marked.has(i)){ sp.classList.remove('marked'); sp.classList.add('ok'); } else { sp.classList.add('miss'); allOk=false; } sp.innerHTML=sp.textContent+`<span class="corr">→ ${s.errs[i]}</span>`; }
     else if(marked.has(i)){ sp.classList.add('miss'); allOk=false; } });
   if(allOk){ right++; shell.api.addScore(120); shell.sound('good'); shell.api.say('Parfait ! Toutes les fautes repérées et corrigées.','fier'); }
-  else { shell.sound('bad'); shell.api.say("Pas tout à fait — regarde les corrections en vert sous les mots.",'rassurant'); }
+  else { shell.sound('bad'); shell.api.say("Pas tout à fait : regarde les corrections en vert sous les mots.",'rassurant'); }
   document.getElementById('cpVal').disabled=true;
   idx++; shell.api.setProgress(idx/queue.length); setTimeout(show, allOk?1400:2400);
 }
 function finish(){ const acc=right/queue.length, stars=acc>=.9?3:acc>=.6?2:1;
   shell.api.win({ score:right*120, stars, title:`${right}/${queue.length} phrases corrigées`,
-    buddy: acc>=.9?"Œil de correcteur ! Aucune faute ne t'échappe.":"Bien — surveille les accords et les homophones (on/ont, a/à).",
+    buddy: acc>=.9?"Œil de correcteur ! Aucune faute ne t'échappe.":"Bien : surveille les accords et les homophones (on/ont, a/à).",
     learned:shell.cfg.learned, onNext:()=>{ idx=0; right=0; shell.api.setScore(0); queue=SENT.map((_,i)=>i).sort(()=>Math.random()-.5); show(); }, nextLabel:'Rejouer' }); }
 </script>
 </body>

@@ -349,7 +349,8 @@
         "Calculer une masse volumique et une vitesse moyenne, avec les unités",
         "Représenter une force par une flèche",
         "Mesurer tension et intensité, appliquer les lois des circuits série et dérivation",
-        "Utiliser la vitesse de la lumière et l'année-lumière"
+        "Utiliser la vitesse de la lumière et l'année-lumière",
+        "Décrire les conditions de propagation d'un son et relier distance parcourue et durée de propagation"
       ],
       "lecons": [
         {
@@ -436,6 +437,18 @@
             "Vitesse",
             "Année-lumière",
             "Couleurs"
+          ]
+        },
+        {
+          "ref": "L09",
+          "dossier": "L09-signaux-sonores",
+          "titre": "Les signaux sonores",
+          "periode": 5,
+          "notions": [
+            "Vibration et propagation",
+            "Vitesse du son : 340 m/s",
+            "Fréquence et domaine audible",
+            "Niveau sonore et protection de l'audition"
           ]
         }
       ]

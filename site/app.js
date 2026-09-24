@@ -363,18 +363,22 @@
       document.getElementById('app-prof').hidden = true;
     }
 
+    // Tout part en même temps : scripts de la vue et des données, état partagé,
+    // séances. Le premier écran attend le plus lent, pas la somme de tous.
     try {
-      await chargerScript(role === 'prof' ? 'vue-prof.js' : 'vue-eleve.js');
-      await chargerScript('data/programme.js');
-      try { await chargerScript('data/exercices-index.js'); } catch (e) { await chargerScript('data/exercices.js'); }
-      try { await chargerScript('data/jeux.js'); } catch (e) { window.JEUX = []; }
-      await chargerScript('planificateur.js');
+      await Promise.all([
+        chargerScript(role === 'prof' ? 'vue-prof.js' : 'vue-eleve.js'),
+        chargerScript('data/programme.js'),
+        chargerScript('data/exercices-index.js').catch(() => chargerScript('data/exercices.js')),
+        chargerScript('data/jeux.js').catch(() => { window.JEUX = []; }),
+        chargerScript('planificateur.js'),
+        rafraichirEtat(), rafraichirSeances(),
+      ]);
     } catch (e) {
       signaler('Le programme n\'a pas pu être chargé. Recharge la page.');
       return;
     }
 
-    await Promise.all([rafraichirEtat(), rafraichirSeances()]);
     try { await chargerScript('messagerie.js'); } catch (e) { /* la messagerie reste en texte simple */ }
 
     if (role === 'eleve') {

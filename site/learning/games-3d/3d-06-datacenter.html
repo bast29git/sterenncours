@@ -113,8 +113,8 @@ const EQUIP = {
     fun:"Un pare-feu peut bloquer des millions de tentatives d'intrusion par jour, en silence." },
   ups:{ icon:'🔋', name:'Onduleur (UPS)', sub:'Énergie · secours immédiat', color:'#F5A623',
     stats:[['Rôle','alimentation de secours'],['Réagit en','quelques millisecondes'],['Autonomie','quelques minutes'],['Puis','le générateur prend le relais'],['Protège de','coupures & micro-coupures'],['Sigle','UPS']],
-    desc:["L'onduleur (UPS) contient de grosses batteries. En cas de coupure de courant, il alimente instantanément les serveurs — sans la moindre interruption.","Il tient le temps que le générateur diesel démarre : la chaîne d'énergie ne s'arrête jamais."],
-    fun:"Un datacenter double tout : deux arrivées électriques, deux UPS, deux chemins — c'est la haute disponibilité." },
+    desc:["L'onduleur (UPS) contient de grosses batteries. En cas de coupure de courant, il alimente instantanément les serveurs : sans la moindre interruption.","Il tient le temps que le générateur diesel démarre : la chaîne d'énergie ne s'arrête jamais."],
+    fun:"Un datacenter double tout : deux arrivées électriques, deux UPS, deux chemins : c'est la haute disponibilité." },
   generator:{ icon:'⚡', name:'Générateur', sub:'Énergie · autonomie longue', color:'#94A0B4',
     stats:[['Rôle','produire de l\'électricité'],['Carburant','diesel / gaz'],['Démarrage','~10–15 s'],['Autonomie','heures → jours'],['Relais de','l\'onduleur'],['Test','démarrage régulier']],
     desc:["Le générateur prend le relais de l'onduleur lors d'une coupure prolongée. Il produit sa propre électricité tant que dure la panne du réseau.","On le teste régulièrement pour être sûr qu'il démarrera le jour où il faudra."],
@@ -203,7 +203,7 @@ function init(){
   const W = stage.clientWidth, H = stage.clientHeight;
   composer = new EffectComposer(renderer);
   if(software){
-    // rendu logiciel : pas de GTAO écran (produirait du noir) — l'occlusion vient des cartes AO bakées + ombres
+    // rendu logiciel : pas de GTAO écran (produirait du noir) : l'occlusion vient des cartes AO bakées + ombres
     composer.addPass(new RenderPass(scene, camera));
   } else {
     // GPU : occlusion ambiante espace-écran (GTAO) pour creuser les baies/câbles
@@ -340,7 +340,7 @@ const RACK_ROWS = [ { x:-5.2, rot:Math.PI/2 }, { x:5.2, rot:-Math.PI/2 } ]; // f
 const RACK_Z = [-7, -3.5, 0, 3.5, 7];
 function buildRackMesh(){
   const g = new THREE.Group();
-  // Armoire (cabinet) — tôle métallique réelle (PBR + AO)
+  // Armoire (cabinet) : tôle métallique réelle (PBR + AO)
   const bgeo = new THREE.BoxGeometry(1.7, 4.4, 2.2); enableAO(bgeo);
   const body = new THREE.Mesh(bgeo, rackMetalMat || mat(0x1a2130, 0.7, 0.42, { envMapIntensity:1.2 }));
   body.position.y = 2.2; body.castShadow = true; body.receiveShadow = true; g.add(body);
@@ -603,8 +603,8 @@ function refreshTelemetry(){
   let st = '● Nominal', dc = '#35E08A';
   if(deadNodes.has('swA') && deadNodes.has('swB')){ st = '✖ Panne totale réseau'; dc = '#E63329'; }
   else if(deadNodes.has('swA') || deadNodes.has('swB')){ st = '⇄ Failover actif (switch redondant)'; dc = '#F5A623'; }
-  else if(temp>36){ st = '▲ Surchauffe — augmente le froid'; dc = '#F5A623'; }
-  else if(racks.some(r=>r.failed)){ st = '⇄ Serveur en panne — voisins actifs'; dc = '#F5A623'; }
+  else if(temp>36){ st = '▲ Surchauffe : augmente le froid'; dc = '#F5A623'; }
+  else if(racks.some(r=>r.failed)){ st = '⇄ Serveur en panne : voisins actifs'; dc = '#F5A623'; }
   if(dot){ dot.style.background = dc; dot.style.boxShadow = '0 0 8px '+dc; }
   if(status) status.textContent = st;
 }
@@ -648,10 +648,10 @@ function setSwitchVisual(obj, down){
   obj.ports.forEach(p=>p.material.color.setHex(down ? COL.red : COL.ok));
 }
 function triggerFailure(){
-  if(deadNodes.has('swA')){ shell.say("Un switch est déjà en panne — clique « Réparer » d'abord, ou observe le trafic sur le switch B.",'rassurant'); return; }
+  if(deadNodes.has('swA')){ shell.say("Un switch est déjà en panne : clique « Réparer » d'abord, ou observe le trafic sur le switch B.",'rassurant'); return; }
   deadNodes.add('swA'); setSwitchVisual(switchAObj, true);
-  shell.sound('bad'); shell.toast('⚠️ Panne du Switch A — bascule en cours…');
-  shell.say("Le switch A tombe en panne ! Regarde : les paquets se reroutent aussitôt par le switch B redondant. Le service continue — c'est le failover.", 'surpris');
+  shell.sound('bad'); shell.toast('⚠️ Panne du Switch A : bascule en cours…');
+  shell.say("Le switch A tombe en panne ! Regarde : les paquets se reroutent aussitôt par le switch B redondant. Le service continue : c'est le failover.", 'surpris');
   if(mode==='cours') evalChallenge('fail');
 }
 function repairAll(){
@@ -696,12 +696,12 @@ function onDown(e){ setP(e); const h = pick(); if(!h.length) return;
 /* ====== MODE COURS ====== */
 const CHALLS = [
   { type:'click', target:'crac', tier:0, title:'Le refroidissement', ask:"Clique l'équipement qui REFROIDIT la salle.", done:"Oui ! Le groupe froid (CRAC) évacue la chaleur des serveurs." },
-  { type:'click', target:'net', tier:0, title:'Où va le paquet ?', ask:"Un paquet quitte le datacenter : clique sa destination finale.", done:"Exact — il part vers Internet, le réseau mondial." },
+  { type:'click', target:'net', tier:0, title:'Où va le paquet ?', ask:"Un paquet quitte le datacenter : clique sa destination finale.", done:"Exact : il part vers Internet, le réseau mondial." },
   { type:'click', target:'router', tier:0, title:"L'aiguilleur", ask:"Clique le ROUTEUR, qui choisit le chemin vers Internet.", done:"Bien vu ! Le routeur relie le datacenter au monde extérieur." },
-  { type:'click', target:'firewall', tier:0, title:'La sécurité', ask:"Clique le PARE-FEU, le gardien qui filtre le trafic.", done:"Parfait — le pare-feu bloque les connexions dangereuses." },
+  { type:'click', target:'firewall', tier:0, title:'La sécurité', ask:"Clique le PARE-FEU, le gardien qui filtre le trafic.", done:"Parfait : le pare-feu bloque les connexions dangereuses." },
   { type:'fail', tier:1, title:'Panne & failover', ask:"Déclenche une PANNE (bouton ⚠️) et observe le trafic se rerouter.", done:"Bravo ! Un switch tombe, le trafic bascule sur le switch redondant : c'est le failover." },
   { type:'click', target:'ups', tier:1, title:"L'énergie de secours", ask:"Clique l'ONDULEUR (UPS), qui prend le relais en cas de coupure.", done:"Oui ! L'UPS alimente les serveurs le temps que le générateur démarre." },
-  { type:'click', target:'storage', tier:2, title:'Le stockage', ask:"Clique la BAIE DE STOCKAGE (disques en RAID).", done:"Exact — les données y sont dupliquées (RAID) pour ne rien perdre." },
+  { type:'click', target:'storage', tier:2, title:'Le stockage', ask:"Clique la BAIE DE STOCKAGE (disques en RAID).", done:"Exact : les données y sont dupliquées (RAID) pour ne rien perdre." },
   { type:'load', tier:2, title:'Montée en charge', ask:"Monte la CHARGE au-dessus de 80 % : plus de serveurs s'allument.", done:"Le datacenter scale : il allume des serveurs pour absorber la charge." },
 ];
 let quizTier = 'debutant';
@@ -756,7 +756,7 @@ function winQuiz(){
   shell.win({
     score: sc*150, stars: st, title: sc+'/'+tot+' défis réussis',
     learned: shell.cfg.learned,
-    buddy: st===3 ? "Sans faute ! Tu comprends l'architecture d'un datacenter : réseau, sécurité, énergie, froid et redondance." : "Bien joué — relis les fiches des équipements et retente pour le sans-faute.",
+    buddy: st===3 ? "Sans faute ! Tu comprends l'architecture d'un datacenter : réseau, sécurité, énergie, froid et redondance." : "Bien joué : relis les fiches des équipements et retente pour le sans-faute.",
     onNext: ()=>{ shell.setScore(0); chooseDifficulty(); }, nextLabel:'Rejouer',
   });
   challenge = null;

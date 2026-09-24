@@ -45,7 +45,7 @@ const shell=window.Konstrio.createGame({
   onReady:(api)=>build(api),
   onStart:(m,api)=>{ mode=m; start(api); },
   onRestart:(api)=>start(api),
-  onHint:(api)=>{ document.getElementById('eqSteps').textContent=cur.steps; api.say("Voici la résolution détaillée — suis chaque ligne.",'idee'); },
+  onHint:(api)=>{ document.getElementById('eqSteps').textContent=cur.steps; api.say("Voici la résolution détaillée : suis chaque ligne.",'idee'); },
 });
 let wrap;
 function build(api){
@@ -88,7 +88,7 @@ function submit(){ if(answer===''||answer==='-')return; const A=document.getElem
 }
 function finish(){ const sc=parseInt(document.querySelector('.ksh-score').textContent,10); const stars=right>=9?3:right>=6?2:1;
   shell.api.win({ score:sc, stars, title:`${right}/10 équations résolues`,
-    buddy: stars===3?"Tu résous les équations comme un·e pro !":"Bien — pense à isoler x en faisant la même opération des deux côtés.",
+    buddy: stars===3?"Tu résous les équations comme un·e pro !":"Bien : pense à isoler x en faisant la même opération des deux côtés.",
     learned:shell.cfg.learned, onNext:()=>start(shell.api), nextLabel:'Rejouer' }); }
 </script>
 </body>

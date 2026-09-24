@@ -10,10 +10,10 @@ const W=[
 ];
 const all=W.map(w=>w[2]);
 function pick3(ans){ const o=[]; const pool=all.filter(x=>x!==ans); while(o.length<3&&pool.length){ const i=Math.random()*pool.length|0; o.push(pool.splice(i,1)[0]); } return o; }
-const rounds=W.map(w=>({lvl:w[0], prompt:`<span class="big">${w[1]}</span> — en français ?`, audio:w[1].replace('to ',''), answer:w[2], options:[w[2],...pick3(w[2])], explain:`« ${w[1]} » = ${w[2]}.`}));
-LangGame({ id:'2d-41-en-vocabulary', code:'2D·41', title:'English — Vocabulary', lang:'en', mode:'mcq',
+const rounds=W.map(w=>({lvl:w[0], prompt:`<span class="big">${w[1]}</span> : en français ?`, audio:w[1].replace('to ',''), answer:w[2], options:[w[2],...pick3(w[2])], explain:`« ${w[1]} » = ${w[2]}.`}));
+LangGame({ id:'2d-41-en-vocabulary', code:'2D·41', title:'English : Vocabulary', lang:'en', mode:'mcq',
  domain:{label:'Langues',color:'#0E7C86'},
- intro:{ greet:"Welcome! Listen to each word and pick the right French meaning. Pick a level — up to business English.", rule:"Écoute le mot anglais (🔊) et choisis la bonne traduction française. Trois niveaux : du vocabulaire de base à l'anglais professionnel.", how:["Clique 🔊 pour entendre la prononciation.","Choisis la bonne traduction parmi les 4 propositions.","Monte en niveau (Facile → Expert) pour du vocabulaire d'entreprise."], objectif:"Enrichir son vocabulaire anglais, du quotidien au professionnel.", hint:"Si tu hésites, écoute le mot plusieurs fois : la prononciation aide souvent à reconnaître un mot proche du français.", why:"On retient mieux un mot en l'associant au son ET au sens." },
+ intro:{ greet:"Welcome! Listen to each word and pick the right French meaning. Pick a level : up to business English.", rule:"Écoute le mot anglais (🔊) et choisis la bonne traduction française. Trois niveaux : du vocabulaire de base à l'anglais professionnel.", how:["Clique 🔊 pour entendre la prononciation.","Choisis la bonne traduction parmi les 4 propositions.","Monte en niveau (Facile → Expert) pour du vocabulaire d'entreprise."], objectif:"Enrichir son vocabulaire anglais, du quotidien au professionnel.", hint:"Si tu hésites, écoute le mot plusieurs fois : la prononciation aide souvent à reconnaître un mot proche du français.", why:"On retient mieux un mot en l'associant au son ET au sens." },
  learned:["Vocabulaire anglais courant et professionnel.","La prononciation aide à mémoriser.","L'anglais des affaires : stakeholder, revenue, deadline…"],
  rounds });
 </script></body></html>

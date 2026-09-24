@@ -12,10 +12,10 @@ body.corps-portail { background: #0b1a3a; overflow: hidden; }
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #0b1a3a url('fond/aurore-nuit.jpg') center / cover no-repeat;
+  background: #0b1a3a image-set(url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center / cover no-repeat;
   padding: 1.25rem;
 }
-@media (max-aspect-ratio: 3/4) { .portail { background-image: url('fond/aurore-mobile.jpg'); } }
+@media (max-aspect-ratio: 3/4) { .portail { background-image: image-set(url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); } }
 
 /* ---------- La planche en filigrane -------------------------------------- */
 .planche {

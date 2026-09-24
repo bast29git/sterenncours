@@ -89,7 +89,7 @@ function finishRound(ok,explain,lock){
 }
 function finish(){ const stars=score>=9?3:score>=6?2:1;
   shell.api.win({ score:score*100, stars, title:`${score}/${total} fractions réussies`,
-    buddy: stars===3?"Tu maîtrises les fractions ! Colorier, lire, simplifier : tout est clair.":"Bien joué — souviens-toi qu'on simplifie en divisant haut et bas par le même nombre.",
+    buddy: stars===3?"Tu maîtrises les fractions ! Colorier, lire, simplifier : tout est clair.":"Bien joué : souviens-toi qu'on simplifie en divisant haut et bas par le même nombre.",
     learned:shell.cfg.learned, onNext:()=>{ round=0; score=0; shell.api.setScore(0); next(); }, nextLabel:'Rejouer' }); }
 </script>
 </body>

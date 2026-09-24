@@ -47,11 +47,11 @@ const EMAILS = [
     phish:false, flags:[], why:"Expéditeur cohérent, pas de lien piégé, pas d'urgence ni de demande de données : ce message est légitime." },
   { name:'Sécurité Netfllix', mail:'support@netfllix-secure.com', color:'#E63329', subj:'⚠ Votre compte sera SUSPENDU sous 24h !',
     body:`<p>Cher client,</p><p>Nous avons détecté un problème de paiement. Votre compte sera <span class="flag" data-f>définitivement suspendu sous 24 heures</span> si vous ne mettez pas à jour vos informations bancaires immédiatement.</p><p>Cliquez ici : <a class="ph-link" data-f>http://netfllix-secure.com/verifier-compte</a></p>`,
-    phish:true, flags:["Le domaine « netf<b>ll</b>ix-secure.com » est mal orthographié et n'est pas le vrai site.","Urgence artificielle (« 24 heures », « suspendu ») pour te faire paniquer.","On te demande tes informations bancaires par e-mail — jamais légitime."],
+    phish:true, flags:["Le domaine « netf<b>ll</b>ix-secure.com » est mal orthographié et n'est pas le vrai site.","Urgence artificielle (« 24 heures », « suspendu ») pour te faire paniquer.","On te demande tes informations bancaires par e-mail : jamais légitime."],
     why:"Faux domaine + urgence + demande de données bancaires : les trois marques classiques d'un hameçonnage." },
   { name:'Amazon', mail:'no-reply@amazon-livraison-fr.net', color:'#F5A623', subj:'Votre colis est bloqué - réglez 1,99 € de frais',
     body:`<p>Bonjour,</p><p>Votre colis n'a pas pu être livré. Pour le débloquer, réglez les <span class="flag" data-f>frais de redistribution de 1,99 €</span> via le lien sécurisé :</p><p><a class="ph-link" data-f>https://amazon-livraison-fr.net/paiement</a></p>`,
-    phish:true, flags:["Le domaine « amazon-livraison-fr.net » n'appartient pas à Amazon (qui utilise amazon.fr).","Petite somme demandée (1,99 €) pour capter ta carte bancaire — arnaque fréquente.","Prétexte du colis bloqué pour créer un sentiment d'urgence."],
+    phish:true, flags:["Le domaine « amazon-livraison-fr.net » n'appartient pas à Amazon (qui utilise amazon.fr).","Petite somme demandée (1,99 €) pour capter ta carte bancaire : arnaque fréquente.","Prétexte du colis bloqué pour créer un sentiment d'urgence."],
     why:"Le faux domaine et la demande de paiement pour un « colis bloqué » sont des pièges très répandus." },
   { name:'Marie Dupont', mail:'marie.dupont@mon-entreprise.fr', color:'#1E8C7A', subj:'Compte-rendu réunion de lundi',
     body:`<p>Salut,</p><p>Comme convenu, voici le compte-rendu de notre réunion. On se cale jeudi pour la suite ?</p><p>Bonne journée,<br/>Marie</p>`,
@@ -69,7 +69,7 @@ const EMAILS = [
     why:"La collecte de données sensibles par e-mail est le cœur de l'ingénierie sociale en entreprise." },
   { name:'Apple', mail:'appleid@apple-id-verify.support', color:'#565B75', subj:'Votre identifiant Apple a été verrouillé',
     body:`<p>Bonjour,</p><p>Pour des raisons de sécurité, votre identifiant a été <span class="flag" data-f>verrouillé</span>. Déverrouillez-le en confirmant votre mot de passe ici :</p><p><a class="ph-link" data-f>https://apple-id-verify.support/unlock</a></p>`,
-    phish:true, flags:["Le vrai domaine est apple.com, pas « apple-id-verify.support ».","On te demande de saisir ton mot de passe via un lien — à ne jamais faire.","Menace de verrouillage pour créer la peur."],
+    phish:true, flags:["Le vrai domaine est apple.com, pas « apple-id-verify.support ».","On te demande de saisir ton mot de passe via un lien : à ne jamais faire.","Menace de verrouillage pour créer la peur."],
     why:"Aucun service sérieux ne te demande ton mot de passe par lien e-mail." },
   { name:'Médiathèque', mail:'contact@mediatheque-ville.fr', color:'#23A06E', subj:'Rappel : votre livre est à rendre',
     body:`<p>Bonjour,</p><p>Petit rappel amical : « Le Petit Prince » est à rapporter avant samedi. Bonne lecture !</p><p>L'équipe de la médiathèque.</p>`,
@@ -138,7 +138,7 @@ function render(){
     </div>`;
   root.querySelector('.ph-vb.safe').onclick=()=>verdict(false);
   root.querySelector('.ph-vb.phish').onclick=()=>verdict(true);
-  shell.api.say(idx===0?"Premier e-mail. Inspecte l'expéditeur et le lien avant de trancher !":"Au suivant — reste vigilant.", 'concentre');
+  shell.api.say(idx===0?"Premier e-mail. Inspecte l'expéditeur et le lien avant de trancher !":"Au suivant : reste vigilant.", 'concentre');
 }
 function verdict(saidPhish){
   const api=shell.api; const e=EMAILS[order[idx]];
@@ -164,7 +164,7 @@ function finish(){
   const api=shell.api; const acc=correct/order.length;
   const stars = acc>=0.9?3:acc>=0.7?2:1;
   api.win({ score: correct*100, stars, title:`${correct}/${order.length} e-mails bien analysés`,
-    buddy: acc>=0.9?"Impressionnant ! Tu as l'œil d'un expert en cybersécurité.":acc>=0.7?"Bon réflexe global — encore un peu d'attention sur les domaines.":"Tu progresses ! Concentre-toi sur l'adresse de l'expéditeur.",
+    buddy: acc>=0.9?"Impressionnant ! Tu as l'œil d'un expert en cybersécurité.":acc>=0.7?"Bon réflexe global : encore un peu d'attention sur les domaines.":"Tu progresses ! Concentre-toi sur l'adresse de l'expéditeur.",
     learned: shell.cfg.learned, onNext: ()=>{ reset(api); }, nextLabel:'Rejouer (mélangé)' });
 }
 </script>

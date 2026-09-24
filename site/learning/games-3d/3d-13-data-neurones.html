@@ -160,7 +160,7 @@ const shell = window.Konstrio.createGame({
     keys:"Glisser = tourner · molette = zoom · clic sur un neurone = fiche.",
     objectif:"Comprendre comment un réseau de neurones propage un signal puis apprend en ajustant ses poids.",
     hint:"Un neurone additionne ses entrées pondérées, ajoute un biais, puis applique une fonction d'activation. Empile des couches et le réseau peut apprendre des formes complexes.",
-    why:"Une IA ne « comprend » pas : elle calcule. L'entraînement cherche les poids qui minimisent l'erreur, guidé par le gradient — un peu comme descendre une pente vers le point le plus bas."
+    why:"Une IA ne « comprend » pas : elle calcule. L'entraînement cherche les poids qui minimisent l'erreur, guidé par le gradient : un peu comme descendre une pente vers le point le plus bas."
   },
   learned:[
     "Un réseau de neurones propage un signal de la couche d'entrée vers la sortie.",
@@ -490,7 +490,7 @@ function finishPropagate(){
   // met en évidence le neurone de sortie gagnant
   const L = sizes.length-1;
   for(let i=0;i<sizes[L];i++){ const nm = neuronByLayer(L,i); if(!nm) continue; const win = i===predClass; nm.userData.glow = win?1:0.15; nm.userData.winCol = win?CLASS_HEX[i]:null; }
-  shell.api.say(`Décision : « ${CLASS_NAME[predClass]} » à ${Math.round(predConf*100)} % — c'est le neurone de sortie le plus actif qui l'emporte.`, 'celebration');
+  shell.api.say(`Décision : « ${CLASS_NAME[predClass]} » à ${Math.round(predConf*100)} % : c'est le neurone de sortie le plus actif qui l'emporte.`, 'celebration');
   shell.sound('good');
   updateStatus();
 }
@@ -711,13 +711,13 @@ function chipGroup(id, cb){
     shell.sound('click'); cb(b.dataset.v);
   });
 }
-function dsHint(v){ return v==='moons'?"Deux « lunes » entrelacées : il faut une frontière courbe — un réseau à couches cachées y arrive.":v==='xor'?"XOR : quatre paquets en damier. Un seul neurone n'y arrive pas ; il faut des couches cachées !":"Deux blobs bien séparés : un problème facile, presque linéaire."; }
+function dsHint(v){ return v==='moons'?"Deux « lunes » entrelacées : il faut une frontière courbe : un réseau à couches cachées y arrive.":v==='xor'?"XOR : quatre paquets en damier. Un seul neurone n'y arrive pas ; il faut des couches cachées !":"Deux blobs bien séparés : un problème facile, presque linéaire."; }
 function actHint(v){ return v==='relu'?"ReLU garde les valeurs positives, met le reste à zéro : simple et rapide, le standard du deep learning.":v==='tanh'?"tanh écrase les valeurs entre -1 et 1 : lisse et centré.":"La sigmoïde comprime tout entre 0 et 1 : historique, mais sature vite."; }
 function updateStatus(){
   const st = document.getElementById('aiwStatus'); if(!st) return;
   const arch = sizes.join('·');
   let s = `Réseau <b>${arch}</b> · ${ACT_LABEL[ARCH.activation]} · η=${ARCH.lr.toFixed(2)}`;
-  if(predClass!=null) s += ` — prédiction <b>${CLASS_NAME[predClass]}</b> (${Math.round(predConf*100)}%)`;
+  if(predClass!=null) s += ` : prédiction <b>${CLASS_NAME[predClass]}</b> (${Math.round(predConf*100)}%)`;
   st.innerHTML = s;
   const pr = document.getElementById('aiwPred');
   if(pr && predClass!=null && queryPoint) pr.innerHTML = `<span class="dot" style="background:${CLASS_HEX[predClass]}"></span>Point (${queryPoint[0].toFixed(2)}, ${queryPoint[1].toFixed(2)}) → <b>${CLASS_NAME[predClass]}</b> à ${Math.round(predConf*100)} %.`;
@@ -733,9 +733,9 @@ function openFiche(nm){
   const li = nm.userData.layer, i = nm.userData.idx, role = nm.userData.role;
   const isIn = nm.userData.isIn, isOut = nm.userData.isOut;
   const color = isOut ? CLASS_HEX[i] : (isIn ? '#6E6BFF' : '#8f8dff');
-  const bias = isIn ? '—' : net.B[li-1][i].toFixed(2);
+  const bias = isIn ? '…' : net.B[li-1][i].toFixed(2);
   const actName = isOut ? 'softmax' : (isIn ? 'aucune' : ACT_LABEL[ARCH.activation]);
-  const actVal = lastActs ? lastActs[li][i].toFixed(2) : '—';
+  const actVal = lastActs ? lastActs[li][i].toFixed(2) : '…';
   const title = isIn ? `Entrée x${i+1}` : (isOut ? CLASS_NAME[i] : `Neurone ${i+1}`);
   const sub = isIn ? 'Couche d\'entrée' : (isOut ? 'Couche de sortie' : 'Couche cachée '+li);
   const chips = isIn ? ['donnée','entrée'] : (isOut ? ['sortie','softmax','classe'] : ['poids','biais','activation']);
@@ -775,13 +775,13 @@ const GLOSSARY = [
 /* ====================== MODE COURS ====================== */
 const CHALLS = [
   { type:'propagate', title:'Fais propager le signal', ask:'Clique « Propager le signal » et regarde-le traverser le réseau jusqu\'à la décision.', done:"Bravo ! Le signal a traversé les couches et le neurone de sortie le plus actif a décidé." },
-  { type:'clickLayer', target:'sortie', title:'Repère la couche de sortie', ask:'Clique un neurone de la couche de SORTIE (à droite).', done:"Exact — la sortie produit un score par classe ; le plus élevé gagne." },
+  { type:'clickLayer', target:'sortie', title:'Repère la couche de sortie', ask:'Clique un neurone de la couche de SORTIE (à droite).', done:"Exact : la sortie produit un score par classe ; le plus élevé gagne." },
   { type:'clickLayer', target:'cachée', title:'Une couche cachée', ask:'Clique un neurone d\'une couche CACHÉE (au milieu).', done:"Oui ! Les couches cachées combinent les signaux pour construire des motifs." },
-  { type:'quiz', title:'Le rôle du biais', q:'À quoi sert le BIAIS d\'un neurone ?', o:['Décaler son seuil de déclenchement','Compter les couches','Effacer les données'], a:'Décaler son seuil de déclenchement', done:"Exact — le biais déplace le seuil, indépendamment des entrées." },
+  { type:'quiz', title:'Le rôle du biais', q:'À quoi sert le BIAIS d\'un neurone ?', o:['Décaler son seuil de déclenchement','Compter les couches','Effacer les données'], a:'Décaler son seuil de déclenchement', done:"Exact : le biais déplace le seuil, indépendamment des entrées." },
   { type:'trainAcc', target:90, title:'Entraîne l\'IA', ask:'Lance l\'entraînement et atteins 90 % de précision.', done:"Superbe ! La perte a chuté et la frontière de décision épouse les données." },
-  { type:'quiz', title:'La courbe qui descend', q:'Pendant l\'apprentissage, quelle grandeur DESCEND ?', o:['La perte','La précision','Le nombre de neurones'], a:'La perte', done:"Oui — la perte (l'erreur) diminue tandis que la précision monte." },
-  { type:'classify', title:'Classe un point', ask:'Clique dans le plan 2D (panneau droit) pour faire classer un point par le réseau.', done:"Parfait — le réseau a placé le point d'un côté de sa frontière de décision." },
-  { type:'quiz', title:'Le surapprentissage', q:'Un réseau qui « apprend par cœur » et généralise mal fait du…', o:['surapprentissage','clustering','refroidissement'], a:'surapprentissage', done:"Exact — c'est le surapprentissage (overfitting)." },
+  { type:'quiz', title:'La courbe qui descend', q:'Pendant l\'apprentissage, quelle grandeur DESCEND ?', o:['La perte','La précision','Le nombre de neurones'], a:'La perte', done:"Oui : la perte (l'erreur) diminue tandis que la précision monte." },
+  { type:'classify', title:'Classe un point', ask:'Clique dans le plan 2D (panneau droit) pour faire classer un point par le réseau.', done:"Parfait : le réseau a placé le point d'un côté de sa frontière de décision." },
+  { type:'quiz', title:'Le surapprentissage', q:'Un réseau qui « apprend par cœur » et généralise mal fait du…', o:['surapprentissage','clustering','refroidissement'], a:'surapprentissage', done:"Exact : c'est le surapprentissage (overfitting)." },
 ];
 let cours = null;
 function startCours(){
@@ -801,7 +801,7 @@ function askChallenge(){
     bar.innerHTML = `<span class="qn">${cours.idx+1}/${cours.total}</span><div class="qt">${ch.q}</div><div class="qrow">${opts.map(o=>`<button class="aiw-qo">${o}</button>`).join('')}</div>`;
     bar.querySelectorAll('.aiw-qo').forEach(b=> b.onclick = ()=>{
       if(b.textContent===ch.a){ shell.sound('good'); shell.api.say('Exact ! '+ch.done,'fier'); passChallenge(); }
-      else { shell.sound('bad'); shell.api.say('Pas tout à fait — réfléchis encore. Indice : '+ch.a.slice(0,1)+'…','rassurant'); }
+      else { shell.sound('bad'); shell.api.say('Pas tout à fait : réfléchis encore. Indice : '+ch.a.slice(0,1)+'…','rassurant'); }
     });
     shell.api.say(ch.q, 'concentre');
   } else {
@@ -838,7 +838,7 @@ function winCours(){
     score: finalScore, stars,
     title: `${sc}/${cours.total} · Comment l'IA apprend`,
     learned: shell.cfg.learned,
-    buddy: stars===3 ? "Tu maîtrises le cycle complet : propager, mesurer l'erreur, corriger les poids. C'est ça, l'apprentissage automatique !" : "Bien joué — propager le signal, puis entraîner pour réduire la perte : tu as l'essentiel.",
+    buddy: stars===3 ? "Tu maîtrises le cycle complet : propager, mesurer l'erreur, corriger les poids. C'est ça, l'apprentissage automatique !" : "Bien joué : propager le signal, puis entraîner pour réduire la perte : tu as l'essentiel.",
     onNext: ()=>{ shell.api.setScore(0); startCours(); }, nextLabel:'Rejouer',
   });
   cours = null;

@@ -88,7 +88,7 @@ function pick(o,btn,f){ document.querySelectorAll('.dr-opt').forEach(b=>b.style.
   idx++; shell.api.setProgress(idx/queue.length); setTimeout(show, ok?900:1500); }
 function finish(){ const acc=right/queue.length, stars=acc>=.9?3:acc>=.6?2:1;
   shell.api.win({ score:right*100, stars, title:`${right}/${queue.length} drapeaux reconnus`,
-    buddy: acc>=.9?"Géographe hors pair ! Tu connais tes drapeaux.":"Bien — retiens : croix décentrée = pays nordique.",
+    buddy: acc>=.9?"Géographe hors pair ! Tu connais tes drapeaux.":"Bien : retiens : croix décentrée = pays nordique.",
     learned:shell.cfg.learned, onNext:()=>{ idx=0; right=0; shell.api.setScore(0); queue=FLAGS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,10); show(); }, nextLabel:'Rejouer' }); }
 </script>
 </body>

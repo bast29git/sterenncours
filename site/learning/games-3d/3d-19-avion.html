@@ -153,7 +153,7 @@ const PARTS={
   reacteur:{ icon:'🔥', name:'Réacteur', sub:'Génère la poussée', color:'#8A7BFF',
     role:"Le turboréacteur aspire l'air par sa grande soufflante (fan), le comprime, y brûle du kérosène puis éjecte les gaz vers l'arrière à grande vitesse. Par réaction, l'avion est propulsé vers l'avant : c'est la poussée, qui vainc la traînée.",
     facts:[['Rôle','Produire la poussée'],['Principe','Action-réaction'],['Fan','Fournit ~80 % de la poussée'],['Carburant','Kérosène']],
-    fun:"La soufflante d'un réacteur moderne avale plus d'une tonne d'air par seconde — de quoi vider une pièce en un clin d'œil." },
+    fun:"La soufflante d'un réacteur moderne avale plus d'une tonne d'air par seconde : de quoi vider une pièce en un clin d'œil." },
   train:{ icon:'🛞', name:'Train d\'atterrissage', sub:'Roulage & toucher', color:'#94A0B4',
     role:"Le train supporte l'avion au sol, encaisse le choc de l'atterrissage et permet le roulage. En vol, il se rétracte dans le fuselage et les ailes pour effacer sa traînée. Le train avant est orientable pour diriger l'avion au sol.",
     facts:[['Rôle','Rouler & amortir'],['En vol','Rentré (moins de traînée)'],['Avant','Orientable'],['Amortisseur','Oléopneumatique']],
@@ -182,7 +182,7 @@ const shell=window.Konstrio.createGame({
   id:'3d-19-avion', code:'3D·19', title:'Avion de ligne : comment ça vole', type:'3D',
   domain:{ label:'Espace & Astro', color:'#29B6E0' },
   intro:{
-    greet:"Bienvenue à bord ! Fais tourner l'avion, braque les gouvernes, sors les volets, joue les phases du vol — et découvre pourquoi 80 tonnes tiennent en l'air.",
+    greet:"Bienvenue à bord ! Fais tourner l'avion, braque les gouvernes, sors les volets, joue les phases du vol : et découvre pourquoi 80 tonnes tiennent en l'air.",
     rule:"Comprends le vol grâce aux <b>4 forces</b> : portance (haut), poids (bas), poussée (avant), traînée (arrière). Braque les <b>gouvernes</b> (ailerons = roulis, profondeur = tangage, direction = lacet), sors les <b>volets</b>, enchaîne les <b>phases de vol</b>, et passe l'avion en <b>coupe</b> ou <b>vue éclatée</b> pour explorer sa structure.",
     how:["Glisse pour tourner · clique une pièce (aile, réacteur, gouverne…) pour sa fiche.","Braque les gouvernes et regarde l'avion réagir sur les 3 axes. Sors les volets, rentre le train.","Joue une phase (Décollage → Croisière → Atterrissage) et observe forces & filets d'air."],
     keys:"Glisser = tourner · molette = zoom · clic pièce = fiche.",
@@ -230,7 +230,7 @@ function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE
 function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
 // tache d'ombre de contact douce (occlusion visible même en rendu logiciel)
 function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,10,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.25)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
-// marquages de piste procéduraux (ligne d'axe pointillée + bandes de bord + seuil) — transparent sur l'asphalte
+// marquages de piste procéduraux (ligne d'axe pointillée + bandes de bord + seuil) : transparent sur l'asphalte
 function makeRunwayMarks(){ const w=128,h=1024,c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); x.clearRect(0,0,w,h);
   x.fillStyle='rgba(240,244,250,0.92)';
   // ligne d'axe pointillée
@@ -255,7 +255,7 @@ function init(api){
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
   if(software || REDUCED){
-    // rendu logiciel : pas d'AO écran (produirait du noir) — l'occlusion vient des cartes AO bakées + ombre de contact
+    // rendu logiciel : pas d'AO écran (produirait du noir) : l'occlusion vient des cartes AO bakées + ombre de contact
     composer.addPass(new RenderPass(scene,camera));
   } else {
     // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu produit
@@ -570,20 +570,20 @@ function buildUI(){
   // hint
   const hint=document.createElement('div'); hint.className='av-hint'; hint.id='avHint'; hint.textContent='Braque une gouverne, sors les volets, joue une phase · clique une pièce ✈'; stage.appendChild(hint);
   // stall
-  const stall=document.createElement('div'); stall.className='av-stall'; stall.id='avStall'; stall.textContent='⚠ DÉCROCHAGE — réduis l\'incidence !'; stage.appendChild(stall);
+  const stall=document.createElement('div'); stall.className='av-stall'; stall.id='avStall'; stall.textContent='⚠ DÉCROCHAGE : réduis l\'incidence !'; stage.appendChild(stall);
 }
 
 /* ============ VUE ============ */
 function setView(v){ view=v; document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.view===v));
   explodeTarget=v==='exp'?1:0; cutTarget=(v==='cut'||v==='exp')?1:0; shell.sound('click');
-  const say={ ext:"Vue extérieure : admire la cellule et ses reflets sous le ciel.", cut:"Vue en coupe : la peau devient translucide — voici les longerons, les cadres, les soutes et l'intérieur du réacteur.", exp:"Vue éclatée : ailes, empennage et réacteurs s'écartent. Clique chaque élément pour son rôle !" };
+  const say={ ext:"Vue extérieure : admire la cellule et ses reflets sous le ciel.", cut:"Vue en coupe : la peau devient translucide : voici les longerons, les cadres, les soutes et l'intérieur du réacteur.", exp:"Vue éclatée : ailes, empennage et réacteurs s'écartent. Clique chaque élément pour son rôle !" };
   shell.api.say(say[v],'curieux');
 }
 
 /* ============ PHASES ============ */
 function setPhase(i){ phaseIdx=i; phaseAnim=true; phaseT=0; document.querySelectorAll('[data-ph]').forEach(b=>b.setAttribute('aria-pressed', +b.dataset.ph===i));
   const p=PHASES[i]; flaps=p.flaps; slats=p.slats; gearDown=p.gear; syncConfigButtons();
-  shell.api.say('Phase « '+p.name+' » — '+p.tip,'curieux');
+  shell.api.say('Phase « '+p.name+' » : '+p.tip,'curieux');
   if(course && course.step && course.step.type==='act' && course.step.act==='phase' && course.step.phase===p.id) checkActNow();
 }
 function applyPhaseConfig(p,instant){ throttle=p.thr; const thr=document.getElementById('avThr'); if(thr)thr.value=Math.round(p.thr*100); flaps=p.flaps; slats=p.slats; gearDown=p.gear; syncConfigButtons(); }
@@ -642,7 +642,7 @@ function showStep(){ if(!course)return; if(course.idx>=course.total){ winCourse(
   else { q.innerHTML=`<span class="qn">${course.idx+1}/${course.total}</span><div class="qt">🎮 Action</div><div class="qs">${st.ask}</div>`; }
   shell.api.say(st.say,'curieux');
 }
-function checkFind(key){ const st=course.step; if(key===st.key){ correctStep(st.ok); } else { shell.sound('bad'); openFiche(key); shell.api.say("Pas celle-ci — c'est "+(PARTS[key]?PARTS[key].name.toLowerCase():'une autre pièce')+". Relis la consigne et réessaie.",'rassurant'); } }
+function checkFind(key){ const st=course.step; if(key===st.key){ correctStep(st.ok); } else { shell.sound('bad'); openFiche(key); shell.api.say("Pas celle-ci : c'est "+(PARTS[key]?PARTS[key].name.toLowerCase():'une autre pièce')+". Relis la consigne et réessaie.",'rassurant'); } }
 function checkQcm(i){ const st=course.step; if(i===st.correct){ correctStep(st.ok); } else { shell.sound('bad'); shell.api.say("Presque ! Réfléchis encore et retente.",'rassurant'); } }
 function checkActNow(){ if(!course||!course.step||course.step.type!=='act'||!actArmed)return; const st=course.step; let ok=false;
   if(st.act==='flaps') ok=(flaps===st.want); else if(st.act==='phase') ok=true;
@@ -650,8 +650,8 @@ function checkActNow(){ if(!course||!course.step||course.step.type!=='act'||!act
 function correctStep(msg){ course.score++; shell.sound('good'); shell.api.addScore(150); shell.api.say(msg,'celebration'); shell.api.toast('✅ Bonne réponse !');
   course.idx++; shell.api.setProgress(course.idx/course.total); setTimeout(showStep,1300); }
 function winCourse(){ const q=document.getElementById('avQuiz'); if(q)q.remove(); const sc=course.score, tot=course.total; const st=sc>=tot?3:sc>=tot-2?2:1;
-  shell.api.win({ score:sc*150, stars:st, title:`${sc}/${tot} — brevet de vol décroché !`, learned:shell.cfg.learned,
-    buddy: st===3?"Sans faute ! Tu maîtrises les 4 forces, les 3 axes et le rôle de chaque gouverne. Décollage réussi !":"Bien joué — relis les fiches et retente pour le sans-faute, commandant !",
+  shell.api.win({ score:sc*150, stars:st, title:`${sc}/${tot} : brevet de vol décroché !`, learned:shell.cfg.learned,
+    buddy: st===3?"Sans faute ! Tu maîtrises les 4 forces, les 3 axes et le rôle de chaque gouverne. Décollage réussi !":"Bien joué : relis les fiches et retente pour le sans-faute, commandant !",
     onNext:()=>{ shell.api.setScore(0); startCourse(); }, nextLabel:'Rejouer' });
   course=null; const dv=document.getElementById('avDrive'); if(dv)dv.style.display='';
 }

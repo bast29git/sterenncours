@@ -15,8 +15,8 @@ const S=[
  [3,'No dude en contactarme si tiene preguntas','N\'hésitez pas à me contacter si vous avez des questions'],
  [3,'Esperamos colaborar con su equipo','Nous espérons collaborer avec votre équipe']
 ];
-const rounds=S.map(s=>({lvl:s[0], prompt:`Remets les mots dans l'ordre — sens : <i>« ${s[2]} »</i>`, audio:s[1], answer:s[1], words:s[1].split(' '), explain:`✓ « ${s[1]} » = ${s[2]}.`}));
-LangGame({ id:'2d-50-es-frases', code:'2D·50', title:'Español — Construye la frase', lang:'es', mode:'order',
+const rounds=S.map(s=>({lvl:s[0], prompt:`Remets les mots dans l'ordre : sens : <i>« ${s[2]} »</i>`, audio:s[1], answer:s[1], words:s[1].split(' '), explain:`✓ « ${s[1]} » = ${s[2]}.`}));
+LangGame({ id:'2d-50-es-frases', code:'2D·50', title:'Español : Construye la frase', lang:'es', mode:'order',
  domain:{label:'Langues',color:'#0E7C86'},
  intro:{ greet:"Ordena las palabras para traducir la frase francesa al español.", rule:"On te donne la phrase en français et les mots espagnols mélangés : reconstruis la phrase espagnole correcte.", how:["Lis la phrase française cible.","Clique les mots espagnols dans le bon ordre (re-clique pour retirer).","Valide. Niveau Expert : phrases professionnelles."], objectif:"Maîtriser la syntaxe et l'ordre des mots en espagnol.", hint:"En espagnol, le pronom sujet est souvent omis (« juegan » = « ils jouent »). L'adjectif se place souvent APRÈS le nom.", why:"Construire des phrases entières fait passer du mot isolé à la communication réelle." },
  learned:["L'ordre des mots en espagnol.","L'omission du pronom sujet.","Des tournures professionnelles (hacer seguimiento, colaborar…)."],

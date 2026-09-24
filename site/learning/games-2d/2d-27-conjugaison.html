@@ -116,7 +116,7 @@ function answer(btn,val){
 }
 function finish(){ shell.api.timer.stop(); const sc=parseInt(document.querySelector('.ksh-score').textContent,10); const stars=sc>=400?3:sc>=200?2:1;
   shell.api.win({ score:sc, stars, title:`${right} bonnes conjugaisons`,
-    buddy: stars===3?"Champion de la conjugaison ! Les temps n'ont plus de secret.":"Bien joué — révise les terminaisons du présent pour aller plus vite.",
+    buddy: stars===3?"Champion de la conjugaison ! Les temps n'ont plus de secret.":"Bien joué : révise les terminaisons du présent pour aller plus vite.",
     learned:shell.cfg.learned, onNext:()=>start(shell.api), nextLabel:'Rejouer' });
 }
 </script>

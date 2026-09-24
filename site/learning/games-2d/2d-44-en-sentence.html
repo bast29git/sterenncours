@@ -15,8 +15,8 @@ const S=[
  [3,'Please let me know if you have any questions','N\'hésitez pas si vous avez des questions'],
  [3,'We look forward to working with your team','Nous avons hâte de travailler avec votre équipe']
 ];
-const rounds=S.map(s=>({lvl:s[0], prompt:`Remets les mots dans l'ordre — sens : <i>« ${s[2]} »</i>`, audio:s[1], answer:s[1], words:s[1].split(' '), explain:`✓ « ${s[1]} » = ${s[2]}.`}));
-LangGame({ id:'2d-44-en-sentence', code:'2D·44', title:'English — Build the Sentence', lang:'en', mode:'order',
+const rounds=S.map(s=>({lvl:s[0], prompt:`Remets les mots dans l'ordre : sens : <i>« ${s[2]} »</i>`, audio:s[1], answer:s[1], words:s[1].split(' '), explain:`✓ « ${s[1]} » = ${s[2]}.`}));
+LangGame({ id:'2d-44-en-sentence', code:'2D·44', title:'English : Build the Sentence', lang:'en', mode:'order',
  domain:{label:'Langues',color:'#0E7C86'},
  intro:{ greet:"Put the scrambled words in the right order to translate the French sentence.", rule:"On te donne la phrase en français et les mots anglais mélangés : reconstruis la phrase correcte en cliquant les mots dans l'ordre.", how:["Lis la phrase française cible.","Clique les mots anglais dans le bon ordre (clique un mot placé pour le retirer).","Valide. Niveau Expert : phrases professionnelles."], objectif:"Maîtriser l'ordre des mots (syntaxe) en anglais.", hint:"En anglais : Sujet + Verbe + Complément. L'adjectif se place AVANT le nom (a red car).", why:"La syntaxe anglaise est assez rigide : bien ordonner, c'est déjà bien parler." },
  learned:["L'ordre des mots en anglais (S-V-O).","La place de l'adjectif et des auxiliaires.","Des tournures professionnelles (follow up, look forward to…)."],

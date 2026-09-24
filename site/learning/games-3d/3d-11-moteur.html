@@ -123,7 +123,7 @@ const PARTS = {
   arbrecames:{ icon:'📐', name:'Arbre à cames', sub:'Le chef d\'orchestre', color:'#d8a24a',
     facts:[['Vitesse','½ du vilebrequin'],['Rôle','ouvre les soupapes'],['Entraîné par','la distribution']],
     desc:["L'arbre à cames porte des bosses (les <b>cames</b>) qui poussent les soupapes au bon moment. Il ouvre l'admission puis l'échappement à chaque cycle.","Il tourne <b>deux fois moins vite</b> que le vilebrequin : une soupape ne s'ouvre qu'une fois tous les deux tours."],
-    fun:"C'est la came, cette bosse excentrée, qui convertit la rotation en poussée — une invention géniale et toute simple." },
+    fun:"C'est la came, cette bosse excentrée, qui convertit la rotation en poussée : une invention géniale et toute simple." },
   soupape_adm:{ icon:'🔵', name:'Soupape d\'admission', sub:'La porte d\'entrée', color:'#3f7fd0',
     facts:[['Ouvre pendant','l\'admission'],['Laisse entrer','air + carburant'],['Nombre','1 à 2 par cylindre']],
     desc:["La soupape d'admission s'ouvre quand le piston descend : elle laisse entrer le <b>mélange air + carburant</b> (essence) ou l'<b>air seul</b> (diesel).","Refermée, elle scelle le cylindre pour que la compression puis l'explosion soient efficaces."],
@@ -139,7 +139,7 @@ const PARTS = {
   injecteur:{ icon:'💉', name:'Injecteur', sub:'Le doseur de carburant', color:'#7ec8a0',
     facts:[['Rôle','pulvérise le carburant'],['Pression (diesel)','> 2000 bar'],['Précision','au millième de sec.']],
     desc:["L'injecteur pulvérise le carburant en fine brume dans l'air admis. Il remplace l'ancien carburateur et dose au milligramme près.","En <b>diesel</b>, il injecte le gazole dans l'air très chaud comprimé : le carburant s'enflamme tout seul, sans étincelle."],
-    fun:"En diesel moderne, le gazole est injecté à plus de 2 000 bar — comme 2 tonnes posées sur un ongle !" },
+    fun:"En diesel moderne, le gazole est injecté à plus de 2 000 bar : comme 2 tonnes posées sur un ongle !" },
   distribution:{ icon:'⛓️', name:'Distribution', sub:'Courroie / chaîne', color:'#5b6478',
     facts:[['Relie','vilebrequin → arbre à cames'],['Rapport','2 : 1'],['Type','courroie ou chaîne']],
     desc:["La courroie (ou chaîne) de distribution <b>synchronise</b> l'arbre à cames sur le vilebrequin : les soupapes s'ouvrent pile au bon moment.","Un calage parfait est vital : si elle casse, une soupape ouverte peut heurter un piston et détruire le moteur."],
@@ -164,17 +164,17 @@ const PARTS = {
 
 /* notions transverses (encyclopédie) */
 const NOTIONS = [
-  { id:'combustion', name:'Combustion interne', desc:["Un moteur thermique brûle un carburant <b>à l'intérieur</b> de ses cylindres : l'explosion pousse les pistons.","L'énergie chimique du carburant devient énergie mécanique — avec une grosse part perdue en chaleur (60 à 70 %)."] },
+  { id:'combustion', name:'Combustion interne', desc:["Un moteur thermique brûle un carburant <b>à l'intérieur</b> de ses cylindres : l'explosion pousse les pistons.","L'énergie chimique du carburant devient énergie mécanique : avec une grosse part perdue en chaleur (60 à 70 %)."] },
   { id:'otto', name:'Cycle Otto (4 temps)', desc:["Le cycle à 4 temps (Nikolaus Otto, 1876) : admission, compression, explosion, échappement.","Il faut <b>2 tours</b> de vilebrequin pour un cycle complet ; un seul temps sur quatre produit la force motrice."] },
   { id:'couple', name:'Couple & puissance', desc:["Le <b>couple</b> (N·m) est la force de rotation ; la <b>puissance</b> (ch/kW) = couple × régime.","Beaucoup de couple = de la reprise ; beaucoup de puissance à haut régime = de la vitesse de pointe."] },
-  { id:'compression', name:'Taux de compression', desc:["C'est le rapport entre le volume du cylindre piston en bas et piston en haut (ex. 10:1 en essence, 18:1 en diesel).","Plus il est élevé, meilleur est le rendement — mais trop haut, l'essence s'auto-enflamme (cliquetis)."] },
+  { id:'compression', name:'Taux de compression', desc:["C'est le rapport entre le volume du cylindre piston en bas et piston en haut (ex. 10:1 en essence, 18:1 en diesel).","Plus il est élevé, meilleur est le rendement : mais trop haut, l'essence s'auto-enflamme (cliquetis)."] },
   { id:'diesel', name:'Essence vs Diesel', desc:["Essence : une <b>bougie</b> enflamme le mélange. Diesel : la forte compression chauffe l'air, et le gazole injecté s'enflamme <b>sans étincelle</b>.","Le diesel a plus de couple et un meilleur rendement ; l'essence monte plus haut en régime."] },
   { id:'deuxtemps', name:'2 temps vs 4 temps', desc:["Le <b>2 temps</b> réalise le cycle en <b>un seul tour</b> : il explose à chaque tour, donc plus de puissance pour un même poids… mais pollue et consomme plus.","Le <b>4 temps</b> sépare bien les phases avec des soupapes : plus propre et endurant. C'est le standard automobile."] },
   { id:'refroid', name:'Refroidissement & huile', desc:["Le liquide de refroidissement évacue la chaleur des cylindres ; l'huile lubrifie pistons, bielles et vilebrequin.","Sans eux, le métal surchaufferait et gripperait en quelques minutes."] },
   { id:'electrique', name:"Vers l'électrique", desc:["Un moteur électrique remplace explosions et pistons par un champ magnétique tournant : peu de pièces, couple immédiat, zéro émission locale.","Bien plus efficace (~90 % contre ~35 %), mais dépendant de la batterie et de la production d'électricité."] },
 ];
 
-/* les 4 temps — description + couleur + gaz */
+/* les 4 temps : description + couleur + gaz */
 const STROKES = [
   { tag:'Temps 1', n:'Admission', d:"La soupape d'admission s'ouvre, le piston descend et aspire le mélange air + carburant.", c:'#3f7fd0', gas:0x4a9be8 },
   { tag:'Temps 2', n:'Compression', d:"Soupapes fermées : le piston remonte et comprime fortement le mélange.", c:'#d8a24a', gas:0xf0a83a },
@@ -232,7 +232,7 @@ const shell = window.Konstrio.createGame({
     why:"Un moteur transforme l'énergie chimique du carburant en mouvement, en quatre étapes répétées des milliers de fois par minute."
   },
   learned:[
-    "Le cycle à 4 temps : admission, compression, explosion, échappement — 2 tours de vilebrequin.",
+    "Le cycle à 4 temps : admission, compression, explosion, échappement : 2 tours de vilebrequin.",
     "Le vilebrequin transforme le va-et-vient des pistons en rotation ; la bielle fait le lien.",
     "L'arbre à cames ouvre les soupapes au bon moment, synchronisé par la distribution.",
     "Essence (bougie) vs diesel (auto-allumage par compression) : deux façons d'enflammer le carburant.",
@@ -256,7 +256,7 @@ function init(){
   stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8, renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
 
-  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) — l'AO écran (GTAO) y produit du noir.
+  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produit du noir.
   let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render|mesa/i.test(rn); }catch(e){}
   const CW=stage.clientWidth, CH=stage.clientHeight;
   composer=new EffectComposer(renderer);
@@ -280,7 +280,7 @@ function init(){
   controls.target.set(0,2.6,0); controls.maxPolarAngle=Math.PI*0.92;
   controls.autoRotate=REDUCED; controls.autoRotateSpeed=.5;
 
-  // lumières — l'IBL (HDRI studio) fait le gros de l'éclairage ; ces sources sculptent ombres & contours
+  // lumières : l'IBL (HDRI studio) fait le gros de l'éclairage ; ces sources sculptent ombres & contours
   scene.add(new THREE.HemisphereLight(0xdfe7ff, 0x1a1d26, .35));
   const key=new THREE.DirectionalLight(0xffffff, 1.35); key.position.set(9,14,7);
   key.castShadow=true; key.shadow.mapSize.set(2048,2048); key.shadow.camera.near=1; key.shadow.camera.far=60; key.shadow.radius=4; key.shadow.blurSamples=12;
@@ -298,7 +298,7 @@ function init(){
   // ombre de contact douce sous le moteur (occlusion lisible même en rendu logiciel)
   const cs=new THREE.Mesh(new THREE.PlaneGeometry(13,7), new THREE.MeshBasicMaterial({map:makeContactShadow(),transparent:true,depthWrite:false,opacity:0.85}));
   cs.rotation.x=-Math.PI/2; cs.position.y=-2.585; scene.add(cs);
-  // établi en bois (planches usées CC0) posé derrière le banc — ancre la scène d'atelier
+  // établi en bois (planches usées CC0) posé derrière le banc : ancre la scène d'atelier
   buildWorkbench();
 
   // IBL studio produit réel (Poly Haven CC0) → reflets crédibles sur le métal usiné
@@ -352,12 +352,12 @@ function applyPBR(material,slug,res,opt={}){ const rep=opt.repeat||1, b=PBR_BASE
   material.needsUpdate=true; return material; }
 // duplique le canal UV pour permettre l'aoMap (utilise uv1)
 function enableAO(geo){ if(geo.attributes.uv && !geo.attributes.uv1) geo.setAttribute('uv1', geo.attributes.uv); }
-// métal usiné texturé (plaque métal brossé CC0) — bloc, culasse, carter
+// métal usiné texturé (plaque métal brossé CC0) : bloc, culasse, carter
 function pbrMetal(slug,res,color,opt={}){ const m=new THREE.MeshStandardMaterial({color, roughness:0.5, metalness:0.9, envMapIntensity:1.35});
   applyPBR(m,slug,res,Object.assign({metal:true,ao:true},opt)); return m; }
 // tache d'ombre de contact douce (occlusion visible même en rendu logiciel)
 function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.width=c.height=s; const x=c.getContext('2d'); const g=x.createRadialGradient(s/2,s/2,14,s/2,s/2,s/2); g.addColorStop(0,'rgba(0,0,0,0.5)'); g.addColorStop(0.55,'rgba(0,0,0,0.26)'); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,s,s); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t; }
-// établi en bois usé (planches CC0) — décor d'atelier, hors interaction
+// établi en bois usé (planches CC0) : décor d'atelier, hors interaction
 function buildWorkbench(){ const g=new THREE.Group(); g.position.set(0,0,-9.5); scene.add(g);
   const topMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.8,metalness:0.0,envMapIntensity:0.5});
   applyPBR(topMat,'worn_planks','1k',{repeat:3,normal:1.1,ao:true});
@@ -469,7 +469,7 @@ function buildEngine(){
     const vEx=makeValve(0xc94a3a); vEx.group.position.set(x+0.34, 4.35, -0.42); engineGroup.add(vEx.group);
     reg(vEx.stem,'soupape_ech', new THREE.Vector3(x+0.34,4.7,-0.42)); valves.push({...vEx, i, type:'ex', baseY:4.35});
 
-    // bougie (essence) + injecteur (diesel) — l'un ou l'autre visible
+    // bougie (essence) + injecteur (diesel) : l'un ou l'autre visible
     const plug=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.15,0.7,12), metal(0xe8c24a,0.3,0.9));
     plug.position.set(x,4.85,0); engineGroup.add(plug); reg(plug,'bougie', new THREE.Vector3(x,5.1,0)); plug.userData.plug=true;
     const inj=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.12,0.7,12), metal(0x7ec8a0,0.3,0.9));
@@ -484,7 +484,7 @@ function buildEngine(){
     puff.scale.setScalar(0.9); puff.position.set(x+0.34,4.9,-1.6); engineGroup.add(puff); puffs.push({sprite:puff, i, life:0});
   }
 
-  // collecteur d'admission (bleu) + échappement (rouge) — pédagogie couleur
+  // collecteur d'admission (bleu) + échappement (rouge) : pédagogie couleur
   const intake=makeManifold(0x2f6fc0, 0.55); intake.position.set(0,4.55,1.35); engineGroup.add(intake); intake.userData.manifold='in';
   const exhaust=makeManifold(0x8a3a2f, -0.55); exhaust.position.set(0,4.4,-1.35); engineGroup.add(exhaust); exhaust.userData.manifold='ex';
 }
@@ -523,7 +523,7 @@ function smokeTex(){ const c=document.createElement('canvas'); c.width=c.height=
 function buildUI(){ const stage=shell.stage;
   // phase (haut-centre)
   const ph=document.createElement('div'); ph.className='mo-panel mo-phase';
-  ph.innerHTML='<div class="tag" id="moTag" style="background:#5A6275">—</div><div class="ph" id="moPh">—</div><div class="d" id="moPhD"></div><div class="mo-steps" id="moSteps"></div>';
+  ph.innerHTML='<div class="tag" id="moTag" style="background:#5A6275">…</div><div class="ph" id="moPh">…</div><div class="d" id="moPhD"></div><div class="mo-steps" id="moSteps"></div>';
   stage.appendChild(ph);
 
   // panneau gauche : type + télémétrie
@@ -687,14 +687,14 @@ function showStep(){ if(!course)return; if(course.idx>=course.total){ winCourse(
   }
 }
 function checkFind(key){ if(!course||!course.step||course.step.type!=='find')return; const st=course.step;
-  if(key===st.key){ correctStep(st.ok); } else { shell.sound('bad'); shell.say("Pas celle-ci — c'est "+(PARTS[key]?PARTS[key].name.toLowerCase():'une autre pièce')+". Relis la consigne et réessaie.",'rassurant'); } }
+  if(key===st.key){ correctStep(st.ok); } else { shell.sound('bad'); shell.say("Pas celle-ci : c'est "+(PARTS[key]?PARTS[key].name.toLowerCase():'une autre pièce')+". Relis la consigne et réessaie.",'rassurant'); } }
 function checkQcm(i){ if(!course||!course.step)return; const st=course.step;
-  if(i===st.correct){ correctStep(st.ok); } else { shell.sound('bad'); shell.say("Presque ! Réfléchis encore et retente — pas de panique.",'rassurant'); } }
+  if(i===st.correct){ correctStep(st.ok); } else { shell.sound('bad'); shell.say("Presque ! Réfléchis encore et retente : pas de panique.",'rassurant'); } }
 function correctStep(msg){ course.score++; shell.sound('good'); shell.addScore(150); shell.say(msg,'celebration'); shell.toast('✅ Bonne réponse ! +150');
   course.idx++; shell.setProgress(course.idx/course.total); setTimeout(showStep,1250); }
 function winCourse(){ const q=document.getElementById('moQuiz'); if(q)q.remove(); const sc=course.score; const st=sc>=course.total?3:sc>=course.total-2?2:1;
-  shell.win({ score:sc*150, stars:st, title:`${sc}/${course.total} — mécanique maîtrisée !`, learned:shell.cfg.learned,
-    buddy: st===3?"Sans faute ! Tu connais le moteur du carter au moindre piston.":"Bien joué — relis les fiches et retente pour le sans-faute !",
+  shell.win({ score:sc*150, stars:st, title:`${sc}/${course.total} : mécanique maîtrisée !`, learned:shell.cfg.learned,
+    buddy: st===3?"Sans faute ! Tu connais le moteur du carter au moindre piston.":"Bien joué : relis les fiches et retente pour le sans-faute !",
     onNext:()=>{ shell.setScore(0); startCourse(); }, nextLabel:'Rejouer' });
   course=null;
 }

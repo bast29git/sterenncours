@@ -15,7 +15,7 @@ const S=[
  [3,'Let us circle back on this next week.','Let us follow up on this next week.','Let us circle back on this next week.','Let us circle back on this next month.','We will circle back on this next week.']
 ];
 const rounds=S.map(s=>({lvl:s[0], prompt:`🎧 ${'Qu\'as-tu entendu ?'}`, audio:s[1], answer:s[1], options:[s[2],s[3],s[4],s[5]], explain:`Phrase entendue : « ${s[1]} »`}));
-LangGame({ id:'2d-43-en-listening', code:'2D·43', title:'English — Listening', lang:'en', mode:'listen',
+LangGame({ id:'2d-43-en-listening', code:'2D·43', title:'English : Listening', lang:'en', mode:'listen',
  domain:{label:'Langues',color:'#0E7C86'},
  intro:{ greet:"Listen carefully and pick the sentence you heard. Replay as many times as you need.", rule:"Écoute la phrase anglaise (🔊) et choisis exactement celle que tu as entendue. Attention aux petits mots qui changent tout !", how:["La phrase se joue automatiquement ; clique 🔊 pour réécouter.","Choisis la phrase exacte parmi les propositions.","Niveau Expert : anglais professionnel et expressions idiomatiques."], objectif:"Travailler la compréhension orale de l'anglais, du quotidien au pro.", hint:"Concentre-toi sur les différences : un seul mot (sisters/brothers, Monday/Friday) distingue souvent les options.", why:"La compréhension orale progresse en écoutant activement et en repérant les détails." },
  learned:["Compréhension orale de l'anglais.","Repérer les mots discriminants.","Phrases professionnelles courantes (follow up, align…)."],

@@ -121,7 +121,7 @@ const REDUCED = window.Konstrio.REDUCED;
 const MOBILE = Math.min(window.innerWidth, window.innerHeight) < 760;
 
 /* ============================================================
-   DONNÉES PÉDAGOGIQUES — fiches organes (primaire → lycée)
+   DONNÉES PÉDAGOGIQUES : fiches organes (primaire → lycée)
    ============================================================ */
 const SYSCOL = { squelette:0xf0ead9, muscles:0xc0533f, circulatoire:0xE63329, respiratoire:0xE89ab0, nerveux:0xd6a6dc, organes:0xd88a5a };
 const PARTS = {
@@ -213,12 +213,12 @@ const shell = window.Konstrio.createGame({
   id:'3d-02-anatomie', code:'3D·02', title:'Anatomie humaine 3D', type:'3D',
   domain:{ label:'SVT & Santé', color:'#E63329' },
   intro:{
-    greet:"Bienvenue dans le corps humain ! Choisis un système — squelette, muscles, cœur, poumons, cerveau, organes — et clique une structure pour découvrir son rôle. Tout en douceur, à ton rythme.",
+    greet:"Bienvenue dans le corps humain ! Choisis un système : squelette, muscles, cœur, poumons, cerveau, organes : et clique une structure pour découvrir son rôle. Tout en douceur, à ton rythme.",
     rule:"Un atlas 3D vivant : superpose les <b>systèmes</b>, clique une structure pour sa fiche, regarde le <b>cœur battre</b> et les <b>poumons respirer</b>. Coupe la vue pour voir l'intérieur.",
     how:[
       "Glisse pour tourner · molette (ou pincer) pour zoomer · clique une structure.",
       "Change de système en haut ; à gauche, choisis un organe dans la liste, règle la peau, la coupe et les étiquettes.",
-      "Mode Cours : « Trouve l'organe » à 3 niveaux. Aucune faute punie — on t'encourage toujours !"
+      "Mode Cours : « Trouve l'organe » à 3 niveaux. Aucune faute punie : on t'encourage toujours !"
     ],
     keys:"Glisser = tourner · molette = zoom · 1-7 = systèmes · L = étiquettes · C = coupe · P = peau.",
     objectif:"Repérer les organes et comprendre les grands systèmes qui te maintiennent en vie.",
@@ -235,7 +235,7 @@ const shell = window.Konstrio.createGame({
 });
 
 /* ============================================================
-   INITIALISATION SCÈNE — éclairage médical doux + PBR
+   INITIALISATION SCÈNE : éclairage médical doux + PBR
    ============================================================ */
 function init(){
   const stage = shell.stage; clock = new THREE.Clock();
@@ -281,7 +281,7 @@ function init(){
   const rim = new THREE.DirectionalLight(0x88aaff, 0.55); rim.position.set(-8, 6, -7); scene.add(rim);
   const fill = new THREE.DirectionalLight(0xffe8e0, 0.35); fill.position.set(3, 2, 10); scene.add(fill);
 
-  // environnement réfléchissant (studio) — donne le côté « organe humide »
+  // environnement réfléchissant (studio) : donne le côté « organe humide »
   const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
   new RGBELoader().load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping = THREE.EquirectangularReflectionMapping; scene.environment = pmrem.fromEquirectangular(hdr).texture; }, undefined, ()=>{});
 
@@ -429,7 +429,7 @@ function buildNervous(){ const g = new THREE.Group();
 }
 
 /* ============================================================
-   MODÈLES RÉELS (STL) — organes, squelette, peau
+   MODÈLES RÉELS (STL) : organes, squelette, peau
    ============================================================ */
 const VH = [
   {f:'bp-coeur.stl',part:'coeur',lay:['organes','circulatoire','complet'],col:0xc0392b,op:1},
@@ -694,7 +694,7 @@ function endTour(done){ tour = null; document.getElementById('anTourEl').classLi
 }
 
 /* ============================================================
-   MODE COURS — « Trouve l'organe » (3 niveaux, bienveillant)
+   MODE COURS : « Trouve l'organe » (3 niveaux, bienveillant)
    ============================================================ */
 const QUIZ_TIERS = {
   debutant:{ label:'Découverte', clue:d=>`Trouve : <b>${d.n}</b>`, say:d=>`Clique sur : ${d.n}.` },

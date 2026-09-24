@@ -54,7 +54,7 @@ function reset(api){ shell.api=api; const set=SETS[sIdx%SETS.length]; total=set.
   const board=wrap.querySelector('#evBoard'); board.innerHTML='';
   const events=set.map((p,i)=>({...p,i})); const dates=set.map((p,i)=>({d:p.d,i})).sort(()=>Math.random()-.5);
   const colE=document.createElement('div'); const colM=document.createElement('div'); const colD=document.createElement('div');
-  // build as rows interleaved using grid: we place event, arrow, date per visual row but dates shuffled — use 3-col grid with separate stacks
+  // build as rows interleaved using grid: we place event, arrow, date per visual row but dates shuffled : use 3-col grid with separate stacks
   board.style.gridTemplateColumns='1fr'; board.innerHTML='';
   const grid=document.createElement('div'); grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;width:100%';
   const left=document.createElement('div'); left.style.cssText='display:flex;flex-direction:column;gap:10px';

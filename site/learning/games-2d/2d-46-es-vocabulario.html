@@ -10,8 +10,8 @@ const W=[
 ];
 const all=W.map(w=>w[2]);
 function pick3(ans){ const o=[]; const pool=all.filter(x=>x!==ans); while(o.length<3&&pool.length){ const i=Math.random()*pool.length|0; o.push(pool.splice(i,1)[0]); } return o; }
-const rounds=W.map(w=>({lvl:w[0], prompt:`<span class="big">${w[1]}</span> — en français ?`, audio:w[1], answer:w[2], options:[w[2],...pick3(w[2])], explain:`« ${w[1]} » = ${w[2]}.`}));
-LangGame({ id:'2d-46-es-vocabulario', code:'2D·46', title:'Español — Vocabulario', lang:'es', mode:'mcq',
+const rounds=W.map(w=>({lvl:w[0], prompt:`<span class="big">${w[1]}</span> : en français ?`, audio:w[1], answer:w[2], options:[w[2],...pick3(w[2])], explain:`« ${w[1]} » = ${w[2]}.`}));
+LangGame({ id:'2d-46-es-vocabulario', code:'2D·46', title:'Español : Vocabulario', lang:'es', mode:'mcq',
  domain:{label:'Langues',color:'#0E7C86'},
  intro:{ greet:"¡Hola! Escucha cada palabra y elige el significado correcto en francés.", rule:"Écoute le mot espagnol (🔊) et choisis la bonne traduction française. Trois niveaux, jusqu'à l'espagnol des affaires.", how:["Clique 🔊 pour entendre la prononciation espagnole.","Choisis la bonne traduction parmi 4.","Niveau Expert : vocabulaire professionnel (empresa, ingresos…)."], objectif:"Enrichir son vocabulaire espagnol, du quotidien au professionnel.", hint:"L'espagnol se prononce comme il s'écrit : écoute et lis en même temps.", why:"Associer son et sens ancre durablement le vocabulaire." },
  learned:["Vocabulaire espagnol courant et professionnel.","La prononciation régulière de l'espagnol.","L'espagnol des affaires : empresa, plazo, rentabilidad…"],

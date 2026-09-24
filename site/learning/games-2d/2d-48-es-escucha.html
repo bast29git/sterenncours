@@ -15,7 +15,7 @@ const S=[
  [3,'Retomaremos este tema la próxima semana.','Retomaremos este tema la próxima semana.','Retomaremos este tema el próximo mes.','Hablaremos de esto la próxima semana.','Retomaré este tema la próxima semana.']
 ];
 const rounds=S.map(s=>({lvl:s[0], prompt:'🎧 ¿Qué has oído ?', audio:s[1], answer:s[1], options:[s[2],s[3],s[4],s[5]], explain:`Frase : « ${s[1]} »`}));
-LangGame({ id:'2d-48-es-escucha', code:'2D·48', title:'Español — Escucha', lang:'es', mode:'listen',
+LangGame({ id:'2d-48-es-escucha', code:'2D·48', title:'Español : Escucha', lang:'es', mode:'listen',
  domain:{label:'Langues',color:'#0E7C86'},
  intro:{ greet:"Escucha con atención y elige la frase correcta. Puedes repetir.", rule:"Écoute la phrase espagnole (🔊) et choisis exactement celle que tu as entendue.", how:["La phrase se joue automatiquement ; 🔊 pour réécouter.","Choisis la phrase exacte.","Niveau Expert : espagnol professionnel."], objectif:"Travailler la compréhension orale de l'espagnol.", hint:"Repère les différences : un seul mot (hermanos/hermanas, lunes/viernes) change la phrase.", why:"L'oreille s'éduque par l'écoute active et la répétition." },
  learned:["Compréhension orale de l'espagnol.","Repérer les mots discriminants.","Phrases professionnelles (adjunto, retomar…)."],

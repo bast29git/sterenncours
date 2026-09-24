@@ -150,7 +150,7 @@ function init(){
     try{ gtao.updateGtaoMaterial({ radius:0.5, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
     composer.addPass(gtao); composer.gtao=gtao;
   }
-  // bloom doux : reflets du soleil sur l'eau, halos lumineux — jamais délavé
+  // bloom doux : reflets du soleil sur l'eau, halos lumineux : jamais délavé
   const bloom=new UnrealBloomPass(new THREE.Vector2(W,H),0.22,0.55,0.92); composer.addPass(bloom); composer.bloom=bloom;
   // anti-aliasing SMAA (le composer court-circuite le MSAA du canvas)
   composer.addPass(new SMAAPass(W,H));
@@ -218,7 +218,7 @@ function buildPond(){
   water.position.set(PONDC.x, -0.35, PONDC.z); water.userData.base=[];
   const wp=wgeo.attributes.position; for(let i=0;i<wp.count;i++) water.userData.base.push(wp.getY(i));
   scene.add(water);
-  // berge terreuse : sol de forêt réel (CC0 Poly Haven) — feuilles/humus autour de l'eau
+  // berge terreuse : sol de forêt réel (CC0 Poly Haven) : feuilles/humus autour de l'eau
   const bankGeo=new THREE.RingGeometry(PONDR-0.2,PONDR+1.6,64).rotateX(-Math.PI/2); enableAO(bankGeo);
   const bankMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,metalness:0,envMapIntensity:0.5});
   applyPBR(bankMat,'forrest_ground_01','1k',{repeat:5,normal:1.2,ao:true});
@@ -238,7 +238,7 @@ function buildPond(){
 }
 
 /* ---------- arbres : géométrie fusionnée + InstancedMesh (perf) ---------- */
-// tronc seul (écorce PBR réelle) — géométrie séparée pour porter une texture d'écorce
+// tronc seul (écorce PBR réelle) : géométrie séparée pour porter une texture d'écorce
 function trunkTreeGeo(){ const trunk=new THREE.CylinderGeometry(0.16,0.24,1.3,12); trunk.translate(0,0.62,0); enableAO(trunk); return trunk; }
 // feuillage seul (cônes stylisés, couleurs par sommet)
 function foliageTreeGeo(){
@@ -295,7 +295,7 @@ function buildFlowers(){
   const d=new THREE.Object3D(); const cols=[0xffd54a,0xff8fb0,0xef5350,0x9575cd,0xffffff,0xff9800];
   for(let i=0;i<MAX.flower;i++){ let x,z,tries=0; do{ const a=Math.random()*6.28,r=3+Math.random()*36; x=Math.cos(a)*r; z=Math.sin(a)*r; tries++; }while(inPond(x,z)&&tries<10);
     d.position.set(x,terrainH(x,z),z); d.rotation.set(0,Math.random()*6.28,0); d.scale.setScalar(0.7+Math.random()*0.6); d.updateMatrix(); flowerMesh.setMatrixAt(i,d.matrix);
-    // colore uniquement la fleur (les stems restent verts via vertexColors de base) — teinte instance
+    // colore uniquement la fleur (les stems restent verts via vertexColors de base) : teinte instance
     flowerMesh.setColorAt(i,new THREE.Color(cols[i%cols.length])); }
   scene.add(flowerMesh);
 }
@@ -431,11 +431,11 @@ const NOTIONS=[
   { id:'reseau', name:'Réseau trophique', desc:["Dans la nature, les chaînes s'entrecroisent en un <b>réseau trophique</b> : un animal a souvent plusieurs proies et plusieurs prédateurs.","Plus le réseau est riche (biodiversité), plus l'écosystème résiste aux perturbations."] },
   { id:'niveau', name:'Niveaux trophiques', desc:["Chaque étage de la pyramide est un niveau trophique : producteurs, consommateurs primaires, secondaires, décomposeurs.","La biomasse diminue à chaque niveau : il faut beaucoup d'herbe pour nourrir peu de loups."] },
   { id:'deco', name:'Décomposeurs & recyclage', desc:["Les décomposeurs bouclent le cycle : ils transforment la matière morte en nutriments pour les plantes.","Champignons, vers et bactéries sont les recycleurs indispensables de tout écosystème."] },
-  { id:'lotka', name:'Modèle de Lotka-Volterra', desc:["Ce jeu simule les équations de Lotka-Volterra : proies et prédateurs oscillent en décalage.","Quand les proies abondent, les prédateurs montent ; ils épuisent les proies, puis chutent à leur tour — et le cycle recommence."] },
+  { id:'lotka', name:'Modèle de Lotka-Volterra', desc:["Ce jeu simule les équations de Lotka-Volterra : proies et prédateurs oscillent en décalage.","Quand les proies abondent, les prédateurs montent ; ils épuisent les proies, puis chutent à leur tour : et le cycle recommence."] },
   { id:'capacite', name:'Capacité de charge (K)', desc:["Un milieu ne peut nourrir qu'un nombre limité d'individus : c'est la capacité de charge K.","Au-delà, les ressources manquent et la population redescend."] },
   { id:'biodiv', name:'Biodiversité', desc:["La biodiversité est la variété du vivant (espèces, gènes, milieux).","Elle assure la stabilité : si une espèce disparaît, d'autres peuvent prendre le relais."] },
   { id:'cle', name:'Espèce clé de voûte', desc:["Une espèce clé de voûte a un rôle bien plus grand que son effectif (souvent un prédateur).","La retirer fait s'effondrer tout l'équilibre, par effet de cascade."] },
-  { id:'pollution', name:'Pollution & bioaccumulation', desc:["La pollution réduit la survie des espèces et se concentre en remontant la chaîne (bioaccumulation).","Les prédateurs, en bout de chaîne, accumulent le plus de polluants — et sont les plus menacés."] },
+  { id:'pollution', name:'Pollution & bioaccumulation', desc:["La pollution réduit la survie des espèces et se concentre en remontant la chaîne (bioaccumulation).","Les prédateurs, en bout de chaîne, accumulent le plus de polluants : et sont les plus menacés."] },
 ];
 
 /* ---------- fiche latérale ---------- */
@@ -551,7 +551,7 @@ function finishCours(){ phase=null; const hint=document.getElementById('ecHint')
     onNext:()=>{ shell.setScore(0); startCours(); }, nextLabel:'Rejouer le parcours' }); }
 
 /* ============================================================
-   AMBIANCE SONORE (WebAudio doux — non punitif)
+   AMBIANCE SONORE (WebAudio doux : non punitif)
    ============================================================ */
 function startAmb(){ if(ac||shell.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); ambGain=ac.createGain(); ambGain.gain.value=0; ambGain.connect(ac.destination); ambGain.gain.setTargetAtTime(0.1,ac.currentTime,1.2);
   const o=ac.createOscillator(); o.type='sine'; o.frequency.value=200; const og=ac.createGain(); og.gain.value=0.015; o.connect(og); og.connect(ambGain); o.start();

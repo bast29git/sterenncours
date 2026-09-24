@@ -72,7 +72,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============================================================
-   DONNÉES — table périodique (118 éléments), familles, molécules
+   DONNÉES : table périodique (118 éléments), familles, molécules
    ============================================================ */
 const FAM = { alcalin:{c:'#E63329',n:'Métal alcalin'}, alcalino:{c:'#F5A623',n:'Alcalino-terreux'}, trans:{c:'#29B6E0',n:'Métal de transition'}, post:{c:'#1E8C7A',n:'Métal pauvre'}, metalloide:{c:'#9B2BB0',n:'Métalloïde'}, nonmetal:{c:'#6E6BFF',n:'Non-métal'}, halogene:{c:'#1B82E0',n:'Halogène'}, noble:{c:'#8B5BE0',n:'Gaz noble'}, lanthanide:{c:'#C44B8A',n:'Lanthanide'}, actinide:{c:'#D98A3A',n:'Actinide'} };
 const E = {
@@ -114,14 +114,14 @@ const MOL = {
 };
 
 /* ============================================================
-   DONNÉES — paillasse : verrerie, réactifs, réactions (illustratives)
+   DONNÉES : paillasse : verrerie, réactifs, réactions (illustratives)
    ============================================================ */
 const GLASS_INFO = {
   becher:{ color:'#1E8C7A', sym:'⌱', name:'Bécher', sub:'Verrerie · mélange', stats:[['Usage','mélanger, chauffer'],['Précision','faible'],['Matériau','verre borosilicate']], desc:["Le récipient cylindrique le plus courant du labo : on y mélange, dissout et chauffe des liquides.","Son bec verseur permet de transvaser sans éclabousser."], fun:"Le bécher n'est pas précis : pour mesurer un volume exact, on utilise une éprouvette graduée ou une pipette." },
   erlen:{ color:'#29B6E0', sym:'△', name:"Fiole d'Erlenmeyer", sub:'Verrerie · titrage', stats:[['Usage','agiter, titrer'],['Forme','conique'],['Col','étroit']], desc:["Sa base large et son col étroit permettent d'agiter vigoureusement sans rien renverser.","Idéale pour les dosages (titrages) où l'on observe un changement de couleur."], fun:"Elle porte le nom du chimiste allemand Emil Erlenmeyer, qui l'a imaginée en 1860." },
   tube:{ color:'#6E6BFF', sym:'│', name:'Tube à essai', sub:'Verrerie · petits essais', stats:[['Usage','petits tests'],['Volume','quelques mL'],['Rangement','portoir']], desc:["Le petit tube en verre pour tester une réaction avec très peu de produit.","On le chauffe en l'inclinant, jamais dirigé vers quelqu'un."], fun:"Un portoir (le rack) permet d'aligner plusieurs essais côte à côte pour les comparer." },
   ballon:{ color:'#F5A623', sym:'◯', name:'Ballon à fond rond', sub:'Verrerie · chauffage', stats:[['Usage','chauffer, distiller'],['Forme','sphérique'],['Support','pince + potence']], desc:["Sa forme sphérique répartit la chaleur uniformément : parfait pour chauffer ou distiller.","Il se fixe à une potence avec une pince car il ne tient pas debout seul."], fun:"En distillation, on chauffe le ballon puis on récupère la vapeur qui se recondense plus loin." },
-  bunsen:{ color:'#E63329', sym:'🔥', name:'Bec Bunsen', sub:'Instrument · flamme', stats:[['Usage','chauffer'],['Combustible','gaz'],['Flamme','~1 500 °C']], desc:["Le brûleur à gaz du labo. En ouvrant l'arrivée d'air, la flamme devient bleue et très chaude.","Chaque métal colore la flamme différemment : c'est le « test de flamme »."], fun:"Robert Bunsen a inventé ce brûleur vers 1855 — et découvert deux éléments grâce à la couleur de leur flamme !" },
+  bunsen:{ color:'#E63329', sym:'🔥', name:'Bec Bunsen', sub:'Instrument · flamme', stats:[['Usage','chauffer'],['Combustible','gaz'],['Flamme','~1 500 °C']], desc:["Le brûleur à gaz du labo. En ouvrant l'arrivée d'air, la flamme devient bleue et très chaude.","Chaque métal colore la flamme différemment : c'est le « test de flamme »."], fun:"Robert Bunsen a inventé ce brûleur vers 1855 : et découvert deux éléments grâce à la couleur de leur flamme !" },
 };
 /* réactifs : target 'becher' (versés) ou 'flamme' (test de flamme). Pédagogie illustrative, aucune manipulation réelle. */
 const REAG = {
@@ -138,13 +138,13 @@ const REAG = {
 };
 const BECHER_ORDER = ['eau','vinaigre','bicarbonate','cuivre','soude','indicateur'];
 const FLAME_ORDER = ['selNa','selCu','selLi','selK'];
-/* réactions par paire (clé triée) — visuel + équation. Illustratif et sûr. */
+/* réactions par paire (clé triée) : visuel + équation. Illustratif et sûr. */
 function rkey(a,b){ return [a,b].sort().join('+'); }
 const REACTIONS = {
   [rkey('bicarbonate','vinaigre')]:{ id:'fizz', kind:'fizz', color:'#eaf3ff', name:'Effervescence', sub:'Réaction acide-base',
     eq:'NaHCO₃ + CH₃COOH → CH₃COONa + H₂O + CO₂↑',
     say:"Ça mousse ! Les bulles sont du dioxyde de carbone (CO₂), le même gaz que dans les sodas.",
-    desc:["Le bicarbonate (basique) et le vinaigre (acide) réagissent et libèrent un gaz : le dioxyde de carbone.","C'est cette effervescence qui fait gonfler les gâteaux et pétiller les boissons."], fun:"Avec beaucoup de gaz, on peut gonfler un ballon posé sur la bouteille — sans souffler !" },
+    desc:["Le bicarbonate (basique) et le vinaigre (acide) réagissent et libèrent un gaz : le dioxyde de carbone.","C'est cette effervescence qui fait gonfler les gâteaux et pétiller les boissons."], fun:"Avec beaucoup de gaz, on peut gonfler un ballon posé sur la bouteille : sans souffler !" },
   [rkey('cuivre','soude')]:{ id:'precip', kind:'precip', color:'#2f7fe0', precip:'#255fd0', name:'Précipité bleu', sub:'Formation d\'un solide',
     eq:'CuSO₄ + 2 NaOH → Cu(OH)₂↓ + Na₂SO₄',
     say:"Un précipité bleu apparaît : de l'hydroxyde de cuivre, un solide qui trouble le liquide.",
@@ -166,7 +166,7 @@ const lab={ liquid:null, flame:null, flameCore:null, flameLight:null, contents:[
   bubbles:[], precip:[], fizz:0, flameTimer:0, flameBase:new THREE.Color(0xffa542), targetLiq:new THREE.Color(0xcfe6ff), liqLevel:0, liqTarget:0 };
 
 /* ============================================================
-   TEXTURES PBR CC0 (Poly Haven) — helpers du gabarit photoréaliste
+   TEXTURES PBR CC0 (Poly Haven) : helpers du gabarit photoréaliste
    ============================================================ */
 const texLoader=new THREE.TextureLoader();
 const PBR_BASE='../assets/3d/pbr2k/';
@@ -194,7 +194,7 @@ const shell=window.Konstrio.createGame({
   domain:{ label:'Chimie', color:'#1E8C7A' },
   intro:{
     greet:"Bienvenue dans le labo ! Verse des réactifs dans le bécher pour déclencher de vraies réactions, allume le bec Bunsen pour les tests de flamme, assemble des molécules en 3D et explore les 118 éléments.",
-    rule:"Sur la <b>paillasse</b>, mélange deux réactifs dans le bécher : selon les produits, ça <b>mousse</b>, ça <b>change de couleur</b> ou un <b>précipité</b> se forme — l'équation s'affiche. Les <b>sels métalliques</b> colorent la flamme du bec Bunsen. Passe en mode <b>Molécules</b> et <b>Table</b> pour les atomes.",
+    rule:"Sur la <b>paillasse</b>, mélange deux réactifs dans le bécher : selon les produits, ça <b>mousse</b>, ça <b>change de couleur</b> ou un <b>précipité</b> se forme : l'équation s'affiche. Les <b>sels métalliques</b> colorent la flamme du bec Bunsen. Passe en mode <b>Molécules</b> et <b>Table</b> pour les atomes.",
     how:["Paillasse : clique un réactif pour le verser dans le bécher ; deux réactifs compatibles déclenchent la réaction.","Clique un sel de métal (à droite) : il colore la flamme du bec Bunsen (test de flamme).","« Rincer » vide le bécher pour recommencer une expérience.","Molécules : choisis une molécule (boules-bâtons) ; Table : clique un élément pour sa fiche."],
     keys:"Glisser = tourner · molette = zoom.",
     objectif:"Réaliser les réactions demandées, reconnaître molécules et éléments.",
@@ -215,7 +215,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8, renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
-  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) — l'AO écran (GTAO) y produit du noir → chaîne robuste sans GTAO (l'occlusion vient des cartes AO bakées + ombre de contact)
+  // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produit du noir → chaîne robuste sans GTAO (l'occlusion vient des cartes AO bakées + ombre de contact)
   let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
@@ -264,19 +264,19 @@ function fizzSound(){ if(!ac||shell.muted)return; try{ const buf=ac.createBuffer
 function makeBackdrop(){ const c=document.createElement('canvas'); c.width=c.height=1024; const ctx=c.getContext('2d'); const g=ctx.createRadialGradient(512,360,80,512,512,760); g.addColorStop(0,'#123a35'); g.addColorStop(.55,'#0c2622'); g.addColorStop(1,'#05100d'); ctx.fillStyle=g; ctx.fillRect(0,0,1024,1024); const t=new THREE.CanvasTexture(c); return new THREE.Mesh(new THREE.SphereGeometry(160,32,16), new THREE.MeshBasicMaterial({ map:t, side:THREE.BackSide })); }
 
 /* ============================================================
-   PAILLASSE — verrerie PBR, bec Bunsen, réactions
+   PAILLASSE : verrerie PBR, bec Bunsen, réactions
    ============================================================ */
 function glassMat(tint){ return new THREE.MeshPhysicalMaterial({ color:tint||0xffffff, metalness:0, roughness:0.06, transmission:1.0, ior:1.5, thickness:0.55, envMapIntensity:1.5, transparent:true, clearcoat:1, clearcoatRoughness:0.05, side:THREE.DoubleSide }); }
 function liquidMat(hex){ return new THREE.MeshPhysicalMaterial({ color:hex, metalness:0, roughness:0.14, transmission:0.5, ior:1.34, thickness:1.4, envMapIntensity:0.9, transparent:true, opacity:0.9, clearcoat:0.35 }); }
 function benchTex(){ const c=document.createElement('canvas'); c.width=c.height=512; const ctx=c.getContext('2d'); ctx.fillStyle='#15181d'; ctx.fillRect(0,0,512,512); for(let i=0;i<9000;i++){ const v=Math.random()*22|0; ctx.fillStyle='rgba('+(30+v)+','+(33+v)+','+(40+v)+',.5)'; ctx.fillRect(Math.random()*512,Math.random()*512,1.4,1.4); } const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,1.4); return t; }
 
 function buildBench(){ benchGroup=new THREE.Object3D(); scene.add(benchGroup); benchClickable=[];
-  // sol de labo — carrelage béton réel (Poly Haven CC0), tuilé + AO bakée
+  // sol de labo : carrelage béton réel (Poly Haven CC0), tuilé + AO bakée
   const floorMat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.9, metalness:0.02, envMapIntensity:0.5 });
   applyPBR(floorMat,'concrete_tiles','1k',{repeat:14,normal:1.0,ao:true});
   const fgeo=new THREE.PlaneGeometry(80,80); enableAO(fgeo);
   const floor=new THREE.Mesh(fgeo, floorMat); floor.rotation.x=-Math.PI/2; floor.position.y=-0.02; floor.receiveShadow=true; benchGroup.add(floor);
-  // plan de travail (paillasse époxy) — béton résiné réel + AO bakée, teinté sombre pour garder l'identité labo
+  // plan de travail (paillasse époxy) : béton résiné réel + AO bakée, teinté sombre pour garder l'identité labo
   const topMat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.55, metalness:0.08, envMapIntensity:0.8 });
   applyPBR(topMat,'concrete_floor_02','1k',{repeat:[4,2],normal:0.9,ao:true,color:0x6f757c});
   const tgeo=new THREE.BoxGeometry(15,0.5,6.6); enableAO(tgeo);
@@ -479,14 +479,14 @@ function shade(hex,p){ const n=parseInt(hex.replace('#',''),16); let r=(n>>16)&2
 
 function clickTile(el){ const fact=FACTS[el.sym]; openFiche({ sym:el.sym, name:el.nom, color:FAM[el.fam].c, sub:FAM[el.fam].n, stats:[['Numéro (Z)',el.z],['Masse','~'+el.mass+' u'],['Famille',FAM[el.fam].n],['État (ambiant)',el.etat]], desc:[fact || (el.nom+" ("+el.sym+"), élément n°"+el.z+", de la famille « "+FAM[el.fam].n.toLowerCase()+" ».")], fun:'' }); shell.say(el.nom+' ('+el.sym+'), numéro '+el.z+'. '+(fact||''),'concentre'); shell.sound('pop'); if(quiz) checkChallenge({goal:'elem', sym:el.sym}); }
 function clickElement(sym){ const el=EL.find(x=>x.sym===sym); if(el) clickTile(el); }
-function clickGlass(key){ const d=GLASS_INFO[key]; if(!d)return; openFiche(d); shell.say(d.name+' — '+d.desc[0],'concentre'); shell.sound('pop'); }
+function clickGlass(key){ const d=GLASS_INFO[key]; if(!d)return; openFiche(d); shell.say(d.name+' : '+d.desc[0],'concentre'); shell.sound('pop'); }
 
 /* ============================================================
    MODES (Détente / Cours) & DÉFIS
    ============================================================ */
 function startMode(m){ mode=m; startAmbient(); const hint=document.getElementById('chHint');
   if(m==='cours'){ shell.setScore(0); startChallenges(); }
-  else { clearQuiz(); hint.style.display=''; shell.say("Mode Détente : explore librement le labo — mélange, teste des flammes, assemble des molécules !",'joyeux'); }
+  else { clearQuiz(); hint.style.display=''; shell.say("Mode Détente : explore librement le labo : mélange, teste des flammes, assemble des molécules !",'joyeux'); }
 }
 const CHALL=[
   { tab:'bench', goal:'react', key:rkey('bicarbonate','vinaigre'), prompt:'Provoque une <b>effervescence</b> (un gaz qui mousse).', hint:'Verse le bicarbonate, puis le vinaigre.' },
@@ -516,7 +516,7 @@ function checkChallenge(ev){ if(!quiz)return; const c=CHALL[quiz.idx]; if(!c||ev
   else { quiz.miss++; shell.sound('bad'); shell.say("Presque ! "+c.hint,'rassurant'); }
 }
 function winChallenges(){ const b=document.getElementById('chQuiz'); if(b)b.remove(); const st=quiz.miss===0?3:quiz.miss<=2?2:1; const sc=quiz.score*180;
-  shell.win({ score:sc, stars:st, title:`${quiz.score}/${quiz.total} défis réussis`, learned:shell.cfg.learned, buddy: st===3?"Chimiste hors pair ! Tu maîtrises réactions et tests de flamme.":"Beau travail — recommence pour viser les 3 étoiles !", onNext:()=>{ shell.setScore(0); startChallenges(); }, nextLabel:'Rejouer' }); quiz=null; }
+  shell.win({ score:sc, stars:st, title:`${quiz.score}/${quiz.total} défis réussis`, learned:shell.cfg.learned, buddy: st===3?"Chimiste hors pair ! Tu maîtrises réactions et tests de flamme.":"Beau travail : recommence pour viser les 3 étoiles !", onNext:()=>{ shell.setScore(0); startChallenges(); }, nextLabel:'Rejouer' }); quiz=null; }
 function clearQuiz(){ const b=document.getElementById('chQuiz'); if(b)b.remove(); quiz=null; }
 
 /* ============================================================

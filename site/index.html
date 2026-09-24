@@ -21,7 +21,8 @@
     var portrait = window.matchMedia && window.matchMedia('(max-aspect-ratio: 3/4)').matches;
     var l = document.createElement('link');
     l.rel = 'preload'; l.as = 'image'; l.fetchPriority = 'high';
-    l.href = portrait ? 'fond/aurore-mobile.jpg' : (sombre ? 'fond/aurore-nuit.jpg' : 'fond/aurore-jour.jpg');
+    l.href = portrait ? 'fond/aurore-mobile.webp' : (sombre ? 'fond/aurore-nuit.webp' : 'fond/aurore-jour.webp');
+    l.type = 'image/webp';
     document.head.appendChild(l);
   } catch (e) { /* sans stockage : pas de préchargement */ }
 })();

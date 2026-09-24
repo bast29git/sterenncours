@@ -20,8 +20,8 @@ const V=[
  [3,'conducir','yo','conduzco','conduire (je conduis)'],
  [3,'decir','yo','digo','dire (je dis)']
 ];
-const rounds=V.map(v=>({lvl:v[0], prompt:`<b>${v[1]}</b> · <span class="big">${v[2]}</span> ___ ? <span style="font-size:13px;color:var(--fg-muted)">(${v[3]})</span>`, audio:v[2]+' '+v[4], answer:v[4], accept:[v[4]], explain:`${v[2]} ${v[4]} — ${v[3]}.`}));
-LangGame({ id:'2d-47-es-verbos', code:'2D·47', title:'Español — Verbos & conjugación', lang:'es', mode:'type',
+const rounds=V.map(v=>({lvl:v[0], prompt:`<b>${v[1]}</b> · <span class="big">${v[2]}</span> ___ ? <span style="font-size:13px;color:var(--fg-muted)">(${v[3]})</span>`, audio:v[2]+' '+v[4], answer:v[4], accept:[v[4]], explain:`${v[2]} ${v[4]} : ${v[3]}.`}));
+LangGame({ id:'2d-47-es-verbos', code:'2D·47', title:'Español : Verbos & conjugación', lang:'es', mode:'type',
  domain:{label:'Langues',color:'#0E7C86'},
  intro:{ greet:"Conjuga los verbos españoles. ¡Cuidado con ser y estar!", rule:"Écris la forme conjuguée du verbe espagnol pour le pronom indiqué. Inclut le présent, le futur et le passé composé.", how:["Lis le verbe et le pronom (yo, tú, él…).","Tape la forme conjuguée correcte, valide avec Entrée.","Niveau Expert : temps composés et verbes irréguliers."], keys:"Entrée = valider", objectif:"Conjuguer les verbes espagnols clés, réguliers et irréguliers.", hint:"« Ser » décrit l'identité (soy profesor) ; « estar » décrit l'état/lieu (estoy aquí).", why:"La conjugaison espagnole est riche mais régulière par groupes (-ar, -er, -ir)." },
  learned:["Conjuguer ser, estar, tener et les verbes courants.","La différence ser / estar.","Présent, futur et passé composé espagnols."],

@@ -23,11 +23,11 @@
 <body>
 <script>
 const RIDDLES=[
-  { q:"Salle 1 — Parmi ces informations, laquelle est une <b>donnée personnelle</b> au sens du RGPD ?", opts:[["L'adresse e-mail nominative d'une personne",true],["La météo d'aujourd'hui",false],["Le chiffre d'affaires d'une entreprise",false]], why:"Une donnée personnelle identifie (même indirectement) une personne physique : nom, e-mail, adresse IP, etc." },
-  { q:"Salle 2 — En cas de <b>fuite de données</b> grave, sous quel délai faut-il notifier la CNIL ?", opts:[["Dans les 72 heures",true],["Dans l'année",false],["Jamais, ce n'est pas obligatoire",false]], why:"Le RGPD impose de notifier une violation à l'autorité (la CNIL) dans les 72 heures." },
-  { q:"Salle 3 — Un utilisateur demande l'<b>effacement</b> de ses données. Que dois-tu faire ?", opts:[["Respecter son droit à l'effacement (« droit à l'oubli »)",true],["Ignorer la demande",false],["Lui facturer la suppression",false]], why:"Le RGPD garantit un droit d'accès, de rectification et d'effacement des données personnelles." },
-  { q:"Salle 4 — Avant de collecter des données, sur quoi doit reposer le traitement ?", opts:[["Une base légale, souvent le consentement libre et éclairé",true],["Rien, on collecte tout par défaut",false],["L'accord d'un seul collègue",false]], why:"Tout traitement doit avoir une base légale (consentement, contrat, obligation légale…) et respecter la finalité." },
-  { q:"Salle 5 — Quel principe limite les données collectées au strict nécessaire ?", opts:[["La minimisation des données",true],["La maximisation des données",false],["La conservation illimitée",false]], why:"La minimisation : ne collecter que les données nécessaires à la finalité, et ne pas les garder indéfiniment." },
+  { q:"Salle 1 : Parmi ces informations, laquelle est une <b>donnée personnelle</b> au sens du RGPD ?", opts:[["L'adresse e-mail nominative d'une personne",true],["La météo d'aujourd'hui",false],["Le chiffre d'affaires d'une entreprise",false]], why:"Une donnée personnelle identifie (même indirectement) une personne physique : nom, e-mail, adresse IP, etc." },
+  { q:"Salle 2 : En cas de <b>fuite de données</b> grave, sous quel délai faut-il notifier la CNIL ?", opts:[["Dans les 72 heures",true],["Dans l'année",false],["Jamais, ce n'est pas obligatoire",false]], why:"Le RGPD impose de notifier une violation à l'autorité (la CNIL) dans les 72 heures." },
+  { q:"Salle 3 : Un utilisateur demande l'<b>effacement</b> de ses données. Que dois-tu faire ?", opts:[["Respecter son droit à l'effacement (« droit à l'oubli »)",true],["Ignorer la demande",false],["Lui facturer la suppression",false]], why:"Le RGPD garantit un droit d'accès, de rectification et d'effacement des données personnelles." },
+  { q:"Salle 4 : Avant de collecter des données, sur quoi doit reposer le traitement ?", opts:[["Une base légale, souvent le consentement libre et éclairé",true],["Rien, on collecte tout par défaut",false],["L'accord d'un seul collègue",false]], why:"Tout traitement doit avoir une base légale (consentement, contrat, obligation légale…) et respecter la finalité." },
+  { q:"Salle 5 : Quel principe limite les données collectées au strict nécessaire ?", opts:[["La minimisation des données",true],["La maximisation des données",false],["La conservation illimitée",false]], why:"La minimisation : ne collecter que les données nécessaires à la finalité, et ne pas les garder indéfiniment." },
 ];
 let mode='detente', idx=0, opened=0;
 const shell=window.Konstrio.createGame({
@@ -66,7 +66,7 @@ function pick(ok,btn,r){ wrap.querySelectorAll('.rg-opt').forEach(b=>b.style.poi
   idx++; shell.api.setProgress(idx/RIDDLES.length); setTimeout(show, ok?1500:2500); }
 function finish(){ shell.api.timer.stop(); const stars=opened>=5?3:opened>=3?2:1;
   shell.api.win({ score:opened*120, stars, title:`${opened}/5 cadenas ouverts`,
-    buddy: opened>=5?"Fuite contenue ! Tu maîtrises les principes du RGPD.":"Bien — retiens : 72 h pour notifier, et minimisation des données.",
+    buddy: opened>=5?"Fuite contenue ! Tu maîtrises les principes du RGPD.":"Bien : retiens : 72 h pour notifier, et minimisation des données.",
     learned:shell.cfg.learned, onNext:()=>shell.restart(), nextLabel:'Rejouer' }); }
 </script>
 </body>

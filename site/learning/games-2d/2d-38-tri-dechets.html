@@ -167,7 +167,7 @@ function resolve(binKey, binEl){
 function finish(){
   const api=shell.api; const acc=correct/queue.length; const stars=acc>=0.9?3:acc>=0.7?2:1;
   api.win({ score: correct*100, stars, title:`${correct}/${queue.length} déchets bien triés`,
-    buddy: acc>=0.9?"Champion du tri ! La planète te dit merci 🌍":acc>=0.7?"Bon tri d'ensemble — révise le verre et les déchets spéciaux.":"Tu progresses ! Souviens-toi : emballages = bac jaune.",
+    buddy: acc>=0.9?"Champion du tri ! La planète te dit merci 🌍":acc>=0.7?"Bon tri d'ensemble : révise le verre et les déchets spéciaux.":"Tu progresses ! Souviens-toi : emballages = bac jaune.",
     learned: shell.cfg.learned, onNext:()=> reset(api), nextLabel:'Rejouer' });
 }
 </script>

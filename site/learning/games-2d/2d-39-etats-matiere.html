@@ -63,7 +63,7 @@ function build(api){
   shell.api=api;
   stage=document.createElement('div'); stage.className='em-stage';
   stage.innerHTML=`<div class="em-canvaswrap"><canvas></canvas>
-      <div class="em-state"><div class="nm" id="emNm">—</div><div class="d" id="emD"></div></div></div>
+      <div class="em-state"><div class="nm" id="emNm">…</div><div class="d" id="emD"></div></div></div>
     <div class="em-panel">
       <div class="em-subs" id="emSubs"></div>
       <div class="em-slrow"><span class="em-scale">❄ froid</span><input id="emT" type="range" min="-220" max="3000" step="1" value="20"><span class="em-scale">chaud 🔥</span></div>
@@ -122,7 +122,7 @@ function askQuiz(){ if(!quiz)return; if(quiz.idx>=quiz.total){ winQuiz(); return
 }
 function winQuiz(){ const b=document.getElementById('emQuiz'); if(b)b.remove(); const st=quiz.score>=6?3:quiz.score>=4?2:1;
   shell.api.win({ score:quiz.score*150, stars:st, title:`${quiz.score}/6 bonnes réponses`, learned:shell.cfg.learned,
-    buddy: st===3?"Tu maîtrises les changements d'état !":"Bien — retiens : l'eau fond à 0 °C, bout à 100 °C.",
+    buddy: st===3?"Tu maîtrises les changements d'état !":"Bien : retiens : l'eau fond à 0 °C, bout à 100 °C.",
     onNext:()=>{ shell.api.setScore(0); startQuiz(); }, nextLabel:'Rejouer' }); quiz=null; }
 </script>
 </body>
