@@ -20,7 +20,9 @@ objectifs:
 6. Axe C : espace de Sterenn (100)
 7. Axe D : jeux 2D (30)
 8. Axe E : mondes 3D, qualité et nouveaux mondes (30)
-9. Ordre de réalisation proposé
+9. Correctifs d'anomalies (hors des 270)
+10. Cours à rédiger (hors des 270)
+11. Ordre de réalisation proposé
 :::
 
 ::: info Lecture des codes
@@ -181,11 +183,11 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ### Planning
 
-- **B16 · P1 · M** Rotation réelle des matières : le générateur doit faire tourner les huit matières sur deux semaines sans répéter une paire ; aujourd'hui maths-histoire et français-physique alternent.
+- **B16 · P2 · S** Prévisualisation avant génération : les huit premières semaines affichées avec les matières en couleur, puis validation, au lieu d'écrire directement en base.
 - **B17 · P1 · S** Vacances scolaires de la zone saisies une fois, sautées par le générateur, affichées en gris dans le planning.
 - **B18 · P2 · S** Déplacer une séance par glisser-déposer dans la semaine, avec recalcul des blocs.
-- **B19 · P2 · S** Modules dans le sélecteur de leçons d'une séance (aujourd'hui absents, une séance de découverte éditée perd ses modules).
-- **B20 · P2 · S** Durée réelle d'un temps personnel (20 minutes prévues, « 15 min » affiché côté élève) : une seule valeur, calculée.
+- **B19 · P2 · S** Recherche dans le sélecteur de leçons d'une séance : filtre par texte, matières groupées, leçons déjà planifiées signalées.
+- **B20 · P2 · S** Durée des temps personnels réglable dans le générateur (15, 20 ou 30 minutes) et modifiable séance par séance.
 - **B21 · P2 · S** Vue « période » : les cinq périodes en colonnes, les leçons placées, les manques en rouge.
 - **B22 · P3 · S** Export du planning en fichier calendrier (`.ics`) pour le téléphone.
 - **B23 · P3 · M** Séance en visio : lien de réunion enregistré sur la séance, bouton « rejoindre » des deux côtés.
@@ -375,7 +377,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 ## 7. Axe D : jeux 2D (30)
 
-- **D1 · P1 · S** Écriture des textes : retirer les formes à point médian et le vocabulaire de l'autre produit ; tutoiement et ton des fiches partout.
+- **D1 · P1 · S** Écran d'accueil commun aux 53 jeux : titre, leçon servie, durée conseillée, trois consignes, un seul bouton « Jouer ».
 - **D2 · P1 · S** Chaque jeu nomme la leçon qu'il sert dans son écran d'accueil, avec le lien retour vers la fiche.
 - **D3 · P1 · S** Vocabulaire aligné : les mêmes termes que les fiches (côté adjacent, hypoténuse, complément du nom), vérifiés jeu par jeu.
 - **D4 · P1 · S** Étoiles cohérentes : les seuils de score expliqués sur l'écran de fin (« 2 étoiles à partir de 70 % »).
@@ -402,7 +404,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - **D25 · P3 · S** Résultats envoyés avec le détail (réussites par notion), pas seulement le score.
 - **D26 · P3 · S** Thème visuel unique : palette d'Opaline appliquée aux 53 jeux via `tokens.css`.
 - **D27 · P3 · S** Accessibilité vérifiée automatiquement (axe-core) sur chaque jeu au build.
-- **D28 · P3 · S** Traduction des rares textes anglais restés dans les jeux (« Score », « Level »).
+- **D28 · P3 · S** Rejouer une partie à l'identique (même tirage) pour comparer deux essais.
 - **D29 · P3 · S** Chaque jeu documente ses notions dans `jeux.js` (aujourd'hui : « apprend » en une phrase, incomplet pour 20 jeux).
 - **D30 · P3 · S** Un « carnet de jeux » côté élève : ce qu'elle a gagné, ce qu'il reste à essayer, par matière.
 
@@ -426,7 +428,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - **E11 · P1 · S** Chaque monde commence par « ce que tu vas apprendre », trois phrases, tirées des notions de la leçon.
 - **E12 · P1 · S** Les questions des modes « cours » sortent de la banque de la leçon rattachée, pas de listes internes.
 - **E13 · P2 · S** Fiche 3D : un bouton « voir la fiche » dans chaque monde ouvre la section correspondante d'Opaline dans un panneau.
-- **E14 · P2 · S** Étiquettes et légendes en français vérifiées (des noms anglais subsistent dans le centre de données et la cyberdéfense).
+- **E14 · P2 · S** Légendes contextuelles : toucher un objet affiche son nom et une phrase de la fiche, sans quitter la vue.
 - **E15 · P2 · S** Mode « guidé » où Opale enchaîne les étapes : regarder, nommer, répondre, sans écran libre au départ.
 - **E16 · P2 · S** Mesures réelles dans les mondes de physique : la règle et le chronomètre affichent des valeurs exploitables dans un calcul de la fiche.
 - **E17 · P3 · S** Journal de bord : ce qu'elle a cliqué et lu dans un monde, résumé à la sortie, envoyé au professeur.
@@ -450,10 +452,35 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - **E29 · P2 · S** Contrôles unifiés : mêmes touches et mêmes gestes dans les vingt mondes, un panneau « commandes » identique.
 - **E30 · P2 · S** Mesure de performance envoyée avec le score (images par seconde moyennes, durée de chargement), pour décider des réglages par appareil.
 
-## 9. Ordre de réalisation proposé
+## 9. Correctifs d'anomalies (hors des 270)
+
+Ce qui est cassé ou incohérent se corrige avant d'améliorer. Ces points ne comptent pas comme des améliorations.
+
+- **K1** Bouton d'accessibilité de la barre du haut : le panneau s'ouvrait puis se refermait aussitôt, le clic remontant jusqu'au document qui ferme le panneau. **Corrigé le 24 septembre.**
+- **K2** Rotation des matières : le générateur alterne maths-histoire et français-physique deux semaines de suite au lieu de faire tourner les huit matières.
+- **K3** Temps personnel affiché « 15 min » dans la semaine de Sterenn pour un créneau de vingt minutes.
+- **K4** Sélecteur de leçons d'une séance sans les modules : éditer la séance du 5 octobre lui ferait perdre « Faire connaissance ».
+- **K5** Fiche de séance professeur : le bloc « Niveaux des leçons » propose un lien vers une leçon `module/…` qui n'existe pas.
+- **K6** Panneau de confort : à la fermeture, le focus va sur le bouton flottant masqué ; il doit revenir sur le bouton de la barre du haut.
+- **K7** Jeux : formes à point médian (« pénalisé·e ») et vocabulaire d'un autre produit dans les textes ; quelques libellés anglais (« Score », « Level ») et des légendes anglaises dans le centre de données et la cyberdéfense.
+- **K8** Évaluation fermée ouverte par son adresse directe : l'écran retombe sur le cours sans message ; dire « pas encore ouverte ».
+- **K9** Thème sombre dans les fiches : les titres de blocs gardent les couleurs foncées du papier (bleu marine, vert foncé) et perdent en contraste.
+- **K10** Planning professeur : les cartes de séance ne montrent pas les modules (seules les matières sont résumées).
+
+## 10. Cours à rédiger (hors des 270)
+
+Les 72 leçons déclarées sont complètes. Les manques ci-dessous dépendent de la progression choisie et se vérifient avec les attendus officiels avant rédaction.
+
+- **Maths** : triangles semblables et théorème de Thalès (souvent traités en 4ᵉ) ; repérage dans l'espace (pavé, cylindre, sphère).
+- **Physique-chimie** : lois de l'électricité (intensité et tension dans un circuit en série et en dérivation) si L06 ne les couvre pas entièrement.
+- **SVT** : le système nerveux et la commande du mouvement ; nutrition et organisation de l'organisme ; le monde microbien.
+- **Français** : lecture d'une œuvre intégrale par période (à choisir parmi ses lectures), avec sa fiche.
+- **Anglais et espagnol** : une leçon de compréhension orale par période, appuyée sur des documents authentiques.
+
+## 11. Ordre de réalisation proposé
 
 ::: etapes
-1. **Avant le 5 octobre** : A1, A2, A3, A11, A12, A36, A37, A43 ; B1, B2, B3, B7, B8, B16, B17, B24, B31, B41, B42 ; C1 à C4, C11 à C13, C26, C27, C38, C39, C43, C44, C52, C59, C60, C68, C75, C76, C83, C84, C95 ; D1 à D4 ; E1, E2, E11, E12, E28.
+1. **Avant le 5 octobre** : les correctifs K2 à K10 ; puis A1, A2, A3, A11, A12, A36, A37, A43 ; B1, B2, B3, B7, B8, B17, B24, B31, B41, B42 ; C1 à C4, C11 à C13, C26, C27, C38, C39, C43, C44, C52, C59, C60, C68, C75, C76, C83, C84, C95 ; D1 à D4 ; E1, E2, E11, E12, E28.
 2. **Période 1** : le reste des P2 de l'axe C, puis B, puis A ; D5 à D16 ; E3 à E7, E13 à E16, E18 à E21.
 3. **Périodes 2 à 5** : les P3, un monde nouveau par période, une fiche curiosité par période.
 4. **Fin d'année** : les P4 et le bulletin.

@@ -546,7 +546,10 @@
       panneau.hidden = true;
     }));
   }
-  document.getElementById('e-btn-confort').addEventListener('click', () => {
+  document.getElementById('e-btn-confort').addEventListener('click', (ev) => {
+    // Le panneau se ferme sur tout clic hors de lui : le clic qui l'ouvre ne
+    // doit pas remonter jusqu'au document, sinon il se referme aussitôt.
+    ev.stopPropagation();
     if (window.__konstrioConfort && window.__konstrioConfort.open) window.__konstrioConfort.open();
     else chargerScript('moteurs/confort.js').then(() => window.__konstrioConfort && window.__konstrioConfort.open()).catch(() => signaler('Le panneau de confort n\'est pas disponible.'));
   });
