@@ -20,7 +20,19 @@ export function json(donnees, statut = 200, entetes = {}) {
   });
 }
 
-export const erreur = (message, statut = 400) => json({ erreur: message }, statut);
+/* A33 : chaque erreur porte un code stable en plus du message en français. */
+const CODES = { 400: 'invalide', 401: 'session', 403: 'interdit', 404: 'introuvable', 409: 'conflit', 413: 'trop_gros', 429: 'trop_vite', 500: 'interne', 503: 'indisponible' };
+export const erreur = (message, statut = 400, code) => json({ erreur: message, code: code || CODES[statut] || 'erreur' }, statut);
+
+/* A4 : journal d'audit des écritures sensibles. Ne bloque jamais l'écriture elle-même. */
+export async function journaliser(env, session, quoi, cle, avant, apres) {
+  try {
+    if (!env || !env.DB) return;
+    const enTexte = (v) => (v === undefined || v === null ? null : typeof v === 'string' ? v.slice(0, 400) : JSON.stringify(v).slice(0, 400));
+    await env.DB.prepare('INSERT INTO journal (id, quand, qui, quoi, cle, avant, apres) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .bind(nouvelId(), maintenant(), (session && session.role) || 'inconnu', quoi, cle || null, enTexte(avant), enTexte(apres)).run();
+  } catch (e) { /* table absente avant la migration 0009 */ }
+}
 
 /* ---------- Cookies ------------------------------------------------------- */
 export function lireCookie(request, nom) {
@@ -118,7 +130,7 @@ export function gerer(fonction) {
       return await fonction(context);
     } catch (e) {
       if (e instanceof Response) return e;
-      return json({ erreur: 'Erreur interne', detail: String(e && e.message || e) }, 500);
+      return json({ erreur: 'Erreur interne', code: 'interne', detail: String(e && e.message || e) }, 500);
     }
   };
 }

@@ -138,6 +138,26 @@ export const SCENARIOS = {
     ok(await page.evaluate(() => { const p = document.querySelector('.cf-panel'); return p && !p.hidden; }), 'panneau de confort ouvert');
     ok(!erreurs.length, 'sans erreur JS');
   },
+  async 'contrat des API : un corps invalide répond 400 en français avec un code'(nav, BASE) {
+    const { page } = await ouvrir(nav, BASE, PROF);
+    const cas = [
+      ['/suivi', 'PUT', { matiere: 'maths' }], ['/acces', 'PUT', { cle: 'n importe quoi' }], ['/reglages', 'PUT', { cle: 'inconnu', valeur: true }],
+      ['/profil', 'PUT', { cle: 'bad key' }], ['/messages', 'POST', { texte: '' }], ['/seances', 'POST', { date: 'hier' }],
+      ['/felicitations', 'POST', { texte: '' }], ['/usage', 'POST', { cle: 'inconnu' }], ['/codes', 'PUT', { role: 'x' }], ['/erreur', 'POST', { message: '' }],
+    ];
+    for (const [chemin, method, corps] of cas) {
+      const r = await api(page, chemin, { method, body: JSON.stringify(corps) });
+      ok(r.statut === 400, `${method} ${chemin} → 400 attendu (${r.statut})`);
+      ok(typeof r.corps.erreur === 'string' && /[a-zéèàç]/i.test(r.corps.erreur), `${chemin} : message en français`);
+      ok(typeof r.corps.code === 'string' && r.corps.code.length, `${chemin} : code d'erreur`);
+    }
+    const inconnu = await api(page, '/seances/000000000000000000000000', { method: 'PATCH', body: '{"statut":"faite"}' });
+    ok(inconnu.statut === 404 || inconnu.statut === 400, 'séance inconnue : 404');
+    const journal = await api(page, '/journal');
+    ok(journal.statut === 200 && Array.isArray(journal.corps.journal), 'journal d\'audit lisible');
+    const sante = await api(page, '/moi');
+    ok(sante.statut === 200 && sante.corps.sante && sante.corps.sante.tables, 'page santé : tailles des tables');
+  },
   async 'sécurité : débit et taille'(nav, BASE) {
     const { page } = await ouvrir(nav, BASE, ELEVE);
     const gros = await page.evaluate(async () => (await fetch('/api/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'content-length': '40000' }, body: JSON.stringify({ texte: 'x'.repeat(39000) }) })).status);

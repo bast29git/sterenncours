@@ -5,6 +5,7 @@
  *   PATCH /api/messages              marque comme lus ceux de l'autre espace
  */
 import { json, erreur, gerer, exigerSession, maintenant, nouvelId } from '../_commun.js';
+import { compter } from './usage.js';
 
 const LONGUEUR_MAX = 2000;
 
@@ -94,6 +95,7 @@ export const onRequestPost = gerer(async (context) => {
     ).bind(message.id, message.auteur, message.texte, message.contexte, message.fil, message.cree_le).run();
   }
   message.reactions = {};
+  await compter(context.env, 'message');
 
   return json(message, 201);
 });

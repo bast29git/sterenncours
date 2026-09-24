@@ -2,7 +2,7 @@
  *   PATCH  /api/seances/:id   met à jour une séance (professeur)
  *   DELETE /api/seances/:id   supprime une séance (professeur)
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser } from '../../_commun.js';
 
 const STATUTS = ['prevue', 'faite', 'reportee'];
 const CRENEAUX = ['A', 'B', 'C'];
@@ -52,13 +52,19 @@ export const onRequestPatch = gerer(async (context) => {
     fusion.lecons, fusion.objectif, fusion.travail, fusion.statut, fusion.bilan, maintenant(), id).run();
 
   const lire = (v) => { try { return JSON.parse(v || '[]'); } catch (e) { return []; } };
+  await journaliser(context.env, await lireSessionSure(context), 'seance', id, { date: existante.date, statut: existante.statut, lecons: existante.lecons }, { date: fusion.date, statut: fusion.statut, lecons: fusion.lecons });
   return json({ id, ...fusion, matieres: lire(fusion.matieres), lecons: lire(fusion.lecons) });
 });
 
 export const onRequestDelete = gerer(async (context) => {
-  exigerProf(await exigerSession(context));
+  const session = exigerProf(await exigerSession(context));
   const id = context.params.id;
   if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  const avant = await context.env.DB.prepare('SELECT date, creneau, type, objectif FROM seances WHERE id = ?').bind(id).first().catch(() => null);
   await context.env.DB.prepare('DELETE FROM seances WHERE id = ?').bind(id).run();
+  await journaliser(context.env, session, 'seance', id, avant, null);
   return json({ supprime: id });
 });
+
+/** La session du PATCH est déjà vérifiée plus haut ; on la relit pour le journal, sans jamais échouer. */
+async function lireSessionSure(context) { try { return await exigerSession(context); } catch (e) { return { role: 'prof' }; } }

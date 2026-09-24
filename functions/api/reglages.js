@@ -6,7 +6,7 @@
  * fiches, la tutrice Opale, la calculatrice, les options de la messagerie.
  * Toute clé inconnue est refusée : la liste ci-dessous fait foi.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser } from '../_commun.js';
 
 export const REGLAGES = {
   pauses:        { defaut: true,  type: 'boolean', libelle: 'Points de pause dans les fiches' },
@@ -40,7 +40,7 @@ export const onRequestGet = gerer(async (context) => {
 });
 
 export const onRequestPut = gerer(async (context) => {
-  exigerProf(await exigerSession(context));
+  const session = exigerProf(await exigerSession(context));
   const { DB } = context.env;
 
   let corps;
@@ -57,5 +57,7 @@ export const onRequestPut = gerer(async (context) => {
      ON CONFLICT(cle) DO UPDATE SET valeur = excluded.valeur, maj_le = excluded.maj_le`,
   ).bind(cle, JSON.stringify(valeur), maintenant()).run();
 
-  return json({ cle, valeur, reglages: await lireReglages(DB) });
+  const apres = await lireReglages(DB);
+  await journaliser(context.env, session, 'reglage', cle, null, valeur);
+  return json({ cle, valeur, reglages: apres });
 });

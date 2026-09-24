@@ -1,5 +1,6 @@
 /** PUT /api/fiches : marque une fiche comme terminée, ou annule ce marquage. */
 import { json, erreur, gerer, exigerSession, maintenant } from '../_commun.js';
+import { compter } from './usage.js';
 
 export const onRequestPut = gerer(async (context) => {
   await exigerSession(context);
@@ -19,5 +20,6 @@ export const onRequestPut = gerer(async (context) => {
     `INSERT INTO fiches_lues (cle, termine_le) VALUES (?, ?)
      ON CONFLICT(cle) DO UPDATE SET termine_le = excluded.termine_le`,
   ).bind(cle, date).run();
+  await compter(context.env, 'fiche');
   return json({ cle, termine_le: date });
 });

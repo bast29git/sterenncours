@@ -6,6 +6,7 @@
  * par adresse pour qu'un code court ne puisse pas être trouvé par essais.
  */
 import { json, erreur, gerer, creerSession, cookieSession, deriver, egal, DUREE_SESSION, ROLES } from '../_commun.js';
+import { compter } from './usage.js';
 
 const MAX_TENTATIVES = 12;
 const FENETRE = 600; // 10 minutes
@@ -34,6 +35,7 @@ export const onRequestPost = gerer(async (context) => {
     if (egal(candidat, empreinte)) {
       await env.SESSIONS.delete(cleLimite);
       const jeton = await creerSession(env, role);
+      if (env.DB) await compter(env, 'connexion');
       return json({ role }, 200, { 'set-cookie': cookieSession(jeton, DUREE_SESSION) });
     }
   }

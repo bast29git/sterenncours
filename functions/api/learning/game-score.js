@@ -9,6 +9,7 @@
  * une partie gagnée vaut 75, une partie perdue 40.
  */
 import { json, erreur, gerer, exigerSession, maintenant } from '../../_commun.js';
+import { compter } from '../usage.js';
 
 export function noteSur100(corps) {
   const etoiles = Number(corps && corps.stars);
@@ -30,14 +31,16 @@ export const onRequestPost = gerer(async (context) => {
   const cle = 'jeu/' + id;
 
   await DB.prepare(
-    `INSERT INTO resultats (cle, matiere, ref, justes, total, meilleur, series, maj_le)
-     VALUES (?, 'jeu', ?, ?, 100, ?, 1, ?)
+    `INSERT INTO resultats (cle, matiere, ref, justes, total, meilleur, series, maj_le, genre)
+     VALUES (?, 'jeu', ?, ?, 100, ?, 1, ?, 'jeu')
      ON CONFLICT(cle) DO UPDATE SET
        justes = excluded.justes,
        meilleur = MAX(resultats.meilleur, excluded.justes),
        series = resultats.series + 1,
-       maj_le = excluded.maj_le`,
+       maj_le = excluded.maj_le,
+       genre = 'jeu'`,
   ).bind(cle, id, justes, justes, maintenant()).run();
+  await compter(context.env, 'jeu');
 
   const ligne = await DB.prepare('SELECT * FROM resultats WHERE cle = ?').bind(cle).first();
   return json({ ...ligne, reussie: justes >= 70 });

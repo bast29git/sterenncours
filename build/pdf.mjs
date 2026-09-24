@@ -48,6 +48,7 @@ function aImprimer(relatif) {
   if (chemin === 'index.html' || chemin === 'documents.html') return false;
   if (TOUT) return true;
   return chemin.startsWith('dossiers/')
+    || chemin.startsWith('cahiers/')
     || chemin.startsWith('00-pilotage/')
     || chemin.startsWith('outils/');
 }

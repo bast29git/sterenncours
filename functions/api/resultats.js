@@ -3,6 +3,7 @@
  * Le meilleur score et le nombre de séries sont conservés dans le temps.
  */
 import { json, erreur, gerer, exigerSession, maintenant } from '../_commun.js';
+import { compter } from './usage.js';
 
 export const onRequestPut = gerer(async (context) => {
   await exigerSession(context);
@@ -20,16 +21,18 @@ export const onRequestPut = gerer(async (context) => {
 
   const cle = matiere + '/' + ref;
   await DB.prepare(
-    `INSERT INTO resultats (cle, matiere, ref, justes, total, meilleur, series, maj_le)
-     VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+    `INSERT INTO resultats (cle, matiere, ref, justes, total, meilleur, series, maj_le, genre)
+     VALUES (?, ?, ?, ?, ?, ?, 1, ?, 'serie')
      ON CONFLICT(cle) DO UPDATE SET
        justes = excluded.justes,
        total = excluded.total,
        meilleur = MAX(resultats.meilleur, excluded.justes),
        series = resultats.series + 1,
-       maj_le = excluded.maj_le`,
+       maj_le = excluded.maj_le,
+       genre = 'serie'`,
   ).bind(cle, matiere, ref, justes, total, justes, maintenant()).run();
 
+  await compter(context.env, 'serie');
   const ligne = await DB.prepare('SELECT * FROM resultats WHERE cle = ?').bind(cle).first();
   return json(ligne);
 });

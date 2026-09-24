@@ -9,10 +9,10 @@
  *
  * Réservé à l'espace professeur : c'est lui qui décide du rythme.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser } from '../_commun.js';
 
 export const onRequestPut = gerer(async (context) => {
-  exigerProf(await exigerSession(context));
+  const session = exigerProf(await exigerSession(context));
   const { DB } = context.env;
 
   let corps;
@@ -24,8 +24,10 @@ export const onRequestPut = gerer(async (context) => {
   const cle = matiere + '/' + ref;
   const ouvert = corps.ouvert;
 
+  const avant = await DB.prepare('SELECT etat FROM ouvertures WHERE cle = ?').bind(cle).first().catch(() => null);
   if (ouvert === null || ouvert === undefined) {
     await DB.prepare('DELETE FROM ouvertures WHERE cle = ?').bind(cle).run();
+    await journaliser(context.env, session, 'ouverture', cle, avant, null);
     return json({ cle, ouvert: null });
   }
   if (typeof ouvert !== 'boolean') return erreur('ouvert doit valoir true, false ou null.');
@@ -35,5 +37,6 @@ export const onRequestPut = gerer(async (context) => {
      ON CONFLICT(cle) DO UPDATE SET etat = excluded.etat, maj_le = excluded.maj_le`,
   ).bind(cle, matiere, ref, ouvert ? 1 : 0, maintenant()).run();
 
+  await journaliser(context.env, session, 'ouverture', cle, avant, { ouvert });
   return json({ cle, ouvert });
 });

@@ -84,7 +84,20 @@ export async function onRequest(context) {
   }
 
   context.data.session = session;
+  const t0 = Date.now();
   const reponse = await next();
+  // A54 : temps de réponse des fonctions, cumulé par jour dans KV (moyenne et maximum sur la page santé).
+  if (chemin.startsWith('/api/') && env.SESSIONS) {
+    context.waitUntil((async () => {
+      try {
+        const duree = Date.now() - t0;
+        const cle = 'perf:' + new Date().toISOString().slice(0, 10);
+        const p = JSON.parse((await env.SESSIONS.get(cle)) || '{"n":0,"total":0,"max":0}');
+        p.n += 1; p.total += duree; p.max = Math.max(p.max || 0, duree);
+        await env.SESSIONS.put(cle, JSON.stringify(p), { expirationTtl: 60 * 60 * 30 });
+      } catch (e) { /* mesure facultative */ }
+    })());
+  }
 
   // Le contenu est réservé : il peut vivre dans le cache du navigateur,
   // jamais dans un cache partagé en bordure de réseau.

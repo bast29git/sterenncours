@@ -10,11 +10,13 @@
  * répond `indisponible: true` et l'écran propose le plan de la fiche et le
  * message au professeur.
  */
-import { json, erreur, gerer, exigerSession } from '../_commun.js';
+import { compter } from './usage.js';
+import { json, erreur, gerer, exigerSession, nouvelId } from '../_commun.js';
 import { PROGRAMME } from '../_programme.js';
 import { lireReglages } from './reglages.js';
 
 const MODELE = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+const MODELE_REPLI = '@cf/meta/llama-3.1-8b-instruct';
 const MODELE_CONTROLE = '@cf/meta/llama-3.1-8b-instruct-fast';
 const QUOTA_JOUR = { eleve: 150, prof: 60 };
 
@@ -40,6 +42,8 @@ function systeme(contexte, reglages) {
       + (contexte.plan && contexte.plan.length ? `\nPlan : ${contexte.plan.slice(0, 12).join(' | ')}` : '')
     : '';
   const question = contexte.question ? `\nQuestion d'exercice en cours : « ${contexte.question} ». Tu n'y réponds pas, tu aides à la résoudre.` : '';
+  const journee = Array.isArray(contexte.fichesDuJour) && contexte.fichesDuJour.length ? `\nAujourd'hui, Sterenn a déjà ouvert : ${contexte.fichesDuJour.slice(0, 8).join(' | ')}.` : '';
+  const source = contexte.plan && contexte.plan.length ? `\nQuand tu expliques une notion de la fiche ouverte, termine ta réponse par une ligne « Source : » suivie du titre exact de la section du plan d'où vient l'explication.` : '';
   return [
     'Tu es Opale, la tutrice de l\'espace de cours Opaline. Tu accompagnes Sterenn, élève de 4e, dont le professeur est Bastien.',
     'Règles absolues :',
@@ -51,7 +55,7 @@ function systeme(contexte, reglages) {
     '6. Tu connais l\'application : Aujourd\'hui (ce qu\'on fait), Mes matières (parcours par matière, quatre fiches par leçon : Cours, Révision, Exercices, et la grille d\'évaluation), M\'entraîner (séries de questions interactives), Jeux (mondes 3D et jeux 2D liés aux leçons), Messages (échanges avec Bastien, dépôt de photos de devoirs), Mes réussites (étoiles et paliers). Sterenn a cours trois fois par semaine avec Bastien, lundi, mercredi et vendredi de 13 h à 14 h 30.',
     '7. Le programme de 4e couvert par Opaline :',
     programme,
-    'Situation : ' + MODES[mode] + fiche + question,
+    'Situation : ' + MODES[mode] + fiche + question + journee + source,
     reglages.calculatrice && !(mode === 'evaluation' && !reglages.calculatrice_evaluation) && !(mode === 'exercices' && contexte.matiere === 'maths' && !reglages.calculatrice_maths)
       ? 'Une calculatrice est disponible dans ton panneau, onglet Calculatrice.'
       : 'La calculatrice est coupée ici : Sterenn calcule à la main, tu peux rappeler une méthode de calcul.',
@@ -107,11 +111,18 @@ export const onRequestPost = gerer(async (context) => {
   messages.push({ role: 'user', content: texte });
 
   let reponse = '';
+  let modeleUtilise = MODELE;
   try {
     const r = await env.AI.run(MODELE, { messages, max_tokens: 380, temperature: 0.4 });
     reponse = String((r && (r.response || r.result && r.result.response)) || '').trim();
   } catch (e) {
-    return json({ indisponible: true, raison: 'modele' });
+    // A50 : le modèle de repli prend la suite, et la réponse le dit.
+    try {
+      const r = await env.AI.run(MODELE_REPLI, { messages, max_tokens: 380, temperature: 0.4 });
+      reponse = String((r && (r.response || r.result && r.result.response)) || '').trim();
+      modeleUtilise = MODELE_REPLI;
+      if (reponse) reponse += '\n\n(Réponse donnée par le modèle de secours d\'Opale.)';
+    } catch (e2) { return json({ indisponible: true, raison: 'modele' }); }
   }
   if (!reponse) return json({ indisponible: true, raison: 'vide' });
   reponse = reponse.replace(/[–—]/g, ':');
@@ -135,5 +146,11 @@ export const onRequestPost = gerer(async (context) => {
     } catch (e) { controle = 'non-verifie'; }
   }
 
-  return json({ reponse, controle, modele: MODELE });
+  // A46 : la question est journalisée (question, mode, contrôle), lisible par le professeur. Jamais la réponse.
+  try {
+    await env.DB.prepare('INSERT INTO tuteur_journal (id, quand, role, mode, matiere, ref, question, controle) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .bind(nouvelId(), new Date().toISOString(), session.role, String(contexte.mode || 'autre').slice(0, 20), contexte.matiere ? String(contexte.matiere).slice(0, 30) : null, contexte.ref ? String(contexte.ref).slice(0, 10) : null, texte.slice(0, 300), controle).run();
+  } catch (e) { /* table absente avant la migration 0009 */ }
+  await compter(env, 'opale');
+  return json({ reponse, controle, modele: modeleUtilise });
 });

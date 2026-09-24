@@ -11,7 +11,7 @@
  * ouverte ici. Le serveur applique la décision sur l'évaluation : son sujet
  * n'est servi à Sterenn que si l'accès est ouvert (voir _middleware.js).
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, journaliser, exigerProf, maintenant } from '../_commun.js';
 
 export const CLE_ACCES = /^([a-z0-9-]+\/[A-Za-z0-9]+\/(cours|revision|exercices|serie|evaluation)|jeu\/[a-z0-9-]+)$/;
 
@@ -38,15 +38,17 @@ export const onRequestGet = gerer(async (context) => {
 });
 
 export const onRequestPut = gerer(async (context) => {
-  exigerProf(await exigerSession(context));
+  const session = exigerProf(await exigerSession(context));
   const { DB } = context.env;
   let corps;
   try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
   const cle = String(corps && corps.cle || '');
   if (!CLE_ACCES.test(cle)) return erreur('Clé d\'accès invalide.');
   const etat = corps.etat;
+  const avant = await DB.prepare('SELECT etat, jusqu_au FROM acces WHERE cle = ?').bind(cle).first().catch(() => null);
   if (etat === null || etat === undefined) {
     await DB.prepare('DELETE FROM acces WHERE cle = ?').bind(cle).run();
+    await journaliser(context.env, session, 'acces', cle, avant, null);
     return json({ cle, etat: null });
   }
   if (typeof etat !== 'boolean') return erreur('etat doit valoir true, false ou null.');
@@ -60,5 +62,6 @@ export const onRequestPut = gerer(async (context) => {
     `INSERT INTO acces (cle, etat, jusqu_au, maj_le) VALUES (?, ?, ?, ?)
      ON CONFLICT(cle) DO UPDATE SET etat = excluded.etat, jusqu_au = excluded.jusqu_au, maj_le = excluded.maj_le`,
   ).bind(cle, etat ? 1 : 0, jusquAu, maintenant()).run();
+  await journaliser(context.env, session, 'acces', cle, avant, { etat, jusqu_au: jusquAu });
   return json({ cle, etat, jusqu_au: jusquAu });
 });

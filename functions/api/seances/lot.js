@@ -24,6 +24,14 @@ export const onRequestPost = gerer(async (context) => {
     const probleme = valider(s);
     if (probleme) return erreur(probleme);
   }
+  // A9 : un lot strictement identique reçu deux fois dans la minute est refusé (double clic, double envoi).
+  if (context.env.SESSIONS) {
+    const octets = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(liste)));
+    const empreinte = [...new Uint8Array(octets)].slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join('');
+    const cle = 'lot:' + empreinte;
+    if (await context.env.SESSIONS.get(cle)) return erreur('Ce lot vient d\'être enregistré : rien à refaire.', 409);
+    await context.env.SESSIONS.put(cle, '1', { expirationTtl: 60 });
+  }
 
   const { results } = await context.env.DB
     .prepare('SELECT date, creneau FROM seances').all();
@@ -43,5 +51,5 @@ export const onRequestPost = gerer(async (context) => {
     await context.env.DB.batch(aCreer.map((s) => requete.bind(...valeurs(s))));
   }
 
-  return json({ crees: aCreer.length, ignores: liste.length - aCreer.length }, 201);
+  return json({ crees: aCreer.length, ignores: liste.length - aCreer.length, ids: aCreer.map((s) => s.id).filter(Boolean) }, 201);
 });

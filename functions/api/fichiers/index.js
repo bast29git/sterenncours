@@ -46,6 +46,30 @@ export const onRequestPost = gerer(async (context) => {
   if (!TYPES_AUTORISES.includes(type)) {
     return erreur('Ce type de fichier n\'est pas accepté : ' + type);
   }
+  // A17 : pas de document bureautique avec macros.
+  if (/\.(docm|xlsm|pptm|dotm|xlam|ppam)$/i.test(String(fichier.name || '')) || /macroEnabled/i.test(type)) {
+    return erreur('Les documents avec macros ne sont pas acceptés.');
+  }
+  // A16 : le type annoncé doit correspondre aux premiers octets du fichier.
+  const tete = new Uint8Array(await fichier.slice(0, 16).arrayBuffer());
+  const commence = (...octets) => octets.every((o, i) => tete[i] === o);
+  const ascii = (debut, fin) => String.fromCharCode(...tete.slice(debut, fin));
+  const signatures = {
+    'image/png': () => commence(0x89, 0x50, 0x4E, 0x47),
+    'image/jpeg': () => commence(0xFF, 0xD8, 0xFF),
+    'image/gif': () => ascii(0, 4) === 'GIF8',
+    'image/webp': () => ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP',
+    'application/pdf': () => ascii(0, 4) === '%PDF',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': () => commence(0x50, 0x4B, 0x03, 0x04),
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': () => commence(0x50, 0x4B, 0x03, 0x04),
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': () => commence(0x50, 0x4B, 0x03, 0x04),
+    'audio/webm': () => commence(0x1A, 0x45, 0xDF, 0xA3),
+    'audio/ogg': () => ascii(0, 4) === 'OggS',
+    'audio/mp4': () => ascii(4, 8) === 'ftyp',
+  };
+  if (signatures[type] && !signatures[type]()) {
+    return erreur('Le contenu du fichier ne correspond pas à son type (' + type + ').');
+  }
 
   const id = nouvelId();
   const nom = String(fichier.name || 'fichier').slice(0, 160);

@@ -403,9 +403,37 @@ function construirePaquets() {
   const index = path.join(SORTIE, 'index.html');
   fs.writeFileSync(index, fs.readFileSync(index, 'utf8').replace('<script src="app.js"></script>', `<script>window.OPALINE_VERSION = ${JSON.stringify(version)};</script>\n<script src="app.js?v=${version}"></script>`));
   fs.writeFileSync(path.join(SORTIE, 'version.json'), JSON.stringify({ version, le: new Date().toISOString() }));
+  // A42 : l'empreinte des jeux, pour savoir quelle version est en ligne.
+  const jeux = ['games-2d', 'games-3d'].flatMap((d) => fs.readdirSync(path.join(RACINE, 'site', 'learning', d)).filter((f) => f.endsWith('.html')).map((f) => d + '/' + f));
+  const empreinteJeux = crypto.createHash('sha1').update(jeux.map((f) => fs.readFileSync(path.join(RACINE, 'site', 'learning', f))).reduce((h, b) => h + crypto.createHash('sha1').update(b).digest('hex'), '') + fs.readFileSync(path.join(RACINE, 'site', 'learning', 'shell.js'), 'utf8')).digest('hex').slice(0, 10);
+  fs.mkdirSync(path.join(SORTIE, 'learning'), { recursive: true });
+  fs.writeFileSync(path.join(SORTIE, 'learning', 'version.json'), JSON.stringify({ version: empreinteJeux, jeux: jeux.length, le: new Date().toISOString() }));
   console.log(`   📦 paquets par rôle générés, version ${version}`);
 }
 copierDossier(path.join(RACINE, 'site'), SORTIE);
+
+/* A24 : les fonds d'aurore en AVIF, plus une version 1 280 px pour les écrans moyens.
+   Produits dans public/ seulement, à partir des JPEG de site/fond. Sans sharp, on s'en passe. */
+await (async () => {
+  let sharp = null;
+  try { sharp = (await import('sharp')).default; } catch (e) { console.log('   🖼  sharp absent : pas de fonds AVIF'); return; }
+  const dossier = path.join(RACINE, 'site', 'fond');
+  const cible = path.join(SORTIE, 'fond');
+  let n = 0;
+  for (const f of fs.readdirSync(dossier).filter((x) => x.endsWith('.jpg'))) {
+    const base = f.replace(/\.jpg$/, '');
+    const src = path.join(dossier, f);
+    const taches = [
+      [path.join(cible, base + '.avif'), (img) => img.avif({ quality: 48, effort: 4 })],
+      [path.join(cible, base + '-1280.avif'), (img) => img.resize({ width: 1280, withoutEnlargement: true }).avif({ quality: 48, effort: 4 })],
+      [path.join(cible, base + '-1280.webp'), (img) => img.resize({ width: 1280, withoutEnlargement: true }).webp({ quality: 72 })],
+    ];
+    for (const [sortie, transformer] of taches) {
+      try { await transformer(sharp(src)).toFile(sortie); n += 1; } catch (e) { console.warn(`   ⚠️  fond ${base} : ${e.message}`); }
+    }
+  }
+  console.log(`   🖼  ${n} fond(s) d'écran dérivés (AVIF, 1 280 px)`);
+})();
 construirePaquets();
 
 const fiches = [];
@@ -438,6 +466,20 @@ for (const dossier of DOSSIERS_CONTENU) {
         console.warn(`   ⚠️  ${relatif} : la clé « ${cle} » semble avoir absorbé la ligne suivante`);
         avertissements += 1;
       }
+    }
+    // A38 : le front-matter suit un schéma : types connus, matière connue, durée au format attendu, listes non vides.
+    const problemes = [];
+    if (meta.type && !TYPES_DOC[meta.type]) problemes.push(`type inconnu « ${meta.type} »`);
+    if (meta.matiere && !MATIERES[meta.matiere] && !['pilotage', 'outils', 'outil', 'transversal'].includes(meta.matiere)) problemes.push(`matière inconnue « ${meta.matiere} »`);
+    if (meta.duree && !/\d+\s*(min|h)\b|séance/i.test(String(meta.duree))) problemes.push(`durée « ${meta.duree} » (attendu : « 45 min », « 1 h », « 3 séances de 45 min »)`);
+    if (['cours', 'revision', 'exercices', 'evaluation'].includes(meta.type)) {
+      if (!meta.lecon || !/^[A-Za-z]?\d{1,3}[A-Za-z]?$/.test(String(meta.lecon))) problemes.push(`référence de leçon « ${meta.lecon || ''} »`);
+      if (!Array.isArray(meta.objectifs) || !meta.objectifs.length) problemes.push('objectifs vides');
+      if (!Array.isArray(meta.competences) || !meta.competences.length) problemes.push('compétences vides');
+    }
+    if (problemes.length) {
+      console.warn(`   ⚠️  ${relatif} : front-matter hors schéma : ${problemes.join(' ; ')}`);
+      avertissements += 1;
     }
 
     fiches.push({ relatif, meta });
@@ -612,9 +654,13 @@ function construireDonneesSite() {
     lecons: m.lecons.map((l) => ({ ref: l.ref, titre: l.titre, periode: l.periode, notions: (l.notions || []).slice(0, 6) })),
   }));
   const cibleFonctions = path.join(RACINE, 'functions', '_programme.js');
+  // La version du build est aussi connue des fonctions serveur (page santé).
+  let versionBuild = '';
+  try { versionBuild = JSON.parse(fs.readFileSync(path.join(SORTIE, 'version.json'), 'utf8')).version || ''; } catch (e) { versionBuild = ''; }
   fs.writeFileSync(cibleFonctions,
     '/* Généré par build/build.mjs à partir de 00-pilotage/programme.json : ne pas modifier à la main. */\n'
-    + 'export const PROGRAMME = ' + JSON.stringify(resume) + ';\n');
+    + 'export const PROGRAMME = ' + JSON.stringify(resume) + ';\n'
+    + 'export const VERSION = ' + JSON.stringify(versionBuild) + ';\n');
 
   const prets = programme.matieres.reduce((n, m) =>
     n + m.lecons.filter((l) => l.docs.length === 4).length, 0);
@@ -983,6 +1029,33 @@ const liensCasses = verifierLiens();
 const manquementsForme = verifierForme();
 manquementsForme.forEach((m) => console.warn('   ⚠️  ' + m));
 avertissements += manquementsForme.length;
+
+/* A41 : un rapport de build, écrit dans public/ et comparé au build précédent. */
+(() => {
+  const poids = (rel) => { try { return fs.statSync(path.join(SORTIE, rel)).size; } catch (e) { return 0; } };
+  const dossierPoids = (rel) => { try { return fs.readdirSync(path.join(SORTIE, rel)).reduce((t, f) => t + poids(rel + '/' + f), 0); } catch (e) { return 0; } };
+  const rapport = {
+    version: (() => { try { return JSON.parse(fs.readFileSync(path.join(SORTIE, 'version.json'), 'utf8')).version; } catch (e) { return ''; } })(),
+    le: new Date().toISOString(),
+    fiches: fiches.length,
+    avertissements, liensCasses,
+    poids: { programme: poids('data/programme.js'), paquetEleve: poids('paquet-eleve.js'), paquetProf: poids('paquet-prof.js'), contenu: dossierPoids('data/contenu'), exercices: poids('data/exercices.js'), css: poids('eleve.css') + poids('prof.css') },
+  };
+  fs.writeFileSync(path.join(SORTIE, 'rapport-build.json'), JSON.stringify(rapport, null, 1));
+  const cache = path.join(RACINE, 'node_modules', '.cache');
+  const precedent = path.join(cache, 'opaline-rapport.json');
+  try {
+    if (fs.existsSync(precedent)) {
+      const avant = JSON.parse(fs.readFileSync(precedent, 'utf8'));
+      const diffs = [];
+      if (avant.fiches !== rapport.fiches) diffs.push(`fiches ${avant.fiches} → ${rapport.fiches}`);
+      for (const k of Object.keys(rapport.poids)) { const d = rapport.poids[k] - (avant.poids ? avant.poids[k] || 0 : 0); if (Math.abs(d) > 2048) diffs.push(`${k} ${d > 0 ? '+' : ''}${Math.round(d / 1024)} Ko`); }
+      console.log('   📊 rapport : ' + (diffs.length ? diffs.join(', ') : 'aucune différence notable avec le build précédent'));
+    }
+    fs.mkdirSync(cache, { recursive: true });
+    fs.writeFileSync(precedent, JSON.stringify(rapport));
+  } catch (e) { /* le rapport est facultatif */ }
+})();
 
 console.log(`✅ ${fiches.length} fiche(s) générée(s) dans public/ (+ sommaire)`);
 if (avertissements || liensCasses) {

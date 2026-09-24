@@ -59,11 +59,11 @@ body.corps-eleve {
      voile léger : l'aurore se voit, tout le contenu vit sur des cartes opaques. */
   background:
     linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%),
-    image-set(url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat,
+    image-set(url('fond/aurore-nuit.avif') type('image/avif'), url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat,
     var(--e-fond);
   background-attachment: fixed;
 }
-@media (max-aspect-ratio: 3/4) { body.corps-eleve { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%), image-set(url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); background-size: auto, cover; } }
+@media (max-aspect-ratio: 3/4) { body.corps-eleve { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%), image-set(url('fond/aurore-mobile.avif') type('image/avif'), url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); background-size: auto, cover; } }
 
 [data-theme="dark"] body.corps-eleve {
   --e-encre: #F1ECF5;
@@ -77,10 +77,10 @@ body.corps-eleve {
   --e-ombre-forte: 0 2px 8px rgba(0,0,0,.5), 0 22px 50px rgba(0,0,0,.5);
   background:
     linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%),
-    image-set(url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat fixed,
+    image-set(url('fond/aurore-nuit.avif') type('image/avif'), url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat fixed,
     var(--e-fond);
 }
-@media (max-aspect-ratio: 3/4) { [data-theme="dark"] body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%), image-set(url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); } }
+@media (max-aspect-ratio: 3/4) { [data-theme="dark"] body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%), image-set(url('fond/aurore-mobile.avif') type('image/avif'), url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); } }
 
 .eleve { display: flex; flex-direction: column; min-height: 100vh; }
 .eleve h1, .eleve h2, .eleve h3 {
@@ -1333,8 +1333,8 @@ mark.e-surligne-violet { background: #e6d3f2; }
 .e-materiel { margin: 0.6rem 0 0; font-size: 0.9rem; color: var(--e-encre-doux); }
 /* Aurore : quatre teintes, par période ou au choix ; la photo passe par un calque pour recevoir la teinte */
 html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%); }
-html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { content: ""; position: fixed; inset: 0; z-index: -1; background: image-set(url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat; filter: hue-rotate(var(--e-aurore-teinte, 0deg)); }
-@media (max-aspect-ratio: 3/4) { html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { background-image: image-set(url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); } }
+html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { content: ""; position: fixed; inset: 0; z-index: -1; background: image-set(url('fond/aurore-nuit.avif') type('image/avif'), url('fond/aurore-nuit.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')) center top / cover no-repeat; filter: hue-rotate(var(--e-aurore-teinte, 0deg)); }
+@media (max-aspect-ratio: 3/4) { html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { background-image: image-set(url('fond/aurore-mobile.avif') type('image/avif'), url('fond/aurore-mobile.webp') type('image/webp'), url('fond/aurore-mobile.jpg') type('image/jpeg')); } }
 html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-color: var(--e-fond); }
 [data-theme="dark"] html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve, html[data-theme="dark"][data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%); }
 .e-aurore-choix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
@@ -1430,3 +1430,11 @@ html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-color
 /* B36 : pauses réglées fiche par fiche, par-dessus le réglage général */
 .e-lecteur[data-pauses-fiche="0"] .bloc-pause { display: none !important; }
 html[data-pauses="0"] .eleve .e-lecteur[data-pauses-fiche="1"] .bloc-pause { display: block; }
+
+/* A24 : sur les écrans moyens, une version 1 280 px de l'aurore suffit */
+@media (max-width: 1400px) and (min-aspect-ratio: 3/4) {
+  body.corps-eleve, html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%), image-set(url('fond/aurore-nuit-1280.avif') type('image/avif'), url('fond/aurore-nuit-1280.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')); }
+  html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-image: linear-gradient(180deg, rgba(246, 250, 251, .12) 0%, rgba(246, 250, 251, .30) 55%, rgba(246, 250, 251, .55) 100%); }
+  html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve::before { background-image: image-set(url('fond/aurore-nuit-1280.avif') type('image/avif'), url('fond/aurore-nuit-1280.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')); }
+  [data-theme="dark"] body.corps-eleve { background-image: linear-gradient(180deg, rgba(11, 16, 32, .05) 0%, rgba(11, 16, 32, .30) 55%, rgba(11, 16, 32, .62) 100%), image-set(url('fond/aurore-nuit-1280.avif') type('image/avif'), url('fond/aurore-nuit-1280.webp') type('image/webp'), url('fond/aurore-nuit.jpg') type('image/jpeg')); }
+}
