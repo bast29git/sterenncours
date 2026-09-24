@@ -864,3 +864,35 @@ html[data-tuteur="0"] .e-opale-bouton, html[data-tuteur="0"] .e-opale { display:
 .e-mot-texte { margin: 0 0 0.6rem; font-size: 1.05rem; font-weight: 600; line-height: 1.5; }
 .e-mot-vedette .e-actions { margin: 0; }
 @media (max-width: 40rem) { .e-journal > li { flex-wrap: wrap; } .e-journal time { width: 100%; padding-left: 2.95rem; } }
+
+/* ---------- Messagerie : fils, émojis, mise en forme, réactions ------------- */
+.e-fils-barre { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 0.8rem; }
+.e-fils-barre button { font: inherit; font-size: 0.82rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 999px; border: 1px solid var(--e-trait-fort); background: var(--e-carte); color: var(--e-encre); cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; }
+.e-fils-barre button b { font-size: 0.7rem; font-weight: 800; color: var(--e-encre-doux); }
+.e-fils-barre button.actif { background: var(--e-vif); border-color: var(--e-vif); color: #fff; }
+.e-fils-barre button.actif b { color: rgba(255, 255, 255, 0.85); }
+.e-humeurs { max-height: 15rem; overflow-y: auto; }
+.e-emojis-groupe { margin: 0.4rem 0 0.2rem; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--e-encre-doux); }
+.e-emojis-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.4rem, 1fr)); gap: 0.2rem; }
+.e-emojis-grille button, .e-humeurs > button { font-size: 1.35rem; line-height: 1; padding: 0.35rem 0; border-radius: 10px; border: 1px solid transparent; background: transparent; cursor: pointer; }
+.e-emojis-grille button:hover, .e-emojis-grille button:focus-visible { background: var(--e-voile); border-color: var(--e-trait-fort); outline: none; }
+.e-formatage { display: flex; gap: 0.3rem; margin-bottom: 0.4rem; }
+.e-formatage button { font: inherit; font-size: 0.82rem; min-width: 2.2rem; padding: 0.25rem 0.55rem; border-radius: 8px; border: 1px solid var(--e-trait-fort); background: var(--e-carte); color: var(--e-encre); cursor: pointer; }
+.e-formatage button:hover { border-color: var(--e-vif); }
+.e-bulle .texte strong { font-weight: 800; }
+.e-bulle .texte ul { margin: 0.2rem 0 0.2rem 1.1rem; padding: 0; }
+.e-reactions { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; margin-top: 0.25rem; }
+.e-msg.moi .e-reactions { justify-content: flex-end; }
+.e-reactions-puce { font: inherit; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.2rem; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid var(--e-trait-fort); background: var(--e-carte); color: var(--e-encre); cursor: pointer; }
+.e-reactions-puce.mienne { border-color: var(--e-vif); background: var(--e-voile); }
+.e-reactions-puce b { font-size: 0.72rem; font-weight: 800; }
+.e-reactions-plus { width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 1px dashed var(--e-trait-fort); background: transparent; color: var(--e-encre-doux); cursor: pointer; display: grid; place-items: center; opacity: 0.55; }
+.e-reactions-plus .ic { width: 0.95rem; height: 0.95rem; }
+.e-msg:hover .e-reactions-plus, .e-reactions-plus:focus-visible, .e-reactions-plus[aria-expanded="true"] { opacity: 1; }
+.e-reactions-menu { position: absolute; bottom: 100%; left: 0; z-index: 5; display: flex; gap: 0.15rem; padding: 0.3rem; border-radius: 999px; background: var(--e-carte); border: 1px solid var(--e-trait-fort); box-shadow: var(--e-ombre-forte); }
+.e-msg.moi .e-reactions-menu { left: auto; right: 0; }
+.e-reactions-menu button { font-size: 1.25rem; line-height: 1; width: 2.1rem; height: 2.1rem; border-radius: 50%; border: 0; background: transparent; cursor: pointer; transition: transform 0.12s; }
+.e-reactions-menu button:hover, .e-reactions-menu button:focus-visible { transform: scale(1.3); background: var(--e-voile); outline: none; }
+.m-eclat { position: fixed; z-index: 90; font-size: 1.3rem; pointer-events: none; transform: translate(-50%, -50%); animation: m-eclat 0.9s ease-out forwards; }
+@keyframes m-eclat { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4) rotate(20deg); } }
+@media (prefers-reduced-motion: reduce) { .e-reactions-menu button { transition: none; } .m-eclat { display: none; } }

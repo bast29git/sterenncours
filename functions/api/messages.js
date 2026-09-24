@@ -21,6 +21,23 @@ export const onRequestGet = gerer(async (context) => {
 
   const { results } = await requete.all();
   const messages = apres ? results : (results || []).reverse();
+
+  // Réactions des messages listés, regroupées par message puis par émoji.
+  const parMessage = {};
+  if (messages.length) {
+    try {
+      const ids = messages.map((m) => m.id);
+      const marques = ids.map(() => '?').join(',');
+      const r = await context.env.DB.prepare(
+        `SELECT message_id, auteur, emoji FROM reactions WHERE message_id IN (${marques})`,
+      ).bind(...ids).all();
+      for (const l of r.results || []) {
+        const m = parMessage[l.message_id] || (parMessage[l.message_id] = {});
+        (m[l.emoji] || (m[l.emoji] = [])).push(l.auteur);
+      }
+    } catch (e) { /* table absente avant la migration */ }
+  }
+  for (const m of messages) m.reactions = parMessage[m.id] || {};
   return json({ messages });
 });
 
@@ -33,14 +50,16 @@ export const onRequestPost = gerer(async (context) => {
   if (!texte) return erreur('Message vide.');
   if (texte.length > LONGUEUR_MAX) return erreur('Message trop long.');
   const contexte = corps.contexte ? String(corps.contexte).slice(0, 120) : null;
+  const fil = corps.fil && /^[a-z0-9-]{1,30}$/.test(String(corps.fil)) ? String(corps.fil) : null;
 
   const message = {
-    id: nouvelId(), auteur: session.role, texte, contexte,
+    id: nouvelId(), auteur: session.role, texte, contexte, fil,
     cree_le: maintenant(), lu_le: null,
   };
   await context.env.DB.prepare(
-    'INSERT INTO messages (id, auteur, texte, contexte, cree_le) VALUES (?, ?, ?, ?, ?)',
-  ).bind(message.id, message.auteur, message.texte, message.contexte, message.cree_le).run();
+    'INSERT INTO messages (id, auteur, texte, contexte, fil, cree_le) VALUES (?, ?, ?, ?, ?, ?)',
+  ).bind(message.id, message.auteur, message.texte, message.contexte, message.fil, message.cree_le).run();
+  message.reactions = {};
 
   return json(message, 201);
 });

@@ -742,6 +742,8 @@
   }
 
   function vueMessages(contexte) {
+    const M = window.MESSAGERIE || null;
+    let filActif = null;
     const lecons = [];
     PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => {
       if (docsVisibles(l).length && N.accessible(m.id, l.ref)) {
@@ -753,6 +755,7 @@
       `<h1>Messages</h1>
        <p class="e-intro">Écris à Bastien, envoie une photo de ton travail, pose une question. Tout est au même endroit.</p>
 
+       <div id="e-fils"></div>
        <div class="e-tchat" id="e-tchat"><p class="e-vide">Chargement…</p></div>
 
        <div class="e-rapides" id="e-rapides">${RAPIDES.map((r) => `<button type="button" data-rapide="${N.ech(r.t)}">
@@ -773,6 +776,7 @@
              <svg class="ic" aria-hidden="true"><use href="#ic-croix"/></svg></button>
          </div>
 
+         ${M ? M.barreFormatage('e-formatage') : ''}
          <label class="visuellement-cache" for="e-texte">Message</label>
          <textarea id="e-texte" rows="2" maxlength="2000" placeholder="Écris ton message…"></textarea>
 
@@ -790,7 +794,7 @@
              <svg class="ic" aria-hidden="true"><use href="#ic-envoyer"/></svg>Envoyer</button>
          </div>
 
-         <div class="e-humeurs" id="e-humeurs" hidden>${HUMEURS.map((h) => `<button type="button" data-humeur="${h}">${h}</button>`).join('')}</div>
+         <div class="e-humeurs" id="e-humeurs" hidden>${M ? M.selecteurEmojis('e-emojis') : HUMEURS.map((h) => `<button type="button" data-emoji-insere="${h}">${h}</button>`).join('')}</div>
 
          <div class="e-sujets" id="e-sujets" hidden>
            <p>De quelle leçon veux-tu parler ?</p>
@@ -848,8 +852,11 @@
       panneauHumeurs.hidden = !panneauHumeurs.hidden;
       panneauSujets.hidden = true;
     });
-    vue().querySelectorAll('[data-humeur]').forEach((b) => b.addEventListener('click', () => {
-      champT.value += (champT.value && !/\s$/.test(champT.value) ? ' ' : '') + b.getAttribute('data-humeur');
+    if (M) M.brancherFormatage(vue(), champT);
+    vue().querySelectorAll('[data-emoji-insere]').forEach((b) => b.addEventListener('click', () => {
+      const e = b.getAttribute('data-emoji-insere');
+      if (M) M.inserer(champT, (champT.value && !/\s$/.test(champT.value.slice(0, champT.selectionStart)) ? ' ' : '') + e + ' ', '');
+      else champT.value += (champT.value && !/\s$/.test(champT.value) ? ' ' : '') + e;
       majCompteur();
       panneauHumeurs.hidden = true;
       champT.focus();
@@ -921,13 +928,25 @@
         document.getElementById('e-btn-photo').disabled = true;
       }
 
+      const zoneFils = document.getElementById('e-fils');
+      if (M && zoneFils) {
+        zoneFils.innerHTML = M.barreFils(messages, filActif, 'e-fils-barre');
+        zoneFils.querySelectorAll('[data-fil]').forEach((b) => b.addEventListener('click', () => {
+          filActif = b.getAttribute('data-fil') || null;
+          charger();
+        }));
+      }
+      const visibles = M ? M.filtrer(messages, filActif) : messages;
+      const fichiersVisibles = filActif ? fichiers.filter((f) => f.matiere === filActif || (f.matiere && N.matiere(filActif) && String(f.matiere).toLowerCase().indexOf(N.matiere(filActif).nom.toLowerCase()) === 0)) : fichiers;
       const fil = []
-        .concat(messages.map((m) => ({ genre: 'texte', date: m.cree_le, d: m })))
-        .concat(fichiers.map((f) => ({ genre: 'fichier', date: f.cree_le, d: f })))
+        .concat(visibles.map((m) => ({ genre: 'texte', date: m.cree_le, d: m })))
+        .concat(fichiersVisibles.map((f) => ({ genre: 'fichier', date: f.cree_le, d: f })))
         .sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
       if (!fil.length) {
-        zoneT.innerHTML = '<p class="e-vide">Rien encore. Lance la conversation, ou envoie une photo de ton travail.</p>';
+        zoneT.innerHTML = filActif
+          ? '<p class="e-vide">Rien dans ce fil pour l\'instant. Ce que tu écris ici y restera rangé.</p>'
+          : '<p class="e-vide">Rien encore. Lance la conversation, ou envoie une photo de ton travail.</p>';
         return;
       }
 
@@ -959,11 +978,12 @@
 
         const m = x.d;
         const lu = moi && m.lu_le ? '<span class="e-lu" title="Lu">✓✓</span>' : '';
-        return `${avant}<article class="e-msg ${moi ? 'moi' : ''}">
+        const corpsTexte = M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte);
+        return `${avant}<article class="e-msg ${moi ? 'moi' : ''}" data-message="${m.id}">
           <span class="e-msg-pastille" aria-hidden="true">${moi ? 'S' : 'B'}</span>
           <div>${tete}<div class="e-bulle">
             ${m.contexte ? `<span class="contexte">${N.ech(m.contexte)}</span>` : ''}
-            <p class="texte">${N.ech(m.texte)}</p>${lu}</div></div></article>`;
+            <div class="texte">${corpsTexte}</div>${lu}</div>${M ? M.reactionsHTML(m, 'eleve', 'e-reactions') : ''}</div></article>`;
       }).join('');
 
       if (defiler !== false) zoneT.scrollTop = zoneT.scrollHeight;
@@ -974,6 +994,7 @@
       } catch (e) { /* le marquage peut attendre */ }
     }
     charger();
+    if (M) M.brancherReactions(zoneT, () => charger(false));
 
     /* --- Envoi ---------------------------------------------------------------- */
     async function envoyer() {
@@ -989,7 +1010,8 @@
           if (ctx) d.append('matiere', ctx);
           await N.api('/fichiers', { method: 'POST', body: d });
         } else {
-          await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte, contexte: ctx }) });
+          const matCtx = ctx ? PROGRAMME.matieres.find((x) => ctx.toLowerCase().indexOf(x.nom.toLowerCase()) === 0) : null;
+          await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte, contexte: ctx, fil: matCtx ? matCtx.id : filActif }) });
         }
         champT.value = '';
         poserPiece(null);

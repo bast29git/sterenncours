@@ -359,6 +359,7 @@
     }
 
     await Promise.all([rafraichirEtat(), rafraichirSeances()]);
+    try { await chargerScript('messagerie.js'); } catch (e) { /* la messagerie reste en texte simple */ }
 
     if (role === 'eleve') {
       // Moteurs de l'espace de Sterenn : accessibilité, trophées, sons.

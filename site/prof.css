@@ -522,3 +522,29 @@ body.corps-prof {
 @media (prefers-reduced-motion: reduce) { .p-interrupteur, .p-interrupteur::after { transition: none; } }
 .p-modeles { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.6rem; }
 .p-form textarea { width: 100%; font: inherit; font-size: 0.86rem; padding: 0.45rem 0.6rem; border-radius: var(--p-r); border: 1px solid var(--p-trait); background: var(--p-surface); color: var(--p-encre); resize: vertical; }
+.p-fils-barre { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.7rem; }
+.p-fils-barre button { font: inherit; font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 999px; border: 1px solid var(--p-trait); background: var(--p-surface); color: var(--p-doux); cursor: pointer; display: inline-flex; gap: 0.3rem; align-items: center; }
+.p-fils-barre button b { font-family: var(--p-mono); font-size: 0.68rem; color: var(--p-faible); }
+.p-fils-barre button.actif { background: var(--p-accent); border-color: var(--p-accent); color: #fff; }
+.p-fils-barre button.actif b { color: rgba(255,255,255,.8); }
+.p-formatage { display: flex; gap: 0.25rem; margin-bottom: 0.4rem; }
+.p-formatage button { font: inherit; font-size: 0.78rem; min-width: 2rem; padding: 0.15rem 0.5rem; border-radius: var(--p-r); border: 1px solid var(--p-trait); background: var(--p-surface); color: var(--p-encre); cursor: pointer; }
+.p-emojis { max-height: 12rem; overflow-y: auto; margin-bottom: 0.6rem; padding: 0.4rem; border: 1px solid var(--p-trait); border-radius: var(--p-r); background: var(--p-surface); }
+.p-emojis-groupe { margin: 0.3rem 0 0.15rem; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--p-faible); }
+.p-emojis-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.1rem, 1fr)); gap: 0.15rem; }
+.p-emojis-grille button { font-size: 1.2rem; line-height: 1; padding: 0.25rem 0; border-radius: var(--p-r); border: 1px solid transparent; background: transparent; cursor: pointer; }
+.p-emojis-grille button:hover { background: var(--p-surface-2); border-color: var(--p-trait); }
+.p-msg-texte { white-space: pre-wrap; }
+.p-msg-texte strong { font-weight: 700; }
+.p-msg-texte ul { margin: 0.2rem 0 0.2rem 1rem; padding: 0; white-space: normal; }
+.p-reactions { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem; margin-top: 0.3rem; }
+.p-reactions-puce { font: inherit; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.2rem; padding: 0.05rem 0.45rem; border-radius: 999px; border: 1px solid var(--p-trait); background: var(--p-surface); color: var(--p-encre); cursor: pointer; }
+.p-reactions-puce.mienne { border-color: var(--p-accent); background: var(--p-accent-voile); }
+.p-reactions-puce b { font-size: 0.68rem; font-family: var(--p-mono); }
+.p-reactions-plus { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 1px dashed var(--p-trait); background: transparent; color: var(--p-faible); cursor: pointer; display: grid; place-items: center; }
+.p-reactions-plus .ic { width: 0.85rem; height: 0.85rem; }
+.p-reactions-menu { position: absolute; bottom: 100%; left: 0; z-index: 5; display: flex; gap: 0.1rem; padding: 0.25rem; border-radius: 999px; background: var(--p-surface); border: 1px solid var(--p-trait); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+.p-reactions-menu button { font-size: 1.1rem; line-height: 1; width: 1.9rem; height: 1.9rem; border-radius: 50%; border: 0; background: transparent; cursor: pointer; }
+.p-reactions-menu button:hover { background: var(--p-surface-2); }
+.m-eclat { position: fixed; z-index: 90; font-size: 1.3rem; pointer-events: none; transform: translate(-50%, -50%); animation: m-eclat 0.9s ease-out forwards; }
+@keyframes m-eclat { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4) rotate(20deg); } }

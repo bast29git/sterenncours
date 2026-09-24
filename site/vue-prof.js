@@ -1010,30 +1010,49 @@
   /* =======================================================================
      Messages
      ======================================================================= */
-  async function vueMessages(contexte) {
-    afficher(entete('Messages', 'La conversation avec Sterenn, de son espace au tien.')
-      + '<p class="p-vide">Chargement…</p>', [{ t: 'Échanges' }, { t: 'Messages' }]);
+  let filProf = null;
+  async function vueMessages(contexte, sansChargement) {
+    const M = window.MESSAGERIE || null;
+    if (!sansChargement) {
+      afficher(entete('Messages', 'La conversation avec Sterenn, de son espace au tien.')
+        + '<p class="p-vide">Chargement…</p>', [{ t: 'Échanges' }, { t: 'Messages' }]);
+    }
 
     let messages = [];
     try { messages = (await N.api('/messages')).messages || []; } catch (e) { N.signaler(e.message); }
+    const visibles = M ? M.filtrer(messages, filProf) : messages;
+    const brouillon = sansChargement ? { t: (document.getElementById('m-texte') || {}).value || '', c: (document.getElementById('m-contexte') || {}).value || '' } : null;
 
     afficher(
       entete('Messages', `${messages.length} message(s) · ${N.etat.messagesNonLus} non lu(s)`)
-      + `<div class="p-fil-msg" id="p-fil-msg">${messages.length ? messages.map((m) => `
-          <div class="p-msg ${m.auteur === 'prof' ? 'moi' : ''}">
+      + (M ? M.barreFils(messages, filProf, 'p-fils-barre') : '')
+      + `<div class="p-fil-msg" id="p-fil-msg">${visibles.length ? visibles.map((m) => `
+          <div class="p-msg ${m.auteur === 'prof' ? 'moi' : ''}" data-message="${m.id}">
             <div class="p-msg-tete"><b>${m.auteur === 'prof' ? 'Moi' : 'Sterenn'}</b>
               <span>${N.ech(N.dateCourte(m.cree_le))}</span>
               ${m.auteur !== 'prof' && !m.lu_le ? '<span class="p-etat p-etat-fragile">nouveau</span>' : ''}</div>
             ${m.contexte ? `<p class="p-msg-ctx">${N.ech(m.contexte)}</p>` : ''}
-            <p>${N.ech(m.texte)}</p>
-          </div>`).join('') : '<p class="p-vide">Aucun message pour le moment.</p>'}</div>`
+            <div class="p-msg-texte">${M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte)}</div>
+            ${M ? M.reactionsHTML(m, 'prof', 'p-reactions') : ''}
+          </div>`).join('') : `<p class="p-vide">${filProf ? 'Aucun message dans ce fil.' : 'Aucun message pour le moment.'}</p>`}</div>`
       + bloc('Écrire', `
         <form class="p-form" id="p-form-msg">
-          <div><label for="m-contexte">Contexte (facultatif)</label>
-            <input id="m-contexte" type="text" maxlength="120" value="${N.ech(contexte || '')}"
-              placeholder="par exemple : Mathématiques · Pythagore"></div>
+          <div class="ligne">
+            <div><label for="m-fil">Fil</label><select id="m-fil">
+              <option value="">Général</option>
+              ${PROGRAMME.matieres.map((x) => `<option value="${x.id}" ${filProf === x.id ? 'selected' : ''}>${N.ech(x.nom)}</option>`).join('')}
+            </select></div>
+            <div><label for="m-contexte">Contexte (facultatif)</label>
+              <input id="m-contexte" type="text" maxlength="120" value="${N.ech(brouillon ? brouillon.c : (contexte || ''))}"
+                placeholder="par exemple : Mathématiques · Pythagore"></div>
+          </div>
+          ${M ? M.barreFormatage('p-formatage') : ''}
           <div><label for="m-texte">Message</label>
-            <textarea id="m-texte" rows="3" maxlength="2000" required></textarea></div>
+            <textarea id="m-texte" rows="3" maxlength="2000" required>${N.ech(brouillon ? brouillon.t : '')}</textarea></div>
+          <div class="p-modeles">
+            <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-emojis-btn" aria-expanded="false">${N.ic('ic-emoji')} Émojis</button>
+          </div>
+          <div class="p-emojis" id="m-emojis" hidden>${M ? M.selecteurEmojis('p-emojis') : ''}</div>
           <button class="p-bouton" type="submit">Envoyer</button>
         </form>`),
       [{ t: 'Échanges' }, { t: 'Messages' }],
@@ -1041,6 +1060,21 @@
 
     const filMsg = document.getElementById('p-fil-msg');
     filMsg.scrollTop = filMsg.scrollHeight;
+    vue().querySelectorAll('[data-fil]').forEach((b) => b.addEventListener('click', () => {
+      filProf = b.getAttribute('data-fil') || null;
+      vueMessages(null, true);
+    }));
+    if (M) {
+      const champ = document.getElementById('m-texte');
+      M.brancherFormatage(vue(), champ);
+      M.brancherReactions(filMsg, () => vueMessages(null, true));
+      const btnE = document.getElementById('m-emojis-btn');
+      const boiteE = document.getElementById('m-emojis');
+      btnE.addEventListener('click', () => { boiteE.hidden = !boiteE.hidden; btnE.setAttribute('aria-expanded', String(!boiteE.hidden)); });
+      boiteE.querySelectorAll('[data-emoji-insere]').forEach((b) => b.addEventListener('click', () => {
+        M.inserer(champ, (champ.value && !/\s$/.test(champ.value.slice(0, champ.selectionStart)) ? ' ' : '') + b.getAttribute('data-emoji-insere') + ' ', '');
+      }));
+    }
 
     if (N.etat.messagesNonLus) {
       try {
@@ -1057,9 +1091,9 @@
       try {
         await N.api('/messages', {
           method: 'POST',
-          body: JSON.stringify({ texte, contexte: document.getElementById('m-contexte').value.trim() || null }),
+          body: JSON.stringify({ texte, contexte: document.getElementById('m-contexte').value.trim() || null, fil: document.getElementById('m-fil').value || null }),
         });
-        vueMessages(null);
+        vueMessages(null, true);
       } catch (e) { N.signaler(e.message); }
     });
   }
