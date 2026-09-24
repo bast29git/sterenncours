@@ -1427,3 +1427,6 @@ html[data-aurore]:not([data-aurore="verte"]) body.corps-eleve { background-color
 @keyframes e-coche { to { transform: rotate(45deg) scale(1); } }
 .e-jauge i, .e-diapo-jauge i { transition: width 0.4s ease; }
 @media (prefers-reduced-motion: reduce) { .e-exo-retour { animation: none; } .e-exo-retour.ok strong::before { animation: none; transform: rotate(45deg) scale(1); } .e-jauge i, .e-diapo-jauge i { transition: none; } }
+/* B36 : pauses réglées fiche par fiche, par-dessus le réglage général */
+.e-lecteur[data-pauses-fiche="0"] .bloc-pause { display: none !important; }
+html[data-pauses="0"] .eleve .e-lecteur[data-pauses-fiche="1"] .bloc-pause { display: block; }

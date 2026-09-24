@@ -100,9 +100,12 @@ async function migrerD1(idBase) {
   const dossier = path.join(RACINE, 'migrations');
   const sql = fs.readdirSync(dossier).filter((f) => f.endsWith('.sql')).sort()
     .map((f) => fs.readFileSync(path.join(dossier, f), 'utf8')).join('\n');
+  // Les commentaires sont retirés avant le découpage : un point-virgule dans un
+  // commentaire ne doit jamais devenir une instruction.
   const instructions = sql
+    .split('\n').map((l) => l.replace(/--.*$/, '')).join('\n')
     .split(';')
-    .map((s) => s.split('\n').filter((l) => !l.trim().startsWith('--')).join('\n').trim())
+    .map((s) => s.trim())
     .filter(Boolean);
 
   let appliquees = 0;

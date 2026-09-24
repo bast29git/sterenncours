@@ -80,7 +80,7 @@
   /** Valeurs par défaut des réglages professeur, si le serveur ne répond pas. */
   const REGLAGES_DEFAUT = {
     pauses: true, tuteur: true, calculatrice: true, calculatrice_maths: true, calculatrice_evaluation: false,
-    reactions: true, formatage: false, fils: true, felicitations: true,
+    reactions: true, formatage: false, fils: true, felicitations: true, sonde: 45,
   };
   const reglage = (c) => (c in etat.reglages ? etat.reglages[c] : REGLAGES_DEFAUT[c]);
   /** Les réglages qui changent l'affichage sont portés par <html> : le CSS s'en sert. */
@@ -210,10 +210,20 @@
    * index (titre et nombre de questions par leçon). La banque complète arrive
    * à la première série ouverte, par chargerBanque().
    */
+  /** Les questions modifiées ou ajoutées par le professeur (profil « question.* » et « questions.* ») s'appliquent par-dessus la banque. */
+  function appliquerSurcharges(k, b) {
+    if (!b || !Array.isArray(b.items)) return b;
+    const ajoutees = etat.profil['questions.' + k];
+    let items = b.items;
+    let change = false;
+    items = items.map((q, i) => { const s = etat.profil['question.' + k + '/' + i]; if (s && typeof s === 'object') { change = true; return { ...q, ...s }; } return q; });
+    if (Array.isArray(ajoutees) && ajoutees.length) { change = true; items = items.concat(ajoutees.filter((q) => q && q.q)); }
+    return change ? { ...b, items } : b;
+  }
   const banque = (mid, ref) => {
     const k = cle(mid, ref);
     if (!estProf() && etat.role && !accesDoc(mid, ref, 'serie')) return null;
-    if (window.EXERCICES && window.EXERCICES[k]) return window.EXERCICES[k];
+    if (window.EXERCICES && window.EXERCICES[k]) return appliquerSurcharges(k, window.EXERCICES[k]);
     const i = (window.EXERCICES_INDEX || {})[k];
     return i ? { titre: i.titre, n: i.n, items: null } : null;
   };
@@ -543,8 +553,18 @@
     }
 
     if (minuteur) clearInterval(minuteur);
-    minuteur = setInterval(sonder, 45000);
+    minuteur = setInterval(sonder, Math.max(20, Math.min(300, Number(reglage('sonde')) || 45)) * 1000);
+    if (role === 'prof') appliquerPilotage();
     if (!reprendreDernier()) router();
+  }
+  /** B39, B48 : accent et densité de l'espace professeur, retenus sur l'appareil. */
+  const CLE_PILOTAGE = 'opaline.pilotage';
+  function appliquerPilotage(changement) {
+    const p = Object.assign({ accent: 'bleu', densite: 'confortable' }, lire(CLE_PILOTAGE, {}), changement || {});
+    if (changement) ecrire(CLE_PILOTAGE, p);
+    document.documentElement.setAttribute('data-accent', p.accent);
+    document.documentElement.setAttribute('data-densite', p.densite);
+    return p;
   }
 
   async function rafraichirEtat() {
@@ -582,8 +602,10 @@
       const avant = etat.messagesNonLus;
       etat.messagesNonLus = d.messagesNonLus || 0;
       if (d.reglages && JSON.stringify(d.reglages) !== JSON.stringify(etat.reglages)) {
+        const avantSonde = reglage('sonde');
         etat.reglages = d.reglages;
         appliquerReglages();
+        if (reglage('sonde') !== avantSonde) { clearInterval(minuteur); minuteur = setInterval(sonder, Math.max(20, Math.min(300, Number(reglage('sonde')) || 45)) * 1000); }
       }
       if (etat.role === 'eleve') {
         etat.suivi = d.suivi || etat.suivi;
@@ -806,7 +828,7 @@
     reglage, appliquerReglages, REGLAGES_DEFAUT, celebrer,
     NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES, ic, paletteOuverte, prochainPalier,
     majTitre, rappelActif, activerRappel, verifierRappel, piegerFocus, squelette,
-    gemme, AURORES, auroreCourante, auroreOuverte, periodeCourante, serieJours, marquerJour, cranTaille,
+    gemme, AURORES, auroreCourante, auroreOuverte, periodeCourante, serieJours, marquerJour, cranTaille, appliquerPilotage,
     appliquerTheme, appliquerPalette,
   };
 

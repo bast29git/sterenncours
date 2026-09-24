@@ -50,6 +50,7 @@
       items: [
         { route: 'planning', ico: 'ic-etincelle', texte: 'Générateur d\'année' },
         { route: 'reglages', ico: 'ic-reglage', texte: 'Réglages' },
+        { route: 'aide', ico: 'ic-livre', texte: 'Aide' },
       ],
     },
   ];
@@ -98,11 +99,60 @@
     }).join('');
   }
 
+  /** B46 : une suppression se confirme en tapant le mot, pas d'une boîte à un clic. */
+  function confirmerParMot(mot, message) {
+    return new Promise((resoudre) => {
+      const el = document.createElement('div'); el.className = 'p-voile-modale';
+      el.innerHTML = `<form class="p-modale" role="dialog" aria-modal="true" aria-labelledby="p-modale-titre">
+        <h2 id="p-modale-titre">Confirmer</h2><p>${N.ech(message)}</p>
+        <label for="p-modale-mot">Écris « ${N.ech(mot)} » pour confirmer</label><input id="p-modale-mot" type="text" autocomplete="off">
+        <div class="p-seance-actions"><button class="p-bouton p-bouton-danger" type="submit" disabled>Confirmer</button><button class="p-bouton p-bouton-fantome" type="button" data-annuler>Annuler</button></div></form>`;
+      document.body.appendChild(el);
+      const liberer = N.piegerFocus(el, document.activeElement);
+      const fermer = (v) => { liberer(); el.remove(); resoudre(v); };
+      const champ = el.querySelector('input'); const ok = el.querySelector('[type=submit]');
+      champ.addEventListener('input', () => { ok.disabled = champ.value.trim().toLowerCase() !== mot; });
+      el.querySelector('form').addEventListener('submit', (ev) => { ev.preventDefault(); if (!ok.disabled) fermer(true); });
+      el.querySelector('[data-annuler]').addEventListener('click', () => fermer(false));
+      el.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') fermer(false); });
+    });
+  }
+  /** B47 : un bandeau « Annuler » pendant dix secondes après une action réversible. */
+  let annulerMinuteur = null;
+  function annulable(message, revenir) {
+    const zone = document.getElementById('p-bandeau'); if (!zone) return;
+    clearTimeout(annulerMinuteur);
+    zone.className = 'p-bandeau p-bandeau-succes p-bandeau-annulable';
+    zone.innerHTML = `${N.ech(message)} <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="p-annuler">Annuler</button>`;
+    zone.hidden = false;
+    document.getElementById('p-annuler').addEventListener('click', async () => {
+      zone.hidden = true;
+      try { await revenir(); N.signaler('Action annulée.', 'succes'); } catch (e) { N.signaler(e.message); }
+    });
+    annulerMinuteur = setTimeout(() => { zone.hidden = true; }, 10000);
+  }
+  /** B43 : sans fil d'Ariane fourni, on le déduit de la route et de son groupe. */
+  function filDeRoute() {
+    const p = (location.hash || '#/accueil').replace(/^#\/?/, '').split('/');
+    const courant = PARENT[p[0]] || p[0];
+    for (const g of GROUPES) { const i = g.items.find((x) => x.route === courant); if (i) return [{ t: g.titre }, { t: i.texte, h: '#/' + i.route }]; }
+    return [{ t: 'Espace professeur' }];
+  }
+  // B40 : g puis a (accueil), p (planning), s (suivi), m (messages) ; « / » pour la recherche.
+  let touchePrefixe = false;
+  document.addEventListener('keydown', (ev) => {
+    if (!N.estProf() || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const c = ev.target; if (c && (c.tagName === 'INPUT' || c.tagName === 'TEXTAREA' || c.tagName === 'SELECT' || c.isContentEditable)) return;
+    if (ev.key === '/') { ev.preventDefault(); const q = document.getElementById('p-q'); if (q) q.focus(); return; }
+    if (ev.key === 'g') { touchePrefixe = true; setTimeout(() => { touchePrefixe = false; }, 1200); return; }
+    if (touchePrefixe) { const cible = { a: 'accueil', p: 'mois', s: 'suivi', m: 'messages', d: 'depots', r: 'reglages' }[ev.key]; if (cible) { ev.preventDefault(); location.hash = '#/' + cible; } touchePrefixe = false; }
+  });
+
   function afficher(html, morceaux) {
     vue().innerHTML = html;
     etiqueterTableaux(vue());
     nav();
-    fil(morceaux || [{ t: 'Espace professeur' }]);
+    fil(morceaux || filDeRoute());
     fermerLateral();
     window.scrollTo(0, 0);
     vue().focus();
@@ -244,13 +294,14 @@
     vue().querySelectorAll('[data-niveau]').forEach((s) => s.addEventListener('change', async () => {
       const mid = s.getAttribute('data-mid');
       const ref = s.getAttribute('data-ref');
+      const avant = N.niveauDe(mid, ref);
       try {
         await N.api('/suivi', {
           method: 'PUT',
           body: JSON.stringify({ matiere: mid, ref, niveau: s.value || null, raison: s.getAttribute('data-raison') || 'decision' }),
         });
         await N.rafraichirEtat();
-        N.signaler('Niveau enregistré.', 'succes');
+        annulable('Niveau enregistré.', async () => { await N.api('/suivi', { method: 'PUT', body: JSON.stringify({ matiere: mid, ref, niveau: avant, raison: 'decision' }) }); await N.rafraichirEtat(); if (apres) apres(); });
         if (apres) apres();
       } catch (e) { N.signaler(e.message); }
     }));
@@ -545,7 +596,7 @@
               <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-choisir="${s.id}">Choisir à sa place</button>
               <span class="p-choix-options" data-options="${s.id}" hidden>${(s.choix || []).map((r) => { const info = N.libelleLecon(r); return info ? `<button type="button" class="p-bouton p-bouton-mini" data-choix-seance="${s.id}" data-choix-lecon="${r}">${info.m.icone} ${N.ech(info.l.titre)}</button>` : ''; }).join('')}</span></li>`;
           }).join('')}</ul>`
-          : '<p class="p-vide">Aucun choix en attente.</p>')
+          : '<p class="p-vide">Aucun choix en attente. Les séances au choix sont posées par le <a href="#/planning">générateur d\'année</a>.</p>')
       + bloc('Niveaux proposés par les faits',
         propositions.length
           ? `<ul class="p-liste">${propositions.slice(0, 8).map((x) => `<li><a href="#/lecon/${x.m.id}/${x.l.ref}">${x.m.icone} ${N.ech(x.l.titre)}</a>${boutonProposition(x.m.id, x.l.ref)}</li>`).join('')}</ul>
@@ -724,7 +775,7 @@
       + bloc('Le détail de la semaine',
         semaine.length
           ? semaine.map((s) => carteSeance(s)).join('')
-          : '<p class="p-vide">Aucune séance sur cette semaine.</p>',
+          : '<p class="p-vide">Aucune séance sur cette semaine. Le bouton « + » d\'un jour en crée une, le <a href="#/planning">générateur</a> pose l\'année.</p>',
         semaine.length ? semaine.length + ' séance(s)' : ''),
       [{ t: 'Pilotage' }, { t: 'Planning', h: '#/planning-mois' }, { t: 'Semaine du ' + N.enFrancais(jours[0]) }],
     );
@@ -843,7 +894,7 @@
             return info ? `<tr><td><a href="#/lecon/${info.m.id}/${info.l.ref}">${N.ech(info.l.titre)}</a></td>
               <td style="width:11rem">${choixNiveau(info.m.id, info.l.ref)}</td></tr>` : '';
           }).join('')}</tbody></table>`
-          : '<p class="p-vide">Aucune leçon rattachée.</p>')
+          : '<p class="p-vide">Aucune leçon rattachée : choisis-la dans « Leçons travaillées », à gauche, puis enregistre.</p>')
       + '</div></div>',
       [{ t: 'Pilotage' }, { t: 'Planning', h: '#/calendrier' }, { t: N.enFrancais(s.date) }],
     );
@@ -901,7 +952,7 @@
     });
 
     document.getElementById('p-supprimer').addEventListener('click', async () => {
-      if (!window.confirm('Supprimer définitivement cette séance ?')) return;
+      if (!(await confirmerParMot('supprimer', 'Cette séance sera supprimée définitivement.'))) return;
       try {
         await N.api('/seances/' + id, { method: 'DELETE' });
         await N.rafraichirSeances();
@@ -1062,7 +1113,7 @@
     const aujourd = N.jourIso();
     const cibles = N.etat.seances.filter((s) => s.date >= aujourd && s.statut !== 'faite');
     if (!cibles.length) return N.signaler('Aucune séance à venir à supprimer.', 'info');
-    if (!window.confirm(`Supprimer ${cibles.length} séance(s) à venir ? Les séances déjà faites sont conservées.`)) return undefined;
+    if (!(await confirmerParMot('supprimer', `${cibles.length} séance(s) à venir seront supprimées. Les séances déjà faites sont conservées.`))) return undefined;
     try {
       for (const s of cibles) await N.api('/seances/' + s.id, { method: 'DELETE' });
       await N.rafraichirSeances();
@@ -1173,12 +1224,13 @@
           </tr>${g.lecons.map((l) => ligne(g.m, l)).join('')}`;
   }).join('')}
         </tbody>
-      </table></div>` : '<p class="p-vide">Aucune leçon ne correspond à ces filtres.</p>';
+      </table></div>` : '<p class="p-vide">Aucune leçon ne correspond à ces filtres. <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="s-raz">Effacer les filtres</button></p>';
 
     afficher(
       entete('Suivi des acquis',
         `${c.validees} validées sur ${c.total} · ${c.fragiles} à reprendre · ${c.pretes} entièrement rédigées · ${Object.keys(N.etat.resultats).filter((k) => k.indexOf('jeu/') === 0).length} jeu(x) joué(s)`,
-        `<button class="p-bouton p-bouton-fantome" id="s-export" type="button">Exporter en CSV</button>
+        `<a class="p-bouton p-bouton-fantome" href="#/bulletin/${N.periodeCourante()}">Bulletin de période</a>
+         <button class="p-bouton p-bouton-fantome" id="s-export" type="button">Exporter en CSV</button>
          <a class="p-bouton p-bouton-fantome" href="#/matieres">Voir les matières</a>`)
 
       + bloc('Étoiles par semaine', courbeEtoiles(12), '', '<span class="p-aide">fiches, séries réussies, félicitations, leçons validées</span>')
@@ -1256,6 +1308,7 @@
     brancherNiveaux(vueSuivi);
     brancherOuvertures(vueSuivi);
     document.getElementById('s-export').addEventListener('click', exporterSuivi);
+    const raz = document.getElementById('s-raz'); if (raz) raz.addEventListener('click', () => { Object.assign(filtres, { matiere: '', niveau: '', periode: '', q: '', pretes: false }); vueSuivi(); });
 
     vue().querySelectorAll('[data-note]').forEach((i) => i.addEventListener('change', async () => {
       const mid = i.getAttribute('data-mid');
@@ -1297,6 +1350,43 @@
 
   const DOMAINES = { D1: 'Les langages pour penser et communiquer', D2: 'Les méthodes et outils pour apprendre', D3: 'La formation de la personne et du citoyen', D4: 'Les systèmes naturels et les systèmes techniques', D5: 'Les représentations du monde et l\'activité humaine' };
   const POIDS = { insuffisant: 1, fragile: 2, satisfaisant: 3, tresbien: 4 };
+  /** B50 : les règles du système en une page. */
+  function vueAideProf() {
+    const R = [
+      ['Étoiles', 'Fiche terminée : 1. Série réussie à 70 % : 1. Jeu ou monde gagné avec deux étoiles : 1. Leçon validée (satisfaisant ou très bien) : 3. Félicitation : 1. Rien ne redescend.'],
+      ['Verrous des leçons', 'Une leçon s\'ouvre si c\'est la première de sa matière, si la précédente est validée, ou si elle est mise au programme d\'une séance passée. « Ouvrir » et « retenir » forcent la règle ; « auto » y revient.'],
+      ['Accès par élément', 'Cours, révision, exercices, série, évaluation, jeu : trois états, automatique, ouvert, fermé, avec une date de fermeture facultative. Une évaluation n\'est servie que si elle est ouverte.'],
+      ['Choix de Sterenn', 'Une séance sur quatre propose trois leçons. Elle choisit jusqu\'au jour même ; deux jours avant, elle est relancée ; passé le délai, tu choisis à sa place depuis l\'accueil.'],
+      ['Positionnement', 'Quatre niveaux, dans cet ordre : Insuffisant, Fragile, Satisfaisant, Très bien. Chaque changement est daté avec sa raison. Une proposition automatique apparaît après une série et des fiches lues ; un clic la confirme.'],
+      ['Évaluations', 'Le sujet est le devoir type de la fiche d\'exercices. Elle dépose trois photos au plus ; tu corriges avec la grille en ligne ; le résultat lui est rendu dans l\'application.'],
+      ['Opale', 'Elle explique et guide, jamais la réponse : la réponse attendue est filtrée et un second passage contrôle. Quotas par jour : 150 questions pour Sterenn, 60 pour toi. Calculatrice coupée en évaluation et, si tu le veux, en exercices de maths.'],
+      ['Sauvegardes', 'Un instantané chaque nuit dans le stockage de fichiers, trente conservés. Restaurer écrit un filet avant. Les codes d\'accès se changent dans Réglages.'],
+      ['Données', 'Tout vit dans la base et le stockage du compte Cloudflare, rien ailleurs. Sterenn voit la liste de ce que l\'application sait d\'elle et peut la télécharger.'],
+    ];
+    afficher(entete('Aide', 'Les règles du système, en une page.') + bloc('Règles', `<dl class="p-qr">${R.map((x) => `<dt>${N.ech(x[0])}</dt><dd>${N.ech(x[1])}</dd>`).join('')}</dl>`), [{ t: 'Réglages', h: '#/reglages' }, { t: 'Aide' }]);
+  }
+  /** B14 : le bulletin d'une période, prêt à imprimer, à partir des données. */
+  function vueBulletin(periode) {
+    const p = Number(periode) || N.periodeCourante();
+    const lignes = PROGRAMME.matieres.map((m) => {
+      const lecons = m.lecons.filter((l) => Number(l.periode) === p);
+      if (!lecons.length) return '';
+      return `<tr class="grp"><td colspan="4"><span class="nom">${m.icone} ${N.ech(m.nom)}</span></td></tr>${lecons.map((l) => {
+        const niv = N.niveauDe(m.id, l.ref); const ev = N.profil('eval.' + N.cle(m.id, l.ref), null); const su = N.etat.suivi[N.cle(m.id, l.ref)] || {};
+        return `<tr><td>${N.ech(l.titre)}</td><td>${niv ? `<span class="p-etat p-etat-${niv}">${N.ech((N.NIVEAUX.find((n) => n.id === niv) || {}).libelle)}</span>` : '<span class="p-faible">non évaluée</span>'}</td><td class="num">${ev && ev.note != null ? N.ech(String(ev.note)) + '/20' : '·'}</td><td>${N.ech(ev && ev.mot ? ev.mot : su.note || '')}</td></tr>`;
+      }).join('')}`;
+    }).join('');
+    const mots = (N.etat.felicitations || []).filter((f) => f.cree_le && N.periodeCourante(new Date(f.cree_le)) === p).slice(0, 6);
+    afficher(entete(`Bulletin de la période ${p}`, 'Niveaux, notes des devoirs, mots du professeur, à partir des données enregistrées.',
+      `${[1, 2, 3, 4, 5].map((k) => `<a class="p-bouton ${k === p ? '' : 'p-bouton-fantome'}" href="#/bulletin/${k}">P${k}</a>`).join('')}<button class="p-bouton" id="b-imprimer" type="button">Imprimer</button>`)
+      + `<section class="p-bulletin"><header class="p-bulletin-tete"><h2>Opaline · Sterenn · classe de 4ᵉ</h2><p>Période ${p} · édité le ${N.ech(N.enFrancais(N.jourIso(), true))}</p></header>
+        <table class="p-table"><thead><tr><th>Leçon</th><th>Positionnement</th><th>Devoir</th><th>Observation</th></tr></thead><tbody>${lignes}</tbody></table>
+        ${mots.length ? `<h3>Mots du professeur</h3><ul class="p-liste">${mots.map((f) => `<li>${N.ech(f.texte)} <small class="p-faible">${N.ech(N.dateCourte(f.cree_le))}</small></li>`).join('')}</ul>` : ''}
+        <p class="p-aide">Échelle : Insuffisant, Fragile, Satisfaisant, Très bien. Une leçon est validée à partir de Satisfaisant.</p></section>`,
+    [{ t: 'Pilotage' }, { t: 'Suivi des acquis', h: '#/suivi' }, { t: 'Bulletin P' + p }]);
+    document.getElementById('b-imprimer').addEventListener('click', () => window.print());
+  }
+
   /** B9 : les critères des grilles agrégés par domaine du socle, avec le niveau des leçons positionnées. */
   function vueSocle() {
     const parDomaine = {}; Object.keys(DOMAINES).forEach((d) => { parDomaine[d] = { lecons: [], competences: {} }; });
@@ -1375,7 +1465,7 @@
     const M = window.MESSAGERIE || null;
     if (!sansChargement) {
       afficher(entete('Messages', 'La conversation avec Sterenn, de son espace au tien.')
-        + '<p class="p-vide">Chargement…</p>', [{ t: 'Échanges' }, { t: 'Messages' }]);
+        + N.squelette('serie'), [{ t: 'Échanges' }, { t: 'Messages' }]);
     }
 
     let messages = [];
@@ -1392,6 +1482,8 @@
               <span>${N.ech(N.dateCourte(m.cree_le))}</span>
               ${m.auteur !== 'prof' && !m.lu_le ? '<span class="p-etat p-etat-fragile">nouveau</span>' : ''}</div>
             ${m.contexte ? `<p class="p-msg-ctx">${N.ech(m.contexte)}</p>` : ''}
+            ${m.reponse_a && messages.find((y) => y.id === m.reponse_a) ? `<blockquote class="p-cite">${messages.find((y) => y.id === m.reponse_a).auteur === 'prof' ? 'Moi' : 'Sterenn'} : ${N.ech(court(messages.find((y) => y.id === m.reponse_a).texte, 120))}</blockquote>` : ''}
+            ${m.envoyer_le && m.envoyer_le > new Date().toISOString() ? `<p class="p-msg-ctx">⏱ programmé pour ${N.ech(N.dateCourte(m.envoyer_le))} <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-retirer-msg="${m.id}">Retirer</button></p>` : ''}
             <div class="p-msg-texte">${M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte)}</div>
             ${M ? M.reactionsHTML(m, 'prof', 'p-reactions') : ''}
           </div>`).join('') : `<p class="p-vide">${filProf ? 'Aucun message dans ce fil.' : 'Aucun message pour le moment.'}</p>`}</div>`
@@ -1411,6 +1503,8 @@
             <textarea id="m-texte" rows="3" maxlength="2000" required>${N.ech(brouillon ? brouillon.t : '')}</textarea></div>
           <div class="p-modeles">
             <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-emojis-btn" aria-expanded="false">${N.ic('ic-emoji')} Émojis</button>
+            <select id="m-modele" aria-label="Modèle de message"><option value="">Modèle…</option>${MODELES_MESSAGE.map((t, i) => `<option value="${i}">${N.ech(t.nom)}</option>`).join('')}</select>
+            <select id="m-differe" aria-label="Envoyer plus tard"><option value="">Envoyer maintenant</option><option value="soir">Ce soir à 18 h</option><option value="matin">Demain à 8 h</option><option value="lundi">Lundi à 8 h</option></select>
           </div>
           <div class="p-emojis" id="m-emojis" hidden>${M ? M.selecteurEmojis('p-emojis') : ''}</div>
           <button class="p-bouton" type="submit">Envoyer</button>
@@ -1420,6 +1514,7 @@
 
     const filMsg = document.getElementById('p-fil-msg');
     filMsg.scrollTop = filMsg.scrollHeight;
+    filMsg.querySelectorAll('[data-retirer-msg]').forEach((b) => b.addEventListener('click', async () => { try { await N.api('/messages/' + b.getAttribute('data-retirer-msg'), { method: 'DELETE' }); N.signaler('Message retiré.', 'succes'); vueMessages(null, true); } catch (e) { N.signaler(e.message); } }));
     vue().querySelectorAll('[data-fil]').forEach((b) => b.addEventListener('click', () => {
       filProf = b.getAttribute('data-fil') || null;
       vueMessages(null, true);
@@ -1428,6 +1523,13 @@
       const champ = document.getElementById('m-texte');
       M.brancherFormatage(vue(), champ);
       M.brancherReactions(filMsg, () => vueMessages(null, true));
+      document.getElementById('m-modele').addEventListener('change', (ev) => {
+        const t = MODELES_MESSAGE[Number(ev.target.value)]; if (!t) return;
+        const prochaine = N.etat.seances.filter((x) => x.type === 'cours' && x.date >= N.jourIso()).sort((a, b) => a.date.localeCompare(b.date))[0];
+        const lecon = prochaine ? (prochaine.lecons || []).map((r) => N.libelleLecon(r)).filter((x) => x && x.m.id !== 'module')[0] : null;
+        champ.value = t.texte.replace(/\{date\}/g, prochaine ? N.enFrancais(prochaine.date, true) : 'la prochaine séance').replace(/\{heure\}/g, prochaine ? prochaine.debut : '13 h').replace(/\{lecon\}/g, lecon ? lecon.l.titre : 'la leçon prévue').replace(/\{travail\}/g, (N.etat.seances.filter((x) => x.type === 'travail' && x.date >= N.jourIso()).sort((a, b) => a.date.localeCompare(b.date))[0] || {}).travail || 'le travail annoncé');
+        ev.target.value = ''; champ.focus();
+      });
       const btnE = document.getElementById('m-emojis-btn');
       const boiteE = document.getElementById('m-emojis');
       btnE.addEventListener('click', () => { boiteE.hidden = !boiteE.hidden; btnE.setAttribute('aria-expanded', String(!boiteE.hidden)); });
@@ -1449,10 +1551,15 @@
       const texte = document.getElementById('m-texte').value.trim();
       if (!texte) return;
       try {
+        const quand = document.getElementById('m-differe').value;
+        let envoyerLe = null;
+        if (quand) { const d = new Date(); if (quand === 'soir') { if (d.getHours() >= 18) d.setDate(d.getDate() + 1); d.setHours(18, 0, 0, 0); } else if (quand === 'matin') { d.setDate(d.getDate() + 1); d.setHours(8, 0, 0, 0); } else { const j = d.getDay(); d.setDate(d.getDate() + ((8 - j) % 7 || 7)); d.setHours(8, 0, 0, 0); } envoyerLe = d.toISOString(); }
         await N.api('/messages', {
           method: 'POST',
-          body: JSON.stringify({ texte, contexte: document.getElementById('m-contexte').value.trim() || null, fil: document.getElementById('m-fil').value || null }),
+          body: JSON.stringify({ texte, contexte: document.getElementById('m-contexte').value.trim() || null, fil: document.getElementById('m-fil').value || null, envoyer_le: envoyerLe }),
         });
+        if (envoyerLe) N.signaler('Message programmé pour ' + N.dateCourte(envoyerLe) + '.', 'succes');
+        document.getElementById('m-texte').value = '';
         vueMessages(null, true);
       } catch (e) { N.signaler(e.message); }
     });
@@ -1461,6 +1568,12 @@
   /* =======================================================================
      Dépôts de fichiers
      ======================================================================= */
+  const MODELES_MESSAGE = [
+    { nom: 'Rappel du travail personnel', texte: 'Pour {date}, le travail annoncé est : {travail}. Quinze minutes suffisent, et tu me dis si quelque chose bloque.' },
+    { nom: 'Encouragement', texte: 'Ta dernière série sur « {lecon} » montre que la méthode est là. On continue dans ce sens {date}.' },
+    { nom: 'Changement d\'horaire', texte: 'La séance de {date} commence à {heure} au lieu de l\'heure habituelle. Rien d\'autre ne change.' },
+    { nom: 'Avant la séance', texte: 'Séance de {date} à {heure} : on ouvre « {lecon} ». Prends ton cahier et une calculatrice.' },
+  ];
   const MODELES_FELICITATION = [
     'Ton devoir est rendu complet et dans les temps. La consigne est respectée du début à la fin.',
     'Ta rédaction est structurée : une introduction, des paragraphes, une conclusion. Le raisonnement se suit sans effort.',
@@ -1468,9 +1581,54 @@
     'Tu as relu ton travail : pas de faute d\'accord dans le texte. C\'est un acquis.',
   ];
 
+  /** B34 : la copie en grand, zoom, rotation, annotation simple (trait, cercle), renvoi annoté. */
+  function visionneuse(id, nom) {
+    const el = document.createElement('div'); el.className = 'p-voile-modale p-visionneuse';
+    el.innerHTML = `<div class="p-modale p-visionneuse-cadre" role="dialog" aria-label="Copie en grand">
+      <div class="p-visionneuse-barre">
+        <b>${N.ech(nom || 'Copie')}</b>
+        <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-z="-">−</button><span id="p-vz">100 %</span><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-z="+">+</button>
+        <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-rot>Tourner</button>
+        <span class="p-visionneuse-outils"><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-outil="trait" aria-pressed="true">Trait</button><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-outil="cercle" aria-pressed="false">Cercle</button><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-effacer>Effacer</button></span>
+        <button type="button" class="p-bouton p-bouton-mini" data-renvoyer>Renvoyer annotée</button>
+        <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-fermer>Fermer</button>
+      </div>
+      <div class="p-visionneuse-corps"><div class="p-visionneuse-scene" id="p-scene"><img id="p-vimg" alt="" crossorigin="use-credentials"><canvas id="p-vcanvas"></canvas></div></div></div>`;
+    document.body.appendChild(el);
+    const liberer = N.piegerFocus(el, document.activeElement);
+    const fermer = () => { liberer(); el.remove(); };
+    const img = el.querySelector('#p-vimg'); const canvas = el.querySelector('#p-vcanvas'); const scene = el.querySelector('#p-scene');
+    let zoom = 1; let rot = 0; let outil = 'trait'; const traits = [];
+    const ctx = canvas.getContext('2d');
+    const dessiner = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.lineWidth = 4; ctx.strokeStyle = '#E5484D'; ctx.lineCap = 'round'; traits.forEach((t) => { ctx.beginPath(); if (t.type === 'cercle') { const r = Math.hypot(t.x2 - t.x1, t.y2 - t.y1); ctx.arc(t.x1, t.y1, r, 0, Math.PI * 2); } else { ctx.moveTo(t.x1, t.y1); ctx.lineTo(t.x2, t.y2); } ctx.stroke(); }); };
+    const appliquer = () => { scene.style.transform = `scale(${zoom}) rotate(${rot}deg)`; el.querySelector('#p-vz').textContent = Math.round(zoom * 100) + ' %'; };
+    img.addEventListener('load', () => { canvas.width = img.naturalWidth; canvas.height = img.naturalHeight; canvas.style.width = img.width + 'px'; canvas.style.height = img.height + 'px'; appliquer(); });
+    img.src = '/api/fichiers/' + id;
+    const point = (ev) => { const r = canvas.getBoundingClientRect(); const p = ev.touches ? ev.touches[0] : ev; return { x: (p.clientX - r.left) / r.width * canvas.width, y: (p.clientY - r.top) / r.height * canvas.height }; };
+    let courant = null;
+    canvas.addEventListener('pointerdown', (ev) => { const p = point(ev); courant = { type: outil, x1: p.x, y1: p.y, x2: p.x, y2: p.y }; traits.push(courant); });
+    canvas.addEventListener('pointermove', (ev) => { if (!courant) return; const p = point(ev); courant.x2 = p.x; courant.y2 = p.y; dessiner(); });
+    ['pointerup', 'pointerleave'].forEach((t) => canvas.addEventListener(t, () => { courant = null; }));
+    el.querySelectorAll('[data-z]').forEach((b) => b.addEventListener('click', () => { zoom = Math.min(4, Math.max(0.4, zoom + (b.getAttribute('data-z') === '+' ? 0.25 : -0.25))); appliquer(); }));
+    el.querySelector('[data-rot]').addEventListener('click', () => { rot = (rot + 90) % 360; appliquer(); });
+    el.querySelectorAll('[data-outil]').forEach((b) => b.addEventListener('click', () => { outil = b.getAttribute('data-outil'); el.querySelectorAll('[data-outil]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }));
+    el.querySelector('[data-effacer]').addEventListener('click', () => { traits.length = 0; dessiner(); });
+    el.querySelector('[data-fermer]').addEventListener('click', fermer);
+    el.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') fermer(); });
+    el.querySelector('[data-renvoyer]').addEventListener('click', async () => {
+      const sortie = document.createElement('canvas'); sortie.width = canvas.width; sortie.height = canvas.height;
+      const c = sortie.getContext('2d'); c.drawImage(img, 0, 0); c.drawImage(canvas, 0, 0);
+      sortie.toBlob(async (blob) => {
+        if (!blob) { N.signaler('Impossible de préparer l\'image annotée.'); return; }
+        const d = new FormData(); d.append('fichier', new File([blob], 'annotee-' + (nom || 'copie').replace(/\.[a-z]+$/i, '') + '.png', { type: 'image/png' })); d.append('note', 'Copie annotée par Bastien');
+        try { await N.api('/fichiers', { method: 'POST', body: d }); N.signaler('Copie annotée renvoyée à Sterenn.', 'succes'); fermer(); vueDepots(); } catch (e) { N.signaler(e.message); }
+      }, 'image/png');
+    });
+  }
+
   async function vueDepots() {
     afficher(entete('Dépôts', 'Ce que Sterenn rend, et ce que je lui transmets.')
-      + '<p class="p-vide">Chargement…</p>', [{ t: 'Échanges' }, { t: 'Dépôts' }]);
+      + N.squelette('serie'), [{ t: 'Échanges' }, { t: 'Dépôts' }]);
 
     let donnees = { fichiers: [], stockage: true };
     try { donnees = await N.api('/fichiers'); } catch (e) { N.signaler(e.message); }
@@ -1488,13 +1646,14 @@
               <span class="ic" aria-hidden="true">${String(f.type).indexOf('image') === 0 ? '🖼' : '📄'}</span>
               <span class="c">
                 <a href="/api/fichiers/${f.id}" download>${N.ech(f.nom)}</a>
-                <span>${f.auteur === 'eleve' ? 'Sterenn' : 'Moi'} · ${N.ech(N.dateCourte(f.cree_le))} · ${N.ech(N.poids(f.taille))}${f.note ? ' · ' + N.ech(f.note) : ''}</span>
+                <span>${f.auteur === 'eleve' ? 'Sterenn' : 'Moi'} · ${N.ech(N.dateCourte(f.cree_le))} · ${N.ech(N.poids(f.taille))}${f.note ? ' · ' + N.ech(f.note) : ''}${(() => { const fe = (N.etat.felicitations || []).find((x) => x.fichier_id === f.id); return fe ? (fe.vu_le ? ' · félicitation vue le ' + N.ech(N.dateCourte(fe.vu_le)) : ' · félicitation pas encore vue') : ''; })()}</span>
               </span>
+              ${String(f.type).indexOf('image') === 0 ? `<button class="p-bouton p-bouton-fantome p-bouton-mini" data-voir="${f.id}" data-nom="${N.ech(f.nom)}" type="button">Voir en grand</button>` : ''}
               ${f.auteur === 'eleve' && f.ref && N.matiere(f.matiere) ? `<a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/lecon/${N.ech(f.matiere)}/${N.ech(f.ref)}/evaluation" title="Noter cette copie avec la grille">Noter</a>` : ''}
               ${f.auteur === 'eleve' ? `<button class="p-bouton p-bouton-mini" data-feliciter="${f.id}" data-matiere="${N.ech(f.matiere || '')}" data-ref="${N.ech(f.ref || '')}" type="button">${felicite.has(f.id) ? '🏆 Félicitée' : 'Féliciter'}</button>` : ''}
               <button class="p-bouton p-bouton-danger p-bouton-mini" data-fichier="${f.id}" type="button">Supprimer</button>
             </li>`).join('')}</ul>`
-          : '<p class="p-vide">Aucun fichier déposé.</p>',
+          : '<p class="p-vide">Aucun fichier déposé. Demande une photo du cahier par <a href="#/messages">message</a>, ou transmets un document ci-contre.</p>',
         fichiers.length ? String(fichiers.length) : '')
       + '</div><div>'
       + bloc('Féliciter Sterenn', `
@@ -1531,6 +1690,7 @@
       [{ t: 'Échanges' }, { t: 'Dépôts' }],
     );
 
+    vue().querySelectorAll('[data-voir]').forEach((b) => b.addEventListener('click', () => visionneuse(b.getAttribute('data-voir'), b.getAttribute('data-nom'))));
     vue().querySelectorAll('[data-feliciter]').forEach((b) => b.addEventListener('click', () => {
       document.getElementById('f-fichier').value = b.getAttribute('data-feliciter');
       document.getElementById('f-matiere').value = b.getAttribute('data-matiere') || '';
@@ -1549,19 +1709,20 @@
       const texte = document.getElementById('f-texte').value.trim();
       if (!texte) return;
       try {
-        await N.api('/felicitations', { method: 'POST', body: JSON.stringify({
+        const f = await N.api('/felicitations', { method: 'POST', body: JSON.stringify({
           texte, matiere: document.getElementById('f-matiere').value || null,
           ref: document.getElementById('f-ref').value.trim() || null,
           fichier_id: document.getElementById('f-fichier').value || null,
         }) });
-        N.signaler('Félicitations envoyées à Sterenn : une étoile de plus pour elle.', 'succes');
         await N.rafraichirEtat();
         vueDepots();
+        if (f && f.id) annulable('Félicitations envoyées à Sterenn : une étoile de plus pour elle.', async () => { await N.api('/felicitations/' + f.id, { method: 'DELETE' }); await N.rafraichirEtat(); vueDepots(); });
+        else N.signaler('Félicitations envoyées à Sterenn : une étoile de plus pour elle.', 'succes');
       } catch (e) { N.signaler(e.message); }
     });
 
     vue().querySelectorAll('[data-fichier]').forEach((b) => b.addEventListener('click', async () => {
-      if (!window.confirm('Supprimer ce fichier ?')) return;
+      if (!(await confirmerParMot('supprimer', 'Ce fichier sera supprimé définitivement.'))) return;
       try {
         await N.api('/fichiers/' + b.getAttribute('data-fichier'), { method: 'DELETE' });
         N.signaler('Fichier supprimé.', 'succes');
@@ -1626,16 +1787,18 @@
         `${pretes ? `<a class="p-bouton p-bouton-fantome" href="${N.dossierPdf(m.id)}" download>Dossier PDF</a>` : ''}
          <a class="p-bouton p-bouton-fantome" href="#/programme">Programme</a>`)
       + bloc('Les leçons', `
+        <label class="p-case"><input type="checkbox" id="m-ouvertes" ${filtreOuvertes ? 'checked' : ''}> Seulement ce que Sterenn a ouvert : fiches lues, séries jouées, avec les dates</label>
         <table class="p-table">
           <thead><tr><th style="width:4rem">Réf.</th><th>Leçon</th><th>Notions</th>
             <th style="width:4rem">Période</th><th style="width:8.5rem">Documents</th>
             <th style="width:11rem">Niveau</th><th style="width:9rem">Accès</th>
             <th style="width:9rem"></th></tr></thead>
-          <tbody>${m.lecons.map((l) => {
+          <tbody>${m.lecons.filter((l) => !filtreOuvertes || activiteDe(m.id, l.ref).length).map((l) => {
     const pret = (l.docs || []).length > 0;
+    const activite = activiteDe(m.id, l.ref);
     return `<tr>
       <td class="num">${N.ech(l.ref)}</td>
-      <td>${pret ? `<a href="#/lecon/${m.id}/${l.ref}">${N.ech(l.titre)}</a>` : N.ech(l.titre)}</td>
+      <td>${pret ? `<a href="#/lecon/${m.id}/${l.ref}">${N.ech(l.titre)}</a>` : N.ech(l.titre)}${activite.length ? `<br><small class="p-faible">${activite.map(N.ech).join(' · ')}</small>` : ''}</td>
       <td class="p-aide" style="margin:0">${N.ech((l.notions || []).join(' · '))}</td>
       <td class="num">P${l.periode}</td>
       <td class="docs">${pastillesDocs(m.id, l)}</td>
@@ -1650,7 +1813,16 @@
     );
     brancherNiveaux(() => vueMatiere(mid));
     brancherOuvertures(() => vueMatiere(mid));
+    document.getElementById('m-ouvertes').addEventListener('change', (ev) => { filtreOuvertes = ev.target.checked; vueMatiere(mid); });
     return undefined;
+  }
+  let filtreOuvertes = false;
+  /** Ce que Sterenn a fait sur une leçon : fiches lues et séries, datées. */
+  function activiteDe(mid, ref) {
+    const cle = N.cle(mid, ref); const sortie = [];
+    N.TYPES_DOC.forEach((t) => { const f = N.etat.fiches[cle + '/' + t.id]; if (f) sortie.push(`${t.libelle.toLowerCase()} lu le ${N.dateCourte(f.termine_le).slice(0, 5)}`); });
+    const r = N.etat.resultats[cle]; if (r) sortie.push(`série ${r.meilleur}/${r.total} le ${N.dateCourte(r.maj_le).slice(0, 5)}`);
+    return sortie;
   }
 
   function vueLecon(mid, ref, type) {
@@ -1664,7 +1836,7 @@
     }
 
     const actif = l.docs.indexOf(type) !== -1 ? type : l.docs[0];
-    afficher(entete(l.titre, '') + '<p class="p-vide">Chargement de la fiche…</p>',
+    afficher(entete(l.titre, '') + N.squelette('fiche'),
       [{ t: 'Ressources' }, { t: 'Matières', h: '#/matieres' }, { t: m.nom, h: '#/matiere/' + mid }, { t: l.titre }]);
 
     N.chargerContenu(mid).then((contenu) => {
@@ -1710,6 +1882,9 @@
                 <ul class="p-liste">${doc.objectifs.map((o) => `<li>${N.ech(o)}</li>`).join('')}</ul></div>` : ''}
               ${(doc.competences || []).length ? `<div class="p-rail-bloc"><h2>Compétences</h2>
                 <p>${doc.competences.map((x) => `<span class="p-puce">${N.ech(x)}</span>`).join(' ')}</p></div>` : ''}
+              <div class="p-rail-bloc"><h2>Ce qu'elle voit</h2>${vueCommeElle(mid, ref, l)}</div>
+              <div class="p-rail-bloc"><h2>Points de pause de cette fiche</h2>${(() => { const v = N.profil('pauses.' + cleFiche, null); return `<span class="p-pousse" role="group" aria-label="Pauses de cette fiche"><button type="button" data-pauses-fiche="" aria-pressed="${v === null}" title="Suit le réglage général">réglage</button><button type="button" data-pauses-fiche="1" aria-pressed="${v === true}">avec</button><button type="button" class="non" data-pauses-fiche="0" aria-pressed="${v === false}">sans</button></span>`; })()}</div>
+              <div class="p-rail-bloc"><h2>Mes notes de préparation</h2><textarea id="p-prepa" rows="4" maxlength="2000" placeholder="Visible de toi seul : ce que tu veux dire, l'exemple à prendre, le piège à montrer.">${N.ech(N.profil('prepa.' + cleFiche, '') || '')}</textarea><p class="p-aide" id="p-prepa-etat"></p></div>
               <div class="p-rail-bloc"><h2>Historique du niveau</h2><div id="p-journal"><p class="p-aide">Chargement…</p></div></div>
               <div class="p-rail-bloc"><h2>Actions</h2>
                 <p><button class="p-bouton p-bouton-fantome p-bouton-mini" id="p-question" type="button">Écrire à Sterenn</button></p>
@@ -1745,6 +1920,18 @@
         } catch (e) { N.signaler(e.message); }
       });
       brancherGrille(mid, ref, doc, actif);
+      // B36 : pauses de cette fiche
+      vue().querySelectorAll('[data-pauses-fiche]').forEach((b) => b.addEventListener('click', async () => {
+        const v = b.getAttribute('data-pauses-fiche');
+        try { await N.enregistrerProfil('pauses.' + cleFiche, v === '' ? null : v === '1'); vue().querySelectorAll('[data-pauses-fiche]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); N.signaler('Pauses de la fiche : ' + (v === '' ? 'réglage général' : v === '1' ? 'affichées' : 'masquées') + '.', 'succes'); } catch (e) { N.signaler(e.message); }
+      }));
+      // B28 : notes de préparation, enregistrées à la volée
+      let attentePrepa = null;
+      document.getElementById('p-prepa').addEventListener('input', (ev) => {
+        clearTimeout(attentePrepa);
+        document.getElementById('p-prepa-etat').textContent = '…';
+        attentePrepa = setTimeout(async () => { try { await N.enregistrerProfil('prepa.' + cleFiche, ev.target.value.trim() || null); document.getElementById('p-prepa-etat').textContent = 'Enregistré.'; } catch (e) { document.getElementById('p-prepa-etat').textContent = e.message; } }, 1200);
+      });
       vue().querySelectorAll('[data-eval-acces]').forEach((b) => b.addEventListener('click', async () => {
         const ouvrir = b.getAttribute('data-eval-acces') === 'ouvrir';
         try {
@@ -1755,6 +1942,17 @@
       return undefined;
     });
     return undefined;
+  }
+
+  /** B25 : ce que Sterenn voit de cette leçon, document par document, avec la raison. */
+  function vueCommeElle(mid, ref, l) {
+    const cle = N.cle(mid, ref);
+    const verrou = N.etat.verrous[cle];
+    const ouverte = typeof verrou === 'boolean' ? verrou : (N.decision(mid, ref) === 1 ? true : N.decision(mid, ref) === 0 ? false : N.reglementaire(mid, ref));
+    const docs = ['cours', 'revision', 'exercices', 'evaluation'].filter((t) => (l.docs || []).indexOf(t) !== -1 || t === 'evaluation');
+    const ligne = (t) => { const ok = ouverte && N.accesDoc(mid, ref, t); const info = N.TYPES_DOC.find((x) => x.id === t) || { libelle: t }; return `<li><span class="${ok ? 'p-ok' : 'p-faible'}">${ok ? '✓' : '✕'}</span> ${N.ech(info.libelle)}${t === 'evaluation' && ok ? '<small class="p-faible"> (ouverte)</small>' : ''}</li>`; };
+    return `<ul class="p-comme-elle">${docs.map(ligne).join('')}<li><span class="${ouverte && N.accesDoc(mid, ref, 'serie') && N.banque(mid, ref) ? 'p-ok' : 'p-faible'}">${ouverte && N.accesDoc(mid, ref, 'serie') && N.banque(mid, ref) ? '✓' : '✕'}</span> Série d'exercices</li></ul>
+      <p class="p-aide">${ouverte ? 'La leçon est ouverte dans son parcours.' : 'La leçon est verrouillée pour elle : ' + N.ech(N.raisonVerrou(mid, ref))}</p>`;
   }
 
   /** B12 : la grille d'évaluation remplissable en ligne, avec l'auto-positionnement de Sterenn en regard. */
@@ -1832,16 +2030,54 @@
         <table class="p-table">
           <thead><tr><th style="width:3rem">#</th><th style="width:6rem">Type</th><th>Question</th>
             <th style="width:12rem">Réponse attendue</th><th>Explication</th></tr></thead>
-          <tbody>${serie.map((q, i) => `<tr>
-            <td class="num">${i + 1}</td>
+          <tbody>${serie.map((q, i) => `<tr data-question="${i}">
+            <td class="num">${i + 1}${N.profil('question.' + N.cle(mid, ref) + '/' + i, null) ? '<br><span class="p-puce">modifiée</span>' : ''}${i >= (window.EXERCICES[N.cle(mid, ref)] || { items: [] }).items.length ? '<br><span class="p-puce">ajoutée</span>' : ''}</td>
             <td><span class="p-puce">${N.ech(q.type || 'qcm')}</span></td>
             <td>${q.q || ''}</td>
             <td>${N.ech(reponseAttendue(q))}</td>
-            <td class="p-aide" style="margin:0">${N.ech(q.explication || '')}</td>
+            <td class="p-aide" style="margin:0">${N.ech(q.explication || '')}<br><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-modifier="${i}">Modifier</button></td>
           </tr>`).join('')}</tbody>
-        </table>`, serie.length + ' question(s)'),
+        </table>`, serie.length + ' question(s)', '<button type="button" class="p-bouton p-bouton-mini" id="q-ajouter">Ajouter une question</button>'),
       [{ t: 'Ressources' }, { t: 'Matières', h: '#/matieres' }, { t: m.nom, h: '#/matiere/' + mid }, { t: 'Exercices' }],
     );
+    const cle = N.cle(mid, ref);
+    const nOrigine = (window.EXERCICES[cle] || { items: [] }).items.length;
+    const formulaireQuestion = (q, i) => `<form class="p-form p-question-form" data-form-question="${i == null ? '' : i}">
+      <div class="ligne"><div><label>Type</label><select name="type"><option value="qcm" ${(q.type || 'qcm') === 'qcm' ? 'selected' : ''}>qcm</option><option value="vraifaux" ${q.type === 'vraifaux' ? 'selected' : ''}>vrai ou faux</option><option value="saisie" ${q.type === 'saisie' ? 'selected' : ''}>saisie</option></select></div></div>
+      <div><label>Question</label><input name="q" type="text" maxlength="400" required value="${N.ech(q.q || '')}"></div>
+      <div><label>Propositions (qcm : une par ligne, la bonne en premier ; saisie : les réponses acceptées, une par ligne)</label><textarea name="choix" rows="4">${N.ech(q.type === 'saisie' ? (q.reponses || []).join('\n') : q.type === 'vraifaux' ? (q.reponse === true ? 'Vrai' : 'Faux') : (q.choix ? [q.choix[q.reponse]].concat(q.choix.filter((_, k) => k !== q.reponse)) : []).join('\n'))}</textarea></div>
+      <div><label>Explication (ce qu'une réponse fausse doit apprendre)</label><textarea name="explication" rows="2" maxlength="600">${N.ech(q.explication || '')}</textarea></div>
+      <div class="p-seance-actions"><button class="p-bouton p-bouton-mini" type="submit">Enregistrer</button><button class="p-bouton p-bouton-fantome p-bouton-mini" type="button" data-fermer>Annuler</button>${i != null && N.profil('question.' + cle + '/' + i, null) ? `<button class="p-bouton p-bouton-danger p-bouton-mini" type="button" data-retablir="${i}">Rétablir l'original</button>` : ''}${i != null && i >= nOrigine ? `<button class="p-bouton p-bouton-danger p-bouton-mini" type="button" data-supprimer-q="${i}">Supprimer</button>` : ''}</div></form>`;
+    const lireForm = (f) => {
+      const type = f.type.value; const lignes = f.choix.value.split('\n').map((x) => x.trim()).filter(Boolean);
+      const q = { type, q: f.q.value.trim(), explication: f.explication.value.trim() };
+      if (type === 'qcm') { if (lignes.length < 2) throw new Error('Un qcm demande au moins deux propositions.'); const bonne = lignes[0]; const melange = lignes.slice(); q.choix = melange; q.reponse = melange.indexOf(bonne); }
+      else if (type === 'vraifaux') q.reponse = /^v/i.test(lignes[0] || 'vrai');
+      else { if (!lignes.length) throw new Error('Une saisie demande au moins une réponse acceptée.'); q.reponses = lignes; }
+      return q;
+    };
+    const ouvrirForm = (i) => {
+      vue().querySelectorAll('.p-question-form').forEach((f) => f.closest('tr, .p-question-hote') && (f.closest('tr') ? f.closest('tr').remove() : f.remove()));
+      const q = i == null ? { type: 'qcm' } : serie[i];
+      const html = formulaireQuestion(q, i);
+      if (i == null) { const hote = document.createElement('div'); hote.className = 'p-question-hote'; hote.innerHTML = html; vue().querySelector('.p-bloc table').insertAdjacentElement('beforebegin', hote); }
+      else { const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="5">${html}</td>`; vue().querySelector(`tr[data-question="${i}"]`).insertAdjacentElement('afterend', tr); }
+      const f = vue().querySelector('.p-question-form');
+      f.querySelector('[data-fermer]').addEventListener('click', () => vueExos(mid, ref));
+      f.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        try {
+          const q = lireForm(f);
+          if (i == null || i >= nOrigine) { const liste = (N.profil('questions.' + cle, []) || []).slice(); if (i == null) liste.push(q); else liste[i - nOrigine] = q; await N.enregistrerProfil('questions.' + cle, liste); }
+          else await N.enregistrerProfil('question.' + cle + '/' + i, q);
+          N.signaler('Question enregistrée : Sterenn la verra à sa prochaine série.', 'succes'); vueExos(mid, ref);
+        } catch (e) { N.signaler(e.message); }
+      });
+      const r = f.querySelector('[data-retablir]'); if (r) r.addEventListener('click', async () => { await N.enregistrerProfil('question.' + cle + '/' + i, null); N.signaler('Question d\'origine rétablie.', 'succes'); vueExos(mid, ref); });
+      const sup = f.querySelector('[data-supprimer-q]'); if (sup) sup.addEventListener('click', async () => { const liste = (N.profil('questions.' + cle, []) || []).slice(); liste.splice(i - nOrigine, 1); await N.enregistrerProfil('questions.' + cle, liste.length ? liste : null); N.signaler('Question retirée.', 'succes'); vueExos(mid, ref); });
+    };
+    vue().querySelectorAll('[data-modifier]').forEach((b) => b.addEventListener('click', () => ouvrirForm(Number(b.getAttribute('data-modifier')))));
+    document.getElementById('q-ajouter').addEventListener('click', () => ouvrirForm(null));
     return undefined;
   }
 
@@ -1929,18 +2165,45 @@
   /* =======================================================================
      Recherche
      ======================================================================= */
-  function vueRecherche(q) {
+  async function vueRecherche(q) {
     const terme = (q || '').toLowerCase().trim();
     const trouves = [];
+    const dansTexte = [];
     if (terme) {
       PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => {
         const foin = [l.ref, l.titre, (l.notions || []).join(' '), m.nom].join(' ').toLowerCase();
         if (foin.indexOf(terme) !== -1) trouves.push({ m, l });
       }));
+      // B30 : le texte des fiches, matière par matière (chargé une fois, gardé en mémoire).
+      if (terme.length >= 3) {
+        afficher(entete('Recherche', 'Dans les titres, les notions et le texte des fiches…') + N.squelette('serie'), [{ t: 'Ressources' }, { t: 'Recherche' }]);
+        await Promise.all(PROGRAMME.matieres.map((m) => N.chargerContenu(m.id).catch(() => null)));
+        const bac = document.createElement('div');
+        const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const nq = norm(terme);
+        PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => {
+          const contenu = window.CONTENU && window.CONTENU[m.id] && window.CONTENU[m.id][l.ref];
+          if (!contenu) return;
+          ['cours', 'revision', 'exercices', 'evaluation'].forEach((t) => {
+            if (!contenu[t] || dansTexte.length >= 40) return;
+            bac.innerHTML = contenu[t].html;
+            let titreSection = '';
+            [...bac.children].some((el) => {
+              if (el.tagName === 'H2') { titreSection = el.textContent.trim(); return false; }
+              const texte = el.textContent || ''; const pos = norm(texte).indexOf(nq);
+              if (pos === -1) return false;
+              dansTexte.push({ m, l, t, section: titreSection, extrait: texte.slice(Math.max(0, pos - 60), pos + 90).replace(/\s+/g, ' ') });
+              return true;
+            });
+          });
+        }));
+      }
     }
+    const info = (t) => (N.TYPES_DOC.find((x) => x.id === t) || { libelle: t }).libelle;
     afficher(
-      entete('Recherche', trouves.length ? `${trouves.length} leçon(s) pour « ${N.ech(q)} »` : `Aucune leçon pour « ${N.ech(q || '')} »`)
-      + bloc('Résultats', trouves.length ? `
+      entete('Recherche', trouves.length || dansTexte.length ? `${trouves.length} leçon(s), ${dansTexte.length} passage(s) pour « ${N.ech(q)} »` : `Rien pour « ${N.ech(q || '')} »`)
+      + (dansTexte.length ? bloc('Dans le texte des fiches', `<ul class="p-liste p-resultats-texte">${dansTexte.map((x) => `<li><a href="#/lecon/${x.m.id}/${x.l.ref}/${x.t}">${x.m.icone} ${N.ech(x.l.titre)} · ${N.ech(info(x.t))}${x.section ? ' · ' + N.ech(x.section) : ''}</a><small class="p-faible">…${N.ech(x.extrait)}…</small></li>`).join('')}</ul>`, String(dansTexte.length)) : '')
+      + bloc('Leçons', trouves.length ? `
         <table class="p-table">
           <thead><tr><th style="width:4rem">Réf.</th><th>Leçon</th><th>Matière</th><th>Notions</th>
             <th style="width:11rem">Niveau</th></tr></thead>
@@ -2002,8 +2265,31 @@
         <p class="p-aide">Un instantané de toutes les tables est écrit chaque nuit dans le stockage de fichiers (travail planifié du dépôt). Tu peux en faire un à la main, en télécharger un, ou restaurer un instantané : l'état courant est mis de côté juste avant.</p>
         <p class="p-modeles"><button type="button" class="p-bouton" id="r-sauver">Sauvegarder maintenant</button></p>
         <div id="r-sauvegardes"><p class="p-vide">Chargement…</p></div>`)
-      + bloc('Ce qui ne se règle pas ici', `<p class="p-aide">Les codes d\'accès, les palettes et le thème sombre appartiennent à chaque écran : Sterenn choisit sa palette et son thème elle-même, dans son espace.</p>`),
+      + bloc('Sonde et notifications', `<p class="p-aide">L'espace interroge le serveur à intervalle régulier pour voir les nouveaux messages et réglages. Plus court, plus réactif ; plus long, moins de requêtes.</p>
+        <label for="r-sonde">Délai de la sonde</label> <select id="r-sonde">${[20, 30, 45, 60, 90, 120, 180].map((v) => `<option value="${v}" ${Number(N.reglage('sonde')) === v ? 'selected' : ''}>${v} s</option>`).join('')}</select>`)
+      + bloc('Affichage du pilotage', `<p class="p-aide">Retenu sur cet appareil, sans effet chez Sterenn.</p>
+        <div class="ligne"><div><label for="r-accent">Couleur d'accent</label><select id="r-accent">${[['bleu', 'Bleu'], ['vert', 'Vert opale'], ['prune', 'Prune']].map(([v, t]) => `<option value="${v}" ${(N.lire('opaline.pilotage', {}).accent || 'bleu') === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+        <div><label for="r-densite">Densité des tableaux</label><select id="r-densite">${[['confortable', 'Confortable'], ['compacte', 'Compacte']].map(([v, t]) => `<option value="${v}" ${(N.lire('opaline.pilotage', {}).densite || 'confortable') === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div></div>
+        <p class="p-aide">Le thème clair ou sombre se change avec le bouton ◐ de la barre du haut. Raccourcis : <kbd>g</kbd> puis <kbd>a</kbd> accueil, <kbd>p</kbd> planning, <kbd>s</kbd> suivi, <kbd>m</kbd> messages, <kbd>d</kbd> dépôts, <kbd>r</kbd> réglages ; <kbd>/</kbd> recherche.</p>`)
+      + bloc('Codes d\'accès', `<form class="p-form" id="r-codes">
+        <p class="p-aide">Le code se change ici, sans redéploiement. Le code professeur actuel est demandé à chaque fois. Un code fait au moins six caractères : lettres, chiffres, point, tiret. L'ancien code cesse d'ouvrir aussitôt ; les sessions déjà ouvertes restent valides.</p>
+        <div class="ligne"><div><label for="c-role">Espace</label><select id="c-role"><option value="eleve">Sterenn</option><option value="prof">Professeur</option></select></div>
+        <div><label for="c-actuel">Code professeur actuel</label><input id="c-actuel" type="password" autocomplete="current-password" required></div>
+        <div><label for="c-nouveau">Nouveau code</label><input id="c-nouveau" type="text" autocomplete="off" minlength="6" maxlength="64" required></div></div>
+        <button class="p-bouton" type="submit">Changer le code</button></form>`),
     [{ t: 'Réglages' }]);
+    document.getElementById('r-sonde').addEventListener('change', async (ev) => { try { const d = await N.api('/reglages', { method: 'PUT', body: JSON.stringify({ cle: 'sonde', valeur: Number(ev.target.value) }) }); N.etat.reglages = d.reglages || N.etat.reglages; N.signaler('Sonde : toutes les ' + ev.target.value + ' secondes.', 'succes'); } catch (e) { N.signaler(e.message); } });
+    document.getElementById('r-accent').addEventListener('change', (ev) => N.appliquerPilotage({ accent: ev.target.value }));
+    document.getElementById('r-densite').addEventListener('change', (ev) => N.appliquerPilotage({ densite: ev.target.value }));
+    document.getElementById('r-codes').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const role = document.getElementById('c-role').value;
+      if (!(await confirmerParMot('changer', `Le code de l'espace ${role === 'prof' ? 'professeur' : 'de Sterenn'} va être remplacé.`))) return;
+      try {
+        await N.api('/codes', { method: 'PUT', body: JSON.stringify({ role, actuel: document.getElementById('c-actuel').value, nouveau: document.getElementById('c-nouveau').value }) });
+        N.signaler('Code changé. Note-le quelque part de sûr.', 'succes'); document.getElementById('r-codes').reset();
+      } catch (e) { N.signaler(e.message); }
+    });
     const listerSauvegardes = async () => {
       const zone = document.getElementById('r-sauvegardes');
       try {
@@ -2089,10 +2375,11 @@
     vue().querySelectorAll('[data-acces]').forEach((b) => b.addEventListener('click', async () => {
       const cle = b.getAttribute('data-acces');
       const valeur = suivant[b.getAttribute('data-etat')];
+      const avantAcces = N.etat.acces[b.getAttribute('data-acces')] ? { etat: N.etat.acces[b.getAttribute('data-acces')].etat === 1, jusqu_au: N.etat.acces[b.getAttribute('data-acces')].jusqu_au } : { etat: null };
       try {
         await N.api('/acces', { method: 'PUT', body: JSON.stringify({ cle, etat: valeur }) });
         await N.rafraichirEtat();
-        N.signaler(valeur === null ? 'Retour à la règle automatique.' : valeur ? 'Ouvert à Sterenn.' : 'Fermé pour Sterenn.', 'succes');
+        annulable('Accès enregistré.', async () => { await N.api('/acces', { method: 'PUT', body: JSON.stringify({ cle, etat: avantAcces.etat, jusqu_au: avantAcces.jusqu_au || null }) }); await N.rafraichirEtat(); vueAcces(); });
         vueAcces();
       } catch (e) { N.signaler(e.message); }
     }));
@@ -2176,6 +2463,8 @@
       case 'planning': return vuePlanning();
       case 'suivi': return vueSuivi();
       case 'socle': return vueSocle();
+      case 'aide': return vueAideProf();
+      case 'bulletin': return vueBulletin(p[1]);
       case 'periodes': return vuePeriodes();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);
       case 'depots': return vueDepots();

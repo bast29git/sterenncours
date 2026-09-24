@@ -95,7 +95,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **A12 · P1 · S** Taille maximale du corps des requêtes JSON (32 Ko, 1 Mo pour le lot de séances et la restauration) vérifiée avant `request.json()`.
 - ✅ **A13 · P2 · S** En-têtes de sécurité complets : `Content-Security-Policy` réelle (aujourd'hui absente), `Permissions-Policy`, `X-Frame-Options`.
 - **A14 · P2 · S** Rotation du jeton de session à chaque connexion et invalidation des anciens jetons du même rôle sur demande (bouton « Déconnecter partout »).
-- **A15 · P2 · M** Codes d'accès remplaçables sans redéploiement : une clé KV `codes` chiffrée, une page professeur pour les changer, l'ancien code valable dix minutes.
+- ✅ **A15 · P2 · M** Codes d'accès remplaçables sans redéploiement : une clé KV `codes` chiffrée, une page professeur pour les changer, l'ancien code valable dix minutes.
 - **A16 · P3 · S** Validation stricte des types de fichiers déposés par lecture des premiers octets, pas seulement du `content-type` annoncé.
 - **A17 · P3 · S** Antivirus léger : refuser les documents bureautiques avec macros, limiter les PDF à 15 Mo, images recompressées côté serveur.
 - **A18 · P3 · M** Journal des connexions (rôle, heure, empreinte de navigateur tronquée) consultable par le professeur, purge à trente jours.
@@ -167,7 +167,7 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 - ✅ **B1 · P1 · M** Accueil recentré sur la séance du jour : ordre du jour minuté, fiches à ouvrir en un clic, exercices 1 à 4 affichés, case « séance faite » et bilan en trois lignes sans quitter l'écran.
 - ✅ **B2 · P1 · S** Absence déclarée par Sterenn visible sur l'accueil avec son mot, et bouton « reporter la séance » qui décale les blocs.
 - ✅ **B3 · P1 · S** Choix en attente listés sur l'accueil avec le délai restant, et bouton « choisir à sa place » si la date limite est passée.
-- **B4 · P2 · S** Rappel automatique du travail personnel annoncé à la séance précédente, avec case « fait » ou « pas fait, à reprendre ».
+- ✅ **B4 · P2 · S** Rappel automatique du travail personnel annoncé à la séance précédente, avec case « fait » ou « pas fait, à reprendre ».
 - ✅ **B5 · P2 · M** Bilan de séance guidé : trois champs fixes (acquis nommé, à reprendre, prochaine étape) qui alimentent le suivi et le message de fin de séance.
 - ✅ **B6 · P2 · S** Message de fin de séance pré-rédigé à Sterenn à partir du bilan, envoyé en un clic, modifiable.
 
@@ -175,63 +175,63 @@ Le socle est sain : contenu complet, accès décidé et appliqué par le serveur
 
 - ✅ **B7 · P1 · M** Suivi alimenté par les faits : une leçon passe à « fragile » à la première série jouée, « satisfaisant » proposé quand série à 70 %, fiches terminées et devoir rendu ; le professeur confirme d'un clic.
 - ✅ **B8 · P1 · S** Positionnement de départ (« Où j'en suis ») affiché dans le suivi, en colonne, à côté du niveau courant.
-- **B9 · P2 · M** Vue par compétence du socle : les critères des grilles agrégés par domaine (D1 à D5), pour le livret.
-- **B10 · P2 · S** Historique par leçon : chaque changement de niveau daté, avec l'auteur et la raison (série, devoir, décision).
-- **B11 · P2 · S** Reprise planifiée : marquer « à reprendre dans trois semaines » crée un temps personnel dans la semaine visée.
-- **B12 · P2 · M** Grille d'évaluation remplissable en ligne : les huit critères de `4-evaluation` cliquables, positionnement de Sterenn et du professeur côte à côte, écart calculé, enregistré dans le suivi.
-- **B13 · P2 · S** Note du devoir saisie sur la copie déposée, liée au fichier et à la leçon.
-- **B14 · P3 · M** Bulletin de période généré : un PDF par période avec niveaux, notes, mots du professeur, à partir des données.
-- **B15 · P3 · S** Courbe d'étoiles par semaine et par matière, pour voir les creux.
+- ✅ **B9 · P2 · M** Vue par compétence du socle : les critères des grilles agrégés par domaine (D1 à D5), pour le livret.
+- ✅ **B10 · P2 · S** Historique par leçon : chaque changement de niveau daté, avec l'auteur et la raison (série, devoir, décision).
+- ✅ **B11 · P2 · S** Reprise planifiée : marquer « à reprendre dans trois semaines » crée un temps personnel dans la semaine visée.
+- ✅ **B12 · P2 · M** Grille d'évaluation remplissable en ligne : les huit critères de `4-evaluation` cliquables, positionnement de Sterenn et du professeur côte à côte, écart calculé, enregistré dans le suivi.
+- ✅ **B13 · P2 · S** Note du devoir saisie sur la copie déposée, liée au fichier et à la leçon.
+- ✅ **B14 · P3 · M** Bulletin de période généré : un PDF par période avec niveaux, notes, mots du professeur, à partir des données.
+- ✅ **B15 · P3 · S** Courbe d'étoiles par semaine et par matière, pour voir les creux.
 
 ### Planning
 
-- **B16 · P2 · S** Prévisualisation avant génération : les huit premières semaines affichées avec les matières en couleur, puis validation, au lieu d'écrire directement en base.
+- ✅ **B16 · P2 · S** Prévisualisation avant génération : les huit premières semaines affichées avec les matières en couleur, puis validation, au lieu d'écrire directement en base.
 - ✅ **B17 · P1 · S** Vacances scolaires de la zone saisies une fois, sautées par le générateur, affichées en gris dans le planning.
-- **B18 · P2 · S** Déplacer une séance par glisser-déposer dans la semaine, avec recalcul des blocs.
-- **B19 · P2 · S** Recherche dans le sélecteur de leçons d'une séance : filtre par texte, matières groupées, leçons déjà planifiées signalées.
-- **B20 · P2 · S** Durée des temps personnels réglable dans le générateur (15, 20 ou 30 minutes) et modifiable séance par séance.
-- **B21 · P2 · S** Vue « période » : les cinq périodes en colonnes, les leçons placées, les manques en rouge.
-- **B22 · P3 · S** Export du planning en fichier calendrier (`.ics`) pour le téléphone.
-- **B23 · P3 · M** Séance en visio : lien de réunion enregistré sur la séance, bouton « rejoindre » des deux côtés.
+- ✅ **B18 · P2 · S** Déplacer une séance par glisser-déposer dans la semaine, avec recalcul des blocs.
+- ✅ **B19 · P2 · S** Recherche dans le sélecteur de leçons d'une séance : filtre par texte, matières groupées, leçons déjà planifiées signalées.
+- ✅ **B20 · P2 · S** Durée des temps personnels réglable dans le générateur (15, 20 ou 30 minutes) et modifiable séance par séance.
+- ✅ **B21 · P2 · S** Vue « période » : les cinq périodes en colonnes, les leçons placées, les manques en rouge.
+- ✅ **B22 · P3 · S** Export du planning en fichier calendrier (`.ics`) pour le téléphone.
+- ✅ **B23 · P3 · M** Séance en visio : lien de réunion enregistré sur la séance, bouton « rejoindre » des deux côtés.
 
 ### Contenu et accès
 
 - ✅ **B24 · P1 · S** Ouvrir une évaluation depuis la fiche de leçon, pas seulement depuis la page Accès, avec date de fermeture proposée à J+7.
-- **B25 · P2 · S** Prévisualiser l'écran de Sterenn : un bouton « voir comme elle » qui rend la vue élève d'une leçon avec ses accès réels.
-- **B26 · P2 · S** Modifier une question de série en ligne (texte, réponse, explication), enregistrée comme surcharge en base, relue au build suivant.
-- **B27 · P2 · M** Ajouter une question ou un exercice personnel à une leçon, avec l'un des univers de Sterenn, sans toucher au Markdown.
-- **B28 · P2 · S** Annoter une fiche : notes du professeur par section, visibles de lui seul, pour préparer la séance.
-- **B29 · P3 · S** Filtre « ce que Sterenn a ouvert » dans la liste des matières : fiches lues, séries jouées, dates.
-- **B30 · P3 · S** Recherche plein texte dans les fiches (titre, notions, texte), pas seulement dans les titres.
+- ✅ **B25 · P2 · S** Prévisualiser l'écran de Sterenn : un bouton « voir comme elle » qui rend la vue élève d'une leçon avec ses accès réels.
+- ✅ **B26 · P2 · S** Modifier une question de série en ligne (texte, réponse, explication), enregistrée comme surcharge en base, relue au build suivant.
+- ✅ **B27 · P2 · M** Ajouter une question ou un exercice personnel à une leçon, avec l'un des univers de Sterenn, sans toucher au Markdown.
+- ✅ **B28 · P2 · S** Annoter une fiche : notes du professeur par section, visibles de lui seul, pour préparer la séance.
+- ✅ **B29 · P3 · S** Filtre « ce que Sterenn a ouvert » dans la liste des matières : fiches lues, séries jouées, dates.
+- ✅ **B30 · P3 · S** Recherche plein texte dans les fiches (titre, notions, texte), pas seulement dans les titres.
 
 ### Échanges
 
 - ✅ **B31 · P1 · S** Réponse rapide depuis l'accueil : le dernier message de Sterenn et un champ de réponse, sans changer de page.
-- **B32 · P2 · S** Modèles de messages (rappel de travail, encouragement, changement d'horaire) avec variables (date, leçon).
-- **B33 · P2 · S** Envoi différé : rédiger le soir, envoyer à 8 h.
-- **B34 · P2 · S** Copie déposée ouverte en grand avec zoom et rotation, annotation simple (trait, cercle), renvoi annoté.
-- **B35 · P3 · S** Accusé de lecture des félicitations (vu le … à …).
+- ✅ **B32 · P2 · S** Modèles de messages (rappel de travail, encouragement, changement d'horaire) avec variables (date, leçon).
+- ✅ **B33 · P2 · S** Envoi différé : rédiger le soir, envoyer à 8 h.
+- ✅ **B34 · P2 · S** Copie déposée ouverte en grand avec zoom et rotation, annotation simple (trait, cercle), renvoi annoté.
+- ✅ **B35 · P3 · S** Accusé de lecture des félicitations (vu le … à …).
 
 ### Réglages et outils
 
-- **B36 · P2 · S** Réglage « pauses » par fiche plutôt que global, depuis la fiche.
-- **B37 · P2 · S** Modification des codes d'accès depuis les réglages (voir A15).
-- **B38 · P2 · S** Réglage de la sonde et des notifications (délai, sons).
-- **B39 · P3 · S** Thème de l'espace professeur au choix (le contraste a été relevé, la palette reste unique).
-- **B40 · P3 · S** Raccourcis clavier : `g` puis `a` accueil, `g` puis `p` planning, `/` recherche.
+- ✅ **B36 · P2 · S** Réglage « pauses » par fiche plutôt que global, depuis la fiche.
+- ✅ **B37 · P2 · S** Modification des codes d'accès depuis les réglages (voir A15).
+- ✅ **B38 · P2 · S** Réglage de la sonde et des notifications (délai, sons).
+- ✅ **B39 · P3 · S** Thème de l'espace professeur au choix (le contraste a été relevé, la palette reste unique).
+- ✅ **B40 · P3 · S** Raccourcis clavier : `g` puis `a` accueil, `g` puis `p` planning, `/` recherche.
 
 ### Interface et ergonomie
 
 - ✅ **B41 · P1 · S** Tableaux professeur sur mobile : cartes empilées sous 640 px au lieu de tableaux tronqués (Accès, Suivi).
 - ✅ **B42 · P1 · S** Menu latéral réduit à des icônes sur écran moyen, au lieu de disparaître derrière un bouton.
-- **B43 · P2 · S** Fil d'Ariane cliquable partout, retour arrière conservé (aujourd'hui certains « Retour » renvoient à l'accueil).
-- **B44 · P2 · S** États vides utiles : chaque liste vide propose l'action qui la remplit.
-- **B45 · P2 · S** Chargement progressif : squelettes gris au lieu de « Chargement… ».
-- **B46 · P2 · S** Confirmation des suppressions par une phrase à taper (« supprimer ») pour les séances et fichiers, au lieu d'une boîte native.
-- **B47 · P3 · S** Annuler la dernière action pendant dix secondes (bandeau « Annuler ») pour niveaux, accès, félicitations.
-- **B48 · P3 · S** Densité réglable (confortable, compacte) pour les tableaux.
-- **B49 · P3 · S** Impression propre des pages suivi et planning (feuille de style d'impression).
-- **B50 · P3 · S** Page « aide » du professeur : les règles du système en une page (étoiles, verrous, accès, choix, quotas).
+- ✅ **B43 · P2 · S** Fil d'Ariane cliquable partout, retour arrière conservé (aujourd'hui certains « Retour » renvoient à l'accueil).
+- ✅ **B44 · P2 · S** États vides utiles : chaque liste vide propose l'action qui la remplit.
+- ✅ **B45 · P2 · S** Chargement progressif : squelettes gris au lieu de « Chargement… ».
+- ✅ **B46 · P2 · S** Confirmation des suppressions par une phrase à taper (« supprimer ») pour les séances et fichiers, au lieu d'une boîte native.
+- ✅ **B47 · P3 · S** Annuler la dernière action pendant dix secondes (bandeau « Annuler ») pour niveaux, accès, félicitations.
+- ✅ **B48 · P3 · S** Densité réglable (confortable, compacte) pour les tableaux.
+- ✅ **B49 · P3 · S** Impression propre des pages suivi et planning (feuille de style d'impression).
+- ✅ **B50 · P3 · S** Page « aide » du professeur : les règles du système en une page (étoiles, verrous, accès, choix, quotas).
 
 ## 6. Axe C : espace de Sterenn (100)
 

@@ -1020,6 +1020,8 @@
     }
     const clePos = 'opaline.diapo.' + cleFiche;
     const cleServeur = 'moi.diapo.' + cleFiche;
+    const pausesFiche = N.profil('pauses.' + cleFiche, null);
+    const lecteurEl = hote.closest('.e-lecteur'); if (lecteurEl) { if (pausesFiche === null) lecteurEl.removeAttribute('data-pauses-fiche'); else lecteurEl.setAttribute('data-pauses-fiche', pausesFiche ? '1' : '0'); }
     let i = 0;
     // C11 : la position vient de l'onglet, sinon du profil partagé (reprise sur un autre appareil).
     try { i = Number(sessionStorage.getItem(clePos)); if (Number.isNaN(i)) i = 0; } catch (e) { i = 0; }

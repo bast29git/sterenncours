@@ -18,6 +18,7 @@ export const REGLAGES = {
   formatage:     { defaut: false, type: 'boolean', libelle: 'Mise en forme du texte dans les messages' },
   fils:          { defaut: true,  type: 'boolean', libelle: 'Fils de discussion séparés par matière' },
   felicitations: { defaut: true,  type: 'boolean', libelle: 'Message d\'encouragement automatique quand une série est réussie' },
+  sonde:         { defaut: 45,    type: 'number',  libelle: 'Délai de la sonde de nouveautés, en secondes', min: 20, max: 300 },
 };
 
 export async function lireReglages(DB) {
@@ -47,8 +48,9 @@ export const onRequestPut = gerer(async (context) => {
   const cle = String(corps && corps.cle || '');
   const regle = REGLAGES[cle];
   if (!regle) return erreur('Réglage inconnu.');
-  const valeur = corps.valeur;
+  let valeur = corps.valeur;
   if (typeof valeur !== regle.type) return erreur(`La valeur de ${cle} doit être de type ${regle.type}.`);
+  if (regle.type === 'number') valeur = Math.min(regle.max, Math.max(regle.min, Math.round(valeur)));
 
   await DB.prepare(
     `INSERT INTO reglages (cle, valeur, maj_le) VALUES (?, ?, ?)
