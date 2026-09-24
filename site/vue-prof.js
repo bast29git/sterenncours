@@ -252,10 +252,14 @@
     .sort((a, b) => String(a.debut || '').localeCompare(String(b.debut || '')));
 
   function resumeMatieres(s) {
-    return (s.matieres || []).map((id) => {
+    const modules = (s.lecons || []).filter((r) => r.indexOf('module/') === 0).map((r) => {
+      const info = N.libelleLecon(r);
+      return info ? `${info.l.icone} ${N.ech(info.l.titre)}` : '';
+    });
+    return modules.concat((s.matieres || []).map((id) => {
       const m = N.matiere(id);
       return m ? `${m.icone} ${N.ech(m.nom)}` : '';
-    }).filter(Boolean).join(' · ');
+    })).filter(Boolean).join(' · ');
   }
 
   function carteSeance(s, options) {
@@ -540,7 +544,11 @@
       + m.lecons.map((l) => {
         const v = m.id + '/' + l.ref;
         return `<option value="${v}"${choisies.has(v) ? ' selected' : ''}>${l.ref} · ${N.ech(l.titre)}</option>`;
-      }).join('') + '</optgroup>').join('');
+      }).join('') + '</optgroup>').join('')
+      + `<optgroup label="✨ Modules">${Object.values(N.MODULES).map((x) => {
+        const v = 'module/' + x.ref;
+        return `<option value="${v}"${choisies.has(v) ? ' selected' : ''}>${x.icone} ${N.ech(x.titre)}</option>`;
+      }).join('')}</optgroup>`;
   }
 
   function vueSeance(id) {
@@ -598,6 +606,7 @@
         (s.lecons || []).length
           ? `<table class="p-table"><tbody>${s.lecons.map((r) => {
             const info = N.libelleLecon(r);
+            if (info && info.m.id === 'module') return `<tr><td>${info.l.icone} ${N.ech(info.l.titre)} <small class="p-faible">module, sans niveau</small></td><td></td></tr>`;
             return info ? `<tr><td><a href="#/lecon/${info.m.id}/${info.l.ref}">${N.ech(info.l.titre)}</a></td>
               <td style="width:11rem">${choixNiveau(info.m.id, info.l.ref)}</td></tr>` : '';
           }).join('')}</tbody></table>`

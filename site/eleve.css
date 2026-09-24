@@ -1067,3 +1067,21 @@ html[data-tuteur="0"] .e-opale-bouton, html[data-tuteur="0"] .e-opale { display:
 .e-visite-texte p { margin: 0; line-height: 1.55; }
 .e-visite-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.8rem; justify-content: flex-end; }
 .e-visite-actions .e-bouton { font-size: 0.85rem; padding: 0.45rem 0.8rem; }
+
+/* ---------- Thème sombre : titres de blocs relevés dans les fiches ---------- */
+[data-theme="dark"] .e-fiche .bloc-definition > .bloc-titre { color: #8FC1F0; }
+[data-theme="dark"] .e-fiche .bloc-formule > .bloc-titre { color: #C9B3F5; }
+[data-theme="dark"] .e-fiche .bloc-exemple > .bloc-titre { color: #8FDDB8; }
+[data-theme="dark"] .e-fiche .bloc-piege > .bloc-titre { color: #F5A99A; }
+[data-theme="dark"] .e-fiche .bloc-retenir > .bloc-titre { color: #F2C77A; }
+[data-theme="dark"] .e-fiche .bloc-methode > .bloc-titre { color: #8FD9CD; }
+[data-theme="dark"] .e-fiche .bloc-objectif > .bloc-titre, [data-theme="dark"] .e-fiche .bloc-plan > .bloc-titre { color: var(--e-encre); }
+[data-theme="dark"] .e-fiche .bloc-definition { border-left-color: #8FC1F0; }
+[data-theme="dark"] .e-fiche .bloc-formule { border-left-color: #C9B3F5; }
+[data-theme="dark"] .e-fiche .bloc-exemple { border-left-color: #8FDDB8; }
+[data-theme="dark"] .e-fiche .bloc-piege { border-left-color: #F5A99A; }
+[data-theme="dark"] .e-fiche .bloc-retenir { border-left-color: #F2C77A; }
+[data-theme="dark"] .e-fiche .bloc-methode { border-left-color: #8FD9CD; }
+[data-theme="dark"] .e-fiche h2, [data-theme="dark"] .e-fiche h3, [data-theme="dark"] .e-fiche h4 { color: var(--e-encre); }
+[data-theme="dark"] .e-fiche, [data-theme="dark"] .e-fiche p, [data-theme="dark"] .e-fiche li, [data-theme="dark"] .e-fiche td, [data-theme="dark"] .e-fiche th { color: var(--e-encre); }
+[data-theme="dark"] .e-fiche code, [data-theme="dark"] .e-fiche .formule-cle { background: #2A2438; color: var(--e-encre); }

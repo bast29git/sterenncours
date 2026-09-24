@@ -305,26 +305,7 @@
     /* ---------- Fin ---------- */
     function showFin(won, o) {
       timer.stop();
-      const METIERS = {
-        'Espace & Astro': ['Astrophysicien·ne', 'Ingénieur·e aérospatial', 'Technicien·ne satellite', 'Médiateur·rice scientifique'],
-        'Physique': ['Ingénieur·e', 'Chercheur·se', 'Technicien·ne de mesures', 'Professeur·e de sciences'],
-        'Chimie': ['Chimiste', 'Pharmacien·ne', 'Ingénieur·e qualité', 'Technicien·ne de labo'],
-        'Bio & SVT': ['Biologiste', 'Infirmier·ère / Médecin', 'Vétérinaire', 'Écologue'],
-        'SVT & Santé': ['Médecin', 'Infirmier·ère', 'Biologiste', 'Kinésithérapeute'],
-        'Cybersécurité': ['Analyste SOC', 'Pentester', 'RSSI', 'Consultant·e cybersécurité'],
-        'Réseaux': ['Administrateur·rice réseau', 'Ingénieur·e cloud', 'Technicien·ne télécoms', 'Architecte réseau'],
-        'Réseaux & Systèmes': ['Administrateur·rice systèmes', 'Ingénieur·e cloud', 'Technicien·ne support', 'Architecte réseau'],
-        'Dev & Info': ['Développeur·se', 'Data engineer', 'DevOps', 'Chef·fe de projet IT'],
-        'IA & Data': ['Data scientist', 'Ingénieur·e IA', 'Data analyst', 'Prompt engineer'],
-        'Maths': ['Actuaire', 'Data scientist', 'Enseignant·e', 'Ingénieur·e R&D'],
-        'Français': ['Journaliste', 'Correcteur·rice', 'Enseignant·e', 'Chargé·e de communication'],
-        'Histoire & Géo': ['Professeur·e', 'Archéologue', 'Guide-conférencier·ère', 'Géographe / Urbaniste'],
-        'Techno & Méca': ['Ingénieur·e mécanique', 'Technicien·ne de maintenance', 'Roboticien·ne', 'Concepteur·rice CAO'],
-        'Écologie': ['Chargé·e de transition écologique', 'Écologue', 'Ingénieur·e environnement', 'Conseiller·ère énergie'],
-        'Pro': ['Chef·fe d\'entreprise', 'Chef·fe de projet', 'Manager', 'Consultant·e'],
-        'Langues': ['Traducteur·rice', 'Interprète', 'Professeur·e de langues', 'Commercial·e export'],
-      };
-      const careers = (dom && METIERS[dom.label]) || [];
+      const careers = [];
       if (won) ach(K => K.recordWin(cfg.id, { stars: o.stars != null ? o.stars : 3, score: o.score || 0, mode }));
       const stars = o.stars != null ? o.stars : (won ? 3 : 0);
       const best = api.load('best', 0); const sc = o.score != null ? o.score : 0;

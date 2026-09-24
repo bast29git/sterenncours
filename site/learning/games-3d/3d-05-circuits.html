@@ -607,7 +607,7 @@ function showDefi(){ const d=DEFIS[defiIdx]; let b=document.getElementById('elQu
 }
 function evalDefi(){ if(emode!=='defi'||defiDone)return; const d=DEFIS[defiIdx]; if(d.ok()){ defiDone=true; shell.sound('good'); shell.api.addScore(150); shell.api.say(d.done,'fier'); shell.api.toast('✅ '+d.title); setTimeout(()=>{ defiIdx++; if(defiIdx>=DEFIS.length){ winDefis(); } else { shell.api.setProgress(defiIdx/DEFIS.length); showDefi(); } },1400); } }
 function winDefis(){ clearQuiz(); const sc=parseInt(document.querySelector('.ksh-score').textContent||'0',10); shell.api.setProgress(1);
-  shell.api.win({ score:sc, stars:3, title:"Circuit maîtrisé : défis réussis !", learned:shell.cfg.learned, buddy:"Tu sais fermer un circuit, doser le courant et comparer série et parallèle. Bravo, petit·e électronicien·ne !", onNext:()=>{ shell.api.setScore(0); startDefis(); }, nextLabel:'Rejouer' }); }
+  shell.api.win({ score:sc, stars:3, title:"Circuit maîtrisé : défis réussis !", learned:shell.cfg.learned, buddy:"Tu sais fermer un circuit, doser le courant et comparer série et parallèle. Bravo, petite électronicienne !", onNext:()=>{ shell.api.setScore(0); startDefis(); }, nextLabel:'Rejouer' }); }
 
 /* ============ MODE « Trouve le composant » ============ */
 const FIND_LIST=[

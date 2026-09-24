@@ -649,7 +649,7 @@ function finishCourse(){
   const sc=parseInt(document.querySelector('.ksh-score').textContent||'0',10);
   const stars=sc>=900?3:sc>=550?2:1;
   shell.win({ score:sc, stars, title:'Laboratoire maîtrisé !', learned:shell.cfg.learned,
-    buddy:"Tu as manipulé la gravité, l'énergie et la quantité de mouvement comme un·e physicien·ne !",
+    buddy:"Tu as manipulé la gravité, l'énergie et la quantité de mouvement comme une physicienne !",
     onNext:()=>{ chIndex=0; document.querySelector('.ksh-score').textContent='0'; shell.setScore(0); startChallenge(0); }, nextLabel:'Rejouer les défis' });
 }
 function checkChallenge(){

@@ -368,6 +368,13 @@
         <p><a class="e-bouton e-bouton-doux" href="#/matiere/${mid}">Revenir au parcours</a></p></div>`);
     }
     const ouverts = docsVisibles(l);
+    if (type === 'evaluation' && ouverts.indexOf('evaluation') === -1) {
+      return afficher(`<div class="e-lecteur"><header class="e-lecteur-tete">
+        <p style="margin:0;color:var(--e-encre-doux);font-size:.85rem">${m.icone} ${N.ech(m.nom)}</p>
+        <h1>Évaluation : ${N.ech(l.titre)}</h1>${ongletsLecon(mid, ref, ouverts, '')}</header>
+        <div class="e-carte e-vide"><p>${N.ic('ic-verrou')} Cette évaluation n'est pas encore ouverte. Bastien l'ouvre quand la leçon est prête ; tu seras prévenue.</p>
+        <p><a class="e-bouton e-bouton-doux" href="#/lecon/${mid}/${ref}/${ouverts[0] || 'cours'}">Revenir à la fiche</a></p></div></div>`);
+    }
     const actif = ouverts.indexOf(type) !== -1 ? type : ouverts[0];
     afficher('<p class="e-vide">Chargement…</p>');
     if (actif === 'evaluation') return vueEvaluation(m, l, mid, ref, ouverts);
@@ -833,11 +840,17 @@
     }));
   }
 
+  const dureeMinutes = (s) => {
+    const [h1, m1] = String(s.debut || '0:0').split(':').map(Number);
+    const [h2, m2] = String(s.fin || '0:0').split(':').map(Number);
+    const d = (h2 * 60 + m2) - (h1 * 60 + m1);
+    return d > 0 ? d : 15;
+  };
   function evenement(s) {
     const futur = s.date >= N.jourIso();
     if (s.type === 'travail') {
       return `<article class="e-evt perso" data-evt="${s.id}">
-        <p class="h">${N.ech(s.debut)} · 15 min</p>
+        <p class="h">${N.ech(s.debut)} · ${dureeMinutes(s)} min</p>
         <p class="t">Temps perso</p>
         <p class="d">${N.ech(court(String(s.travail || 'À voir ensemble'), 78))}</p>
         ${futur ? `<p class="l"><button type="button" class="o" data-deplacer="${s.id}">${N.ic('ic-horloge')} Déplacer</button></p>

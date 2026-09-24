@@ -387,7 +387,7 @@ const shell=window.Konstrio.createGame({
   intro:{
     greet:"Bienvenue à bord ! Fais tourner la Terre, clique un continent ou une épingle pour sa fiche… ou pars en Tour du monde guidé (mode Cours).",
     rule:"Un globe photoréaliste et vivant : jour/nuit avec les lumières des villes, nuages, atmosphère. En Détente, explore librement : continents, océans et plus de 200 pays sont cliquables. En Cours, un Tour du monde guidé en 3 escales : continents → grands pays → capitales.",
-    how:["Glisse pour tourner le globe · molette (ou boutons +/−) pour zoomer.","Clique un continent, un océan ou une épingle 📍 : une fiche s'ouvre (capitale, population, heure locale, distance depuis Paris…).","Mode Cours : on te nomme une cible, clique-la sur le globe. Tu es guidé·e, jamais pénalisé·e : des indices arrivent si besoin.","Calques : 🌙 face nuit (villes illuminées), 🕐 Soleil réel (le vrai jour/nuit de maintenant), ☁️ nuages, 🌐 grille."],
+    how:["Glisse pour tourner le globe · molette (ou boutons +/−) pour zoomer.","Clique un continent, un océan ou une épingle 📍 : une fiche s'ouvre (capitale, population, heure locale, distance depuis Paris…).","Mode Cours : on te nomme une cible, clique-la sur le globe. Tu es guidée, jamais pénalisée : des indices arrivent si besoin.","Calques : 🌙 face nuit (villes illuminées), 🕐 Soleil réel (le vrai jour/nuit de maintenant), ☁️ nuages, 🌐 grille."],
     keys:"Flèches = tourner le globe · + / − = zoom · Échap = pause.",
     objectif:"Situer les 7 continents, une quinzaine de grands pays et leurs capitales.",
     hint:"Repère-toi avec les continents : l'Europe en haut au centre, les Amériques à gauche, l'Asie à droite.",
@@ -701,7 +701,7 @@ function showEndScreen(){ if(!mission)return; mission.active=false; clearHelp();
     <div class="gl-end-body">
       <span class="gl-end-flag">Tour du monde · 3 escales · ${TOTAL_STEPS} étapes</span>
       <h2 class="gl-end-h">${stars===3?'Géographe hors pair !':stars===2?'Beau voyage, globe-trotteur !':'Tour du monde bouclé !'}</h2>
-      <p class="gl-end-sub">Continents, grands pays, capitales : tu viens de faire le tour de la planète. ${prec>=80?'Quelle précision !':'Chaque nouveau voyage te rendra encore plus précis·e.'}</p>
+      <p class="gl-end-sub">Continents, grands pays, capitales : tu viens de faire le tour de la planète. ${prec>=80?'Quelle précision !':'Chaque nouveau voyage te rendra encore plus précise.'}</p>
       <div class="gl-meds">
         <div class="gl-med"><div class="n">${mission.done.continents}/7</div><div class="l">Continents</div></div>
         <div class="gl-med"><div class="n">${mission.done.pays}/6</div><div class="l">Pays</div></div>

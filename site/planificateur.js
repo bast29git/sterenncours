@@ -60,6 +60,7 @@
         nom: m.nom,
         icone: m.icone,
         index: 0,
+        total: lecons.length * BLOCS_PAR_LECON,
         restants: lecons.length * BLOCS_PAR_LECON,
         lecons,
         consommes: 0,
@@ -86,12 +87,21 @@
    * Choisit les matières d'une séance : celles qui restent le plus à traiter,
    * en écartant celles vues à la séance précédente tant que c'est possible.
    */
+  /**
+   * Tour de rôle pondéré : chaque matière reçoit, au fil des séances, une part
+   * de blocs proportionnelle à son volume annuel. On choisit celle qui a le
+   * plus de retard sur sa part ; à retard égal, la moins récente. Les matières
+   * des deux séances précédentes sont écartées tant qu'il reste du choix.
+   */
   function candidats(fs, numero, exclure) {
+    const totalBlocs = Object.values(fs).reduce((n, f) => n + f.total, 0) || 1;
+    const attendus = numero * 2;
+    const retard = (f) => attendus * (f.total / totalBlocs) - f.consommes;
     return Object.entries(fs)
       .filter(([id, f]) => f.restants > 0 && !exclure.includes(id))
       .sort((a, b) => {
-        const ecart = b[1].restants - a[1].restants;
-        if (ecart !== 0) return ecart;
+        const ecart = retard(b[1]) - retard(a[1]);
+        if (Math.abs(ecart) > 1e-9) return ecart;
         return a[1].dernier - b[1].dernier;
       })
       .map(([id]) => id);
@@ -156,10 +166,14 @@
           }
         }
 
-        const precedente = seances.filter((x) => x.type === 'cours').pop();
+        const cours = seances.filter((x) => x.type === 'cours');
+        const precedente = cours[cours.length - 1];
+        const avantPrecedente = cours[cours.length - 2];
+        const deuxDernieres = [...new Set([].concat(precedente ? precedente.matieres : [], avantPrecedente ? avantPrecedente.matieres : []))];
         const dejaVues = precedente ? precedente.matieres : [];
 
-        let liste = candidats(fs, numero, dejaVues);
+        let liste = candidats(fs, numero, deuxDernieres);
+        if (liste.length < 2) liste = candidats(fs, numero, dejaVues);
         if (liste.length < 2) liste = candidats(fs, numero, []);
         if (!liste.length) continue;
 

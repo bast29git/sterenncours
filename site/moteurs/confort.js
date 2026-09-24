@@ -313,7 +313,9 @@
         pausePill = document.createElement('div');
         pausePill.className = 'cf-pill cf-ui';
         pausePill.setAttribute('role', 'status');
-        pausePill.innerHTML = svg(IC.clock, '') + '<span class="cf-pp-tx">Pause dans ' + state.pause + ' min</span><span class="cf-pp-bar" aria-hidden="true"><i></i></span>';
+        pausePill.innerHTML = svg(IC.clock, '') + '<span class="cf-pp-tx">Pause dans ' + state.pause + ' min</span><span class="cf-pp-bar" aria-hidden="true"><i></i></span>'
+          + '<button type="button" class="cf-pp-x" aria-label="Arrêter le rappel de pause" title="Arrêter le rappel de pause">×</button>';
+        pausePill.querySelector('.cf-pp-x').addEventListener('click', function () { state.pause = 0; persist(); apply(); announce('Rappel de pause arrêté.'); });
         document.body.appendChild(pausePill);
       }
       if (!pauseInt) pauseInt = setInterval(pauseTick, 5000);
@@ -408,7 +410,7 @@
       s.profil = 'dyslexie'; s.police = 'dys'; s.taille = 1; s.interligne = 2;
       s.espacement = true; s.theme = 'creme'; s.regle = true;
     } else if (id === 'tdah') {
-      s.profil = 'tdah'; s.focus = true; s.pause = 20; s.calme = true;
+      s.profil = 'tdah'; s.focus = true; s.pause = 0; s.calme = true;
     } else if (id === 'autisme') {
       s.profil = 'autisme'; s.calme = true; s.sons = false; s.theme = 'creme';
       s.tempsLibre = true;
@@ -584,7 +586,8 @@
     if (first) first.focus();
   }
   function close() {
-    open = false; panel.hidden = true; fab.setAttribute('aria-expanded', 'false'); fab.focus();
+    open = false; panel.hidden = true; fab.setAttribute('aria-expanded', 'false');
+    var retour = document.getElementById('e-btn-confort'); (retour && retour.offsetParent ? retour : fab).focus();
   }
   function toggle() { open ? close() : openPanel(); }
 
@@ -615,6 +618,14 @@
 
   function mount() {
     if (!document.body) { document.addEventListener('DOMContentLoaded', mount); return; }
+    // Le rappel de pause n'est jamais actif par défaut : un réglage hérité est
+    // remis à zéro une fois ; l'utilisatrice peut le rallumer dans le panneau.
+    try {
+      if (!localStorage.getItem('konstrio-confort-pause-raz')) {
+        if (state.pause > 0) { state.pause = 0; persist(); }
+        localStorage.setItem('konstrio-confort-pause-raz', '1');
+      }
+    } catch (e) {}
     ensureStyle(); build(); apply();
     // Précharge les voix (certains navigateurs les chargent en asynchrone).
     try { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); } catch (e) {}
