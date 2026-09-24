@@ -977,7 +977,7 @@
           const d = new FormData();
           d.append('fichier', photos[i], `copie-${l.ref}-page-${i + 1}.jpg`);
           d.append('note', `Copie d'évaluation, page ${i + 1} sur ${photos.length} : ${l.titre}`);
-          d.append('matiere', m.nom + ' · ' + l.titre);
+          d.append('matiere', m.id); d.append('ref', l.ref);
           await N.api('/fichiers', { method: 'POST', body: d });
         }
         await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: `J'ai envoyé ma copie de l'évaluation « ${l.titre} » (${photos.length} page(s)).`, contexte: 'Évaluation · ' + m.nom + ' · ' + l.titre, fil: m.id }) }).catch(() => {});
@@ -1759,6 +1759,7 @@
       <p class="h">${N.ech(s.debut)} à ${N.ech(s.fin)}</p>
       ${s.absence ? `<p class="e-evt-absence">${N.ic('ic-croix')} Tu as prévenu : absente${s.commentaire_eleve ? ' · ' + N.ech(s.commentaire_eleve) : ''}</p>${creneauxRemplacement(s)}` : ''}
       ${titres.map((t) => `<p class="t">${N.ech(t)}</p>`).join('')}
+      ${N.profil('visio.' + s.id, null) && s.date >= N.jourIso() ? `<p class="l"><a class="o e-visio" href="${N.ech(N.profil('visio.' + s.id, ''))}" target="_blank" rel="noopener">${N.ic('ic-envoyer')} Rejoindre la visio</a></p>` : ''}
       ${futur ? `<p class="l"><button type="button" class="o" data-absence="${s.id}">${s.absence ? 'Finalement je serai là' : 'Je serai absente'}</button></p>
       <form class="e-evt-form" data-form-absence="${s.id}" hidden>
         <label>Pourquoi, en quelques mots (facultatif) <input type="text" name="commentaire" maxlength="300" placeholder="rendez-vous, sortie, fatigue…"></label>

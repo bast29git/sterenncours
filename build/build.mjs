@@ -556,8 +556,25 @@ function construireDonneesSite() {
   const attendus = new Set();
   let incomplets = 0;
 
+  /* Le lien avec le socle : la grille « Compétence | Critères | Domaine » de la fiche
+     d'évaluation, reprise par leçon pour la vue par domaine de l'espace professeur. */
+  const lireSocle = (chemin) => {
+    if (!fs.existsSync(chemin)) return [];
+    const texte = fs.readFileSync(chemin, 'utf8');
+    const section = /## 4\. Le lien avec les compétences[\s\S]*?(?=\n## |$)/.exec(texte);
+    if (!section) return [];
+    const sortie = [];
+    for (const ligne of section[0].split('\n')) {
+      const m = /^\|\s*\*{0,2}([^|*]+?)\*{0,2}\s*\|\s*([^|]*?)\s*\|\s*(D[1-5])\b[^|]*\|/.exec(ligne);
+      if (!m || /^Compétence|^---/.test(m[1].trim())) continue;
+      sortie.push({ competence: m[1].trim(), criteres: m[2].split(/[,\s]+/).map(Number).filter((n) => n > 0), domaine: m[3] });
+    }
+    return sortie;
+  };
+
   for (const m of programme.matieres) {
     for (const l of m.lecons) {
+      l.socle = lireSocle(path.join(RACINE, 'matieres', m.id, l.dossier || '', '4-evaluation.md'));
       attendus.add(`${m.id}/${l.dossier}`);
       l.docs = Object.entries(FICHIERS_DOC)
         .filter(([, fichier]) => fs.existsSync(

@@ -129,7 +129,11 @@
       semainesPosees += 1;
 
       for (const modele of CRENEAUX) {
-        const creneau = modele.reglable && reglage
+        const dureePerso = Number(options && options.dureePerso) || 20;
+        const finPerso = (debut) => { const [h, mi] = debut.split(':').map(Number); const t = h * 60 + mi + dureePerso; return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
+        const creneau = modele.type === 'travail'
+          ? { ...modele, fin: finPerso(modele.debut) }
+          : modele.reglable && reglage
           ? { ...modele, debut: reglage.debut || modele.debut, fin: reglage.fin || modele.fin }
           : modele;
         const date = decaler(lundi, creneau.jour);

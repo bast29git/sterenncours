@@ -649,3 +649,43 @@ body.corps-prof {
 .p-trace p { margin: 0 0 0.3rem; font-style: italic; }
 .p-trace ul { margin: 0; padding-left: 1.1rem; }
 .p-trace small { color: var(--p-faible); }
+
+/* ---------- Lot 5a : rappel, historique, grille en ligne, courbe, socle, périodes, glisser-déposer ---------- */
+.p-rappel-travail { margin: 0 0 0.3rem; padding: 0.55rem 0.8rem; border-left: 3px solid var(--p-accent); background: var(--p-surface-2); border-radius: 0 var(--p-r) var(--p-r) 0; }
+.p-journal { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; font-size: 0.8rem; }
+.p-journal li { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: baseline; }
+.p-journal time { font-family: var(--p-mono); font-size: 0.72rem; color: var(--p-faible); }
+.p-journal small { color: var(--p-faible); }
+.p-grille-ligne { margin: 0 0 1rem; padding: 0.9rem 1rem; border: 1px solid var(--p-accent); border-radius: var(--p-r); background: var(--p-surface); }
+.p-grille-ligne h2 { font-size: 1rem; margin: 0 0 0.3rem; }
+.p-grille-ligne .p-table th { font-size: 0.7rem; }
+.p-grille-case { text-align: center; }
+.p-grille-case label { display: grid; place-items: center; cursor: pointer; padding: 0.3rem 0; }
+.p-grille-case input { width: 1.1rem; height: 1.1rem; accent-color: var(--p-accent); }
+.p-courbe { width: 100%; height: auto; max-height: 11rem; display: block; color: var(--p-doux); }
+.p-legende-mat { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; margin: 0.4rem 0 0; font-size: 0.72rem; color: var(--p-faible); }
+.p-legende-mat span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.p-legende-mat i { width: 0.7rem; height: 0.7rem; border-radius: 2px; }
+.p-details summary { cursor: pointer; font-size: 0.82rem; color: var(--p-doux); margin: 0.5rem 0; }
+.p-etat-vide { color: var(--p-faible); }
+.p-periodes { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.6rem; }
+.p-periode { background: var(--p-surface); border: 1px solid var(--p-trait); border-radius: var(--p-r); padding: 0.7rem 0.8rem; min-width: 0; }
+.p-periode h2 { font-size: 0.85rem; margin: 0 0 0.5rem; }
+.p-periode ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+.p-periode li { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; font-size: 0.74rem; }
+.p-periode li > b { width: 100%; font-size: 0.72rem; }
+.p-periode-lecon { font-family: var(--p-mono); font-size: 0.7rem; font-weight: 700; text-decoration: none; padding: 0.05rem 0.4rem; border-radius: 999px; border: 1px solid var(--p-trait); color: var(--p-doux); background: var(--p-surface-2); }
+.p-periode-lecon.pleine { border-color: var(--p-ok); color: var(--p-ok); background: var(--p-ok-voile); }
+.p-periode-lecon.partielle { border-color: var(--p-attention); color: var(--p-attention); background: var(--p-attention-voile); }
+.p-periode-lecon.manque { border-color: var(--p-alerte); color: var(--p-alerte); background: var(--p-alerte-voile); }
+.p-periode-lecon.validee { font-weight: 800; }
+@media (max-width: 64rem) { .p-periodes { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 40rem) { .p-periodes { grid-template-columns: 1fr; } }
+.p-semaines-apercu td { vertical-align: top; font-size: 0.72rem; }
+.p-apercu-seance { display: flex; flex-wrap: wrap; gap: 0.15rem; margin: 0 0 0.2rem; padding: 0.15rem 0.25rem; border-radius: 5px; background: var(--p-surface-2); }
+.p-apercu-seance.travail { background: transparent; border: 1px dashed var(--p-trait); }
+.p-pastille-mat { font-size: 0.64rem; font-weight: 800; color: #fff; background: var(--teinte, var(--p-accent)); border-radius: 999px; padding: 0 0.35rem; }
+.p-m-evt[draggable="true"] { cursor: grab; }
+.p-m-evt.glisse { opacity: .5; }
+.p-m-jour.cible { outline: 2px dashed var(--p-accent); outline-offset: -2px; background: var(--p-accent-voile); }
+#f-filtre { margin-bottom: 0.3rem; }

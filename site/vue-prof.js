@@ -24,6 +24,8 @@
         { route: 'accueil', ico: 'ic-accueil', texte: 'Aujourd\'hui' },
         { route: 'mois', ico: 'ic-calendrier', texte: 'Planning' },
         { route: 'suivi', ico: 'ic-graphique', texte: 'Suivi des acquis' },
+        { route: 'socle', ico: 'ic-cible', texte: 'Socle par domaine' },
+        { route: 'periodes', ico: 'ic-livre', texte: 'Vue par période' },
         { route: 'acces', ico: 'ic-verrou', texte: 'Accès et déblocages' },
         { route: 'sterenn', ico: 'ic-etoile', texte: 'Sterenn' },
       ],
@@ -245,7 +247,7 @@
       try {
         await N.api('/suivi', {
           method: 'PUT',
-          body: JSON.stringify({ matiere: mid, ref, niveau: s.value || null }),
+          body: JSON.stringify({ matiere: mid, ref, niveau: s.value || null, raison: s.getAttribute('data-raison') || 'decision' }),
         });
         await N.rafraichirEtat();
         N.signaler('Niveau enregistré.', 'succes');
@@ -617,14 +619,14 @@
       if (!dedans) classes.push('hors');
       if (jour === aujourd) classes.push('auj');
       if (jour < aujourd) classes.push('passe');
-      cellules.push(`<div class="${classes.join(' ')}">
+      cellules.push(`<div class="${classes.join(' ')}" data-jour="${jour}">
         <div class="p-m-tete">
           <span class="p-m-num">${Number(jour.slice(8, 10))}</span>
           ${dedans ? `<button class="p-m-plus" type="button" data-nouvelle="${jour}"
             title="Ajouter une séance le ${N.ech(N.enFrancais(jour, true))}" aria-label="Ajouter une séance">+</button>` : ''}
         </div>
-        ${liste.map((x) => `<a class="p-m-evt ${x.type === 'travail' ? 'travail' : ''} ${N.ech(x.statut || 'prevue')}"
-            href="#/seance/${x.id}" title="${N.ech(x.objectif || '')}">
+        ${liste.map((x) => `<a class="p-m-evt ${x.type === 'travail' ? 'travail' : ''} ${N.ech(x.statut || 'prevue')}" draggable="${x.statut === 'prevue' ? 'true' : 'false'}" data-glisse="${x.id}"
+            href="#/seance/${x.id}" title="${N.ech(x.objectif || '')}${x.statut === 'prevue' ? ' (glisser pour déplacer)' : ''}">
           <span class="h">${N.ech(x.debut || '')}</span>
           <span class="t">${N.ech(court(x.objectif || (x.type === 'travail' ? 'Travail personnel' : 'Séance'), 46))}</span>
         </a>`).join('')}
@@ -637,6 +639,7 @@
          <button class="p-bouton p-bouton-fantome" data-mois="${N.jourIso()}" type="button">Ce mois-ci</button>
          <button class="p-bouton p-bouton-fantome" data-mois="${N.decaler(dernier, 1)}" type="button">Mois suivant ▶</button>
          <a class="p-bouton p-bouton-fantome" href="#/calendrier/${base}">Vue semaine</a>
+         <button class="p-bouton p-bouton-fantome" id="p-ics" type="button" title="Fichier calendrier pour le téléphone">Exporter (.ics)</button>
          <a class="p-bouton" href="#/planning">Générer l'année</a>`)
       + `<div class="p-mois">
           <div class="p-m-entetes">${ENTETES.map((j) => `<span>${j}</span>`).join('')}</div>
@@ -649,6 +652,37 @@
       () => { location.hash = '#/mois/' + b.getAttribute('data-mois'); }));
     vue().querySelectorAll('[data-nouvelle]').forEach((b) => b.addEventListener('click',
       () => creerSeance(b.getAttribute('data-nouvelle'))));
+    document.getElementById('p-ics').addEventListener('click', exporterIcs);
+    // B18 : glisser une séance prévue sur un autre jour du mois.
+    vue().querySelectorAll('[data-glisse][draggable="true"]').forEach((a) => a.addEventListener('dragstart', (ev) => { ev.dataTransfer.setData('text/plain', a.getAttribute('data-glisse')); ev.dataTransfer.effectAllowed = 'move'; a.classList.add('glisse'); }));
+    vue().querySelectorAll('.p-m-jour[data-jour]:not(.hors)').forEach((cell) => {
+      cell.addEventListener('dragover', (ev) => { ev.preventDefault(); cell.classList.add('cible'); });
+      cell.addEventListener('dragleave', () => cell.classList.remove('cible'));
+      cell.addEventListener('drop', async (ev) => {
+        ev.preventDefault(); cell.classList.remove('cible');
+        const id = ev.dataTransfer.getData('text/plain'); const jour = cell.getAttribute('data-jour');
+        const s = N.etat.seances.find((x) => x.id === id);
+        if (!s || !jour || s.date === jour) return;
+        try {
+          await N.api('/seances/' + id, { method: 'PATCH', body: JSON.stringify({ date: jour }) });
+          await N.rafraichirSeances(); N.signaler('Séance déplacée au ' + N.enFrancais(jour) + '.', 'succes'); vueMois(jour);
+        } catch (e) { N.signaler(e.message); }
+      });
+    });
+  }
+  /** B22 : le planning en fichier calendrier, importable sur un téléphone. */
+  function exporterIcs() {
+    const ech = (t) => String(t || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    const dt = (date, heure) => date.replace(/-/g, '') + 'T' + String(heure || '13:00').replace(':', '') + '00';
+    const lignes = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Opaline//Planning//FR', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:Opaline'];
+    N.etat.seances.filter((x) => x.statut !== 'annulee').forEach((x) => {
+      const titre = (x.type === 'travail' ? 'Temps perso : ' : 'Séance : ') + (x.objectif || (x.lecons || []).map((r) => { const i = N.libelleLecon(r); return i ? i.l.titre : r; }).join(' · ') || 'Opaline');
+      lignes.push('BEGIN:VEVENT', 'UID:' + x.id + '@opaline', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z', 'DTSTART;TZID=Europe/Paris:' + dt(x.date, x.debut), 'DTEND;TZID=Europe/Paris:' + dt(x.date, x.fin), 'SUMMARY:' + ech(titre), 'DESCRIPTION:' + ech((x.travail ? 'Travail : ' + x.travail : '') + (x.statut !== 'prevue' ? ' [' + x.statut + ']' : '')), 'END:VEVENT');
+    });
+    lignes.push('END:VCALENDAR');
+    const blob = new Blob([lignes.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'opaline-planning.ics'; document.body.appendChild(a); a.click(); a.remove();
+    N.signaler('Fichier calendrier téléchargé : ' + N.etat.seances.length + ' séances.', 'succes');
   }
 
   function vueCalendrier(iso) {
@@ -723,10 +757,12 @@
      ======================================================================= */
   function optionsLecons(selection) {
     const choisies = new Set(selection || []);
+    const planifiees = new Set();
+    N.etat.seances.forEach((x) => (x.lecons || []).forEach((r) => planifiees.add(r)));
     return PROGRAMME.matieres.map((m) => `<optgroup label="${N.ech(m.icone + ' ' + m.nom)}">`
       + m.lecons.map((l) => {
         const v = m.id + '/' + l.ref;
-        return `<option value="${v}"${choisies.has(v) ? ' selected' : ''}>${l.ref} · ${N.ech(l.titre)}</option>`;
+        return `<option value="${v}"${choisies.has(v) ? ' selected' : ''} data-texte="${N.ech((l.ref + ' ' + l.titre + ' ' + (l.notions || []).join(' ')).toLowerCase())}">${l.ref} · ${N.ech(l.titre)}${planifiees.has(v) && !choisies.has(v) ? ' · déjà planifiée' : ''}</option>`;
       }).join('') + '</optgroup>').join('')
       + `<optgroup label="✨ Modules">${Object.values(N.MODULES).map((x) => {
         const v = 'module/' + x.ref;
@@ -762,8 +798,12 @@
           <div><label for="f-objectif">Objectif annoncé</label>
             <input id="f-objectif" type="text" maxlength="300" value="${N.ech(s.objectif || '')}"></div>
           <div><label for="f-lecons">Leçons travaillées</label>
+            <input id="f-filtre" type="search" placeholder="Filtrer : un mot du titre, une notion, une référence" autocomplete="off" aria-controls="f-lecons">
             <select id="f-lecons" multiple size="12">${optionsLecons(s.lecons)}</select>
-            <p class="p-aide">Plusieurs sélections possibles. Les matières se déduisent des leçons.</p></div>
+            <p class="p-aide">Plusieurs sélections possibles. Les matières se déduisent des leçons. Une leçon « déjà planifiée » est placée dans une autre séance.</p></div>
+          <div><label for="f-visio">Lien de visio (facultatif)</label>
+            <input id="f-visio" type="url" maxlength="300" placeholder="https://…" value="${N.ech(N.profil('visio.' + s.id, '') || '')}">
+            <p class="p-aide">Affiché des deux côtés le jour de la séance, avec un bouton « rejoindre ».</p></div>
           <div><label for="f-travail">Travail personnel qui suit</label>
             <textarea id="f-travail" rows="2" maxlength="500">${N.ech(s.travail || '')}</textarea></div>
           <div><label for="f-bilan">Bilan de la séance</label>
@@ -773,6 +813,16 @@
           <button class="p-bouton" type="submit">Enregistrer</button>
         </form>`)
       + '</div><div>'
+      + (() => {
+        if (s.type !== 'cours') return '';
+        const prec = N.etat.seances.filter((x) => x.date < s.date && x.travail && x.statut !== 'annulee').sort((a, b) => b.date.localeCompare(a.date))[0];
+        if (!prec) return '';
+        const etat = N.profil('travail.' + prec.id, null);
+        return bloc('Travail personnel annoncé la fois d\'avant', `<p class="p-rappel-travail">${N.ech(prec.travail)}</p>
+          <p class="p-aide">Annoncé le ${N.ech(N.enFrancais(prec.date))}.${etat ? ' Noté : ' + (etat.fait ? 'fait' : 'pas fait, à reprendre') + '.' : ''}</p>
+          <div class="p-seance-actions"><button type="button" class="p-bouton p-bouton-mini ${etat && etat.fait ? '' : 'p-bouton-fantome'}" data-travail-fait="${prec.id}" data-valeur="1">Fait</button>
+          <button type="button" class="p-bouton p-bouton-mini ${etat && !etat.fait ? '' : 'p-bouton-fantome'}" data-travail-fait="${prec.id}" data-valeur="0">Pas fait, à reprendre</button></div>`);
+      })()
       + (s.absence ? bloc('Absence déclarée par Sterenn', `<p class="p-bandeau p-bandeau-erreur" style="border-radius:7px;margin:0">Sterenn a prévenu qu'elle sera absente.${s.commentaire_eleve ? ' Son mot : « ' + N.ech(s.commentaire_eleve) + ' »' : ''}</p>`) : '')
       + bloc('Aperçu', carteSeance(s, { sansActions: true }))
       + ((s.choix || []).length
@@ -799,6 +849,20 @@
     );
 
     brancherNiveaux(() => vueSeance(id));
+    const filtre = document.getElementById('f-filtre');
+    if (filtre) filtre.addEventListener('input', () => {
+      const q = filtre.value.trim().toLowerCase();
+      document.querySelectorAll('#f-lecons option').forEach((o) => { o.hidden = !!q && (o.getAttribute('data-texte') || '').indexOf(q) === -1 && !o.selected; });
+    });
+    vue().querySelectorAll('[data-travail-fait]').forEach((b) => b.addEventListener('click', async () => {
+      const fait = b.getAttribute('data-valeur') === '1';
+      try {
+        await N.enregistrerProfil('travail.' + b.getAttribute('data-travail-fait'), { fait, le: new Date().toISOString() });
+        if (!fait) { const t = document.getElementById('f-travail'); const prec = N.etat.seances.find((x) => x.id === b.getAttribute('data-travail-fait')); if (t && prec && t.value.indexOf('Reprendre :') === -1) t.value = (t.value ? t.value + '\n' : '') + 'Reprendre : ' + prec.travail; }
+        N.signaler(fait ? 'Travail noté comme fait.' : 'Travail à reprendre : ajouté au travail personnel qui suit, enregistre la séance.', 'succes');
+        vue().querySelectorAll('[data-travail-fait]').forEach((x) => x.classList.toggle('p-bouton-fantome', x !== b));
+      } catch (e) { N.signaler(e.message); }
+    }));
 
     document.getElementById('p-form-seance').addEventListener('submit', async (ev) => {
       ev.preventDefault();
@@ -821,6 +885,8 @@
           }),
         });
         await N.rafraichirSeances();
+        const visio = document.getElementById('f-visio').value.trim();
+        if (visio !== (N.profil('visio.' + id, '') || '')) await N.enregistrerProfil('visio.' + id, visio || null).catch(() => {});
         if (document.getElementById('f-meme-jour').checked) {
           const r = await N.api('/seances/horaire', { method: 'POST', body: JSON.stringify({
             jour: new Date(document.getElementById('f-date').value + 'T12:00:00').getDay(),
@@ -875,6 +941,7 @@
           <div class="ligne">
             <div><label for="g-merc-debut">Mercredi : début</label><input id="g-merc-debut" type="time" value="13:00"></div>
             <div><label for="g-merc-fin">Mercredi : fin</label><input id="g-merc-fin" type="time" value="14:30"></div>
+            <div><label for="g-perso">Temps perso</label><select id="g-perso"><option value="15">15 min</option><option value="20" selected>20 min</option><option value="30">30 min</option></select></div>
           </div>
           <div><label for="g-vacances">Vacances et semaines sans cours (une par ligne : du AAAA-MM-JJ au AAAA-MM-JJ, nom)</label>
             <textarea id="g-vacances" rows="5" placeholder="2026-10-17 au 2026-11-02 Toussaint&#10;2026-12-19 au 2027-01-04 Noël">${N.ech((N.profil('prof.vacances', []) || []).map((v) => `${v.du} au ${v.au} ${v.nom || ''}`.trim()).join('\n'))}</textarea>
@@ -918,7 +985,7 @@
       const vacances = document.getElementById('g-vacances').value.split('\n').map((l) => /^(\d{4}-\d{2}-\d{2})\s+au\s+(\d{4}-\d{2}-\d{2})\s*(.*)$/.exec(l.trim())).filter(Boolean).map((x) => ({ du: x[1], au: x[2], nom: x[3] || '' }));
       N.enregistrerProfil('prof.vacances', vacances).catch(() => {});
       try {
-        apercu = window.PLANIFICATEUR.generer(N.lundiDe(d), n, { mercredi, vacances });
+        apercu = window.PLANIFICATEUR.generer(N.lundiDe(d), n, { mercredi, vacances, dureePerso: Number(document.getElementById('g-perso').value) || 20 });
         rendreApercu();
         document.getElementById('g-enregistrer').disabled = false;
       } catch (e) { N.signaler(e.message); }
@@ -958,7 +1025,14 @@
       <td class="num">${attendu}${place === attendu ? ' ✓' : ''}</td></tr>`;
   }).join('')}</tbody></table>
       <p class="p-aide">Première séance le ${N.ech(N.enFrancais(apercu.seances[0].date, true))},
-        dernière le ${N.ech(N.enFrancais(apercu.seances[apercu.seances.length - 1].date, true))}.</p>`);
+        dernière le ${N.ech(N.enFrancais(apercu.seances[apercu.seances.length - 1].date, true))}.</p>`)
+      + bloc('Les huit premières semaines', apercuSemaines(apercu.seances, 8));
+  }
+  /** B16 : une grille des premières semaines, une pastille colorée par matière, avant d'enregistrer. */
+  function apercuSemaines(seances, n) {
+    const lundis = [...new Set(seances.map((x) => N.lundiDe(x.date)))].sort().slice(0, n);
+    const pastille = (r) => { const mid = r.split('/')[0]; const info = N.libelleLecon(r); return `<span class="p-pastille-mat" style="--teinte:${mid === 'module' ? '#5C6675' : teinte(mid)}" title="${N.ech(info ? info.l.titre : r)}">${N.ech(info ? (info.m.id === 'module' ? info.l.icone : N.nomCourt(mid)) : mid)}</span>`; };
+    return `<div class="p-tableau-defilant"><table class="p-table p-semaines-apercu"><thead><tr><th>Semaine</th>${N.JOURS.map((j) => `<th>${j}</th>`).join('')}</tr></thead><tbody>${lundis.map((lundi) => `<tr><td class="num">${N.ech(N.enFrancais(lundi))}</td>${[0, 1, 2, 3, 4].map((i) => { const jour = N.decaler(lundi, i); const du = seances.filter((x) => x.date === jour); return `<td>${du.map((x) => `<div class="p-apercu-seance ${x.type}">${(x.lecons || []).map(pastille).join('')}${(x.choix || []).length >= 2 ? '<span class="p-puce">choix</span>' : ''}</div>`).join('')}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
   }
 
   async function enregistrerPlanning() {
@@ -1107,6 +1181,7 @@
         `<button class="p-bouton p-bouton-fantome" id="s-export" type="button">Exporter en CSV</button>
          <a class="p-bouton p-bouton-fantome" href="#/matieres">Voir les matières</a>`)
 
+      + bloc('Étoiles par semaine', courbeEtoiles(12), '', '<span class="p-aide">fiches, séries réussies, félicitations, leçons validées</span>')
       + `<ul class="p-kpis">
           <li class="pos"><span class="v">${repartition.tresbien}</span><span class="l">Très bien</span></li>
           <li class="pos"><span class="v">${repartition.satisfaisant}</span><span class="l">Satisfaisant</span></li>
@@ -1197,6 +1272,81 @@
   }
 
   /** Export du suivi complet, lisible dans un tableur. */
+  /** B15 : les étoiles gagnées semaine par semaine, empilées par matière, pour voir les creux. */
+  function courbeEtoiles(nSemaines) {
+    const auj = N.jourIso();
+    const lundis = []; let l = N.lundiDe(auj);
+    for (let i = 0; i < nSemaines; i += 1) { lundis.unshift(l); l = N.decaler(l, -7); }
+    const parSemaine = lundis.map(() => ({}));
+    const poser = (date, mid, n) => { if (!date) return; const lu = N.lundiDe(String(date).slice(0, 10)); const k = lundis.indexOf(lu); if (k === -1) return; parSemaine[k][mid] = (parSemaine[k][mid] || 0) + n; };
+    Object.entries(N.etat.fiches).forEach(([k, f]) => poser(f.termine_le, k.split('/')[0], 1));
+    Object.entries(N.etat.resultats).forEach(([k, r]) => { if (k.indexOf('jeu/') === 0) { if (r.meilleur >= 70) poser(r.maj_le, 'jeu', 1); } else if (r.total > 0 && r.meilleur / r.total >= 0.7) poser(r.maj_le, k.split('/')[0], 1); });
+    (N.etat.felicitations || []).forEach((f) => poser(f.cree_le, f.matiere || 'autre', 1));
+    Object.entries(N.etat.suivi).forEach(([k, s]) => { if (s.niveau === 'satisfaisant' || s.niveau === 'tresbien') poser(s.maj_le, k.split('/')[0], 3); });
+    const max = Math.max(1, ...parSemaine.map((sem) => Object.values(sem).reduce((a, b) => a + b, 0)));
+    const H = 120; const W = 640; const lg = W / nSemaines;
+    const barres = parSemaine.map((sem, i) => {
+      let y = H;
+      const parts = Object.entries(sem).map(([mid, n]) => { const h = (n / max) * (H - 10); y -= h; return `<rect x="${(i * lg + 6).toFixed(1)}" y="${y.toFixed(1)}" width="${(lg - 12).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${mid === 'jeu' || mid === 'autre' ? '#8C96A5' : teinte(mid)}"><title>${N.ech((N.matiere(mid) || { nom: mid }).nom)} : ${n}</title></rect>`; });
+      const total = Object.values(sem).reduce((a, b) => a + b, 0);
+      return parts.join('') + `<text x="${(i * lg + lg / 2).toFixed(1)}" y="${H + 14}" text-anchor="middle" font-size="9" fill="currentColor">${N.ech(lundis[i].slice(8, 10) + '/' + lundis[i].slice(5, 7))}</text>` + (total ? `<text x="${(i * lg + lg / 2).toFixed(1)}" y="${Math.max(10, y - 3).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor">${total}</text>` : '');
+    });
+    return `<svg class="p-courbe" viewBox="0 0 ${W} ${H + 20}" role="img" aria-label="Étoiles gagnées par semaine sur ${nSemaines} semaines">${barres.join('')}</svg>
+      <p class="p-legende-mat">${PROGRAMME.matieres.map((m) => `<span><i style="background:${teinte(m.id)}"></i>${N.ech(N.nomCourt(m.id))}</span>`).join('')}<span><i style="background:#8C96A5"></i>jeux, autres</span></p>`;
+  }
+
+  const DOMAINES = { D1: 'Les langages pour penser et communiquer', D2: 'Les méthodes et outils pour apprendre', D3: 'La formation de la personne et du citoyen', D4: 'Les systèmes naturels et les systèmes techniques', D5: 'Les représentations du monde et l\'activité humaine' };
+  const POIDS = { insuffisant: 1, fragile: 2, satisfaisant: 3, tresbien: 4 };
+  /** B9 : les critères des grilles agrégés par domaine du socle, avec le niveau des leçons positionnées. */
+  function vueSocle() {
+    const parDomaine = {}; Object.keys(DOMAINES).forEach((d) => { parDomaine[d] = { lecons: [], competences: {} }; });
+    PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => (l.socle || []).forEach((x) => {
+      if (!parDomaine[x.domaine]) return;
+      const niv = N.niveauDe(m.id, l.ref) || null;
+      parDomaine[x.domaine].lecons.push({ m, l, niv, competence: x.competence, criteres: x.criteres });
+      const c = parDomaine[x.domaine].competences[x.competence] || (parDomaine[x.domaine].competences[x.competence] = { n: 0, positionnees: 0, somme: 0 });
+      c.n += 1; if (niv) { c.positionnees += 1; c.somme += POIDS[niv]; }
+    })));
+    const moyenne = (c) => (c.positionnees ? (c.somme / c.positionnees) : 0);
+    const libelleMoy = (v) => (!v ? 'non positionné' : v < 1.75 ? 'Insuffisant' : v < 2.5 ? 'Fragile' : v < 3.5 ? 'Satisfaisant' : 'Très bien');
+    const classeMoy = (v) => (!v ? 'vide' : v < 1.75 ? 'insuffisant' : v < 2.5 ? 'fragile' : v < 3.5 ? 'satisfaisant' : 'tresbien');
+    afficher(entete('Socle commun par domaine', 'Les compétences des grilles d\'évaluation, regroupées par domaine du socle, avec le niveau des leçons déjà positionnées. C\'est la base du livret.',
+      '<a class="p-bouton p-bouton-fantome" href="#/suivi">Suivi des acquis</a>')
+      + Object.entries(DOMAINES).map(([d, nom]) => {
+        const info = parDomaine[d];
+        const positionnees = info.lecons.filter((x) => x.niv);
+        const comp = Object.entries(info.competences).sort((a, b) => b[1].n - a[1].n);
+        return bloc(`${d} · ${nom}`, info.lecons.length ? `
+          <table class="p-table"><thead><tr><th>Compétence</th><th>Leçons</th><th>Positionnées</th><th>Niveau moyen</th></tr></thead><tbody>
+          ${comp.map(([nomC, c]) => `<tr><td>${N.ech(nomC)}</td><td class="num">${c.n}</td><td class="num">${c.positionnees}</td><td><span class="p-etat p-etat-${classeMoy(moyenne(c))}">${libelleMoy(moyenne(c))}</span></td></tr>`).join('')}
+          </tbody></table>
+          <details class="p-details"><summary>${info.lecons.length} rattachement(s) de leçons, ${positionnees.length} positionné(s)</summary>
+          <ul class="p-liste">${info.lecons.map((x) => `<li><a href="#/lecon/${x.m.id}/${x.l.ref}">${x.m.icone} ${N.ech(x.l.titre)}</a><small class="p-faible">${N.ech(x.competence)}${x.criteres.length ? ' · critères ' + x.criteres.join(', ') : ''}</small>${x.niv ? `<span class="p-etat p-etat-${x.niv}" style="margin-left:auto">${N.ech((N.NIVEAUX.find((n) => n.id === x.niv) || {}).libelle || x.niv)}</span>` : '<span class="p-puce" style="margin-left:auto">non évaluée</span>'}</li>`).join('')}</ul></details>`
+          : '<p class="p-vide">Aucune grille ne rattache encore de compétence à ce domaine.</p>', String(info.lecons.length));
+      }).join(''),
+    [{ t: 'Pilotage' }, { t: 'Socle par domaine' }]);
+  }
+  /** B21 : les cinq périodes en colonnes, les leçons placées dans le planning, les manques en rouge. */
+  function vuePeriodes() {
+    const placees = {};
+    N.etat.seances.forEach((x) => (x.lecons || []).forEach((r) => { placees[r] = (placees[r] || 0) + 1; }));
+    const blocsAttendus = (window.PLANIFICATEUR && window.PLANIFICATEUR.BLOCS_PAR_LECON) || 3;
+    const manques = [];
+    const colonnes = [1, 2, 3, 4, 5].map((p) => {
+      const lignes = PROGRAMME.matieres.map((m) => {
+        const lecons = m.lecons.filter((l) => Number(l.periode) === p);
+        if (!lecons.length) return '';
+        return `<li><b style="color:${teinte(m.id)}">${m.icone} ${N.ech(N.nomCourt(m.id))}</b>${lecons.map((l) => { const n = placees[N.cle(m.id, l.ref)] || 0; const valide = N.estValidee(m.id, l.ref); if (!n) manques.push(m.id + '/' + l.ref); return `<a class="p-periode-lecon ${n ? (n >= blocsAttendus ? 'pleine' : 'partielle') : 'manque'} ${valide ? 'validee' : ''}" href="#/lecon/${m.id}/${l.ref}" title="${N.ech(l.titre)} : ${n} bloc(s) placé(s) sur ${blocsAttendus}${valide ? ', validée' : ''}">${N.ech(l.ref)}${valide ? ' ✓' : ''}</a>`; }).join('')}</li>`;
+      }).join('');
+      return `<section class="p-periode"><h2>Période ${p}</h2><ul>${lignes}</ul></section>`;
+    });
+    afficher(entete('Vue par période', `Les 72 leçons par période : ${Object.keys(placees).filter((k) => k.indexOf('module/') !== 0).length} placées dans le planning, ${manques.length} sans séance.`,
+      '<a class="p-bouton p-bouton-fantome" href="#/planning">Générateur d\'année</a><a class="p-bouton p-bouton-fantome" href="#/mois">Planning</a>')
+      + `<p class="p-acces-legende"><span><i class="p-periode-lecon pleine" style="display:inline-block;padding:0 .4rem">L00</i> trois blocs placés</span><span><i class="p-periode-lecon partielle" style="display:inline-block;padding:0 .4rem">L00</i> un ou deux blocs</span><span><i class="p-periode-lecon manque" style="display:inline-block;padding:0 .4rem">L00</i> aucune séance</span><span>✓ validée</span></p>
+      <div class="p-periodes">${colonnes.join('')}</div>`,
+    [{ t: 'Pilotage' }, { t: 'Vue par période' }]);
+  }
+
   function exporterSuivi() {
     const entetes = ['Matiere', 'Ref', 'Titre', 'Periode', 'Documents', 'Niveau', 'Note', 'Maj'];
     const lignes = [entetes];
@@ -1340,6 +1490,7 @@
                 <a href="/api/fichiers/${f.id}" download>${N.ech(f.nom)}</a>
                 <span>${f.auteur === 'eleve' ? 'Sterenn' : 'Moi'} · ${N.ech(N.dateCourte(f.cree_le))} · ${N.ech(N.poids(f.taille))}${f.note ? ' · ' + N.ech(f.note) : ''}</span>
               </span>
+              ${f.auteur === 'eleve' && f.ref && N.matiere(f.matiere) ? `<a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/lecon/${N.ech(f.matiere)}/${N.ech(f.ref)}/evaluation" title="Noter cette copie avec la grille">Noter</a>` : ''}
               ${f.auteur === 'eleve' ? `<button class="p-bouton p-bouton-mini" data-feliciter="${f.id}" data-matiere="${N.ech(f.matiere || '')}" data-ref="${N.ech(f.ref || '')}" type="button">${felicite.has(f.id) ? '🏆 Félicitée' : 'Féliciter'}</button>` : ''}
               <button class="p-bouton p-bouton-danger p-bouton-mini" data-fichier="${f.id}" type="button">Supprimer</button>
             </li>`).join('')}</ul>`
@@ -1559,10 +1710,12 @@
                 <ul class="p-liste">${doc.objectifs.map((o) => `<li>${N.ech(o)}</li>`).join('')}</ul></div>` : ''}
               ${(doc.competences || []).length ? `<div class="p-rail-bloc"><h2>Compétences</h2>
                 <p>${doc.competences.map((x) => `<span class="p-puce">${N.ech(x)}</span>`).join(' ')}</p></div>` : ''}
+              <div class="p-rail-bloc"><h2>Historique du niveau</h2><div id="p-journal"><p class="p-aide">Chargement…</p></div></div>
               <div class="p-rail-bloc"><h2>Actions</h2>
                 <p><button class="p-bouton p-bouton-fantome p-bouton-mini" id="p-question" type="button">Écrire à Sterenn</button></p>
                 <p style="margin-top:.35rem"><a class="p-bouton p-bouton-fantome p-bouton-mini"
                   href="#/mois">Placer dans une séance</a></p>
+                <p style="margin-top:.35rem"><button class="p-bouton p-bouton-fantome p-bouton-mini" id="p-reprise" type="button" title="Crée un temps de travail personnel dans trois semaines avec cette leçon">Reprendre dans trois semaines</button></p>
               </div>
             </aside>
           </div>`,
@@ -1574,6 +1727,24 @@
       document.getElementById('p-question').addEventListener('click', () => {
         location.hash = '#/messages/' + encodeURIComponent(m.nom + ' · ' + l.titre);
       });
+      // B10 : l'historique daté des positionnements
+      N.api('/suivi?cle=' + encodeURIComponent(N.cle(mid, ref))).then((d) => {
+        const z = document.getElementById('p-journal'); if (!z) return;
+        const LIB = { decision: 'décision', serie: 'série', devoir: 'devoir', reprise: 'reprise', proposition: 'proposition acceptée', positionnement: 'positionnement' };
+        z.innerHTML = (d.journal || []).length ? `<ul class="p-journal">${d.journal.map((j) => `<li><time>${N.ech(N.dateCourte(j.quand))}</time> ${N.ech((N.NIVEAUX.find((n) => n.id === j.avant) || { libelle: 'non évaluée' }).libelle)} → <b>${N.ech((N.NIVEAUX.find((n) => n.id === j.apres) || { libelle: 'non évaluée' }).libelle)}</b> <small>${N.ech(LIB[j.raison] || j.raison || '')}</small></li>`).join('')}</ul>` : '<p class="p-aide">Aucun changement enregistré.</p>';
+      }).catch(() => { const z = document.getElementById('p-journal'); if (z) z.innerHTML = '<p class="p-aide">Historique indisponible.</p>'; });
+      // B11 : reprise planifiée
+      document.getElementById('p-reprise').addEventListener('click', async () => {
+        const cible = N.decaler(N.jourIso(), 21);
+        const jour = new Date(cible + 'T12:00:00').getDay();
+        const mardi = N.decaler(cible, jour <= 2 ? 2 - jour : 9 - jour);
+        try {
+          await N.api('/seances', { method: 'POST', body: JSON.stringify({ date: mardi, creneau: 'A', type: 'travail', debut: '17:00', fin: '17:20', lecons: [N.cle(mid, ref)], matieres: [mid], objectif: 'Reprise : ' + l.titre, travail: `Reprendre « ${l.titre} » : relire la fiche de révision, refaire la série.` }) });
+          await N.rafraichirSeances();
+          N.signaler('Reprise placée le ' + N.enFrancais(mardi, true) + ' en temps personnel.', 'succes');
+        } catch (e) { N.signaler(e.message); }
+      });
+      brancherGrille(mid, ref, doc, actif);
       vue().querySelectorAll('[data-eval-acces]').forEach((b) => b.addEventListener('click', async () => {
         const ouvrir = b.getAttribute('data-eval-acces') === 'ouvrir';
         try {
@@ -1584,6 +1755,52 @@
       return undefined;
     });
     return undefined;
+  }
+
+  /** B12 : la grille d'évaluation remplissable en ligne, avec l'auto-positionnement de Sterenn en regard. */
+  function grilleEnLigne(mid, ref, doc) {
+    const bac = document.createElement('div'); bac.innerHTML = doc.html;
+    const table = [...bac.querySelectorAll('table')].find((t) => /crit/i.test(((t.querySelector('thead th') || t.querySelector('tr th, tr td')) || {}).textContent || ''));
+    const criteres = table ? [...table.querySelectorAll('tbody tr')].map((tr) => { const td = tr.querySelector('td'); return td ? td.textContent.trim().replace(/^\d+\.\s*/, '') : ''; }).filter(Boolean).slice(0, 10) : [];
+    if (!criteres.length) return '';
+    const cle = N.cle(mid, ref);
+    const r = N.profil('eval.' + cle, {}) || {};
+    const auto = N.profil('moi.autoeval.' + cle, {}) || {};
+    const nivDe = (i) => (Array.isArray(r.criteres) && r.criteres[i] ? r.criteres[i].niveau : '');
+    return `<form class="p-form p-grille-ligne" id="p-grille" data-cle="${cle}">
+      <h2>Corriger avec la grille</h2>
+      <p class="p-aide">Un clic par critère. La colonne « elle » montre ce que Sterenn a coché avant la correction. Enregistrer rend le résultat visible dans son application, sur la page de l'évaluation.</p>
+      <table class="p-table"><thead><tr><th>Critère</th>${N.NIVEAUX.map((n) => `<th>${n.picto} ${N.ech(n.libelle)}</th>`).join('')}<th>Elle</th></tr></thead><tbody>
+      ${criteres.map((c, i) => `<tr><td>${i + 1}. ${N.ech(c)}</td>${N.NIVEAUX.map((n) => `<td class="p-grille-case"><label><input type="radio" name="g-${i}" value="${n.id}" ${nivDe(i) === n.id ? 'checked' : ''}><span class="visuellement-cache">${N.ech(n.libelle)}</span></label></td>`).join('')}<td>${auto[i] ? `<span class="p-etat p-etat-${auto[i]}">${N.ech((N.NIVEAUX.find((n) => n.id === auto[i]) || {}).libelle || auto[i])}</span>` : '<span class="p-faible">·</span>'}</td></tr>`).join('')}
+      </tbody></table>
+      <div class="ligne">
+        <div><label for="g-note">Note sur 20</label><input id="g-note" type="number" min="0" max="20" step="0.5" value="${r.note != null ? N.ech(String(r.note)) : ''}"></div>
+        <div><label for="g-pos">Positionnement global</label><select id="g-pos"><option value="">à choisir</option>${N.NIVEAUX.map((n) => `<option value="${n.id}" ${r.positionnement === n.id ? 'selected' : ''}>${N.ech(n.libelle)}</option>`).join('')}</select></div>
+      </div>
+      <div><label for="g-mot">Le mot pour Sterenn</label><textarea id="g-mot" rows="2" maxlength="600">${N.ech(r.mot || '')}</textarea></div>
+      <div><label for="g-refaire">Ce qu'elle refait</label><input id="g-refaire" type="text" maxlength="300" value="${N.ech(r.refaire || '')}"></div>
+      <label class="p-case"><input type="checkbox" id="g-suivi" checked> Reporter le positionnement global dans le suivi des acquis (raison : devoir)</label>
+      <div class="p-seance-actions"><button class="p-bouton" type="submit">${r.rendu_le ? 'Mettre à jour le résultat' : 'Rendre le résultat à Sterenn'}</button>${r.rendu_le ? `<span class="p-aide">Rendu le ${N.ech(N.dateCourte(r.rendu_le))}.</span>` : ''}</div>
+    </form>`;
+  }
+  function brancherGrille(mid, ref, doc, actif) {
+    if (actif !== 'evaluation') return;
+    const fiche = vue().querySelector('.p-fiche'); if (!fiche) return;
+    const html = grilleEnLigne(mid, ref, doc); if (!html) return;
+    fiche.insertAdjacentHTML('beforebegin', html);
+    const f = document.getElementById('p-grille');
+    f.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const cle = f.getAttribute('data-cle');
+      const criteres = [...f.querySelectorAll('tbody tr')].map((tr) => ({ libelle: tr.querySelector('td').textContent.replace(/^\d+\.\s*/, '').trim(), niveau: (tr.querySelector('input:checked') || {}).value || null }));
+      const note = document.getElementById('g-note').value; const positionnement = document.getElementById('g-pos').value;
+      try {
+        await N.enregistrerProfil('eval.' + cle, { criteres, note: note === '' ? null : Number(note), positionnement: positionnement || null, mot: document.getElementById('g-mot').value.trim(), refaire: document.getElementById('g-refaire').value.trim(), rendu_le: new Date().toISOString() });
+        if (document.getElementById('g-suivi').checked && positionnement) await N.api('/suivi', { method: 'PUT', body: JSON.stringify({ matiere: mid, ref, niveau: positionnement, raison: 'devoir' }) });
+        await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: `Ton évaluation « ${N.lecon(N.matiere(mid), ref).titre} » est corrigée : le résultat est sur la page de l'évaluation.`, contexte: 'Évaluation corrigée', fil: mid }) }).catch(() => {});
+        await N.rafraichirEtat(); N.signaler('Résultat rendu à Sterenn.', 'succes'); vueLecon(mid, ref, actif);
+      } catch (e) { N.signaler(e.message); }
+    });
   }
 
   /* =======================================================================
@@ -1958,6 +2175,8 @@
       case 'seance': return vueSeance(p[1]);
       case 'planning': return vuePlanning();
       case 'suivi': return vueSuivi();
+      case 'socle': return vueSocle();
+      case 'periodes': return vuePeriodes();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);
       case 'depots': return vueDepots();
       case 'matieres': return vueMatieres();
