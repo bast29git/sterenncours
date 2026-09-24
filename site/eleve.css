@@ -1546,3 +1546,40 @@ html[data-confort-calme] .e-opale-avatar .oeil { animation: none; }
 /* ---------- C64 : vacances et évaluations sur le bandeau du mois ---------- */
 .e-mois li.vacances a { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--e-voile) 4px 8px); }
 .e-mois li.evaluation a { box-shadow: inset 0 -3px 0 #B1261C; font-weight: 700; }
+
+/* ---------- C22 : le résumé en trois phrases validé par le professeur ---------- */
+.e-resume-opale { margin: .6rem 0 0; padding: .6rem .9rem; border-left: 4px solid var(--e-accent, #1F8F86); background: var(--e-voile); border-radius: .5rem; }
+.e-resume-opale b { display: block; margin-bottom: .2rem; }
+.e-resume-opale p { margin: 0; }
+/* ---------- C36 : associer et texte à trous ---------- */
+.e-exo-associer { display: grid; gap: .5rem; }
+.e-exo-associer label { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; align-items: center; }
+.e-exo-associer select, .e-exo-trous input { font: inherit; min-height: 2.6rem; border: 1px solid var(--e-trait); border-radius: .5rem; padding: .2rem .5rem; background: var(--e-carte); color: var(--e-encre); }
+.e-exo-associer select.juste, .e-exo-trous input.juste { border-color: #2AA98C; box-shadow: inset 0 0 0 2px #2AA98C; }
+.e-exo-associer select.faux, .e-exo-trous input.faux { border-color: #B1261C; box-shadow: inset 0 0 0 2px #B1261C; }
+.e-trous-texte { line-height: 2.2; }
+.e-trous-texte input { margin: 0 .2rem; }
+@media (max-width: 600px) { .e-exo-associer label { grid-template-columns: 1fr; } }
+/* ---------- C32 : la photo d'un exercice ---------- */
+.e-cahier-cases li { display: flex; align-items: center; gap: .5rem; }
+.e-cahier-photo.envoye { color: var(--e-accent, #1F8F86); }
+/* ---------- C37 : le commentaire audio ---------- */
+.e-eval-audio { display: grid; gap: .3rem; margin: .3rem 0 .8rem; }
+.e-eval-audio audio { width: 100%; max-width: 26rem; }
+/* ---------- C50 : le défi de Bastien ---------- */
+.e-defi-b-texte { font-size: 1.1rem; font-weight: 600; margin: .3rem 0; }
+.e-defi-b-historique { list-style: none; padding: 0; margin: .4rem 0 0; color: var(--e-encre-doux); font-size: .9rem; }
+/* ---------- C57 : autocollants ---------- */
+.e-autocollant { vertical-align: middle; }
+.m-eclat svg { width: 22px; height: 22px; }
+/* ---------- C73 : outils d'Opale ---------- */
+.e-opale-h3 { font-size: .95rem; margin: .8rem 0 .4rem; }
+.e-opale-conv { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.e-opale-conv input { width: 6rem; min-height: 2.4rem; font: inherit; border: 1px solid var(--e-trait); border-radius: .5rem; padding: .2rem .5rem; background: var(--e-carte); color: var(--e-encre); }
+.e-opale-conv select, .e-opale-conj select { font: inherit; min-height: 2.4rem; border: 1px solid var(--e-trait); border-radius: .5rem; background: var(--e-carte); color: var(--e-encre); }
+.e-opale-conv output { flex-basis: 100%; font-weight: 600; }
+.e-opale-conj { display: flex; gap: .4rem; flex-wrap: wrap; }
+.e-opale-table { border-collapse: collapse; width: 100%; margin-top: .4rem; font-size: .95rem; }
+.e-opale-table caption { text-align: left; font-weight: 600; margin-bottom: .2rem; }
+.e-opale-table th { text-align: left; font-weight: 500; color: var(--e-encre-doux); padding: .15rem .4rem; }
+.e-opale-table td { padding: .15rem .4rem; }

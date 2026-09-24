@@ -747,3 +747,20 @@ html[data-densite="compacte"] .p-bloc { margin-bottom: 0.6rem; }
 
 /* E30 : mesure de rendu d'un monde sous le seuil de confort */
 small.p-alerte { color: var(--p-alerte); font-weight: 600; }
+
+/* C22, A47 : Opale pour le professeur */
+.p-opale-prof textarea { width: 100%; font: inherit; }
+.p-questions-opale { padding-left: 1.2rem; display: grid; gap: .6rem; }
+.p-questions-opale ul { margin: .2rem 0; padding-left: 1.1rem; }
+.p-questions-opale li.bonne { font-weight: 600; }
+.p-questions-opale li.gardee { opacity: .7; }
+.p-questions-opale em { display: block; color: var(--p-encre-doux, inherit); font-size: .9rem; }
+/* A49, C37 : analyse de la copie et commentaire audio */
+.p-audio-correction, .p-analyse-copie { margin: .6rem 0; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.p-audio-correction audio { max-width: 100%; }
+.p-analyse-copie > div { flex-basis: 100%; }
+.p-transcription { white-space: pre-wrap; font: inherit; font-size: .9rem; background: var(--p-voile, rgba(0,0,0,.04)); padding: .5rem .7rem; border-radius: .5rem; max-height: 16rem; overflow: auto; }
+.p-propositions td:nth-child(2) { font-weight: 600; white-space: nowrap; }
+/* C50 : défi à deux */
+.p-defis li { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.p-defi-form { margin-bottom: .6rem; }

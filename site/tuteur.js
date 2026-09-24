@@ -170,6 +170,7 @@
       <nav class="e-opale-onglets" aria-label="Opale">
         <button type="button" class="actif" data-onglet="parler">${N.ic('ic-message')} Parler</button>
         <button type="button" data-onglet="calculer" id="e-opale-ong-calc">${N.ic('ic-calculatrice')} Calculatrice</button>
+        <button type="button" data-onglet="outils" id="e-opale-ong-outils">${N.ic('ic-reglage')} Outils</button>
       </nav>
       <section class="e-opale-corps" id="e-opale-parler">
         <div class="e-opale-fil" id="e-opale-fil" aria-live="polite"></div>
@@ -190,10 +191,30 @@
           <div class="e-opale-touches" id="e-opale-touches"></div>
           <ul class="e-opale-historique" id="e-opale-historique" aria-label="Derniers calculs"></ul>
         </div>
+      </section>
+      <section class="e-opale-corps" id="e-opale-outils" hidden>
+        <p class="e-opale-calc-coupe" id="e-opale-outils-coupe" hidden>Pas d'outils pendant une évaluation.</p>
+        <div id="e-opale-outils-corps">
+          <h3 class="e-opale-h3">Convertir une unité</h3>
+          <form class="e-opale-conv" id="e-opale-conv">
+            <label class="visuellement-cache" for="e-conv-val">Valeur</label><input id="e-conv-val" type="text" inputmode="decimal" autocomplete="off" placeholder="Valeur" value="1">
+            <label class="visuellement-cache" for="e-conv-de">Unité de départ</label><select id="e-conv-de"></select>
+            <span aria-hidden="true">→</span>
+            <label class="visuellement-cache" for="e-conv-vers">Unité d'arrivée</label><select id="e-conv-vers"></select>
+            <output id="e-conv-res" for="e-conv-val e-conv-de e-conv-vers"></output>
+          </form>
+          <h3 class="e-opale-h3">Conjuguer un verbe</h3>
+          <form class="e-opale-conj" id="e-opale-conj">
+            <label class="visuellement-cache" for="e-conj-verbe">Verbe</label><select id="e-conj-verbe"></select>
+            <label class="visuellement-cache" for="e-conj-temps">Temps</label><select id="e-conj-temps"></select>
+          </form>
+          <table class="e-opale-table" id="e-conj-table" aria-label="Conjugaison"></table>
+        </div>
       </section>`;
     document.getElementById('app-eleve').append(b, panneau);
 
     document.getElementById('e-opale-fermer').addEventListener('click', fermer);
+    brancherOutils();
     panneau.querySelectorAll('[data-onglet]').forEach((o) => o.addEventListener('click', () => choisirOnglet(o.getAttribute('data-onglet'))));
     document.getElementById('e-opale-form').addEventListener('submit', (ev) => { ev.preventDefault(); envoyer(document.getElementById('e-opale-q').value); });
     document.getElementById('e-opale-q').addEventListener('keydown', (ev) => {
@@ -238,12 +259,55 @@
     rendreFil();
   }
 
+  /* ---------- C73 : convertisseur d'unités et tables de conjugaison ---------- */
+  const UNITES = {
+    longueur: { mm: 0.001, cm: 0.01, dm: 0.1, m: 1, dam: 10, hm: 100, km: 1000 },
+    masse: { mg: 0.000001, g: 0.001, kg: 1, t: 1000 },
+    volume: { mL: 0.001, cL: 0.01, dL: 0.1, L: 1, 'cm³': 0.001, 'dm³': 1, 'm³': 1000 },
+    temps: { s: 1, min: 60, h: 3600, jour: 86400 },
+    vitesse: { 'm/s': 1, 'km/h': 1 / 3.6 },
+  };
+  const VERBES = {
+    être: { present: ['suis', 'es', 'est', 'sommes', 'êtes', 'sont'], imparfait: ['étais', 'étais', 'était', 'étions', 'étiez', 'étaient'], futur: ['serai', 'seras', 'sera', 'serons', 'serez', 'seront'], passeSimple: ['fus', 'fus', 'fut', 'fûmes', 'fûtes', 'furent'], passeCompose: ['ai été', 'as été', 'a été', 'avons été', 'avez été', 'ont été'], conditionnel: ['serais', 'serais', 'serait', 'serions', 'seriez', 'seraient'], subjonctif: ['sois', 'sois', 'soit', 'soyons', 'soyez', 'soient'], plusQueParfait: ['avais été', 'avais été', 'avait été', 'avions été', 'aviez été', 'avaient été'] },
+    avoir: { present: ['ai', 'as', 'a', 'avons', 'avez', 'ont'], imparfait: ['avais', 'avais', 'avait', 'avions', 'aviez', 'avaient'], futur: ['aurai', 'auras', 'aura', 'aurons', 'aurez', 'auront'], passeSimple: ['eus', 'eus', 'eut', 'eûmes', 'eûtes', 'eurent'], passeCompose: ['ai eu', 'as eu', 'a eu', 'avons eu', 'avez eu', 'ont eu'], conditionnel: ['aurais', 'aurais', 'aurait', 'aurions', 'auriez', 'auraient'], subjonctif: ['aie', 'aies', 'ait', 'ayons', 'ayez', 'aient'], plusQueParfait: ['avais eu', 'avais eu', 'avait eu', 'avions eu', 'aviez eu', 'avaient eu'] },
+    aller: { present: ['vais', 'vas', 'va', 'allons', 'allez', 'vont'], imparfait: ['allais', 'allais', 'allait', 'allions', 'alliez', 'allaient'], futur: ['irai', 'iras', 'ira', 'irons', 'irez', 'iront'], passeSimple: ['allai', 'allas', 'alla', 'allâmes', 'allâtes', 'allèrent'], passeCompose: ['suis allé(e)', 'es allé(e)', 'est allé(e)', 'sommes allé(e)s', 'êtes allé(e)s', 'sont allé(e)s'], conditionnel: ['irais', 'irais', 'irait', 'irions', 'iriez', 'iraient'], subjonctif: ['aille', 'ailles', 'aille', 'allions', 'alliez', 'aillent'], plusQueParfait: ['étais allé(e)', 'étais allé(e)', 'était allé(e)', 'étions allé(e)s', 'étiez allé(e)s', 'étaient allé(e)s'] },
+    faire: { present: ['fais', 'fais', 'fait', 'faisons', 'faites', 'font'], imparfait: ['faisais', 'faisais', 'faisait', 'faisions', 'faisiez', 'faisaient'], futur: ['ferai', 'feras', 'fera', 'ferons', 'ferez', 'feront'], passeSimple: ['fis', 'fis', 'fit', 'fîmes', 'fîtes', 'firent'], passeCompose: ['ai fait', 'as fait', 'a fait', 'avons fait', 'avez fait', 'ont fait'], conditionnel: ['ferais', 'ferais', 'ferait', 'ferions', 'feriez', 'feraient'], subjonctif: ['fasse', 'fasses', 'fasse', 'fassions', 'fassiez', 'fassent'], plusQueParfait: ['avais fait', 'avais fait', 'avait fait', 'avions fait', 'aviez fait', 'avaient fait'] },
+    pouvoir: { present: ['peux', 'peux', 'peut', 'pouvons', 'pouvez', 'peuvent'], imparfait: ['pouvais', 'pouvais', 'pouvait', 'pouvions', 'pouviez', 'pouvaient'], futur: ['pourrai', 'pourras', 'pourra', 'pourrons', 'pourrez', 'pourront'], passeSimple: ['pus', 'pus', 'put', 'pûmes', 'pûtes', 'purent'], passeCompose: ['ai pu', 'as pu', 'a pu', 'avons pu', 'avez pu', 'ont pu'], conditionnel: ['pourrais', 'pourrais', 'pourrait', 'pourrions', 'pourriez', 'pourraient'], subjonctif: ['puisse', 'puisses', 'puisse', 'puissions', 'puissiez', 'puissent'], plusQueParfait: ['avais pu', 'avais pu', 'avait pu', 'avions pu', 'aviez pu', 'avaient pu'] },
+    vouloir: { present: ['veux', 'veux', 'veut', 'voulons', 'voulez', 'veulent'], imparfait: ['voulais', 'voulais', 'voulait', 'voulions', 'vouliez', 'voulaient'], futur: ['voudrai', 'voudras', 'voudra', 'voudrons', 'voudrez', 'voudront'], passeSimple: ['voulus', 'voulus', 'voulut', 'voulûmes', 'voulûtes', 'voulurent'], passeCompose: ['ai voulu', 'as voulu', 'a voulu', 'avons voulu', 'avez voulu', 'ont voulu'], conditionnel: ['voudrais', 'voudrais', 'voudrait', 'voudrions', 'voudriez', 'voudraient'], subjonctif: ['veuille', 'veuilles', 'veuille', 'voulions', 'vouliez', 'veuillent'], plusQueParfait: ['avais voulu', 'avais voulu', 'avait voulu', 'avions voulu', 'aviez voulu', 'avaient voulu'] },
+    prendre: { present: ['prends', 'prends', 'prend', 'prenons', 'prenez', 'prennent'], imparfait: ['prenais', 'prenais', 'prenait', 'prenions', 'preniez', 'prenaient'], futur: ['prendrai', 'prendras', 'prendra', 'prendrons', 'prendrez', 'prendront'], passeSimple: ['pris', 'pris', 'prit', 'prîmes', 'prîtes', 'prirent'], passeCompose: ['ai pris', 'as pris', 'a pris', 'avons pris', 'avez pris', 'ont pris'], conditionnel: ['prendrais', 'prendrais', 'prendrait', 'prendrions', 'prendriez', 'prendraient'], subjonctif: ['prenne', 'prennes', 'prenne', 'prenions', 'preniez', 'prennent'], plusQueParfait: ['avais pris', 'avais pris', 'avait pris', 'avions pris', 'aviez pris', 'avaient pris'] },
+    venir: { present: ['viens', 'viens', 'vient', 'venons', 'venez', 'viennent'], imparfait: ['venais', 'venais', 'venait', 'venions', 'veniez', 'venaient'], futur: ['viendrai', 'viendras', 'viendra', 'viendrons', 'viendrez', 'viendront'], passeSimple: ['vins', 'vins', 'vint', 'vînmes', 'vîntes', 'vinrent'], passeCompose: ['suis venu(e)', 'es venu(e)', 'est venu(e)', 'sommes venu(e)s', 'êtes venu(e)s', 'sont venu(e)s'], conditionnel: ['viendrais', 'viendrais', 'viendrait', 'viendrions', 'viendriez', 'viendraient'], subjonctif: ['vienne', 'viennes', 'vienne', 'venions', 'veniez', 'viennent'], plusQueParfait: ['étais venu(e)', 'étais venu(e)', 'était venu(e)', 'étions venu(e)s', 'étiez venu(e)s', 'étaient venu(e)s'] },
+    chanter: { present: ['chante', 'chantes', 'chante', 'chantons', 'chantez', 'chantent'], imparfait: ['chantais', 'chantais', 'chantait', 'chantions', 'chantiez', 'chantaient'], futur: ['chanterai', 'chanteras', 'chantera', 'chanterons', 'chanterez', 'chanteront'], passeSimple: ['chantai', 'chantas', 'chanta', 'chantâmes', 'chantâtes', 'chantèrent'], passeCompose: ['ai chanté', 'as chanté', 'a chanté', 'avons chanté', 'avez chanté', 'ont chanté'], conditionnel: ['chanterais', 'chanterais', 'chanterait', 'chanterions', 'chanteriez', 'chanteraient'], subjonctif: ['chante', 'chantes', 'chante', 'chantions', 'chantiez', 'chantent'], plusQueParfait: ['avais chanté', 'avais chanté', 'avait chanté', 'avions chanté', 'aviez chanté', 'avaient chanté'] },
+    finir: { present: ['finis', 'finis', 'finit', 'finissons', 'finissez', 'finissent'], imparfait: ['finissais', 'finissais', 'finissait', 'finissions', 'finissiez', 'finissaient'], futur: ['finirai', 'finiras', 'finira', 'finirons', 'finirez', 'finiront'], passeSimple: ['finis', 'finis', 'finit', 'finîmes', 'finîtes', 'finirent'], passeCompose: ['ai fini', 'as fini', 'a fini', 'avons fini', 'avez fini', 'ont fini'], conditionnel: ['finirais', 'finirais', 'finirait', 'finirions', 'finiriez', 'finiraient'], subjonctif: ['finisse', 'finisses', 'finisse', 'finissions', 'finissiez', 'finissent'], plusQueParfait: ['avais fini', 'avais fini', 'avait fini', 'avions fini', 'aviez fini', 'avaient fini'] },
+  };
+  const TEMPS = { present: 'Présent', imparfait: 'Imparfait', passeCompose: 'Passé composé', passeSimple: 'Passé simple', plusQueParfait: 'Plus-que-parfait', futur: 'Futur', conditionnel: 'Conditionnel présent', subjonctif: 'Subjonctif présent' };
+  const PRONOMS = ['je', 'tu', 'il, elle', 'nous', 'vous', 'ils, elles'];
+  function brancherOutils() {
+    const de = document.getElementById('e-conv-de'); const vers = document.getElementById('e-conv-vers'); const val = document.getElementById('e-conv-val'); const res = document.getElementById('e-conv-res');
+    const options = Object.keys(UNITES).map((g) => `<optgroup label="${g}">${Object.keys(UNITES[g]).map((u) => `<option value="${g}|${u}">${u}</option>`).join('')}</optgroup>`).join('');
+    de.innerHTML = options; vers.innerHTML = options; de.value = 'longueur|km'; vers.value = 'longueur|m';
+    const convertir = () => {
+      const [g1, u1] = de.value.split('|'); const [g2, u2] = vers.value.split('|');
+      const v = Number(String(val.value).replace(',', '.'));
+      if (g1 !== g2) { res.textContent = 'Deux unités de la même grandeur, s\'il te plaît (longueur avec longueur, masse avec masse).'; return; }
+      if (!Number.isFinite(v)) { res.textContent = 'Écris un nombre.'; return; }
+      const r = v * UNITES[g1][u1] / UNITES[g2][u2];
+      res.textContent = `${String(val.value).trim()} ${u1} = ${Number(r.toPrecision(10)).toLocaleString('fr-FR', { maximumFractionDigits: 8 })} ${u2}`;
+    };
+    [de, vers].forEach((x) => x.addEventListener('change', convertir)); val.addEventListener('input', convertir); convertir();
+    const verbe = document.getElementById('e-conj-verbe'); const temps = document.getElementById('e-conj-temps'); const table = document.getElementById('e-conj-table');
+    verbe.innerHTML = Object.keys(VERBES).map((v) => `<option value="${v}">${v}</option>`).join(''); temps.innerHTML = Object.keys(TEMPS).map((t) => `<option value="${t}">${TEMPS[t]}</option>`).join('');
+    const conjuguer = () => { const f = VERBES[verbe.value][temps.value]; table.innerHTML = `<caption>${N.ech(verbe.value)} au ${N.ech(TEMPS[temps.value].toLowerCase())}</caption><tbody>${PRONOMS.map((p, i) => `<tr><th scope="row">${p}</th><td>${N.ech(f[i])}</td></tr>`).join('')}</tbody>`; };
+    verbe.addEventListener('change', conjuguer); temps.addEventListener('change', conjuguer); conjuguer();
+  }
+
   function choisirOnglet(o) {
     onglet = o;
     panneau.querySelectorAll('[data-onglet]').forEach((x) => x.classList.toggle('actif', x.getAttribute('data-onglet') === o));
     document.getElementById('e-opale-parler').hidden = o !== 'parler';
     document.getElementById('e-opale-calculer').hidden = o !== 'calculer';
+    document.getElementById('e-opale-outils').hidden = o !== 'outils';
     if (o === 'calculer') document.getElementById('e-opale-expr').focus();
+    else if (o === 'outils') document.getElementById('e-conv-val').focus();
     else document.getElementById('e-opale-q').focus();
   }
 
@@ -268,6 +332,11 @@
         : 'Pas de calculatrice pendant une évaluation.';
     document.getElementById('e-opale-calc').hidden = !ok;
     if (!ok && onglet === 'calculer') choisirOnglet('parler');
+    // C73 : convertisseur et conjugaisons, coupés en évaluation comme la calculatrice.
+    const outilsOk = contexteCourant.mode !== 'evaluation';
+    const ongO = document.getElementById('e-opale-ong-outils'); ongO.disabled = !outilsOk; ongO.title = outilsOk ? '' : 'Pas d\'outils pendant une évaluation';
+    document.getElementById('e-opale-outils-coupe').hidden = outilsOk; document.getElementById('e-opale-outils-corps').hidden = !outilsOk;
+    if (!outilsOk && onglet === 'outils') choisirOnglet('parler');
   }
 
   let libererFocus = null;

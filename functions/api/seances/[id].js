@@ -2,7 +2,7 @@
  *   PATCH  /api/seances/:id   met à jour une séance (professeur)
  *   DELETE /api/seances/:id   supprime une séance (professeur)
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser, MESSAGES } from '../../_commun.js';
 
 const STATUTS = ['prevue', 'faite', 'reportee'];
 const CRENEAUX = ['A', 'B', 'C'];
@@ -13,13 +13,13 @@ const HEURE = /^([01]\d|2[0-3]):[0-5]\d$/;
 export const onRequestPatch = gerer(async (context) => {
   exigerProf(await exigerSession(context));
   const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
 
   const existante = await context.env.DB.prepare('SELECT * FROM seances WHERE id = ?').bind(id).first();
   if (!existante) return erreur('Séance introuvable.', 404);
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
 
   if (corps.statut && !STATUTS.includes(corps.statut)) return erreur('Statut invalide.');
   if (corps.creneau && !CRENEAUX.includes(corps.creneau)) return erreur('Créneau invalide.');
@@ -59,7 +59,7 @@ export const onRequestPatch = gerer(async (context) => {
 export const onRequestDelete = gerer(async (context) => {
   const session = exigerProf(await exigerSession(context));
   const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
   const avant = await context.env.DB.prepare('SELECT date, creneau, type, objectif FROM seances WHERE id = ?').bind(id).first().catch(() => null);
   await context.env.DB.prepare('DELETE FROM seances WHERE id = ?').bind(id).run();
   await journaliser(context.env, session, 'seance', id, avant, null);

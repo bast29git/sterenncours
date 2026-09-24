@@ -494,7 +494,9 @@
       if (/^\d{4}-\d{2}-\d{2}$/.test(j) && v && v.fait) { const l = lundiDe(j); semaines[l] = (semaines[l] || 0) + 1; }
     });
     const defis = Object.values(semaines).filter((n) => n >= 5).length;
-    return { fiches, series, jeux, lecons, felicitations, defis, total: fiches + series + jeux + lecons * 3 + felicitations + defis };
+    // C50 : les défis lancés par Bastien et réussis valent une étoile bonus chacun.
+    const defisBastien = (profil('prof.defis', []) || []).filter((d) => d && d.etat === 'reussi').length;
+    return { fiches, series, jeux, lecons, felicitations, defis, defisBastien, total: fiches + series + jeux + lecons * 3 + felicitations + defis + defisBastien };
   }
 
   /**

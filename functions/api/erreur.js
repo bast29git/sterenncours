@@ -3,7 +3,7 @@
  *   POST /api/erreur { message, source, ecran } : une erreur de plus (au plus dix par minute et par session)
  *   GET  /api/erreur : la liste (professeur)
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, MESSAGES } from '../_commun.js';
 
 async function empreinteDe(texte) {
   const octets = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texte));
@@ -13,7 +13,7 @@ async function empreinteDe(texte) {
 export const onRequestPost = gerer(async (context) => {
   const session = await exigerSession(context);
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const message = String(corps && corps.message || '').slice(0, 300).trim();
   if (!message) return erreur('Message vide.');
   const source = String(corps.source || '').slice(0, 200);

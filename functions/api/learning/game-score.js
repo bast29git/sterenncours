@@ -8,7 +8,7 @@
  * à deux étoiles ou plus franchit le seuil de réussite (70 %). Sans étoiles,
  * une partie gagnée vaut 75, une partie perdue 40.
  */
-import { json, erreur, gerer, exigerSession, maintenant } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, maintenant, MESSAGES } from '../../_commun.js';
 import { compter } from '../usage.js';
 
 export function noteSur100(corps) {
@@ -24,7 +24,7 @@ export const onRequestPost = gerer(async (context) => {
   const { DB } = context.env;
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const id = String((corps && corps.gameId) || '').replace(/[^a-z0-9-]/gi, '').slice(0, 60);
   if (!id) return erreur('gameId requis.');
   const justes = noteSur100(corps);

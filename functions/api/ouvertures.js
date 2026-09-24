@@ -9,14 +9,14 @@
  *
  * Réservé à l'espace professeur : c'est lui qui décide du rythme.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser, MESSAGES } from '../_commun.js';
 
 export const onRequestPut = gerer(async (context) => {
   const session = exigerProf(await exigerSession(context));
   const { DB } = context.env;
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const { matiere, ref } = corps || {};
   if (!matiere || !ref) return erreur('matiere et ref sont requis.');
   if (!/^[a-z0-9-]+$/.test(matiere) || !/^[A-Za-z0-9]+$/.test(ref)) return erreur('Identifiants invalides.');

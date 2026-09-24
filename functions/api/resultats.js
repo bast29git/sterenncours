@@ -2,7 +2,7 @@
  * PUT /api/resultats : enregistre le résultat d'une série d'exercices.
  * Le meilleur score et le nombre de séries sont conservés dans le temps.
  */
-import { json, erreur, gerer, exigerSession, maintenant } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, maintenant, MESSAGES } from '../_commun.js';
 import { compter } from './usage.js';
 
 export const onRequestPut = gerer(async (context) => {
@@ -10,7 +10,7 @@ export const onRequestPut = gerer(async (context) => {
   const { DB } = context.env;
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const { matiere, ref } = corps || {};
   const justes = Number(corps && corps.justes);
   const total = Number(corps && corps.total);

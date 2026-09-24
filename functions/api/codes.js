@@ -5,7 +5,7 @@
  * dérivé (PBKDF2 avec sel) et écrit dans KV : l'ancien cesse d'ouvrir aussitôt.
  * Les sessions ouvertes restent valides jusqu'à leur expiration.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, deriver, egal, ROLES, ITERATIONS_MAX, journaliser } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, deriver, egal, ROLES, ITERATIONS_MAX, journaliser, MESSAGES } from '../_commun.js';
 
 const hex = (octets) => [...new Uint8Array(octets)].map((b) => b.toString(16).padStart(2, '0')).join('');
 
@@ -14,7 +14,7 @@ export const onRequestPut = gerer(async (context) => {
   const { env } = context;
   if (!env.SESSIONS) return erreur('Stockage des sessions non configuré.', 503);
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const role = String(corps && corps.role || '');
   if (!ROLES.includes(role)) return erreur('Rôle inconnu.');
   const actuel = String(corps.actuel || '').trim().toLowerCase();

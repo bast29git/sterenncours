@@ -2058,6 +2058,12 @@ window.EXERCICES = {
     titre: "L'Europe des Lumières",
     items: [
       {
+        type: 'associer',
+        q: 'Associe chaque philosophe des Lumières à son idée ou à son œuvre.',
+        paires: [['Montesquieu', 'la séparation des pouvoirs'], ['Voltaire', 'la tolérance'], ['Rousseau', 'la souveraineté du peuple'], ['Diderot', 'l\'Encyclopédie']],
+        explication: 'De l\'esprit des lois (1748), Traité sur la tolérance (1763), Du contrat social (1762), Encyclopédie (1751 à 1772) : quatre œuvres, quatre idées qui préparent 1789.',
+      },
+      {
         type: 'qcm',
         q: 'Entre quelles années se situe le XVIII<sup>e</sup> siècle ?',
         choix: ['1700 à 1799', '1701 à 1800', '1750 à 1850'],
@@ -2197,6 +2203,19 @@ window.EXERCICES = {
   'francais/L06': {
     titre: 'Les expansions du nom',
     items: [
+      {
+        type: 'associer',
+        q: 'Associe chaque expansion du nom à sa nature.',
+        paires: [['le chapeau <b>de paille</b>', 'complément du nom'], ['une robe <b>rouge</b>', 'adjectif épithète'], ['le livre <b>que tu lis</b>', 'proposition subordonnée relative'], ['Paris, <b>capitale de la France</b>', 'apposition']],
+        explication: 'Le complément du nom commence par une préposition (de, à, en). L\'épithète est un adjectif collé au nom. La relative commence par qui, que, dont, où. L\'apposition est séparée par une virgule.',
+      },
+      {
+        type: 'trous',
+        q: 'Complète avec le mot exact de la leçon.',
+        texte: 'Dans « la maison de mes parents », le groupe « de mes parents » est un ___ du nom. Dans « une maison ancienne », « ancienne » est un adjectif ___.',
+        reponses: [['complément', 'complement'], ['épithète', 'epithete']],
+        explication: 'Le complément du nom est introduit par une préposition ; l\'adjectif épithète est directement rattaché au nom, sans verbe entre les deux.',
+      },
       {
         type: 'qcm',
         q: 'Quel est le noyau du groupe nominal « le chapeau de paille de ma grand-mère » ?',
@@ -6643,6 +6662,13 @@ window.EXERCICES = {
 ]}
 ,
 "physique-chimie/L09": { titre: "Les signaux sonores", items: [
+      {
+        type: 'trous',
+        q: 'Complète avec les valeurs de la leçon.',
+        texte: 'Dans l\'air, le son se propage à environ ___ m/s. Un écho revient après 0,2 s : le mur est à ___ m (aller-retour).',
+        reponses: [['340'], ['34']],
+        explication: 'Distance parcourue : 340 × 0,2 = 68 m, aller et retour. Le mur est donc à 68 ÷ 2 = 34 m.',
+      },
  { type: 'qcm', q: "Qu'est-ce qui produit un son ?", choix: ["Un objet qui vibre", "Un objet qui chauffe", "Un objet qui brille"], reponse: 0, explication: "Tout son vient d'une vibration : une corde, une peau de tambour, l'air dans un tube, les cordes vocales. Sans vibration, il n'y a pas de son." },
  { type: 'vraifaux', q: "Le son se propage dans le vide.", reponse: false, explication: "Faux. Le son a besoin d'un milieu matériel (gaz, liquide ou solide) pour transmettre la vibration de proche en proche. Dans le vide, il n'y a rien à faire vibrer." },
  { type: 'qcm', q: "Quelle est la vitesse du son dans l'air, à température ordinaire ?", choix: ["340 m/s", "1 500 m/s", "300 000 km/s"], reponse: 0, explication: "Dans l'air, le son parcourt environ 340 mètres par seconde. 1 500 m/s est sa vitesse dans l'eau, et 300 000 km/s est la vitesse de la lumière." },

@@ -374,6 +374,7 @@
        ${blocMotNouveau()}
        ${blocARevoir()}
        ${blocEtoiles()}
+       ${blocDefiBastien()}
        ${blocDefiJour()}
        ${blocDefi()}
 
@@ -412,6 +413,7 @@
     );
     brancherChoix(vueHub);
     brancherDefiJour(vueHub);
+    brancherDefiBastien(vueHub);
     monterOrbite();
     const vu = document.getElementById('e-mot-vu');
     if (vu) vu.addEventListener('click', async () => { await marquerMotsVus(); vueHub(); });
@@ -668,6 +670,7 @@
             <nav class="e-ariane" aria-label="Fil d'Ariane"><a href="#/matieres">Mes matières</a> › <a href="#/matiere/${mid}">${m.icone} ${N.ech(m.nom)}</a> › <a href="#/lecon/${mid}/${ref}/${ouverts[0]}">${N.ech(l.titre)}</a> › <b>${N.ech((N.TYPES_DOC.find((x) => x.id === actif) || {}).libelle || actif)}</b></nav>
             <h1>${N.ech(doc.titre)}</h1>
             ${doc.resume ? `<p style="margin:0;color:var(--e-encre-doux)">${N.ech(doc.resume)}</p>` : ''}
+            ${(() => { const r = N.profil('resume.' + N.cle(mid, ref) + '/' + actif, null); return r && r.valide && r.texte ? `<div class="e-resume-opale"><b>${N.ic('ic-etincelle')} En trois phrases</b><p>${N.ech(r.texte)}</p></div>` : ''; })()}
             ${ongletsLecon(mid, ref, ouverts, actif)}
           </header>
           <div id="e-fiche-hote"></div>
@@ -757,9 +760,19 @@
     const zone = document.createElement('section'); zone.className = 'e-carte e-cahier-suivi'; zone.setAttribute('aria-labelledby', 'e-h-cahier');
     zone.innerHTML = `<h2 id="e-h-cahier">${N.ic('ic-crayon')} Mon cahier : ce que j'ai fait à la main ${VU_PROF}</h2>
       <p class="e-aide">Coche chaque exercice quand il est fait dans le cahier. <a href="/cahiers/${mid}/${ref}.html" target="_blank" rel="noopener">Ouvrir le cahier à imprimer</a></p>
-      <ul class="e-cahier-cases">${mains.map((n) => `<li><label><input type="checkbox" value="${N.ech(n)}" ${faits.has(n) ? 'checked' : ''}> Exercice ${N.ech(n)}</label></li>`).join('')}</ul>
-      <p class="e-cahier-total">${faits.size} sur ${mains.length} fait(s)</p>`;
+      <ul class="e-cahier-cases">${mains.map((n) => `<li><label><input type="checkbox" value="${N.ech(n)}" ${faits.has(n) ? 'checked' : ''}> Exercice ${N.ech(n)}</label> <button type="button" class="e-outil e-cahier-photo" data-photo-exo="${N.ech(n)}" title="Envoyer la photo de cet exercice" aria-label="Photo de l'exercice ${N.ech(n)}">${N.ic('ic-photo')}</button></li>`).join('')}</ul>
+      <p class="e-cahier-total">${faits.size} sur ${mains.length} fait(s)</p>
+      <input type="file" id="e-cahier-fichier" accept="image/*" capture="environment" hidden>`;
     hote.insertAdjacentElement('afterend', zone);
+    // C32 : la photo est rattachée à l'exercice, pas seulement à la leçon.
+    const champPhoto = zone.querySelector('#e-cahier-fichier'); let exoPhoto = null;
+    zone.querySelectorAll('[data-photo-exo]').forEach((b) => b.addEventListener('click', () => { exoPhoto = b.getAttribute('data-photo-exo'); champPhoto.click(); }));
+    champPhoto.addEventListener('change', async () => {
+      const f = champPhoto.files && champPhoto.files[0]; if (!f || !exoPhoto) return;
+      const d = new FormData(); d.append('fichier', f); d.append('matiere', mid); d.append('ref', ref); d.append('note', 'Exercice ' + exoPhoto + ' du cahier');
+      try { await N.api('/fichiers', { method: 'POST', body: d }); N.signaler('Photo de l\'exercice ' + exoPhoto + ' envoyée à Bastien.', 'succes'); const b = zone.querySelector(`[data-photo-exo="${exoPhoto}"]`); if (b) { b.classList.add('envoye'); b.title = 'Photo envoyée'; } } catch (e) { N.signaler(e.message); }
+      champPhoto.value = '';
+    });
     zone.querySelectorAll('input').forEach((c) => c.addEventListener('change', async () => {
       if (c.checked) faits.add(c.value); else faits.delete(c.value);
       zone.querySelector('.e-cahier-total').textContent = `${faits.size} sur ${mains.length} fait(s)`;
@@ -930,6 +943,7 @@
     const auto = N.profil('moi.autoeval.' + cle, {}) || {};
     const niv = (id) => N.NIVEAUX.find((n) => n.id === id);
     return `<section class="e-carte e-eval-resultat" aria-labelledby="e-h-resultat"><h2 id="e-h-resultat">${N.ic('ic-graphique')} Ton résultat</h2>
+      ${r.audio ? `<p class="e-eval-audio"><b>Le commentaire de Bastien, à écouter</b><audio controls preload="none" src="/api/fichiers/${N.ech(r.audio)}" aria-label="Commentaire audio de la correction"></audio></p>` : ''}
       <p class="e-eval-resultat-tete">${r.note != null ? `<b class="e-note">${N.ech(String(r.note))}</b><span>sur 20</span>` : ''}${r.positionnement ? `<span class="e-etat-niveau niv-${r.positionnement}">${N.ech((niv(r.positionnement) || {}).libelle || r.positionnement)}</span>` : ''}<span class="e-aide">rendu le ${N.ech(N.dateCourte(r.rendu_le))}</span></p>
       ${r.mot ? `<blockquote class="e-eval-mot">« ${N.ech(r.mot)} »</blockquote>` : ''}
       ${Array.isArray(r.criteres) && r.criteres.length ? `<table class="e-eval-grille"><thead><tr><th>Critère</th><th>Bastien</th><th>Toi</th></tr></thead><tbody>${r.criteres.map((c, i) => `<tr><td>${i + 1}. ${N.ech(c.libelle || '')}</td><td><span class="e-etat-niveau niv-${c.niveau}">${N.ech((niv(c.niveau) || {}).libelle || c.niveau || '')}</span></td><td>${auto[i] ? `<span class="e-etat-niveau niv-${auto[i]} ${auto[i] === c.niveau ? 'accord' : ''}">${N.ech((niv(auto[i]) || {}).libelle || auto[i])}</span>` : '<span class="e-aide">non dit</span>'}</td></tr>`).join('')}</tbody></table>` : ''}
@@ -1417,12 +1431,25 @@
     const l = N.lecon(N.matiere(s.mid), s.ref);
     if (s.termine) return rendreBilan();
     const item = s.items[s.index];
-    const corps = (item.type === 'qcm' || item.type === 'vraifaux')
-      ? `<ul class="e-exo-choix">${(item.type === 'vraifaux' ? ['Vrai', 'Faux'] : item.choix)
-        .map((c, i) => `<li><button type="button" data-choix="${i}">${c}</button></li>`).join('')}</ul>`
-      : `<form class="e-exo-saisie" id="e-form-saisie">
+    let corps;
+    if (item.type === 'qcm' || item.type === 'vraifaux') {
+      corps = `<ul class="e-exo-choix">${(item.type === 'vraifaux' ? ['Vrai', 'Faux'] : item.choix)
+        .map((c, i) => `<li><button type="button" data-choix="${i}">${c}</button></li>`).join('')}</ul>`;
+    } else if (item.type === 'associer') {
+      // C36 : associer, chaque élément de gauche à un élément de droite (les droites sont mélangées, dans un ordre stable).
+      const droites = item.paires.map((p, i) => ({ t: p[1], i })).sort((a, b) => ((a.i * 7 + s.index) % 5) - ((b.i * 7 + s.index) % 5) || a.i - b.i);
+      corps = `<form class="e-exo-associer" id="e-form-associer">${item.paires.map((p, i) => `<label><span>${p[0]}</span><select data-gauche="${i}" aria-label="Associer à ${String(p[0]).replace(/<[^>]+>/g, '')}"><option value="">choisir</option>${droites.map((d) => `<option value="${d.i}">${String(d.t).replace(/<[^>]+>/g, '')}</option>`).join('')}</select></label>`).join('')}
+        <button class="e-bouton" type="submit">Vérifier</button></form>`;
+    } else if (item.type === 'trous') {
+      // C36 : un texte à trous ; chaque ___ devient un champ.
+      const morceaux = String(item.texte || '').split('___');
+      corps = `<form class="e-exo-trous" id="e-form-trous"><p class="e-trous-texte">${morceaux.map((m, i) => N.ech(m) + (i < morceaux.length - 1 ? `<input type="text" data-trou="${i}" autocomplete="off" autocapitalize="off" aria-label="Trou ${i + 1}" size="${Math.max(6, Math.min(18, ((item.reponses[i] || [''])[0] || '').length + 2))}">` : '')).join('')}</p>
+        <button class="e-bouton" type="submit">Vérifier</button></form>`;
+    } else {
+      corps = `<form class="e-exo-saisie" id="e-form-saisie">
           <input id="e-saisie" type="text" autocomplete="off" placeholder="ta réponse" aria-label="Ta réponse">
           <button class="e-bouton" type="submit">Vérifier</button></form>`;
+    }
 
     afficher(
       `<div class="e-exo" data-exo-index="${s.index}">
@@ -1451,6 +1478,10 @@
       f.addEventListener('submit', (ev) => { ev.preventDefault(); repondre(document.getElementById('e-saisie').value); });
       document.getElementById('e-saisie').focus();
     }
+    const fa = document.getElementById('e-form-associer');
+    if (fa) fa.addEventListener('submit', (ev) => { ev.preventDefault(); const choix = [...fa.querySelectorAll('select')].map((x) => x.value); if (choix.some((c) => c === '')) { N.signaler('Associe chaque élément avant de vérifier.', 'info'); return; } repondre(choix.map(Number)); });
+    const ft = document.getElementById('e-form-trous');
+    if (ft) { ft.addEventListener('submit', (ev) => { ev.preventDefault(); repondre([...ft.querySelectorAll('input')].map((x) => x.value)); }); const premier = ft.querySelector('input'); if (premier) premier.focus(); }
   }
   const normaliser = (v) => String(v).toLowerCase().trim().replace(/,/g, '.').replace(/\s+/g, ' ').replace(/[.;!?]+$/, '');
   function repondre(valeur) {
@@ -1459,8 +1490,13 @@
     let juste;
     if (item.type === 'qcm') juste = valeur === item.reponse;
     else if (item.type === 'vraifaux') juste = (valeur === 0) === (item.reponse === true);
+    else if (item.type === 'associer') juste = Array.isArray(valeur) && valeur.every((v, i) => v === i);
+    else if (item.type === 'trous') juste = Array.isArray(valeur) && item.reponses.every((acceptees, i) => acceptees.some((r) => normaliser(r) === normaliser(valeur[i] || '')));
     else juste = item.reponses.some((r) => normaliser(r) === normaliser(valeur));
     s.reponses[s.index] = juste;
+    if (item.type === 'associer') vue().querySelectorAll('#e-form-associer select').forEach((x) => { x.disabled = true; x.classList.add(Number(x.value) === Number(x.getAttribute('data-gauche')) ? 'juste' : 'faux'); });
+    if (item.type === 'trous') vue().querySelectorAll('#e-form-trous input').forEach((x, i) => { x.disabled = true; x.classList.add(item.reponses[i].some((r) => normaliser(r) === normaliser(x.value || '')) ? 'juste' : 'faux'); });
+    const boutonVerif = vue().querySelector('#e-form-associer button, #e-form-trous button'); if (boutonVerif) boutonVerif.disabled = true;
 
     const bon = item.type === 'vraifaux' ? (item.reponse === true ? 0 : 1) : item.reponse;
     vue().querySelectorAll('.e-exo-choix button').forEach((b) => {
@@ -1489,6 +1525,8 @@
   function bonneReponse(item) {
     if (item.type === 'qcm') return item.choix[item.reponse];
     if (item.type === 'vraifaux') return item.reponse ? 'Vrai' : 'Faux';
+    if (item.type === 'associer') return item.paires.map((p) => `${p[0]} → ${p[1]}`).join(' ; ');
+    if (item.type === 'trous') return item.reponses.map((r) => N.ech(r[0])).join(', ');
     return N.ech(item.reponses[0]);
   }
   /** C30 : les questions ratées entrent dans « à revoir » ; une reprise réussie fait avancer l'étape (J+2 puis J+7). */
@@ -2072,6 +2110,26 @@
     session = { mid: choisies[0].mid, ref: choisies[0].ref, items, index: 0, reponses: [], termine: false, rejouees: true, melange: true, sources };
     N.signaler('Série mélangée : ' + sources.map((r) => { const l = N.libelleLecon(r); return l ? l.l.titre : r; }).join(', ') + '. Sans étoile, pour entretenir.', 'info');
     rendreExo();
+  }
+
+  /* ---------- C50 : le défi lancé par Bastien, accepté ou refusé, une étoile bonus ---------- */
+  function blocDefiBastien() {
+    const defis = (N.profil('prof.defis', []) || []).filter((d) => d && d.id);
+    const courant = defis.filter((d) => d.etat !== 'refuse' && d.etat !== 'rate' && d.etat !== 'reussi').sort((a, b) => String(b.propose_le).localeCompare(String(a.propose_le)))[0];
+    const derniers = defis.filter((d) => d.etat === 'reussi' || d.etat === 'rate').slice(-2);
+    if (!courant && !derniers.length) return '';
+    const reponse = courant ? N.profil('moi.defi_reponse.' + courant.id, null) : null;
+    return `<section class="e-bloc-fixe e-defi-bastien" aria-labelledby="e-h-defi-b"><h2 id="e-h-defi-b">${N.ic('ic-trophee')} Le défi de Bastien</h2>
+      ${courant ? `<p class="e-defi-b-texte">${N.ech(courant.texte)}</p><p class="e-aide">${courant.echeance ? 'À faire avant le ' + N.ech(N.enFrancais(courant.echeance, true)) + '. ' : ''}Réussi : une étoile bonus. Refuser ne coûte rien.</p>
+        ${reponse === 'accepte' ? '<p class="e-defi-jour-fini">✓ Tu as accepté. Bastien cochera « réussi » quand ce sera fait.</p>' : reponse === 'refuse' ? '<p class="e-aide">Tu as refusé ce défi. C\'est noté, sans conséquence.</p>' : `<p class="e-actions"><button class="e-bouton" type="button" data-defi-b="accepte" data-id="${N.ech(courant.id)}">J\'accepte</button><button class="e-bouton e-bouton-fin" type="button" data-defi-b="refuse" data-id="${N.ech(courant.id)}">Pas cette fois</button></p>`}` : ''}
+      ${derniers.length ? `<ul class="e-defi-b-historique">${derniers.map((d) => `<li>${d.etat === 'reussi' ? '⭐ Réussi' : '· Pas réussi'} : ${N.ech(d.texte)}</li>`).join('')}</ul>` : ''}
+    </section>`;
+  }
+  function brancherDefiBastien(apres) {
+    vue().querySelectorAll('[data-defi-b]').forEach((b) => b.addEventListener('click', async () => {
+      const v = b.getAttribute('data-defi-b'); const id = b.getAttribute('data-id');
+      try { await N.enregistrerProfil('moi.defi_reponse.' + id, v); N.signaler(v === 'accepte' ? 'Défi accepté. Bonne chance.' : 'C\'est noté.', v === 'accepte' ? 'succes' : 'info'); apres(); } catch (e) { N.signaler(e.message); }
+    }));
   }
 
   /* ---------- C35 : le défi du jour, une question par matière ---------- */

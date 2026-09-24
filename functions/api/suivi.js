@@ -2,7 +2,7 @@
  * PUT /api/suivi : positionne une leçon sur l'échelle des quatre niveaux.
  * Réservé à l'espace professeur : l'élève ne se note pas elle-même.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, nouvelId } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, nouvelId, MESSAGES } from '../_commun.js';
 
 const NIVEAUX = ['insuffisant', 'fragile', 'satisfaisant', 'tresbien'];
 const RAISONS = ['decision', 'serie', 'devoir', 'reprise', 'proposition', 'positionnement'];
@@ -24,7 +24,7 @@ export const onRequestPut = gerer(async (context) => {
   const { DB } = context.env;
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const { matiere, ref, niveau, note } = corps || {};
   if (!matiere || !ref) return erreur('matiere et ref sont requis.');
   if (niveau && !NIVEAUX.includes(niveau)) return erreur('Niveau inconnu.');

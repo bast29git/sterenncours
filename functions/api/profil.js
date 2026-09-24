@@ -3,7 +3,7 @@
  * PUT /api/profil : { cle, valeur } ; Sterenn écrit les clés « moi.* »,
  *   le professeur toutes. valeur null efface la clé.
  */
-import { json, erreur, gerer, exigerSession, maintenant } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, maintenant, MESSAGES } from '../_commun.js';
 
 /* Une clé : des segments séparés par des points ; le dernier peut porter une référence
    de fiche (« maths/L01/cours »). Exemples : moi.carte, moi.trace.maths/L01/cours. */
@@ -29,7 +29,7 @@ export const onRequestGet = gerer(async (context) => {
 export const onRequestPut = gerer(async (context) => {
   const session = await exigerSession(context);
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const cle = String(corps && corps.cle || '');
   if (!CLE.test(cle) || cle.length > 120) return erreur('Clé invalide.');
   if (session.role !== 'prof' && !cle.startsWith('moi.')) return erreur('Cette clé appartient au professeur.', 403);

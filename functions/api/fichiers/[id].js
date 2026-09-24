@@ -2,12 +2,12 @@
  *   GET    /api/fichiers/:id   télécharge le fichier depuis R2
  *   DELETE /api/fichiers/:id   supprime le fichier (auteur, ou espace professeur)
  */
-import { json, erreur, gerer, exigerSession } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, MESSAGES } from '../../_commun.js';
 
 export const onRequestGet = gerer(async (context) => {
   await exigerSession(context);
   const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
 
   const ligne = await context.env.DB.prepare('SELECT * FROM fichiers WHERE id = ?').bind(id).first();
   if (!ligne) return erreur('Fichier introuvable.', 404);
@@ -28,7 +28,7 @@ export const onRequestGet = gerer(async (context) => {
 export const onRequestDelete = gerer(async (context) => {
   const session = await exigerSession(context);
   const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
 
   const ligne = await context.env.DB.prepare('SELECT * FROM fichiers WHERE id = ?').bind(id).first();
   if (!ligne) return erreur('Fichier introuvable.', 404);

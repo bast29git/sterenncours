@@ -3,16 +3,18 @@
  * retirer sa réaction si elle existe déjà (bascule). Une réaction par émoji et
  * par espace. La liste des émojis autorisés est fermée.
  */
-import { json, erreur, gerer, exigerSession, maintenant } from '../../../_commun.js';
+import { json, erreur, gerer, exigerSession, maintenant, MESSAGES } from '../../../_commun.js';
 
-export const REACTIONS = ['👍', '❤️', '🎉', '👏', '😂', '🤔', '💪', '⭐'];
+/* C57 : six autocollants d'opale dessinés dans la charte, en plus des émojis. */
+export const AUTOCOLLANTS = [':opale-bravo:', ':opale-coeur:', ':opale-idee:', ':opale-etoile:', ':opale-rire:', ':opale-force:'];
+export const REACTIONS = ['👍', '❤️', '🎉', '👏', '😂', '🤔', '💪', '⭐'].concat(AUTOCOLLANTS);
 
 export const onRequestPost = gerer(async (context) => {
   const session = await exigerSession(context);
   const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const emoji = String(corps && corps.emoji || '');
   if (!REACTIONS.includes(emoji)) return erreur('Réaction inconnue.');
   const { DB } = context.env;

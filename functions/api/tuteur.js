@@ -11,7 +11,7 @@
  * message au professeur.
  */
 import { compter } from './usage.js';
-import { json, erreur, gerer, exigerSession, nouvelId } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, nouvelId, MESSAGES } from '../_commun.js';
 import { PROGRAMME } from '../_programme.js';
 import { lireReglages } from './reglages.js';
 
@@ -92,7 +92,7 @@ export const onRequestPost = gerer(async (context) => {
   const { env } = context;
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const texte = String(corps && corps.question || '').trim().slice(0, 600);
   if (!texte) return erreur('Écris une question.');
   const contexte = (corps && typeof corps.contexte === 'object' && corps.contexte) || {};

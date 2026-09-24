@@ -6,7 +6,7 @@
  * L'élève peut lire le planning : c'est ce qui lui dit ce qu'on fait aujourd'hui.
  * Seul l'espace professeur le modifie.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, nouvelId } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, nouvelId, MESSAGES } from '../_commun.js';
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const CRENEAUX = ['A', 'B', 'C'];
@@ -32,7 +32,7 @@ export const onRequestGet = gerer(async (context) => {
 export const onRequestPost = gerer(async (context) => {
   exigerProf(await exigerSession(context));
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
 
   const erreurChamp = valider(corps);
   if (erreurChamp) return erreur(erreurChamp);

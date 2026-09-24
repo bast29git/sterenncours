@@ -2,14 +2,14 @@
  * DELETE /api/messages/:id : retirer son propre message envoyé par erreur,
  * dans les cinq minutes qui suivent l'envoi (ou tant qu'il est différé).
  */
-import { json, erreur, gerer, exigerSession } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, MESSAGES } from '../../_commun.js';
 
 const DELAI_MS = 5 * 60 * 1000;
 
 export const onRequestDelete = gerer(async (context) => {
   const session = await exigerSession(context);
   const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
   const { DB } = context.env;
   const m = await DB.prepare('SELECT * FROM messages WHERE id = ?').bind(id).first();
   if (!m) return erreur('Message introuvable.', 404);

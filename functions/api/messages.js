@@ -4,7 +4,7 @@
  *   POST  /api/messages              envoie un message
  *   PATCH /api/messages              marque comme lus ceux de l'autre espace
  */
-import { json, erreur, gerer, exigerSession, maintenant, nouvelId } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, maintenant, nouvelId, MESSAGES } from '../_commun.js';
 import { compter } from './usage.js';
 
 const LONGUEUR_MAX = 2000;
@@ -55,7 +55,7 @@ export const onRequestGet = gerer(async (context) => {
 export const onRequestPost = gerer(async (context) => {
   const session = await exigerSession(context);
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
 
   const texte = String(corps && corps.texte || '').trim();
   if (!texte) return erreur('Message vide.');

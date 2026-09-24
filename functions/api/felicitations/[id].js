@@ -2,12 +2,12 @@
  * DELETE /api/felicitations/:id : retirer une félicitation envoyée par erreur,
  * dans les dix minutes (professeur). L'étoile associée disparaît avec elle.
  */
-import { json, erreur, gerer, exigerSession, exigerProf } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, MESSAGES } from '../../_commun.js';
 
 export const onRequestDelete = gerer(async (context) => {
   exigerProf(await exigerSession(context));
   const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
   const { DB } = context.env;
   const f = await DB.prepare('SELECT id, cree_le FROM felicitations WHERE id = ?').bind(id).first();
   if (!f) return erreur('Félicitation introuvable.', 404);

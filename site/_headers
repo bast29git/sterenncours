@@ -18,6 +18,16 @@
 
 /data/*
   Cache-Control: public, max-age=300
+  Vary: Accept-Encoding
+
+/data/contenu/*
+  Cache-Control: private, max-age=300
+
+/data/eleve/*
+  Cache-Control: private, max-age=300
+
+/data/evaluations/*
+  Cache-Control: private, no-store
 
 /pdf/*
   Cache-Control: public, max-age=3600

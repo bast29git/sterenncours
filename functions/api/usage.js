@@ -3,7 +3,7 @@
  *   POST /api/usage { cle }  : une action de plus aujourd'hui (fiche, serie, jeu, message, opale, connexion)
  *   GET  /api/usage?jours=14 : les compteurs des derniers jours (professeur)
  */
-import { json, erreur, gerer, exigerSession, exigerProf } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, MESSAGES } from '../_commun.js';
 
 const CLES = ['fiche', 'serie', 'jeu', 'message', 'opale', 'connexion', 'evaluation', 'perso'];
 
@@ -17,7 +17,7 @@ export async function compter(env, cle) {
 export const onRequestPost = gerer(async (context) => {
   await exigerSession(context);
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const cle = String(corps && corps.cle || '');
   if (!CLES.includes(cle)) return erreur('Compteur inconnu.');
   await compter(context.env, cle);

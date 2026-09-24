@@ -3,6 +3,9 @@
  * Le préfixe « _ » exclut ce fichier du routage : il n'est jamais servi.
  */
 
+import { MESSAGES } from './_messages.js';
+export { MESSAGES };
+
 export const COOKIE = 'sc_session';
 export const DUREE_SESSION = 60 * 60 * 24 * 30; // 30 jours
 export const ROLES = ['eleve', 'prof'];
@@ -114,12 +117,12 @@ export function egal(a, b) {
 /* ---------- Garde ---------------------------------------------------------- */
 export async function exigerSession(context) {
   const session = await lireSession(context.request, context.env);
-  if (!session) throw erreur('Session expirée. Reconnecte-toi.', 401);
+  if (!session) throw erreur(MESSAGES.session_expiree, 401);
   return session;
 }
 
 export function exigerProf(session) {
-  if (session.role !== 'prof') throw erreur('Réservé à l\'espace professeur.', 403);
+  if (session.role !== 'prof') throw erreur(MESSAGES.reserve_prof, 403);
   return session;
 }
 

@@ -9,7 +9,7 @@
  *
  * Chaque félicitation vaut une étoile : elle compte dans les réussites.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, nouvelId, journaliser } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, nouvelId, journaliser, MESSAGES } from '../_commun.js';
 
 export async function lireFelicitations(DB) {
   try {
@@ -29,7 +29,7 @@ export const onRequestPost = gerer(async (context) => {
   const session = exigerProf(await exigerSession(context));
   const { DB } = context.env;
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const texte = String(corps && corps.texte || '').trim().slice(0, 600);
   if (!texte) return erreur('Écris un mot pour Sterenn.');
   const matiere = corps.matiere && /^[a-z0-9-]+$/.test(corps.matiere) ? corps.matiere : null;

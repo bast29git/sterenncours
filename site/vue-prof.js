@@ -512,6 +512,30 @@
   /* =======================================================================
      Aujourd'hui
      ======================================================================= */
+  /** C50 : un défi proposé à Sterenn, accepté ou refusé par elle, coché réussi par moi : une étoile bonus. */
+  function blocDefiADeux() {
+    const defis = (N.profil('prof.defis', []) || []).filter((d) => d && d.id).slice().sort((a, b) => String(b.propose_le).localeCompare(String(a.propose_le)));
+    const etatDe = (d) => { if (d.etat === 'reussi' || d.etat === 'rate') return d.etat; const r = N.profil('moi.defi_reponse.' + d.id, null); return r === 'accepte' ? 'accepte' : r === 'refuse' ? 'refuse' : 'propose'; };
+    const LIB = { propose: 'en attente de sa réponse', accepte: 'accepté par elle', refuse: 'refusé par elle', reussi: 'réussi ⭐', rate: 'pas réussi' };
+    return bloc('Défi à deux', `<form class="p-form p-defi-form" id="p-defi-form"><div><label for="p-defi-texte">Le défi</label><input id="p-defi-texte" type="text" maxlength="160" placeholder="Trois séries réussies cette semaine" required></div>
+      <div class="ligne"><div><label for="p-defi-echeance">Avant le</label><input id="p-defi-echeance" type="date" value="${N.decaler(N.jourIso(), 7)}"></div><div class="p-seance-actions" style="align-self:end"><button class="p-bouton p-bouton-mini" type="submit">Proposer</button></div></div></form>
+      ${defis.length ? `<ul class="p-liste p-defis">${defis.slice(0, 5).map((d) => { const e = etatDe(d); return `<li><span>${N.ech(d.texte)}</span><span class="p-puce" style="margin-left:auto">${LIB[e]}</span>${e === 'accepte' ? `<button type="button" class="p-bouton p-bouton-mini" data-defi-etat="reussi" data-id="${N.ech(d.id)}">Réussi</button><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-defi-etat="rate" data-id="${N.ech(d.id)}">Pas réussi</button>` : ''}${e === 'propose' || e === 'refuse' ? `<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-defi-etat="retirer" data-id="${N.ech(d.id)}">Retirer</button>` : ''}</li>`; }).join('')}</ul>` : '<p class="p-aide">Aucun défi lancé. Un défi accepté et réussi vaut une étoile bonus ; refuser ne coûte rien à Sterenn.</p>'}`, defis.length ? String(defis.length) : '');
+  }
+  document.addEventListener('submit', async (ev) => {
+    const f = ev.target.closest && ev.target.closest('#p-defi-form'); if (!f) return;
+    ev.preventDefault();
+    const texte = document.getElementById('p-defi-texte').value.trim(); if (!texte) return;
+    const liste = (N.profil('prof.defis', []) || []).slice();
+    liste.push({ id: Math.random().toString(16).slice(2, 10) + Date.now().toString(16), texte, echeance: document.getElementById('p-defi-echeance').value || null, propose_le: new Date().toISOString(), etat: 'propose' });
+    try { await N.enregistrerProfil('prof.defis', liste.slice(-20)); await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: 'Un défi t\'attend sur ton accueil : « ' + texte + ' ». Tu peux accepter ou refuser.', contexte: 'Défi' }) }).catch(() => {}); N.signaler('Défi proposé à Sterenn.', 'succes'); vueAccueil(); } catch (e) { N.signaler(e.message); }
+  });
+  document.addEventListener('click', async (ev) => {
+    const b = ev.target.closest && ev.target.closest('[data-defi-etat]'); if (!b) return;
+    const id = b.getAttribute('data-id'); const etat = b.getAttribute('data-defi-etat');
+    let liste = (N.profil('prof.defis', []) || []).slice();
+    if (etat === 'retirer') liste = liste.filter((d) => d.id !== id); else liste = liste.map((d) => (d.id === id ? Object.assign({}, d, { etat, clos_le: new Date().toISOString() }) : d));
+    try { await N.enregistrerProfil('prof.defis', liste); if (etat === 'reussi') await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: 'Défi réussi : une étoile bonus pour toi.', contexte: 'Défi' }) }).catch(() => {}); N.signaler(etat === 'reussi' ? 'Défi réussi : Sterenn gagne une étoile.' : etat === 'rate' ? 'Défi clos, sans étoile.' : 'Défi retiré.', 'succes'); vueAccueil(); } catch (e) { N.signaler(e.message); }
+  });
   function vueAccueil() {
     const aujourd = N.jourIso();
     const lundi = N.lundiDe(aujourd);
@@ -587,6 +611,7 @@
               <span class="p-puce" style="margin-left:auto">${s.type === 'travail' ? 'perso' : 'cours'}</span></li>`).join('')}</ul>`
           : '<p class="p-vide">Aucune séance planifiée. Le générateur d\'année pose la base en une fois.</p>',
         '', suivantes.length ? '' : '<a class="p-bouton p-bouton-mini" href="#/planning" style="margin-left:auto">Générer</a>')
+      + blocDefiADeux()
       + bloc('Choix laissés à Sterenn',
         choixOuverts.length
           ? `<ul class="p-liste p-choix-attente">${choixOuverts.map((s) => {
@@ -1950,6 +1975,11 @@
                 <p>${doc.competences.map((x) => `<span class="p-puce">${N.ech(x)}</span>`).join(' ')}</p></div>` : ''}
               <div class="p-rail-bloc"><h2>Ce qu'elle voit</h2>${vueCommeElle(mid, ref, l)}</div>
               <div class="p-rail-bloc"><h2>Points de pause de cette fiche</h2>${(() => { const v = N.profil('pauses.' + cleFiche, null); return `<span class="p-pousse" role="group" aria-label="Pauses de cette fiche"><button type="button" data-pauses-fiche="" aria-pressed="${v === null}" title="Suit le réglage général">réglage</button><button type="button" data-pauses-fiche="1" aria-pressed="${v === true}">avec</button><button type="button" class="non" data-pauses-fiche="0" aria-pressed="${v === false}">sans</button></span>`; })()}</div>
+              <div class="p-rail-bloc p-opale-prof"><h2>Opale pour moi</h2>
+                ${(() => { const r = N.profil('resume.' + cleFiche, null); return r && r.texte ? `<p class="p-aide">Résumé ${r.valide ? 'validé, montré à Sterenn' : 'en attente'} :</p><blockquote class="p-trace"><p>${N.ech(r.texte)}</p></blockquote><p><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="p-resume-retirer">Retirer</button></p>` : ''; })()}
+                <p><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="p-resume" title="Opale propose un résumé en trois phrases ; tu le relis et tu le valides avant qu'il soit montré">Résumé en trois phrases</button>
+                <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="p-questions-opale" title="Opale propose cinq questions ; tu gardes celles qui te conviennent">Cinq questions à relire</button></p>
+                <div id="p-opale-zone"></div></div>
               <div class="p-rail-bloc"><h2>Mes notes de préparation</h2><textarea id="p-prepa" rows="4" maxlength="2000" placeholder="Visible de toi seul : ce que tu veux dire, l'exemple à prendre, le piège à montrer.">${N.ech(N.profil('prepa.' + cleFiche, '') || '')}</textarea><p class="p-aide" id="p-prepa-etat"></p></div>
               <div class="p-rail-bloc"><h2>Historique du niveau</h2><div id="p-journal"><p class="p-aide">Chargement…</p></div></div>
               <div class="p-rail-bloc"><h2>Actions</h2>
@@ -1986,6 +2016,7 @@
         } catch (e) { N.signaler(e.message); }
       });
       brancherGrille(mid, ref, doc, actif);
+      brancherOpaleProf(mid, ref, doc, actif, cleFiche);
       // B36 : pauses de cette fiche
       vue().querySelectorAll('[data-pauses-fiche]').forEach((b) => b.addEventListener('click', async () => {
         const v = b.getAttribute('data-pauses-fiche');
@@ -2011,6 +2042,36 @@
   }
 
   /** B25 : ce que Sterenn voit de cette leçon, document par document, avec la raison. */
+  /** C22, A47 : Opale au service du professeur : résumé à valider, questions à relire. */
+  function brancherOpaleProf(mid, ref, doc, actif, cleFiche) {
+    const zone = document.getElementById('p-opale-zone'); if (!zone) return;
+    const texteFiche = () => { const bac = document.createElement('div'); bac.innerHTML = doc.html || ''; bac.querySelectorAll('.bloc-plan, .corrige, .bloc-corrige, script, style').forEach((x) => x.remove()); return bac.textContent.replace(/\s+/g, ' ').trim().slice(0, 7000); };
+    const retirer = document.getElementById('p-resume-retirer');
+    if (retirer) retirer.addEventListener('click', async () => { await N.enregistrerProfil('resume.' + cleFiche, null); N.signaler('Résumé retiré.', 'succes'); vueLecon(mid, ref, actif); });
+    document.getElementById('p-resume').addEventListener('click', async () => {
+      zone.innerHTML = '<p class="p-aide">Opale rédige un résumé… (quelques secondes)</p>';
+      try {
+        const r = await N.api('/tuteur/outils', { method: 'POST', body: JSON.stringify({ action: 'resume', titre: doc.titre, texte: texteFiche() }) });
+        if (r.indisponible) { zone.innerHTML = '<p class="p-aide">' + N.ech(r.message || 'Opale n\'est pas disponible sur ce déploiement.') + '</p>'; return; }
+        zone.innerHTML = `<label for="p-resume-texte">Relis et corrige avant de valider</label><textarea id="p-resume-texte" rows="4" maxlength="700">${N.ech(r.resume)}</textarea>
+          <p class="p-seance-actions"><button type="button" class="p-bouton p-bouton-mini" id="p-resume-valider">Valider pour Sterenn</button><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="p-resume-annuler">Abandonner</button></p>`;
+        document.getElementById('p-resume-valider').addEventListener('click', async () => { const t = document.getElementById('p-resume-texte').value.trim(); if (!t) return; await N.enregistrerProfil('resume.' + cleFiche, { texte: t, valide: true, le: new Date().toISOString() }); N.signaler('Résumé validé : Sterenn le voit en tête de la fiche.', 'succes'); vueLecon(mid, ref, actif); });
+        document.getElementById('p-resume-annuler').addEventListener('click', () => { zone.innerHTML = ''; });
+      } catch (e) { zone.innerHTML = '<p class="p-aide">' + N.ech(e.message) + '</p>'; }
+    });
+    document.getElementById('p-questions-opale').addEventListener('click', async () => {
+      zone.innerHTML = '<p class="p-aide">Opale prépare cinq questions… (dix secondes environ)</p>';
+      try {
+        const r = await N.api('/tuteur/outils', { method: 'POST', body: JSON.stringify({ action: 'questions', titre: doc.titre, texte: texteFiche(), n: 5 }) });
+        if (r.indisponible) { zone.innerHTML = '<p class="p-aide">' + N.ech(r.message || 'Opale n\'est pas disponible sur ce déploiement.') + '</p>'; return; }
+        const cle = N.cle(mid, ref);
+        zone.innerHTML = `<p class="p-aide">Chaque question gardée entre dans la banque de la leçon, marquée comme ajoutée par toi. Les autres sont oubliées.</p><ol class="p-questions-opale">${r.questions.map((q, i) => `<li><b>${N.ech(q.q)}</b><ul>${q.choix.map((c, k) => `<li class="${k === q.reponse ? 'bonne' : ''}">${N.ech(c)}${k === q.reponse ? ' ✓' : ''}</li>`).join('')}</ul><em>${N.ech(q.explication)}</em><p><button type="button" class="p-bouton p-bouton-mini" data-garder="${i}">Garder</button> <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-ecarter="${i}">Écarter</button></p></li>`).join('')}</ol>`;
+        zone.querySelectorAll('[data-garder]').forEach((b) => b.addEventListener('click', async () => { const q = r.questions[Number(b.getAttribute('data-garder'))]; const liste = (N.profil('questions.' + cle, []) || []).slice(); liste.push(q); await N.enregistrerProfil('questions.' + cle, liste); b.closest('li').classList.add('gardee'); b.closest('li').querySelector('p').innerHTML = '<span class="p-aide">Gardée : dans la banque de la leçon.</span>'; N.signaler('Question ajoutée à la série.', 'succes'); }));
+        zone.querySelectorAll('[data-ecarter]').forEach((b) => b.addEventListener('click', () => b.closest('li').remove()));
+      } catch (e) { zone.innerHTML = '<p class="p-aide">' + N.ech(e.message) + '</p>'; }
+    });
+  }
+
   function vueCommeElle(mid, ref, l) {
     const cle = N.cle(mid, ref);
     const verrou = N.etat.verrous[cle];
@@ -2043,6 +2104,10 @@
       </div>
       <div><label for="g-mot">Le mot pour Sterenn</label><textarea id="g-mot" rows="2" maxlength="600">${N.ech(r.mot || '')}</textarea></div>
       <div><label for="g-refaire">Ce qu'elle refait</label><input id="g-refaire" type="text" maxlength="300" value="${N.ech(r.refaire || '')}"></div>
+      <div class="p-audio-correction"><b>Commentaire audio (60 s au plus)</b> <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="g-audio-rec">🎙 Enregistrer</button> <span id="g-audio-etat" class="p-aide">${r.audio ? 'Un commentaire est joint.' : 'Aucun commentaire.'}</span>
+        <span id="g-audio-hote">${r.audio ? `<audio controls preload="none" src="/api/fichiers/${N.ech(r.audio)}"></audio> <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="g-audio-retirer">Retirer</button>` : ''}</span></div>
+      <div class="p-analyse-copie"><b>Proposition d'Opale à partir de la copie</b> <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="g-analyse" title="Opale lit la photo déposée et propose un niveau par critère ; tu décides">Lire la copie et proposer</button>
+        <div id="g-analyse-resultat"></div></div>
       <label class="p-case"><input type="checkbox" id="g-suivi" checked> Reporter le positionnement global dans le suivi des acquis (raison : devoir)</label>
       <div class="p-seance-actions"><button class="p-bouton" type="submit">${r.rendu_le ? 'Mettre à jour le résultat' : 'Rendre le résultat à Sterenn'}</button>${r.rendu_le ? `<span class="p-aide">Rendu le ${N.ech(N.dateCourte(r.rendu_le))}.</span>` : ''}</div>
     </form>`;
@@ -2053,13 +2118,55 @@
     const html = grilleEnLigne(mid, ref, doc); if (!html) return;
     fiche.insertAdjacentHTML('beforebegin', html);
     const f = document.getElementById('p-grille');
+    const cleG = f.getAttribute('data-cle');
+    let audioId = (N.profil('eval.' + cleG, {}) || {}).audio || null;
+    // C37 : un commentaire à voix haute, enregistré ici, joint au résultat.
+    let enregistreur = null; let morceaux = []; let arret = null;
+    const bRec = document.getElementById('g-audio-rec');
+    bRec.addEventListener('click', async () => {
+      if (enregistreur && enregistreur.state === 'recording') { enregistreur.stop(); return; }
+      if (!navigator.mediaDevices || typeof MediaRecorder === 'undefined') { N.signaler('Ce navigateur ne sait pas enregistrer.'); return; }
+      try {
+        const flux = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const type = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+        enregistreur = new MediaRecorder(flux, type ? { mimeType: type } : undefined); morceaux = [];
+        enregistreur.ondataavailable = (e) => { if (e.data && e.data.size) morceaux.push(e.data); };
+        enregistreur.onstop = async () => {
+          clearTimeout(arret); flux.getTracks().forEach((t) => t.stop()); bRec.textContent = '🎙 Enregistrer';
+          const blob = new Blob(morceaux, { type: enregistreur.mimeType || 'audio/webm' });
+          const d = new FormData(); d.append('fichier', new File([blob], 'commentaire-' + cleG.replace('/', '-') + '.' + ((enregistreur.mimeType || 'audio/webm').indexOf('mp4') !== -1 ? 'm4a' : 'webm'), { type: blob.type })); d.append('matiere', mid); d.append('ref', ref); d.append('note', 'Commentaire audio de la correction');
+          try { const r = await N.api('/fichiers', { method: 'POST', body: d }); audioId = r.id || (r.fichier && r.fichier.id) || null; document.getElementById('g-audio-etat').textContent = 'Commentaire enregistré : il sera joint au résultat.'; document.getElementById('g-audio-hote').innerHTML = audioId ? `<audio controls src="/api/fichiers/${audioId}"></audio>` : ''; }
+          catch (e) { N.signaler(e.message); }
+        };
+        enregistreur.start(); bRec.textContent = '■ Arrêter'; document.getElementById('g-audio-etat').textContent = 'Enregistrement en cours (60 s au plus)…';
+        arret = setTimeout(() => { if (enregistreur.state === 'recording') enregistreur.stop(); }, 60000);
+      } catch (e) { N.signaler('Micro indisponible : ' + e.message); }
+    });
+    const bRetirer = document.getElementById('g-audio-retirer'); if (bRetirer) bRetirer.addEventListener('click', () => { audioId = null; document.getElementById('g-audio-hote').innerHTML = ''; document.getElementById('g-audio-etat').textContent = 'Le commentaire sera retiré à l\'enregistrement.'; });
+    // A49 : lecture de la copie déposée et proposition de positionnement ; la décision reste ici.
+    document.getElementById('g-analyse').addEventListener('click', async () => {
+      const zone = document.getElementById('g-analyse-resultat'); zone.innerHTML = '<p class="p-aide">Recherche de la copie déposée…</p>';
+      try {
+        const d = await N.api('/fichiers'); const copies = (d.fichiers || []).filter((x) => x.auteur === 'eleve' && x.matiere === mid && x.ref === ref && String(x.type).indexOf('image/') === 0).sort((a, b) => String(b.cree_le).localeCompare(String(a.cree_le)));
+        if (!copies.length) { zone.innerHTML = '<p class="p-aide">Aucune photo de copie déposée par Sterenn pour cette leçon.</p>'; return; }
+        const criteres = [...f.querySelectorAll('tbody tr')].map((tr) => tr.querySelector('td').textContent.replace(/^\d+\.\s*/, '').trim());
+        zone.innerHTML = '<p class="p-aide">Opale lit la copie « ' + N.ech(copies[0].nom) + ' »… (dix à trente secondes)</p>';
+        const r = await N.api('/tuteur/outils', { method: 'POST', body: JSON.stringify({ action: 'analyse', fichier: copies[0].id, criteres }) });
+        if (r.indisponible) { zone.innerHTML = '<p class="p-aide">' + N.ech(r.message || 'Opale n\'est pas disponible pour lire la copie sur ce déploiement.') + '</p>'; return; }
+        zone.innerHTML = `<details open><summary>Transcription proposée (à relire)</summary><pre class="p-transcription">${N.ech(r.transcription)}</pre></details>
+          ${(r.propositions || []).length ? `<table class="p-table p-propositions"><thead><tr><th>Critère</th><th>Proposition</th><th>Raison</th></tr></thead><tbody>${r.propositions.map((p) => `<tr><td>${N.ech(p.critere)}</td><td>${p.niveau ? N.ech((N.NIVEAUX.find((n) => n.id === p.niveau) || {}).libelle || p.niveau) : '·'}</td><td>${N.ech(p.raison || '')}</td></tr>`).join('')}</tbody></table>
+          <p><button type="button" class="p-bouton p-bouton-mini" id="g-analyse-appliquer">Reporter ces propositions dans la grille</button> <span class="p-aide">Tu restes libre de changer chaque case avant d'enregistrer.</span></p>` : '<p class="p-aide">Aucune proposition de niveau : relis la transcription et positionne toi-même.</p>'}`;
+        const ap = document.getElementById('g-analyse-appliquer');
+        if (ap) ap.addEventListener('click', () => { r.propositions.forEach((p, i) => { if (!p.niveau) return; const radio = f.querySelector(`input[name="g-${i}"][value="${p.niveau}"]`); if (radio) radio.checked = true; }); N.signaler('Propositions reportées : vérifie chaque case, puis enregistre.', 'info'); });
+      } catch (e) { zone.innerHTML = '<p class="p-aide">' + N.ech(e.message) + '</p>'; }
+    });
     f.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const cle = f.getAttribute('data-cle');
       const criteres = [...f.querySelectorAll('tbody tr')].map((tr) => ({ libelle: tr.querySelector('td').textContent.replace(/^\d+\.\s*/, '').trim(), niveau: (tr.querySelector('input:checked') || {}).value || null }));
       const note = document.getElementById('g-note').value; const positionnement = document.getElementById('g-pos').value;
       try {
-        await N.enregistrerProfil('eval.' + cle, { criteres, note: note === '' ? null : Number(note), positionnement: positionnement || null, mot: document.getElementById('g-mot').value.trim(), refaire: document.getElementById('g-refaire').value.trim(), rendu_le: new Date().toISOString() });
+        await N.enregistrerProfil('eval.' + cle, { audio: audioId || null, criteres, note: note === '' ? null : Number(note), positionnement: positionnement || null, mot: document.getElementById('g-mot').value.trim(), refaire: document.getElementById('g-refaire').value.trim(), rendu_le: new Date().toISOString() });
         if (document.getElementById('g-suivi').checked && positionnement) await N.api('/suivi', { method: 'PUT', body: JSON.stringify({ matiere: mid, ref, niveau: positionnement, raison: 'devoir' }) });
         await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: `Ton évaluation « ${N.lecon(N.matiere(mid), ref).titre} » est corrigée : le résultat est sur la page de l'évaluation.`, contexte: 'Évaluation corrigée', fil: mid }) }).catch(() => {});
         await N.rafraichirEtat(); N.signaler('Résultat rendu à Sterenn.', 'succes'); vueLecon(mid, ref, actif);
@@ -2109,9 +2216,9 @@
     const cle = N.cle(mid, ref);
     const nOrigine = (window.EXERCICES[cle] || { items: [] }).items.length;
     const formulaireQuestion = (q, i) => `<form class="p-form p-question-form" data-form-question="${i == null ? '' : i}">
-      <div class="ligne"><div><label>Type</label><select name="type"><option value="qcm" ${(q.type || 'qcm') === 'qcm' ? 'selected' : ''}>qcm</option><option value="vraifaux" ${q.type === 'vraifaux' ? 'selected' : ''}>vrai ou faux</option><option value="saisie" ${q.type === 'saisie' ? 'selected' : ''}>saisie</option></select></div></div>
+      <div class="ligne"><div><label>Type</label><select name="type"><option value="qcm" ${(q.type || 'qcm') === 'qcm' ? 'selected' : ''}>qcm</option><option value="vraifaux" ${q.type === 'vraifaux' ? 'selected' : ''}>vrai ou faux</option><option value="associer" ${q.type === 'associer' ? 'selected' : ''}>associer</option><option value="trous" ${q.type === 'trous' ? 'selected' : ''}>texte à trous</option><option value="saisie" ${q.type === 'saisie' ? 'selected' : ''}>saisie</option></select></div></div>
       <div><label>Question</label><input name="q" type="text" maxlength="400" required value="${N.ech(q.q || '')}"></div>
-      <div><label>Propositions (qcm : une par ligne, la bonne en premier ; saisie : les réponses acceptées, une par ligne)</label><textarea name="choix" rows="4">${N.ech(q.type === 'saisie' ? (q.reponses || []).join('\n') : q.type === 'vraifaux' ? (q.reponse === true ? 'Vrai' : 'Faux') : (q.choix ? [q.choix[q.reponse]].concat(q.choix.filter((_, k) => k !== q.reponse)) : []).join('\n'))}</textarea></div>
+      <div><label>Propositions (qcm : une par ligne, la bonne en premier ; saisie : les réponses acceptées, une par ligne ; associer : « gauche = droite » par ligne ; trous : le texte avec ___ puis une ligne de réponses par trou, séparées par |)</label><textarea name="choix" rows="4">${N.ech(q.type === 'associer' ? (q.paires || []).map((p) => p[0] + ' = ' + p[1]).join('\n') : q.type === 'trous' ? [q.texte || ''].concat((q.reponses || []).map((r) => r.join(' | '))).join('\n') : q.type === 'saisie' ? (q.reponses || []).join('\n') : q.type === 'vraifaux' ? (q.reponse === true ? 'Vrai' : 'Faux') : (q.choix ? [q.choix[q.reponse]].concat(q.choix.filter((_, k) => k !== q.reponse)) : []).join('\n'))}</textarea></div>
       <div><label>Explication (ce qu'une réponse fausse doit apprendre)</label><textarea name="explication" rows="2" maxlength="600">${N.ech(q.explication || '')}</textarea></div>
       <div class="p-seance-actions"><button class="p-bouton p-bouton-mini" type="submit">Enregistrer</button><button class="p-bouton p-bouton-fantome p-bouton-mini" type="button" data-fermer>Annuler</button>${i != null && N.profil('question.' + cle + '/' + i, null) ? `<button class="p-bouton p-bouton-danger p-bouton-mini" type="button" data-retablir="${i}">Rétablir l'original</button>` : ''}${i != null && i >= nOrigine ? `<button class="p-bouton p-bouton-danger p-bouton-mini" type="button" data-supprimer-q="${i}">Supprimer</button>` : ''}</div></form>`;
     const lireForm = (f) => {
@@ -2119,6 +2226,8 @@
       const q = { type, q: f.q.value.trim(), explication: f.explication.value.trim() };
       if (type === 'qcm') { if (lignes.length < 2) throw new Error('Un qcm demande au moins deux propositions.'); const bonne = lignes[0]; const melange = lignes.slice(); q.choix = melange; q.reponse = melange.indexOf(bonne); }
       else if (type === 'vraifaux') q.reponse = /^v/i.test(lignes[0] || 'vrai');
+      else if (type === 'associer') { const paires = lignes.map((l) => l.split('=').map((x) => x.trim())).filter((p) => p.length === 2 && p[0] && p[1]); if (paires.length < 2) throw new Error('Associer demande au moins deux paires « gauche = droite », une par ligne.'); q.paires = paires; }
+      else if (type === 'trous') { const texteTrous = lignes[0] || ''; const n = (texteTrous.match(/___/g) || []).length; if (!n) throw new Error('Le texte à trous demande au moins un ___ sur la première ligne.'); const reps = lignes.slice(1).map((l) => l.split('|').map((x) => x.trim()).filter(Boolean)); if (reps.length !== n) throw new Error(`Il faut ${n} ligne(s) de réponses acceptées après le texte (séparées par |).`); q.texte = texteTrous; q.reponses = reps; }
       else { if (!lignes.length) throw new Error('Une saisie demande au moins une réponse acceptée.'); q.reponses = lignes; }
       return q;
     };
@@ -2150,6 +2259,8 @@
   /** Même lecture que l'espace de Sterenn : qcm par index, vraifaux, saisie. */
   function reponseAttendue(q) {
     if (q.type === 'vraifaux') return q.reponse === true ? 'Vrai' : 'Faux';
+    if (q.type === 'associer') return (q.paires || []).map((p) => String(p[0]).replace(/<[^>]+>/g, '') + ' → ' + p[1]).join(' ; ');
+    if (q.type === 'trous') return (q.reponses || []).map((r) => r[0]).join(', ');
     if (q.type === 'saisie') return Array.isArray(q.reponses) ? q.reponses[0] : String(q.reponse == null ? '' : q.reponse);
     if (Array.isArray(q.choix)) {
       const i = typeof q.reponse === 'number' ? q.reponse : -1;

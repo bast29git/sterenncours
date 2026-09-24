@@ -3,7 +3,7 @@
  * instantané. { cle, confirmation: "restaurer" }. Un instantané de l'état
  * courant est écrit juste avant, pour pouvoir revenir en arrière.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, MESSAGES } from '../../_commun.js';
 import { TABLES, instantane } from '../sauvegarde.js';
 
 export const onRequestPost = gerer(async (context) => {
@@ -11,7 +11,7 @@ export const onRequestPost = gerer(async (context) => {
   const { env } = context;
   if (!env.FICHIERS) return erreur('Le stockage R2 n\'est pas relié.', 503);
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   if (corps.confirmation !== 'restaurer') return erreur('Écris « restaurer » pour confirmer.');
   const cle = String(corps.cle || '');
   if (!cle.startsWith('sauvegardes/') || !/^[\w/.-]+$/.test(cle)) return erreur('Clé invalide.');

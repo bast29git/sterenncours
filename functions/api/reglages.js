@@ -6,7 +6,7 @@
  * fiches, la tutrice Opale, la calculatrice, les options de la messagerie.
  * Toute clé inconnue est refusée : la liste ci-dessous fait foi.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser, MESSAGES } from '../_commun.js';
 
 export const REGLAGES = {
   pauses:        { defaut: true,  type: 'boolean', libelle: 'Points de pause dans les fiches' },
@@ -44,7 +44,7 @@ export const onRequestPut = gerer(async (context) => {
   const { DB } = context.env;
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const cle = String(corps && corps.cle || '');
   const regle = REGLAGES[cle];
   if (!regle) return erreur('Réglage inconnu.');

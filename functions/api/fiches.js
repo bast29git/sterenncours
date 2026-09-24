@@ -1,5 +1,5 @@
 /** PUT /api/fiches : marque une fiche comme terminée, ou annule ce marquage. */
-import { json, erreur, gerer, exigerSession, maintenant } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, maintenant, MESSAGES } from '../_commun.js';
 import { compter } from './usage.js';
 
 export const onRequestPut = gerer(async (context) => {
@@ -7,7 +7,7 @@ export const onRequestPut = gerer(async (context) => {
   const { DB } = context.env;
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const cle = String(corps && corps.cle || '');
   if (!/^[a-z0-9-]+\/[A-Za-z0-9]+\/[a-z]+$/.test(cle)) return erreur('Clé de fiche invalide.');
 

@@ -8,7 +8,7 @@
  *   { date: "AAAA-MM-JJ", debut: "HH:MM", fin: "HH:MM" }
  * Accessible aux deux espaces ; le professeur garde la main sur tout le reste.
  */
-import { json, erreur, gerer, exigerSession, maintenant } from '../../../_commun.js';
+import { json, erreur, gerer, exigerSession, maintenant, MESSAGES } from '../../../_commun.js';
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const HEURE = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -17,13 +17,13 @@ const ECART_MAX_JOURS = 7;
 export const onRequestPatch = gerer(async (context) => {
   await exigerSession(context);
   const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
   const { DB } = context.env;
   const s = await DB.prepare('SELECT * FROM seances WHERE id = ?').bind(id).first();
   if (!s) return erreur('Séance introuvable.', 404);
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
 
   if (typeof corps.absence === 'boolean') {
     if (s.type !== 'cours') return erreur('Une absence se déclare sur un cours.');

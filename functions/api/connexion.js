@@ -5,7 +5,7 @@
  * PBKDF2 avec sel, écrite au provisionnement. Les tentatives sont limitées
  * par adresse pour qu'un code court ne puisse pas être trouvé par essais.
  */
-import { json, erreur, gerer, creerSession, cookieSession, deriver, egal, DUREE_SESSION, ROLES } from '../_commun.js';
+import { json, erreur, gerer, creerSession, cookieSession, deriver, egal, DUREE_SESSION, ROLES, MESSAGES } from '../_commun.js';
 import { compter } from './usage.js';
 
 const MAX_TENTATIVES = 12;
@@ -23,7 +23,7 @@ export const onRequestPost = gerer(async (context) => {
   }
 
   let corps;
-  try { corps = await request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const code = String(corps && corps.code || '').trim().toLowerCase();
   if (!code || code.length > 64) return erreur('Code manquant.');
 

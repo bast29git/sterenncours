@@ -11,7 +11,7 @@
  * ouverte ici. Le serveur applique la décision sur l'évaluation : son sujet
  * n'est servi à Sterenn que si l'accès est ouvert (voir _middleware.js).
  */
-import { json, erreur, gerer, exigerSession, journaliser, exigerProf, maintenant } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, journaliser, exigerProf, maintenant, MESSAGES } from '../_commun.js';
 
 export const CLE_ACCES = /^([a-z0-9-]+\/[A-Za-z0-9]+\/(cours|revision|exercices|serie|evaluation)|jeu\/[a-z0-9-]+)$/;
 
@@ -41,7 +41,7 @@ export const onRequestPut = gerer(async (context) => {
   const session = exigerProf(await exigerSession(context));
   const { DB } = context.env;
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const cle = String(corps && corps.cle || '');
   if (!CLE_ACCES.test(cle)) return erreur('Clé d\'accès invalide.');
   const etat = corps.etat;

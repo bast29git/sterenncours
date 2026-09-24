@@ -4,18 +4,18 @@
  * Accessible aux deux espaces. La leçon proposée doit faire partie des choix
  * enregistrés sur la séance : on ne peut pas choisir n'importe quoi.
  */
-import { json, erreur, gerer, exigerSession, maintenant } from '../../../_commun.js';
+import { json, erreur, gerer, exigerSession, maintenant, MESSAGES } from '../../../_commun.js';
 
 export const onRequestPost = gerer(async (context) => {
   await exigerSession(context);
   const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur('Identifiant invalide.');
+  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
 
   const seance = await context.env.DB.prepare('SELECT * FROM seances WHERE id = ?').bind(id).first();
   if (!seance) return erreur('Séance introuvable.', 404);
 
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const choisie = String(corps && corps.lecon || '');
 
   let choix = [];

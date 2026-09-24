@@ -5,7 +5,7 @@
  * présente sur le même créneau du même jour n'est pas dupliquée, elle est
  * ignorée. On peut donc relancer la génération sans abîmer le planning.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, MESSAGES } from '../../_commun.js';
 import { REQUETE_INSERT, valeurs, construire, valider } from '../seances.js';
 
 const MAX = 400;
@@ -13,7 +13,7 @@ const MAX = 400;
 export const onRequestPost = gerer(async (context) => {
   exigerProf(await exigerSession(context));
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
 
   const liste = Array.isArray(corps && corps.seances) ? corps.seances : null;
   if (!liste) return erreur('Un tableau « seances » est attendu.');

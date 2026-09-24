@@ -4,14 +4,14 @@
  *   { jour: 3, debut: "14:00", fin: "15:30", depuis: "AAAA-MM-JJ" }
  * jour : 1 lundi … 5 vendredi ; depuis : facultatif, aujourd'hui par défaut.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, MESSAGES } from '../../_commun.js';
 
 const HEURE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export const onRequestPost = gerer(async (context) => {
   exigerProf(await exigerSession(context));
   let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur('Requête invalide.'); }
+  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
   const jour = Number(corps && corps.jour);
   if (!(jour >= 1 && jour <= 5)) return erreur('Jour de semaine invalide (1 à 5).');
   const debut = String(corps.debut || ''); const fin = String(corps.fin || '');
