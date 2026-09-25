@@ -60,6 +60,24 @@
     { id: 'casque', nom: 'Casque d\'exploratrice', etoiles: 45 },
     { id: 'etoile', nom: 'Étoile sur la tête', etoiles: 60 },
     { id: 'halo', nom: 'Halo d\'aurore', opales: 15 },
+    { id: 'coeur', nom: 'Cœur au cou', coeurs: 2 },
+    { id: 'bandana', nom: 'Bandana', coeurs: 5 },
+    { id: 'baguette', nom: 'Baguette magique', coeurs: 8 },
+  ];
+  // Les tours : des cabrioles ouvertes par les cœurs, gagnés en s'occupant de lui.
+  const TOURS = [
+    { id: 'pirouette', nom: 'Pirouette', coeurs: 1 },
+    { id: 'salut', nom: 'Salut', coeurs: 3 },
+    { id: 'danse', nom: 'Petite danse', coeurs: 6 },
+    { id: 'cache', nom: 'Cache-cache', coeurs: 10 },
+    { id: 'etoiles', nom: 'Pluie d\'étoiles', coeurs: 15 },
+  ];
+  // Les missions du jour : une par jour, un cœur quand elle est faite.
+  const MISSIONS = [
+    { id: 'fiche', texte: 'Termine une fiche aujourd\'hui.', faite: (n) => Object.values(n.etat.fiches || {}).some((f) => String(f && f.termine_le || '').slice(0, 10) === n.jourIso()) },
+    { id: 'serie', texte: 'Réussis une série à 70 % aujourd\'hui.', faite: (n) => Object.values(n.etat.resultats || {}).some((r) => r && String(r.maj_le || '').slice(0, 10) === n.jourIso() && r.total > 0 && r.meilleur / r.total >= 0.7) },
+    { id: 'visite', texte: 'Viens me voir sur ma page.', faite: (n) => n.lire('opaline.compagnon.visite', '') === n.jourIso() },
+    { id: 'caresse', texte: 'Caresse-moi trois fois.', faite: (n) => (n.lire('opaline.compagnon.caresses', {}) || {})[n.jourIso()] >= 3 },
   ];
   const AURAS = [
     { id: 'aucune', nom: 'Aucune', etoiles: 0 },
@@ -71,16 +89,16 @@
   ];
   // Trois stades : le compagnon grandit avec les étoiles.
   const STADES = [{ min: 0, nom: 'Petit' }, { min: 20, nom: 'Grand' }, { min: 50, nom: 'Majestueux' }];
-  const FAMILLES = { espece: ESPECES, couleur: COULEURS, accessoire: ACCESSOIRES, aura: AURAS };
+  const FAMILLES = { espece: ESPECES, couleur: COULEURS, accessoire: ACCESSOIRES, aura: AURAS, tour: TOURS };
 
   /* ---------- Ce qu'elle a ---------- */
-  const compte = () => { const n = N(); const r = n && n.reussites ? n.reussites() : { total: 0, lecons: 0 }; return { etoiles: r.total || 0, opales: r.lecons || 0 }; };
-  const ouvert = (x) => { const c = compte(); if (N() && N().estProf && N().estProf()) return true; return x.opales ? c.opales >= x.opales : c.etoiles >= (x.etoiles || 0); };
-  const prix = (x) => (x.opales ? `${x.opales} opale${x.opales > 1 ? 's' : ''}` : (x.etoiles ? `${x.etoiles} étoile${x.etoiles > 1 ? 's' : ''}` : 'offert'));
+  const compte = () => { const n = N(); const r = n && n.reussites ? n.reussites() : { total: 0, lecons: 0 }; const c = n && n.profil ? (n.profil('moi.compagnon_coeurs', null) || {}) : {}; return { etoiles: r.total || 0, opales: r.lecons || 0, coeurs: Number(c.n) || 0 }; };
+  const ouvert = (x) => { const c = compte(); if (N() && N().estProf && N().estProf()) return true; if (x.coeurs) return c.coeurs >= x.coeurs; return x.opales ? c.opales >= x.opales : c.etoiles >= (x.etoiles || 0); };
+  const prix = (x) => (x.coeurs ? `${x.coeurs} cœur${x.coeurs > 1 ? 's' : ''}` : x.opales ? `${x.opales} opale${x.opales > 1 ? 's' : ''}` : (x.etoiles ? `${x.etoiles} étoile${x.etoiles > 1 ? 's' : ''}` : 'offert'));
   const stade = () => { const e = compte().etoiles; let s = 0; STADES.forEach((x, i) => { if (e >= x.min) s = i; }); return s; };
   function lireChoix() {
     const n = N(); const c = (n && n.profil ? n.profil(CLE, null) : null) || {};
-    const choix = { nom: String(c.nom || 'Opaline').slice(0, 24), espece: c.espece || 'opaline', couleur: c.couleur || 'turquoise', accessoires: Array.isArray(c.accessoires) ? c.accessoires.slice(0, 4) : [], aura: c.aura || 'aucune' };
+    const choix = { nom: String(c.nom || 'Opaline').slice(0, 24), espece: c.espece || 'opaline', couleur: c.couleur || 'turquoise', accessoires: Array.isArray(c.accessoires) ? c.accessoires.slice(0, 4) : [], aura: c.aura || 'aucune', ne_le: c.ne_le || null };
     // Un élément qui n'est plus ouvert (jamais le cas : rien ne redescend) retombe sur le premier.
     if (!ESPECES.find((x) => x.id === choix.espece)) choix.espece = 'opaline';
     if (!COULEURS.find((x) => x.id === choix.couleur)) choix.couleur = 'turquoise';
@@ -88,11 +106,18 @@
     choix.accessoires = choix.accessoires.filter((a) => ACCESSOIRES.find((x) => x.id === a));
     return choix;
   }
-  async function enregistrer(choix) { const n = N(); if (n && n.enregistrerProfil) await n.enregistrerProfil(CLE, choix); }
+  async function enregistrer(choix) { const n = N(); if (!n || !n.enregistrerProfil) return; const actuel = n.profil(CLE, null) || {}; if (!choix.ne_le) choix.ne_le = actuel.ne_le || n.jourIso(); await n.enregistrerProfil(CLE, choix); }
+  const age = () => { const n = N(); const c = n && n.profil ? n.profil(CLE, null) : null; if (!c || !c.ne_le) return 0; return Math.max(0, Math.round((new Date(n.jourIso() + 'T12:00:00') - new Date(c.ne_le + 'T12:00:00')) / 86400000)); };
 
   /* ---------- Le dessin ---------- */
   const OEILS = '<circle class="cmp-oeil" cx="40" cy="50" r="4"/><circle class="cmp-oeil" cx="60" cy="50" r="4"/><circle cx="41.5" cy="48.5" r="1.3" fill="#fff"/><circle cx="61.5" cy="48.5" r="1.3" fill="#fff"/>';
-  const BOUCHE = '<path class="cmp-bouche" d="M44 60q6 5 12 0" fill="none" stroke="#24202B" stroke-width="2.2" stroke-linecap="round"/>';
+  const BOUCHES = {
+    curieux: '<path class="cmp-bouche" d="M44 60q6 5 12 0" fill="none" stroke="#24202B" stroke-width="2.2" stroke-linecap="round"/>',
+    content: '<path class="cmp-bouche" d="M41 58q9 10 18 0" fill="none" stroke="#24202B" stroke-width="2.4" stroke-linecap="round"/><path d="M44 60q6 6 12 0Z" fill="#E8608E" opacity=".8"/>',
+    ennui: '<path class="cmp-bouche" d="M44 61h12" fill="none" stroke="#24202B" stroke-width="2.2" stroke-linecap="round"/>',
+    surpris: '<ellipse class="cmp-bouche" cx="50" cy="61" rx="3.5" ry="4.5" fill="#24202B"/>',
+  };
+  const BOUCHE = BOUCHES.curieux;
   const JOUES = '<circle cx="33" cy="58" r="3.2" fill="#F7A8C4" opacity=".7"/><circle cx="67" cy="58" r="3.2" fill="#F7A8C4" opacity=".7"/>';
   const CORPS = {
     opaline: (c, c2) => `<path d="M50 8 82 40 50 92 18 40Z" fill="url(#cmp-g)"/><path d="M18 40h64L50 52Z" fill="#fff" opacity=".28"/><path d="M50 8 34 40h32Z" fill="${c2}" opacity=".35"/>`,
@@ -122,6 +147,9 @@
     casque: '<path d="M28 34a22 18 0 0 1 44 0v4H28Z" fill="#F2A33C"/><rect x="24" y="36" width="52" height="5" rx="2" fill="#24202B"/><circle cx="50" cy="26" r="5" fill="#fff"/>',
     etoile: '<path d="M50 2l4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1Z" fill="#F2C744"/>',
     halo: '<ellipse cx="50" cy="12" rx="22" ry="6" fill="none" stroke="url(#cmp-g)" stroke-width="4" opacity=".9"/>',
+    coeur: '<path d="M50 72v6" stroke="#24202B" stroke-width="1.2"/><path d="M50 88l-7-7a4.2 4.2 0 0 1 6-6l1 1 1-1a4.2 4.2 0 0 1 6 6Z" fill="#E8608E"/>',
+    bandana: '<path d="M26 34q24-10 48 0l-2 6q-22-8-44 0Z" fill="#E96A43"/><path d="M70 36l10 10-4 2-8-8Z" fill="#E96A43"/><path d="M34 36h30" stroke="#F7B199" stroke-width="1.4" stroke-dasharray="3 3"/>',
+    baguette: '<g transform="rotate(-35 80 70)"><rect x="78" y="48" width="4" height="40" rx="2" fill="#24202B"/><path d="M80 40l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z" fill="#F2C744"/></g>',
   };
   const AURA_SVG = {
     aucune: '',
@@ -140,16 +168,16 @@
     const couleur = COULEURS.find((x) => x.id === choix.couleur) || COULEURS[0];
     const corps = CORPS[choix.espece] || CORPS.opaline;
     nGrad += 1; const gid = 'cmp-g' + nGrad;
-    const heure = new Date().getHours();
-    const dort = typeof opt.dort === 'boolean' ? opt.dort : (heure >= 21 || heure < 7);
+    const h = opt.humeur || humeur();
+    const dort = typeof opt.dort === 'boolean' ? opt.dort : h === 'dort';
     // Les ailes et la cape passent derrière le corps ; le reste devant.
     const DERRIERE = ['ailes', 'cape'];
     const dessiner = (a) => { const s = ACCESSOIRE_SVG[a]; return typeof s === 'function' ? s(couleur.c2) : (s || ''); };
     const arriere = choix.accessoires.filter((a) => DERRIERE.includes(a)).map(dessiner).join('');
     const acc = choix.accessoires.filter((a) => !DERRIERE.includes(a)).map(dessiner).join('');
-    const svg = `<svg class="cmp-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${couleur.c2}"/><stop offset=".55" stop-color="${couleur.c}"/><stop offset="1" stop-color="#C79CE6"/></linearGradient></defs>${(AURA_SVG[choix.aura] || '').replace(/cmp-g\b/g, gid)}${arriere}<g class="cmp-corps">${corps(couleur.c, couleur.c2).replace(/cmp-g\b/g, gid)}${choix.espece === 'hibou' || choix.espece === 'robot' ? '' : JOUES}${dort ? '<path class="cmp-oeil-clos" d="M35 51q5 4 10 0M55 51q5 4 10 0" fill="none" stroke="#24202B" stroke-width="2.2" stroke-linecap="round"/>' : OEILS}${dort ? '<path d="M45 61h10" stroke="#24202B" stroke-width="2" stroke-linecap="round"/>' : BOUCHE}</g>${acc}${dort ? '<text x="70" y="26" font-size="12" fill="#6B6575" class="cmp-zzz">z z</text>' : ''}</svg>`;
+    const svg = `<svg class="cmp-svg" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${couleur.c2}"/><stop offset=".55" stop-color="${couleur.c}"/><stop offset="1" stop-color="#C79CE6"/></linearGradient></defs>${(AURA_SVG[choix.aura] || '').replace(/cmp-g\b/g, gid)}${arriere}<g class="cmp-corps">${corps(couleur.c, couleur.c2).replace(/cmp-g\b/g, gid)}${choix.espece === 'hibou' || choix.espece === 'robot' ? '' : JOUES}${dort ? '<path class="cmp-oeil-clos" d="M35 51q5 4 10 0M55 51q5 4 10 0" fill="none" stroke="#24202B" stroke-width="2.2" stroke-linecap="round"/>' : OEILS}${dort ? '<path d="M45 61h10" stroke="#24202B" stroke-width="2" stroke-linecap="round"/>' : (BOUCHES[h] || BOUCHE)}</g>${acc}${dort ? '<text x="70" y="26" font-size="12" fill="#6B6575" class="cmp-zzz">z z</text>' : ''}</svg>`;
     const s = stade();
-    return `<span class="cmp cmp-${ech(choix.espece)} cmp-stade-${s + 1}${dort ? ' dort' : ''}" style="--cmp-taille:${Number(opt.taille) || 5}rem" role="img" aria-label="${ech(choix.nom)}, ton compagnon${dort ? ', qui dort' : ''}">${svg}${opt.bulle ? `<span class="cmp-bulle">${ech(opt.bulle)}</span>` : ''}</span>`;
+    return `<span class="cmp cmp-${ech(choix.espece)} cmp-stade-${s + 1} cmp-humeur-${ech(h)}${dort ? ' dort' : ''}" style="--cmp-taille:${Number(opt.taille) || 5}rem" role="img" aria-label="${ech(choix.nom)}, ton compagnon${dort ? ', qui dort' : ''}">${svg}${opt.bulle ? `<span class="cmp-bulle">${ech(opt.bulle)}</span>` : ''}</span>`;
   }
 
   /* ---------- Ce qu'il dit ---------- */
@@ -162,10 +190,107 @@
     lecon: ['Leçon validée : trois étoiles.', 'Une leçon de plus dans la poche.'],
     debloque: ['Quelque chose de nouveau s\'ouvre pour moi !'],
   };
+  PHRASES.content = ['Tu as travaillé aujourd\'hui. Je suis content.', 'Une bonne journée !', 'Ça avance, je le vois.'];
+  PHRASES.ennui = ['Ça fait un moment… on ouvre une fiche ?', 'Je m\'ennuie un peu. Une petite série ?', 'Reviens quand tu veux, je suis là.'];
+  PHRASES.surpris = ['Oh ! Qu\'est-ce que c\'est ?', 'Encore ?', 'Hé !'];
+  PHRASES.caresse = ['Rrrr… merci.', 'Encore un peu ?', 'Ça fait du bien.', 'Tu es gentille.'];
+  PHRASES.mission = ['Mission du jour réussie : un cœur pour moi !'];
   const phrase = (cle) => { const l = PHRASES[cle] || PHRASES.matin; return l[Math.floor(Math.random() * l.length)]; };
+  /** L'humeur : dort la nuit, content après du travail aujourd'hui, s'ennuie après trois jours sans rien, curieux sinon. */
+  function humeur() {
+    const n = N(); const h = new Date().getHours();
+    if (h >= 21 || h < 7) return 'dort';
+    if (!n || !n.etat) return 'curieux';
+    const auj = n.jourIso();
+    const dates = [];
+    Object.values(n.etat.fiches || {}).forEach((f) => { if (f && f.termine_le) dates.push(String(f.termine_le).slice(0, 10)); });
+    Object.values(n.etat.resultats || {}).forEach((r) => { if (r && r.maj_le) dates.push(String(r.maj_le).slice(0, 10)); });
+    if (dates.includes(auj)) return 'content';
+    const derniere = dates.sort().pop();
+    if (derniere && (new Date(auj + 'T12:00:00') - new Date(derniere + 'T12:00:00')) / 86400000 >= 3) return 'ennui';
+    return 'curieux';
+  }
   function phraseDuMoment() {
-    const h = new Date().getHours();
-    if (h < 12) return phrase('matin'); if (h < 19) return phrase('aprem'); return phrase('soir');
+    const h = humeur();
+    if (h === 'dort') return phrase('soir');
+    if (h === 'content') return phrase('content');
+    if (h === 'ennui') return phrase('ennui');
+    const heure = new Date().getHours();
+    return heure < 12 ? phrase('matin') : phrase('aprem');
+  }
+  /* ---------- Ses petits sons ---------- */
+  let ctxAudio = null;
+  function bip(genre) {
+    const n = N();
+    try { if (n && n.lire && n.lire(n.CLE_SONS || 'opaline.sons', true) === false) return; } catch (e) { return; }
+    try {
+      ctxAudio = ctxAudio || new (window.AudioContext || window.webkitAudioContext)();
+      const motifs = { caresse: [[880, 0.08], [1174, 0.1], [988, 0.14]], joie: [[784, 0.07], [988, 0.07], [1319, 0.16]], tour: [[659, 0.06], [880, 0.06], [1109, 0.06], [1319, 0.12]], dodo: [[440, 0.18], [349, 0.26]] };
+      let t = ctxAudio.currentTime;
+      (motifs[genre] || motifs.caresse).forEach(([f, d]) => { const o = ctxAudio.createOscillator(); const g = ctxAudio.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 1.06, t + d); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(ctxAudio.destination); o.start(t); o.stop(t + d + 0.02); t += d * 0.85; });
+    } catch (e) { /* pas de son ici */ }
+  }
+  /* ---------- Les missions et les cœurs ---------- */
+  function missionDuJour() { const n = N(); const j = n ? n.jourIso() : '2026-01-01'; const k = Number(j.replace(/-/g, '')) % MISSIONS.length; return MISSIONS[k]; }
+  const coeursProfil = () => { const n = N(); return (n && n.profil ? n.profil('moi.compagnon_coeurs', null) : null) || { n: 0, jours: {} }; };
+  /** Vérifie la mission du jour ; le cœur est donné une seule fois par jour. Renvoie true si un cœur vient d'être gagné. */
+  async function verifierMission() {
+    const n = N(); if (!n || !n.enregistrerProfil || (n.estProf && n.estProf())) return false;
+    const m = missionDuJour(); const c = coeursProfil(); const auj = n.jourIso();
+    if (c.jours && c.jours[auj]) return false;
+    let faite = false; try { faite = m.faite(n); } catch (e) { faite = false; }
+    if (!faite) return false;
+    const jours = Object.assign({}, c.jours || {}); jours[auj] = m.id;
+    const cles = Object.keys(jours).sort(); while (cles.length > 60) delete jours[cles.shift()];
+    try { await n.enregistrerProfil('moi.compagnon_coeurs', { n: (Number(c.n) || 0) + 1, jours }); } catch (e) { return false; }
+    bip('joie'); n.signaler(phrase('mission'), 'succes');
+    document.querySelectorAll('.cmp').forEach((el) => { el.classList.add('cmp-saute'); const b = el.querySelector('.cmp-bulle'); if (b) b.textContent = phrase('mission'); setTimeout(() => el.classList.remove('cmp-saute'), 1200); });
+    return true;
+  }
+  /* ---------- Les caresses ---------- */
+  let nCaresse = 0;
+  function caresser(el) {
+    const n = N(); if (!n) return;
+    nCaresse += 1;
+    const auj = n.jourIso(); const c = n.lire('opaline.compagnon.caresses', {}) || {}; c[auj] = (c[auj] || 0) + 1; n.ecrire('opaline.compagnon.caresses', c);
+    const cible = el || document.querySelector('.cmp');
+    if (cible) {
+      cible.classList.remove('cmp-caresse', 'cmp-saute', 'cmp-tour-pirouette'); void cible.offsetWidth;
+      cible.classList.add(nCaresse % 3 === 0 ? 'cmp-tour-pirouette' : 'cmp-caresse');
+      const b = cible.querySelector('.cmp-bulle'); if (b) b.textContent = nCaresse % 3 === 0 ? phrase('surpris') : phrase('caresse');
+      setTimeout(() => cible.classList.remove('cmp-caresse', 'cmp-tour-pirouette'), 1000);
+    }
+    bip(nCaresse % 3 === 0 ? 'tour' : 'caresse');
+    verifierMission();
+  }
+  /* ---------- Les tours ---------- */
+  function tour(id, el) {
+    const t = TOURS.find((x) => x.id === id); if (!t || !ouvert(t)) return false;
+    const cible = el || document.querySelector('.cmp'); if (!cible) return false;
+    TOURS.forEach((x) => cible.classList.remove('cmp-tour-' + x.id)); void cible.offsetWidth;
+    cible.classList.add('cmp-tour-' + id); bip('tour');
+    if (id === 'etoiles') { const pluie = document.createElement('span'); pluie.className = 'cmp-pluie'; pluie.innerHTML = '★★★★★★★★'.split('').map((c, i) => `<i style="--i:${i}">${c}</i>`).join(''); cible.appendChild(pluie); setTimeout(() => pluie.remove(), 2200); }
+    setTimeout(() => cible.classList.remove('cmp-tour-' + id), 2200);
+    return true;
+  }
+  /* ---------- La mascotte, sur toutes les pages ---------- */
+  const CLE_PARTOUT = 'opaline.compagnon.partout';
+  const PAGES_MASCOTTE = new Set(['matieres', 'matiere', 'jeux', 'semaine', 'reussites', 'curiosites', 'aide', 'notes', 'annales', 'choix']);
+  function mascotte(route) {
+    const n = N(); const ancien = document.getElementById('cmp-mascotte');
+    const r = Array.isArray(route) ? route : [];
+    // Une chose à la fois : la mascotte n'apparaît que sur les pages calmes, jamais sur une fiche, un jeu, une évaluation ni dans les messages.
+    const cache = !n || (n.estProf && n.estProf()) || n.lire(CLE_PARTOUT, true) === false || !PAGES_MASCOTTE.has(r[0] || 'hub');
+    if (cache) { if (ancien) ancien.remove(); return; }
+    const el = ancien || document.createElement('button');
+    if (!ancien) {
+      el.id = 'cmp-mascotte'; el.type = 'button'; el.className = 'cmp-mascotte';
+      el.setAttribute('aria-label', 'Ton compagnon : le caresser'); el.title = 'Caresser';
+      el.addEventListener('click', () => caresser(el.querySelector('.cmp')));
+      document.body.appendChild(el);
+    }
+    if (!el.__rendu || el.__rendu !== r.join('/')) { el.innerHTML = rendre({ taille: 3.2, bulle: phraseDuMoment() }); el.__rendu = r.join('/'); }
+    verifierMission();
   }
 
   /* ---------- Les réactions ---------- */
@@ -176,7 +301,9 @@
       if (b) b.textContent = phrase(evenement);
       setTimeout(() => el.classList.remove('cmp-saute'), 1200);
     });
+    bip('joie');
     signalerDeblocages();
+    verifierMission();
   }
   /** Les nouveaux éléments ouverts depuis la dernière visite : une phrase, pas plus. */
   function deblocagesNouveaux() {
@@ -186,7 +313,17 @@
     Object.entries(FAMILLES).forEach(([f, liste]) => liste.forEach((x) => { if (ouvert(x) && (x.etoiles || x.opales)) tous.push({ f, x }); }));
     return tous.filter((t) => !vus.has(t.f + ':' + t.x.id));
   }
-  function marquerVus() { const n = N(); if (!n) return; const tous = []; Object.entries(FAMILLES).forEach(([f, liste]) => liste.forEach((x) => { if (ouvert(x)) tous.push(f + ':' + x.id); })); n.ecrire(CLE_VUS, tous); }
+  const CLE_JOURNAL = 'opaline.compagnon.journal';
+  function marquerVus() {
+    const n = N(); if (!n) return;
+    const journal = n.lire(CLE_JOURNAL, {}) || {}; const tous = [];
+    Object.entries(FAMILLES).forEach(([f, liste]) => liste.forEach((x) => { if (ouvert(x)) { const k = f + ':' + x.id; tous.push(k); if (!journal[k] && (x.etoiles || x.opales || x.coeurs)) journal[k] = n.jourIso(); } }));
+    n.ecrire(CLE_VUS, tous); n.ecrire(CLE_JOURNAL, journal);
+  }
+  function journalRecent() {
+    const n = N(); const j = (n && n.lire(CLE_JOURNAL, {})) || {};
+    return Object.entries(j).sort((a, b) => b[1].localeCompare(a[1])).slice(0, 8).map(([k, d]) => { const [f, id] = k.split(':'); const x = (FAMILLES[f] || []).find((y) => y.id === id); return x ? { nom: x.nom, famille: f, date: d } : null; }).filter(Boolean);
+  }
   function signalerDeblocages() {
     const n = N(); const nouveaux = deblocagesNouveaux();
     if (!n || !nouveaux.length || (n.estProf && n.estProf())) return;
@@ -201,7 +338,14 @@
     if (!n || !V) return;
     const choix = lireChoix();
     const c = compte();
+    n.ecrire('opaline.compagnon.visite', n.jourIso());
+    const mission = missionDuJour(); const coeursJour = (coeursProfil().jours || {})[n.jourIso()];
+    let missionFaite = false; try { missionFaite = !!coeursJour || mission.faite(n); } catch (e) { missionFaite = false; }
     const carte = (famille, x, actif) => {
+      if (famille === 'tour') {
+        const ok = ouvert(x);
+        return `<li><button type="button" data-tour="${x.id}" class="${ok ? '' : 'ferme'}" aria-disabled="${!ok}" title="${ech(x.nom)}${ok ? '' : ' : à ' + prix(x)}"><span class="cmp-tour-ico" aria-hidden="true">${{ pirouette: '🌀', salut: '👋', danse: '💃', cache: '🫥', etoiles: '✨' }[x.id] || '★'}</span><b>${ech(x.nom)}</b><span>${ok ? 'faire le tour' : '🔒 ' + prix(x)}</span></button></li>`;
+      }
       const ok = ouvert(x);
       const apercu = famille === 'couleur'
         ? `<i class="cmp-pastille" style="background:linear-gradient(135deg,${x.c2},${x.c})"></i>`
@@ -217,13 +361,17 @@
         <div class="cmp-fiche">
           <label for="cmp-nom">Son nom</label>
           <p class="cmp-nom-ligne"><input id="cmp-nom" type="text" maxlength="24" value="${ech(choix.nom)}"><button type="button" class="e-bouton e-bouton-doux" id="cmp-nom-ok">Garder</button></p>
-          <p class="cmp-compte">${n.ic('ic-etoile')} ${c.etoiles} étoile${c.etoiles > 1 ? 's' : ''} · ${c.opales} opale${c.opales > 1 ? 's' : ''} (leçons validées) · stade ${stade() + 1} sur 3, ${STADES[stade()].nom.toLowerCase()}</p>
+          <p class="cmp-compte">${n.ic('ic-etoile')} ${c.etoiles} étoile${c.etoiles > 1 ? 's' : ''} · ${c.opales} opale${c.opales > 1 ? 's' : ''} · ${c.coeurs} cœur${c.coeurs > 1 ? 's' : ''} · stade ${stade() + 1} sur 3, ${STADES[stade()].nom.toLowerCase()}${age() ? ` · avec toi depuis ${age()} jour${age() > 1 ? 's' : ''}` : ''}</p>
+          <p class="cmp-humeur">Humeur : <b>${{ dort: 'il dort', content: 'content', ennui: 'il s\'ennuie un peu', curieux: 'curieux', surpris: 'surpris' }[humeur()] || 'curieux'}</b>. <button type="button" class="e-bouton e-bouton-fin e-bouton-mini" id="cmp-caresser">Le caresser</button></p>
+          <p class="cmp-mission ${missionFaite ? 'faite' : ''}"><b>Mission du jour</b> : ${ech(mission.texte)} ${missionFaite ? '✓ faite, un cœur gagné' : '(un cœur à gagner)'}</p>
+          <label class="e-case"><input type="checkbox" id="cmp-partout" ${n.lire(CLE_PARTOUT, true) !== false ? 'checked' : ''}> Le montrer en bas de mes pages (matières, semaine, jeux)</label>
           ${suivants.length ? `<p class="e-aide">Prochains déblocages : ${suivants.map((t) => `${ech(t.x.nom)} à ${prix(t.x)}`).join(' · ')}.</p>` : '<p class="e-aide">Tout est ouvert.</p>'}
         </div>
       </section>
-      <div class="cmp-onglets" role="tablist">${[['espece', 'Forme'], ['couleur', 'Couleur'], ['accessoire', 'Accessoires'], ['aura', 'Aura']].map(([f, t], i) => `<button type="button" role="tab" data-onglet="${f}" aria-selected="${i === 0}">${t}</button>`).join('')}</div>
+      <div class="cmp-onglets" role="tablist">${[['espece', 'Forme'], ['couleur', 'Couleur'], ['accessoire', 'Accessoires'], ['aura', 'Aura'], ['tour', 'Tours']].map(([f, t], i) => `<button type="button" role="tab" data-onglet="${f}" aria-selected="${i === 0}">${t}</button>`).join('')}</div>
       ${Object.entries(FAMILLES).map(([f, liste], i) => `<ul class="cmp-grille" data-panneau="${f}" ${i ? 'hidden' : ''}>${liste.map((x) => carte(f, x, f === 'accessoire' ? choix.accessoires.includes(x.id) : choix[f] === x.id)).join('')}</ul>`).join('')}
-      <p class="e-aide">Les accessoires se cumulent, quatre au plus. Rien ne se perd : ce qui est ouvert reste ouvert.</p>`);
+      <p class="e-aide">Les accessoires se cumulent, quatre au plus. Rien ne se perd : ce qui est ouvert reste ouvert.</p>
+      ${journalRecent().length ? `<details class="e-plus"><summary>Son carnet</summary><ul class="cmp-carnet">${journalRecent().map((x) => `<li><span>${ech(x.date)}</span> ${ech(x.nom)} <small>(${{ espece: 'forme', couleur: 'couleur', accessoire: 'accessoire', aura: 'aura', tour: 'tour' }[x.famille] || ''})</small></li>`).join('')}</ul></details>` : ''}`);
     const zone = document.getElementById('vue-eleve');
     const onglets = zone.querySelectorAll('[data-onglet]');
     onglets.forEach((b) => b.addEventListener('click', () => {
@@ -245,6 +393,14 @@
       zone.querySelectorAll(`[data-famille="${f}"]`).forEach((y) => { const on = f === 'accessoire' ? actuel.accessoires.includes(y.getAttribute('data-id')) : y.getAttribute('data-id') === id; y.classList.toggle('actif', on); y.setAttribute('aria-pressed', String(on)); const s = y.querySelector('span'); if (s && !y.classList.contains('ferme')) s.textContent = on ? 'choisi' : 'ouvert'; });
       rafraichir(); reagir('etoile');
     }));
+    zone.querySelectorAll('[data-tour]').forEach((b) => b.addEventListener('click', () => {
+      const t = TOURS.find((x) => x.id === b.getAttribute('data-tour'));
+      if (!ouvert(t)) { n.signaler(`« ${t.nom} » s'ouvre à ${prix(t)} : occupe-toi de lui chaque jour.`, 'info'); return; }
+      tour(t.id, document.querySelector('#cmp-apercu .cmp'));
+    }));
+    document.getElementById('cmp-caresser').addEventListener('click', () => caresser(document.querySelector('#cmp-apercu .cmp')));
+    document.getElementById('cmp-partout').addEventListener('change', (ev) => { n.ecrire(CLE_PARTOUT, ev.target.checked); mascotte(['compagnon']); n.signaler(ev.target.checked ? 'Il te suivra sur toutes tes pages.' : 'Il reste sur sa page et sur l\'accueil.', 'succes'); });
+    verifierMission().then((gagne) => { if (gagne) rafraichir(); });
     document.getElementById('cmp-nom-ok').addEventListener('click', async () => {
       const nom = document.getElementById('cmp-nom').value.trim().slice(0, 24) || 'Opaline';
       const actuel = lireChoix(); actuel.nom = nom;
@@ -253,5 +409,5 @@
     marquerVus();
   }
 
-  window.COMPAGNON = { ESPECES, COULEURS, ACCESSOIRES, AURAS, STADES, rendre, vue, reagir, lireChoix, phraseDuMoment, compte, ouvert, prix, deblocagesNouveaux, signalerDeblocages };
+  window.COMPAGNON = { ESPECES, COULEURS, ACCESSOIRES, AURAS, TOURS, MISSIONS, STADES, rendre, vue, reagir, lireChoix, phraseDuMoment, humeur, compte, ouvert, prix, deblocagesNouveaux, signalerDeblocages, mascotte, caresser, tour, verifierMission, missionDuJour, age };
 })();

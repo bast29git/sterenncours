@@ -134,3 +134,53 @@
 .e-choix-carte .e-choix-fait { margin: 0.6rem 0 0; }
 .e-choix-suite { display: flex; justify-content: space-between; gap: 0.6rem; margin: 0.9rem 0 0; }
 .e-choix-aide { margin: 0 0 0.9rem; color: var(--e-encre-doux); font-size: 0.93rem; }
+
+/* ---------- Mes matières : une ligne par matière ---------- */
+.e-mat-liste { list-style: none; margin: 0.8rem 0 0; padding: 0; display: grid; gap: 0.5rem; }
+.e-mat-liste a { display: grid; grid-template-columns: 2.6rem 1fr auto; align-items: center; gap: 0.8rem; padding: 0.75rem 0.9rem; border-radius: var(--e-r-petit); background: var(--e-carte); border: 1px solid var(--e-trait); text-decoration: none; color: var(--e-encre); box-shadow: var(--e-ombre); }
+.e-mat-liste a:hover { border-color: var(--e-vif); }
+.e-mat-gemme { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; }
+.e-mat-gemme svg { width: 2.2rem; height: 2.2rem; }
+.e-mat-corps { min-width: 0; display: grid; gap: 0.15rem; }
+.e-mat-corps b { font-family: 'Archivo', sans-serif; font-size: 1.02rem; }
+.e-mat-suite { font-size: 0.82rem; color: var(--e-encre-doux); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.e-mat-jauge { display: block; height: 0.3rem; border-radius: 999px; background: var(--e-trait); overflow: hidden; }
+.e-mat-jauge i { display: block; height: 100%; background: var(--e-vif); }
+.e-mat-chiffre { font-family: 'Archivo', sans-serif; font-size: 1.2rem; color: var(--e-vif-fonce); }
+.e-mat-chiffre small { font-size: 0.75rem; color: var(--e-encre-doux); }
+.e-recherche { margin: 0 0 0.4rem; }
+
+/* ---------- Le parcours d'une matière ---------- */
+.e-matiere-tete { display: flex; align-items: center; gap: 0.9rem; margin: 0 0 1rem; padding: 0; background: transparent; border: 0; box-shadow: none; }
+.e-matiere-tete h1 { font-size: 1.5rem; }
+.e-matiere-tete .e-sous { margin: 0.1rem 0 0; color: var(--e-encre-doux); font-size: 0.92rem; }
+.e-parcours .e-etape { margin-bottom: 0.6rem; }
+.e-parcours .e-etape-corps { padding: 0.75rem 0.85rem; }
+.e-parcours .e-etape.verrouillee .e-etape-corps { box-shadow: none; background: transparent; }
+.e-parcours .e-etape.verrouillee .e-pastille { box-shadow: none; }
+.e-parcours .e-etape-note { font-size: 0.85rem; }
+.e-parcours .e-etape-actions a { box-shadow: none; }
+.e-parcours .e-etape-actions a.pleine { box-shadow: none; }
+
+/* ---------- La fiche ---------- */
+.e-lecteur-tete { box-shadow: none; }
+.e-lecon-actions { margin: 1rem 0 0; }
+.e-lecon-plus { margin-top: 0.4rem; }
+.e-lecon-plus .e-actions { padding: 0.2rem 0 0.8rem; }
+.e-outils-plus { margin: 0 0 0.6rem; border-top: 0; }
+.e-outils-plus > summary { padding: 0.35rem 0; font-size: 0.88rem; }
+.e-outils-plus .e-outils-lecture { margin-top: 0.2rem; }
+
+/* ---------- Jeux ---------- */
+.e-jeux-titre { display: flex; align-items: baseline; gap: 0.6rem; font-size: 1.05rem; margin: 1.2rem 0 0.5rem; }
+.e-jeux-titre span { font-size: 0.8rem; font-weight: 600; color: var(--e-encre-doux); }
+.e-jeux-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+.e-jeux-liste a { display: grid; grid-template-columns: 2.2rem 1fr auto; align-items: center; gap: 0.7rem; padding: 0.6rem 0.8rem; border-radius: var(--e-r-petit); background: var(--e-carte); border: 1px solid var(--e-trait); text-decoration: none; color: var(--e-encre); box-shadow: var(--e-ombre); }
+.e-jeux-liste a:hover { border-color: var(--e-vif); }
+.e-jeux-liste .ico { font-size: 1.5rem; text-align: center; }
+.e-jeux-liste .corps { min-width: 0; display: grid; }
+.e-jeux-liste .corps b { font-size: 0.97rem; }
+.e-jeux-liste .corps span { font-size: 0.8rem; color: var(--e-encre-doux); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.e-jeux-liste .etat .ic { width: 1.1rem; height: 1.1rem; color: var(--e-encre-doux); }
+.e-jeux-liste li.gagne .etat .ic { color: var(--e-vif-fonce); }
+.e-filtre-jeux { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 0.4rem; }

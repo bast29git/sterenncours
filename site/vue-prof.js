@@ -2365,7 +2365,7 @@
     const nomMat = (id) => { const m = N.matiere(id); return m ? m.icone + ' ' + m.nom : 'non renseignée'; };
     const REGLES = { pause: 'Une pause de cinq minutes toutes les vingt-cinq minutes', stop: 'Elle peut dire « stop » sans expliquer', consigne: 'Une seule consigne à la fois', fin: 'La séance finit à l\'heure', acquis: 'Ce qui est acquis est nommé et coché', plan: 'Le plan de la séance est annoncé au début' };
     const PREVENIR = { veille: 'la veille, par message', debut: 'au début de la séance', juste: 'juste avant' };
-    const compagnon = window.COMPAGNON ? (() => { const ch = window.COMPAGNON.lireChoix(); const cp = window.COMPAGNON.compte(); return `<div class="p-compagnon">${window.COMPAGNON.rendre({ taille: 5, dort: false })}<div><b>${N.ech(ch.nom)}</b><p class="p-aide" style="margin:.1rem 0 0">${N.ech((window.COMPAGNON.ESPECES.find((x) => x.id === ch.espece) || {}).nom || '')} · ${cp.etoiles} étoile(s), ${cp.opales} opale(s) · ${ch.accessoires.length} accessoire(s)</p></div></div>`; })() : '';
+    const compagnon = window.COMPAGNON ? (() => { const ch = window.COMPAGNON.lireChoix(); const cp = window.COMPAGNON.compte(); return `<div class="p-compagnon">${window.COMPAGNON.rendre({ taille: 5, dort: false })}<div><b>${N.ech(ch.nom)}</b><p class="p-aide" style="margin:.1rem 0 0">${N.ech((window.COMPAGNON.ESPECES.find((x) => x.id === ch.espece) || {}).nom || '')} · ${cp.etoiles} étoile(s), ${cp.opales} opale(s), ${cp.coeurs} cœur(s) · ${ch.accessoires.length} accessoire(s) · humeur : ${window.COMPAGNON.humeur()}</p></div></div>`; })() : '';
     const carte = c ? `
       <dl class="p-fiche-carte">
         <dt>Prénom à utiliser</dt><dd>${N.ech(c.prenom || 'Sterenn')}</dd>

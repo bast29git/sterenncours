@@ -56,7 +56,8 @@
     const parent = PARENT[p[0]];
     if (!parent) return '';
     const cible = typeof parent === 'function' ? parent(p) : parent;
-    return `<a class="e-retour" href="${cible}" aria-label="Retour : ${N.ech(LIBELLE_RETOUR[p[0]] || 'Accueil')}">${N.ic('ic-gauche')} <span>${N.ech(LIBELLE_RETOUR[p[0]] || 'Accueil')}</span></a>`;
+    const libelle = cible === '#/hub' ? 'Accueil' : (LIBELLE_RETOUR[p[0]] || 'Accueil');
+    return `<a class="e-retour" href="${cible}" aria-label="Retour : ${N.ech(libelle)}">${N.ic('ic-gauche')} <span>${N.ech(libelle)}</span></a>`;
   }
 
   function afficher(html) {
@@ -64,6 +65,7 @@
     if (minuteurHeure) { clearInterval(minuteurHeure); minuteurHeure = null; }
     vue().innerHTML = boutonRetour() + html;
     nav();
+    if (window.COMPAGNON && window.COMPAGNON.mascotte) { try { window.COMPAGNON.mascotte((location.hash || '#/hub').replace(/^#\/?/, '').split('/')); } catch (e) { /* la mascotte ne bloque rien */ } }
     document.getElementById('e-palette-panneau').hidden = true;
     window.scrollTo(0, 0);
     vue().focus();
@@ -505,16 +507,18 @@
   function vueMatieres() {
     afficher(
       `<h1>Mes matières</h1>
-       <p class="e-intro">Choisis une matière pour voir ton parcours.</p>
+       <p class="e-intro">Une matière, un parcours. La prochaine leçon ouverte est indiquée.</p>
        ${formulaireRecherche('')}
-       <ul class="e-tuiles">${PROGRAMME.matieres.map((m) => {
+       <ul class="e-mat-liste">${PROGRAMME.matieres.map((m) => {
         const p = N.progression(m);
         const prets = m.lecons.filter((l) => docsVisibles(l).length).length;
+        const prochaine = m.lecons.find((l) => docsVisibles(l).length && N.accessible(m.id, l.ref) && !N.estValidee(m.id, l.ref));
         return `<li><a href="#/matiere/${m.id}">
-          <span class="ico ico-gemme" aria-hidden="true">${N.gemme(m.id)}<em>${m.icone}</em></span>
-          <b>${N.ech(m.nom)}</b>
-          <span>${prets ? `${prets} leçon(s) disponible(s) · ${p.faites} validée(s)` : 'Bientôt disponible'}</span>
-          <span class="e-planete-lecons" role="img" aria-label="${p.faites} leçon(s) validée(s) sur ${m.lecons.length}">${m.lecons.map((l) => `<i class="${N.estValidee(m.id, l.ref) ? 'validee' : (N.accessible(m.id, l.ref) ? 'ouverte' : '')}"></i>`).join('')}</span>
+          <span class="e-mat-gemme" aria-hidden="true">${N.gemme(m.id)}</span>
+          <span class="e-mat-corps"><b>${N.ech(m.nom)}</b>
+            <span class="e-mat-suite">${prets ? (prochaine ? 'Prochaine leçon : ' + N.ech(prochaine.l ? prochaine.l.titre : prochaine.titre) : 'Toutes les leçons ouvertes sont validées') : 'Bientôt disponible'}</span>
+            <span class="e-mat-jauge" role="img" aria-label="${p.faites} leçon(s) validée(s) sur ${m.lecons.length}"><i style="width:${p.pct}%"></i></span></span>
+          <span class="e-mat-chiffre">${p.faites}<small>/${m.lecons.length}</small></span>
         </a></li>`;
       }).join('')}</ul>`,
     );
@@ -525,6 +529,7 @@
     const m = N.matiere(mid);
     if (!m) return vueIntrouvable();
     const p = N.progression(m);
+    const jeux = jeuxMatiere(mid).length;
 
     const etapes = m.lecons.map((l, i) => {
       const dispo = docsVisibles(l).length;
@@ -532,12 +537,9 @@
       const faite = N.estValidee(mid, l.ref);
       const classe = faite ? 'faite' : (ouverte && dispo ? 'ouverte' : 'verrouillee');
       const actions = (ouverte && dispo)
-        ? `<a class="pleine" href="#/lecon/${mid}/${l.ref}/cours">Ouvrir</a>`
-          + N.TYPES_DOC.filter((t) => t.id !== 'cours' && docsVisibles(l).indexOf(t.id) !== -1)
-            .map((t) => `<a href="#/lecon/${mid}/${l.ref}/${t.id}">${N.ic(t.ico)} ${t.libelle}</a>`).join('')
-          + (N.banque(mid, l.ref) ? `<a href="#/exos/${mid}/${l.ref}">${N.ic('ic-cible')} M'entraîner</a>` : '')
-          + jeuxDe(mid, l.ref).map((j) => lienJeu(j)).join('')
-        : `<span class="e-cadenas">${N.ic('ic-verrou')} ${dispo ? N.ech(N.raisonVerrou(mid, l.ref)) : 'Cette leçon est en préparation.'}</span>`;
+        ? `<a class="pleine" href="#/lecon/${mid}/${l.ref}/cours">${faite ? 'Revoir' : 'Ouvrir'}</a>`
+          + (N.banque(mid, l.ref) ? `<a href="#/exos/${mid}/${l.ref}">M'entraîner</a>` : '')
+        : `<span class="e-cadenas">${N.ic('ic-verrou')} ${dispo ? N.ech(N.raisonVerrou(mid, l.ref)) : 'En préparation'}</span>`;
       return `<li class="e-etape ${classe}">
         <span class="e-pastille" aria-hidden="true">${faite ? N.ic('ic-coche') : (ouverte && dispo ? i + 1 : N.ic('ic-verrou'))}</span>
         <div class="e-etape-corps">
@@ -549,17 +551,14 @@
 
     afficher(
       `<section class="e-matiere-tete">
-        <span class="e-matiere-emoji" aria-hidden="true">${N.gemme(mid, 'e-gemme-grande')}<em>${m.icone}</em></span>
+        <span class="e-matiere-emoji" aria-hidden="true">${N.gemme(mid, 'e-gemme-grande')}</span>
         <div>
           <h1>${N.ech(m.nom)}</h1>
-          <p class="e-sous">${p.faites} leçon(s) validée(s) sur ${p.total}</p>
-        </div>
-        <div class="e-jauge">
-          <span class="e-jauge-barre"><i style="width:${p.pct}%"></i></span>
-          <span class="e-jauge-texte">${p.pct} % du parcours</span>
+          <p class="e-sous">${p.faites} leçon(s) validée(s) sur ${p.total} · ${p.pct} % du parcours</p>
         </div>
        </section>
-       <ul class="e-parcours">${etapes}</ul>`,
+       <ul class="e-parcours">${etapes}</ul>
+       ${jeux ? `<p class="e-actions" style="margin:1rem 0 0"><a class="e-bouton e-bouton-doux" href="#/jeux/${mid}">${N.ic('ic-etincelle')} Les ${jeux} jeu${jeux > 1 ? 'x' : ''} de cette matière</a></p>` : ''}`,
     );
   }
 
@@ -601,16 +600,21 @@
             ${ongletsLecon(mid, ref, ouverts, actif)}
           </header>
           <div id="e-fiche-hote"></div>
-          <div class="e-actions">
+          <div class="e-actions e-lecon-actions">
             <button class="e-bouton" id="e-fini" type="button">${lu ? '↺ Pas encore terminée' : '✓ J\'ai terminé'}</button>
             ${N.banque(mid, ref) ? `<a class="e-bouton e-bouton-doux" href="#/exos/${mid}/${ref}">M'entraîner</a>` : ''}
-            <button class="e-bouton e-bouton-fin" id="e-question" type="button">${N.ic('ic-message')} Poser une question</button>
-            <button class="e-bouton e-bouton-fin" id="e-une-chose" type="button" title="Masquer tout sauf la fiche">${N.ic('ic-cible')} Une seule chose</button>
-            <button class="e-bouton e-bouton-fin" id="e-imprimer" type="button" title="Imprimer cette fiche, sans corrigé">${N.ic('ic-telecharger')} Imprimer</button>
-            ${ouverts.indexOf('cours') !== -1 && ouverts.indexOf('revision') !== -1 ? `<a class="e-bouton e-bouton-fin e-btn-comparer" href="#/comparer/${mid}/${ref}">Cours et révision côte à côte</a>` : ''}
-            ${N.estValidee(mid, ref) ? `<a class="e-bouton e-bouton-fin" href="#/lecon/${mid}/${ref}/bilan">${N.ic('ic-trophee')} Bilan de la leçon</a>` : ''}
-            <a class="e-bouton e-bouton-fin" href="#/matiere/${mid}">← Mon parcours</a>
+            <button class="e-bouton e-bouton-fin" id="e-question" type="button">${N.ic('ic-message')} Une question</button>
           </div>
+          <details class="e-plus e-lecon-plus">
+            <summary>Plus d'options</summary>
+            <div class="e-actions">
+              <button class="e-bouton e-bouton-fin" id="e-une-chose" type="button" title="Masquer tout sauf la fiche">${N.ic('ic-cible')} Une seule chose</button>
+              <button class="e-bouton e-bouton-fin" id="e-imprimer" type="button" title="Imprimer cette fiche, sans corrigé">${N.ic('ic-telecharger')} Imprimer</button>
+              ${ouverts.indexOf('cours') !== -1 && ouverts.indexOf('revision') !== -1 ? `<a class="e-bouton e-bouton-fin e-btn-comparer" href="#/comparer/${mid}/${ref}">Cours et révision côte à côte</a>` : ''}
+              ${N.estValidee(mid, ref) ? `<a class="e-bouton e-bouton-fin" href="#/lecon/${mid}/${ref}/bilan">${N.ic('ic-trophee')} Bilan de la leçon</a>` : ''}
+              <a class="e-bouton e-bouton-fin" href="#/matiere/${mid}">← Mon parcours</a>
+            </div>
+          </details>
          </div>`,
       );
 
@@ -979,12 +983,15 @@
     };
     // A28 : le lecteur partagé monte les diapositives ; l'espace de Sterenn y branche sa mémoire de position et ses outils.
     const api = window.LECTEUR.monter(hote, {
-      sections, position: i, duree: doc.duree, outilsHtml: barreOutilsLecture(),
+      sections, position: i, duree: doc.duree,
+      outilsHtml: `<details class="e-plus e-outils-plus"${N.lire('opaline.outils.ouverts', false) ? ' open' : ''}><summary>Outils de lecture</summary>${barreOutilsLecture()}</details>`,
       surMontrer: (k, corps) => { memoriser(k); outilsLecture.apresRendu(hote, corps, cleFiche, k, sections); },
       surTerminer: terminer,
       surPage: () => { N.ecrire(CLE_LECTURE, 'page'); rendreFiche(hote, doc, cleFiche, terminer); },
     });
     outilsLecture.brancher(hote, cleFiche, sections, () => api.courant());
+    const plisOutils = hote.querySelector('.e-outils-plus');
+    if (plisOutils) plisOutils.addEventListener('toggle', () => N.ecrire('opaline.outils.ouverts', plisOutils.open));
   }
 
   /* ---------- Outils de lecture : voix, largeur, une phrase à la fois, surligneur, notes, mots, pauses, zoom ---------- */
@@ -2537,11 +2544,6 @@
     const releve = !!(r && r.maj_le && String(r.maj_le).slice(0, 10) >= lundi && r.meilleur >= 70);
     return { j, releve, lundi };
   }
-  function blocDefi() {
-    const d = defiSemaine(); if (!d) return '';
-    return `<section class="e-bloc-fixe e-defi" aria-labelledby="e-h-defi"><h2 id="e-h-defi">${N.ic('ic-etincelle')} Le défi de la semaine</h2>
-      <p>${d.releve ? `Défi relevé : tu as gagné <b>${N.ech(d.j.titre)}</b> cette semaine. Bravo.` : `Cette semaine, le jeu tiré au sort est <b>${N.ech(d.j.titre)}</b>. Gagne-le avec deux étoiles avant dimanche.`} ${d.releve ? '' : lienJeu(d.j, 'e-lien-doux')}</p></section>`;
-  }
   function vueJeux(mid) {
     const jeux = window.JEUX || [];
     const gagnes = jeux.filter(jeuGagne).length;
@@ -2549,26 +2551,29 @@
     const selection = mid && N.matiere(mid) ? [N.matiere(mid)] : matieres;
     const blocs = selection.map((m) => {
       const liste = jeuxMatiere(m.id).sort((a, b) => (a.type === b.type ? 0 : a.type === '3d' ? -1 : 1));
-      return `<h2 class="e-titre-section">${m.icone} ${N.ech(m.nom)}</h2>
-        <ul class="e-tuiles e-tuiles-jeux">${liste.map((j) => {
-          const lecons = j.lecons.filter((c) => c.split(':')[0] === m.id).map((c) => {
-            const l = N.lecon(m, c.split(':')[1]); return l ? l.titre : c.split(':')[1];
-          });
+      const g = liste.filter(jeuGagne).length;
+      return `<h2 class="e-jeux-titre">${g}/${liste.length} gagné${g > 1 ? 's' : ''}</h2>
+        <ul class="e-jeux-liste">${liste.map((j) => {
+          const lecons = j.lecons.filter((c) => c.split(':')[0] === m.id).map((c) => { const l = N.lecon(m, c.split(':')[1]); return l ? l.titre : c.split(':')[1]; });
           return `<li class="${jeuGagne(j) ? 'gagne' : ''}"><a href="${j.url}">
             <span class="ico" aria-hidden="true">${j.ico}</span>
-            <b>${N.ech(j.titre)}${jeuGagne(j) ? ' ✓' : ''}</b>
-            <span>${j.type === '3d' ? 'Monde 3D · ' : ''}${N.ech(lecons.join(' · '))}</span></a></li>`;
+            <span class="corps"><b>${N.ech(j.titre)}</b><span>${j.type === '3d' ? 'Monde 3D · ' : 'Jeu · '}${N.ech(lecons.slice(0, 2).join(' · '))}</span></span>
+            <span class="etat" aria-label="${jeuGagne(j) ? 'gagné' : ''}">${jeuGagne(j) ? N.ic('ic-coche') : N.ic('ic-droite')}</span></a></li>`;
         }).join('')}</ul>`;
     }).join('');
-    // D30 : le carnet de jeux, par matière : gagnés, essayés, jamais ouverts.
-    const carnet = matieres.map((m) => { const liste = jeuxMatiere(m.id); const g = liste.filter(jeuGagne).length; const e = liste.filter((j) => N.etat.resultats['jeu/' + j.id] && !jeuGagne(j)).length; return `<li><a href="#/jeux/${m.id}">${m.icone} ${N.ech(N.nomCourt(m.id))}</a><b>${g}</b> gagné(s) · ${e} essayé(s) · ${liste.length - g - e} à découvrir</li>`; }).join('');
+    const defi = mid ? null : defiSemaine();
+    // Une chose à la fois : sans matière choisie, une ligne par matière ; avec, ses jeux seulement.
+    const portes = `<ul class="e-mat-liste">${matieres.map((m) => { const liste = jeuxMatiere(m.id); const g = liste.filter(jeuGagne).length; const n3d = liste.filter((j) => j.type === '3d').length; return `<li><a href="#/jeux/${m.id}">
+        <span class="e-mat-gemme" aria-hidden="true">${N.gemme(m.id)}</span>
+        <span class="e-mat-corps"><b>${N.ech(m.nom)}</b>
+          <span class="e-mat-suite">${liste.length} jeu${liste.length > 1 ? 'x' : ''}${n3d ? `, dont ${n3d} monde${n3d > 1 ? 's' : ''} 3D` : ''}</span>
+          <span class="e-mat-jauge" role="img" aria-label="${g} gagné(s) sur ${liste.length}"><i style="width:${liste.length ? Math.round((g / liste.length) * 100) : 0}%"></i></span></span>
+        <span class="e-mat-chiffre">${g}<small>/${liste.length}</small></span></a></li>`; }).join('')}</ul>`;
     afficher(
-      `<h1>Jeux</h1>
-       <p class="e-intro">${jeux.length} jeux et mondes 3D, chacun rattaché à une leçon du programme. Une partie terminée vaut une étoile, comme une série réussie.${gagnes ? ` Déjà ${gagnes} gagné(s).` : ''}</p>
-       ${mid ? '' : blocDefi()}
-       ${mid ? '' : `<ul class="e-carnet-jeux">${carnet}</ul>`}
-       <p class="e-filtre-jeux"><a href="#/jeux" class="${mid ? '' : 'actif'}">Tout</a>${matieres.map((m) => `<a href="#/jeux/${m.id}" class="${mid === m.id ? 'actif' : ''}">${m.icone} ${N.ech(N.nomCourt(m.id))}</a>`).join('')}</p>
-       ${blocs || '<p class="e-vide">Aucun jeu pour le moment.</p>'}`,
+      `<h1>${mid ? N.ech(selection[0].nom) : 'Jeux'}</h1>
+       <p class="e-intro">${mid ? `Les jeux de cette matière. Une partie gagnée vaut une étoile.` : `${jeux.length} jeux et mondes 3D, chacun rattaché à une leçon. Une partie gagnée vaut une étoile.${gagnes ? ` Déjà ${gagnes} gagné(s).` : ''}`}</p>
+       ${defi ? `<p class="e-notif">${N.ic('ic-etincelle')} <span><b>Le défi de la semaine</b> : ${N.ech(defi.j.titre)}. ${defi.releve ? 'Relevé, bravo.' : 'Gagne-le avec deux étoiles avant dimanche.'} <a href="${defi.j.url}">${defi.releve ? 'Rejouer' : 'Jouer'}</a></span></p>` : ''}
+       ${mid ? (blocs || '<p class="e-vide">Aucun jeu pour le moment.</p>') : portes}`,
     );
   }
 

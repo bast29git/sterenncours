@@ -64,7 +64,10 @@ export const SCENARIOS = {
     await aller(page, '#/lecon/maths/L01/cours', 1500);
     ok((await page.locator('.e-diapo-etapes button').count()) > 5, 'étapes de la fiche');
     // La fiche reprend là où elle a été laissée (profil) : on compare au compteur de départ.
-    const depart = parseInt(await page.locator('#e-diapo-compte').innerText(), 10) || 1;
+    let depart = parseInt(await page.locator('#e-diapo-compte').innerText(), 10) || 1;
+    // Si la fiche a été laissée sur la dernière diapositive, « Suivant » la termine : on recule d'abord.
+    const total = parseInt((await page.locator('#e-diapo-compte').innerText()).replace(/^\d+\s+sur\s+/, ''), 10) || 99;
+    if (depart >= total) { await page.click('#e-diapo-prec'); await page.waitForTimeout(400); depart = parseInt(await page.locator('#e-diapo-compte').innerText(), 10) || 1; }
     await page.click('#e-diapo-suiv'); await page.waitForTimeout(600);
     ok((await page.locator('#e-diapo-compte').innerText()).startsWith(String(depart + 1)), 'diapositive suivante');
     const cahier = await page.evaluate(async () => (await fetch('/cahiers/maths/L01.html')).status);
