@@ -228,11 +228,11 @@
         if (!F) return;
         try {
           await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: F.texteDe(id, NOMS[moiRole]), contexte: 'farce:' + id, fil: typeof fil === 'function' ? fil() : (fil || null) }) });
-          await F.jouer(id, document.getElementById('duo-autre'));
+          const autre = moiRole === 'prof' ? 'eleve' : 'prof';
           if (apres) await apres();
-          // Le fil vient d'être redessiné : la trace de la farce revient sur la nouvelle photo.
-          const z = document.getElementById('duo-autre');
-          if (z && (id === 'tarte' || id === 'neige')) F.tacher(z, id === 'tarte' ? 'creme' : 'neige');
+          // La farce s'écrase sur la photo de l'autre, dans le fil : son message vient d'y apparaître.
+          await new Promise((ok) => setTimeout(ok, 450));
+          await F.jouer(id, F.cible(autre));
         } catch (e) { N.signaler(e.message); }
       }));
     }
@@ -241,7 +241,8 @@
   async function jouerFarcesNonLues(messages, autreRole, cible) {
     const F = window.FARCES; if (!F) return;
     const liste = (messages || []).filter((m) => m.auteur === autreRole && !m.lu_le && F.idDe(m)).slice(-3);
-    for (const m of liste) await F.jouer(F.idDe(m), cible);
+    const moi = autreRole === 'prof' ? 'eleve' : 'prof';
+    for (const m of liste) await F.jouer(F.idDe(m), F.cible(moi) || cible);
   }
   /** La bulle d'une farce dans le fil, avec « Rejouer ». */
   function bulleFarce(m, classe) {
@@ -253,7 +254,7 @@
     const F = window.FARCES; if (!F) return;
     zone.querySelectorAll('[data-rejouer]').forEach((b) => b.addEventListener('click', () => {
       const victime = b.getAttribute('data-victime');
-      F.jouer(b.getAttribute('data-rejouer'), document.getElementById(victime === moiRole ? 'duo-moi' : 'duo-autre'));
+      F.jouer(b.getAttribute('data-rejouer'), F.cible(victime) || document.getElementById(victime === moiRole ? 'duo-moi' : 'duo-autre'));
     }));
   }
 

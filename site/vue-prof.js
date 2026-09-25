@@ -1422,6 +1422,7 @@
       entete('Messages', `${messages.length} message(s) · ${N.etat.messagesNonLus} non lu(s)`)
       + (M ? M.duoHTML('prof') : '')
       + (M ? M.barreFils(messages, filProf, 'p-fils-barre') : '')
+      + (visibles.length ? `<p class="p-modeles" style="justify-content:flex-end"><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-effacer-fil">${N.ic('ic-croix')} Effacer cette discussion (${visibles.length})</button></p>` : '')
       + `<div class="p-fil-msg" id="p-fil-msg">${visibles.length ? visibles.map((m) => `
           <div class="p-msg ${m.auteur === 'prof' ? 'moi' : ''}" data-message="${m.id}">
             <div class="p-msg-tete"><span class="p-msg-photo" aria-hidden="true">${M ? M.avatar(m.auteur) : ''}</span><b>${m.auteur === 'prof' ? 'Moi' : 'Sterenn'}</b>
@@ -1466,6 +1467,12 @@
       M.brancherRejouer(filMsg, 'prof');
       if (!sansChargement) await M.jouerFarcesNonLues(messages, 'eleve', document.getElementById('duo-moi'));
     }
+    const btnEffacer = document.getElementById('m-effacer-fil');
+    if (btnEffacer) btnEffacer.addEventListener('click', async () => {
+      const nom = filProf ? (N.matiere(filProf) || {}).nom || filProf : 'le fil général';
+      if (!window.confirm(`Effacer toute la discussion « ${nom} » ? Les ${visibles.length} message(s) et leurs réactions disparaissent chez Sterenn aussi. Les fichiers déposés restent.`)) return;
+      try { const r = await N.api('/messages?fil=' + encodeURIComponent(filProf || 'general'), { method: 'DELETE' }); N.signaler(`${r.effaces} message(s) effacé(s).`, 'succes'); await N.rafraichirEtat(); vueMessages(null, true); } catch (e) { N.signaler(e.message); }
+    });
     const btnScan = document.getElementById('m-scan');
     if (btnScan) btnScan.addEventListener('click', () => {
       if (!window.SCAN) { N.signaler('Le scanner n\'est pas disponible.'); return; }

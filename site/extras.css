@@ -34,7 +34,6 @@
 .duo-actions button { font: inherit; font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 999px; border: 1px solid var(--e-trait-fort, #bbb); background: var(--e-carte, #fff); color: inherit; cursor: pointer; }
 .duo-actions button:hover { border-color: var(--e-vif, #248); }
 .e-msg-pastille img, .p-msg-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.e-msg-pastille { overflow: hidden; }
 .p-msg-photo { width: 1.6rem; height: 1.6rem; border-radius: 50%; display: inline-grid; place-items: center; font-size: 0.7rem; font-weight: 800; background: var(--p-surface-2, #eee); overflow: hidden; vertical-align: middle; }
 .farces-choix { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0 0.9rem; }
 .farces-choix button { font: inherit; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.8rem; border-radius: 999px; border: 1px solid var(--e-trait-fort, #bbb); background: var(--e-carte, #fff); color: inherit; cursor: pointer; }
@@ -43,7 +42,19 @@
 .e-bulle-farce .ico, .p-msg-farce .ico { font-size: 1.6rem; }
 .e-bulle-farce button, .p-msg-farce button { font: inherit; font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 999px; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
 
-/* ---------- Farces : canevas et taches ---------- */
+/* ---------- Farces : canevas, taches, coulures, givre, secousse ---------- */
+.e-msg-pastille .farce-tache, .p-msg-photo .farce-tache { inset: -120%; z-index: 5; }
+.e-msg-pastille, .p-msg-photo { position: relative; }
+.farce-coulures { position: fixed; inset: 0; z-index: 94; pointer-events: none; }
+.farce-coulures.fin { opacity: 0; transition: opacity 0.9s; }
+.farce-goutte { position: absolute; width: calc(1.1rem * var(--s, 1)); height: calc(2.2rem * var(--s, 1)); margin: -0.5rem 0 0 -0.5rem; border-radius: 50% 50% 55% 55% / 40% 40% 60% 60%; background: linear-gradient(180deg, #fff9ee, #f6e6c9); box-shadow: inset -3px -4px 6px rgba(160, 120, 60, 0.18), 0 2px 4px rgba(0, 0, 0, 0.12); animation: farce-coule calc(3s * var(--t, 1)) ease-in forwards; }
+.farce-goutte.neige { background: linear-gradient(180deg, #ffffff, #dfeefb); box-shadow: inset -2px -3px 5px rgba(120, 160, 200, 0.25); animation-duration: calc(4s * var(--t, 1)); }
+.farce-givre { position: fixed; inset: 0; z-index: 93; pointer-events: none; opacity: 0; transition: opacity 0.5s; background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0) 38%, rgba(226, 240, 252, 0.55) 70%, rgba(200, 225, 248, 0.92) 100%); }
+.farce-givre::before { content: ""; position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.35) 0 4deg, transparent 4deg 12deg); mask: radial-gradient(ellipse at center, transparent 45%, #000 100%); -webkit-mask: radial-gradient(ellipse at center, transparent 45%, #000 100%); opacity: 0.35; }
+.farce-givre.on { opacity: 1; }
+.farce-tremble { animation: farce-tremble 0.45s ease-in-out; }
+@keyframes farce-coule { 0% { transform: translateY(0) scaleY(1); } 60% { transform: translateY(42vh) scaleY(1.6); } 100% { transform: translateY(70vh) scaleY(1.2); opacity: 0.9; } }
+@keyframes farce-tremble { 0%, 100% { transform: translate(0, 0); } 15% { transform: translate(-8px, 6px); } 30% { transform: translate(7px, -5px); } 45% { transform: translate(-6px, -4px); } 60% { transform: translate(5px, 4px); } 80% { transform: translate(-3px, 2px); } }
 .farce-canevas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 95; pointer-events: none; }
 .farce-cible { position: relative; }
 .farce-tache { position: absolute; inset: -18%; z-index: 3; cursor: pointer; animation: farce-tache 0.35s ease-out; }

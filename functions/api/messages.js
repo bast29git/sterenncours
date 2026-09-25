@@ -3,6 +3,7 @@
  *   GET   /api/messages?apres=<iso>  liste les messages
  *   POST  /api/messages              envoie un message
  *   PATCH /api/messages              marque comme lus ceux de l'autre espace
+ *   DELETE /api/messages?fil=<id|general>  efface toute une discussion (professeur)
  */
 import { json, erreur, gerer, exigerSession, maintenant, nouvelId, MESSAGES } from '../_commun.js';
 import { compter } from './usage.js';
@@ -111,4 +112,23 @@ export const onRequestPatch = gerer(async (context) => {
     await context.env.DB.prepare('UPDATE messages SET lu_le = ? WHERE auteur != ? AND lu_le IS NULL').bind(now, session.role).run();
   }
   return json({ lus: true });
+});
+
+/** Le professeur efface une discussion entière : le fil d'une matière, ou le fil général. */
+export const onRequestDelete = gerer(async (context) => {
+  const session = await exigerSession(context);
+  if (session.role !== 'prof') return erreur('Seul le professeur peut effacer une discussion.', 403);
+  const fil = new URL(context.request.url).searchParams.get('fil') || 'general';
+  if (!/^[a-z0-9-]{1,30}$/.test(fil)) return erreur(MESSAGES.identifiant_invalide);
+  const DB = context.env.DB;
+  const cond = fil === 'general' ? 'fil IS NULL' : 'fil = ?';
+  const ids = fil === 'general' ? await DB.prepare('SELECT id FROM messages WHERE fil IS NULL').all() : await DB.prepare('SELECT id FROM messages WHERE fil = ?').bind(fil).all();
+  const liste = (ids.results || []).map((x) => x.id);
+  for (let i = 0; i < liste.length; i += 50) {
+    const tranche = liste.slice(i, i + 50);
+    await DB.prepare(`DELETE FROM reactions WHERE message_id IN (${tranche.map(() => '?').join(',')})`).bind(...tranche).run().catch(() => {});
+  }
+  const req = fil === 'general' ? DB.prepare(`DELETE FROM messages WHERE ${cond}`) : DB.prepare(`DELETE FROM messages WHERE ${cond}`).bind(fil);
+  await req.run();
+  return json({ effaces: liste.length, fil });
 });
