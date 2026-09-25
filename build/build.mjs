@@ -410,8 +410,8 @@ function construirePaquets() {
   const crypto = require('node:crypto');
   const lire = (f) => fs.readFileSync(path.join(RACINE, 'site', f), 'utf8');
   const paquets = {
-    'paquet-eleve.js': ['lecteur.js', 'vue-eleve.js', 'messagerie.js', 'tuteur.js', 'planificateur.js', 'scan.js', 'farces.js'],
-    'paquet-prof.js': ['lecteur.js', 'vue-prof.js', 'messagerie.js', 'planificateur.js', 'scan.js', 'farces.js'],
+    'paquet-eleve.js': ['lecteur.js', 'vue-eleve.js', 'messagerie.js', 'tuteur.js', 'planificateur.js', 'scan.js', 'farces.js', 'compagnon.js'],
+    'paquet-prof.js': ['lecteur.js', 'vue-prof.js', 'messagerie.js', 'planificateur.js', 'scan.js', 'farces.js', 'compagnon.js'],
   };
   let version = '';
   for (const [nom, fichiers] of Object.entries(paquets)) {

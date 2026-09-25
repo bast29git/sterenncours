@@ -49,7 +49,7 @@
   /** C4 : l'écran parent de chaque route ; le bouton de retour y mène, toujours à la même place. */
   const PARENT = { matieres: '#/hub', matiere: '#/matieres', lecon: (p) => '#/matiere/' + p[1], exos: (p) => '#/lecon/' + p[1] + '/' + p[2] + '/exercices',
     calendrier: '#/hub', choix: '#/hub', jeux: (p) => (p[1] ? '#/jeux' : '#/hub'), reussites: '#/hub', progres: '#/hub', messages: '#/hub', travail: '#/hub',
-    decouverte: '#/hub', positionnement: '#/hub', visite: '#/hub', donnees: '#/reussites', recherche: '#/matieres', aide: '#/hub', notes: '#/hub', perso: '#/hub' };
+    decouverte: '#/hub', positionnement: '#/hub', visite: '#/hub', compagnon: '#/hub', donnees: '#/reussites', recherche: '#/matieres', aide: '#/hub', notes: '#/hub', perso: '#/hub' };
   const LIBELLE_RETOUR = { matieres: 'Accueil', matiere: 'Mes matières', lecon: 'Le parcours', exos: 'La fiche', jeux: 'Les jeux', donnees: 'Mes réussites', recherche: 'Mes matières' };
   function boutonRetour() {
     const p = (location.hash || '#/hub').replace(/^#\/?/, '').split('/');
@@ -324,7 +324,7 @@
     ];
 
     afficher(
-      `<div class="e-bonjour"><p class="date">${N.ech(N.enFrancais(auj, true))}</p><h1>${salut}</h1></div>
+      `<div class="e-bonjour e-bonjour-compagnon">${window.COMPAGNON ? `<a class="cmp-lien" href="#/compagnon" title="Mon compagnon">${window.COMPAGNON.rendre({ taille: 4.6 })}</a>` : ''}<div><p class="date">${N.ech(N.enFrancais(auj, true))}</p><h1>${salut}</h1>${window.COMPAGNON ? `<p class="e-aide" style="margin:.15rem 0 0">${N.ech(window.COMPAGNON.lireChoix().nom)} : « ${N.ech(window.COMPAGNON.phraseDuMoment())} »</p>` : ''}</div></div>
        ${blocMotNouveau()}
        <section class="e-prochaine${vedette || cible ? '' : ' vide'}" aria-labelledby="e-h-maintenant">
         <p class="quand" id="e-h-maintenant">${quand}</p>
@@ -350,6 +350,7 @@
          ${blocDefiJour()}
          ${blocBilanSemaine()}
          <ul class="e-plus-liste">
+           <li><a href="#/compagnon">Mon compagnon<span>${window.COMPAGNON ? N.ech(window.COMPAGNON.lireChoix().nom) + ' : forme, couleur, accessoires' : 'Le personnaliser'}</span></a></li>
            <li><a href="#/jeux">Jeux<span>${(window.JEUX || []).length} jeux et mondes 3D</span></a></li>
            <li><a href="#/reussites">Mes réussites<span>${N.reussites().total} étoile(s)</span></a></li>
            <li><a href="#/curiosites">Curiosités<span>Pour le plaisir, sans étoile</span></a></li>
@@ -363,6 +364,7 @@
          </ul>
        </details>`,
     );
+    if (window.COMPAGNON) window.COMPAGNON.signalerDeblocages();
     const plus = vue().querySelector('.e-plus');
     if (plus) plus.addEventListener('toggle', () => N.ecrire('opaline.accueil.plus', plus.open));
     brancherChoix(vueHub);
@@ -1779,6 +1781,7 @@
               <i style="width:${part}%"></i></div>
             <p class="e-etoiles-suite">Encore ${suivant.s - r.total} pour ${N.ech(suivant.n.toLowerCase())}.</p>`
     : '<p class="e-etoiles-suite">Tous les paliers sont atteints.</p>'}
+         ${window.COMPAGNON ? `<p class="e-actions" style="justify-content:center;margin:.6rem 0 0"><a class="e-bouton e-bouton-doux" href="#/compagnon">${window.COMPAGNON.rendre({ taille: 1.6 })} Mon compagnon : ${N.ech(window.COMPAGNON.lireChoix().nom)}</a></p>` : ''}
        </section>
 
        ${(() => { const sj = N.serieJours(); return `<p class="e-serie-jours">${N.ic('ic-horloge')} ${sj.n >= 2 ? `<b>${sj.n} jours de suite</b> avec au moins une fiche ou une série.` : sj.n === 1 ? `<b>Un jour</b> de travail dans la série${sj.aujourdhui ? ', aujourd\'hui' : ', hier'}. Reviens demain pour la continuer.` : sj.reprise ? '<b>Reprise</b> : la série de jours repart dès ta prochaine fiche ou série.' : 'La série de jours commence avec ta première fiche.'}</p>`; })()}
@@ -2593,6 +2596,7 @@
       case 'exos': return p[1] === 'melange' ? vueMelange() : vueExos(p[1], p[2], p[3]);
       case 'annales': return vueAnnales();
       case 'curiosites': return vueCuriosites(p[1]);
+      case 'compagnon': return window.COMPAGNON ? window.COMPAGNON.vue() : vueIntrouvable();
       case 'carnet': return vueCarnet();
       case 'recherche': return vueRecherche(p.slice(1).join('/'));
       case 'perso': return vuePerso(p[1]);

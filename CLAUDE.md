@@ -144,6 +144,24 @@ quelque chose, pas seulement signaler l'erreur.
 - **Univers de Sterenn dans les énoncés** : un exercice sur cinq au moins par leçon cite Maomao,
   Myne, Yuzu, les aurores boréales ou les feutres ; le build compte les mots-clés par leçon
   (`public/data/univers.json`). La fiction habille l'énoncé, jamais les données ni le corrigé.
+- **Le compagnon** (`site/compagnon.js`, page `#/compagnon`, profil `moi.compagnon`) : une créature
+  SVG que Sterenn nomme et habille ; 12 formes, 10 couleurs, 13 accessoires (quatre à la fois),
+  6 auras, trois stades de taille. Chaque élément s'ouvre à un nombre d'**étoiles** ou d'**opales**
+  (une opale = une leçon validée) ; rien ne se referme. Il vit sur l'accueil avec une phrase du
+  moment, réagit aux célébrations, dort le soir ; le professeur le voit sur la page « Sterenn ».
+- **Scanner** (`site/scan.js`, les deux espaces) : photos redressées en niveaux de gris, papier
+  blanc ; plusieurs pages font un PDF écrit dans le navigateur, envoyé par `/api/fichiers`.
+- **Photos de profil et farces** (`site/farces.js`, helpers dans `site/messagerie.js`) : photo de
+  chacun (`moi.avatar`, `prof.avatar`, fichier réduit à 320 px) ; une farce est un message de
+  contexte `farce:<id>` (tarte à la crème en 3D via three.js, confettis, boule de neige, pluie
+  de cœurs, feu d'artifice), jouée sur la photo de l'autre à l'envoi et sur la sienne à la
+  lecture des messages non lus, rejouable, et remplacée par son résultat en mouvement réduit.
+- **Sujets d'évaluation papier** : `public/evaluations/<matiere>/<ref>.html` pour Sterenn (servi
+  quand l'évaluation est ouverte, même règle que le sujet en ligne) et
+  `public/data/contenu/<matiere>/<ref>-evaluation-corrige.html` pour le professeur (corrigés
+  dépliés, barème). Le cahier d'exercices à la main existe pour chaque leçon.
+- **Audit des contenus** : `npm run audit:contenus` (`build/audit-contenus.mjs`) vérifie les 84
+  leçons et écrit `00-pilotage/audit-contenus.md` ; il sort en erreur sur un manque bloquant.
 - **Modules de début d'année** (`site/modules.js`, `site/visite.js`) : « Faire connaissance »,
   « Où j'en suis », visite guidée ; réponses dans le profil partagé (`/api/profil`, clés `moi.*`),
   lues par le professeur sur la page « Sterenn ». Le générateur d'année les place sur la première

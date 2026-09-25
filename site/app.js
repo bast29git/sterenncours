@@ -519,6 +519,7 @@
       <button type="button" class="e-bouton e-fete-ok">Continuer</button>
     </div>`;
     document.body.appendChild(el);
+    if (window.COMPAGNON) { try { window.COMPAGNON.reagir('etoile'); } catch (e) { /* le compagnon ne bloque jamais la fête */ } }
     const liberer = piegerFocus(el, document.activeElement);
     const fermer = () => { liberer(); el.classList.add('fin'); setTimeout(() => el.remove(), 250); };
     el.querySelector('.e-fete-ok').addEventListener('click', fermer);
