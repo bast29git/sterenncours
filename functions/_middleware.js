@@ -58,7 +58,8 @@ export async function onRequest(context) {
   // professeur a ouvert cette évaluation : la décision est appliquée ici,
   // avant de servir le fichier, pas seulement masquée dans l'interface.
   const evaluation = /^\/data\/evaluations\/([a-z0-9-]+)\/([A-Za-z0-9]+)\.js$/.exec(chemin)
-    || /^\/evaluations\/([a-z0-9-]+)\/([A-Za-z0-9]+)\.html$/.exec(chemin);
+    // Pages sert aussi l'adresse sans « .html » : la règle vaut pour les deux.
+    || /^\/evaluations\/([a-z0-9-]+)\/([A-Za-z0-9]+)(?:\.html)?$/.exec(chemin);
   if (session.role !== 'prof' && evaluation) {
     const acces = await lireAcces(env.DB);
     if (!accesOuvert(acces[evaluation[1] + '/' + evaluation[2] + '/evaluation'])) {
