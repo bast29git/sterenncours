@@ -254,25 +254,6 @@
     if (min < fin) return `${heure}. La séance est en cours, encore ${duree(fin - min)}.`;
     return `${heure}. La séance est terminée.`;
   }
-  /** C43 : la prochaine étoile à portée de main, avec le lien. */
-  function prochaineEtoile() {
-    const ouvertes = [];
-    PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => { if (N.accessible(m.id, l.ref) && docsVisibles(l).length) ouvertes.push({ m, l }); }));
-    for (const x of ouvertes) {
-      const c = N.cle(x.m.id, x.l.ref);
-      const r = N.etat.resultats[c];
-      if (N.banque(x.m.id, x.l.ref) && r && r.total > 0 && r.meilleur / r.total < 0.7) return { texte: `Il te manque la série de « ${x.l.titre} » : ton meilleur est ${r.meilleur} sur ${r.total}, il faut 70 %.`, lien: `#/exos/${x.m.id}/${x.l.ref}`, action: 'Refaire la série' };
-    }
-    for (const x of ouvertes) {
-      const t = docsVisibles(x.l).find((d) => d !== 'evaluation' && !N.etat.fiches[N.cle(x.m.id, x.l.ref) + '/' + d]);
-      if (t) { const info = N.TYPES_DOC.find((y) => y.id === t); return { texte: `Une étoile t'attend : termine la fiche ${info ? info.libelle.toLowerCase() : t} de « ${x.l.titre} ».`, lien: `#/lecon/${x.m.id}/${x.l.ref}/${t}`, action: 'Ouvrir la fiche' }; }
-    }
-    for (const x of ouvertes) {
-      const c = N.cle(x.m.id, x.l.ref);
-      if (N.banque(x.m.id, x.l.ref) && !N.etat.resultats[c]) return { texte: `Une étoile t'attend : réussis la série de « ${x.l.titre} » à 70 %.`, lien: `#/exos/${x.m.id}/${x.l.ref}`, action: 'Faire la série' };
-    }
-    return null;
-  }
   /** C47 : le vendredi et le week-end, les bilans de la semaine avec les mots exacts de Bastien. */
   function blocBilanSemaine() {
     const auj = N.jourIso();
@@ -845,6 +826,7 @@
           <input type="file" id="e-eval-photos" accept="image/*" multiple hidden>
           <div class="e-eval-apercus" id="e-eval-apercus"></div>
           <div class="e-actions" style="margin:0">
+            <a class="e-bouton e-bouton-doux" href="/evaluations/${mid}/${ref}.html" target="_blank" rel="noopener">${N.ic('ic-crayon')} Sujet à imprimer</a>
             <button class="e-bouton e-bouton-doux" id="e-eval-ajouter" type="button">${N.ic('ic-plus')} Ajouter une photo</button>
             <button class="e-bouton" id="e-eval-envoyer" type="button" disabled>${N.ic('ic-envoyer')} Envoyer ma copie</button>
           </div>
@@ -2154,7 +2136,8 @@
 
     afficher(
       `<h1>Messages</h1>
-       <p class="e-intro">Écris à Bastien, envoie une photo de ton travail, pose une question. Tout est au même endroit.</p>
+       <p class="e-intro">Écris à Bastien, envoie une photo ou un scan de ton travail, pose une question. Tout est au même endroit.</p>
+       ${M ? M.duoHTML('eleve') : ''}
 
        <div id="e-fils"></div>
        <p class="e-msg-recherche"><label class="visuellement-cache" for="e-msg-recherche">Rechercher dans les messages</label><input type="search" id="e-msg-recherche" placeholder="Rechercher dans les messages" autocomplete="off"></p>
@@ -2201,6 +2184,8 @@
              <svg class="ic" aria-hidden="true"><use href="#ic-trombone"/></svg></button>
            <button type="button" class="e-outil" id="e-btn-photo" title="Prendre ou choisir une photo" aria-label="Prendre une photo">
              <svg class="ic" aria-hidden="true"><use href="#ic-photo"/></svg></button>
+           <button type="button" class="e-outil" id="e-btn-scan" title="Scanner un document : une ou plusieurs pages" aria-label="Scanner un document">
+             <svg class="ic" aria-hidden="true"><use href="#ic-boite"/></svg></button>
            <button type="button" class="e-outil" id="e-btn-humeur" title="Ajouter une émoticône" aria-label="Ajouter une émoticône">
              <svg class="ic" aria-hidden="true"><use href="#ic-etincelle"/></svg></button>
            <button type="button" class="e-outil" id="e-btn-sujet" title="Choisir la leçon concernée" aria-label="Choisir la leçon concernée">
@@ -2459,7 +2444,7 @@
                  <span><b>${N.ech(f.nom)}</b><span>${N.ech(N.poids(f.taille))}</span></span>
                  <svg class="ic" aria-hidden="true"><use href="#ic-telecharger"/></svg></a>`;
           return `${avant}<article class="e-msg ${moi ? 'moi' : ''}">
-            <span class="e-msg-pastille" aria-hidden="true">${moi ? 'S' : 'B'}</span>
+            <span class="e-msg-pastille" aria-hidden="true">${M ? M.avatar(moi ? 'eleve' : 'prof') : (moi ? 'S' : 'B')}</span>
             <div>${tete}<div class="e-bulle e-bulle-jointe">
               ${f.matiere ? `<span class="contexte">${N.ech(f.matiere)}${f.ref ? ' · ' + N.ech(f.ref) : ''}</span>` : ''}
               ${apercu}${f.note ? `<p class="texte">${N.ech(f.note)}</p>` : ''}</div></div></article>`;
@@ -2467,14 +2452,14 @@
 
         const m = x.d;
         const lu = moi && m.lu_le ? '<span class="e-lu" title="Lu">✓✓</span>' : '';
-        const corpsTexte = M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte);
+        const corpsTexte = M && window.FARCES && window.FARCES.idDe(m) ? M.bulleFarce(m, 'e-bulle-farce') : (M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte));
         const cite = m.reponse_a ? messages.find((y) => y.id === m.reponse_a) : null;
         const differe = m.envoyer_le && m.envoyer_le > new Date().toISOString();
         const recent = moi && (differe || Date.now() - new Date(m.cree_le).getTime() < 5 * 60 * 1000);
         return `${avant}<article class="e-msg ${moi ? 'moi' : ''}${differe ? ' differe' : ''}" data-message="${m.id}">
-          <span class="e-msg-pastille" aria-hidden="true">${moi ? 'S' : 'B'}</span>
+          <span class="e-msg-pastille" aria-hidden="true">${M ? M.avatar(moi ? 'eleve' : 'prof') : (moi ? 'S' : 'B')}</span>
           <div>${tete}<div class="e-bulle">
-            ${m.contexte ? `<span class="contexte">${N.ech(m.contexte)}</span>` : ''}
+            ${m.contexte && !(window.FARCES && window.FARCES.idDe(m)) ? `<span class="contexte">${N.ech(m.contexte)}</span>` : ''}
             ${cite ? `<blockquote class="e-cite">${cite.auteur === 'eleve' ? 'Moi' : 'Bastien'} : ${N.ech(court(cite.texte, 120))}</blockquote>` : ''}
             ${differe ? `<span class="e-differe-badge">${N.ic('ic-horloge')} programmé pour ${N.ech(N.dateCourte(m.envoyer_le))}</span>` : ''}
             <div class="texte">${corpsTexte}</div>${lu}</div>
@@ -2487,6 +2472,7 @@
         try { await N.api('/messages/' + b.getAttribute('data-retirer'), { method: 'DELETE' }); N.signaler('Message retiré.', 'succes'); charger(false); } catch (e) { N.signaler(e.message); }
       }));
       if (defiler !== false) zoneT.scrollTop = zoneT.scrollHeight;
+      if (M) { M.brancherRejouer(zoneT, 'eleve'); if (defiler !== false) await M.jouerFarcesNonLues(messages, 'prof', document.getElementById('duo-moi')); }
       try {
         await N.api('/messages', { method: 'PATCH' });
         N.etat.messagesNonLus = 0;
@@ -2495,6 +2481,8 @@
     }
     charger();
     if (M) M.brancherReactions(zoneT, () => charger(false));
+    if (M) M.brancherDuo(vue(), 'eleve', () => charger(false), () => filActif);
+    document.getElementById('e-btn-scan').addEventListener('click', () => { if (window.SCAN) window.SCAN.ouvrir({ surFini: poserPiece }); else N.signaler('Le scanner n\'est pas disponible.'); });
     const champRecherche = document.getElementById('e-msg-recherche');
     if (champRecherche) champRecherche.addEventListener('input', () => { clearTimeout(champRecherche._t); champRecherche._t = setTimeout(() => { filtreTexte = champRecherche.value.trim(); charger(false); }, 250); });
 

@@ -410,8 +410,8 @@ function construirePaquets() {
   const crypto = require('node:crypto');
   const lire = (f) => fs.readFileSync(path.join(RACINE, 'site', f), 'utf8');
   const paquets = {
-    'paquet-eleve.js': ['lecteur.js', 'vue-eleve.js', 'messagerie.js', 'tuteur.js', 'planificateur.js'],
-    'paquet-prof.js': ['lecteur.js', 'vue-prof.js', 'messagerie.js', 'planificateur.js'],
+    'paquet-eleve.js': ['lecteur.js', 'vue-eleve.js', 'messagerie.js', 'tuteur.js', 'planificateur.js', 'scan.js', 'farces.js'],
+    'paquet-prof.js': ['lecteur.js', 'vue-prof.js', 'messagerie.js', 'planificateur.js', 'scan.js', 'farces.js'],
   };
   let version = '';
   for (const [nom, fichiers] of Object.entries(paquets)) {
@@ -421,7 +421,7 @@ function construirePaquets() {
     try { sortie = require('esbuild').transformSync(corps, { minify: true, loader: 'js', charset: 'utf8', legalComments: 'none', target: 'es2020' }).code; } catch (e) { console.warn(`   ⚠️  minification impossible pour ${nom} : ${String(e.message || e).split('\n')[0]}`); }
     fs.writeFileSync(path.join(SORTIE, nom), sortie);
   }
-  version = crypto.createHash('sha1').update(version + lire('app.js') + lire('eleve.css') + lire('calme.css') + lire('prof.css') + lire('index.html')).digest('hex').slice(0, 10);
+  version = crypto.createHash('sha1').update(version + lire('app.js') + lire('eleve.css') + lire('calme.css') + lire('extras.css') + lire('prof.css') + lire('index.html')).digest('hex').slice(0, 10);
   const index = path.join(SORTIE, 'index.html');
   fs.writeFileSync(index, fs.readFileSync(index, 'utf8').replace('<script src="app.js"></script>', `<script>window.OPALINE_VERSION = ${JSON.stringify(version)};</script>\n<script src="app.js?v=${version}"></script>`));
   fs.writeFileSync(path.join(SORTIE, 'version.json'), JSON.stringify({ version, le: new Date().toISOString() }));
@@ -443,7 +443,7 @@ copierDossier(path.join(RACINE, 'site'), SORTIE);
 function minifierSite() {
   const { transformSync } = require('esbuild');
   const cibles = ['app.js', 'vue-prof-pages.js', 'sw.js', 'data/exercices.js', 'data/jeux.js',
-    'socle.css', 'lecture.css', 'portail.css', 'eleve.css', 'calme.css', 'prof.css', 'moteurs/aurora.css', 'theme/cours.css'];
+    'socle.css', 'lecture.css', 'portail.css', 'eleve.css', 'calme.css', 'prof.css', 'extras.css', 'moteurs/aurora.css', 'theme/cours.css'];
   let avant = 0; let apres = 0;
   for (const rel of cibles) {
     const f = path.join(SORTIE, rel);
@@ -931,6 +931,52 @@ function construireEvaluations(programme) {
       if (!sujet) continue;
       const dossier = path.join(racine, m.id);
       fs.mkdirSync(dossier, { recursive: true });
+      // Le sujet papier, à imprimer : pour Sterenn sans corrigé (servi si l'évaluation est
+      // ouverte), pour le professeur avec les corrigés dépliés (sous /data/contenu/, réservé).
+      const nettoyer = (h) => h.replace(/<p class="corrige-cache">[\s\S]*?<\/p>/g, '').replace(/<button type="button" class="audio-ecouter"[^>]*>Écouter<\/button>/g, '');
+      const pagePapier = (corps, sousTitre, avecBareme) => `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Évaluation · ${echapper(l.titre)}${avecBareme ? ' · corrigé' : ''}</title>
+<link rel="stylesheet" href="${avecBareme ? '../../../theme/cours.css' : '../../theme/cours.css'}">
+<style>
+  body { max-width: 52rem; margin: 0 auto; padding: 1.5rem 1.2rem 3rem; }
+  .cahier-tete { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; }
+  .cahier-tete h1 { margin: 0; font-size: 1.5rem; }
+  .cahier-tete p { margin: 0.2rem 0 0; color: var(--texte-doux); }
+  .cahier-bouton { font: inherit; font-weight: 700; padding: 0.55rem 1rem; border-radius: 8px; border: 1px solid var(--trait-fort); background: var(--fond-doux); cursor: pointer; }
+  .cahier-ligne { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 0 0 1rem; font-size: 0.95rem; }
+  .cahier-ligne span { border-bottom: 1px solid var(--trait-fort); padding: 0.3rem 0; }
+  .reponse-libre { min-height: 9rem; border: 1px dashed var(--trait-fort); border-radius: 6px; margin: 0.6rem 0 0; }
+  .exercice, .grille { break-inside: avoid; }
+  .corrige { break-inside: avoid; }
+  .papier-attentes { margin-top: 1.6rem; }
+  .papier-attentes h2 { font-size: 1.15rem; }
+  @media print { .cahier-bouton { display: none; } body { padding: 0; } }
+</style>
+</head>
+<body class="fiche">
+<header class="cahier-tete">
+  <div><h1>${echapper(l.titre)}</h1><p>${echapper(m.nom)} · ${sousTitre}</p></div>
+  <button class="cahier-bouton" type="button" onclick="window.print()">Imprimer ou enregistrer en PDF</button>
+</header>
+<div class="cahier-ligne"><span>Prénom : Sterenn</span><span>Date : </span><span>Note : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; / 20</span></div>
+${corps}
+${criteres ? `<section class="papier-attentes"><h2>Ce qui est attendu</h2>${criteres}</section>` : ''}
+</body>
+</html>`;
+      const dossierPapier = path.join(SORTIE, 'evaluations', m.id);
+      fs.mkdirSync(dossierPapier, { recursive: true });
+      fs.writeFileSync(path.join(dossierPapier, `${l.ref}.html`), pagePapier(
+        nettoyer(sujet).replace(/<\/section>/g, '<div class="reponse-libre" aria-hidden="true"></div></section>'),
+        'Évaluation sur papier · à rendre à Bastien', false));
+      const dossierCorrige = path.join(SORTIE, 'data', 'contenu', m.id);
+      fs.mkdirSync(dossierCorrige, { recursive: true });
+      fs.writeFileSync(path.join(dossierCorrige, `${l.ref}-evaluation-corrige.html`), pagePapier(
+        nettoyer(brut).replace(/<details class="corrige"(?![^>]*open)/g, '<details class="corrige" open'),
+        'Sujet d\'évaluation avec le corrigé et le barème · réservé au professeur', true));
       fs.writeFileSync(path.join(dossier, `${l.ref}.js`),
         '/* Généré par build/build.mjs : ne pas modifier à la main. */\n'
         + 'window.EVALUATIONS = window.EVALUATIONS || {};\n'

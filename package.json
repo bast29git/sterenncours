@@ -16,7 +16,8 @@
     "lint": "eslint site functions build tests",
     "audit:jeux": "node tests/jeux.mjs",
     "audit:visuel": "node tests/visuel.mjs",
-    "audit:visuel:reference": "node tests/visuel.mjs --reference"
+    "audit:visuel:reference": "node tests/visuel.mjs --reference",
+    "audit:contenus": "node build/audit-contenus.mjs"
   },
   "dependencies": {
     "markdown-it": "^15.0.0",

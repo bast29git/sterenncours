@@ -1420,16 +1420,17 @@
 
     afficher(
       entete('Messages', `${messages.length} message(s) · ${N.etat.messagesNonLus} non lu(s)`)
+      + (M ? M.duoHTML('prof') : '')
       + (M ? M.barreFils(messages, filProf, 'p-fils-barre') : '')
       + `<div class="p-fil-msg" id="p-fil-msg">${visibles.length ? visibles.map((m) => `
           <div class="p-msg ${m.auteur === 'prof' ? 'moi' : ''}" data-message="${m.id}">
-            <div class="p-msg-tete"><b>${m.auteur === 'prof' ? 'Moi' : 'Sterenn'}</b>
+            <div class="p-msg-tete"><span class="p-msg-photo" aria-hidden="true">${M ? M.avatar(m.auteur) : ''}</span><b>${m.auteur === 'prof' ? 'Moi' : 'Sterenn'}</b>
               <span>${N.ech(N.dateCourte(m.cree_le))}</span>
               ${m.auteur !== 'prof' && !m.lu_le ? '<span class="p-etat p-etat-fragile">nouveau</span>' : ''}</div>
-            ${m.contexte ? `<p class="p-msg-ctx">${N.ech(m.contexte)}</p>` : ''}
+            ${m.contexte && !(window.FARCES && window.FARCES.idDe(m)) ? `<p class="p-msg-ctx">${N.ech(m.contexte)}</p>` : ''}
             ${m.reponse_a && messages.find((y) => y.id === m.reponse_a) ? `<blockquote class="p-cite">${messages.find((y) => y.id === m.reponse_a).auteur === 'prof' ? 'Moi' : 'Sterenn'} : ${N.ech(court(messages.find((y) => y.id === m.reponse_a).texte, 120))}</blockquote>` : ''}
             ${m.envoyer_le && m.envoyer_le > new Date().toISOString() ? `<p class="p-msg-ctx">⏱ programmé pour ${N.ech(N.dateCourte(m.envoyer_le))} <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-retirer-msg="${m.id}">Retirer</button></p>` : ''}
-            <div class="p-msg-texte">${M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte)}</div>
+            <div class="p-msg-texte">${M && window.FARCES && window.FARCES.idDe(m) ? M.bulleFarce(m, 'p-msg-farce') : (M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte))}</div>
             ${M ? M.reactionsHTML(m, 'prof', 'p-reactions') : ''}
           </div>`).join('') : `<p class="p-vide">${filProf ? 'Aucun message dans ce fil.' : 'Aucun message pour le moment.'}</p>`}</div>`
       + bloc('Écrire', `
@@ -1448,6 +1449,7 @@
             <textarea id="m-texte" rows="3" maxlength="2000" required>${N.ech(brouillon ? brouillon.t : '')}</textarea></div>
           <div class="p-modeles">
             <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-emojis-btn" aria-expanded="false">${N.ic('ic-emoji')} Émojis</button>
+            <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-scan">${N.ic('ic-boite')} Scanner un document</button>
             <select id="m-modele" aria-label="Modèle de message"><option value="">Modèle…</option>${MODELES_MESSAGE.map((t, i) => `<option value="${i}">${N.ech(t.nom)}</option>`).join('')}</select>
             <select id="m-differe" aria-label="Envoyer plus tard"><option value="">Envoyer maintenant</option><option value="soir">Ce soir à 18 h</option><option value="matin">Demain à 8 h</option><option value="lundi">Lundi à 8 h</option></select>
           </div>
@@ -1459,6 +1461,19 @@
 
     const filMsg = document.getElementById('p-fil-msg');
     filMsg.scrollTop = filMsg.scrollHeight;
+    if (M) {
+      M.brancherDuo(vue(), 'prof', () => vueMessages(null, true), () => filProf);
+      M.brancherRejouer(filMsg, 'prof');
+      if (!sansChargement) await M.jouerFarcesNonLues(messages, 'eleve', document.getElementById('duo-moi'));
+    }
+    const btnScan = document.getElementById('m-scan');
+    if (btnScan) btnScan.addEventListener('click', () => {
+      if (!window.SCAN) { N.signaler('Le scanner n\'est pas disponible.'); return; }
+      window.SCAN.ouvrir({ surFini: async (fichier) => {
+        const d = new FormData(); d.append('fichier', fichier); d.append('note', 'Document scanné par Bastien'); if (filProf) d.append('matiere', filProf);
+        try { await N.api('/fichiers', { method: 'POST', body: d }); N.signaler('Document envoyé à Sterenn.', 'succes'); vueMessages(null, true); } catch (e) { N.signaler(e.message); }
+      } });
+    });
     filMsg.querySelectorAll('[data-retirer-msg]').forEach((b) => b.addEventListener('click', async () => { try { await N.api('/messages/' + b.getAttribute('data-retirer-msg'), { method: 'DELETE' }); N.signaler('Message retiré.', 'succes'); vueMessages(null, true); } catch (e) { N.signaler(e.message); } }));
     vue().querySelectorAll('[data-fil]').forEach((b) => b.addEventListener('click', () => {
       filProf = b.getAttribute('data-fil') || null;
@@ -1803,7 +1818,7 @@
               <nav class="p-onglets">${l.docs.map((t) => {
           const info = N.TYPES_DOC.find((x) => x.id === t);
           return `<a href="#/lecon/${mid}/${ref}/${t}" class="${t === actif ? 'actif' : ''}">${N.ic(info.ico)} ${info.libelle}</a>`;
-        }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} Série d'exercices</a>` : ''}<a href="/cahiers/${mid}/${ref}.html" target="_blank" rel="noopener">${N.ic('ic-crayon')} Cahier à imprimer</a></nav>
+        }).join('')}${N.banque(mid, ref) ? `<a href="#/exos/${mid}/${ref}">${N.ic('ic-cible')} Série d'exercices</a>` : ''}<a href="/cahiers/${mid}/${ref}.html" target="_blank" rel="noopener">${N.ic('ic-crayon')} Cahier à imprimer</a><a href="/evaluations/${mid}/${ref}.html" target="_blank" rel="noopener">${N.ic('ic-crayon')} Sujet papier</a><a href="/data/contenu/${mid}/${ref}-evaluation-corrige.html" target="_blank" rel="noopener">${N.ic('ic-coche')} Sujet avec corrigé</a></nav>
           <p class="p-eval-acces">${(() => { const d = N.decisionAcces(N.cle(mid, ref) + '/evaluation'); const a = N.etat.acces[N.cle(mid, ref) + '/evaluation']; return d === true
             ? `<span class="p-etat p-etat-satisfaisant">évaluation ouverte à Sterenn${a && a.jusqu_au ? ' jusqu\'au ' + N.ech(N.dateCourte(a.jusqu_au)) : ''}</span> <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-eval-acces="fermer">Fermer</button>`
             : `<span class="p-etat p-etat-vide">évaluation fermée</span> <button type="button" class="p-bouton p-bouton-mini" data-eval-acces="ouvrir">Ouvrir l'évaluation pour sept jours</button>`; })()}</p>

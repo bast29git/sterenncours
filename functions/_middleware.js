@@ -12,7 +12,7 @@ import { lireAcces, accesOuvert } from './api/acces.js';
 // contenu pédagogique, ni donnée de suivi. Les modules de vue, les données
 // du programme et toutes les API restent derrière la session.
 const PUBLIC_EXACT = new Set([
-  '/', '/index.html', '/socle.css', '/portail.css', '/eleve.css', '/calme.css', '/prof.css',
+  '/', '/index.html', '/socle.css', '/portail.css', '/eleve.css', '/calme.css', '/prof.css', '/extras.css',
   '/lecture.css', '/app.js', '/favicon.svg', '/favicon.ico', '/manifeste.json',
   '/robots.txt', '/api/connexion', '/api/moi',
 ]);
@@ -57,7 +57,8 @@ export async function onRequest(context) {
   // Le sujet d'évaluation d'une leçon n'est servi à Sterenn que si le
   // professeur a ouvert cette évaluation : la décision est appliquée ici,
   // avant de servir le fichier, pas seulement masquée dans l'interface.
-  const evaluation = /^\/data\/evaluations\/([a-z0-9-]+)\/([A-Za-z0-9]+)\.js$/.exec(chemin);
+  const evaluation = /^\/data\/evaluations\/([a-z0-9-]+)\/([A-Za-z0-9]+)\.js$/.exec(chemin)
+    || /^\/evaluations\/([a-z0-9-]+)\/([A-Za-z0-9]+)\.html$/.exec(chemin);
   if (session.role !== 'prof' && evaluation) {
     const acces = await lireAcces(env.DB);
     if (!accesOuvert(acces[evaluation[1] + '/' + evaluation[2] + '/evaluation'])) {

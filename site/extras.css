@@ -1,0 +1,55 @@
+/* =========================================================================
+   extras.css : le scanner, les farces et les photos de profil, dans les deux
+   espaces (chargé après eleve.css et prof.css).
+   ========================================================================= */
+
+/* ---------- Scanner ---------- */
+.scan-voile { position: fixed; inset: 0; z-index: 85; display: grid; place-items: center; padding: 1rem; background: rgba(11, 26, 58, 0.5); }
+.scan-boite { width: min(34rem, 100%); max-height: 92vh; overflow: auto; background: var(--e-carte, #fff); color: var(--e-encre, #222); border-radius: 16px; padding: 1rem 1.1rem 1.1rem; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.25); }
+.prof .scan-boite { background: var(--p-surface, #fff); color: var(--p-encre, #222); }
+.scan-tete { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.scan-tete h2 { margin: 0; font-size: 1.15rem; }
+.scan-fermer { font: inherit; width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
+.scan-aide { margin: 0.5rem 0 0.8rem; font-size: 0.9rem; opacity: 0.85; }
+.scan-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.scan-case { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; }
+.scan-pages { list-style: none; margin: 0.9rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr)); gap: 0.6rem; }
+.scan-pages li { display: grid; gap: 0.25rem; font-size: 0.78rem; text-align: center; }
+.scan-pages img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.15); background: #fff; }
+.scan-outils { display: flex; justify-content: center; gap: 0.3rem; }
+.scan-outils button { font: inherit; font-size: 0.8rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
+.scan-etat { margin: 0.6rem 0 0; font-size: 0.85rem; min-height: 1.2rem; opacity: 0.85; }
+.scan-pied { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.6rem; }
+.prof .scan-boite .e-bouton { font: inherit; font-weight: 700; padding: 0.55rem 1rem; border-radius: 999px; border: 0; cursor: pointer; background: var(--p-accent, #2A5BD7); color: #fff; }
+.prof .scan-boite .e-bouton-doux, .prof .scan-boite .e-bouton-fin { background: transparent; color: inherit; border: 1px solid currentColor; }
+
+/* ---------- Photos de profil et duo ---------- */
+.duo { display: flex; align-items: center; justify-content: center; gap: 1.2rem; margin: 0 0 1rem; }
+.duo-personne { display: grid; justify-items: center; gap: 0.35rem; text-align: center; }
+.duo-personne b { font-size: 0.9rem; }
+.duo-photo { position: relative; width: 5.2rem; height: 5.2rem; border-radius: 50%; overflow: visible; display: grid; place-items: center; font-size: 1.8rem; font-weight: 800; background: var(--e-voile, #eef); color: var(--e-vif-fonce, #246); border: 3px solid var(--e-carte, #fff); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12); }
+.duo-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.duo-vs { font-size: 0.8rem; font-weight: 700; opacity: 0.6; }
+.duo-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35rem; }
+.duo-actions button { font: inherit; font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 999px; border: 1px solid var(--e-trait-fort, #bbb); background: var(--e-carte, #fff); color: inherit; cursor: pointer; }
+.duo-actions button:hover { border-color: var(--e-vif, #248); }
+.e-msg-pastille img, .p-msg-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.e-msg-pastille { overflow: hidden; }
+.p-msg-photo { width: 1.6rem; height: 1.6rem; border-radius: 50%; display: inline-grid; place-items: center; font-size: 0.7rem; font-weight: 800; background: var(--p-surface-2, #eee); overflow: hidden; vertical-align: middle; }
+.farces-choix { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0 0.9rem; }
+.farces-choix button { font: inherit; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.8rem; border-radius: 999px; border: 1px solid var(--e-trait-fort, #bbb); background: var(--e-carte, #fff); color: inherit; cursor: pointer; }
+.farces-choix button:hover { border-color: var(--e-vif, #248); }
+.e-bulle-farce, .p-msg-farce { display: flex; align-items: center; gap: 0.6rem; }
+.e-bulle-farce .ico, .p-msg-farce .ico { font-size: 1.6rem; }
+.e-bulle-farce button, .p-msg-farce button { font: inherit; font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 999px; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
+
+/* ---------- Farces : canevas et taches ---------- */
+.farce-canevas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 95; pointer-events: none; }
+.farce-cible { position: relative; }
+.farce-tache { position: absolute; inset: -18%; z-index: 3; cursor: pointer; animation: farce-tache 0.35s ease-out; }
+.farce-tache svg { width: 100%; height: 100%; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.18)); }
+.farce-tache.fin { opacity: 0; transition: opacity 0.3s; }
+.farce-secoue { animation: farce-secoue 0.8s ease-in-out; }
+@keyframes farce-tache { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes farce-secoue { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px) rotate(-3deg); } 40%, 80% { transform: translateX(6px) rotate(3deg); } }
+@media (prefers-reduced-motion: reduce) { .farce-tache, .farce-secoue { animation: none; } }

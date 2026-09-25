@@ -168,5 +168,94 @@
     }));
   }
 
-  window.MESSAGERIE = { EMOJIS, REACTIONS, AUTOCOLLANTS, rendreReaction, formater, filDe, barreFils, filtrer, reactionsHTML, brancherReactions, selecteurEmojis, inserer, barreFormatage, brancherFormatage, eclat };
+  /* ---------- Photos de profil, duo et farces (les deux espaces) ---------- */
+  const ech = (t) => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const NOMS = { eleve: 'Sterenn', prof: 'Bastien' };
+  const clePhoto = (role) => (role === 'prof' ? 'prof.avatar' : 'moi.avatar');
+  /** La photo de profil d'un rôle, ou son initiale. */
+  function avatar(role) {
+    const N = window.NOYAU;
+    const id = N && N.profil ? N.profil(clePhoto(role), null) : null;
+    return id && /^[0-9a-f]{24}$/.test(String(id)) ? `<img src="/api/fichiers/${id}" alt="${NOMS[role] || ''}">` : (role === 'prof' ? 'B' : 'S');
+  }
+  /** Une photo réduite en carré de 320 px, envoyée dans les fichiers, puis notée dans le profil. */
+  async function definirAvatar(role, fichier) {
+    const N = window.NOYAU;
+    const img = await new Promise((ok, ko) => { const u = URL.createObjectURL(fichier); const i = new Image(); i.onload = () => { URL.revokeObjectURL(u); ok(i); }; i.onerror = () => ko(new Error('Image illisible.')); i.src = u; });
+    const c = document.createElement('canvas'); c.width = 320; c.height = 320;
+    const ctx = c.getContext('2d'); const k = Math.max(320 / img.width, 320 / img.height);
+    ctx.drawImage(img, (320 - img.width * k) / 2, (320 - img.height * k) / 2, img.width * k, img.height * k);
+    const blob = await new Promise((ok) => c.toBlob(ok, 'image/jpeg', 0.88));
+    const d = new FormData(); d.append('fichier', new File([blob], 'photo-de-profil.jpg', { type: 'image/jpeg' })); d.append('note', 'Photo de profil');
+    const r = await N.api('/fichiers', { method: 'POST', body: d });
+    const id = (r && r.fichier && r.fichier.id) || (r && r.id);
+    if (!id) throw new Error('La photo n\'a pas été enregistrée.');
+    await N.enregistrerProfil(clePhoto(role), id);
+    return id;
+  }
+  /** L'en-tête à deux : ma photo, celle de l'autre, et les deux gestes possibles. */
+  function duoHTML(moiRole) {
+    const autre = moiRole === 'prof' ? 'eleve' : 'prof';
+    const F = window.FARCES;
+    return `<div class="duo" id="duo">
+      <div class="duo-personne"><span class="duo-photo" id="duo-moi">${avatar(moiRole)}</span><b>${moiRole === 'prof' ? 'Moi' : 'Moi'}</b>
+        <span class="duo-actions"><button type="button" data-duo="photo">Changer ma photo</button></span></div>
+      <span class="duo-vs" aria-hidden="true">·</span>
+      <div class="duo-personne"><span class="duo-photo" id="duo-autre">${avatar(autre)}</span><b>${NOMS[autre]}</b>
+        <span class="duo-actions"><button type="button" data-duo="farce" aria-expanded="false">Faire une farce</button></span></div>
+      <input type="file" accept="image/*" hidden data-duo="entree">
+    </div>
+    <div class="farces-choix" id="farces-choix" hidden>${F ? F.LISTE.map((f) => `<button type="button" data-farce="${f.id}"><span aria-hidden="true">${f.ico}</span>${ech(f.nom)}</button>`).join('') : ''}</div>`;
+  }
+  /** Branche l'en-tête : la photo, le choix et l'envoi d'une farce. `apres` recharge le fil. */
+  function brancherDuo(zone, moiRole, apres, fil) {
+    const N = window.NOYAU; const F = window.FARCES;
+    const entree = zone.querySelector('[data-duo="entree"]');
+    const btnPhoto = zone.querySelector('[data-duo="photo"]');
+    if (btnPhoto && entree) {
+      btnPhoto.addEventListener('click', () => entree.click());
+      entree.addEventListener('change', async () => {
+        const f = entree.files && entree.files[0]; entree.value = '';
+        if (!f) return;
+        try { await definirAvatar(moiRole, f); N.signaler('Photo de profil enregistrée.', 'succes'); const z = document.getElementById('duo-moi'); if (z) z.innerHTML = avatar(moiRole); if (apres) apres(); } catch (e) { N.signaler(e.message); }
+      });
+    }
+    const btnFarce = zone.querySelector('[data-duo="farce"]'); const choix = document.getElementById('farces-choix');
+    if (btnFarce && choix) {
+      btnFarce.addEventListener('click', () => { choix.hidden = !choix.hidden; btnFarce.setAttribute('aria-expanded', String(!choix.hidden)); });
+      choix.querySelectorAll('[data-farce]').forEach((b) => b.addEventListener('click', async () => {
+        const id = b.getAttribute('data-farce'); choix.hidden = true; btnFarce.setAttribute('aria-expanded', 'false');
+        if (!F) return;
+        try {
+          await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: F.texteDe(id, NOMS[moiRole]), contexte: 'farce:' + id, fil: typeof fil === 'function' ? fil() : (fil || null) }) });
+          await F.jouer(id, document.getElementById('duo-autre'));
+          if (apres) await apres();
+          // Le fil vient d'être redessiné : la trace de la farce revient sur la nouvelle photo.
+          const z = document.getElementById('duo-autre');
+          if (z && (id === 'tarte' || id === 'neige')) F.tacher(z, id === 'tarte' ? 'creme' : 'neige');
+        } catch (e) { N.signaler(e.message); }
+      }));
+    }
+  }
+  /** Les farces reçues et pas encore lues se jouent sur ma photo, une à la fois (trois au plus). */
+  async function jouerFarcesNonLues(messages, autreRole, cible) {
+    const F = window.FARCES; if (!F) return;
+    const liste = (messages || []).filter((m) => m.auteur === autreRole && !m.lu_le && F.idDe(m)).slice(-3);
+    for (const m of liste) await F.jouer(F.idDe(m), cible);
+  }
+  /** La bulle d'une farce dans le fil, avec « Rejouer ». */
+  function bulleFarce(m, classe) {
+    const F = window.FARCES; const id = F ? F.idDe(m) : null; const f = id ? F.parId(id) : null;
+    if (!f) return ech(m.texte);
+    return `<div class="${classe}"><span class="ico" aria-hidden="true">${f.ico}</span><span>${ech(m.texte)}</span><button type="button" data-rejouer="${id}" data-victime="${m.auteur === 'prof' ? 'eleve' : 'prof'}">Rejouer</button></div>`;
+  }
+  function brancherRejouer(zone, moiRole) {
+    const F = window.FARCES; if (!F) return;
+    zone.querySelectorAll('[data-rejouer]').forEach((b) => b.addEventListener('click', () => {
+      const victime = b.getAttribute('data-victime');
+      F.jouer(b.getAttribute('data-rejouer'), document.getElementById(victime === moiRole ? 'duo-moi' : 'duo-autre'));
+    }));
+  }
+
+  window.MESSAGERIE = { EMOJIS, REACTIONS, AUTOCOLLANTS, rendreReaction, formater, filDe, barreFils, filtrer, reactionsHTML, brancherReactions, selecteurEmojis, inserer, barreFormatage, brancherFormatage, eclat, avatar, definirAvatar, duoHTML, brancherDuo, jouerFarcesNonLues, bulleFarce, brancherRejouer };
 })();
