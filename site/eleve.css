@@ -1327,7 +1327,7 @@ mark.e-surligne-violet { background: #e6d3f2; }
 .e-bilan-texte { display: block; white-space: pre-line; color: var(--e-encre); }
 .e-materiel { margin: 0.6rem 0 0; font-size: 0.9rem; color: var(--e-encre-doux); }
 /* Aurore : quatre teintes, par période ou au choix ; la photo passe par un calque pour recevoir la teinte */
-@media (max-aspect-ratio: 3/4) { :is([data-theme="dark"], [data-theme="chaud"]) .e-aurore-choix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+.e-aurore-choix { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
 .e-aurore-choix button { font: inherit; font-size: 0.7rem; font-weight: 700; display: grid; gap: 0.25rem; justify-items: center; padding: 0.35rem 0.2rem; border-radius: 10px; border: 2px solid transparent; background: var(--e-fond); color: var(--e-encre-doux); cursor: pointer; }
 .e-aurore-choix button i { width: 2rem; height: 1.3rem; border-radius: 6px; background: linear-gradient(120deg, #1a9f7e, #2a7fa6 55%, #7c4fb8); filter: hue-rotate(var(--t, 0deg)); }
 .e-aurore-choix button[aria-pressed="true"] { border-color: var(--e-encre); color: var(--e-encre); }
