@@ -92,8 +92,11 @@ séance par séance (`#/choix/<id>`). Les réglages d'affichage (thème, taille,
 dans un seul panneau. Les matières se lisent une par ligne avec leur prochaine leçon, une
 matière est un parcours en étapes, une fiche n'offre que trois actions (Terminé, M'entraîner,
 Une question) et un bloc « Plus d'options » replié, les outils de lecture sont repliés, les jeux
-se choisissent une matière à la fois. Toute nouvelle page respecte ce rythme : un écran, une
-intention.
+se choisissent une matière à la fois. Dans les messages, le fil est la page et la zone
+d'écriture reste collée en bas (quatre outils visibles, le reste derrière un bouton « plus »).
+Mes réussites montre le compte d'étoiles, au plus un mot de Bastien non lu, les cinq dernières
+réussites, trois portes (`#/reussites/opales`, `#/carnet`, `#/reussites/paliers`) et un bloc
+« Et aussi » replié. Toute nouvelle page respecte ce rythme : un écran, une intention.
 
 Le build génère `public/data/contenu/<matiere>.js` : le HTML de chaque fiche, son
 plan et ses métadonnées, chargé à la demande par le lecteur. On n'écrit jamais dans
