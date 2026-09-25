@@ -89,7 +89,11 @@ portail). L'accueil montre la prochaine séance, une seule notification au plus,
 (semaine, matières, messages) et un bloc « Et aussi » replié pour le reste. La semaine se lit
 jour par jour, avec l'absence en lien discret sur chaque séance. Un choix de leçon se fait
 séance par séance (`#/choix/<id>`). Les réglages d'affichage (thème, taille, couleur) vivent
-dans un seul panneau. Toute nouvelle page respecte ce rythme : un écran, une intention.
+dans un seul panneau. Les matières se lisent une par ligne avec leur prochaine leçon, une
+matière est un parcours en étapes, une fiche n'offre que trois actions (Terminé, M'entraîner,
+Une question) et un bloc « Plus d'options » replié, les outils de lecture sont repliés, les jeux
+se choisissent une matière à la fois. Toute nouvelle page respecte ce rythme : un écran, une
+intention.
 
 Le build génère `public/data/contenu/<matiere>.js` : le HTML de chaque fiche, son
 plan et ses métadonnées, chargé à la demande par le lecteur. On n'écrit jamais dans
@@ -144,18 +148,27 @@ quelque chose, pas seulement signaler l'erreur.
 - **Univers de Sterenn dans les énoncés** : un exercice sur cinq au moins par leçon cite Maomao,
   Myne, Yuzu, les aurores boréales ou les feutres ; le build compte les mots-clés par leçon
   (`public/data/univers.json`). La fiction habille l'énoncé, jamais les données ni le corrigé.
-- **Le compagnon** (`site/compagnon.js`, page `#/compagnon`, profil `moi.compagnon`) : une créature
-  SVG que Sterenn nomme et habille ; 12 formes, 10 couleurs, 13 accessoires (quatre à la fois),
-  6 auras, trois stades de taille. Chaque élément s'ouvre à un nombre d'**étoiles** ou d'**opales**
-  (une opale = une leçon validée) ; rien ne se referme. Il vit sur l'accueil avec une phrase du
-  moment, réagit aux célébrations, dort le soir ; le professeur le voit sur la page « Sterenn ».
+- **Le compagnon** (`site/compagnon.js`, page `#/compagnon`, profil `moi.compagnon` et
+  `moi.compagnon_coeurs`) : une créature SVG que Sterenn nomme et habille ; 12 formes, 10 couleurs,
+  16 accessoires (quatre à la fois), 6 auras, 5 tours, trois stades de taille. Chaque élément
+  s'ouvre à un nombre d'**étoiles**, d'**opales** (une opale = une leçon validée) ou de **cœurs**
+  (un cœur au plus par jour, gagné par la mission du jour : fiche, série, visite ou caresse) ;
+  rien ne se referme. Il a une humeur (content, curieux, s'ennuie, dort le soir), une phrase du
+  moment, se caresse, réagit aux célébrations, tient un carnet des déblocages. Une mascotte
+  discrète, bulle au toucher seulement, apparaît en bas des pages calmes (matières, semaine,
+  jeux…), jamais sur une fiche, un jeu, une évaluation ni dans les messages ; Sterenn peut la
+  couper. Le professeur le voit sur la page « Sterenn ».
 - **Scanner** (`site/scan.js`, les deux espaces) : photos redressées en niveaux de gris, papier
   blanc ; plusieurs pages font un PDF écrit dans le navigateur, envoyé par `/api/fichiers`.
 - **Photos de profil et farces** (`site/farces.js`, helpers dans `site/messagerie.js`) : photo de
   chacun (`moi.avatar`, `prof.avatar`, fichier réduit à 320 px) ; une farce est un message de
-  contexte `farce:<id>` (tarte à la crème en 3D via three.js, confettis, boule de neige, pluie
-  de cœurs, feu d'artifice), jouée sur la photo de l'autre à l'envoi et sur la sienne à la
-  lecture des messages non lus, rejouable, et remplacée par son résultat en mouvement réduit.
+  contexte `farce:<id>` (tarte à la crème et énorme boule de neige en 3D plein écran via three.js,
+  confettis, pluie de cœurs, feu d'artifice), avec ses sons (WebAudio, coupés par le réglage des
+  sons). Elle vole depuis le fond de l'écran et s'écrase sur la **photo dans le fil** (la dernière
+  pastille de l'autre à l'envoi, la sienne à la lecture des messages non lus), laisse une tache et
+  des coulures, se rejoue, et se réduit à son résultat en mouvement réduit. Le professeur peut
+  effacer une discussion entière (`DELETE /api/messages?fil=`), Sterenn un de ses messages dans
+  les cinq minutes.
 - **Sujets d'évaluation papier** : `public/evaluations/<matiere>/<ref>.html` pour Sterenn (servi
   quand l'évaluation est ouverte, même règle que le sujet en ligne) et
   `public/data/contenu/<matiere>/<ref>-evaluation-corrige.html` pour le professeur (corrigés
