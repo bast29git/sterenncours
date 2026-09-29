@@ -37,8 +37,45 @@ body { margin: 0; }
 }
 .ic-plein { fill: currentColor; stroke: none; }
 
-/* Repère de focus visible partout, y compris sur fond sombre. */
-:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+/* Repère de focus visible partout, y compris sur fond sombre. F057 : même épaisseur et même décalage pour tous. */
+:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; border-radius: 4px; }
+/* F058 : la sélection de texte reste lisible dans les trois thèmes. */
+::selection { background: #1F8F86; color: #fff; }
+/* F059 : un lien vers une ancre n'est jamais caché sous l'en-tête collé. */
+html { scroll-padding-top: 5rem; }
+/* F061, F062, F065 : pas de zoom involontaire du texte, pas de halo au toucher, pas de délai de tapotement. */
+html { text-size-adjust: 100%; }
+button, a, input, select, textarea, [role="button"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+/* F070 : les compteurs et heures gardent leur largeur. */
+time, .tabulaire { font-variant-numeric: tabular-nums; }
+/* F071 : un mot trop long ne déborde jamais d'une bulle ni d'un titre étroit. */
+h1, h2, h3, p, li, td, th { overflow-wrap: anywhere; }
+/* F074 : une image ne dépasse jamais son cadre. */
+img, video, canvas, svg:not(.ic) { max-width: 100%; }
+img { height: auto; }
+/* F072 : les contrôles natifs suivent le thème sombre. */
+html[data-theme="dark"], html[data-theme="chaud"] { color-scheme: dark; }
+/* F056 : le mouvement réduit demandé à l'appareil, ou choisi dans le confort, vaut partout. */
+html[data-mouvement="reduit"] *, html[data-mouvement="reduit"] *::before, html[data-mouvement="reduit"] *::after {
+  animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+}
+/* F067 : en mode couleurs forcées (Windows), les cartes gardent un bord et les boutons restent des boutons. */
+@media (forced-colors: active) {
+  .e-carte, .e-bloc-fixe, .e-liens3 a, .e-mat-liste a, .e-etape-corps, .e-bulle, .p-carte { border: 1px solid CanvasText; }
+  .e-bouton, .p-bouton { border: 1px solid ButtonText; }
+  .ic { forced-color-adjust: auto; }
+}
+/* F068 : contraste renforcé demandé à l'appareil : bordures plus franches, textes doux plus foncés. */
+html[data-contraste="fort"] { --e-trait: #6B6875; --e-trait-fort: #4A4756; --e-encre-doux: #33303D; --p-trait: #6B6875; }
+/* F063 : à l'impression, seul le contenu de la page compte. */
+@media print {
+  .e-tete, .e-nav, .e-bandeau, .e-palette-panneau, .e-composer, .cmp-mascotte, .e-opale-bouton, .e-son-visuel, .p-lateral, .p-topbar, .p-bandeau, .saut-contenu, .e-retour, .e-outils-plus, .e-lecon-plus, #e-fete, .farce-canevas { display: none !important; }
+  body, .e-vue, .p-vue { background: #fff !important; color: #000 !important; }
+  .e-vue, .p-vue { padding: 0 !important; max-width: none !important; }
+  a[href]::after { content: "" !important; }
+  .e-tchat { max-height: none !important; overflow: visible !important; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Opaline</title>
 <meta name="description" content="Opaline : l'espace de cours de Sterenn. Leçons, exercices, jeux, calendrier et messages.">
-<meta name="theme-color" content="#0b1a3a">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F6F2EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14121B" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="favicon.svg">
 <link rel="manifest" href="manifeste.json">
@@ -15,7 +17,8 @@
 <meta name="apple-mobile-web-app-title" content="Opaline">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap"></noscript>
 <link rel="stylesheet" href="moteurs/aurora.css">
 <link rel="stylesheet" href="socle.css">
 <link rel="stylesheet" href="lecture.css">
@@ -26,6 +29,7 @@
 <link rel="stylesheet" href="extras.css">
 </head>
 <body>
+<noscript><p style="margin:1rem;padding:1rem;background:#FDECEC;color:#B42318;font-family:sans-serif;border-radius:12px">Opaline a besoin de JavaScript pour fonctionner. Active-le dans ton navigateur, puis recharge la page.</p></noscript>
 
 <!-- =======================================================================
      Pictogrammes : un seul jeu, dessiné au trait, pour les deux espaces.
@@ -207,8 +211,11 @@
     <h1 class="entree-titre">Bienvenue</h1>
     <p class="entree-sous">Entre ton code pour ouvrir ton espace.</p>
     <label for="code">Code d'accès</label>
-    <input id="code" name="code" type="text" inputmode="text" autocapitalize="none"
-           spellcheck="false" autocomplete="off" aria-describedby="portail-erreur">
+    <div class="entree-champ">
+      <input id="code" name="code" type="password" inputmode="text" autocapitalize="none" enterkeyhint="go"
+             spellcheck="false" autocomplete="off" aria-describedby="portail-erreur">
+      <button class="entree-voir" id="code-voir" type="button" aria-pressed="false" aria-label="Montrer ou cacher le code">Voir</button>
+    </div>
     <p class="portail-erreur" id="portail-erreur" role="alert">Ce code n'est pas reconnu.</p>
     <button class="entree-bouton" type="submit">Entrer</button>
   </form>

@@ -228,6 +228,9 @@
         if (!F) return;
         try {
           await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: F.texteDe(id, NOMS[moiRole]), contexte: 'farce:' + id, fil: typeof fil === 'function' ? fil() : (fil || null) }) });
+          // F092 : une farce toutes les vingt secondes : le bouton le dit au lieu de laisser le serveur refuser.
+          btnFarce.disabled = true; const libelle = btnFarce.textContent; btnFarce.textContent = 'Dans 20 s';
+          setTimeout(() => { btnFarce.disabled = false; btnFarce.textContent = libelle; }, 20000);
           const autre = moiRole === 'prof' ? 'eleve' : 'prof';
           if (apres) await apres();
           // La farce s'écrase sur la photo de l'autre, dans le fil : son message vient d'y apparaître.

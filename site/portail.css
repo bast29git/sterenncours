@@ -187,3 +187,9 @@ body.corps-portail { background: #0b1a3a; overflow: hidden; }
   color: #fff;
 }
 .entree-logo svg { width: 1.3rem; height: 1.3rem; display: block; }
+
+/* F042 : le code se montre ou se cache ; le bouton vit dans le champ. */
+.entree-champ { position: relative; display: flex; align-items: stretch; }
+.entree-champ input { flex: 1; min-width: 0; padding-right: 4.2rem; }
+.entree-voir { position: absolute; right: 0.35rem; top: 50%; transform: translateY(-50%); font: inherit; font-size: 0.8rem; font-weight: 700; padding: 0.3rem 0.65rem; border-radius: 999px; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; opacity: 0.8; }
+.entree-voir:hover, .entree-voir:focus-visible { opacity: 1; }

@@ -34,15 +34,20 @@
 
   function nav() {
     const courant = (location.hash || '#/hub').replace(/^#\/?/, '').split('/')[0] || 'hub';
+    // F123 : l'onglet courant porte aria-current ; F137 : le badge des non lus est dit en toutes lettres.
     const actif = (r) => (r === courant
       || (r === 'matieres' && ['matiere', 'lecon', 'exos'].includes(courant))
-      || (r === 'messages' && courant === 'travail') ? ' class="actif"' : '');
-    document.getElementById('e-nav').innerHTML = ONGLETS.map((o) => {
-      const bulle = o.route === 'messages' && N.etat.messagesNonLus
-        ? `<span class="bulle">${N.etat.messagesNonLus}</span>` : '';
-      return `<a href="#/${o.route}"${actif(o.route)}>
+      || (r === 'messages' && courant === 'travail') ? ' class="actif" aria-current="page"' : '');
+    const html = ONGLETS.map((o) => {
+      const n = o.route === 'messages' ? (N.etat.messagesNonLus || 0) : 0;
+      const bulle = n ? `<span class="bulle" aria-hidden="true">${n}</span>` : '';
+      const libelle = n ? ` aria-label="Messages, ${n} non lu${n > 1 ? 's' : ''}"` : '';
+      return `<a href="#/${o.route}"${actif(o.route)}${libelle}>
         <svg class="ic" aria-hidden="true"><use href="#${o.ico}"/></svg><span>${o.texte}</span>${bulle}</a>`;
     }).join('');
+    // F138 : la barre n'est redessinée que si elle change : le focus clavier n'y est jamais perdu.
+    const zoneNav = document.getElementById('e-nav');
+    if (zoneNav.__html !== html) { zoneNav.innerHTML = html; zoneNav.__html = html; }
     N.majReussites();
   }
 
@@ -64,6 +69,17 @@
     if (observateurOrbite) { try { observateurOrbite.dispose(); } catch (e) { /* ignore */ } observateurOrbite = null; }
     if (minuteurHeure) { clearInterval(minuteurHeure); minuteurHeure = null; }
     vue().innerHTML = boutonRetour() + html;
+    const route = (location.hash || '#/hub').replace(/^#\/?/, '').split('/')[0] || 'hub';
+    // F120 : la vue porte sa route ; F121 : tout lien qui s'ouvre ailleurs est sans référent ; F139 : une notification est une région d'état ;
+    // F122 : un bloc replié marqué data-memo retient s'il était ouvert.
+    vue().setAttribute('data-route', route);
+    vue().querySelectorAll('a[target="_blank"]').forEach((a) => { a.setAttribute('rel', 'noopener noreferrer'); });
+    vue().querySelectorAll('.e-notif').forEach((x) => { if (!x.hasAttribute('role')) x.setAttribute('role', 'status'); });
+    vue().querySelectorAll('details[data-memo]').forEach((d) => {
+      const k = 'opaline.plus.' + d.getAttribute('data-memo');
+      if (N.lire(k, null) === true) d.open = true;
+      d.addEventListener('toggle', () => N.ecrire(k, d.open));
+    });
     nav();
     if (window.COMPAGNON && window.COMPAGNON.mascotte) { try { window.COMPAGNON.mascotte((location.hash || '#/hub').replace(/^#\/?/, '').split('/')); } catch (e) { /* la mascotte ne bloque rien */ } }
     document.getElementById('e-palette-panneau').hidden = true;
@@ -325,9 +341,20 @@
       { lien: '#/positionnement', ico: '🧭', titre: 'Où j\'en suis', fait: !!N.profil('moi.positionnement') && !N.profil('moi.positionnement').enCours, sinon: 'À faire avec Bastien, sans note' },
     ];
 
+    // F098 : une ligne discrète pour reprendre le dernier écran de travail.
+    const dernier = N.lire('opaline.dernier', null);
+    let reprendre = '';
+    if (dernier && dernier.hash && Date.now() - (dernier.le || 0) < 3 * 86400000) {
+      const pd = dernier.hash.replace(/^#\/?/, '').split('/');
+      let libelle = '';
+      if (pd[0] === 'lecon' || pd[0] === 'exos') { const mm = N.matiere(pd[1]); const ll = mm && N.lecon(mm, pd[2]); if (ll) libelle = (pd[0] === 'exos' ? 'la série « ' : 'la fiche « ') + ll.titre + ' »'; }
+      else if (pd[0] === 'matiere') { const mm = N.matiere(pd[1]); if (mm) libelle = 'le parcours de ' + mm.nom; }
+      if (libelle) reprendre = `<p class="e-reprendre"><a href="${N.ech(dernier.hash)}">${N.ic('ic-droite')} Reprendre ${N.ech(libelle)}</a></p>`;
+    }
     afficher(
       `<div class="e-bonjour e-bonjour-compagnon">${window.COMPAGNON ? `<a class="cmp-lien" href="#/compagnon" title="Mon compagnon">${window.COMPAGNON.rendre({ taille: 4.6 })}</a>` : ''}<div><p class="date">${N.ech(N.enFrancais(auj, true))}</p><h1>${salut}</h1>${window.COMPAGNON ? `<p class="e-aide" style="margin:.15rem 0 0">${N.ech(window.COMPAGNON.lireChoix().nom)} : « ${N.ech(window.COMPAGNON.phraseDuMoment())} »</p>` : ''}</div></div>
        ${blocMotNouveau()}
+       ${reprendre}
        <section class="e-prochaine${vedette || cible ? '' : ' vide'}" aria-labelledby="e-h-maintenant">
         <p class="quand" id="e-h-maintenant">${quand}</p>
         <h2>${titre}</h2>
@@ -486,7 +513,7 @@
     afficher(`<div class="e-aide-page"><h1>Aide</h1><p class="e-intro">Douze questions, douze réponses de trois lignes. Si la tienne n'y est pas, écris à Bastien ou demande à Opale.</p>
       <dl class="e-qr">${QR.map((x) => `<dt>${N.ech(x[0])}</dt><dd>${N.ech(x[1])}</dd>`).join('')}</dl>
       <h2 class="e-titre-section">Raccourcis clavier</h2>
-      <ul class="e-raccourcis"><li><kbd>→</kbd> <kbd>←</kbd> diapositive suivante, précédente</li><li><kbd>Échap</kbd> ferme Opale, une fenêtre, la fête</li><li><kbd>?</kbd> ouvre cette aide</li><li><kbd>Ctrl</kbd> + <kbd>Entrée</kbd> envoie un message</li></ul>
+      <ul class="e-raccourcis"><li><kbd>→</kbd> <kbd>←</kbd> diapositive suivante, précédente</li><li><kbd>1</kbd> à <kbd>4</kbd> choisissent une réponse dans une série</li><li><kbd>Échap</kbd> ferme Opale, un panneau, une fenêtre, la fête</li><li><kbd>Alt</kbd> + <kbd>1</kbd> à <kbd>5</kbd> ouvrent Accueil, Matières, Semaine, Jeux, Messages</li><li><kbd>?</kbd> ouvre cette aide</li><li><kbd>Ctrl</kbd> + <kbd>Entrée</kbd> envoie un message (ou <kbd>Entrée</kbd> seule si tu l'as choisi dans le menu « plus »)</li></ul>
       <p class="e-actions"><a class="e-bouton e-bouton-doux" href="#/donnees">Ce que l'application sait de moi</a><a class="e-bouton e-bouton-fin" href="#/visite">Refaire la visite guidée</a></p></div>`);
   }
   /** C16 : le carnet « Mes notes », par matière, avec le lien vers la diapositive. */
@@ -501,7 +528,14 @@
     const parMatiere = PROGRAMME.matieres.map((m) => ({ m, notes: entrees.filter((e) => e.m.id === m.id) })).filter((x) => x.notes.length);
     afficher(`<h1>Mes notes</h1><p class="e-intro">Ce que tu as écrit sous les diapositives, rangé par matière. ${VU_PROF}</p>
       ${parMatiere.length ? parMatiere.map((x) => `<h2 class="e-titre-section">${x.m.icone} ${N.ech(x.m.nom)}</h2><ul class="e-notes">${x.notes.map((e) => `<li><a href="#/lecon/${e.m.id}/${e.l.ref}/${e.t}">${N.ech(e.l.titre)} · ${N.ech((N.TYPES_DOC.find((y) => y.id === e.t) || {}).libelle || e.t)} · diapositive ${e.i + 1}</a><p>${N.ech(e.texte)}</p></li>`).join('')}</ul>`).join('') : '<div class="e-carte e-vide"><p>Pas encore de note. Sous chaque diapositive, un champ t\'attend.</p></div>'}
-      ${surlignes ? `<p class="e-aide">${surlignes} passage(s) surligné(s) dans tes fiches : ils réapparaissent quand tu rouvres la fiche.</p>` : ''}`);
+      ${surlignes ? `<p class="e-aide">${surlignes} passage(s) surligné(s) dans tes fiches : ils réapparaissent quand tu rouvres la fiche.</p>` : ''}
+      ${entrees.length ? `<p class="e-actions"><button type="button" class="e-bouton e-bouton-doux" id="e-notes-fichier">${N.ic('ic-telecharger')} Télécharger mes notes (.txt)</button></p>` : ''}`);
+    // F134 : les notes se téléchargent en texte brut, rangées par matière.
+    const btnNotes = document.getElementById('e-notes-fichier');
+    if (btnNotes) btnNotes.addEventListener('click', () => {
+      const texte = parMatiere.map((x) => `# ${x.m.nom}\n\n` + x.notes.map((e) => `${e.l.titre} (${e.t}, diapositive ${e.i + 1})\n${e.texte}\n`).join('\n')).join('\n\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texte], { type: 'text/plain;charset=utf-8' })); a.download = 'mes-notes-' + N.jourIso() + '.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
   }
 
   function vueMatieres() {
@@ -536,6 +570,9 @@
       const ouverte = N.accessible(mid, l.ref);
       const faite = N.estValidee(mid, l.ref);
       const classe = faite ? 'faite' : (ouverte && dispo ? 'ouverte' : 'verrouillee');
+      // F102 : la date de validation, quand la leçon est acquise.
+      const suivi = N.etat.suivi[N.cle(mid, l.ref)];
+      const valideeLe = faite && suivi && suivi.maj_le ? `<span class="e-etape-date">Validée le ${N.ech(N.enFrancais(String(suivi.maj_le).slice(0, 10)))}</span>` : '';
       const actions = (ouverte && dispo)
         ? `<a class="pleine" href="#/lecon/${mid}/${l.ref}/cours">${faite ? 'Revoir' : 'Ouvrir'}</a>`
           + (N.banque(mid, l.ref) ? `<a href="#/exos/${mid}/${l.ref}">M'entraîner</a>` : '')
@@ -544,7 +581,7 @@
         <span class="e-pastille" aria-hidden="true">${faite ? N.ic('ic-coche') : (ouverte && dispo ? i + 1 : N.ic('ic-verrou'))}</span>
         <div class="e-etape-corps">
           <p class="e-etape-titre">${N.ech(l.titre)}</p>
-          <p class="e-etape-note">${l.notions.slice(0, 3).map(N.ech).join(' · ')}</p>
+          <p class="e-etape-note">${l.notions.slice(0, 3).map(N.ech).join(' · ')}${valideeLe}</p>
           <p class="e-etape-actions">${actions}</p>
         </div></li>`;
     }).join('');
@@ -1342,6 +1379,17 @@
     brancherChronoSerie();
     vue().querySelectorAll('.e-exo-choix button').forEach((b) =>
       b.addEventListener('click', (ev) => repondre(parseInt(ev.currentTarget.getAttribute('data-choix'), 10))));
+    // F106 : les touches 1 à 4 choisissent une réponse, hors champ de saisie.
+    if (!s.debutLe) s.debutLe = Date.now();
+    if (!vue().__clavierSerie) {
+      vue().__clavierSerie = true;
+      vue().addEventListener('keydown', (ev) => {
+        if (!/^[1-4]$/.test(ev.key) || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+        const c = ev.target; if (c && (c.tagName === 'INPUT' || c.tagName === 'TEXTAREA' || c.tagName === 'SELECT')) return;
+        const b = vue().querySelector(`.e-exo-choix button[data-choix="${Number(ev.key) - 1}"]:not([disabled])`);
+        if (b) { ev.preventDefault(); b.click(); }
+      });
+    }
     const f = document.getElementById('e-form-saisie');
     if (f) {
       f.addEventListener('submit', (ev) => { ev.preventDefault(); repondre(document.getElementById('e-saisie').value); });
@@ -1438,7 +1486,9 @@
     noterARevoir(s);
     if (s.rejouees) return;
     const justes = s.reponses.filter(Boolean).length;
-    const corpsResultat = JSON.stringify({ matiere: s.mid, ref: s.ref, justes, total: s.items.length });
+    // F108, F109 : la durée et les questions ratées partent avec le résultat (le professeur les voit sur la leçon).
+    const detail = { duree_s: s.debutLe ? Math.round((Date.now() - s.debutLe) / 1000) : 0, ratees: s.items.filter((_, i) => s.reponses[i] === false).map((it) => String(it.q || '').replace(/<[^>]+>/g, '').slice(0, 80)) };
+    const corpsResultat = JSON.stringify({ matiere: s.mid, ref: s.ref, justes, total: s.items.length, detail });
     try {
       let ligne;
       try { ligne = await N.api('/resultats', { method: 'PUT', body: corpsResultat }); }
@@ -1476,7 +1526,7 @@
         <div class="e-carte" style="margin-bottom:1rem"><p style="margin:0">${N.ech(message)}</p></div>
         ${ratees.length ? `<div class="e-carte" style="margin-bottom:1rem">
           <h2 style="font-size:1rem;margin-bottom:.4rem">À revoir</h2>
-          <ul style="margin:0;padding-left:1.1rem">${ratees.map((r) => `<li>${r.q}</li>`).join('')}</ul>
+          <ul class="e-ratees">${ratees.map((r) => `<li><b>${r.q}</b>${r.explication ? `<p>${r.explication}</p>` : ''}</li>`).join('')}</ul>
           <p style="margin:.7rem 0 0"><button class="e-bouton" id="e-rejouer" type="button">${N.ic('ic-cible')} Rejouer ces ${ratees.length} question(s) tout de suite</button></p></div>` : ''}
         <div class="e-actions" style="justify-content:center">
           <button class="e-bouton${ratees.length ? ' e-bouton-doux' : ''}" id="e-refaire" type="button">↺ Refaire la série entière</button>
@@ -1558,7 +1608,8 @@
       const jour = N.decaler(lundi, i);
       const duJour = seances.filter((x) => x.date === jour)
         .sort((a, b) => String(a.debut).localeCompare(String(b.debut)));
-      return `<li class="e-sem-jour${jour === aujourd ? ' auj' : ''}${duJour.length ? '' : ' repos'}">
+      // F100 : le jour courant est annoncé ; F101 : les jours passés s'estompent.
+      return `<li class="e-sem-jour${jour === aujourd ? ' auj' : ''}${jour < aujourd ? ' passe' : ''}${duJour.length ? '' : ' repos'}"${jour === aujourd ? ' aria-current="date"' : ''}>
         <p class="e-sem-date"><b>${Number(jour.slice(8, 10))}</b><span>${N.ech(nom.slice(0, 3))}</span></p>
         <div>${duJour.length ? duJour.map(evenement).join('') : '<p class="e-sem-repos">Rien de prévu</p>'}</div>
       </li>`;
@@ -1577,8 +1628,8 @@
        <ol class="e-sem-liste">${jours}</ol>
        <div class="e-sem-pied">
          ${lundi !== N.lundiDe(aujourd) ? '<p class="e-actions" style="margin:0 0 .6rem"><button class="e-bouton e-bouton-fin" id="e-auj" type="button">Revenir à cette semaine</button></p>' : ''}
-         <details class="e-plus"><summary>Voir le mois</summary>${bandeauMois(ancre, seances)}</details>
-         <details class="e-plus"><summary>Rappels</summary>
+         <details class="e-plus" data-memo="semaine-mois"><summary>Voir le mois</summary>${bandeauMois(ancre, seances)}</details>
+         <details class="e-plus" data-memo="semaine-rappels"><summary>Rappels</summary>
            <div class="e-sem-options"><label class="e-case"><input type="checkbox" id="e-rappel" ${rappel ? 'checked' : ''}> Me prévenir une heure avant un cours ou un temps perso (message du navigateur)</label></div>
          </details>
        </div>`,
@@ -1751,12 +1802,20 @@
       </div>
       <div class="e-actions">
         <button class="e-bouton" id="e-exporter" type="button">${N.ic('ic-telecharger')} Télécharger mes données</button>
+        <button class="e-bouton e-bouton-fin" id="e-effacer-local" type="button">${N.ic('ic-croix')} Effacer ce que cet appareil retient</button>
         <a class="e-bouton e-bouton-doux" href="#/messages/${encodeURIComponent('Mes données')}">${N.ic('ic-message')} Demander un effacement à Bastien</a>
       </div>
       <p class="e-aide">Le fichier téléchargé est au format JSON : il se lit avec n'importe quel éditeur de texte. Pour effacer quelque chose, tu écris à Bastien : il le fait devant toi.</p>
     </div>`);
     document.getElementById('e-eco').addEventListener('change', (ev) => { N.basculerEco(ev.target.checked); N.signaler(ev.target.checked ? 'Économie de données activée : le fond d\'écran est retiré.' : 'Fond d\'écran rétabli.', 'info'); });
     document.getElementById('e-sons').addEventListener('change', (ev) => { N.ecrire(N.CLE_SONS, ev.target.checked); if (ev.target.checked) N.son('ok'); });
+    // F135 : tout ce que l'appareil retient d'Opaline (réglages, brouillons, position) s'efface d'un bouton.
+    const btnEffacer = document.getElementById('e-effacer-local');
+    if (btnEffacer) btnEffacer.addEventListener('click', () => {
+      const cles = Object.keys(localStorage).filter((k) => /^(opaline\.|cours4e\.|konstrio)/.test(k));
+      cles.forEach((k) => { try { localStorage.removeItem(k); } catch (e) { /* privé */ } });
+      N.signaler(cles.length + ' réglage(s) local(aux) effacé(s). Rien de ton suivi n\'est touché : il vit chez Bastien.', 'succes');
+    });
     document.getElementById('e-exporter').addEventListener('click', () => {
       const donnees = { exporte_le: new Date().toISOString(), fiches: N.etat.fiches, resultats: N.etat.resultats, suivi: N.etat.suivi, profil: Object.fromEntries(profilMoi.map((k) => [k, N.etat.profil[k]])), felicitations: N.etat.felicitations, seances_choisies: N.etat.seances.filter((s) => s.choisi_le).map((s) => ({ date: s.date, lecons: s.lecons })), absences: N.etat.seances.filter((s) => s.absence).map((s) => ({ date: s.date, commentaire: s.commentaire_eleve })) };
       const blob = new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' });
@@ -1849,7 +1908,7 @@
     const p = N.progression(m);
     return `<section class="e-opales-matiere">
            <h2 class="e-titre-section">${m.icone} ${N.ech(m.nom)} <span>${p.faites} sur ${m.lecons.length}</span></h2>
-           <ul class="e-opales">${m.lecons.map((l) => `<li class="${N.estValidee(m.id, l.ref) ? 'gagnee' : ''}" title="${N.ech(l.titre)}${N.estValidee(m.id, l.ref) ? '' : ' (à venir)'}">${N.gemme(m.id)}</li>`).join('')}</ul>
+           <ul class="e-opales">${m.lecons.map((l) => `<li class="${N.estValidee(m.id, l.ref) ? 'gagnee' : ''}" role="img" tabindex="0" aria-label="${N.ech(l.titre)} : ${N.estValidee(m.id, l.ref) ? 'validée' : 'à venir'}" title="${N.ech(l.titre)}${N.estValidee(m.id, l.ref) ? '' : ' (à venir)'}">${N.gemme(m.id)}</li>`).join('')}</ul>
          </section>`;
   }).join('')}`,
     );
@@ -1879,7 +1938,7 @@
       const [mid, ref, type] = k.split('/');
       const l = N.libelleLecon(mid + '/' + ref);
       const info = N.TYPES_DOC.find((x) => x.id === type);
-      if (l) ev.push({ le: v.termine_le, ico: 'ic-livre', t: `Fiche ${info ? info.libelle.toLowerCase() : type} terminée`, d: `${l.m.nom} · ${l.l.titre}`, e: 1 });
+      if (l) ev.push({ le: v.termine_le, ico: 'ic-livre', t: `Fiche ${info ? info.libelle.toLowerCase() : type} terminée`, d: `${l.m.nom} · ${l.l.titre}`, e: 1, lien: `#/lecon/${mid}/${ref}/${type}` });
     });
     Object.entries(N.etat.resultats).forEach(([k, r]) => {
       if (!(r.total > 0 && r.meilleur / r.total >= 0.7)) return;
@@ -1888,13 +1947,13 @@
         ev.push({ le: r.maj_le, ico: 'ic-etincelle', t: j ? `${j.type === '3d' ? 'Monde' : 'Jeu'} gagné : ${j.titre}` : 'Jeu gagné', d: `${r.meilleur} sur 100`, e: 1 });
       } else {
         const l = N.libelleLecon(k);
-        if (l) ev.push({ le: r.maj_le, ico: 'ic-cible', t: `Série réussie : ${r.meilleur} sur ${r.total}`, d: `${l.m.nom} · ${l.l.titre}`, e: 1 });
+        if (l) ev.push({ le: r.maj_le, ico: 'ic-cible', t: `Série réussie : ${r.meilleur} sur ${r.total}`, d: `${l.m.nom} · ${l.l.titre}`, e: 1, lien: `#/exos/${k}` });
       }
     });
     Object.entries(N.etat.suivi).forEach(([k, v]) => {
       if (v.niveau !== 'satisfaisant' && v.niveau !== 'tresbien') return;
       const l = N.libelleLecon(k);
-      if (l) ev.push({ le: v.maj_le, ico: 'ic-coche', t: `Leçon validée : ${v.niveau === 'tresbien' ? 'très bien' : 'satisfaisant'}`, d: `${l.m.nom} · ${l.l.titre}`, e: 3 });
+      if (l) ev.push({ le: v.maj_le, ico: 'ic-coche', t: `Leçon validée : ${v.niveau === 'tresbien' ? 'très bien' : 'satisfaisant'}`, d: `${l.m.nom} · ${l.l.titre}`, e: 3, lien: `#/lecon/${k}/bilan` });
     });
     (N.etat.felicitations || []).forEach((f) => {
       ev.push({ le: f.cree_le, ico: 'ic-trophee', t: 'Félicitations de Bastien', d: f.texte, e: 1 });
@@ -1903,7 +1962,7 @@
     ev.sort((a, b) => String(b.le).localeCompare(String(a.le)));
     return `<ol class="e-journal">${ev.slice(0, nombre || 8).map((x) => `<li>
       <span class="e-journal-ico" aria-hidden="true">${N.ic(x.ico)}</span>
-      <span class="e-journal-corps"><b>${N.ech(x.t)}</b><em>${N.ech(x.d)}</em></span>
+      <span class="e-journal-corps"><b>${N.ech(x.t)}</b><em>${x.lien ? `<a href="${x.lien}">${N.ech(x.d)}</a>` : N.ech(x.d)}</em></span>
       <span class="e-journal-etoiles">${N.ic('ic-etoile', 'ic-plein')} ${x.e > 1 ? '+' + x.e : '+1'}</span>
       <time datetime="${N.ech(x.le || '')}">${N.ech(N.dateCourte(x.le))}</time>
     </li>`).join('')}</ol>`;
@@ -2208,7 +2267,7 @@
 
          ${M ? M.barreFormatage('e-formatage') : ''}
          <label class="visuellement-cache" for="e-texte">Message</label>
-         <textarea id="e-texte" rows="2" maxlength="2000" placeholder="Écris ton message…"></textarea>
+         <textarea id="e-texte" rows="2" maxlength="2000" placeholder="Écris ton message…" aria-describedby="e-aide-envoi-texte"></textarea>
 
          <div class="e-outils">
            <button type="button" class="e-outil" id="e-btn-photo" title="Prendre ou choisir une photo" aria-label="Prendre une photo">
@@ -2221,6 +2280,7 @@
              <svg class="ic" aria-hidden="true"><use href="#ic-etincelle"/></svg></button>
            <button type="button" class="e-outil" id="e-btn-plus" title="Autres options : leçon concernée, message vocal, envoyer plus tard" aria-label="Autres options" aria-expanded="false" aria-controls="e-outils-menu">
              <svg class="ic" aria-hidden="true"><use href="#ic-plus"/></svg></button>
+           <span class="e-brouillon" id="e-brouillon" hidden>Brouillon gardé</span>
            <span class="e-compteur" id="e-compteur">0 / 2000</span>
            <button class="e-bouton" type="submit" id="e-envoi">
              <svg class="ic" aria-hidden="true"><use href="#ic-envoyer"/></svg>Envoyer</button>
@@ -2229,6 +2289,12 @@
            <button type="button" id="e-btn-sujet"><svg class="ic" aria-hidden="true"><use href="#ic-livre"/></svg>Dire de quelle leçon je parle</button>
            <button type="button" id="e-btn-vocal"><svg class="ic" aria-hidden="true"><use href="#ic-emoji"/></svg>Enregistrer un message vocal (30 s)</button>
            <button type="button" id="e-btn-differe"><svg class="ic" aria-hidden="true"><use href="#ic-horloge"/></svg>Envoyer plus tard</button>
+           <label class="e-case e-outils-menu-option"><input type="checkbox" id="e-entree-envoie" ${N.lire('opaline.entree-envoie', false) ? 'checked' : ''}> La touche Entrée envoie le message (Maj et Entrée pour aller à la ligne)</label>
+         </div>
+         <div class="e-cite-zone" id="e-modif-zone" hidden>
+           <svg class="ic" aria-hidden="true"><use href="#ic-crayon"/></svg>
+           <span id="e-modif-texte">Modification de ton message</span>
+           <button type="button" id="e-modif-annuler" aria-label="Ne plus modifier"><svg class="ic" aria-hidden="true"><use href="#ic-croix"/></svg></button>
          </div>
 
          <div class="e-humeurs" id="e-humeurs" hidden>${M ? M.selecteurEmojis('e-emojis') : HUMEURS.map((h) => `<button type="button" data-emoji-insere="${h}">${h}</button>`).join('')}</div>
@@ -2246,7 +2312,7 @@
 
          <input type="file" id="e-fichier" accept="image/*,application/pdf,text/plain,.doc,.docx,.odt" hidden>
          <input type="file" id="e-photo" accept="image/*" capture="environment" hidden>
-         <p class="e-aide-envoi">Entrée pour aller à la ligne, Ctrl et Entrée pour envoyer.</p>
+         <p class="e-aide-envoi" id="e-aide-envoi-texte">${N.lire('opaline.entree-envoie', false) ? 'Entrée envoie, Maj et Entrée va à la ligne.' : 'Entrée pour aller à la ligne, Ctrl et Entrée pour envoyer.'}</p>
        </form>
        </div>`,
     );
@@ -2254,6 +2320,17 @@
     const btnPlus = document.getElementById('e-btn-plus'); const menuPlus = document.getElementById('e-outils-menu');
     btnPlus.addEventListener('click', () => { menuPlus.hidden = !menuPlus.hidden; btnPlus.setAttribute('aria-expanded', String(!menuPlus.hidden)); });
     menuPlus.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { menuPlus.hidden = true; btnPlus.setAttribute('aria-expanded', 'false'); }));
+    // F084 : le choix « Entrée envoie » est retenu sur l'appareil et l'aide sous la zone le reflète.
+    document.getElementById('e-entree-envoie').addEventListener('change', (ev) => { N.ecrire(CLE_ENTREE, ev.target.checked); document.getElementById('e-aide-envoi-texte').textContent = ev.target.checked ? 'Entrée envoie, Maj et Entrée va à la ligne.' : 'Entrée pour aller à la ligne, Ctrl et Entrée pour envoyer.'; });
+    // F085 : modifier son propre message dans les cinq minutes.
+    const zoneModif = document.getElementById('e-modif-zone');
+    const poserModification = (id) => {
+      modifierId = id || null;
+      zoneModif.hidden = !modifierId;
+      document.getElementById('e-envoi').lastChild.textContent = modifierId ? 'Corriger' : 'Envoyer';
+      if (!modifierId) { const t = document.getElementById('e-texte'); if (t && t.__avantModif != null) { t.value = t.__avantModif; t.__avantModif = null; } }
+    };
+    document.getElementById('e-modif-annuler').addEventListener('click', () => { poserModification(null); majCompteur(); champT.focus(); });
 
     const zoneT = document.getElementById('e-tchat');
     const champT = document.getElementById('e-texte');
@@ -2264,16 +2341,37 @@
     let reponseA = null;
     let envoyerLe = null;
     let listeMessages = [];
+    let modifierId = null;
+    let plusAnciens = false;
+    const retraitsEnAttente = new Map();
+    const CLE_ENTREE = 'opaline.entree-envoie';
 
     /* --- Brouillon par fil : ce qui est tapé n'est jamais perdu en changeant d'écran ou de fil --- */
     const cleBrouillon = () => CLE_BROUILLON + (filActif ? '.' + filActif : '');
     const brouillon = N.lire(cleBrouillon(), '');
     if (brouillon && !contexte) champT.value = brouillon;
+    let dernierSeuilAnnonce = 0;
     const majCompteur = () => {
       compteur.textContent = `${champT.value.length} / 2000`;
       compteur.classList.toggle('plein', champT.value.length > 1800);
       N.ecrire(cleBrouillon(), champT.value);
+      // F082 : la zone grandit avec le texte, jusqu'à douze lignes.
+      champT.style.height = 'auto'; champT.style.height = Math.min(champT.scrollHeight, 12 * 24) + 'px';
+      // F083 : « Brouillon gardé » quand il y a du texte non envoyé.
+      const b = document.getElementById('e-brouillon'); if (b) b.hidden = !champT.value.trim() || !!modifierId;
+      // F095 : près de la limite, le reste est annoncé au lecteur d'écran, par paliers de cent.
+      const reste = 2000 - champT.value.length;
+      if (reste <= 200) { const seuil = Math.floor(reste / 100); if (seuil !== dernierSeuilAnnonce) { dernierSeuilAnnonce = seuil; N.annoncer(`Il reste ${reste} caractères.`); } }
     };
+    // F081 : une image collée devient une pièce jointe.
+    champT.addEventListener('paste', (ev) => {
+      const items = ev.clipboardData && ev.clipboardData.items ? [...ev.clipboardData.items] : [];
+      const image = items.find((x) => x.kind === 'file' && /^image\//.test(x.type));
+      if (!image) return;
+      const f = image.getAsFile(); if (!f) return;
+      ev.preventDefault(); poserPiece(new File([f], 'image-collee.' + (f.type.split('/')[1] || 'png'), { type: f.type }));
+      N.signaler('Image collée en pièce jointe.', 'info');
+    });
     /* --- C56 : répondre à un message précis --- */
     const poserCitation = (id) => {
       reponseA = id || null;
@@ -2420,17 +2518,25 @@
     }));
 
     /* --- Le fil : messages et fichiers mêlés, dans l'ordre du temps ---------- */
-    async function charger(defiler) {
+    async function charger(defiler, avant) {
       let messages = [];
       let fichiers = [];
       let stockage = true;
       try {
-        const rep = await Promise.all([N.api('/messages'), N.api('/fichiers')]);
+        // F090 : le fil et la recherche sont filtrés par le serveur ; F089 : « avant » remonte plus loin dans le passé.
+        const params = new URLSearchParams();
+        if (filActif) params.set('fil', filActif);
+        if (filtreTexte) params.set('q', filtreTexte);
+        if (avant) { params.set('avant', avant); params.set('limite', '50'); }
+        const requete = '/messages' + (params.toString() ? '?' + params.toString() : '');
+        const rep = await Promise.all([N.api(requete), avant ? Promise.resolve(null) : N.api('/fichiers')]);
         messages = rep[0].messages || [];
-        fichiers = rep[1].fichiers || [];
-        stockage = rep[1].stockage !== false;
+        plusAnciens = rep[0].suite === true;
+        if (avant) { messages = messages.concat(listeMessages); fichiers = zoneT.__fichiers || []; stockage = zoneT.__stockage !== false; }
+        else { fichiers = rep[1].fichiers || []; stockage = rep[1].stockage !== false; zoneT.__fichiers = fichiers; zoneT.__stockage = stockage; }
         listeMessages = messages;
-      } catch (e) { N.signaler(e.message); return; }
+      } catch (e) { N.signaler(e.message, 'erreur', { libelle: 'Réessayer', faire: () => charger(defiler) }); return; }
+      const hauteurAvant = avant ? document.documentElement.scrollHeight : 0;
       if (!stockage) ['e-btn-fichier', 'e-btn-photo'].forEach((id) => { const b = document.getElementById(id); if (b) b.disabled = true; });
       if (!zoneT.isConnected) return;
 
@@ -2438,6 +2544,9 @@
       if (M && zoneFils) {
         zoneFils.innerHTML = M.barreFils(messages, filActif, 'e-fils-barre');
         if (zoneFils.querySelectorAll('[data-fil]').length < 2) zoneFils.innerHTML = ''; // un seul fil : rien à choisir
+        // F091 : chaque fil montre ses messages non lus.
+        const parFil = N.etat.messagesNonLusParFil || {};
+        zoneFils.querySelectorAll('[data-fil]').forEach((b) => { const n = parFil[b.getAttribute('data-fil') || 'general']; if (n) b.insertAdjacentHTML('beforeend', `<i class="e-fil-nonlus" aria-label="${n} non lu${n > 1 ? 's' : ''}">${n}</i>`); });
         zoneFils.querySelectorAll('[data-fil]').forEach((b) => b.addEventListener('click', () => {
           N.ecrire(cleBrouillon(), champT.value);
           filActif = b.getAttribute('data-fil') || null;
@@ -2461,14 +2570,26 @@
       }
 
       let jour = '';
-      zoneT.innerHTML = fil.map((x) => {
+      let precedent = null;
+      // F078 : un séparateur avant le premier message de Bastien pas encore lu.
+      const premierNonLu = (visibles.find((m) => m.auteur !== 'eleve' && !m.lu_le) || {}).id;
+      // F080 : les adresses web deviennent des liens, les liens internes (#/…) aussi.
+      const lier = (html) => html
+        .replace(/(^|[\s>(])(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>')
+        .replace(/(^|[\s>(])(#\/[a-z][a-z0-9/_-]*)/g, '$1<a href="$2">$2</a>');
+      const enteteHtml = fil.length && plusAnciens && !filtreTexte ? '<p class="e-msg-anciens"><button type="button" class="e-bouton e-bouton-fin" id="e-plus-anciens">Voir les messages plus anciens</button></p>' : '';
+      zoneT.innerHTML = enteteHtml + fil.map((x) => {
         let avant = '';
         const j = jourDe(x.date);
-        if (j !== jour) { jour = j; avant = `<p class="e-jour-sep"><span>${N.ech(libelleJour(j))}</span></p>`; }
+        if (j !== jour) { jour = j; avant = `<p class="e-jour-sep"><span>${N.ech(libelleJour(j))}</span></p>`; precedent = null; }
+        if (x.genre === 'texte' && x.d.id === premierNonLu) avant += '<p class="e-jour-sep e-nouveaux"><span>Nouveaux messages</span></p>';
         const moi = (x.genre === 'texte' ? x.d.auteur : x.d.auteur) === 'eleve';
         const qui = moi ? 'Moi' : 'Bastien';
-        const heure = String(x.date).slice(11, 16);
-        const tete = `<p class="e-msg-tete">${qui} · ${heure}</p>`;
+        // F076, F130 : l'heure relative, la date complète en infobulle et dans l'attribut datetime.
+        const tete = `<p class="e-msg-tete">${qui} · <time datetime="${N.ech(x.date)}" title="${N.ech(N.dateCourte(x.date))}">${N.ech(N.ilYA(x.date))}</time></p>`;
+        // F077 : des messages du même auteur à moins de cinq minutes se suivent sans répéter l'en-tête.
+        const suite = precedent && precedent.moi === moi && precedent.genre === x.genre && Math.abs(new Date(x.date) - new Date(precedent.date)) < 5 * 60000;
+        precedent = { moi, genre: x.genre, date: x.date };
 
         if (x.genre === 'fichier') {
           const f = x.d;
@@ -2481,34 +2602,80 @@
                  <svg class="ic" aria-hidden="true"><use href="#ic-boite"/></svg>
                  <span><b>${N.ech(f.nom)}</b><span>${N.ech(N.poids(f.taille))}</span></span>
                  <svg class="ic" aria-hidden="true"><use href="#ic-telecharger"/></svg></a>`;
-          return `${avant}<article class="e-msg ${moi ? 'moi' : ''}">
+          // F088 : le type du document en clair sur la pièce jointe.
+          const etiquette = /pdf/.test(f.type) ? 'PDF' : /word|msword/.test(f.type) ? 'DOC' : /sheet/.test(f.type) ? 'XLS' : /presentation/.test(f.type) ? 'PPT' : /text\//.test(f.type) ? 'TXT' : '';
+          return `${avant}<article class="e-msg ${moi ? 'moi' : ''}${suite ? ' suite' : ''}">
             <span class="e-msg-pastille" aria-hidden="true">${M ? M.avatar(moi ? 'eleve' : 'prof') : (moi ? 'S' : 'B')}</span>
-            <div>${tete}<div class="e-bulle e-bulle-jointe">
+            <div>${suite ? '' : tete}<div class="e-bulle e-bulle-jointe">
               ${f.matiere ? `<span class="contexte">${N.ech(f.matiere)}${f.ref ? ' · ' + N.ech(f.ref) : ''}</span>` : ''}
-              ${apercu}${f.note ? `<p class="texte">${N.ech(f.note)}</p>` : ''}</div></div></article>`;
+              ${apercu.replace('<span><b>', etiquette ? `<b class="e-jointe-type">${etiquette}</b><span><b>` : '<span><b>')}${f.note ? `<p class="texte">${N.ech(f.note)}</p>` : ''}</div></div></article>`;
         }
 
         const m = x.d;
         const lu = moi && m.lu_le ? '<span class="e-lu" title="Lu">✓✓</span>' : '';
-        const corpsTexte = M && window.FARCES && window.FARCES.idDe(m) ? M.bulleFarce(m, 'e-bulle-farce') : (M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte));
+        const estFarce = !!(window.FARCES && window.FARCES.idDe(m));
+        const corpsTexte = M && estFarce ? M.bulleFarce(m, 'e-bulle-farce') : lier(M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte));
         const cite = m.reponse_a ? messages.find((y) => y.id === m.reponse_a) : null;
         const differe = m.envoyer_le && m.envoyer_le > new Date().toISOString();
         const recent = moi && (differe || Date.now() - new Date(m.cree_le).getTime() < 5 * 60 * 1000);
-        return `${avant}<article class="e-msg ${moi ? 'moi' : ''}${differe ? ' differe' : ''}" data-message="${m.id}">
+        // F131 : un très long message se replie, un bouton le déplie.
+        const long = String(m.texte || '').length > 1200 && !estFarce;
+        return `${avant}<article class="e-msg ${moi ? 'moi' : ''}${differe ? ' differe' : ''}${suite ? ' suite' : ''}" data-message="${m.id}">
           <span class="e-msg-pastille" aria-hidden="true">${M ? M.avatar(moi ? 'eleve' : 'prof') : (moi ? 'S' : 'B')}</span>
-          <div>${tete}<div class="e-bulle">
-            ${m.contexte && !(window.FARCES && window.FARCES.idDe(m)) ? `<span class="contexte">${N.ech(m.contexte)}</span>` : ''}
-            ${cite ? `<blockquote class="e-cite">${cite.auteur === 'eleve' ? 'Moi' : 'Bastien'} : ${N.ech(court(cite.texte, 120))}</blockquote>` : ''}
+          <div>${suite ? '' : tete}<div class="e-bulle${long ? ' e-bulle-longue' : ''}">
+            ${m.contexte && !estFarce ? `<span class="contexte">${N.ech(m.contexte)}</span>` : ''}
+            ${cite ? `<blockquote class="e-cite" data-cible="${cite.id}" title="Aller au message cité">${cite.auteur === 'eleve' ? 'Moi' : 'Bastien'} : ${N.ech(court(cite.texte, 120))}</blockquote>` : ''}
             ${differe ? `<span class="e-differe-badge">${N.ic('ic-horloge')} programmé pour ${N.ech(N.dateCourte(m.envoyer_le))}</span>` : ''}
-            <div class="texte">${corpsTexte}</div>${lu}</div>
-            <div class="e-msg-pied"><p class="e-msg-actions"><button type="button" class="e-msg-action" data-repondre="${m.id}">${N.ic('ic-message')} Répondre</button>${recent ? `<button type="button" class="e-msg-action" data-retirer="${m.id}">${N.ic('ic-croix')} Retirer</button>` : ''}</p>
+            <div class="texte">${corpsTexte}</div>${m.modifie_le ? '<span class="e-modifie">modifié</span>' : ''}${lu}
+            ${long ? '<button type="button" class="e-msg-action e-voir-plus" data-voir-plus>Voir la suite</button>' : ''}</div>
+            <div class="e-msg-pied"><p class="e-msg-actions"><button type="button" class="e-msg-action" data-repondre="${m.id}">${N.ic('ic-message')} Répondre</button>${recent && !estFarce ? `<button type="button" class="e-msg-action" data-modifier="${m.id}">${N.ic('ic-crayon')} Modifier</button>` : ''}${recent ? `<button type="button" class="e-msg-action" data-retirer="${m.id}">${N.ic('ic-croix')} Retirer</button>` : ''}</p>
             ${M ? M.reactionsHTML(m, 'eleve', 'e-reactions') : ''}</div></div></article>`;
       }).join('');
 
       zoneT.querySelectorAll('[data-repondre]').forEach((b) => b.addEventListener('click', () => { poserCitation(b.getAttribute('data-repondre')); champT.focus(); }));
-      zoneT.querySelectorAll('[data-retirer]').forEach((b) => b.addEventListener('click', async () => {
-        try { await N.api('/messages/' + b.getAttribute('data-retirer'), { method: 'DELETE' }); N.signaler('Message retiré.', 'succes'); charger(false); } catch (e) { N.signaler(e.message); }
+      // F086 : un message retiré se cache tout de suite ; cinq secondes pour annuler, puis il part vraiment.
+      zoneT.querySelectorAll('[data-retirer]').forEach((b) => b.addEventListener('click', () => {
+        const id = b.getAttribute('data-retirer'); const art = zoneT.querySelector(`[data-message="${id}"]`);
+        if (art) art.hidden = true;
+        const minuteur = setTimeout(async () => {
+          retraitsEnAttente.delete(id);
+          try { await N.api('/messages/' + id, { method: 'DELETE' }); charger(false); } catch (e) { if (art) art.hidden = false; N.signaler(e.message); }
+        }, 5000);
+        retraitsEnAttente.set(id, minuteur);
+        N.signaler('Message retiré.', 'info', { libelle: 'Annuler', faire: () => { clearTimeout(minuteur); retraitsEnAttente.delete(id); if (art) art.hidden = false; } });
       }));
+      // F085 : modifier reprend le texte dans la zone d'écriture.
+      zoneT.querySelectorAll('[data-modifier]').forEach((b) => b.addEventListener('click', () => {
+        const m = listeMessages.find((x) => x.id === b.getAttribute('data-modifier')); if (!m) return;
+        if (champT.__avantModif == null) champT.__avantModif = champT.value;
+        champT.value = m.texte; poserModification(m.id); majCompteur(); champT.focus();
+      }));
+      // F096 : une citation mène au message cité, brièvement surligné.
+      zoneT.querySelectorAll('[data-cible]').forEach((q) => q.addEventListener('click', () => {
+        const art = zoneT.querySelector(`[data-message="${q.getAttribute('data-cible')}"]`);
+        if (!art) { N.signaler('Ce message est plus ancien : charge les messages précédents.', 'info'); return; }
+        art.scrollIntoView({ block: 'center', behavior: 'smooth' }); art.classList.add('e-msg-vise'); setTimeout(() => art.classList.remove('e-msg-vise'), 1600);
+      }));
+      // F131 : déplier un long message.
+      zoneT.querySelectorAll('[data-voir-plus]').forEach((b) => b.addEventListener('click', () => { const bulle = b.closest('.e-bulle'); bulle.classList.remove('e-bulle-longue'); b.remove(); }));
+      // F087 : une image s'ouvre dans une visionneuse, pas dans un nouvel onglet.
+      zoneT.querySelectorAll('.e-jointe-img').forEach((a) => a.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        const ancien = document.getElementById('e-lightbox'); if (ancien) ancien.remove();
+        const boite = document.createElement('div'); boite.id = 'e-lightbox'; boite.className = 'e-lightbox'; boite.setAttribute('role', 'dialog'); boite.setAttribute('aria-label', 'Image en grand');
+        boite.innerHTML = `<img src="${a.getAttribute('href')}" alt="${N.ech(a.querySelector('img') ? a.querySelector('img').alt : '')}"><p><a class="e-bouton e-bouton-doux" href="${a.getAttribute('href')}" download>${N.ic('ic-telecharger')} Télécharger</a><button type="button" class="e-bouton" data-fermer>Fermer</button></p>`;
+        document.body.appendChild(boite);
+        const liberer = N.piegerFocus(boite, a);
+        const fermer = () => { liberer(); boite.remove(); document.removeEventListener('keydown', surTouche); };
+        const surTouche = (e) => { if (e.key === 'Escape') fermer(); };
+        document.addEventListener('keydown', surTouche);
+        boite.querySelector('[data-fermer]').addEventListener('click', fermer);
+        boite.addEventListener('click', (e) => { if (e.target === boite) fermer(); });
+      }));
+      // F089 : remonter dans le passé sans perdre sa place.
+      const btnAnciens = document.getElementById('e-plus-anciens');
+      if (btnAnciens) btnAnciens.addEventListener('click', () => { const plusVieux = listeMessages[0]; if (plusVieux) charger(false, plusVieux.cree_le); });
+      if (avant && hauteurAvant) { window.scrollTo(0, document.documentElement.scrollHeight - hauteurAvant + window.scrollY); return; }
       if (defiler !== false) { zoneT.scrollTop = zoneT.scrollHeight; const dernier = zoneT.lastElementChild; if (dernier && dernier.scrollIntoView) dernier.scrollIntoView({ block: 'end' }); }
       if (M) { M.brancherRejouer(zoneT, 'eleve'); if (defiler !== false) await M.jouerFarcesNonLues(messages, 'prof', document.getElementById('duo-moi')); }
       try {
@@ -2518,6 +2685,14 @@
       } catch (e) { /* le marquage peut attendre */ }
     }
     charger();
+    // F079 : loin du bas du fil, un bouton ramène au dernier message.
+    const btnBas = document.createElement('button'); btnBas.type = 'button'; btnBas.className = 'e-aller-bas'; btnBas.hidden = true; btnBas.setAttribute('aria-label', 'Aller au dernier message'); btnBas.innerHTML = N.ic('ic-droite');
+    (document.getElementById('e-composer') || vue()).appendChild(btnBas);
+    btnBas.addEventListener('click', () => { const c = document.getElementById('e-composer'); if (c) c.scrollIntoView({ block: 'end', behavior: 'smooth' }); });
+    const surDefilement = () => { if (!zoneT.isConnected) { window.removeEventListener('scroll', surDefilement); btnBas.remove(); return; } btnBas.hidden = window.scrollY + window.innerHeight > document.documentElement.scrollHeight - 600; };
+    window.addEventListener('scroll', surDefilement, { passive: true });
+    // F093 : un clic hors d'un menu de réactions le referme.
+    document.addEventListener('click', (ev) => { if (!zoneT.isConnected || ev.target.closest('[data-reagir-menu], [data-menu]')) return; zoneT.querySelectorAll('[data-menu]:not([hidden])').forEach((b) => { b.hidden = true; }); });
     if (M) M.brancherReactions(zoneT, () => charger(false));
     if (M) M.brancherDuo(vue(), 'eleve', () => charger(false), () => filActif);
     // Une ligne, deux photos : la mienne se change en la touchant, celle de Bastien reçoit les farces.
@@ -2536,6 +2711,11 @@
       const bouton = document.getElementById('e-envoi');
       bouton.disabled = true;
       try {
+        if (modifierId) {
+          await N.api('/messages/' + modifierId, { method: 'PATCH', body: JSON.stringify({ texte }) });
+          champT.__avantModif = null; poserModification(null); champT.value = '';
+          N.ecrire(cleBrouillon(), ''); majCompteur(); N.signaler('Message corrigé.', 'succes'); await charger(false); return;
+        }
         if (joint) {
           const d = new FormData();
           d.append('fichier', joint);
@@ -2561,7 +2741,8 @@
     }
     formulaire.addEventListener('submit', (ev) => { ev.preventDefault(); envoyer(); });
     champT.addEventListener('keydown', (ev) => {
-      if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') { ev.preventDefault(); envoyer(); }
+      if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') { ev.preventDefault(); envoyer(); return; }
+      if (ev.key === 'Enter' && !ev.shiftKey && !ev.altKey && N.lire(CLE_ENTREE, false) === true) { ev.preventDefault(); envoyer(); }
     });
   }
 
@@ -2590,7 +2771,7 @@
           const lecons = j.lecons.filter((c) => c.split(':')[0] === m.id).map((c) => { const l = N.lecon(m, c.split(':')[1]); return l ? l.titre : c.split(':')[1]; });
           return `<li class="${jeuGagne(j) ? 'gagne' : ''}"><a href="${j.url}">
             <span class="ico" aria-hidden="true">${j.ico}</span>
-            <span class="corps"><b>${N.ech(j.titre)}</b><span>${j.type === '3d' ? 'Monde 3D · ' : 'Jeu · '}${N.ech(lecons.slice(0, 2).join(' · '))}</span></span>
+            <span class="corps"><b>${N.ech(j.titre)}</b><span>${j.type === '3d' ? 'Monde 3D · ' : 'Jeu · '}${N.ech(lecons.slice(0, 2).join(' · '))}${(() => { const r = N.etat.resultats['jeu/' + j.id]; return r && r.meilleur ? ` · meilleur : ${r.meilleur} sur 100` : ''; })()}</span></span>
             <span class="etat" aria-label="${jeuGagne(j) ? 'gagné' : ''}">${jeuGagne(j) ? N.ic('ic-coche') : N.ic('ic-droite')}</span></a></li>`;
         }).join('')}</ul>`;
     }).join('');

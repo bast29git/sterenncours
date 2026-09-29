@@ -99,25 +99,57 @@
   /* ---------- Réseau -------------------------------------------------------- */
   /* A29 : une lecture qui échoue sur le réseau est reprise une fois, deux secondes plus tard.
      Une écriture n'est jamais rejouée d'elle-même. Hors ligne, le bandeau le dit. */
+  const DELAI_API_MS = 20000;
+  const lecturesEnCours = new Map();
+  const MESSAGES_STATUT = { 405: 'Cette action n\'est pas prévue ici : le problème est signalé.', 415: 'Le format envoyé n\'est pas accepté : le problème est signalé.', 409: 'C\'est déjà fait.', 429: 'Trop de demandes d\'un coup : attends une minute.', 503: 'Le serveur est occupé : réessaie dans un instant.' };
   async function api(chemin, options = {}) {
     const methode = (options.method || 'GET').toUpperCase();
-    const appel = () => fetch('/api' + chemin, {
-      credentials: 'same-origin',
-      ...options,
-      headers: options.body && !(options.body instanceof FormData)
-        ? { 'content-type': 'application/json', ...(options.headers || {}) }
-        : (options.headers || {}),
-    });
+    // F038 : deux lectures identiques en même temps partagent la même réponse.
+    const cleLecture = methode === 'GET' ? chemin : null;
+    if (cleLecture && lecturesEnCours.has(cleLecture)) return lecturesEnCours.get(cleLecture);
+    const promesse = appelApi(chemin, options, methode);
+    if (cleLecture) { lecturesEnCours.set(cleLecture, promesse); promesse.finally(() => lecturesEnCours.delete(cleLecture)); }
+    return promesse;
+  }
+  async function appelApi(chemin, options, methode) {
+    // F001 : un appel ne reste jamais suspendu : vingt secondes, puis un message clair.
+    const appel = () => {
+      const controleur = typeof window.AbortController !== 'undefined' ? new window.AbortController() : null;
+      const minuteurDelai = controleur ? setTimeout(() => controleur.abort(), options.delai || DELAI_API_MS) : null;
+      return fetch('/api' + chemin, {
+        credentials: 'same-origin',
+        ...options,
+        signal: controleur ? controleur.signal : undefined,
+        headers: options.body && !(options.body instanceof FormData)
+          ? { 'content-type': 'application/json', ...(options.headers || {}) }
+          : (options.headers || {}),
+      }).finally(() => { if (minuteurDelai) clearTimeout(minuteurDelai); });
+    };
+    const messageReseau = (e) => (e && e.name === 'AbortError' ? 'Le serveur met trop de temps à répondre. Réessaie dans un instant.' : navigator.onLine === false ? 'Pas de connexion : réessaie quand le réseau revient.' : 'Le serveur ne répond pas.');
     let reponse;
     try { reponse = await appel(); } catch (e) {
-      if (methode !== 'GET' || options.sansReprise) { horsLigne(true); throw new Error(navigator.onLine === false ? 'Pas de connexion : réessaie quand le réseau revient.' : 'Le serveur ne répond pas.'); }
+      if (methode !== 'GET' || options.sansReprise) { if (e.name !== 'AbortError') horsLigne(true); throw new Error(messageReseau(e)); }
       await new Promise((r) => setTimeout(r, 2000));
-      try { reponse = await appel(); } catch (e2) { horsLigne(true); throw new Error(navigator.onLine === false ? 'Pas de connexion : réessaie quand le réseau revient.' : 'Le serveur ne répond pas.'); }
+      try { reponse = await appel(); } catch (e2) { if (e2.name !== 'AbortError') horsLigne(true); throw new Error(messageReseau(e2)); }
     }
     horsLigne(false);
+    // F002 : une lecture refusée pour excès de demandes est reprise une fois, après le délai demandé.
+    if (reponse.status === 429 && methode === 'GET' && !options.sansReprise) {
+      const attente = Math.min(60, Number(reponse.headers.get('retry-after')) || 5);
+      await new Promise((r) => setTimeout(r, attente * 1000));
+      reponse = await appel();
+    }
     if (reponse.status === 401) { retourPortail(); throw new Error('Session expirée'); }
     const donnees = await reponse.json().catch(() => ({}));
-    if (!reponse.ok) { const err = new Error(donnees.erreur || 'Erreur serveur'); err.code = donnees.code; err.statut = reponse.status; throw err; }
+    if (!reponse.ok) {
+      // F003, F004, F005, F007 : message selon le statut, identifiant de requête et champ fautif attachés à l'erreur.
+      const err = new Error(donnees.erreur || MESSAGES_STATUT[reponse.status] || 'Erreur serveur');
+      err.code = donnees.code; err.statut = reponse.status; err.champ = donnees.champ || null;
+      err.requete = donnees.requete || reponse.headers.get('x-request-id') || null;
+      // F006 : une erreur du serveur ou un contrat rompu (405, 415) est remonté au journal des erreurs.
+      if (reponse.status >= 500 || reponse.status === 405 || reponse.status === 415) remonterErreur(`API ${reponse.status} ${methode} ${chemin} : ${err.message}${err.requete ? ' (' + err.requete + ')' : ''}`, 'api', '');
+      throw err;
+    }
     return donnees;
   }
   let etaitHorsLigne = false;
@@ -133,14 +165,17 @@
   const CLE_ATTENTE = 'opaline.attente';
   function mettreEnAttente(chemin, options) {
     const liste = lire(CLE_ATTENTE, []);
-    liste.push({ chemin, options: { method: options.method, body: options.body }, le: Date.now() });
-    ecrire(CLE_ATTENTE, liste.slice(-50));
+    // F026 : une écriture identique (même adresse, même corps) n'attend qu'une fois.
+    const restantes = liste.filter((x) => !(x.chemin === chemin && x.options && x.options.body === options.body));
+    restantes.push({ chemin, options: { method: options.method, body: options.body }, le: Date.now(), role: etat.role });
+    ecrire(CLE_ATTENTE, restantes.slice(-50));
   }
   let rejeuEnCours = false;
   async function rejouerAttente() {
     if (rejeuEnCours || !etat.role) return;
-    const liste = lire(CLE_ATTENTE, []);
-    if (!liste.length) return;
+    // F024, F025 : rien de plus d'un jour, et jamais une action mise en attente par l'autre espace.
+    const liste = lire(CLE_ATTENTE, []).filter((x) => Date.now() - (x.le || 0) < 86400000 && (!x.role || x.role === etat.role));
+    if (!liste.length) { ecrire(CLE_ATTENTE, []); return; }
     rejeuEnCours = true;
     const restantes = [];
     for (const x of liste) {
@@ -152,16 +187,17 @@
   }
   /* A53 : les erreurs JavaScript sont remontées, dix par minute au plus, sans jamais gêner l'écran. */
   const erreursVues = new Set();
-  function remonterErreur(message, source) {
+  function remonterErreur(message, source, pile) {
     try {
       const cle = String(message).slice(0, 80);
       if (!etat.role || erreursVues.has(cle) || erreursVues.size > 10) return;
       erreursVues.add(cle);
-      fetch('/api/erreur', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message: String(message).slice(0, 300), source: String(source || '').slice(0, 200), ecran: location.hash.slice(0, 120) }) }).catch(() => {});
+      // F012, F013 : la pile d'appels (bornée) et la version du site partent avec le message.
+      fetch('/api/erreur', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message: String(message).slice(0, 300), source: String(source || '').slice(0, 200), ecran: location.hash.slice(0, 120), pile: String(pile || '').slice(0, 800), version: window.OPALINE_VERSION || '' }) }).catch(() => {});
     } catch (e) { /* jamais d'erreur dans le rapport d'erreur */ }
   }
-  window.addEventListener('error', (ev) => remonterErreur(ev.message || 'Erreur', (ev.filename || '') + ':' + (ev.lineno || '')));
-  window.addEventListener('unhandledrejection', (ev) => remonterErreur('Promesse rejetée : ' + (ev.reason && ev.reason.message ? ev.reason.message : String(ev.reason)), ''));
+  window.addEventListener('error', (ev) => remonterErreur(ev.message || 'Erreur', (ev.filename || '') + ':' + (ev.lineno || ''), ev.error && ev.error.stack));
+  window.addEventListener('unhandledrejection', (ev) => remonterErreur('Promesse rejetée : ' + (ev.reason && ev.reason.message ? ev.reason.message : String(ev.reason)), '', ev.reason && ev.reason.stack));
 
   /** C77 : toutes les annonces vocales passent par une seule région, jamais deux lecteurs en même temps. */
   function annoncer(texte) {
@@ -200,18 +236,45 @@
       });
     } catch (e) { /* pas de son sur cet appareil */ }
   }
-  function signaler(message, type = 'erreur') {
+  /* F008 : les messages du bandeau font la queue au lieu de s'écraser ; F009 : un bouton pour fermer ;
+     F010 : le compte s'arrête sous la souris ou le focus ; F011 : la durée suit la longueur du texte ;
+     F022 : un message peut porter une action (« Réessayer », « Annuler »). */
+  const fileBandeau = [];
+  let bandeauOccupe = false;
+  function signaler(message, type = 'erreur', action) {
     annoncer(message);
     if (type === 'succes') son('ok');
-    const id = estProf() ? 'p-bandeau' : 'e-bandeau';
+    const entree = { message: String(message), type, action: action && action.libelle && typeof action.faire === 'function' ? action : null };
+    // Un message avec une action (Annuler, Réessayer) passe devant et s'affiche tout de suite : l'action a un délai.
+    if (entree.action) { fileBandeau.unshift(entree); if (bandeauOccupe && typeof fermerBandeau === 'function') { fermerBandeau(true); return; } }
+    else fileBandeau.push(entree);
+    if (fileBandeau.length > 3) fileBandeau.splice(3);
+    if (!bandeauOccupe) afficherBandeau();
+  }
+  let fermerBandeau = null;
+  /** Au changement d'écran, les messages en attente qui concernaient l'écran quitté sont oubliés. */
+  function viderFileBandeau() { fileBandeau.splice(0, fileBandeau.length - (fileBandeau.length && fileBandeau[0].action ? 1 : 0)); }
+  function afficherBandeau() {
+    const suivant = fileBandeau.shift();
     const prefixe = estProf() ? 'p-bandeau' : 'e-bandeau';
-    const zone = document.getElementById(id);
-    if (!zone) return;
-    zone.className = `${prefixe} ${prefixe}-${type}`;
-    zone.textContent = message;
+    const zone = document.getElementById(prefixe);
+    if (!suivant || !zone) { bandeauOccupe = false; return; }
+    bandeauOccupe = true;
+    zone.className = `${prefixe} ${prefixe}-${suivant.type}`;
+    zone.setAttribute('role', suivant.type === 'erreur' ? 'alert' : 'status');
+    zone.innerHTML = `<span class="bandeau-texte">${ech(suivant.message)}</span>${suivant.action ? `<button type="button" class="bandeau-action">${ech(suivant.action.libelle)}</button>` : ''}<button type="button" class="bandeau-fermer" aria-label="Fermer ce message">${ic('ic-croix')}</button>`;
     zone.hidden = false;
-    clearTimeout(signaler.t);
-    signaler.t = setTimeout(() => { zone.hidden = true; }, 5000);
+    const duree = Math.min(15000, 5000 + suivant.message.length * 40 + (suivant.action ? 3000 : 0));
+    let restant = duree; let depuis = Date.now(); let minuteurB = null;
+    const fermer = (toutDeSuite) => { clearTimeout(minuteurB); zone.hidden = true; zone.innerHTML = ''; fermerBandeau = null; if (toutDeSuite === true) afficherBandeau(); else setTimeout(afficherBandeau, 150); };
+    fermerBandeau = fermer;
+    const lancer = () => { depuis = Date.now(); minuteurB = setTimeout(fermer, restant); };
+    const suspendre = () => { clearTimeout(minuteurB); restant = Math.max(1500, restant - (Date.now() - depuis)); };
+    zone.onmouseenter = suspendre; zone.onmouseleave = lancer; zone.onfocusin = suspendre; zone.onfocusout = lancer;
+    zone.querySelector('.bandeau-fermer').addEventListener('click', fermer);
+    const btn = zone.querySelector('.bandeau-action');
+    if (btn) btn.addEventListener('click', () => { fermer(); try { suivant.action.faire(); } catch (e) { /* l'action ne casse pas le bandeau */ } });
+    lancer();
   }
 
   /** C89 : l'opale d'une matière, dessinée dans ses couleurs. */
@@ -361,7 +424,21 @@
   }
   const enFrancais = (iso, complet) => formaterDate(iso, complet ? 'complet' : 'jour');
   const dateCourte = (iso) => (iso ? formaterDate(iso, 'court') + ' à ' + formaterDate(iso, 'heure') : '');
-  const poids = (o) => (o > 1048576 ? (o / 1048576).toFixed(1) + ' Mo' : Math.max(1, Math.round(o / 1024)) + ' Ko');
+  /* F040 : zéro, kilo, méga et giga. */
+  const poids = (o) => { const n = Number(o) || 0; if (n <= 0) return '0 Ko'; if (n >= 1073741824) return (n / 1073741824).toFixed(2) + ' Go'; return n > 1048576 ? (n / 1048576).toFixed(1) + ' Mo' : Math.max(1, Math.round(n / 1024)) + ' Ko'; };
+  /* F039 : une date relative lisible (« à l'instant », « il y a 5 min », « hier à 10:42 »), la date complète restant en infobulle. */
+  function ilYA(iso) {
+    if (!iso) return '';
+    const d = new Date(iso); if (Number.isNaN(d.getTime())) return String(iso);
+    const ecart = Math.round((Date.now() - d.getTime()) / 1000);
+    if (ecart < 45) return 'à l\'instant';
+    if (ecart < 3600) return 'il y a ' + Math.max(1, Math.round(ecart / 60)) + ' min';
+    const jour = jourIso(d); const auj = jourIso();
+    if (jour === auj) return 'aujourd\'hui à ' + formaterDate(iso, 'heure');
+    if (jour === decaler(auj, -1)) return 'hier à ' + formaterDate(iso, 'heure');
+    if (ecart < 7 * 86400) return formaterDate(iso, 'jour') + ' à ' + formaterDate(iso, 'heure');
+    return dateCourte(iso);
+  }
 
   function progression(m) {
     const faites = m.lecons.filter((l) => estValidee(m.id, l.ref)).length;
@@ -426,6 +503,8 @@
   /** Profil partagé : lecture, et écriture d'une clé (Sterenn : « moi.* »). */
   const profil = (k, defaut) => (k in etat.profil ? etat.profil[k] : defaut);
   async function enregistrerProfil(k, valeur) {
+    // F037 : une valeur identique à celle déjà connue n'est pas renvoyée au serveur.
+    if (k in etat.profil && JSON.stringify(etat.profil[k]) === JSON.stringify(valeur)) return etat.profil[k];
     const d = await api('/profil', { method: 'PUT', body: JSON.stringify({ cle: k, valeur }) });
     if (d.valeur === null) delete etat.profil[k]; else etat.profil[k] = d.valeur;
     return d.valeur;
@@ -546,6 +625,7 @@
 
   /* ---------- Chargement ------------------------------------------------------ */
   const VERSION = window.OPALINE_VERSION || '';
+  let versionServeur = '';
   function chargerScript(src, type) {
     return new Promise((ok, ko) => {
       // Déjà livré par le paquet du rôle : rien à charger.
@@ -555,7 +635,15 @@
       s.src = VERSION && !/^data\//.test(src) && src.indexOf('?') === -1 ? src + '?v=' + VERSION : src;
       if (type) s.type = type;
       s.onload = ok;
-      s.onerror = () => ko(new Error('Chargement impossible : ' + src));
+      // F020 : un script qui ne charge pas est retenté une fois, une seconde et demie plus tard.
+      s.onerror = () => {
+        s.remove();
+        setTimeout(() => {
+          const s2 = document.createElement('script'); s2.src = s.src; if (type) s2.type = type;
+          s2.onload = ok; s2.onerror = () => ko(new Error('Chargement impossible : ' + src));
+          document.head.appendChild(s2);
+        }, 1500);
+      };
       document.head.appendChild(s);
     });
   }
@@ -593,8 +681,20 @@
     document.documentElement.setAttribute('data-palette', id);
     ecrire(CLE_PALETTE, id);
   }
-  appliquerTheme(lire(CLE_THEME, 'light'));
+  // F033 : sans choix enregistré, le thème suit celui de l'appareil.
+  const themeInitial = lire(CLE_THEME, null) || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  appliquerTheme(themeInitial);
   appliquerPalette(lire(CLE_PALETTE, 'aurore'));
+  // F032, F034 : le mouvement réduit et le contraste renforcé demandés à l'appareil sont portés par <html>.
+  function appliquerPreferencesSysteme() {
+    try {
+      const h = document.documentElement;
+      h.setAttribute('data-mouvement', window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduit' : 'normal');
+      h.setAttribute('data-contraste', window.matchMedia('(prefers-contrast: more)').matches ? 'fort' : 'normal');
+    } catch (e) { /* sans matchMedia */ }
+  }
+  appliquerPreferencesSysteme();
+  try { ['(prefers-reduced-motion: reduce)', '(prefers-contrast: more)'].forEach((q) => window.matchMedia(q).addEventListener('change', appliquerPreferencesSysteme)); } catch (e) { /* anciens navigateurs */ }
 
   /* ---------- Portail ------------------------------------------------------------ */
   function ouvrirPortail() {
@@ -605,6 +705,9 @@
     document.getElementById('code').focus();
   }
   function retourPortail() {
+    // F024 : rien de l'espace quitté ne doit repartir sous l'autre code.
+    ecrire(CLE_ATTENTE, []); expireLe = null; titreRoute = '';
+    try { sessionStorage.removeItem('opaline.expiration-notee'); } catch (e) { /* privé */ }
     etat.role = null;
     etat.suivi = {}; etat.resultats = {}; etat.fiches = {};
     etat.ouvertures = {}; etat.seances = []; etat.messagesNonLus = 0; etat.reglages = {}; etat.felicitations = [];
@@ -714,6 +817,7 @@
       etat.verrous = d.verrous || {};
       etat.profil = d.profil || {};
       etat.messagesNonLus = d.messagesNonLus || 0;
+      etat.messagesNonLusParFil = d.messagesNonLusParFil || {};
       etat.role = d.role || etat.role;
       appliquerReglages();
     } catch (e) {
@@ -724,8 +828,44 @@
     try { etat.seances = (await api('/seances')).seances || []; } catch (e) { etat.seances = []; }
   }
   let empreinteEtat = null;
+  let expireLe = null;
+  let horlogePrevenu = false;
+  let versionPrevenue = false;
+  let derniereVerifVersion = 0;
+  /** F014 : un jour avant la fin de session, une phrase le dit, une seule fois par session du navigateur. */
+  function verifierExpiration() {
+    if (!expireLe || sessionStorage.getItem('opaline.expiration-notee')) return;
+    const reste = new Date(expireLe).getTime() - Date.now();
+    if (reste > 0 && reste < 86400000) {
+      sessionStorage.setItem('opaline.expiration-notee', '1');
+      signaler('Ta session se termine demain : il faudra retaper ton code.', 'info');
+    }
+  }
+  /** F015 : toutes les dix minutes, la version en ligne est comparée à celle chargée ; une phrase propose de recharger. */
+  async function verifierVersion() {
+    if (versionPrevenue || Date.now() - derniereVerifVersion < 600000) return;
+    derniereVerifVersion = Date.now();
+    try {
+      const r = await fetch('/api/version', { credentials: 'same-origin', cache: 'no-store' });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.version && VERSION && d.version !== VERSION) {
+        versionPrevenue = true;
+        signaler('Une nouvelle version d\'Opaline est en ligne.', 'info', { libelle: 'Recharger', faire: () => location.reload() });
+      }
+    } catch (e) { /* la vérification est facultative */ }
+  }
+  /** F016 : si l'horloge de l'appareil s'écarte de plus de cinq minutes du serveur, les dates peuvent tromper : on le dit. */
+  function verifierHorloge(serveurLe) {
+    if (horlogePrevenu || !serveurLe) return;
+    const ecart = Math.abs(Date.now() - new Date(serveurLe).getTime());
+    if (ecart > 5 * 60000) { horlogePrevenu = true; signaler('L\'heure de cet appareil semble décalée de ' + Math.round(ecart / 60000) + ' min : les horaires affichés peuvent être faux.', 'info'); }
+  }
   async function sonder() {
     if (!etat.role) return;
+    // F017, F019 : rien tant que l'onglet est caché ou que l'appareil est hors ligne.
+    if (document.hidden || navigator.onLine === false) return;
+    verifierExpiration(); verifierVersion();
     try {
       const reponse = await fetch('/api/etat', { credentials: 'same-origin', headers: empreinteEtat ? { 'if-none-match': empreinteEtat } : {} });
       if (reponse.status === 304) return;
@@ -733,8 +873,10 @@
       if (!reponse.ok) return;
       empreinteEtat = reponse.headers.get('etag');
       const d = await reponse.json();
+      verifierHorloge(d.serveur_le);
       const avant = etat.messagesNonLus;
       etat.messagesNonLus = d.messagesNonLus || 0;
+      etat.messagesNonLusParFil = d.messagesNonLusParFil || {};
       if (etat.messagesNonLus > avant && etat.role === 'eleve') son('message');
       if (d.reglages && JSON.stringify(d.reglages) !== JSON.stringify(etat.reglages)) {
         const avantSonde = reglage('sonde');
@@ -754,17 +896,25 @@
       if (etat.messagesNonLus !== avant) {
         vueActive().nav();
         majTitre();
-        if (etat.messagesNonLus > avant) signaler('Nouveau message.', 'info');
+        if (etat.messagesNonLus > avant) {
+          signaler('Nouveau message.', 'info', { libelle: 'Lire', faire: () => { location.hash = '#/messages'; } });
+          // F036 : l'onglet est caché et les rappels sont acceptés : une notification du navigateur, discrète.
+          if (document.hidden && rappelActif()) { try { new Notification('Opaline : nouveau message', { body: 'Bastien t\'a écrit.', tag: 'opaline-message' }); } catch (e) { /* sans notification */ } }
+        }
       }
     } catch (e) { /* sonde silencieuse */ }
     verifierRappel();
   }
+  // F018 : quand l'onglet redevient visible, la sonde repart tout de suite.
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && etat.role) sonder(); });
 
   /** C52 : le titre de l'onglet dit les messages non lus, sans son. */
   const TITRE_BASE = document.title;
+  let titreRoute = '';
   function majTitre() {
     const n = etat.role ? etat.messagesNonLus : 0;
-    document.title = n ? `(${n}) ${TITRE_BASE}` : TITRE_BASE;
+    const base = titreRoute && titreRoute !== 'Accueil' ? `${titreRoute} · ${TITRE_BASE}` : TITRE_BASE;
+    document.title = n ? `(${n}) ${base}` : base;
   }
 
   /** C60 : un rappel du navigateur une heure avant le temps personnel, si Sterenn l'a accepté. */
@@ -816,6 +966,7 @@
     const el = document.getElementById('e-etoiles');
     if (!el) return;
     const n = reussites().total;
+    if (el.textContent !== String(n) && el.textContent !== '0') annoncer(n + ' étoile' + (n > 1 ? 's' : ''));
     el.textContent = String(n);
     const jeton = document.getElementById('e-reussites');
     if (jeton) jeton.setAttribute('aria-label', `${n} étoile${n > 1 ? 's' : ''} gagnée${n > 1 ? 's' : ''}`);
@@ -823,11 +974,17 @@
   }
 
   /* ---------- Connexion ------------------------------------------------------------ */
+  let echecsPortail = 0;
+  // F044 : l'erreur s'efface dès qu'on retape ; F042 : le code se montre ou se cache d'un bouton.
+  document.getElementById('code').addEventListener('input', () => { document.getElementById('portail-erreur').classList.remove('visible'); });
+  const btnVoir = document.getElementById('code-voir');
+  if (btnVoir) btnVoir.addEventListener('click', () => { const c = document.getElementById('code'); const montre = c.type === 'text'; c.type = montre ? 'password' : 'text'; btnVoir.setAttribute('aria-pressed', String(!montre)); btnVoir.textContent = montre ? 'Voir' : 'Cacher'; c.focus(); });
   document.getElementById('form-portail').addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const bouton = ev.target.querySelector('.entree-bouton');
     const champ = document.getElementById('code');
     const err = document.getElementById('portail-erreur');
+    if (!champ.value.trim()) { err.textContent = 'Écris ton code avant d\'entrer.'; err.classList.add('visible'); champ.focus(); return; }
     bouton.disabled = true;
     try {
       const rep = await fetch('/api/connexion', {
@@ -836,8 +993,14 @@
         body: JSON.stringify({ code: champ.value }),
       });
       const d = await rep.json().catch(() => ({}));
-      if (!rep.ok) { err.textContent = d.erreur || 'Ce code n\'est pas reconnu.'; err.classList.add('visible'); return; }
-      err.classList.remove('visible');
+      if (!rep.ok) {
+        echecsPortail += 1;
+        // F045 : au troisième échec, un rappel de la forme du code.
+        err.textContent = (d.erreur || 'Ce code n\'est pas reconnu.') + (echecsPortail >= 3 && rep.status === 401 ? ' Le code s\'écrit en minuscules, sans espace.' : '');
+        err.classList.add('visible'); champ.select(); return;
+      }
+      err.classList.remove('visible'); echecsPortail = 0;
+      expireLe = d.expire_le || null;
       await ouvrirApp(d.role);
     } catch (e) {
       err.textContent = 'Connexion impossible. Vérifie ta connexion internet.';
@@ -923,12 +1086,25 @@
   /* ---------- Routeur -------------------------------------------------------------------- */
   const vueActive = () => (estProf() ? window.VUE_PROF : window.VUE_ELEVE);
   const CLE_DERNIER = 'opaline.dernier';
+  const TITRES_ROUTE = { '': 'Accueil', hub: 'Accueil', accueil: 'Accueil', matieres: 'Mes matières', matiere: 'Parcours', lecon: 'Fiche', exos: 'Série', calendrier: 'Ma semaine', choix: 'Mon choix', jeux: 'Jeux', reussites: 'Mes réussites', progres: 'Mes réussites', messages: 'Messages', travail: 'Messages', compagnon: 'Mon compagnon', carnet: 'Mon carnet', annales: 'Mes évaluations', curiosites: 'Curiosités', aide: 'Aide', notes: 'Mes notes', donnees: 'Mes données', recherche: 'Recherche', perso: 'Temps perso' };
+  const defilements = {};
+  window.addEventListener('scroll', () => { if (etat.role) defilements[location.hash || '#/'] = window.scrollY; }, { passive: true });
   function router() {
     if (!etat.role) return;
     const vue = vueActive();
     if (!vue) return;
     const parts = (location.hash || '#/').replace(/^#\/?/, '').split('/');
+    const cible = location.hash || '#/';
+    const memorise = defilements[cible];
+    viderFileBandeau();
     vue.rendre(parts);
+    // F030 : le titre de l'onglet nomme l'écran ; F031 : un écran déjà visité reprend son défilement ; F029 : le titre est annoncé.
+    if (etat.role === 'eleve') {
+      const libelle = TITRES_ROUTE[parts[0]] || 'Opaline';
+      titreRoute = libelle; majTitre();
+      if (typeof memorise === 'number' && memorise > 0) setTimeout(() => window.scrollTo(0, memorise), 30);
+      setTimeout(() => { const h1 = document.querySelector('#vue-eleve h1'); if (h1 && h1.textContent.trim()) annoncer(h1.textContent.trim()); }, 80);
+    }
     // C8 : on retient le dernier écran de travail de Sterenn (fiche, série, jeu, semaine).
     if (etat.role === 'eleve' && ['lecon', 'exos', 'calendrier', 'matiere', 'choix', 'notes'].indexOf(parts[0]) !== -1) { ecrire(CLE_DERNIER, { hash: location.hash, le: Date.now() }); if (parts[0] === 'lecon' || parts[0] === 'exos') marquerJour(); }
   }
@@ -948,11 +1124,28 @@
     setTimeout(() => signaler('Tu étais ici : ' + libelle + '. L\'accueil est dans la barre.', 'info'), 600);
     return true;
   }
-  // C7 : « ? » ouvre l'aide, hors champ de saisie.
+  // C7 : « ? » ouvre l'aide, hors champ de saisie. F027 : Alt et un chiffre ouvrent un onglet de la barre. F028 : Échap ferme les panneaux ouverts.
+  const RACCOURCIS_NAV = { 1: '#/hub', 2: '#/matieres', 3: '#/calendrier', 4: '#/jeux', 5: '#/messages' };
   document.addEventListener('keydown', (ev) => {
+    if (!etat.role) return;
+    if (ev.key === 'Escape') {
+      const palette = document.getElementById('e-palette-panneau');
+      if (palette && !palette.hidden) { palette.hidden = true; document.getElementById('e-btn-palette').setAttribute('aria-expanded', 'false'); document.getElementById('e-btn-palette').focus(); return; }
+      const ouvert = document.querySelector('#e-humeurs:not([hidden]), #e-sujets:not([hidden]), #e-differes:not([hidden]), #e-outils-menu:not([hidden]), #farces-choix:not([hidden])');
+      if (ouvert) { ouvert.hidden = true; const t = document.getElementById('e-texte'); if (t) t.focus(); }
+      return;
+    }
+    if (ev.altKey && !ev.ctrlKey && !ev.metaKey && RACCOURCIS_NAV[ev.key] && etat.role === 'eleve') { ev.preventDefault(); location.hash = RACCOURCIS_NAV[ev.key]; return; }
     if (ev.key !== '?' || etat.role !== 'eleve') return;
     const c = ev.target; if (c && (c.tagName === 'INPUT' || c.tagName === 'TEXTAREA' || c.isContentEditable)) return;
     ev.preventDefault(); location.hash = '#/aide';
+  });
+  // F125 : le panneau d'affichage se ferme d'un clic ailleurs.
+  document.addEventListener('click', (ev) => {
+    const p = document.getElementById('e-palette-panneau');
+    if (!p || p.hidden) return;
+    if (p.contains(ev.target) || document.getElementById('e-btn-palette').contains(ev.target)) return;
+    p.hidden = true; document.getElementById('e-btn-palette').setAttribute('aria-expanded', 'false');
   });
 
   /* ---------- Interface exposée aux modules de vue --------------------------------------- */
@@ -968,7 +1161,8 @@
     NIVEAUX, TYPES_DOC, CRENEAUX, JOURS, PALETTES, DEGRADES, ic, paletteOuverte, prochainPalier,
     majTitre, rappelActif, activerRappel, verifierRappel, piegerFocus, squelette, mettreEnAttente, rejouerAttente,
     gemme, AURORES, auroreCourante, auroreOuverte, periodeCourante, serieJours, marquerJour, cranTaille, appliquerPilotage,
-    appliquerTheme, appliquerPalette,
+    appliquerTheme, appliquerPalette, ilYA, remonterErreur,
+    get version() { return VERSION; }, get versionServeur() { return versionServeur; },
   };
 
   /* ---------- Démarrage -------------------------------------------------------------------- */
@@ -976,7 +1170,7 @@
     try {
       const moi = await fetch('/api/moi', { credentials: 'same-origin' });
       const d = moi.ok ? await moi.json() : {};
-      if (d.role) { await ouvrirApp(d.role); return; }
+      if (d.role) { expireLe = d.expire_le || null; versionServeur = d.version || ''; await ouvrirApp(d.role); return; }
     } catch (e) { /* hors ligne */ }
     ouvrirPortail();
   })();

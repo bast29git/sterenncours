@@ -360,7 +360,8 @@
         <div id="cmp-apercu">${rendre({ taille: 9, bulle: phraseDuMoment() })}</div>
         <div class="cmp-fiche">
           <label for="cmp-nom">Son nom</label>
-          <p class="cmp-nom-ligne"><input id="cmp-nom" type="text" maxlength="24" value="${ech(choix.nom)}"><button type="button" class="e-bouton e-bouton-doux" id="cmp-nom-ok">Garder</button></p>
+          <p class="cmp-nom-ligne"><input id="cmp-nom" type="text" maxlength="20" minlength="1" autocomplete="off" spellcheck="false" aria-describedby="cmp-nom-aide" value="${ech(choix.nom)}"><button type="button" class="e-bouton e-bouton-doux" id="cmp-nom-ok">Garder</button></p>
+          <p class="e-aide" id="cmp-nom-aide">Un nom de 1 à 20 caractères, lettres, chiffres, espaces et tirets.</p>
           <p class="cmp-compte">${n.ic('ic-etoile')} ${c.etoiles} étoile${c.etoiles > 1 ? 's' : ''} · ${c.opales} opale${c.opales > 1 ? 's' : ''} · ${c.coeurs} cœur${c.coeurs > 1 ? 's' : ''} · stade ${stade() + 1} sur 3, ${STADES[stade()].nom.toLowerCase()}${age() ? ` · avec toi depuis ${age()} jour${age() > 1 ? 's' : ''}` : ''}</p>
           <p class="cmp-humeur">Humeur : <b>${{ dort: 'il dort', content: 'content', ennui: 'il s\'ennuie un peu', curieux: 'curieux', surpris: 'surpris' }[humeur()] || 'curieux'}</b>. <button type="button" class="e-bouton e-bouton-fin e-bouton-mini" id="cmp-caresser">Le caresser</button></p>
           <p class="cmp-mission ${missionFaite ? 'faite' : ''}"><b>Mission du jour</b> : ${ech(mission.texte)} ${missionFaite ? '✓ faite, un cœur gagné' : '(un cœur à gagner)'}</p>
@@ -402,7 +403,10 @@
     document.getElementById('cmp-partout').addEventListener('change', (ev) => { n.ecrire(CLE_PARTOUT, ev.target.checked); mascotte(['compagnon']); n.signaler(ev.target.checked ? 'Il te suivra sur toutes tes pages.' : 'Il reste sur sa page et sur l\'accueil.', 'succes'); });
     verifierMission().then((gagne) => { if (gagne) rafraichir(); });
     document.getElementById('cmp-nom-ok').addEventListener('click', async () => {
-      const nom = document.getElementById('cmp-nom').value.trim().slice(0, 24) || 'Opaline';
+      // F115 : le nom est nettoyé et vérifié avant d'être gardé.
+      const brut = document.getElementById('cmp-nom').value.trim().replace(/\s+/g, ' ').slice(0, 20);
+      if (!/^[\p{L}\p{N} '-]{1,20}$/u.test(brut)) { n.signaler('Un nom de 1 à 20 caractères : lettres, chiffres, espaces et tirets.', 'erreur'); document.getElementById('cmp-nom').focus(); return; }
+      const nom = brut;
       const actuel = lireChoix(); actuel.nom = nom;
       try { await enregistrer(actuel); n.signaler(`Il s'appelle ${nom}.`, 'succes'); rafraichir(); } catch (e) { n.signaler(e.message); }
     });

@@ -30,12 +30,15 @@ export const TYPES_FICHE = ['cours', 'revision', 'exercices', 'evaluation'];
 export const cleFiche = (v) => (/^[a-z][a-z-]{1,30}\/[A-Z]?\d{1,2}\/(cours|revision|exercices|evaluation)$/.test(String(v || '')) ? String(v) : null);
 /** Une liste de clés de leçons, dédoublonnée, bornée, sans entrée invalide. */
 export const clesLecons = (v, max = 50) => [...new Set(liste(v, max).map(cleLecon).filter(Boolean))];
+/** Absent (null, undefined, chaîne vide) : la valeur par défaut, jamais zéro. */
 export const entier = (v, min, max, defaut = null) => {
+  if (v === null || v === undefined || v === '') return defaut;
   const n = Number(v);
   if (!Number.isFinite(n)) return defaut;
   return Math.max(min, Math.min(max, Math.round(n)));
 };
 export const nombre = (v, min, max, defaut = null) => {
+  if (v === null || v === undefined || v === '') return defaut;
   const n = Number(v);
   if (!Number.isFinite(n)) return defaut;
   return Math.max(min, Math.min(max, n));

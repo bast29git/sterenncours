@@ -46,6 +46,7 @@
       <div class="e-diapo-pied">
         <button type="button" class="e-bouton e-bouton-doux" id="e-diapo-prec">${ic('ic-gauche')} Précédent</button>
         <span class="e-diapo-compte" id="e-diapo-compte"></span>
+        <progress class="e-diapo-progres" id="e-diapo-progres" max="${sections.length}" value="1" aria-hidden="true"></progress>
         <button type="button" class="e-bouton" id="e-diapo-suiv">Suivant ${ic('ic-droite')}</button>
       </div>
     </section>`;
@@ -70,6 +71,7 @@
       hote.querySelector('#e-diapo-jauge').style.width = Math.round(((i + 1) / sections.length) * 100) + '%';
       hote.querySelector('.e-diapo-jauge').setAttribute('aria-valuenow', String(i + 1));
       hote.querySelector('#e-diapo-compte').textContent = `${i + 1} sur ${sections.length} · ${minutes[i]} min`;
+      const barre = hote.querySelector('#e-diapo-progres'); if (barre) barre.value = i + 1;
       const prec = hote.querySelector('#e-diapo-prec');
       const suiv = hote.querySelector('#e-diapo-suiv');
       prec.disabled = i === 0;

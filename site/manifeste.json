@@ -7,8 +7,15 @@
   "background_color": "#0b1a3a",
   "theme_color": "#2BB5A0",
   "lang": "fr",
+  "id": "/",
+  "scope": "/",
   "orientation": "any",
   "categories": ["education"],
+  "shortcuts": [
+    { "name": "Messages", "short_name": "Messages", "url": "/#/messages", "description": "Écrire à Bastien" },
+    { "name": "Ma semaine", "short_name": "Semaine", "url": "/#/calendrier", "description": "Les séances de la semaine" },
+    { "name": "Mes matières", "short_name": "Matières", "url": "/#/matieres", "description": "Les parcours" }
+  ],
   "icons": [
     { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "icones/opaline-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

@@ -177,9 +177,14 @@ body.corps-eleve {
 
 /* ---------- Bandeau ------------------------------------------------------ */
 .e-bandeau {
-  margin: 0; padding: 0.6rem clamp(0.9rem, 3vw, 2rem);
+  margin: 0; padding: 0.5rem clamp(0.9rem, 3vw, 2rem);
   font-weight: 700; font-size: 0.92rem;
+  display: flex; align-items: center; gap: 0.6rem;
 }
+.e-bandeau .bandeau-texte { flex: 1; min-width: 0; }
+.e-bandeau .bandeau-action, .p-bandeau .bandeau-action { font: inherit; font-weight: 800; padding: 0.25rem 0.7rem; border-radius: 999px; border: 1.5px solid currentColor; background: transparent; color: inherit; cursor: pointer; white-space: nowrap; }
+.e-bandeau .bandeau-fermer, .p-bandeau .bandeau-fermer { flex: none; width: 2rem; height: 2rem; border-radius: 50%; border: 0; background: transparent; color: inherit; cursor: pointer; display: grid; place-items: center; opacity: 0.75; }
+.e-bandeau .bandeau-fermer:hover, .p-bandeau .bandeau-fermer:hover { opacity: 1; background: rgba(0, 0, 0, 0.06); }
 .e-bandeau-succes { background: #E3F6EC; color: #11734A; }
 .e-bandeau-erreur { background: #FDECEC; color: #B42318; }
 .e-bandeau-info   { background: var(--e-voile); color: var(--e-vif); }
@@ -1566,3 +1571,14 @@ html[data-confort-calme] .e-opale-avatar .oeil { animation: none; }
 .e-opale-table caption { text-align: left; font-weight: 600; margin-bottom: .2rem; }
 .e-opale-table th { text-align: left; font-weight: 500; color: var(--e-encre-doux); padding: .15rem .4rem; }
 .e-opale-table td { padding: .15rem .4rem; }
+
+/* F064 : la barre du bas et les boutons flottants respectent la zone sûre des téléphones à encoche. */
+@media (max-width: 52rem) {
+  .e-nav { padding-bottom: calc(0.15rem + env(safe-area-inset-bottom, 0px)); }
+  .e-opale-bouton, .cmp-mascotte, .e-son-visuel { margin-bottom: env(safe-area-inset-bottom, 0px); }
+}
+/* F066 : toute commande tactile fait au moins 44 pixels de côté sur téléphone. */
+@media (max-width: 52rem) and (pointer: coarse) {
+  .e-outil, .e-msg-action, .e-reactions-plus, .e-reactions-puce, .e-rapides button, .e-fils-barre button, .duo-actions button, .e-filtre-jeux a, .e-rond-tete { min-height: 44px; min-width: 44px; }
+  .e-msg-action, .e-rapides button, .duo-actions button { padding-left: 0.8rem; padding-right: 0.8rem; }
+}

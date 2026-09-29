@@ -163,7 +163,8 @@ body.corps-prof {
 .p-bouton-mini { height: 1.6rem; font-size: 0.76rem; padding: 0 0.55rem; }
 .p-bouton:disabled { opacity: 0.42; cursor: not-allowed; filter: none; }
 
-.p-bandeau { margin: 0; padding: 0.45rem 1.2rem; font-size: 0.82rem; font-weight: 600; border-bottom: 1px solid var(--p-trait); }
+.p-bandeau { margin: 0; padding: 0.4rem 1.2rem; font-size: 0.82rem; font-weight: 600; border-bottom: 1px solid var(--p-trait); display: flex; align-items: center; gap: 0.6rem; }
+.p-bandeau .bandeau-texte { flex: 1; min-width: 0; }
 .p-bandeau-succes { background: var(--p-ok-voile); color: var(--p-ok); }
 .p-bandeau-erreur { background: var(--p-alerte-voile); color: var(--p-alerte); }
 .p-bandeau-info { background: var(--p-accent-voile); color: var(--p-accent); }
