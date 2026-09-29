@@ -7,7 +7,7 @@
  * Sans liaison Workers AI : { indisponible: true }. Compte dans l'usage du jour (clé « outils »).
  */
 import { compter } from '../usage.js';
-import { json, erreur, gerer, exigerSession, exigerProf, MESSAGES } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, MESSAGES, methodeNonPermise } from '../../_commun.js';
 import { lireCorps, texte, choix, identifiant, entier, liste } from '../../_valider.js';
 
 const MODELE = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
@@ -15,12 +15,19 @@ const MODELE_REPLI = '@cf/meta/llama-3.1-8b-instruct';
 const MODELE_VISION = '@cf/llava-hf/llava-1.5-7b-hf';
 const NIVEAUX = ['insuffisant', 'fragile', 'satisfaisant', 'tresbien'];
 
+export const onRequest = methodeNonPermise(['POST']);
+/** B175 : chaque appel au modèle est borné à trente secondes. */
+function avecDelai(promesse, ms) {
+  let minuteur;
+  const garde = new Promise((_, refuser) => { minuteur = setTimeout(() => refuser(new Error('délai dépassé')), ms); });
+  return Promise.race([promesse, garde]).finally(() => globalThis.clearTimeout(minuteur));
+}
 async function generer(env, messages, max) {
   try {
-    const r = await env.AI.run(MODELE, { messages, max_tokens: max || 500, temperature: 0.3 });
+    const r = await avecDelai(env.AI.run(MODELE, { messages, max_tokens: max || 500, temperature: 0.3 }), 30000);
     return String((r && (r.response || (r.result && r.result.response))) || '').trim();
   } catch (e) {
-    const r = await env.AI.run(MODELE_REPLI, { messages, max_tokens: max || 500, temperature: 0.3 });
+    const r = await avecDelai(env.AI.run(MODELE_REPLI, { messages, max_tokens: max || 500, temperature: 0.3 }), 30000);
     return String((r && (r.response || (r.result && r.result.response))) || '').trim();
   }
 }
@@ -90,7 +97,7 @@ export const onRequestPost = gerer(async (context) => {
   if (octets.length > 4 * 1024 * 1024) return erreur('La photo dépasse 4 Mo : impossible à lire.', 413);
   let transcription = '';
   try {
-    const v = await env.AI.run(MODELE_VISION, { image: [...octets], prompt: 'Transcris fidèlement le texte manuscrit de cette copie d\'élève, ligne par ligne, en français. Si un passage est illisible, écris [illisible]. Ne commente pas.', max_tokens: 700 });
+    const v = await avecDelai(env.AI.run(MODELE_VISION, { image: [...octets], prompt: 'Transcris fidèlement le texte manuscrit de cette copie d\'élève, ligne par ligne, en français. Si un passage est illisible, écris [illisible]. Ne commente pas.', max_tokens: 700 }), 45000);
     transcription = nettoyer((v && (v.description || v.response)) || '');
   } catch (e) { return json({ indisponible: true, raison: 'vision' }); }
   if (!transcription) return json({ indisponible: true, raison: 'vide' });

@@ -2,7 +2,9 @@
  * GET /api/etat : tout l'état partagé en une seule requête.
  * Le site l'appelle au démarrage puis après chaque modification.
  */
-import { json, gerer, exigerSession } from '../_commun.js';
+import { json, gerer, exigerSession, methodeNonPermise } from '../_commun.js';
+
+export const onRequest = methodeNonPermise(['GET']);
 import { lireReglages } from './reglages.js';
 import { lireFelicitations } from './felicitations.js';
 import { lireAcces } from './acces.js';
@@ -13,7 +15,7 @@ export const onRequestGet = gerer(async (context) => {
   const session = await exigerSession(context);
   const { DB } = context.env;
 
-  const [suivi, resultats, fiches, ouvertures, messages, reglages, felicitations, acces, profil, passees] = await Promise.all([
+  const [suivi, resultats, fiches, ouvertures, messages, reglages, felicitations, acces, profil, passees, parFil, dernierMessage] = await Promise.all([
     DB.prepare('SELECT cle, niveau, note, maj_le, maj_par FROM suivi').all(),
     DB.prepare('SELECT cle, justes, total, meilleur, series, maj_le, detail FROM resultats').all().catch(() => DB.prepare('SELECT cle, justes, total, meilleur, series, maj_le FROM resultats').all()),
     DB.prepare('SELECT cle, termine_le FROM fiches_lues').all(),
@@ -25,6 +27,9 @@ export const onRequestGet = gerer(async (context) => {
     lireAcces(DB),
     lireProfil(DB),
     DB.prepare('SELECT lecons FROM seances WHERE date <= ? AND type = ?').bind(new Date().toISOString().slice(0, 10), 'cours').all().catch(() => ({ results: [] })),
+    // B97, B98 : non lus par fil et date du dernier message, pour une sonde qui ne recharge pas tout.
+    DB.prepare('SELECT fil, COUNT(*) AS n FROM messages WHERE auteur != ? AND lu_le IS NULL AND (envoyer_le IS NULL OR envoyer_le <= ?) GROUP BY fil').bind(session.role, new Date().toISOString()).all().catch(() => ({ results: [] })),
+    DB.prepare('SELECT MAX(cree_le) AS le FROM messages WHERE envoyer_le IS NULL OR envoyer_le <= ? OR auteur = ?').bind(new Date().toISOString(), session.role).first().catch(() => ({ le: null })),
   ]);
 
   const enObjet = (lignes, cleChamp) => {
@@ -71,12 +76,15 @@ export const onRequestGet = gerer(async (context) => {
     reglages,
     felicitations,
     messagesNonLus: (messages.results && messages.results[0] && messages.results[0].n) || 0,
+    messagesNonLusParFil: Object.fromEntries((parFil.results || []).map((l) => [l.fil || 'general', l.n])),
+    dernierMessageLe: (dernierMessage && dernierMessage.le) || null,
   };
   // Empreinte : le navigateur renvoie l'empreinte reçue ; si rien n'a changé, 304 sans corps.
+  // B199 : SHA-256 tronqué, sans collision plausible ; B200 : l'heure du serveur est ajoutée après l'empreinte.
   const texte = JSON.stringify(corps);
-  let h = 0;
-  for (let i = 0; i < texte.length; i += 1) h = (h * 31 + texte.charCodeAt(i)) | 0;
-  const empreinte = '"' + (h >>> 0).toString(16) + '-' + texte.length + '"';
+  const octets = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texte));
+  const empreinte = '"' + [...new Uint8Array(octets)].slice(0, 12).map((b) => b.toString(16).padStart(2, '0')).join('') + '"';
+  corps.serveur_le = new Date().toISOString();
   if (context.request.headers.get('if-none-match') === empreinte) {
     return new Response(null, { status: 304, headers: { etag: empreinte, 'cache-control': 'no-store' } });
   }

@@ -6,7 +6,10 @@
  * fiches, la tutrice Opale, la calculatrice, les options de la messagerie.
  * Toute clé inconnue est refusée : la liste ci-dessous fait foi.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser, MESSAGES } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser, MESSAGES, methodeNonPermise } from '../_commun.js';
+import { lireCorps } from '../_valider.js';
+
+export const onRequest = methodeNonPermise(['GET', 'PUT']);
 
 export const REGLAGES = {
   pauses:        { defaut: true,  type: 'boolean', libelle: 'Points de pause dans les fiches' },
@@ -36,28 +39,45 @@ export async function lireReglages(DB) {
 
 export const onRequestGet = gerer(async (context) => {
   await exigerSession(context);
-  return json({ reglages: await lireReglages(context.env.DB) });
+  const reglages = await lireReglages(context.env.DB);
+  // B159 : une empreinte, pour que le navigateur ne recharge pas des réglages inchangés.
+  const texte = JSON.stringify(reglages);
+  const octets = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texte));
+  const empreinte = '"' + [...new Uint8Array(octets)].slice(0, 10).map((b) => b.toString(16).padStart(2, '0')).join('') + '"';
+  if (context.request.headers.get('if-none-match') === empreinte) return new Response(null, { status: 304, headers: { etag: empreinte, 'cache-control': 'no-store' } });
+  return json({ reglages, definitions: Object.fromEntries(Object.entries(REGLAGES).map(([k, r]) => [k, { libelle: r.libelle, type: r.type, defaut: r.defaut, min: r.min, max: r.max }])) }, 200, { etag: empreinte });
 });
+
+/** Valide et enregistre un réglage ; renvoie la valeur retenue, ou lève une erreur qui nomme le champ (B157). */
+async function poser(context, session, cle, brut) {
+  const regle = REGLAGES[cle];
+  if (!regle) throw erreur(`Réglage inconnu : ${cle}.`, 400, 'invalide', cle);
+  let valeur = brut;
+  if (typeof valeur !== regle.type) throw erreur(`La valeur de ${cle} doit être de type ${regle.type === 'boolean' ? 'oui/non' : 'nombre'}.`, 400, 'invalide', cle);
+  if (regle.type === 'number') valeur = Math.min(regle.max, Math.max(regle.min, Math.round(valeur)));
+  await context.env.DB.prepare(
+    `INSERT INTO reglages (cle, valeur, maj_le) VALUES (?, ?, ?)
+     ON CONFLICT(cle) DO UPDATE SET valeur = excluded.valeur, maj_le = excluded.maj_le`,
+  ).bind(cle, JSON.stringify(valeur), maintenant()).run();
+  await journaliser(context.env, session, 'reglage', cle, null, valeur);
+  return valeur;
+}
 
 export const onRequestPut = gerer(async (context) => {
   const session = exigerProf(await exigerSession(context));
   const { DB } = context.env;
-
-  let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
-  const cle = String(corps && corps.cle || '');
-  const regle = REGLAGES[cle];
-  if (!regle) return erreur('Réglage inconnu.');
-  let valeur = corps.valeur;
-  if (typeof valeur !== regle.type) return erreur(`La valeur de ${cle} doit être de type ${regle.type}.`);
-  if (regle.type === 'number') valeur = Math.min(regle.max, Math.max(regle.min, Math.round(valeur)));
-
-  await DB.prepare(
-    `INSERT INTO reglages (cle, valeur, maj_le) VALUES (?, ?, ?)
-     ON CONFLICT(cle) DO UPDATE SET valeur = excluded.valeur, maj_le = excluded.maj_le`,
-  ).bind(cle, JSON.stringify(valeur), maintenant()).run();
-
-  const apres = await lireReglages(DB);
-  await journaliser(context.env, session, 'reglage', cle, null, valeur);
-  return json({ cle, valeur, reglages: apres });
+  const corps = await lireCorps(context.request);
+  if (!corps) return erreur(MESSAGES.requete_invalide);
+  // B158 : plusieurs réglages d'un coup ({ reglages: { cle: valeur, ... } }), ou un seul.
+  if (corps.reglages && typeof corps.reglages === 'object') {
+    const entrees = Object.entries(corps.reglages).slice(0, 40);
+    if (!entrees.length) return erreur('Aucun réglage.', 400, 'invalide', 'reglages');
+    const retenus = {};
+    for (const [k, v] of entrees) retenus[k] = await poser(context, session, String(k), v);
+    return json({ retenus, reglages: await lireReglages(DB) });
+  }
+  const cle = String(corps.cle || '');
+  if (!REGLAGES[cle]) return erreur('Réglage inconnu.', 400, 'invalide', 'cle');
+  const valeur = await poser(context, session, cle, corps.valeur);
+  return json({ cle, valeur, reglages: await lireReglages(DB) });
 });

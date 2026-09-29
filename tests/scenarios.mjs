@@ -162,6 +162,25 @@ export const SCENARIOS = {
     ok(journal.statut === 200 && Array.isArray(journal.corps.journal), 'journal d\'audit lisible');
     const sante = await api(page, '/moi');
     ok(sante.statut === 200 && sante.corps.sante && sante.corps.sante.tables, 'page santé : tailles des tables');
+    // B14, B15, B36, B187, B188, B51, B67 : méthode refusée, adresse inconnue, corps non JSON, santé, version, sessions, pagination.
+    const methode = await api(page, '/etat', { method: 'DELETE' });
+    ok(methode.statut === 405 && methode.corps.code === 'methode', 'méthode non permise : 405 en JSON');
+    const inconnue = await api(page, '/nexistepas');
+    ok(inconnue.statut === 404 && inconnue.corps.code === 'introuvable', 'adresse d\'API inconnue : 404 en JSON (' + inconnue.statut + ')');
+    const texteBrut = await page.evaluate(async () => (await fetch('/api/messages', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: 'bonjour' })).status);
+    ok(texteBrut === 415, 'corps non JSON refusé : 415 (' + texteBrut + ')');
+    const controle = await api(page, '/sante');
+    ok(controle.statut === 200 && controle.corps.ok === true && Array.isArray(controle.corps.controles), 'santé : base, sessions et fichiers reliés');
+    const version = await api(page, '/version');
+    ok(version.statut === 200 && typeof version.corps.version === 'string' && version.corps.deploye_le, 'version et date de déploiement');
+    const sessions = await api(page, '/sessions');
+    ok(sessions.statut === 200 && sessions.corps.sessions.some((x) => x.moi), 'sessions ouvertes, la mienne repérée');
+    const pageMsg = await api(page, '/messages?limite=1');
+    ok(pageMsg.statut === 200 && pageMsg.corps.messages.length <= 1 && typeof pageMsg.corps.suite === 'boolean', 'messages paginés');
+    const nouveaux = await api(page, '/messages/nouveaux');
+    ok(nouveaux.statut === 200 && typeof nouveaux.corps.nonLus === 'number', 'sonde légère des nouveautés');
+    const csv = await page.evaluate(async () => { const r = await fetch('/api/suivi?export=csv'); return { statut: r.status, type: r.headers.get('content-type') }; });
+    ok(csv.statut === 200 && /text\/csv/.test(csv.type), 'export CSV du suivi');
   },
   async 'sécurité : débit et taille'(nav, BASE) {
     const { page } = await ouvrir(nav, BASE, ELEVE);
@@ -169,6 +188,14 @@ export const SCENARIOS = {
     ok(gros === 413 || gros === 400, 'corps trop gros refusé (' + gros + ')');
     const evalProf = await page.evaluate(async () => (await fetch('/api/reglages', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: '{"cle":"pauses","valeur":true}' })).status);
     ok(evalProf === 403, 'écriture professeur refusée à l\'élève (' + evalProf + ')');
+    // B72 : le même message envoyé deux fois en dix secondes est refusé (409).
+    const texte = 'Doublon de test ' + Date.now();
+    const un = await api(page, '/messages', { method: 'POST', body: JSON.stringify({ texte }) });
+    const deux = await api(page, '/messages', { method: 'POST', body: JSON.stringify({ texte }) });
+    ok(un.statut === 201 && deux.statut === 409, 'double envoi refusé (' + un.statut + ', ' + deux.statut + ')');
+    // B16 à B20 : en-têtes de sécurité présents sur une réponse réservée.
+    const entetes = await page.evaluate(async () => { const r = await fetch('/api/moi'); return { hsts: r.headers.get('strict-transport-security'), coop: r.headers.get('cross-origin-opener-policy'), robots: r.headers.get('x-robots-tag') }; });
+    ok(entetes.hsts && entetes.coop === 'same-origin' && /noindex/.test(entetes.robots || ''), 'en-têtes de sécurité');
   },
 };
 

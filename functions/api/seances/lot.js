@@ -5,24 +5,27 @@
  * présente sur le même créneau du même jour n'est pas dupliquée, elle est
  * ignorée. On peut donc relancer la génération sans abîmer le planning.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, MESSAGES } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, MESSAGES, journaliser, methodeNonPermise } from '../../_commun.js';
+import { lireCorps } from '../../_valider.js';
 import { REQUETE_INSERT, valeurs, construire, valider } from '../seances.js';
 
+export const onRequest = methodeNonPermise(['POST']);
 const MAX = 400;
 
 export const onRequestPost = gerer(async (context) => {
-  exigerProf(await exigerSession(context));
-  let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
+  const session = exigerProf(await exigerSession(context));
+  const corps = await lireCorps(context.request, 1048576);
+  if (!corps) return erreur(MESSAGES.requete_invalide);
 
-  const liste = Array.isArray(corps && corps.seances) ? corps.seances : null;
-  if (!liste) return erreur('Un tableau « seances » est attendu.');
-  if (!liste.length) return erreur('Aucune séance à créer.');
-  if (liste.length > MAX) return erreur(`Trop de séances d'un coup (maximum ${MAX}).`);
+  const liste = Array.isArray(corps.seances) ? corps.seances : null;
+  if (!liste) return erreur('Un tableau « seances » est attendu.', 400, 'invalide', 'seances');
+  if (!liste.length) return erreur('Aucune séance à créer.', 400, 'invalide', 'seances');
+  if (liste.length > MAX) return erreur(`Trop de séances d'un coup (maximum ${MAX}).`, 400, 'invalide', 'seances');
 
-  for (const s of liste) {
-    const probleme = valider(s);
-    if (probleme) return erreur(probleme);
+  // B137 : chaque problème est signalé avec l'index de la séance fautive.
+  for (let i = 0; i < liste.length; i += 1) {
+    const probleme = valider(liste[i]);
+    if (probleme) return erreur(`Séance ${i + 1} : ${probleme.message}`, 400, 'invalide', `seances[${i}].${probleme.champ}`);
   }
   // A9 : un lot strictement identique reçu deux fois dans la minute est refusé (double clic, double envoi).
   if (context.env.SESSIONS) {
@@ -48,8 +51,8 @@ export const onRequestPost = gerer(async (context) => {
 
   if (aCreer.length) {
     const requete = context.env.DB.prepare(REQUETE_INSERT);
-    await context.env.DB.batch(aCreer.map((s) => requete.bind(...valeurs(s))));
+    for (let i = 0; i < aCreer.length; i += 50) await context.env.DB.batch(aCreer.slice(i, i + 50).map((s) => requete.bind(...valeurs(s))));
   }
-
-  return json({ crees: aCreer.length, ignores: liste.length - aCreer.length, ids: aCreer.map((s) => s.id).filter(Boolean) }, 201);
+  await journaliser(context.env, session, 'seance', 'lot', null, `${aCreer.length} créée(s), ${liste.length - aCreer.length} ignorée(s)`);
+  return json({ crees: aCreer.length, ignores: liste.length - aCreer.length, ids: aCreer.map((s) => s.id) }, 201);
 });

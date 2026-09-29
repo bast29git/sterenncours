@@ -718,10 +718,26 @@ function construireDonneesSite() {
   // La version du build est aussi connue des fonctions serveur (page santé).
   let versionBuild = '';
   try { versionBuild = JSON.parse(fs.readFileSync(path.join(SORTIE, 'version.json'), 'utf8')).version || ''; } catch (e) { versionBuild = ''; }
+  // B176 : la liste des identifiants de jeux, pour que le serveur refuse un score sur un jeu qui n'existe pas.
+  let idsJeux = [];
+  try {
+    const brutJeux = fs.readFileSync(path.join(RACINE, 'site', 'data', 'jeux.js'), 'utf8');
+    idsJeux = JSON.parse(brutJeux.slice(brutJeux.indexOf('['), brutJeux.lastIndexOf(']') + 1)).map((j) => j.id);
+  } catch (e) { idsJeux = []; }
+  // B188 : la date de déploiement ne change que quand le contenu généré change : le fichier reste stable dans git.
+  let deployeLe = new Date().toISOString();
+  const corpsGenere = 'export const PROGRAMME = ' + JSON.stringify(resume) + ';\n'
+    + 'export const VERSION = ' + JSON.stringify(versionBuild) + ';\n'
+    + 'export const JEUX_IDS = ' + JSON.stringify(idsJeux) + ';\n';
+  try {
+    const ancien = fs.readFileSync(cibleFonctions, 'utf8');
+    const ancienneDate = /export const DEPLOYE_LE = "([^"]+)"/.exec(ancien);
+    if (ancienneDate && ancien.includes(corpsGenere)) deployeLe = ancienneDate[1];
+  } catch (e) { /* premier build */ }
   fs.writeFileSync(cibleFonctions,
     '/* Généré par build/build.mjs à partir de 00-pilotage/programme.json : ne pas modifier à la main. */\n'
-    + 'export const PROGRAMME = ' + JSON.stringify(resume) + ';\n'
-    + 'export const VERSION = ' + JSON.stringify(versionBuild) + ';\n');
+    + corpsGenere
+    + 'export const DEPLOYE_LE = ' + JSON.stringify(deployeLe) + ';\n');
 
   const prets = programme.matieres.reduce((n, m) =>
     n + m.lecons.filter((l) => l.docs.length === 4).length, 0);

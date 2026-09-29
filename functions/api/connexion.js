@@ -5,8 +5,12 @@
  * PBKDF2 avec sel, écrite au provisionnement. Les tentatives sont limitées
  * par adresse pour qu'un code court ne puisse pas être trouvé par essais.
  */
-import { json, erreur, gerer, creerSession, cookieSession, deriver, egal, DUREE_SESSION, ROLES, MESSAGES, journaliser } from '../_commun.js';
+import { json, erreur, gerer, creerSession, cookieSession, deriver, egal, DUREE_SESSION, ROLES, MESSAGES, journaliser, methodeNonPermise } from '../_commun.js';
+import { lireCorps } from '../_valider.js';
 import { compter } from './usage.js';
+
+export const onRequest = methodeNonPermise(['POST']);
+const pause = (ms) => new Promise((ok) => setTimeout(ok, ms));
 
 const MAX_TENTATIVES = 12;
 const FENETRE = 600; // 10 minutes
@@ -22,19 +26,25 @@ export const onRequestPost = gerer(async (context) => {
     return erreur('Trop de tentatives. Réessaie dans quelques minutes.', 429);
   }
 
-  let corps;
-  try { corps = await request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
-  const code = String(corps && corps.code || '').trim().toLowerCase();
-  if (!code || code.length > 64) return erreur('Code manquant.');
+  const corps = await lireCorps(request);
+  if (!corps) return erreur(MESSAGES.requete_invalide);
+  const code = String(corps.code || '').trim().toLowerCase();
+  if (!code || code.length > 64) return erreur('Code manquant.', 400, 'invalide', 'code');
 
+  // B46 : les deux dérivations sont toujours calculées, dans le même ordre : la durée ne dit pas quel espace a répondu.
+  const candidats = [];
   for (const role of ROLES) {
     const brut = await env.SESSIONS.get('auth:' + role);
     if (!brut) continue;
     const { sel, iterations, empreinte } = JSON.parse(brut);
-    const candidat = await deriver(code, sel, iterations);
-    if (egal(candidat, empreinte)) {
+    candidats.push({ role, ok: egal(await deriver(code, sel, iterations), empreinte) });
+  }
+  const trouve = candidats.find((c) => c.ok);
+  if (trouve) {
+    const role = trouve.role;
+    {
       await env.SESSIONS.delete(cleLimite);
-      const jeton = await creerSession(env, role);
+      const jeton = await creerSession(env, role, request);
       if (env.DB) {
         await compter(env, 'connexion');
         // A18 : journal des connexions : rôle, heure, empreinte de navigateur tronquée ; purge à trente jours.
@@ -45,10 +55,14 @@ export const onRequestPost = gerer(async (context) => {
           await env.DB.prepare('DELETE FROM journal WHERE quoi = ? AND quand < ?').bind('connexion', new Date(Date.now() - 30 * 86400000).toISOString()).run();
         } catch (e) { /* le journal ne bloque jamais la connexion */ }
       }
-      return json({ role }, 200, { 'set-cookie': cookieSession(jeton, DUREE_SESSION) });
+      // B63 : la date de fin de session est annoncée, pour que le site prévienne avant l'expiration.
+      return json({ role, expire_le: new Date(Date.now() + DUREE_SESSION * 1000).toISOString() }, 200, { 'set-cookie': cookieSession(jeton, DUREE_SESSION) });
     }
   }
 
   await env.SESSIONS.put(cleLimite, String(tentatives + 1), { expirationTtl: FENETRE });
-  return erreur('Ce code n\'est pas reconnu.', 401);
+  // B64, B47 : l'échec est compté, et la réponse attend un peu : les essais en rafale coûtent du temps.
+  if (env.DB) await compter(env, 'connexion_echec');
+  await pause(300 + Math.min(tentatives, 8) * 150);
+  return erreur('Ce code n\'est pas reconnu.', 401, 'code_inconnu', 'code');
 });

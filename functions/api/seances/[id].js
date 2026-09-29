@@ -1,48 +1,69 @@
 /**
+ *   GET    /api/seances/:id   une séance (B140)
  *   PATCH  /api/seances/:id   met à jour une séance (professeur)
  *   DELETE /api/seances/:id   supprime une séance (professeur)
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser, MESSAGES } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser, MESSAGES, methodeNonPermise } from '../../_commun.js';
+import { lireCorps, texte as validerTexte, identifiant } from '../../_valider.js';
+import { decoder, STATUTS, CRENEAUX, TYPES, HEURE, DATE } from '../seances.js';
+import { PROGRAMME } from '../../_programme.js';
 
-const STATUTS = ['prevue', 'faite', 'reportee'];
-const CRENEAUX = ['A', 'B', 'C'];
-const TYPES = ['cours', 'travail'];
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const HEURE = /^([01]\d|2[0-3]):[0-5]\d$/;
+export const onRequest = methodeNonPermise(['GET', 'PATCH', 'DELETE']);
+const LECONS = new Set(PROGRAMME.flatMap((m) => m.lecons.map((l) => m.id + '/' + l.ref)));
+const MATIERES = new Set(PROGRAMME.map((m) => m.id));
+
+export const onRequestGet = gerer(async (context) => {
+  await exigerSession(context);
+  const id = identifiant(context.params.id);
+  if (!id) return erreur(MESSAGES.identifiant_invalide, 400, 'invalide', 'id');
+  const s = await context.env.DB.prepare('SELECT * FROM seances WHERE id = ?').bind(id).first();
+  if (!s) return erreur('Séance introuvable.', 404);
+  return json(decoder(s));
+});
 
 export const onRequestPatch = gerer(async (context) => {
-  exigerProf(await exigerSession(context));
-  const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
+  const session = exigerProf(await exigerSession(context));
+  const id = identifiant(context.params.id);
+  if (!id) return erreur(MESSAGES.identifiant_invalide, 400, 'invalide', 'id');
 
   const existante = await context.env.DB.prepare('SELECT * FROM seances WHERE id = ?').bind(id).first();
   if (!existante) return erreur('Séance introuvable.', 404);
 
-  let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
+  const corps = await lireCorps(context.request);
+  if (!corps) return erreur(MESSAGES.requete_invalide);
 
-  if (corps.statut && !STATUTS.includes(corps.statut)) return erreur('Statut invalide.');
-  if (corps.creneau && !CRENEAUX.includes(corps.creneau)) return erreur('Créneau invalide.');
-  if (corps.date && !DATE.test(corps.date)) return erreur('Date invalide.');
-  if (corps.type && !TYPES.includes(corps.type)) return erreur('Type invalide.');
-  if (corps.debut && !HEURE.test(String(corps.debut))) return erreur('Heure de début invalide (HH:MM attendu).');
-  if (corps.fin && !HEURE.test(String(corps.fin))) return erreur('Heure de fin invalide (HH:MM attendu).');
+  if (corps.statut && !STATUTS.includes(corps.statut)) return erreur('Statut invalide.', 400, 'invalide', 'statut');
+  if (corps.creneau && !CRENEAUX.includes(corps.creneau)) return erreur('Créneau invalide.', 400, 'invalide', 'creneau');
+  if (corps.date && !DATE.test(corps.date)) return erreur(MESSAGES.date_invalide, 400, 'invalide', 'date');
+  if (corps.type && !TYPES.includes(corps.type)) return erreur('Type invalide.', 400, 'invalide', 'type');
+  if (corps.debut && !HEURE.test(String(corps.debut))) return erreur(MESSAGES.heure_invalide, 400, 'invalide', 'debut');
+  if (corps.fin && !HEURE.test(String(corps.fin))) return erreur(MESSAGES.heure_invalide, 400, 'invalide', 'fin');
   if ((corps.debut || existante.debut) >= (corps.fin || existante.fin)) {
-    return erreur('La fin doit venir après le début.');
+    return erreur(MESSAGES.fin_avant_debut, 400, 'invalide', 'fin');
+  }
+  if (corps.matieres && !Array.isArray(corps.matieres)) return erreur('matieres doit être une liste.', 400, 'invalide', 'matieres');
+  if (corps.lecons && !Array.isArray(corps.lecons)) return erreur('lecons doit être une liste.', 400, 'invalide', 'lecons');
+  // Un déplacement ne doit pas tomber sur un créneau déjà pris.
+  if ((corps.date && corps.date !== existante.date) || (corps.creneau && corps.creneau !== existante.creneau)) {
+    const deja = await context.env.DB.prepare('SELECT id FROM seances WHERE date = ? AND creneau = ? AND id != ?').bind(corps.date || existante.date, corps.creneau || existante.creneau, id).first();
+    if (deja) return erreur('Une autre séance occupe déjà ce créneau.', 409, 'conflit', 'creneau');
   }
 
+  const lecons = corps.lecons ? [...new Set(corps.lecons.map(String).filter((l) => LECONS.has(l) || /^module\/[a-z-]+$/.test(l)))].slice(0, 12) : null;
+  const matieres = corps.matieres ? [...new Set(corps.matieres.map(String).filter((m) => MATIERES.has(m)))].slice(0, 8) : null;
   const fusion = {
     date: corps.date || existante.date,
     creneau: corps.creneau || existante.creneau,
     debut: corps.debut || existante.debut,
     fin: corps.fin || existante.fin,
     type: corps.type || existante.type,
-    matieres: corps.matieres ? JSON.stringify(corps.matieres) : existante.matieres,
-    lecons: corps.lecons ? JSON.stringify(corps.lecons) : existante.lecons,
-    objectif: corps.objectif !== undefined ? (corps.objectif ? String(corps.objectif).slice(0, 300) : null) : existante.objectif,
-    travail: corps.travail !== undefined ? (corps.travail ? String(corps.travail).slice(0, 500) : null) : existante.travail,
+    matieres: matieres ? JSON.stringify(matieres) : existante.matieres,
+    lecons: lecons ? JSON.stringify(lecons) : existante.lecons,
+    // B127 : les textes libres sont nettoyés (caractères de contrôle) et bornés.
+    objectif: corps.objectif !== undefined ? (validerTexte(corps.objectif, 300) || null) : existante.objectif,
+    travail: corps.travail !== undefined ? (validerTexte(corps.travail, 500) || null) : existante.travail,
     statut: corps.statut || existante.statut,
-    bilan: corps.bilan !== undefined ? (corps.bilan ? String(corps.bilan).slice(0, 800) : null) : existante.bilan,
+    bilan: corps.bilan !== undefined ? (validerTexte(corps.bilan, 800) || null) : existante.bilan,
   };
 
   await context.env.DB.prepare(
@@ -52,19 +73,18 @@ export const onRequestPatch = gerer(async (context) => {
     fusion.lecons, fusion.objectif, fusion.travail, fusion.statut, fusion.bilan, maintenant(), id).run();
 
   const lire = (v) => { try { return JSON.parse(v || '[]'); } catch (e) { return []; } };
-  await journaliser(context.env, await lireSessionSure(context), 'seance', id, { date: existante.date, statut: existante.statut, lecons: existante.lecons }, { date: fusion.date, statut: fusion.statut, lecons: fusion.lecons });
+  await journaliser(context.env, session, 'seance', id, { date: existante.date, statut: existante.statut, lecons: existante.lecons }, { date: fusion.date, statut: fusion.statut, lecons: fusion.lecons });
   return json({ id, ...fusion, matieres: lire(fusion.matieres), lecons: lire(fusion.lecons) });
 });
 
 export const onRequestDelete = gerer(async (context) => {
   const session = exigerProf(await exigerSession(context));
-  const id = context.params.id;
-  if (!/^[0-9a-f]{24}$/.test(id)) return erreur(MESSAGES.identifiant_invalide);
+  const id = identifiant(context.params.id);
+  if (!id) return erreur(MESSAGES.identifiant_invalide, 400, 'invalide', 'id');
   const avant = await context.env.DB.prepare('SELECT date, creneau, type, objectif FROM seances WHERE id = ?').bind(id).first().catch(() => null);
+  // B139 : supprimer une séance qui n'existe pas est une erreur, pas un silence.
+  if (!avant) return erreur('Séance introuvable.', 404);
   await context.env.DB.prepare('DELETE FROM seances WHERE id = ?').bind(id).run();
   await journaliser(context.env, session, 'seance', id, avant, null);
   return json({ supprime: id });
 });
-
-/** La session du PATCH est déjà vérifiée plus haut ; on la relit pour le journal, sans jamais échouer. */
-async function lireSessionSure(context) { try { return await exigerSession(context); } catch (e) { return { role: 'prof' }; } }

@@ -8,8 +8,13 @@
  * à deux étoiles ou plus franchit le seuil de réussite (70 %). Sans étoiles,
  * une partie gagnée vaut 75, une partie perdue 40.
  */
-import { json, erreur, gerer, exigerSession, maintenant, MESSAGES } from '../../_commun.js';
+import { json, erreur, gerer, exigerSession, maintenant, MESSAGES, methodeNonPermise } from '../../_commun.js';
+import { lireCorps, texte as validerTexte } from '../../_valider.js';
+import { JEUX_IDS } from '../../_programme.js';
 import { compter } from '../usage.js';
+
+export const onRequest = methodeNonPermise(['POST']);
+const JEUX = new Set(JEUX_IDS);
 
 export function noteSur100(corps) {
   const etoiles = Number(corps && corps.stars);
@@ -23,12 +28,22 @@ export const onRequestPost = gerer(async (context) => {
   await exigerSession(context);
   const { DB } = context.env;
 
-  let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
-  const id = String((corps && corps.gameId) || '').replace(/[^a-z0-9-]/gi, '').slice(0, 60);
-  if (!id) return erreur('gameId requis.');
+  const session = context.data.session;
+  const corps = await lireCorps(context.request);
+  if (!corps) return erreur(MESSAGES.requete_invalide);
+  const id = String(corps.gameId || '').replace(/[^a-z0-9-]/gi, '').slice(0, 60);
+  if (!id) return erreur('gameId requis.', 400, 'invalide', 'gameId');
+  // B176 : le jeu doit exister dans la liste générée au build.
+  if (JEUX.size && !JEUX.has(id)) return erreur('Ce jeu n\'existe pas.', 400, 'invalide', 'gameId');
   const justes = noteSur100(corps);
   const cle = 'jeu/' + id;
+  // B177 : une partie envoyée deux fois (double déclenchement de fin) n'est comptée qu'une fois.
+  const partie = validerTexte(corps.partie, 40);
+  if (partie && context.env.SESSIONS) {
+    const cleP = 'partie:' + (session ? session.role : 'x') + ':' + id + ':' + partie.replace(/[^a-z0-9-]/gi, '');
+    if (await context.env.SESSIONS.get(cleP)) return erreur(MESSAGES.doublon, 409, 'doublon');
+    await context.env.SESSIONS.put(cleP, '1', { expirationTtl: 300 });
+  }
 
   await DB.prepare(
     `INSERT INTO resultats (cle, matiere, ref, justes, total, meilleur, series, maj_le, genre)

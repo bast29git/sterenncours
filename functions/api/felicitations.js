@@ -9,45 +9,54 @@
  *
  * Chaque félicitation vaut une étoile : elle compte dans les réussites.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, nouvelId, journaliser, MESSAGES } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, nouvelId, journaliser, MESSAGES, methodeNonPermise } from '../_commun.js';
+import { lireCorps, texte as validerTexte, matiere as validerMatiere, ref as validerRef, identifiant, entier } from '../_valider.js';
+import { PROGRAMME } from '../_programme.js';
 
-export async function lireFelicitations(DB) {
+export const onRequest = methodeNonPermise(['GET', 'POST', 'PATCH']);
+const MATIERES = new Set(PROGRAMME.map((m) => m.id));
+
+export async function lireFelicitations(DB, n = 60) {
   try {
     const r = await DB.prepare(
-      'SELECT id, fichier_id, matiere, ref, texte, cree_le, vu_le FROM felicitations ORDER BY cree_le DESC LIMIT 60',
-    ).all();
+      'SELECT id, fichier_id, matiere, ref, texte, cree_le, vu_le FROM felicitations ORDER BY cree_le DESC LIMIT ?',
+    ).bind(n).all();
     return r.results || [];
   } catch (e) { return []; }
 }
 
 export const onRequestGet = gerer(async (context) => {
   await exigerSession(context);
-  return json({ felicitations: await lireFelicitations(context.env.DB) });
+  // B163 : le nombre demandé est borné.
+  const n = entier(new URL(context.request.url).searchParams.get('n'), 1, 300, 60);
+  return json({ felicitations: await lireFelicitations(context.env.DB, n) });
 });
 
 export const onRequestPost = gerer(async (context) => {
   const session = exigerProf(await exigerSession(context));
   const { DB } = context.env;
-  let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
-  const texte = String(corps && corps.texte || '').trim().slice(0, 600);
-  if (!texte) return erreur('Écris un mot pour Sterenn.');
-  const matiere = corps.matiere && /^[a-z0-9-]+$/.test(corps.matiere) ? corps.matiere : null;
-  const ref = corps.ref && /^[A-Za-z0-9]+$/.test(corps.ref) ? corps.ref : null;
-  const fichier = corps.fichier_id && /^[0-9a-f]{24}$/.test(corps.fichier_id) ? corps.fichier_id : null;
+  const corps = await lireCorps(context.request);
+  if (!corps) return erreur(MESSAGES.requete_invalide);
+  // B160 : texte nettoyé, trois cents caractères au plus.
+  const texte = validerTexte(corps.texte, 301);
+  if (!texte) return erreur(MESSAGES.texte_obligatoire, 400, 'invalide', 'texte');
+  if (texte.length > 300) return erreur('Trois cents caractères au plus.', 400, 'invalide', 'texte');
+  // B161 : la matière doit être une matière du programme.
+  const matiere = corps.matiere ? validerMatiere(corps.matiere) : null;
+  if (corps.matiere && (!matiere || !MATIERES.has(matiere))) return erreur('Matière inconnue.', 400, 'invalide', 'matiere');
+  const ref = corps.ref ? validerRef(corps.ref) : null;
+  if (corps.ref && !ref) return erreur('Référence invalide.', 400, 'invalide', 'ref');
+  const fichier = corps.fichier_id ? identifiant(corps.fichier_id) : null;
+  if (corps.fichier_id && !fichier) return erreur('Fichier invalide.', 400, 'invalide', 'fichier_id');
+  if (fichier) { const f = await DB.prepare('SELECT id FROM fichiers WHERE id = ?').bind(fichier).first(); if (!f) return erreur('Fichier introuvable.', 404); }
   const id = nouvelId();
   const le = maintenant();
-
-  await DB.prepare(
-    'INSERT INTO felicitations (id, fichier_id, matiere, ref, texte, cree_le) VALUES (?, ?, ?, ?, ?, ?)',
-  ).bind(id, fichier, matiere, ref, texte, le).run();
-
-  // Le mot part aussi dans la messagerie, avec son contexte.
   const contexte = 'Félicitations' + (matiere ? ' · ' + matiere + (ref ? ' ' + ref : '') : '');
-  await DB.prepare(
-    'INSERT INTO messages (id, auteur, texte, contexte, cree_le) VALUES (?, ?, ?, ?, ?)',
-  ).bind(nouvelId(), 'prof', '🏆 ' + texte, contexte.slice(0, 120), le).run();
-
+  // B162 : la félicitation et son message partent dans le même lot : l'un n'existe jamais sans l'autre.
+  await DB.batch([
+    DB.prepare('INSERT INTO felicitations (id, fichier_id, matiere, ref, texte, cree_le) VALUES (?, ?, ?, ?, ?, ?)').bind(id, fichier, matiere, ref, texte, le),
+    DB.prepare('INSERT INTO messages (id, auteur, texte, contexte, cree_le) VALUES (?, ?, ?, ?, ?)').bind(nouvelId(), 'prof', '🏆 ' + texte, contexte.slice(0, 120), le),
+  ]);
   await journaliser(context.env, session, 'felicitation', id, null, texte.slice(0, 120));
   return json({ id, fichier_id: fichier, matiere, ref, texte, cree_le: le, vu_le: null });
 });

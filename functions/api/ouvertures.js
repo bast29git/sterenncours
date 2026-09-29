@@ -9,19 +9,24 @@
  *
  * Réservé à l'espace professeur : c'est lui qui décide du rythme.
  */
-import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser, MESSAGES } from '../_commun.js';
+import { json, erreur, gerer, exigerSession, exigerProf, maintenant, journaliser, MESSAGES, methodeNonPermise } from '../_commun.js';
+import { lireCorps, matiere as validerMatiere, ref as validerRef } from '../_valider.js';
+import { PROGRAMME } from '../_programme.js';
+
+export const onRequest = methodeNonPermise(['PUT']);
+const LECONS = new Set(PROGRAMME.flatMap((m) => m.lecons.map((l) => m.id + '/' + l.ref)));
 
 export const onRequestPut = gerer(async (context) => {
   const session = exigerProf(await exigerSession(context));
   const { DB } = context.env;
 
-  let corps;
-  try { corps = await context.request.json(); } catch (e) { return erreur(MESSAGES.requete_invalide); }
-  const { matiere, ref } = corps || {};
-  if (!matiere || !ref) return erreur('matiere et ref sont requis.');
-  if (!/^[a-z0-9-]+$/.test(matiere) || !/^[A-Za-z0-9]+$/.test(ref)) return erreur('Identifiants invalides.');
-
+  const corps = await lireCorps(context.request);
+  if (!corps) return erreur(MESSAGES.requete_invalide);
+  const matiere = validerMatiere(corps.matiere); const ref = validerRef(corps.ref);
+  if (!matiere || !ref) return erreur('matiere et ref sont requis.', 400, 'invalide', matiere ? 'ref' : 'matiere');
   const cle = matiere + '/' + ref;
+  // B149 : la leçon doit exister au programme.
+  if (!LECONS.has(cle)) return erreur(MESSAGES.cle_lecon_invalide, 400, 'invalide', 'ref');
   const ouvert = corps.ouvert;
 
   const avant = await DB.prepare('SELECT etat FROM ouvertures WHERE cle = ?').bind(cle).first().catch(() => null);
@@ -30,7 +35,7 @@ export const onRequestPut = gerer(async (context) => {
     await journaliser(context.env, session, 'ouverture', cle, avant, null);
     return json({ cle, ouvert: null });
   }
-  if (typeof ouvert !== 'boolean') return erreur('ouvert doit valoir true, false ou null.');
+  if (typeof ouvert !== 'boolean') return erreur('ouvert doit valoir true, false ou null.', 400, 'invalide', 'ouvert');
 
   await DB.prepare(
     `INSERT INTO ouvertures (cle, matiere, ref, etat, maj_le) VALUES (?, ?, ?, ?, ?)

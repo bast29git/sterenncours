@@ -2,7 +2,9 @@
  * A14 : POST /api/deconnexion/partout : invalide toutes les sessions de son propre rôle,
  * sauf celle qui fait la demande. Utile après un code partagé par erreur.
  */
-import { json, gerer, exigerSession } from '../../_commun.js';
+import { json, gerer, exigerSession, journaliser, methodeNonPermise } from '../../_commun.js';
+
+export const onRequest = methodeNonPermise(['POST']);
 
 export const onRequestPost = gerer(async (context) => {
   const session = await exigerSession(context);
@@ -20,5 +22,7 @@ export const onRequestPost = gerer(async (context) => {
     }
     curseur = page.list_complete ? null : page.cursor;
   } while (curseur);
+  // B54 : le nombre de sessions fermées est journalisé.
+  await journaliser(context.env, session, 'deconnexion', session.role, null, `partout : ${fermees} session(s) fermée(s)`);
   return json({ fermees });
 });

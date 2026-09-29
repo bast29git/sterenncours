@@ -5,11 +5,22 @@
  * Pour le professeur, la réponse porte aussi la santé (A51) : tailles des
  * tables, dernière sauvegarde, version déployée, temps de réponse moyen.
  */
-import { json, gerer, lireSession } from '../_commun.js';
-import { VERSION } from '../_programme.js';
+import { json, gerer, lireSession, DUREE_SESSION, methodeNonPermise } from '../_commun.js';
+import { VERSION, DEPLOYE_LE } from '../_programme.js';
 
+export const onRequest = methodeNonPermise(['GET']);
+
+/** B59 : la santé est calculée au plus une fois par minute : quatorze comptages ne se rejouent pas à chaque ouverture. */
 async function sante(env) {
-  const sortie = { version: VERSION, tables: {}, sauvegarde: null, perf: null };
+  if (env.SESSIONS) {
+    try { const brut = await env.SESSIONS.get('sante:cache'); if (brut) { const c = JSON.parse(brut); if (c.version === VERSION && Date.now() - new Date(c.calculee_le).getTime() < 60000) return c; } } catch (e) { /* recalcul */ }
+  }
+  const sortie = await calculerSante(env);
+  if (env.SESSIONS) { try { await env.SESSIONS.put('sante:cache', JSON.stringify(sortie), { expirationTtl: 120 }); } catch (e) { /* facultatif */ } }
+  return sortie;
+}
+async function calculerSante(env) {
+  const sortie = { version: VERSION, deploye_le: DEPLOYE_LE, calculee_le: new Date().toISOString(), tables: {}, sauvegarde: null, perf: null };
   const tables = ['suivi', 'resultats', 'fiches_lues', 'ouvertures', 'messages', 'fichiers', 'seances', 'felicitations', 'acces', 'profil', 'journal', 'tuteur_journal', 'usage', 'erreurs'];
   await Promise.all(tables.map(async (t) => {
     try { const r = await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${t}`).first(); sortie.tables[t] = r ? r.n : 0; } catch (e) { sortie.tables[t] = null; }
@@ -28,7 +39,7 @@ async function sante(env) {
     try {
       const jour = new Date().toISOString().slice(0, 10);
       const brut = await env.SESSIONS.get('perf:' + jour);
-      if (brut) { const p = JSON.parse(brut); sortie.perf = { n: p.n, moyenne_ms: p.n ? Math.round(p.total / p.n) : null, max_ms: p.max || null }; }
+      if (brut) { const p = JSON.parse(brut); sortie.perf = { n: p.n, moyenne_ms: p.n ? Math.round(p.total / p.n) : null, max_ms: p.max || null, route_lente: p.route || null }; }
     } catch (e) { sortie.perf = null; }
   }
   return sortie;
@@ -44,7 +55,10 @@ export const onRequestGet = gerer(async (context) => {
     ia: Boolean(context.env.AI),
   };
   if (!session) return json({ role: null, relie, version: VERSION });
-  const reponse = { role: session.role, depuis: session.cree, relie, version: VERSION };
+  // B60 : la date d'expiration estimée de la session (trente jours après son dernier renouvellement).
+  const base = session.renouvele || session.cree;
+  const expire = base ? new Date(new Date(base).getTime() + DUREE_SESSION * 1000).toISOString() : null;
+  const reponse = { role: session.role, depuis: session.cree, expire_le: expire, relie, version: VERSION, serveur_le: new Date().toISOString() };
   if (session.role === 'prof' && context.env.DB) reponse.sante = await sante(context.env);
   return json(reponse);
 });
