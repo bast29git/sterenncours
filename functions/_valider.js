@@ -27,7 +27,7 @@ export const jourSemaine = (v, defaut = null) => { const n = Number(v); return N
 export const dateHeureIso = (v) => { if (!v) return null; const d = new Date(String(v)); return Number.isNaN(d.getTime()) ? null : d.toISOString(); };
 /** B10 : une clé de fiche « maths/L01/cours ». */
 export const TYPES_FICHE = ['cours', 'revision', 'exercices', 'evaluation'];
-export const cleFiche = (v) => (/^[a-z][a-z-]{1,30}\/[A-Z]?\d{1,2}\/(cours|revision|exercices|evaluation)$/.test(String(v || '')) ? String(v) : null);
+export const cleFiche = (v) => (/^[a-z][a-z0-9-]{1,30}\/[A-Z]?\d{1,2}\/(cours|revision|exercices|evaluation)$/.test(String(v || '')) ? String(v) : null);
 /** Une liste de clés de leçons, dédoublonnée, bornée, sans entrée invalide. */
 export const clesLecons = (v, max = 50) => [...new Set(liste(v, max).map(cleLecon).filter(Boolean))];
 /** Absent (null, undefined, chaîne vide) : la valeur par défaut, jamais zéro. */
@@ -46,8 +46,8 @@ export const nombre = (v, min, max, defaut = null) => {
 export const choix = (v, liste, defaut = null) => (liste.indexOf(v) !== -1 ? v : defaut);
 export const booleen = (v, defaut = false) => (typeof v === 'boolean' ? v : defaut);
 /** Une clé de leçon telle que « maths/L01 » ou « histoire-geo/H2 ». */
-export const cleLecon = (v) => (/^[a-z][a-z-]{1,30}\/[A-Z]?\d{1,2}$/.test(String(v || '')) ? String(v) : null);
-export const matiere = (v) => (/^[a-z][a-z-]{1,30}$/.test(String(v || '')) ? String(v) : null);
+export const cleLecon = (v) => (/^[a-z][a-z0-9-]{1,30}\/[A-Z]?\d{1,2}$/.test(String(v || '')) ? String(v) : null);
+export const matiere = (v) => (/^[a-z][a-z0-9-]{1,30}$/.test(String(v || '')) ? String(v) : null);
 export const ref = (v) => (/^[A-Z]?\d{1,2}$/.test(String(v || '')) ? String(v) : null);
 export const identifiant = (v) => (/^[0-9a-f]{24}$/.test(String(v || '')) ? String(v) : null);
 export const dateIso = (v) => (/^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : null);

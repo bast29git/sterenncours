@@ -239,7 +239,7 @@ body.corps-prof {
   border-bottom: 1px solid color-mix(in srgb, var(--teinte, var(--p-accent)) 28%, transparent);
 }
 .p-table .grp td:first-child { box-shadow: inset 3px 0 0 var(--teinte, var(--p-accent)); }
-.p-table .grp .nom { color: var(--teinte, var(--p-accent)); font-size: 0.86rem; }
+.p-table .grp .nom { color: color-mix(in srgb, var(--teinte, var(--p-accent)) 72%, #000); font-size: 0.86rem; }
 .p-table .grp a { color: var(--p-doux); font-size: 0.76rem; }
 .p-table a { color: var(--p-encre); text-decoration: none; }
 .p-table a:hover { color: var(--p-accent); text-decoration: underline; }
@@ -527,7 +527,7 @@ body.corps-prof {
 .p-fils-barre button { font: inherit; font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 999px; border: 1px solid var(--p-trait); background: var(--p-surface); color: var(--p-doux); cursor: pointer; display: inline-flex; gap: 0.3rem; align-items: center; }
 .p-fils-barre button b { font-family: var(--p-mono); font-size: 0.68rem; color: var(--p-faible); }
 .p-fils-barre button.actif { background: var(--p-accent); border-color: var(--p-accent); color: #fff; }
-.p-fils-barre button.actif b { color: rgba(255,255,255,.8); }
+.p-fils-barre button.actif b { color: #fff; }
 .p-formatage { display: flex; gap: 0.25rem; margin-bottom: 0.4rem; }
 .p-formatage button { font: inherit; font-size: 0.78rem; min-width: 2rem; padding: 0.15rem 0.5rem; border-radius: var(--p-r); border: 1px solid var(--p-trait); background: var(--p-surface); color: var(--p-encre); cursor: pointer; }
 .p-emojis { max-height: 12rem; overflow-y: auto; margin-bottom: 0.6rem; padding: 0.4rem; border: 1px solid var(--p-trait); border-radius: var(--p-r); background: var(--p-surface); }
@@ -765,3 +765,23 @@ small.p-alerte { color: var(--p-alerte); font-weight: 600; }
 /* C50 : défi à deux */
 .p-defis li { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
 .p-defi-form { margin-bottom: .6rem; }
+
+/* ---------- Lot F4 ---------- */
+/* F161 : l'en-tête d'un tableau qui défile reste visible. */
+.p-tableau-defilant { max-height: 70vh; overflow: auto; }
+.p-tableau-defilant .p-table thead th { position: sticky; top: 0; z-index: 1; background: var(--p-carte, #fff); }
+/* F162 : les longues listes ne coûtent que ce qui est à l'écran. */
+.p-journal li, .p-fichiers li { content-visibility: auto; contain-intrinsic-size: 0 3rem; }
+/* F150 : un champ refusé par le serveur est encadré. */
+.p-champ-erreur, [aria-invalid="true"] { outline: 2px solid var(--p-alerte, #B42318) !important; outline-offset: 1px; }
+.p-fil-nonlus { display: inline-grid; place-items: center; min-width: 1.1rem; height: 1.1rem; padding: 0 0.3rem; border-radius: 999px; background: var(--p-accent, #2E5BFF); color: #fff; font-size: 0.66rem; font-weight: 800; font-style: normal; margin-left: 0.3rem; }
+.p-msg-outils { align-items: center; gap: 0.4rem; margin: 0.4rem 0 0.6rem; }
+.p-msg-recherche { display: flex; gap: 0.3rem; align-items: center; flex: 1 1 14rem; }
+.p-msg-recherche input { flex: 1; min-width: 8rem; font: inherit; padding: 0.3rem 0.6rem; border: 1px solid var(--p-trait); border-radius: 7px; background: var(--p-fond, #fff); color: inherit; }
+.p-acces-lot { display: flex; gap: 0.25rem; margin-top: 0.25rem; }
+.p-pile { margin-top: 0.2rem; }
+.p-pile pre { white-space: pre-wrap; font-size: 0.7rem; max-height: 10rem; overflow: auto; background: var(--p-fond, #f6f6f9); padding: 0.4rem; border-radius: 6px; }
+.p-bouton.actif { background: var(--p-accent, #2E5BFF); color: #fff; border-color: var(--p-accent, #2E5BFF); }
+.p-case { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.86rem; margin: 0.4rem 0 0.6rem; }
+/* Une longue liste de journal défile dans son bloc au lieu d'allonger la page. */
+.p-journal { max-height: 60vh; overflow: auto; }

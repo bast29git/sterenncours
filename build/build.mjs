@@ -7,7 +7,7 @@
  * avec pictogramme + libellé + couleur (redondance du sens).
  */
 import fs from 'node:fs';
-import { verifierForme } from './verifier.mjs';
+import { verifierForme, verifierStructure } from './verifier.mjs';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 import path from 'node:path';
@@ -418,13 +418,26 @@ function construirePaquets() {
     const corps = fichiers.map((f) => `/* ---- ${f} ---- */\n` + lire(f)).join('\n;\n') + '\nwindow.PAQUET_CHARGE = window.PAQUET_CHARGE || {};\n' + fichiers.map((f) => `window.PAQUET_CHARGE[${JSON.stringify(f)}] = true;`).join('\n') + '\n';
     version += crypto.createHash('sha1').update(corps).digest('hex').slice(0, 8);
     let sortie = corps;
-    try { sortie = require('esbuild').transformSync(corps, { minify: true, loader: 'js', charset: 'utf8', legalComments: 'none', target: 'es2020' }).code; } catch (e) { console.warn(`   ⚠️  minification impossible pour ${nom} : ${String(e.message || e).split('\n')[0]}`); }
+    // F184 : les instructions de débogage ne partent jamais en production.
+    try { sortie = require('esbuild').transformSync(corps, { minify: true, loader: 'js', charset: 'utf8', legalComments: 'none', target: 'es2020', drop: ['debugger'] }).code; } catch (e) { console.warn(`   ⚠️  minification impossible pour ${nom} : ${String(e.message || e).split('\n')[0]}`); }
     fs.writeFileSync(path.join(SORTIE, nom), sortie);
+    // F182 : un paquet qui grossit au-delà de 420 Ko minifiés est signalé.
+    const taille = Buffer.byteLength(sortie, 'utf8');
+    if (taille > 420 * 1024) console.warn(`   ⚠️  ${nom} pèse ${Math.round(taille / 1024)} Ko : à alléger (chargement différé d'un module ?)`);
   }
-  version = crypto.createHash('sha1').update(version + lire('app.js') + lire('eleve.css') + lire('calme.css') + lire('extras.css') + lire('prof.css') + lire('index.html')).digest('hex').slice(0, 10);
+  // F181 : le serveur compte dans la version : un changement de fonction déclenche le rafraîchissement du site.
+  const dossierFonctions = path.join(RACINE, 'functions');
+  const fonctions = [];
+  const marcherFonctions = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) marcherFonctions(p); else if (e.name.endsWith('.js') && e.name !== '_programme.js') fonctions.push(p); } };
+  marcherFonctions(dossierFonctions);
+  const empreinteFonctions = fonctions.sort().map((f) => fs.readFileSync(f, 'utf8')).join('\n');
+  version = crypto.createHash('sha1').update(version + lire('app.js') + lire('eleve.css') + lire('calme.css') + lire('extras.css') + lire('prof.css') + lire('index.html') + lire('sw.js') + empreinteFonctions).digest('hex').slice(0, 10);
   const index = path.join(SORTIE, 'index.html');
   fs.writeFileSync(index, fs.readFileSync(index, 'utf8').replace('<script src="app.js"></script>', `<script>window.OPALINE_VERSION = ${JSON.stringify(version)};</script>\n<script src="app.js?v=${version}"></script>`));
-  fs.writeFileSync(path.join(SORTIE, 'version.json'), JSON.stringify({ version, le: new Date().toISOString() }));
+  // F183 : la date de déploiement du serveur (stable dans git) accompagne la version.
+  let deployeLe = null;
+  try { deployeLe = (/export const DEPLOYE_LE = "([^"]+)"/.exec(fs.readFileSync(path.join(RACINE, 'functions', '_programme.js'), 'utf8')) || [])[1] || null; } catch (e) { deployeLe = null; }
+  fs.writeFileSync(path.join(SORTIE, 'version.json'), JSON.stringify({ version, le: new Date().toISOString(), deploye_le: deployeLe }));
   // A23 : le service worker porte la version du build dans le nom de son cache.
   const sw = path.join(SORTIE, 'sw.js');
   if (fs.existsSync(sw)) fs.writeFileSync(sw, fs.readFileSync(sw, 'utf8').replace('__VERSION__', version));
@@ -1178,6 +1191,10 @@ const liensCasses = verifierLiens();
 const manquementsForme = verifierForme();
 manquementsForme.forEach((m) => console.warn('   ⚠️  ' + m));
 avertissements += manquementsForme.length;
+// F176 à F180, F198 : structure des feuilles, de la coquille, de la banque et du programme.
+const manquementsStructure = verifierStructure();
+manquementsStructure.forEach((m) => console.warn('   ⚠️  ' + m));
+avertissements += manquementsStructure.length;
 
 /* A41 : un rapport de build, écrit dans public/ et comparé au build précédent. */
 (() => {

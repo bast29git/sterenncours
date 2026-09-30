@@ -21,4 +21,8 @@ jobs:
           reponse=$(curl -sS -b cookies.txt -X POST "$SITE/api/sauvegarde")
           echo "$reponse"
           echo "$reponse" | grep -q '"cle"' || { echo "::error::Sauvegarde non confirmée"; exit 1; }
+          # F195 : la santé du site est contrôlée chaque nuit ; une liaison rompue fait échouer le travail.
+          sante=$(curl -sS -b cookies.txt "$SITE/api/sante")
+          echo "$sante"
+          echo "$sante" | grep -q '"ok":true' || { echo "::error::Santé du site : une liaison ne répond pas"; exit 1; }
           curl -sS -b cookies.txt -X POST "$SITE/api/deconnexion" > /dev/null

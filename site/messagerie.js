@@ -70,7 +70,8 @@
     const comptes = {};
     messages.forEach((m) => { const f = filDe(m); if (f) comptes[f] = (comptes[f] || 0) + 1; });
     const mats = (window.PROGRAMME ? PROGRAMME.matieres : []).filter((x) => comptes[x.id]);
-    const puce = (id, txt, n) => `<button type="button" class="${actif === id ? 'actif' : ''}" data-fil="${id || ''}">${txt}${n ? `<b>${n}</b>` : ''}</button>`;
+    // Les fils sont de vrais onglets pour un lecteur d'écran.
+    const puce = (id, txt, n) => `<button type="button" role="tab" aria-selected="${actif === id}" class="${actif === id ? 'actif' : ''}" data-fil="${id || ''}">${txt}${n ? `<b>${n}</b>` : ''}</button>`;
     return `<div class="${classe}" role="tablist" aria-label="Fils de discussion">
       ${puce(null, 'Tout', messages.length)}
       ${mats.map((x) => puce(x.id, x.icone + ' ' + N.ech(x.nom), comptes[x.id])).join('')}

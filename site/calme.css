@@ -219,7 +219,8 @@
 .e-msg-pied { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.6rem; margin-top: 0.1rem; }
 .e-msg.moi .e-msg-pied { justify-content: flex-end; }
 .e-msg-pied .e-msg-actions, .e-msg-pied .e-reactions { margin: 0; }
-.e-msg-action { opacity: 0.75; }
+/* F129 : les actions d'un message gardent un contraste suffisant (pas d'opacité sur du texte). */
+.e-msg-action { opacity: 1; color: var(--e-encre-doux); }
 .e-composer { position: sticky; bottom: 0.4rem; z-index: 30; margin: 0 -0.25rem; padding: 0.45rem 0.25rem 0; background: var(--e-page); max-height: calc(100vh - 6rem); overflow-y: auto; }
 @media (max-width: 52rem) { .e-composer { bottom: 4.05rem; max-height: calc(100vh - 9rem); } }
 .e-composer .e-rapides { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 0.45rem; padding-bottom: 0.15rem; scrollbar-width: none; }
@@ -243,7 +244,7 @@
 .e-msg.suite .e-msg-pastille { visibility: hidden; }
 .e-jour-sep.e-nouveaux span { color: var(--e-vif-fonce); border-color: var(--e-vif); font-weight: 800; }
 .e-msg-tete time { cursor: help; }
-.e-modifie { display: inline-block; margin-left: 0.4rem; font-size: 0.7rem; opacity: 0.7; font-style: italic; }
+.e-modifie { display: inline-block; margin-left: 0.4rem; font-size: 0.72rem; font-style: italic; color: inherit; }
 .e-bulle-longue .texte { max-height: 14rem; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
 .e-voir-plus { margin-top: 0.3rem; }
 .e-msg-vise .e-bulle { outline: 3px solid var(--e-vif); outline-offset: 2px; transition: outline-color 0.6s; }
@@ -263,8 +264,9 @@
 .e-lightbox p { display: flex; gap: 0.6rem; margin: 0.8rem 0 0; }
 .e-reprendre { margin: -0.4rem 0 1rem; font-size: 0.9rem; }
 .e-reprendre a { color: var(--e-vif-fonce); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; }
-.e-sem-jour.passe { opacity: 0.62; }
-.e-sem-jour.passe.auj { opacity: 1; }
+/* F101 : un jour passé s'estompe par la couleur, jamais par une opacité qui casse le contraste. */
+.e-sem-jour.passe .e-sem-date b, .e-sem-jour.passe .e-sem-date span, .e-sem-jour.passe .e-sem-repos { color: var(--e-encre-doux); }
+.e-sem-jour.passe .e-sem-evt { border-style: dashed; }
 .e-etape-date { display: block; margin-top: 0.15rem; font-size: 0.78rem; color: var(--e-vif-fonce); font-weight: 700; }
 .e-ratees { margin: 0; padding-left: 1.1rem; }
 .e-ratees li { margin: 0 0 0.5rem; }
@@ -274,3 +276,11 @@
 .e-diapo-progres::-webkit-progress-value { background: var(--e-vif); }
 .e-diapo-progres::-moz-progress-bar { background: var(--e-vif); }
 .e-opales li:focus-visible { outline: 3px solid var(--e-vif); outline-offset: 2px; border-radius: 8px; }
+
+/* Contraste : le vert de la palette en petit texte passe par une teinte plus foncée (4,5 au moins sur les cartes). */
+.e-prochaine .quand, .e-etoiles-carte .quand, .e-journal-etoiles, .e-sources b, .e-mat-chiffre, .e-etape-date, .e-reprendre a, .e-liens3 span b { color: var(--e-vif-texte); }
+html[data-theme="dark"] .e-prochaine .quand, html[data-theme="chaud"] .e-prochaine .quand, html[data-theme="dark"] .e-etoiles-carte .quand, html[data-theme="chaud"] .e-etoiles-carte .quand, html[data-theme="dark"] .e-journal-etoiles, html[data-theme="chaud"] .e-journal-etoiles, html[data-theme="dark"] .e-sources b, html[data-theme="chaud"] .e-sources b, html[data-theme="dark"] .e-mat-chiffre, html[data-theme="chaud"] .e-mat-chiffre, html[data-theme="dark"] .e-etape-date, html[data-theme="chaud"] .e-etape-date, html[data-theme="dark"] .e-reprendre a, html[data-theme="chaud"] .e-reprendre a { color: var(--e-doux); }
+/* Le tableau d'une fiche : en-têtes lisibles (le violet clair du thème passe sous 4,5 sur son fond). */
+.e-fiche thead th { color: color-mix(in srgb, var(--accent, #6e6bff) 62%, #0b1a3a); }
+/* Un lien dans une bulle garde la couleur du texte de la bulle, souligné. */
+.e-bulle .texte a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

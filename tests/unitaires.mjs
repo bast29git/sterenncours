@@ -74,3 +74,53 @@ test('discrétion et tirets : la vérification de forme passe', async () => {
   const { verifierForme } = await import('../build/verifier.mjs');
   assert.deepEqual(verifierForme(), []);
 });
+
+/* ---------- Lot F5 ---------- */
+test('validateurs serveur : textes, vides, heures, clés, entiers absents', async () => {
+  const V = await import('../functions/_valider.js');
+  assert.equal(V.texte('  bonjour\u0000 monde  ', 100), 'bonjour monde');
+  assert.equal(V.estVide('\u200B \u00A0'), true);
+  assert.equal(V.estVide('a'), false);
+  assert.equal(V.heure('13:30'), '13:30');
+  assert.equal(V.heure('25:00'), null);
+  assert.equal(V.cleFiche('maths/L01/cours'), 'maths/L01/cours');
+  assert.equal(V.cleFiche('maths/L01/autre'), null);
+  assert.equal(V.paragraphe('a\r\n\n\n\nb', 100), 'a\n\nb');
+  assert.equal(V.entier(null, 1, 200, 100), 100, 'un entier absent vaut le défaut');
+  assert.equal(V.entier('', 1, 200, 100), 100);
+  assert.equal(V.entier('7', 1, 5, 100), 5, 'borné');
+  assert.equal(V.jourSemaine(6), 6);
+  assert.equal(V.jourSemaine(9), null);
+  assert.deepEqual(V.clesLecons(['maths/L01', 'maths/L01', 'x']), ['maths/L01']);
+});
+
+test('middleware : politique de sécurité de contenu sans mise à niveau forcée, avec object-src none', () => {
+  const src = lire('functions/_middleware.js');
+  const csp = /const CSP = "([^"]+)"/.exec(src);
+  assert.ok(csp, 'politique présente');
+  assert.ok(csp[1].includes("object-src 'none'"), 'object-src none');
+  assert.ok(!csp[1].includes('upgrade-insecure-requests'), 'pas de mise à niveau forcée (casse les tests en local)');
+  assert.ok(src.includes('strict-transport-security'), 'HSTS posé');
+});
+
+test('fichiers : le nom est nettoyé et la famille reconnue', async () => {
+  const F = await import('../functions/api/fichiers/index.js');
+  assert.equal(F.nomPropre('../../etc/passwd'), 'passwd');
+  assert.equal(F.nomPropre('C:\\dossier\\copie\u0001.jpg'), 'copie.jpg');
+  assert.equal(F.nomPropre(''), 'fichier');
+  assert.equal(F.genreDe('image/png'), 'image');
+  assert.equal(F.genreDe('audio/webm'), 'audio');
+  assert.equal(F.genreDe('application/pdf'), 'document');
+});
+
+test('structure : accolades, identifiants, pictogrammes, banque et programme', async () => {
+  const { verifierStructure } = await import('../build/verifier.mjs');
+  assert.deepEqual(verifierStructure(), []);
+});
+
+test('service worker : la coquille cite les feuilles de la direction calme et les paquets', () => {
+  const sw = lire('site/sw.js');
+  assert.ok(sw.includes('/calme.css') && sw.includes('/extras.css'), 'feuilles calmes');
+  assert.ok(sw.includes('paquet-eleve.js') && sw.includes('paquet-prof.js'), 'paquets');
+  assert.ok(sw.includes('HORS_LIGNE'), 'page hors ligne');
+});

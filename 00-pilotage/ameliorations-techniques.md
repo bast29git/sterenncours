@@ -236,4 +236,217 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 
 ## Site : 200 améliorations (F001 à F200)
 
-En cours : voir les lots suivants.
+### Noyau (`site/app.js`)
+
+- [x] F001 Un appel d'API est borné à vingt secondes, avec un message clair s'il est abandonné.
+- [x] F002 Une lecture refusée pour excès de demandes (429) est reprise une fois après le délai annoncé.
+- [x] F003 Un 409 (« c'est déjà fait ») a son message doux.
+- [x] F004 Un 405 ou un 415 (contrat rompu) a son message et remonte au journal des erreurs.
+- [x] F005 L'identifiant de requête du serveur est attaché à l'erreur (`err.requete`).
+- [x] F006 Une erreur serveur (5xx) est remontée au journal des erreurs depuis le navigateur, avec son identifiant.
+- [x] F007 Le champ fautif nommé par le serveur est attaché à l'erreur (`err.champ`).
+- [x] F008 Les messages du bandeau font la queue (trois au plus) au lieu de s'écraser.
+- [x] F009 Le bandeau a un bouton de fermeture.
+- [x] F010 Le compte à rebours du bandeau s'arrête sous la souris ou le focus.
+- [x] F011 La durée d'affichage suit la longueur du message.
+- [x] F012 Une erreur JavaScript est remontée avec sa pile d'appels, bornée.
+- [x] F013 Une promesse rejetée est remontée avec sa pile aussi, et la version du site.
+- [x] F014 Un jour avant la fin de session, une phrase le dit, une fois.
+- [x] F015 Toutes les dix minutes, la version en ligne est comparée ; une nouvelle version propose « Recharger ».
+- [x] F016 Une horloge d'appareil décalée de plus de cinq minutes est signalée.
+- [x] F017 La sonde ne tourne pas quand l'onglet est caché.
+- [x] F018 La sonde repart dès que l'onglet redevient visible.
+- [x] F019 La sonde ne tourne pas hors ligne.
+- [x] F020 Un script qui ne charge pas est retenté une fois.
+- [x] F021 Un échec de chargement du fil propose « Réessayer » dans le bandeau.
+- [x] F022 Un message du bandeau peut porter une action (Annuler, Réessayer, Lire, Recharger), qui passe devant la file.
+- [x] F023 Les messages en attente sont oubliés au changement d'écran (une action en cours reste).
+- [x] F024 À la sortie, la file d'écritures hors ligne est vidée : rien ne repart sous l'autre code.
+- [x] F025 Une écriture en attente de plus d'un jour n'est plus rejouée.
+- [x] F026 Une écriture identique n'attend qu'une fois, avec le rôle qui l'a émise.
+- [x] F027 Alt et un chiffre ouvrent Accueil, Matières, Semaine, Jeux, Messages.
+- [x] F028 Échap ferme le panneau d'affichage et les menus de la messagerie, et rend le focus.
+- [x] F029 Le titre de l'écran est annoncé au lecteur d'écran à chaque changement.
+- [x] F030 L'onglet du navigateur nomme l'écran (« Messages · Opaline »).
+- [x] F031 Un écran déjà visité reprend son défilement.
+- [x] F032 Le mouvement réduit demandé à l'appareil est porté par `<html>`.
+- [x] F033 Sans thème enregistré, le thème suit celui de l'appareil.
+- [x] F034 Le contraste renforcé demandé à l'appareil est porté par `<html>`.
+- [x] F035 Ces préférences sont suivies en direct si elles changent.
+- [x] F036 Onglet caché et rappels acceptés : une notification du navigateur pour un nouveau message.
+- [x] F037 Une valeur de profil identique à celle connue n'est pas renvoyée au serveur.
+- [x] F038 Deux lectures identiques en même temps partagent la même réponse.
+- [x] F039 Dates relatives (« il y a 5 min », « hier à 10:42 ») avec la date complète en infobulle.
+- [x] F040 Les poids gèrent zéro, kilo, méga et giga.
+- [x] F041 Le noyau expose la version chargée et la version du serveur.
+- [x] F042 Le code d'accès se montre ou se cache d'un bouton.
+- [x] F043 Le champ du code est un mot de passe avec la touche « aller » du clavier tactile.
+- [x] F044 L'erreur du portail s'efface dès qu'on retape.
+- [x] F045 Au troisième échec, un rappel de la forme du code.
+
+### Coquille, manifeste, service worker, styles globaux
+
+- [x] F046 `color-scheme: light dark` déclaré.
+- [x] F047 Une couleur de barre du navigateur par mode (clair, sombre).
+- [x] F048 Les polices distantes ne bloquent plus le premier rendu.
+- [x] F049 Un message en français sans JavaScript.
+- [x] F050 Le champ du code est un champ de mot de passe avec bouton « Voir ».
+- [x] F051 Manifeste : identifiant, portée et trois raccourcis (Messages, Semaine, Matières).
+- [x] F052 Le service worker met en cache toute la coquille, feuilles calmes et paquets compris.
+- [x] F053 Une page hors ligne de secours quand rien n'est en cache.
+- [x] F054 Les données de contenu sont revalidées en arrière-plan.
+- [x] F055 La page peut demander à une nouvelle version du service worker d'entrer en service.
+- [x] F056 Le mouvement réduit porté par `<html>` vaut pour toutes les animations.
+- [x] F057 Un même repère de focus partout (épaisseur, décalage, arrondi).
+- [x] F058 Sélection de texte lisible dans les trois thèmes.
+- [x] F059 Une ancre n'est jamais cachée sous l'en-tête collé.
+- [x] F060 La zone de discussion ne fait pas rebondir la page (défilement contenu).
+- [x] F061 Pas de zoom involontaire du texte sur téléphone.
+- [x] F062 Pas de halo bleu au toucher.
+- [x] F063 À l'impression, seul le contenu de la page reste.
+- [x] F064 La barre du bas et les boutons flottants respectent la zone sûre des téléphones à encoche.
+- [x] F065 Pas de délai de tapotement sur les commandes.
+- [x] F066 Toute commande tactile fait au moins 44 pixels sur téléphone.
+- [x] F067 Mode couleurs forcées : les cartes gardent un bord, les boutons restent des boutons.
+- [x] F068 Contraste renforcé : bordures franches, textes doux plus foncés.
+- [x] F069 Les longues listes ne coûtent que ce qui est à l'écran.
+- [x] F070 Compteurs et heures gardent leur largeur (chiffres tabulaires).
+- [x] F071 Un mot trop long ne déborde jamais d'une bulle ni d'un titre.
+- [x] F072 Les contrôles natifs suivent le thème sombre.
+- [x] F073 En-têtes de sécurité aussi sur les fichiers statiques (`_headers`).
+- [x] F074 Une image ne dépasse jamais son cadre.
+- [x] F075 Le bandeau est une région d'état, ou une alerte pour une erreur.
+
+### Espace de Sterenn (`site/vue-eleve.js`, `messagerie.js`, `lecteur.js`, `compagnon.js`)
+
+- [x] F076 Heure relative sur chaque message, date complète en infobulle.
+- [x] F077 Des messages du même auteur à moins de cinq minutes se suivent sans répéter l'en-tête.
+- [x] F078 Un séparateur « Nouveaux messages » avant le premier message non lu.
+- [x] F079 Loin du bas du fil, un bouton ramène au dernier message.
+- [x] F080 Les adresses web et les liens internes deviennent cliquables.
+- [x] F081 Une image collée dans la zone d'écriture devient une pièce jointe.
+- [x] F082 La zone d'écriture grandit avec le texte.
+- [x] F083 « Brouillon gardé » quand il y a du texte non envoyé.
+- [x] F084 Option « Entrée envoie » retenue sur l'appareil, avec l'aide qui suit.
+- [x] F085 Modifier son propre message dans les cinq minutes.
+- [x] F086 Retirer un message se fait avec cinq secondes pour annuler.
+- [x] F087 Une image s'ouvre dans une visionneuse, pas dans un nouvel onglet.
+- [x] F088 Le type d'un document en clair sur la pièce jointe (PDF, DOC…).
+- [x] F089 « Voir les messages plus anciens » sans perdre sa place.
+- [x] F090 Le fil et la recherche sont filtrés par le serveur.
+- [x] F091 Chaque fil montre ses messages non lus.
+- [x] F092 Le bouton de farce se met en pause vingt secondes après l'envoi.
+- [x] F093 Un clic hors d'un menu de réactions le referme.
+- [x] F094 La zone d'écriture est décrite par son aide.
+- [x] F095 Près de la limite, le reste de caractères est annoncé au lecteur d'écran.
+- [x] F096 Une citation mène au message cité, brièvement surligné.
+- [x] F097 Une image jointe réserve sa place avant de charger (pas de saut de page).
+- [x] F098 L'accueil propose de reprendre le dernier écran de travail.
+- [x] F099 Le message de retrait ne bloque plus les suivants (file du bandeau).
+- [x] F100 Le jour courant de la semaine est annoncé (`aria-current`).
+- [x] F101 Les jours passés s'estompent par la couleur, sans casser le contraste.
+- [x] F102 Une étape validée montre sa date de validation.
+- [x] F103 Une barre de progression sous les diapositives.
+- [x] F104 Les onglets de fils sont de vrais onglets pour un lecteur d'écran.
+- [x] F105 Les fils de discussion se lisent avec leur nombre de non lus.
+- [x] F106 Les touches 1 à 4 choisissent une réponse dans une série.
+- [x] F107 La durée d'une série est mesurée.
+- [x] F108 La durée part avec le résultat.
+- [x] F109 Les questions ratées partent avec le résultat.
+- [x] F110 Le bilan d'une série redonne l'explication de chaque question ratée.
+- [x] F111 Un jeu déjà joué montre son meilleur score.
+- [x] F112 Les dernières réussites mènent à la fiche ou à la série concernée.
+- [x] F113 Chaque opale se lit au clavier et au lecteur d'écran (titre, validée ou à venir).
+- [x] F114 Le carnet et les évaluations ont leur bouton de retour vers Mes réussites.
+- [x] F115 Le nom du compagnon est vérifié (1 à 20 caractères, lettres, chiffres, espaces, tirets).
+- [x] F116 Le lien vers un message plus ancien que la page prévient au lieu de ne rien faire.
+- [x] F117 Une recherche trop courte le dit ; sans résultat, une piste.
+- [x] F118 Un long message se replie avec « Voir la suite ».
+- [x] F119 Un message corrigé porte la mention « modifié ».
+- [x] F120 La vue porte sa route (`data-route`) pour les styles par écran.
+- [x] F121 Tout lien qui s'ouvre ailleurs est sans référent.
+- [x] F122 Un bloc replié marqué `data-memo` retient s'il était ouvert.
+- [x] F123 L'onglet courant de la barre porte `aria-current`.
+- [x] F124 Échap ferme le panneau d'affichage et rend le focus au bouton.
+- [x] F125 Le panneau d'affichage se ferme d'un clic ailleurs.
+- [x] F126 Le compte d'étoiles est annoncé quand il change.
+- [x] F127 Le bandeau est une alerte pour une erreur, une région d'état sinon.
+- [x] F128 Les actions d'un message gardent un contraste suffisant (plus d'opacité sur du texte).
+- [x] F129 Les petits textes en vert passent par une teinte foncée qui tient 4,5 sur les cartes.
+- [x] F130 Chaque heure de message est un élément `time` daté.
+- [x] F131 Les en-têtes de tableau d'une fiche passent le contraste.
+- [x] F132 La pastille de son et l'aide d'envoi ne passent plus par une opacité.
+- [x] F133 Un lien dans une bulle garde la couleur du texte de la bulle, souligné.
+- [x] F134 Les notes se téléchargent en texte brut, rangées par matière.
+- [x] F135 Ce que l'appareil retient d'Opaline s'efface d'un bouton, sans toucher au suivi.
+- [x] F136 L'aide liste les nouveaux raccourcis.
+- [x] F137 Le badge des non lus de la barre est dit en toutes lettres.
+- [x] F138 La barre n'est redessinée que si elle change : le focus n'y est jamais perdu.
+- [x] F139 Une notification de l'accueil est une région d'état.
+- [x] F140 Les jauges des lignes de matières et de jeux se lisent en toutes lettres.
+
+### Espace professeur (`site/vue-prof.js`, `vue-prof-pages.js`)
+
+- [x] F141 Réglages : les sessions ouvertes, fermeture d'une session, des autres, ou de toutes.
+- [x] F142 Journal et santé : chaque liaison est sollicitée à l'instant, avec sa durée.
+- [x] F143 Journal d'audit filtrable par nature et par date, avec le compte par nature.
+- [x] F144 Erreurs : pile d'appels dépliable, version, effacement d'une seule entrée, totaux.
+- [x] F145 Messages : export CSV et JSON de la discussion.
+- [x] F146 Messages : « Messages plus anciens ».
+- [x] F147 Messages : recherche par le serveur.
+- [x] F148 Suivi : CSV du serveur avec les titres de leçons.
+- [x] F149 Formulaire de séance : le champ refusé est mis en évidence.
+- [x] F150 Un champ nommé par le serveur est encadré, marqué invalide, et reçoit le focus.
+- [x] F151 Réglages de sonde et interrupteurs : erreurs affichées avec le champ.
+- [x] F152 Le journal des erreurs distingue Sterenn, moi et le serveur.
+- [x] F153 Accès : « tout ouvrir » et « tout en auto » pour une leçon, en une requête.
+- [x] F154 Dépôts : filtre par famille, fichiers plus anciens, quota du jour, doublons signalés.
+- [x] F155 Questions d'Opale filtrables par mode, avec le compte par contrôle.
+- [x] F156 Sauvegardes : âge, filets distingués, simulation avant restauration.
+- [x] F157 Changer un code peut fermer les sessions ouvertes de cet espace.
+- [x] F158 La version déployée et sa date, avec un rappel si la page a chargé une autre version.
+- [x] F159 La route la plus lente du jour sur la page santé.
+- [x] F160 La liste des sessions est bornée aux quarante plus récentes.
+- [x] F161 L'en-tête d'un tableau qui défile reste visible.
+- [x] F162 Les longues listes ne coûtent que ce qui est à l'écran.
+- [x] F163 Une longue liste de journal défile dans son bloc.
+- [x] F164 Modifier son propre message dans les cinq minutes.
+- [x] F165 Chaque fil montre ses non lus.
+- [x] F166 Plus aucune boîte native : effacer une discussion et restaurer se confirment en tapant le mot.
+- [x] F167 Supprimer une séance laisse cinq secondes pour annuler.
+- [x] F168 Le dernier maillon du fil d'Ariane porte `aria-current`.
+- [x] F169 L'onglet du navigateur nomme la page du pilotage.
+- [x] F170 La page Sterenn montre ses dernières ouvertures de l'espace.
+- [x] F171 Les erreurs du serveur ont leur filtre.
+- [x] F172 La version et la date de déploiement sur la page santé.
+- [x] F173 La nouvelle version est proposée au professeur aussi.
+- [x] F174 La date de fermeture d'un accès ne peut pas être dans le passé.
+- [x] F175 Un créneau déjà pris est refusé avec un message qui le dit.
+
+### Build, tests et exploitation
+
+- [x] F176 Le build vérifie l'équilibre des accolades de chaque feuille de style.
+- [x] F177 Le build refuse un identifiant en double dans la coquille.
+- [x] F178 Le build vérifie que chaque pictogramme utilisé existe.
+- [x] F179 Le build vérifie la banque d'exercices (types, énoncés, explications, réponses).
+- [x] F180 Le build vérifie le programme (identifiants, références, titres, périodes).
+- [x] F181 Le serveur compte dans la version : un changement de fonction rafraîchit le site.
+- [x] F182 Un paquet de plus de 420 Ko est signalé.
+- [x] F183 `version.json` porte la date de déploiement.
+- [x] F184 Les instructions de débogage ne partent jamais en production.
+- [x] F185 Tests unitaires des validateurs serveur.
+- [x] F186 Test unitaire de la politique de sécurité de contenu.
+- [x] F187 Tests unitaires du nettoyage des noms de fichiers et des familles.
+- [x] F188 Test unitaire de la structure (accolades, coquille, banque, programme).
+- [x] F189 Scénario de bout en bout : sessions, santé, journal filtré.
+- [x] F190 Scénario de bout en bout : correction, retrait annulable, heures relatives.
+- [x] F191 Trois écrans de plus dans l'audit visuel (messages, compagnon, journal).
+- [x] F192 `npm run verifier:tout` : lint, build et tests unitaires d'un coup.
+- [x] F193 Test unitaire du service worker (coquille et page hors ligne).
+- [x] F194 Le déploiement joue l'audit d'accessibilité (informatif).
+- [x] F195 La sauvegarde nocturne contrôle la santé du site et échoue si une liaison ne répond pas.
+- [x] F196 Le validateur d'entier ne confond plus « absent » et zéro (test dédié).
+- [x] F197 `_headers` porte HSTS, l'isolation d'origine et l'interdiction d'indexation.
+- [x] F198 Le build vérifie que tout fichier de la coquille du service worker existe.
+- [x] F199 `npm run audit:a11y` : axe-core sur seize écrans des deux espaces, échec sur un manquement sérieux.
+- [x] F200 Ce document, et CLAUDE.md, à jour.

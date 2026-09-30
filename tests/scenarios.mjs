@@ -199,6 +199,36 @@ export const SCENARIOS = {
   },
 };
 
+SCENARIOS['pilotage : sessions, santé, journal filtré'] = async function (nav, BASE) {
+  const { page, erreurs } = await ouvrir(nav, BASE, PROF);
+  await aller(page, '#/reglages', 2500);
+  ok((await page.locator('#r-sessions li').count()) >= 1, 'sessions ouvertes listées');
+  ok((await page.locator('#c-fermer').count()) === 1, 'option de fermeture des sessions');
+  await aller(page, '#/journal', 3500);
+  const controles = await page.locator('.p-fiche-carte .p-etat').allTextContents();
+  ok(controles.some((t) => /base/.test(t)) && controles.some((t) => /sessions/.test(t)), 'santé : liaisons sollicitées');
+  ok((await page.locator('#j-filtre').count()) === 1, 'journal filtrable');
+  ok((await page.locator('[data-mode-opale]').count()) >= 5, 'questions d\'Opale filtrables par mode');
+  ok(!erreurs.length, 'sans erreur JS : ' + erreurs.join(' | '));
+};
+SCENARIOS['messages : correction, retrait annulable, recherche'] = async function (nav, BASE) {
+  const { page, erreurs } = await ouvrir(nav, BASE, ELEVE);
+  await aller(page, '#/messages', 2500);
+  const texte = 'Scénario messages ' + Date.now();
+  await page.fill('#e-texte', texte); await page.click('#e-envoi'); await page.waitForTimeout(1800);
+  ok((await page.locator('[data-modifier]').count()) >= 1, 'bouton Modifier sur son message');
+  await page.locator('[data-modifier]').last().click(); await page.waitForTimeout(300);
+  ok(!(await page.locator('#e-modif-zone').evaluate((e) => e.hidden)), 'zone de modification visible');
+  await page.fill('#e-texte', texte + ' corrigé'); await page.click('#e-envoi'); await page.waitForTimeout(1800);
+  ok((await page.locator('.e-modifie').count()) >= 1, 'message marqué modifié');
+  await page.locator('[data-retirer]').last().click(); await page.waitForTimeout(400);
+  ok((await page.locator('.bandeau-action').count()) === 1, 'retrait annulable');
+  await page.click('.bandeau-action'); await page.waitForTimeout(300);
+  ok((await page.locator('.e-msg[hidden]').count()) === 0, 'retrait annulé');
+  ok((await page.locator('.e-msg-tete time').count()) >= 1, 'heures relatives');
+  ok(!erreurs.length, 'sans erreur JS : ' + erreurs.join(' | '));
+};
+
 export async function lancerScenarios(BASE) {
   const nav = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--no-sandbox'] });
   let echecs = 0;

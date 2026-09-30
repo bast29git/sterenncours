@@ -74,3 +74,84 @@ if (process.argv[1] && process.argv[1].endsWith('verifier.mjs')) {
   console.log(m.length ? `❌ ${m.length} manquement(s) de forme` : '✅ forme vérifiée : aucun tiret long, aucun mot de la liste de discrétion');
   process.exit(m.length ? 1 : 0);
 }
+
+/* ---------- Lot F5 : structure du site ---------- */
+/** F176 : chaque feuille de style a autant d'accolades ouvrantes que fermantes (une accolade perdue
+ *  avale le reste de la feuille sans que rien ne le dise). */
+export function verifierAccolades() {
+  const manquements = [];
+  const dossier = path.join(RACINE, 'site');
+  for (const f of fs.readdirSync(dossier).filter((x) => x.endsWith('.css'))) {
+    const css = fs.readFileSync(path.join(dossier, f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const ouvre = (css.match(/\{/g) || []).length; const ferme = (css.match(/\}/g) || []).length;
+    if (ouvre !== ferme) manquements.push(`site/${f} : ${ouvre} accolade(s) ouvrante(s) pour ${ferme} fermante(s)`);
+  }
+  return manquements;
+}
+/** F177 : aucun identifiant en double dans la coquille ; F178 : chaque pictogramme utilisé existe. */
+export function verifierCoquille() {
+  const manquements = [];
+  const html = fs.readFileSync(path.join(RACINE, 'site', 'index.html'), 'utf8');
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+  const vus = new Set(); const doubles = new Set();
+  ids.forEach((i) => { if (vus.has(i)) doubles.add(i); vus.add(i); });
+  doubles.forEach((i) => manquements.push(`site/index.html : identifiant en double « ${i} »`));
+  const pictos = new Set([...html.matchAll(/<g id="(ic-[a-z-]+)"/g)].map((m) => m[1]));
+  const dossier = path.join(RACINE, 'site');
+  for (const f of fs.readdirSync(dossier).filter((x) => x.endsWith('.js'))) {
+    const js = fs.readFileSync(path.join(dossier, f), 'utf8');
+    const utilises = new Set([...js.matchAll(/#(ic-[a-z-]+)/g)].map((m) => m[1]).concat([...js.matchAll(/ic\('(ic-[a-z-]+)'/g)].map((m) => m[1])));
+    for (const u of utilises) if (!pictos.has(u)) manquements.push(`site/${f} : pictogramme inconnu « ${u} »`);
+  }
+  // F198 : tout fichier que le service worker met en cache à l'installation doit exister.
+  const sw = fs.readFileSync(path.join(dossier, 'sw.js'), 'utf8');
+  const liste = /const COQUILLE = \[([\s\S]*?)\];/.exec(sw);
+  if (liste) {
+    for (const m of liste[1].matchAll(/'(\/[^'?]+)'/g)) {
+      const rel = m[1].replace(/^\//, '');
+      const existe = fs.existsSync(path.join(dossier, rel)) || fs.existsSync(path.join(RACINE, 'public', rel)) || /^data\//.test(rel) || /^paquet-/.test(rel);
+      if (!existe) manquements.push(`site/sw.js : fichier de coquille absent « ${m[1]} »`);
+    }
+  }
+  return manquements;
+}
+/** F179 : la banque d'exercices est bien formée ; F180 : le programme est cohérent. */
+export function verifierDonnees() {
+  const manquements = [];
+  try {
+    const brut = fs.readFileSync(path.join(RACINE, 'site', 'data', 'exercices.js'), 'utf8');
+    const sandbox = { window: {} };
+    new Function('window', brut)(sandbox.window);
+    const banque = sandbox.window.EXERCICES || {};
+    const TYPES = new Set(['qcm', 'vraifaux', 'saisie', 'associer', 'trous']);
+    for (const [cle, b] of Object.entries(banque)) {
+      if (!/^[a-z][a-z0-9-]+\/[A-Z]?\d{1,2}$/.test(cle)) manquements.push(`exercices : clé invalide « ${cle} »`);
+      if (!b || !Array.isArray(b.items) || !b.items.length) { manquements.push(`exercices ${cle} : aucune question`); continue; }
+      b.items.forEach((q, i) => {
+        if (!q || !TYPES.has(q.type)) manquements.push(`exercices ${cle} #${i + 1} : type inconnu « ${q && q.type} »`);
+        if (!q || !String(q.q || '').trim()) manquements.push(`exercices ${cle} #${i + 1} : énoncé vide`);
+        if (!q || !String(q.explication || '').trim()) manquements.push(`exercices ${cle} #${i + 1} : explication manquante`);
+        if (q && q.type === 'qcm' && (!Array.isArray(q.choix) || q.choix.length < 2 || !Number.isInteger(q.reponse) || q.reponse < 0 || q.reponse >= q.choix.length)) manquements.push(`exercices ${cle} #${i + 1} : QCM mal formé`);
+        if (q && q.type === 'vraifaux' && typeof q.reponse !== 'boolean') manquements.push(`exercices ${cle} #${i + 1} : vrai/faux sans réponse booléenne`);
+        if (q && q.type === 'saisie' && (!Array.isArray(q.reponses) || !q.reponses.length)) manquements.push(`exercices ${cle} #${i + 1} : saisie sans réponses`);
+      });
+    }
+  } catch (e) { manquements.push('exercices : banque illisible (' + String(e.message).split('\n')[0] + ')'); }
+  try {
+    const programme = JSON.parse(fs.readFileSync(path.join(RACINE, '00-pilotage', 'programme.json'), 'utf8'));
+    const ids = new Set();
+    for (const m of programme.matieres || []) {
+      if (!/^[a-z][a-z0-9-]{1,30}$/.test(m.id)) manquements.push(`programme : identifiant de matière invalide « ${m.id} »`);
+      if (ids.has(m.id)) manquements.push(`programme : matière en double « ${m.id} »`); ids.add(m.id);
+      const refs = new Set();
+      for (const l of m.lecons || []) {
+        if (!/^[A-Z]?\d{1,2}$/.test(l.ref)) manquements.push(`programme ${m.id} : référence invalide « ${l.ref} »`);
+        if (refs.has(l.ref)) manquements.push(`programme ${m.id} : référence en double « ${l.ref} »`); refs.add(l.ref);
+        if (!l.titre || !String(l.titre).trim()) manquements.push(`programme ${m.id}/${l.ref} : titre vide`);
+        if (!(l.periode >= 1 && l.periode <= 5)) manquements.push(`programme ${m.id}/${l.ref} : période hors de 1 à 5`);
+      }
+    }
+  } catch (e) { manquements.push('programme : fichier illisible (' + String(e.message).split('\n')[0] + ')'); }
+  return manquements;
+}
+export const verifierStructure = () => verifierAccolades().concat(verifierCoquille(), verifierDonnees());

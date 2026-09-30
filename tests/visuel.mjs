@@ -32,6 +32,10 @@ const ECRANS = [
   { nom: 'prof-suivi', role: 'prof', hash: '#/suivi' },
   { nom: 'prof-lecon', role: 'prof', hash: '#/lecon/maths/L01/cours' },
   { nom: 'prof-reglages', role: 'prof', hash: '#/reglages' },
+  // F191 : messages, compagnon et journal.
+  { nom: 'eleve-messages', role: 'eleve', hash: '#/messages' },
+  { nom: 'eleve-compagnon', role: 'eleve', hash: '#/compagnon' },
+  { nom: 'prof-journal', role: 'prof', hash: '#/journal' },
 ];
 const CODES = { eleve: process.env.CODE_ELEVE_TEST || 'sanka29', prof: process.env.CODE_PROF_TEST || 'babas29' };
 

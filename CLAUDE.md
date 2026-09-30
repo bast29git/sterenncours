@@ -187,6 +187,15 @@ quelque chose, pas seulement signaler l'erreur.
   (`POST /api/seances/horaire`).
 - **Migrations** : `migrations/*.sql`, toutes rejouables, appliquées dans l'ordre par
   `build/provisionner.mjs` au déploiement.
+- **Serveur** (`functions/`) : chaque route exporte `onRequest = methodeNonPermise([...])` (405 en
+  JSON), lit son corps par `_valider.lireCorps` et renvoie ses erreurs par `erreur(message, statut,
+  code, champ)`. Le middleware refuse les écritures d'une autre origine ou d'un autre type que JSON,
+  plafonne lectures et écritures par session, prolonge la session à l'usage, et pose les en-têtes
+  de sécurité. Pages utiles au professeur : `/api/sante`, `/api/sessions`, `/api/version`,
+  `/api/journal?quoi=&depuis=`, `/api/messages/export`, `/api/suivi?export=csv`.
+- **Client** (`site/app.js`) : `N.api` borne chaque appel à vingt secondes, reprend une lecture
+  après un 429, attache `err.code`, `err.champ` et `err.requete` ; `N.signaler(message, type,
+  { libelle, faire })` file les messages du bandeau et accepte une action (Annuler, Réessayer).
 
 ## 3 ter. Rythme de travail et supports
 
@@ -229,8 +238,18 @@ npm run serve        # relecture sur http://localhost:4321
 npm run lint         # eslint sur site, functions, build, tests
 npm test             # tests unitaires et 12 scénarios de bout en bout (CODE_ELEVE_TEST, CODE_PROF_TEST)
 npm run audit:jeux   # les 88 jeux : chargement, erreurs, accessibilité (axe)
-npm run audit:visuel # 12 écrans comparés aux références de tests/references/ (:reference pour les refaire)
+npm run audit:visuel # 15 écrans comparés aux références de tests/references/ (:reference pour les refaire)
+npm run audit:a11y   # axe-core sur seize écrans des deux espaces ; un manquement sérieux fait échouer
+npm run verifier:tout # lint, build et tests unitaires d'un coup
 ```
+
+Le build vérifie aussi la **structure** (`build/verifier.mjs`) : accolades de chaque feuille de
+style, identifiants et pictogrammes de la coquille, banque d'exercices, programme, fichiers de la
+coquille du service worker. Le serveur (`functions/`) compte dans l'empreinte de version.
+
+**Quatre cents améliorations techniques** (B001 à B200 serveur, F001 à F200 site) sont listées et
+cochées dans `00-pilotage/ameliorations-techniques.md` ; les numéros figurent en commentaire dans le
+code. Toute nouvelle amélioration prend le numéro suivant et s'ajoute à la liste.
 
 Les scripts et feuilles de style de `public/` sont **minifiés** par esbuild au build ; les sources
 de `site/` restent lisibles, l'empreinte de version se calcule sur elles.

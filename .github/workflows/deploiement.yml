@@ -70,6 +70,17 @@ jobs:
           CODE_PROF_TEST: prof-test
         run: npm test
 
+      - name: Audit d'accessibilité des écrans (informatif)
+        # F194 : axe-core sur les écrans clés des deux espaces ; un manquement sérieux est signalé sans bloquer.
+        continue-on-error: true
+        env:
+          CODE_ELEVE_TEST: ${{ secrets.CODE_ELEVE_TEST || 'sanka29' }}
+          CODE_PROF_TEST: ${{ secrets.CODE_PROF_TEST || 'babas29' }}
+        run: |
+          (npx wrangler pages dev --port 8797 --local > /tmp/wrangler-a11y.log 2>&1 &)
+          for i in $(seq 1 40); do curl -sf http://127.0.0.1:8797/ > /dev/null && break; sleep 2; done
+          PORT=8797 node tests/a11y.mjs
+
       - name: Non-régression visuelle (informative)
         # A59 : les écrans clés sont comparés au pixel près aux références ; un écart ne bloque pas
         # le déploiement, il produit un rapport à regarder (captures et différences en rouge).

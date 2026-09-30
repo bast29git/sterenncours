@@ -94,11 +94,26 @@
   }
 
   function fil(morceaux) {
+    // F168 : le dernier maillon porte aria-current ; F169 : l'onglet du navigateur nomme la page.
     document.getElementById('p-fil').innerHTML = morceaux.map((m, i) => {
       const dernier = i === morceaux.length - 1;
-      const texte = dernier ? `<b>${N.ech(m.t)}</b>` : (m.h ? `<a href="${m.h}">${N.ech(m.t)}</a>` : N.ech(m.t));
+      const texte = dernier ? `<b aria-current="page">${N.ech(m.t)}</b>` : (m.h ? `<a href="${m.h}">${N.ech(m.t)}</a>` : N.ech(m.t));
       return (i ? '<i aria-hidden="true">/</i>' : '') + texte;
     }).join('');
+    const dernierMorceau = morceaux[morceaux.length - 1];
+    if (dernierMorceau && dernierMorceau.t) document.title = `${dernierMorceau.t} · Opaline pilotage`;
+  }
+
+  /** F150 : une erreur d'API qui nomme un champ le met en évidence dans le formulaire et y ramène le focus. */
+  function signalerChamp(formulaire, e) {
+    N.signaler(e.message);
+    if (!formulaire || !e || !e.champ) return;
+    formulaire.querySelectorAll('[aria-invalid="true"]').forEach((x) => { x.removeAttribute('aria-invalid'); x.classList.remove('p-champ-erreur'); });
+    const base = String(e.champ).replace(/\[.*$/, '');
+    const champ = formulaire.querySelector(`[name="${base}"], #${formulaire.id.replace(/^p-form-/, '').slice(0, 1)}-${base}, #s-${base}, #c-${base}, #d-${base}, #m-${base}`);
+    if (!champ) return;
+    champ.setAttribute('aria-invalid', 'true'); champ.classList.add('p-champ-erreur'); champ.focus();
+    champ.addEventListener('input', () => { champ.removeAttribute('aria-invalid'); champ.classList.remove('p-champ-erreur'); }, { once: true });
   }
 
   /** B46 : une suppression se confirme en tapant le mot, pas d'une boîte à un clic. */
@@ -153,6 +168,8 @@
   function afficher(html, morceaux) {
     vue().innerHTML = html;
     etiqueterTableaux(vue());
+    // Une zone qui défile se parcourt au clavier.
+    vue().querySelectorAll('.p-journal, .p-tableau-defilant').forEach((z) => { z.setAttribute('tabindex', '0'); });
     nav();
     fil(morceaux || filDeRoute());
     fermerLateral();
@@ -943,7 +960,8 @@
       } catch (e) { N.signaler(e.message); }
     }));
 
-    document.getElementById('p-form-seance').addEventListener('submit', async (ev) => {
+    const formSeance = document.getElementById('p-form-seance');
+    formSeance.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const lecons = Array.from(document.getElementById('f-lecons').selectedOptions).map((o) => o.value);
       const matieres = Array.from(new Set(lecons.map((r) => r.split('/')[0])));
@@ -976,17 +994,20 @@
         }
         N.signaler('Séance enregistrée.', 'succes');
         vueSeance(id);
-      } catch (e) { N.signaler(e.message); }
+      } catch (e) { signalerChamp(formSeance, e); }
     });
 
     document.getElementById('p-supprimer').addEventListener('click', async () => {
       if (!(await confirmerParMot('supprimer', 'Cette séance sera supprimée définitivement.'))) return;
-      try {
-        await N.api('/seances/' + id, { method: 'DELETE' });
-        await N.rafraichirSeances();
-        N.signaler('Séance supprimée.', 'succes');
-        location.hash = '#/calendrier/' + N.lundiDe(s.date);
-      } catch (e) { N.signaler(e.message); }
+      // F167 : la suppression part cinq secondes plus tard ; d'ici là, « Annuler » la retient.
+      let annulee = false;
+      const minuteur = setTimeout(async () => {
+        if (annulee) return;
+        try { await N.api('/seances/' + id, { method: 'DELETE' }); await N.rafraichirSeances(); N.signaler('Séance supprimée.', 'succes'); }
+        catch (e) { N.signaler(e.message); }
+      }, 5000);
+      location.hash = '#/calendrier/' + N.lundiDe(s.date);
+      N.signaler('Séance supprimée dans cinq secondes.', 'info', { libelle: 'Annuler', faire: () => { annulee = true; clearTimeout(minuteur); N.signaler('Suppression annulée.', 'succes'); } });
     });
   }
 
@@ -1259,6 +1280,7 @@
         `${c.validees} validées sur ${c.total} · ${c.fragiles} à reprendre · ${c.pretes} entièrement rédigées · ${Object.keys(N.etat.resultats).filter((k) => k.indexOf('jeu/') === 0).length} jeu(x) joué(s)`,
         `<a class="p-bouton p-bouton-fantome" href="#/bulletin/${N.periodeCourante()}">Bulletin de période</a>
          <button class="p-bouton p-bouton-fantome" id="s-export" type="button">Exporter en CSV</button>
+         <a class="p-bouton p-bouton-fantome" href="/api/suivi?export=csv" download title="Le suivi tel qu'il est en base, avec les titres de leçons">CSV du serveur</a>
          <a class="p-bouton p-bouton-fantome" href="#/matieres">Voir les matières</a>`)
 
       + bloc('Étoiles par semaine', courbeEtoiles(12), '', '<span class="p-aide">fiches, séries réussies, félicitations, leçons validées</span>')
@@ -1406,6 +1428,8 @@
      Messages
      ======================================================================= */
   let filProf = null;
+  let rechercheProf = null;
+  let avantProf = null;
   async function vueMessages(contexte, sansChargement) {
     const M = window.MESSAGERIE || null;
     if (!sansChargement) {
@@ -1414,15 +1438,30 @@
     }
 
     let messages = [];
-    try { messages = (await N.api('/messages')).messages || []; } catch (e) { N.signaler(e.message); }
+    let suiteMessages = false;
+    // F147, F146 : recherche par le serveur, et messages plus anciens.
+    try {
+      const params = new URLSearchParams();
+      if (rechercheProf) params.set('q', rechercheProf);
+      if (avantProf) { params.set('avant', avantProf); params.set('limite', '300'); }
+      const d = await N.api('/messages' + (params.toString() ? '?' + params.toString() : ''));
+      messages = d.messages || []; suiteMessages = d.suite === true;
+    } catch (e) { N.signaler(e.message); }
     const visibles = M ? M.filtrer(messages, filProf) : messages;
+    const parFil = N.etat.messagesNonLusParFil || {};
     const brouillon = sansChargement ? { t: (document.getElementById('m-texte') || {}).value || '', c: (document.getElementById('m-contexte') || {}).value || '' } : null;
 
     afficher(
       entete('Messages', `${messages.length} message(s) · ${N.etat.messagesNonLus} non lu(s)`)
       + (M ? M.duoHTML('prof') : '')
       + (M ? M.barreFils(messages, filProf, 'p-fils-barre') : '')
-      + (visibles.length ? `<p class="p-modeles" style="justify-content:flex-end"><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-effacer-fil">${N.ic('ic-croix')} Effacer cette discussion (${visibles.length})</button></p>` : '')
+      + `<div class="p-modeles p-msg-outils">
+          <form class="p-msg-recherche" id="m-form-recherche" role="search"><label class="visuellement-cache" for="m-q">Chercher dans les messages</label><input id="m-q" type="search" placeholder="Chercher un mot…" value="${N.ech(rechercheProf || '')}" autocomplete="off"><button type="submit" class="p-bouton p-bouton-fantome p-bouton-mini">${N.ic('ic-loupe')} Chercher</button>${rechercheProf ? '<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-q-vider">Effacer</button>' : ''}</form>
+          ${suiteMessages ? '<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-anciens">Messages plus anciens</button>' : ''}
+          <a class="p-bouton p-bouton-fantome p-bouton-mini" href="/api/messages/export?format=csv${filProf ? '&fil=' + encodeURIComponent(filProf) : ''}" download title="La discussion en tableur">${N.ic('ic-telecharger')} CSV</a>
+          <a class="p-bouton p-bouton-fantome p-bouton-mini" href="/api/messages/export?format=json${filProf ? '&fil=' + encodeURIComponent(filProf) : ''}" download title="La discussion en JSON">${N.ic('ic-telecharger')} JSON</a>
+          ${visibles.length ? `<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-effacer-fil">${N.ic('ic-croix')} Effacer cette discussion (${visibles.length})</button>` : ''}
+        </div>`
       + `<div class="p-fil-msg" id="p-fil-msg">${visibles.length ? visibles.map((m) => `
           <div class="p-msg ${m.auteur === 'prof' ? 'moi' : ''}" data-message="${m.id}">
             <div class="p-msg-tete"><span class="p-msg-photo" aria-hidden="true">${M ? M.avatar(m.auteur) : ''}</span><b>${m.auteur === 'prof' ? 'Moi' : 'Sterenn'}</b>
@@ -1431,6 +1470,7 @@
             ${m.contexte && !(window.FARCES && window.FARCES.idDe(m)) ? `<p class="p-msg-ctx">${N.ech(m.contexte)}</p>` : ''}
             ${m.reponse_a && messages.find((y) => y.id === m.reponse_a) ? `<blockquote class="p-cite">${messages.find((y) => y.id === m.reponse_a).auteur === 'prof' ? 'Moi' : 'Sterenn'} : ${N.ech(court(messages.find((y) => y.id === m.reponse_a).texte, 120))}</blockquote>` : ''}
             ${m.envoyer_le && m.envoyer_le > new Date().toISOString() ? `<p class="p-msg-ctx">⏱ programmé pour ${N.ech(N.dateCourte(m.envoyer_le))} <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-retirer-msg="${m.id}">Retirer</button></p>` : ''}
+            ${m.auteur === 'prof' && !(window.FARCES && window.FARCES.idDe(m)) && Date.now() - new Date(m.cree_le).getTime() < 5 * 60 * 1000 ? `<p class="p-msg-ctx"><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-modifier-msg="${m.id}">${N.ic('ic-crayon')} Modifier</button> <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-retirer-msg="${m.id}">Retirer</button>${m.modifie_le ? ' <small class="p-faible">modifié</small>' : ''}</p>` : (m.modifie_le ? '<p class="p-msg-ctx"><small class="p-faible">modifié</small></p>' : '')}
             <div class="p-msg-texte">${M && window.FARCES && window.FARCES.idDe(m) ? M.bulleFarce(m, 'p-msg-farce') : (M ? M.formater(m.texte, N.reglage('formatage')) : N.ech(m.texte))}</div>
             ${M ? M.reactionsHTML(m, 'prof', 'p-reactions') : ''}
           </div>`).join('') : `<p class="p-vide">${filProf ? 'Aucun message dans ce fil.' : 'Aucun message pour le moment.'}</p>`}</div>`
@@ -1467,10 +1507,25 @@
       M.brancherRejouer(filMsg, 'prof');
       if (!sansChargement) await M.jouerFarcesNonLues(messages, 'eleve', document.getElementById('duo-moi'));
     }
+    // F165 : chaque fil montre ses non lus.
+    vue().querySelectorAll('.p-fils-barre [data-fil]').forEach((b) => { const n = parFil[b.getAttribute('data-fil') || 'general']; if (n) b.insertAdjacentHTML('beforeend', `<i class="p-fil-nonlus" aria-label="${n} non lu${n > 1 ? 's' : ''}">${n}</i>`); });
+    const formQ = document.getElementById('m-form-recherche');
+    if (formQ) formQ.addEventListener('submit', (ev) => { ev.preventDefault(); rechercheProf = document.getElementById('m-q').value.trim().slice(0, 80) || null; avantProf = null; vueMessages(null, true); });
+    const viderQ = document.getElementById('m-q-vider'); if (viderQ) viderQ.addEventListener('click', () => { rechercheProf = null; vueMessages(null, true); });
+    const btnAnciens = document.getElementById('m-anciens'); if (btnAnciens) btnAnciens.addEventListener('click', () => { avantProf = null; rechercheProf = null; avantProf = '9999-12-31T00:00:00.000Z'; vueMessages(null, true); });
+    // F164 : modifier son propre message dans les cinq minutes.
+    filMsg.querySelectorAll('[data-modifier-msg]').forEach((b) => b.addEventListener('click', () => {
+      const m = messages.find((x) => x.id === b.getAttribute('data-modifier-msg')); if (!m) return;
+      const form = document.getElementById('p-form-msg'); const champT = document.getElementById('m-texte');
+      form.dataset.modifier = m.id; champT.value = m.texte; champT.focus();
+      form.querySelector('[type=submit]').textContent = 'Corriger le message';
+      N.signaler('Modifie le texte puis « Corriger le message ».', 'info', { libelle: 'Annuler', faire: () => { delete form.dataset.modifier; champT.value = ''; form.querySelector('[type=submit]').textContent = 'Envoyer'; } });
+    }));
     const btnEffacer = document.getElementById('m-effacer-fil');
     if (btnEffacer) btnEffacer.addEventListener('click', async () => {
       const nom = filProf ? (N.matiere(filProf) || {}).nom || filProf : 'le fil général';
-      if (!window.confirm(`Effacer toute la discussion « ${nom} » ? Les ${visibles.length} message(s) et leurs réactions disparaissent chez Sterenn aussi. Les fichiers déposés restent.`)) return;
+      // F166 : plus de boîte native : la confirmation se tape.
+      if (!(await confirmerParMot('effacer', `Effacer toute la discussion « ${nom} » ? Les ${visibles.length} message(s) et leurs réactions disparaissent chez Sterenn aussi. Les fichiers déposés restent.`))) return;
       try { const r = await N.api('/messages?fil=' + encodeURIComponent(filProf || 'general'), { method: 'DELETE' }); N.signaler(`${r.effaces} message(s) effacé(s).`, 'succes'); await N.rafraichirEtat(); vueMessages(null, true); } catch (e) { N.signaler(e.message); }
     });
     const btnScan = document.getElementById('m-scan');
@@ -1517,6 +1572,12 @@
       ev.preventDefault();
       const texte = document.getElementById('m-texte').value.trim();
       if (!texte) return;
+      const formMsg = document.getElementById('p-form-msg');
+      if (formMsg.dataset.modifier) {
+        try { await N.api('/messages/' + formMsg.dataset.modifier, { method: 'PATCH', body: JSON.stringify({ texte }) }); delete formMsg.dataset.modifier; N.signaler('Message corrigé.', 'succes'); vueMessages(null, true); }
+        catch (e) { signalerChamp(formMsg, e); }
+        return;
+      }
       try {
         const quand = document.getElementById('m-differe').value;
         let envoyerLe = null;
@@ -1527,6 +1588,8 @@
         });
         if (envoyerLe) N.signaler('Message programmé pour ' + N.dateCourte(envoyerLe) + '.', 'succes');
         document.getElementById('m-texte').value = '';
+        // Un message envoyé pendant une recherche doit se voir : la recherche s'efface.
+        rechercheProf = null; avantProf = null;
         vueMessages(null, true);
       } catch (e) { N.signaler(e.message); }
     });
@@ -1593,12 +1656,15 @@
     });
   }
 
+  let genreDepots = null;
+  let avantDepots = null;
   async function vueDepots() {
     afficher(entete('Dépôts', 'Ce que Sterenn rend, et ce que je lui transmets.')
       + N.squelette('serie'), [{ t: 'Échanges' }, { t: 'Dépôts' }]);
 
     let donnees = { fichiers: [], stockage: true };
-    try { donnees = await N.api('/fichiers'); } catch (e) { N.signaler(e.message); }
+    // F154 : filtre par famille, page suivante et quota du jour, par le serveur.
+    try { donnees = await N.api('/fichiers' + (genreDepots || avantDepots ? '?' + new URLSearchParams(Object.assign({}, genreDepots ? { genre: genreDepots } : {}, avantDepots ? { avant: avantDepots, limite: '100' } : {})).toString() : '')); } catch (e) { N.signaler(e.message); }
     const fichiers = donnees.fichiers || [];
     const delle = fichiers.filter((f) => f.auteur === 'eleve');
     const felicite = new Set((N.etat.felicitations || []).map((x) => x.fichier_id).filter(Boolean));
@@ -1606,6 +1672,7 @@
     afficher(
       entete('Dépôts', `${fichiers.length} fichier(s) · ${delle.length} déposé(s) par Sterenn`)
       + (donnees.stockage ? '' : '<p class="p-bandeau p-bandeau-erreur" style="border-radius:7px;margin-bottom:.85rem">Le stockage de fichiers n\'est pas activé sur ce compte : les dépôts sont impossibles.</p>')
+      + `<div class="p-modeles p-fils-barre">${[['', 'Tout'], ['image', 'Photos'], ['audio', 'Vocaux'], ['document', 'Documents']].map(([g, t]) => `<button type="button" class="${(genreDepots || '') === g ? 'actif' : ''}" data-genre="${g}">${t}</button>`).join('')}${donnees.quota ? `<small class="p-faible">${donnees.quota.jour} dépôt(s) aujourd'hui sur ${donnees.quota.plafond}</small>` : ''}${donnees.suite ? '<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="d-suite">Fichiers plus anciens</button>' : ''}</div>`
       + '<div class="p-grille2"><div>'
       + bloc('Ce qui a été déposé',
         fichiers.length
@@ -1613,7 +1680,7 @@
               <span class="ic" aria-hidden="true">${String(f.type).indexOf('image') === 0 ? '🖼' : '📄'}</span>
               <span class="c">
                 <a href="/api/fichiers/${f.id}" download>${N.ech(f.nom)}</a>
-                <span>${f.auteur === 'eleve' ? 'Sterenn' : 'Moi'} · ${N.ech(N.dateCourte(f.cree_le))} · ${N.ech(N.poids(f.taille))}${f.note ? ' · ' + N.ech(f.note) : ''}${(() => { const fe = (N.etat.felicitations || []).find((x) => x.fichier_id === f.id); return fe ? (fe.vu_le ? ' · félicitation vue le ' + N.ech(N.dateCourte(fe.vu_le)) : ' · félicitation pas encore vue') : ''; })()}</span>
+                <span>${f.auteur === 'eleve' ? 'Sterenn' : 'Moi'} · ${N.ech(N.dateCourte(f.cree_le))} · ${N.ech(N.poids(f.taille))}${f.doublon_de ? ' · <span class="p-etat p-etat-fragile" title="Même contenu qu\'un fichier déjà déposé">doublon</span>' : ''}${f.note ? ' · ' + N.ech(f.note) : ''}${(() => { const fe = (N.etat.felicitations || []).find((x) => x.fichier_id === f.id); return fe ? (fe.vu_le ? ' · félicitation vue le ' + N.ech(N.dateCourte(fe.vu_le)) : ' · félicitation pas encore vue') : ''; })()}</span>
               </span>
               ${String(f.type).indexOf('image') === 0 ? `<button class="p-bouton p-bouton-fantome p-bouton-mini" data-voir="${f.id}" data-nom="${N.ech(f.nom)}" type="button">Voir en grand</button>` : ''}
               ${f.auteur === 'eleve' && f.ref && N.matiere(f.matiere) ? `<a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/lecon/${N.ech(f.matiere)}/${N.ech(f.ref)}/evaluation" title="Noter cette copie avec la grille">Noter</a>` : ''}
@@ -1697,6 +1764,8 @@
       } catch (e) { N.signaler(e.message); }
     }));
 
+    vue().querySelectorAll('[data-genre]').forEach((b) => b.addEventListener('click', () => { genreDepots = b.getAttribute('data-genre') || null; avantDepots = null; vueDepots(); }));
+    const btnSuite = document.getElementById('d-suite'); if (btnSuite) btnSuite.addEventListener('click', () => { const dernier = fichiers[fichiers.length - 1]; if (dernier) { avantDepots = dernier.cree_le; vueDepots(); } });
     document.getElementById('p-form-depot').addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const champ = document.getElementById('d-fichier');
@@ -2226,11 +2295,15 @@
         <div class="ligne"><div><label for="r-accent">Couleur d'accent</label><select id="r-accent">${[['bleu', 'Bleu'], ['vert', 'Vert opale'], ['prune', 'Prune']].map(([v, t]) => `<option value="${v}" ${(N.lire('opaline.pilotage', {}).accent || 'bleu') === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
         <div><label for="r-densite">Densité des tableaux</label><select id="r-densite">${[['confortable', 'Confortable'], ['compacte', 'Compacte']].map(([v, t]) => `<option value="${v}" ${(N.lire('opaline.pilotage', {}).densite || 'confortable') === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div></div>
         <p class="p-aide">Le thème clair ou sombre se change avec le bouton ◐ de la barre du haut. Raccourcis : <kbd>g</kbd> puis <kbd>a</kbd> accueil, <kbd>p</kbd> planning, <kbd>s</kbd> suivi, <kbd>m</kbd> messages, <kbd>d</kbd> dépôts, <kbd>r</kbd> réglages ; <kbd>/</kbd> recherche.</p>`)
+      + bloc('Sessions ouvertes', `<p class="p-aide">Chaque appareil connecté tient une session, valable trente jours et prolongée à l'usage. Fermer une session déconnecte cet appareil ; « Tout révoquer » ferme tout, y compris ici.</p>
+        <div id="r-sessions"><p class="p-vide">Chargement…</p></div>
+        <p class="p-modeles"><button type="button" class="p-bouton p-bouton-fantome" id="r-sessions-autres">Fermer mes autres sessions</button><button type="button" class="p-bouton p-bouton-danger" id="r-revoquer">Tout révoquer</button></p>`)
       + bloc('Codes d\'accès', `<form class="p-form" id="r-codes">
         <p class="p-aide">Le code se change ici, sans redéploiement. Le code professeur actuel est demandé à chaque fois. Un code fait au moins six caractères : lettres, chiffres, point, tiret. L'ancien code cesse d'ouvrir aussitôt ; les sessions déjà ouvertes restent valides.</p>
         <div class="ligne"><div><label for="c-role">Espace</label><select id="c-role"><option value="eleve">Sterenn</option><option value="prof">Professeur</option></select></div>
         <div><label for="c-actuel">Code professeur actuel</label><input id="c-actuel" type="password" autocomplete="current-password" required></div>
         <div><label for="c-nouveau">Nouveau code</label><input id="c-nouveau" type="text" autocomplete="off" minlength="6" maxlength="64" required></div></div>
+        <label class="p-case"><input type="checkbox" id="c-fermer"> Fermer aussi les sessions ouvertes de cet espace (l'appareil devra retaper le code)</label>
         <button class="p-bouton" type="submit">Changer le code</button></form>`),
     [{ t: 'Réglages' }]);
     document.getElementById('r-sonde').addEventListener('change', async (ev) => { try { const d = await N.api('/reglages', { method: 'PUT', body: JSON.stringify({ cle: 'sonde', valeur: Number(ev.target.value) }) }); N.etat.reglages = d.reglages || N.etat.reglages; N.signaler('Sonde : toutes les ' + ev.target.value + ' secondes.', 'succes'); } catch (e) { N.signaler(e.message); } });
@@ -2241,21 +2314,47 @@
       const role = document.getElementById('c-role').value;
       if (!(await confirmerParMot('changer', `Le code de l'espace ${role === 'prof' ? 'professeur' : 'de Sterenn'} va être remplacé.`))) return;
       try {
-        await N.api('/codes', { method: 'PUT', body: JSON.stringify({ role, actuel: document.getElementById('c-actuel').value, nouveau: document.getElementById('c-nouveau').value }) });
-        N.signaler('Code changé. Note-le quelque part de sûr.', 'succes'); document.getElementById('r-codes').reset();
-      } catch (e) { N.signaler(e.message); }
+        // F157 : sur demande, les sessions ouvertes de l'espace sont fermées avec le changement de code.
+        const r = await N.api('/codes', { method: 'PUT', body: JSON.stringify({ role, actuel: document.getElementById('c-actuel').value, nouveau: document.getElementById('c-nouveau').value, fermer_sessions: document.getElementById('c-fermer').checked }) });
+        N.signaler('Code changé. Note-le quelque part de sûr.' + (r.sessions_fermees ? ` ${r.sessions_fermees} session(s) fermée(s).` : ''), 'succes'); document.getElementById('r-codes').reset(); listerSessions();
+      } catch (e) { signalerChamp(document.getElementById('r-codes'), e); }
+    });
+    // F141 : les sessions ouvertes, fermeture d'une session, des autres, ou de toutes.
+    const listerSessions = async () => {
+      const zone = document.getElementById('r-sessions'); if (!zone) return;
+      try {
+        const d = await N.api('/sessions');
+        zone.innerHTML = d.sessions.length ? `${d.sessions.length > 40 ? `<p class="p-aide">${d.sessions.length} sessions ouvertes : les quarante plus récentes sont listées.</p>` : ''}<ul class="p-liste">${d.sessions.slice(0, 40).map((x) => `<li><span><b>${x.role === 'prof' ? 'Professeur' : 'Sterenn'}</b>${x.moi ? ' <span class="p-etat p-etat-satisfaisant">cet appareil</span>' : ''} <small class="p-faible">${N.ech(x.agent || 'navigateur inconnu')}${x.pays ? ' · ' + N.ech(x.pays) : ''}</small></span><small class="p-faible">ouverte ${N.ech(N.dateCourte(x.cree))}${x.renouvele && x.renouvele !== x.cree ? ' · vue ' + N.ech(N.dateCourte(x.renouvele)) : ''}</small>${x.moi ? '' : `<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-session="${N.ech(x.id)}">Fermer</button>`}</li>`).join('')}</ul>` : '<p class="p-vide">Aucune session ouverte.</p>';
+        zone.querySelectorAll('[data-session]').forEach((b) => b.addEventListener('click', async () => { try { await N.api('/sessions?id=' + b.getAttribute('data-session'), { method: 'DELETE' }); N.signaler('Session fermée.', 'succes'); listerSessions(); } catch (e) { N.signaler(e.message); } }));
+      } catch (e) { zone.innerHTML = `<p class="p-vide">${N.ech(e.message)}</p>`; }
+    };
+    listerSessions();
+    document.getElementById('r-sessions-autres').addEventListener('click', async () => { try { const r = await N.api('/deconnexion/partout', { method: 'POST' }); N.signaler(`${r.fermees} session(s) fermée(s).`, 'succes'); listerSessions(); } catch (e) { N.signaler(e.message); } });
+    document.getElementById('r-revoquer').addEventListener('click', async () => {
+      if (!(await confirmerParMot('revoquer', 'Toutes les sessions ouvertes, la tienne comprise, seront fermées. Il faudra retaper les codes partout.'))) return;
+      try { await N.api('/deconnexion/tout', { method: 'POST' }); location.reload(); } catch (e) { N.signaler(e.message); }
     });
     const listerSauvegardes = async () => {
       const zone = document.getElementById('r-sauvegardes');
       try {
         const d = await N.api('/sauvegarde');
         if (!d.stockage) { zone.innerHTML = '<p class="p-vide">Le stockage de fichiers n\'est pas relié : pas de sauvegarde possible.</p>'; return; }
-        zone.innerHTML = d.sauvegardes.length ? `<ul class="p-liste">${d.sauvegardes.slice(0, 12).map((x) => `<li><span>${N.ech(x.cle.replace('sauvegardes/', ''))}</span><small class="p-faible">${N.ech(N.poids(x.octets))}</small>
+        // F156 : âge de chaque instantané, filets distingués, simulation avant restauration.
+        zone.innerHTML = d.sauvegardes.length ? `<ul class="p-liste">${d.sauvegardes.slice(0, 12).map((x) => `<li><span>${x.filet ? '<span class="p-etat p-etat-fragile">filet</span> ' : ''}${N.ech(x.cle.replace('sauvegardes/', ''))}</span><small class="p-faible">${N.ech(N.poids(x.octets))}${x.age_heures != null ? ' · il y a ' + (x.age_heures < 48 ? x.age_heures + ' h' : Math.round(x.age_heures / 24) + ' j') : ''}</small>
           <a class="p-bouton p-bouton-fantome p-bouton-mini" href="/api/sauvegarde?cle=${encodeURIComponent(x.cle)}">Télécharger</a>
+          <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-simuler="${N.ech(x.cle)}">Simuler</button>
           <button type="button" class="p-bouton p-bouton-danger p-bouton-mini" data-restaurer="${N.ech(x.cle)}">Restaurer</button></li>`).join('')}</ul>` : '<p class="p-vide">Aucun instantané pour l\'instant.</p>';
+        zone.querySelectorAll('[data-simuler]').forEach((b) => b.addEventListener('click', async () => {
+          try {
+            const r = await N.api('/sauvegarde/restaurer', { method: 'POST', body: JSON.stringify({ cle: b.getAttribute('data-simuler'), simulation: true }) });
+            const lignes = Object.entries(r.rapport || {}).map(([t, n]) => `${t} : ${n}`).join(', ');
+            const ignorees = Object.keys(r.colonnes_ignorees || {}).length ? ' Colonnes ignorées : ' + Object.entries(r.colonnes_ignorees).map(([t, c]) => t + ' (' + c.join(', ') + ')').join(' ; ') + '.' : '';
+            N.signaler('Simulation : ' + lignes + '.' + ignorees, 'info');
+          } catch (e) { N.signaler(e.message); }
+        }));
         zone.querySelectorAll('[data-restaurer]').forEach((b) => b.addEventListener('click', async () => {
-          const mot = window.prompt('Restaurer cet instantané remplace toutes les données actuelles (un filet est écrit avant). Écris « restaurer » pour confirmer.');
-          if (mot !== 'restaurer') return;
+          // F166 : la confirmation se tape dans une fenêtre du site, pas dans une boîte native.
+          if (!(await confirmerParMot('restaurer', 'Restaurer cet instantané remplace toutes les données actuelles. Un filet est écrit juste avant.'))) return;
           try {
             const r = await N.api('/sauvegarde/restaurer', { method: 'POST', body: JSON.stringify({ cle: b.getAttribute('data-restaurer'), confirmation: 'restaurer' }) });
             N.signaler('Restauration faite. Filet : ' + r.filet.replace('sauvegardes/', ''), 'succes');
@@ -2297,7 +2396,7 @@
     const libelle = { auto: defaut ? 'auto (ouvert)' : 'auto (fermé)', ouvert: perime ? 'ouvert, échu' : 'ouvert', ferme: 'fermé' }[etat];
     const glyphe = { auto: '○', ouvert: '✓', ferme: '✕' }[etat];
     return `<button type="button" class="p-acces-cell etat-${etat}${perime ? ' echu' : ''}${etat === 'auto' && defaut ? ' auto-ouvert' : ''}" data-acces="${cle}" data-etat="${etat}" title="${N.ech(libelle)}. Clic : auto, ouvert, fermé." aria-label="${N.ech(cle + ' : ' + libelle)}">${glyphe}<span>${N.ech(libelle)}</span></button>`
-      + (a && a.etat === 1 && cle.endsWith('/evaluation') ? `<input type="datetime-local" class="p-acces-date" data-date="${cle}" value="${a.jusqu_au ? N.ech(a.jusqu_au.slice(0, 16)) : ''}" title="Fermeture automatique (facultatif)" aria-label="Date de fermeture">` : '');
+      + (a && a.etat === 1 && cle.endsWith('/evaluation') ? `<input type="datetime-local" class="p-acces-date" data-date="${cle}" min="${new Date().toISOString().slice(0, 16)}" value="${a.jusqu_au ? N.ech(a.jusqu_au.slice(0, 16)) : ''}" title="Fermeture automatique (facultatif)" aria-label="Date de fermeture">` : '');
   }
   function vueAcces() {
     const blocs = PROGRAMME.matieres.map((m) => bloc(m.icone + ' ' + m.nom, `<div class="p-tableau-defilant"><table class="p-table p-acces">
@@ -2308,7 +2407,8 @@
         const d = N.decision(m.id, l.ref);
         const ouv = d === 1 ? 'ouvert' : d === 0 ? 'ferme' : 'auto';
         return `<tr>
-          <td><b>${N.ech(l.ref)}</b> ${N.ech(l.titre)}<br><small class="${verrou ? 'p-ok' : 'p-faible'}">${verrou ? 'ouverte à Sterenn' : 'verrouillée pour Sterenn'}</small></td>
+          <td><b>${N.ech(l.ref)}</b> ${N.ech(l.titre)}<br><small class="${verrou ? 'p-ok' : 'p-faible'}">${verrou ? 'ouverte à Sterenn' : 'verrouillée pour Sterenn'}</small>
+            <span class="p-acces-lot"><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-lot="${k}" data-valeur="true" title="Ouvrir cours, révision, exercices, série et évaluation d'un coup">tout ouvrir</button><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-lot="${k}" data-valeur="null" title="Revenir à la règle automatique sur les cinq éléments">tout en auto</button></span></td>
           <td><button type="button" class="p-acces-cell etat-${ouv}${ouv === 'auto' && verrou ? ' auto-ouvert' : ''}" data-ouverture="${k}" data-etat="${ouv}" title="Ouverture de la leçon : auto, poussée, retenue">${{ auto: '○', ouvert: '✓', ferme: '✕' }[ouv]}<span>${{ auto: 'auto', ouvert: 'poussée', ferme: 'retenue' }[ouv]}</span></button></td>
           ${COLONNES_ACCES.map((c) => `<td>${celluleAcces(k + '/' + c.id, c.id === 'evaluation' ? false : !!verrou)}</td>`).join('')}
         </tr>`;
@@ -2327,6 +2427,14 @@
       + blocs + blocJeux, [{ t: 'Pilotage' }, { t: 'Accès' }]);
 
     const suivant = { auto: true, ouvert: false, ferme: null };
+    // F153 : cinq décisions en une requête pour une leçon.
+    vue().querySelectorAll('[data-lot]').forEach((b) => b.addEventListener('click', async () => {
+      const k = b.getAttribute('data-lot'); const valeur = b.getAttribute('data-valeur') === 'true' ? true : null;
+      try {
+        const d = await N.api('/acces', { method: 'PUT', body: JSON.stringify({ decisions: COLONNES_ACCES.map((c) => ({ cle: k + '/' + c.id, etat: valeur })) }) });
+        N.etat.acces = d.acces || N.etat.acces; await N.rafraichirEtat(); N.signaler(valeur ? 'Leçon entièrement ouverte.' : 'Règle automatique rétablie.', 'succes'); vueAcces();
+      } catch (e) { N.signaler(e.message); }
+    }));
     vue().querySelectorAll('[data-acces]').forEach((b) => b.addEventListener('click', async () => {
       const cle = b.getAttribute('data-acces');
       const valeur = suivant[b.getAttribute('data-etat')];
@@ -2394,6 +2502,7 @@
       + bloc('Son point de départ', bilan)
       + '</div><div>'
       + bloc('Les modules de début d\'année', modules)
+      + bloc('Ses connexions', (() => { const c = N.profil('moi.connexions', null); return c && c.derniere ? `<p>Dernière ouverture de son espace : <b>${N.ech(N.dateCourte(c.derniere))}</b>${c.precedente ? `, la précédente ${N.ech(N.dateCourte(c.precedente))}` : ''}. ${Number(c.nombre) || 0} ouverture(s) comptée(s).</p>` : '<p class="p-vide">Pas encore d\'ouverture notée.</p>'; })())
       + bloc('Ta carte, telle qu\'elle la lit', `<form class="p-form" id="p-form-carte">
           <div><label for="c-texte">Texte</label><textarea id="c-texte" rows="8" maxlength="1200">${N.ech(N.profil('bastien.carte', ''))}</textarea>
           <p class="p-aide">Vide, le texte par défaut du module s'affiche. Écris-la à la première personne, en tutoyant.</p></div>
