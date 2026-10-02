@@ -20,6 +20,24 @@
   .tr-barres { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 8px; align-items: center; font-size: 12px; }
   .tr-barres i { display: block; height: 8px; border-radius: 4px; background: var(--accent); min-width: 3px; }
   .tr-barres b { font-family: var(--font-data); }
+  .tr-tete { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .tr-tete h3 { margin: 0; }
+  .tr-pli { font: inherit; font-size: 11.5px; font-weight: 700; min-height: 28px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--fg); cursor: pointer; }
+  .tr-corps { display: flex; flex-direction: column; gap: 9px; }
+  .mb-panneau.tr-replie .tr-corps > :not(.tr-garde) { display: none; }
+  .tr-temoin { border-left: 4px solid var(--fg-muted); background: var(--surface-2); color: var(--fg); }
+  .tr-temoin small, .tr-mission small { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; opacity: .8; margin-bottom: 3px; }
+  .tr-temoin cite { display: block; font-style: normal; font-size: 11.5px; color: var(--fg-muted); margin-top: 5px; }
+  .tr-mission { border-left: 4px solid var(--accent); display: flex; flex-direction: column; gap: 6px; }
+  .tr-mission .mb-groupe .mb-bouton { text-align: left; flex: 1 1 100%; }
+  .tr-mission .tr-expl { font-size: 12.5px; }
+  @media (max-width: 720px) { .mb-panneau.tr-replie { width: 40vw; } }
+  /* la mission et la marche de la base, ajustées à ce monde : liste compacte, joystick réservé au tactile, aide repliée sur petit écran */
+  .mb-mission { font-size: 12.5px; }
+  .mb-mission ol { gap: 3px; }
+  .mb-mission li { padding: 3px 6px; }
+  @media (hover: hover) and (pointer: fine) { .mb-stick { display: none !important; } }
+  @media (max-width: 720px) { .mb-aide-marche { display: none; } }
 </style>
 </head>
 <body>
@@ -50,8 +68,42 @@ const ZONES = { europe: { nom: 'Europe', couleur: 0xF5A623, lon: -3 }, afrique: 
 const SIECLES = [{ de: 1500, a: 1600, deportes: 0.3 }, { de: 1600, a: 1700, deportes: 1.9 }, { de: 1700, a: 1800, deportes: 6.5 }, { de: 1800, a: 1870, deportes: 3.9 }];
 const DATES = [[1685, 'Code noir : l\'esclave est un bien meuble'], [1791, 'Révolte des esclaves de Saint-Domingue'], [1794, 'Première abolition par la Convention'], [1802, 'Rétablissement par Bonaparte'], [1807, 'Le Royaume-Uni interdit la traite'], [1815, 'Le congrès de Vienne condamne la traite'], [1833, 'Abolition dans les colonies britanniques'], [1848, 'Abolition définitive en France (Schœlcher)'], [1865, 'Abolition aux États-Unis (13ᵉ amendement)'], [1888, 'Abolition au Brésil, le dernier pays des Amériques']];
 const ARRIVEES = [{ port: 'bahia', region: 'Brésil', millions: 4.9, dx: 6 }, { port: 'kingston', region: 'Antilles britanniques', millions: 2.3, dx: -9 }, { port: 'havane', region: 'Amérique espagnole', millions: 1.3, dx: -6 }, { port: 'saint-domingue', region: 'Antilles françaises', millions: 1.1, dx: 9 }, { port: 'charleston', region: 'Amérique du Nord', millions: 0.4, dx: 0 }];
+/* Témoignages et documents, un par port : des faits courts, d'après les sources. */
+const TEMOIGNAGES = {
+  nantes: { texte: 'En 1769, la Marie-Séraphique, armée à Nantes, embarque plus de trois cents captifs sur la côte d\'Angola et les vend à Saint-Domingue. Une aquarelle de l\'époque montre l\'entrepont où ils sont entassés.', source: 'Journal de bord et aquarelle de la Marie-Séraphique, musée d\'histoire de Nantes.' },
+  bordeaux: { texte: 'Les armateurs bordelais financent quelques centaines d\'expéditions et font fortune avec le sucre et le café des Antilles. Les quais et les hôtels du XVIIIᵉ siècle en gardent la trace.', source: 'Archives des armements bordelais, XVIIIᵉ siècle.' },
+  liverpool: { texte: 'Le plan du navire Brookes, imprimé en 1788, montre 454 captifs allongés côte à côte dans l\'entrepont. Les abolitionnistes britanniques le diffusent partout.', source: 'Plan du Brookes, Société pour l\'abolition de la traite, Londres, 1788.' },
+  lisbonne: { texte: 'En 1444, à Lagos au Portugal, le chroniqueur Zurara décrit la vente de captifs africains sur la place, et les familles séparées.', source: 'Gomes Eanes de Zurara, Chronique de la découverte et de la conquête de Guinée.' },
+  goree: { texte: 'Sur l\'île de Gorée, la Maison des Esclaves, bâtie à la fin du XVIIIᵉ siècle, est devenue un lieu de mémoire. On y vient du monde entier pour se souvenir.', source: 'Maison des Esclaves, île de Gorée, site classé par l\'UNESCO.' },
+  ouidah: { texte: 'Olaudah Equiano, enlevé enfant puis vendu sur la côte, décrit en 1789 la cale du navire : la chaleur, l\'air qu\'on ne peut plus respirer, les cris, la peur.', source: 'Olaudah Equiano, récit de sa vie, publié à Londres en 1789.' },
+  luanda: { texte: 'Depuis Luanda, comptoir portugais, les navires partent vers le Brésil. Avant d\'embarquer, les captifs reçoivent un baptême et un nouveau nom sur le quai, puis descendent dans la cale.', source: 'Récits de missionnaires et de voyageurs à Luanda, XVIIᵉ et XVIIIᵉ siècles.' },
+  'saint-domingue': { texte: 'Le Code noir de 1685 déclare l\'esclave « bien meuble », c\'est-à-dire un objet que l\'on possède. En 1791, les esclaves de Saint-Domingue se soulèvent ; Haïti devient indépendante en 1804.', source: 'Code noir, article 44 ; acte d\'indépendance d\'Haïti, 1er janvier 1804.' },
+  kingston: { texte: 'En Jamaïque, les plantations de sucre réclament sans cesse de nouveaux captifs. En 1760, la révolte menée par Tacky est réprimée.', source: 'Archives coloniales britanniques de la Jamaïque, 1760.' },
+  havane: { texte: 'À Cuba, la traite se poursuit en fraude après son interdiction, jusque dans les années 1860, pour les plantations de sucre.', source: 'Rapports des commissions mixtes anglo-espagnoles, XIXᵉ siècle.' },
+  bahia: { texte: 'À Bahia, les captifs travaillent la canne à sucre dans les moulins, les engenhos. Le Brésil abolit l\'esclavage le dernier des Amériques, en 1888.', source: 'Lei Áurea, loi du 13 mai 1888.' },
+  charleston: { texte: 'À Charleston, les captifs sont mis en quarantaine sur l\'île de Sullivan, en face du port, puis vendus. Une grande part des Africains déportés vers l\'Amérique du Nord passent par là.', source: 'Registres du port de Charleston, XVIIIᵉ siècle.' },
+};
+/* Trois navires à suivre : les escales dans l'ordre, et une question à chaque escale (l'index de la bonne réponse). */
+const NAVIRES = [
+  { nom: 'La Marie-Séraphique, Nantes, 1769', escales: ['nantes', 'luanda', 'saint-domingue', 'nantes'], questions: [
+    { q: 'Sur la côte d\'Afrique, que charge le navire ?', choix: ['Des captifs, échangés contre tissus, armes et alcool', 'Du sucre et du café', 'Du charbon'], r: 0, expl: 'Les marchandises apportées d\'Europe sont échangées contre des captifs auprès de marchands et de royaumes de la côte.' },
+    { q: 'Combien de temps dure la traversée vers les Amériques ?', choix: ['Un à trois mois', 'Une semaine', 'Un an'], r: 0, expl: 'Le passage du milieu dure un à trois mois ; 10 à 20 % des captifs meurent pendant la traversée.' },
+    { q: 'Que rapporte le navire à Nantes ?', choix: ['Du sucre et du café des plantations', 'Des captifs', 'De l\'or'], r: 0, expl: 'Les produits des plantations sont vendus en Europe : c\'est le troisième côté du triangle.' },
+  ] },
+  { nom: 'Le Brookes, Liverpool, 1788', escales: ['liverpool', 'ouidah', 'kingston', 'liverpool'], questions: [
+    { q: 'Le plan du Brookes, imprimé en 1788, montre…', choix: ['454 captifs allongés dans l\'entrepont', 'Un navire vide', 'Des caisses de marchandises'], r: 0, expl: 'Ce plan sert aux abolitionnistes britanniques à montrer les conditions de la traversée.' },
+    { q: 'À Kingston, en Jamaïque, les captifs sont…', choix: ['Vendus aux planteurs de sucre', 'Libérés', 'Renvoyés en Afrique'], r: 0, expl: 'Les Antilles britanniques reçoivent environ 2,3 millions de captifs pour leurs plantations.' },
+    { q: 'En 1807, le Royaume-Uni…', choix: ['Interdit la traite', 'Ouvre de nouveaux ports négriers', 'Abolit l\'esclavage dans toutes ses colonies'], r: 0, expl: '1807 : la traite est interdite. L\'esclavage lui-même n\'est aboli dans les colonies britanniques qu\'en 1833.' },
+  ] },
+  { nom: 'Un navire de Lisbonne, XVIIᵉ siècle', escales: ['lisbonne', 'luanda', 'bahia', 'lisbonne'], questions: [
+    { q: 'Les Portugais ouvrent la traite atlantique…', choix: ['Dès le XVᵉ siècle', 'Au XIXᵉ siècle', 'Après 1848'], r: 0, expl: 'Dès 1444, des captifs africains sont vendus au Portugal ; puis la traite se tourne vers le Brésil.' },
+    { q: 'Au Brésil, les captifs travaillent surtout…', choix: ['La canne à sucre, puis les mines d\'or', 'Dans des usines', 'Comme marins'], r: 0, expl: 'Le Brésil reçoit près de 40 % des captifs déportés : près de 4,9 millions de personnes.' },
+    { q: 'Le Brésil abolit l\'esclavage en…', choix: ['1888, le dernier des Amériques', '1685', '1794'], r: 0, expl: '1888 : la Lei Áurea. En France, l\'abolition définitive date de 1848.' },
+  ] },
+];
 let annee = 1750; let rotation = true; let arrivees = false;
 let M, panneau, globe, nuages, navires = [], flux = [], routesVisibles = { 1: true, 2: true, 3: true }, lignes = {}, barres, parId = {}, visee = null;
+let mission = null, missionActive = false, navireChoisi = null, etape = 0, journalLu = 0, modeJeu = 'detente', apiJeu = null, lanceMission = false, ambiances = {}, navireMission = null, trajet = null, rotationAvant = true, questionEnCours = null;
 const LEGENDES = PORTS.map((p) => ({ nom: p.nom, phrase: p.texte.split('. ')[0] + '.' })).concat(ROUTES.map((r) => ({ nom: r.nom, phrase: r.cargaison })));
 const F1 = (x) => String(x).replace('.', ',');
 const shell = window.Konstrio.createGame({
@@ -60,7 +112,7 @@ const shell = window.Konstrio.createGame({
   intro: {
     greet: 'Le commerce triangulaire sur le globe : trois côtés, des ports, des dates, et le nombre de personnes déportées.',
     rule: 'Tourne le globe, touche un port ou une route. Le curseur des années montre l\'ampleur de la traite siècle par siècle et les grandes dates. Les barres d\'arrivées comparent les régions.',
-    how: ['Glisse pour tourner le globe, molette pour zoomer. Les boutons « Voir » le tournent vers un continent.', 'Touche un port (Nantes, Ouidah, Saint-Domingue…) ou une route pour sa légende.', 'Le panneau allume chaque côté du triangle, fait défiler les années et affiche les arrivées par région.'],
+    how: ['Glisse pour tourner le globe, molette pour zoomer. Les boutons « Voir » le tournent vers un continent.', 'Touche un port (Nantes, Ouidah, Saint-Domingue…) ou une route pour sa légende ; un témoignage court, d\'après les sources, s\'affiche dans le panneau.', 'Le panneau allume chaque côté du triangle, fait défiler les années et affiche les arrivées par région.', 'La mission « Suivre un navire » : choisis un navire, touche ses ports dans l\'ordre du triangle et réponds à une question à chaque escale.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Décrire les trois côtés du commerce triangulaire, situer les grands ports, et dater la traite et son abolition.',
     hint: 'Europe → Afrique : marchandises. Afrique → Amériques : captifs. Amériques → Europe : sucre, café, coton.',
@@ -150,8 +202,13 @@ function init() {
     legender(g, 'Arrivées : ' + a.region, phrase);
     const e = etiquette(a.region + '\n≈ ' + F1(a.millions) + ' M', [0, 0, 0], { hauteur: 0.34, taille: 24, fond: 'rgba(16, 60, 50, 0.85)' }); e.position.copy(latlon(p.lat, p.lon + a.dx, R + h + 0.26)); barres.add(e); e.material.depthTest = true;
   });
-  construirePanneau(); majAnnee();
+  // un soleil lointain, dans l'axe de la lumière, pour l'éclat sur l'océan
+  const soleilTex = canevas(128, 128); const gS = soleilTex.x.createRadialGradient(64, 64, 2, 64, 64, 62); gS.addColorStop(0, 'rgba(255,248,230,1)'); gS.addColorStop(0.25, 'rgba(255,236,190,0.7)'); gS.addColorStop(1, 'rgba(255,220,160,0)'); soleilTex.x.fillStyle = gS; soleilTex.x.fillRect(0, 0, 128, 128); soleilTex.t.needsUpdate = true;
+  const soleil = new THREE.Sprite(new THREE.SpriteMaterial({ map: soleilTex.t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); soleil.position.set(-22, 9, 18).normalize().multiplyScalar(110); soleil.scale.set(18, 18, 1); soleil.raycast = () => {}; scene.add(soleil);
+  navireMission = navire(0xffffff); navireMission.scale.setScalar(2.6); navireMission.visible = false; navireMission.traverse((c) => { c.userData.legende = { nom: 'Navire suivi', phrase: 'Le navire de la mission : suis ses trois côtés, escale après escale.' }; }); globe.add(navireMission);
+  construireMission(); construirePanneau(); majAnnee();
   M.boucle(animer);
+  window.__monde = { missionActive: () => missionActive, etape: () => etape, finie: () => !!mission && mission.estFinie(), lancer: lancerMission, choisir: choisirNavire, navires: NAVIRES.map((n) => ({ nom: n.nom, escales: n.escales, reponses: n.questions.map((q) => q.r) })), viser, zoneDe: (id) => (PORTS.find((p) => p.id === id) || {}).zone, ecran: (id) => { const p = globe.localToWorld(parId[id].clone().multiplyScalar(1.02)); const dev = p.clone().sub(M.camera.position).normalize().dot(p.clone().normalize()); const v = p.clone().project(M.camera); const r = M.renderer.domElement.getBoundingClientRect(); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height, face: dev < -0.2, vue: (p, c) => { M.camera.position.fromArray(p); M.controls.target.fromArray(c); M.controls.update(); } }; }, attente: () => !!questionEnCours };
 }
 /* Un petit navire : coque, mât, voile. Le +z local pointe vers l'avant. */
 function navire(couleur) {
@@ -160,8 +217,87 @@ function navire(couleur) {
   const voile = new THREE.Mesh(new THREE.PlaneGeometry(0.07, 0.08), new THREE.MeshStandardMaterial({ color: 0xf4efe4, emissive: couleur, emissiveIntensity: 0.25, side: THREE.DoubleSide, roughness: 0.9 })); voile.position.set(0, 0.09, 0.005); g.add(voile);
   return g;
 }
+/* ---------- La mission : suivre un navire sur ses trois côtés, une question à chaque escale ---------- */
+function construireMission() {
+  mission = M.mission({
+    titre: 'Suivre un navire', chrono: true, chronoCible: 240, gagner: false, cachee: true, annonce: false,
+    objectifs: [{ id: 'depart', texte: 'Toucher le port de départ' }, { id: 'afrique', texte: 'Toucher l\'escale en Afrique et répondre' }, { id: 'ameriques', texte: 'Toucher le port des Amériques et répondre' }, { id: 'retour', texte: 'Toucher le port de retour et répondre' }],
+    surFin: finMission,
+  });
+}
+const portDe = (id) => PORTS.find((p) => p.id === id);
+function lancerMission() {
+  if (missionActive || !mission) return;
+  missionActive = true; lanceMission = true; navireChoisi = null; etape = 0; questionEnCours = null; journalLu = M.socle.journal.length;
+  rotationAvant = rotation; rotation = false; panneau.querySelector('#tr-rotation').setAttribute('aria-pressed', 'false');
+  mission.objectifs.forEach((o) => { o.fait = false; }); mission.rendre(); mission.montrer();
+  const b = panneau.querySelector('#tr-mission-btn'); b.disabled = true; b.textContent = 'Mission en cours';
+  majMission(); apiJeu.say('Mission : choisis un navire dans le panneau, puis touche ses ports dans l\'ordre du triangle. À chaque escale, une question.', 'concentre');
+  if (window.matchMedia('(max-width: 720px)').matches) replier(true);
+}
+function choisirNavire(k) {
+  if (!missionActive || navireChoisi) return;
+  navireChoisi = NAVIRES[k]; etape = 0; mission.commencer();
+  const n = navireChoisi; mission.objectifs[0].texte = 'Partir de ' + portDe(n.escales[0]).nom; mission.objectifs[1].texte = 'Escale en Afrique : ' + portDe(n.escales[1]).nom; mission.objectifs[2].texte = 'Traversée vers ' + portDe(n.escales[2]).nom; mission.objectifs[3].texte = 'Retour à ' + portDe(n.escales[0]).nom; mission.rendre();
+  navireMission.visible = true; poserNavire(parId[n.escales[0]]);
+  viser(portDe(n.escales[0]).zone); majMission();
+  apiJeu.say(n.nom + '. Touche d\'abord son port de départ : ' + portDe(n.escales[0]).nom + '.', 'concentre');
+}
+function poserNavire(p) { const n = p.clone().normalize(); navireMission.position.copy(p.clone().multiplyScalar(1.01)); navireMission.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n); }
+function majMission() {
+  const zone = panneau.querySelector('#tr-mission'); if (!missionActive) { zone.hidden = true; return; }
+  zone.hidden = false; const tete = zone.querySelector('small'); const corps = zone.querySelector('#tr-mcorps');
+  if (!navireChoisi) { tete.textContent = 'Mission : choisir un navire'; corps.innerHTML = '<div class="mb-groupe">' + NAVIRES.map((n, k) => `<button class="mb-bouton" type="button" data-navire="${k}">${n.nom}</button>`).join('') + '</div>'; corps.querySelectorAll('[data-navire]').forEach((b) => b.addEventListener('click', () => choisirNavire(Number(b.getAttribute('data-navire'))))); return; }
+  const n = navireChoisi;
+  if (questionEnCours) { const q = questionEnCours; tete.textContent = 'Escale ' + etape + ' sur 3 : ' + portDe(n.escales[etape]).nom; corps.innerHTML = `<p>${q.q}</p><div class="mb-groupe">${q.choix.map((c, k) => `<button class="mb-bouton" type="button" data-k="${k}">${k + 1}. ${c}</button>`).join('')}</div>`; corps.querySelectorAll('[data-k]').forEach((b) => b.addEventListener('click', () => repondre(Number(b.getAttribute('data-k'))))); return; }
+  if (etape >= 4) { tete.textContent = 'Mission terminée'; corps.innerHTML = '<p>' + n.nom + ' : les trois côtés sont parcourus.</p>'; return; }
+  const cible = portDe(n.escales[etape]); const expl = corps.getAttribute('data-expl') || '';
+  tete.textContent = etape === 0 ? 'Départ' : 'Côté ' + etape + ' sur 3';
+  corps.innerHTML = (expl ? `<p class="tr-expl">${expl}</p>` : '') + '<p>' + (etape === 0 ? 'Touche le port de départ : ' : etape === 3 ? 'Touche le port de retour : ' : 'Touche la prochaine escale : ') + '<b>' + cible.nom + '</b> (' + ZONES[cible.zone].nom + ').</p>';
+}
+function traiterToucher(nom) {
+  if (!missionActive || !navireChoisi || questionEnCours || etape >= 4) return;
+  const port = PORTS.find((p) => p.nom === nom); if (!port) return;
+  const n = navireChoisi; const attendu = n.escales[etape];
+  if (port.id !== attendu) { const c = portDe(attendu); apiJeu.toast('Ce n\'est pas la prochaine escale. Le navire va vers ' + c.nom + ', en ' + ZONES[c.zone].nom + '.', 2600); M.son('tic', { volume: 0.12 }); return; }
+  M.son('cloche', { frequence: 523, volume: 0.2 }); setTimeout(() => M.son('cloche', { frequence: 523, volume: 0.14 }), 450);
+  if (etape === 0) { etape = 1; mission.valider('depart', 50); panneau.querySelector('#tr-mcorps').setAttribute('data-expl', ''); viser(portDe(n.escales[1]).zone); majMission(); apiJeu.say('Départ de ' + port.nom + '. Premier côté : vers l\'Afrique, avec des marchandises.', 'concentre'); return; }
+  const de = parId[n.escales[etape - 1]]; const vers = parId[port.id];
+  trajet = { courbe: arcSphere(de, vers, R, 0.12, 48), t: 0, duree: 2.4 };
+  questionEnCours = n.questions[etape - 1]; majMission();
+  apiJeu.say('Escale à ' + port.nom + '. Une question avant de repartir.', 'concentre');
+}
+function repondre(k) {
+  const q = questionEnCours; if (!q) return; const ok = k === q.r;
+  const ids = ['afrique', 'ameriques', 'retour']; const id = ids[etape - 1];
+  panneau.querySelector('#tr-mcorps').setAttribute('data-expl', (ok ? 'Juste. ' : 'La réponse : ' + q.choix[q.r] + '. ') + q.expl);
+  if (ok) { apiJeu.sound('good'); } else { apiJeu.sound('bad'); }
+  questionEnCours = null; etape += 1; mission.valider(id, ok ? 100 : 30);
+  if (etape < 4) { const c = portDe(navireChoisi.escales[etape]); viser(c.zone); apiJeu.say((ok ? 'Juste. ' : 'La réponse : ' + q.choix[q.r] + '. ') + q.expl + ' Prochaine escale : ' + c.nom + '.', ok ? 'fier' : 'rassurant'); }
+  majMission();
+}
+function finMission(reussie, secondes, score) {
+  missionActive = false; rotation = rotationAvant; panneau.querySelector('#tr-rotation').setAttribute('aria-pressed', String(rotation));
+  majMission();
+  const mmss = String(Math.floor(secondes / 60)).padStart(2, '0') + ':' + String(Math.floor(secondes % 60)).padStart(2, '0');
+  const etoiles = reussie ? (secondes <= 240 && score >= 300 ? 3 : 2) : 1;
+  [0, 450, 900].forEach((ms) => setTimeout(() => M.son('cloche', { frequence: 523, volume: 0.16 }), ms));
+  const b = panneau.querySelector('#tr-mission-btn'); b.disabled = false; b.textContent = 'Rejouer la mission';
+  const titre = navireChoisi ? navireChoisi.nom + ' : trois côtés en ' + mmss : 'Navire suivi en ' + mmss;
+  if (modeJeu === 'detente') apiJeu.win({ score, stars: etoiles, title: titre, detail: { mission: 'suivre-un-navire', navire: navireChoisi && navireChoisi.nom, secondes: Math.round(secondes), score }, buddy: 'Trois côtés, douze à dix-huit mois de mer. Derrière chaque route, des personnes déportées : c\'est cela que les chiffres racontent.' });
+  else { apiJeu.addScore(etoiles * 50); apiJeu.say('Navire suivi en ' + mmss + '. Les défis continuent.', 'fier'); apiJeu.toast('Mission terminée en ' + mmss + '.', 3000); setTimeout(() => { if (!missionActive) mission.cacher(); }, 9000); }
+}
+function montrerTemoignage(nom) {
+  const port = PORTS.find((p) => p.nom === nom); const t = port && TEMOIGNAGES[port.id]; const zone = panneau.querySelector('#tr-temoin'); if (!t) return;
+  zone.hidden = false; zone.innerHTML = '<small>Témoignage et document : ' + port.nom + '</small>' + t.texte.replace(/</g, '&lt;') + '<cite>Source : ' + t.source.replace(/</g, '&lt;') + '</cite>';
+}
+function replier(oui) { panneau.classList.toggle('tr-replie', oui); const b = panneau.querySelector('.tr-pli'); b.textContent = oui ? 'Déplier' : 'Replier'; b.setAttribute('aria-expanded', String(!oui)); }
+
 function construirePanneau() {
-  panneau = M.panneau(`<h3>Les trois côtés</h3>
+  panneau = M.panneau(`<div class="tr-tete"><h3>Les trois côtés</h3><button class="tr-pli" type="button" aria-expanded="true">Replier</button></div>
+    <div class="tr-corps">
+    <div class="mb-carte tr-mission tr-garde" id="tr-mission" hidden><small></small><div id="tr-mcorps"></div></div>
+    <p class="mb-carte tr-temoin tr-garde" id="tr-temoin" hidden></p>
     <div class="mb-etapes">${ROUTES.map((r) => `<button class="mb-bouton" type="button" data-route="${r.id}" aria-pressed="true" style="border-left:6px solid #${r.couleur.toString(16).padStart(6, '0')}"><i>${r.id}</i>${r.nom}</button>`).join('')}</div>
     <p class="mb-carte" id="tr-carg">Touche une route ou un port pour sa légende.</p>
     <h3>Les années</h3>
@@ -174,7 +310,11 @@ function construirePanneau() {
       <button class="mb-bouton" type="button" id="tr-arrivees" aria-pressed="false">Arrivées par région</button>
       <div class="tr-barres" id="tr-barres" hidden>${ARRIVEES.map((a) => `<span>${a.region}</span><i style="width:${Math.round(a.millions / 4.9 * 100)}%"></i><b>${F1(a.millions)} M</b>`).join('')}</div>
       <button class="mb-bouton" type="button" id="tr-rotation" aria-pressed="true">Rotation du globe</button>
-    </details>`);
+    </details>
+    <button class="mb-bouton primaire" type="button" id="tr-mission-btn">Mission : suivre un navire</button>
+    </div>`);
+  panneau.querySelector('#tr-mission-btn').addEventListener('click', lancerMission);
+  panneau.querySelector('.tr-pli').addEventListener('click', () => replier(!panneau.classList.contains('tr-replie')));
   panneau.querySelectorAll('[data-route]').forEach((b) => b.addEventListener('click', () => { const id = Number(b.getAttribute('data-route')); routesVisibles[id] = !routesVisibles[id]; b.setAttribute('aria-pressed', String(routesVisibles[id])); lignes[id].visible = routesVisibles[id]; const r = ROUTES[id - 1]; panneau.querySelector('#tr-carg').textContent = r.nom + ' : ' + r.cargaison + ' Durée : ' + r.duree; shell.say(r.cargaison + ' ' + r.duree, 'concentre'); }));
   panneau.querySelector('#tr-ans').addEventListener('input', (e) => { annee = Number(e.target.value); majAnnee(); });
   panneau.querySelectorAll('[data-zone]').forEach((b) => b.addEventListener('click', () => viser(b.getAttribute('data-zone'))));
@@ -199,6 +339,9 @@ function majAnnee() {
 }
 const _m4 = new THREE.Matrix4(); const _x = new THREE.Vector3(); const _y = new THREE.Vector3(); const _z = new THREE.Vector3();
 function animer(dt, t) {
+  const journal = M.socle.journal;
+  while (journalLu < journal.length) { const j = journal[journalLu]; journalLu += 1; if (j.type === 'legende') { montrerTemoignage(j.nom); traiterToucher(j.nom); } }
+  if (trajet) { trajet.t = Math.min(1, trajet.t + dt / trajet.duree); const k = trajet.t * trajet.t * (3 - 2 * trajet.t); const p = trajet.courbe.getPoint(k); const q = trajet.courbe.getPoint(Math.min(1, k + 0.01)); _z.copy(q).sub(p).normalize(); _y.copy(p).normalize(); _x.crossVectors(_y, _z).normalize(); _z.crossVectors(_x, _y).normalize(); _m4.makeBasis(_x, _y, _z); navireMission.quaternion.setFromRotationMatrix(_m4); navireMission.position.copy(p); if (trajet.t >= 1) { poserNavire(trajet.courbe.getPoint(1)); trajet = null; } }
   if (visee) { visee.t = Math.min(1, visee.t + dt * 1.2); const k = 1 - Math.pow(1 - visee.t, 3); globe.rotation.y = visee.depart + (visee.arrivee - visee.depart) * k; M.camera.position.lerpVectors(visee.camDepart, visee.camArrivee, k); M.controls.target.set(0, 0, 0); if (visee.t >= 1) visee = null; }
   else if (rotation) globe.rotation.y += dt * 0.02;
   nuages.rotation.y += dt * 0.006;
@@ -211,6 +354,9 @@ function animer(dt, t) {
   flux.forEach((f) => { const a = f.points.geometry.attributes.position; for (let i = 0; i < f.n; i += 1) { const u = (f.decal + t * f.v + i / f.n) % 1; const p = f.courbe.getPoint(u); a.setXYZ(i, p.x, p.y, p.z); } a.needsUpdate = true; });
 }
 function demarrer(mode, api) {
+  modeJeu = mode; apiJeu = api; journalLu = M.socle.journal.length;
+  if (!ambiances.vent) { ambiances.vent = M.ambiance({ type: 'vent', volume: 0.07 }); ambiances.mer = M.ambiance({ type: 'eau', fichier: '../assets/3d/audio/mer-vagues.ogg', volume: 0.1 }); }
+  if (mode === 'detente') { api.say('Tourne le globe, touche les ports : un témoignage s\'affiche. La mission commence : suivre un navire sur ses trois côtés.', 'joyeux'); setTimeout(() => { if (!missionActive && !lanceMission) lancerMission(); }, 1800); return; }
   if (mode !== 'cours') { api.say('Tourne le globe. Touche les ports et les routes, fais défiler les années, compare les arrivées par région.', 'joyeux'); return; }
   api.defis([
     { type: 'qcm', texte: 'Les trois côtés du commerce triangulaire :', choix: ['Europe → Afrique → Amériques → Europe', 'Europe → Asie → Afrique → Europe', 'Afrique → Europe → Asie → Afrique', 'Amériques → Europe → Asie → Amériques'], reponse: 0, explication: 'Marchandises vers l\'Afrique, captifs vers les Amériques, produits des plantations vers l\'Europe.' },

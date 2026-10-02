@@ -17,6 +17,20 @@
   .vi-details[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 8px; }
   .vi-details p { margin: 0 0 6px; font-size: 12.5px; }
   .vi-figure { display: block; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; margin-top: 6px; opacity: .85; }
+  .vi-tete { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .vi-tete h3 { margin: 0; }
+  .vi-pli { font: inherit; font-size: 11.5px; font-weight: 700; min-height: 28px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--fg); cursor: pointer; }
+  .vi-corps { display: flex; flex-direction: column; gap: 9px; }
+  .mb-panneau.vi-replie .vi-corps { display: none; }
+  .vi-detail { border-left: 4px solid var(--accent); }
+  .vi-detail small { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; opacity: .8; margin-bottom: 3px; }
+  @media (max-width: 720px) { .mb-panneau.vi-replie { width: 38vw; } body.vi-marche .ksh-defi { bottom: 150px; width: min(560px, calc(100% - 24px)); } }
+  /* la mission et la marche de la base, ajustées à ce monde : liste compacte, joystick réservé au tactile, aide repliée sur petit écran */
+  .mb-mission { font-size: 12.5px; }
+  .mb-mission ol { gap: 3px; }
+  .mb-mission li { padding: 3px 6px; }
+  @media (hover: hover) and (pointer: fine) { .mb-stick { display: none !important; } }
+  @media (max-width: 720px) { .mb-aide-marche { display: none; } }
 </style>
 </head>
 <body>
@@ -52,15 +66,26 @@ const TEXTES = {
     nuit: ['D\'en haut, la nuit : un fleuve de lumière entre deux rives d\'ombre. La ville paraît immense et sans visage.', 'Contraste, et métaphore du fleuve'],
   },
 };
+/* Les cinq détails du regard du passant : un texte au présent, l'objet à toucher, un point où se tenir. */
+const DETAILS = [
+  { id: 'enseigne', cible: 'Grand magasin', court: 'Une enseigne rouge et or sous une marquise de verre', texte: 'Sous une marquise de verre, une enseigne rouge et or annonce le Bonheur des Dames. Les vitrines, hautes comme des portes, brillent déjà.', rayon: 16, point: [10.95, 5.2, 38], poste: [8.2, 38] },
+  { id: 'fontaine', cible: 'Fontaine Wallace', court: 'Quatre figures de fonte verte et un filet d\'eau', texte: 'Quatre figures de fonte verte portent un petit dôme. Un filet d\'eau coule entre elles, et les passants s\'y penchent pour boire.', rayon: 8, point: [8.5, 1.3, 22], poste: [6.6, 22] },
+  { id: 'colonne', cible: 'Colonne Morris', court: 'Une colonne ronde qui crie le spectacle de ce soir', texte: 'Une colonne verte, ronde comme un tambour, crie en lettres jaunes le spectacle de ce soir : théâtre, opéra, cirque.', rayon: 8, point: [8.5, 1.6, -6], poste: [6.6, -6] },
+  { id: 'reverbere', cible: 'Réverbère à gaz', court: 'Un bec de gaz qui attend l\'allumeur', texte: 'Un bec de gaz attend l\'allumeur. Sa lanterne de verre s\'éclaire à peine : la nuit vient, et le boulevard va changer de visage.', rayon: 6, point: [6.2, 2.2, -16], poste: [7.9, -14.6] },
+  { id: 'gare', cible: 'Gare', court: 'Une horloge sous une arche de fer et de verre', texte: 'Au bout du boulevard, une horloge sous une arche de fer et de verre. Derrière, les trains fument : la ville respire par là.', rayon: 22, point: [0, 2.8, -42.96], poste: [0.6, -36] },
+];
+const CRIS = ['Le Petit Journal ! Un sou !', 'Le grand magasin ouvre ses portes ! Lisez !', 'La nouvelle gare inaugurée ! Un sou !', 'Tous les feuilletons ! Dernière livraison !', 'Les nouvelles du soir ! Demandez le journal !'];
 let regard = 'passant'; let position = 0; let heure = 0;
-let M, panneau, fiacre, tram, chevaux = [], foule = null, lampes = {}, lumieresNuit = [], fenetresAllumees, vitrines, archeGare, dome, hemi, etoiles, fumee, zinc;
+let M, panneau, fiacre, tram, chevaux = [], foule = null, lampes = {}, lumieresNuit = [], lumieresMagasin = [], fenetresAllumees, vitrines, archeGare, dome, hemi, contreJour, etoiles, fumee, zinc;
+let marche = null, mission = null, missionActive = false, trouve = {}, journalLu = 0, modeJeu = 'detente', apiJeu = null, lanceMission = false;
+let passants = [], marchand = null, cocher = null, conducteur = null, voyageur = null, ambiances = {}, pasAcc = 0, sabotsAcc = 0, eauT = 0, criT = 8;
 const shell = window.Konstrio.createGame({
   id: '3d-26-ville-xixe', code: '3D·26', title: 'La ville au XIXᵉ siècle', type: '3D', duree: '12 min',
   domain: { label: 'Français', color: '#B03A8A' },
   intro: {
     greet: 'Un boulevard du XIXᵉ siècle : immeubles de pierre, becs de gaz, tramway à chevaux, gare au bout, usine qui fume. Parcours-le à hauteur d\'homme, puis regarde-le d\'en haut : ce sont les deux regards de la leçon.',
     rule: 'Le regard du passant voit les détails, les bruits, la foule qui bouscule. Le regard panoramique voit la ville entière, comme un tableau. Change de regard, fais venir la nuit, touche ce que tu vois.',
-    how: ['Le panneau bascule entre « regard du passant » et « regard panoramique ».', 'Le curseur « Avancer » parcourt le boulevard ; le curseur « L\'heure » fait passer du midi à la nuit : les becs de gaz s\'allument.', 'Touche un immeuble, un réverbère, le tramway, la gare, l\'usine, la foule : chaque objet a sa phrase.'],
+    how: ['Le panneau bascule entre « regard du passant » et « regard panoramique ». « Marcher » te pose sur le trottoir : flèches ou ZQSD, Maj pour courir, glisse pour regarder.', 'Le curseur « Avancer » parcourt le boulevard ; le curseur « L\'heure » fait passer du midi à la nuit : les becs de gaz s\'allument.', 'Touche un immeuble, un réverbère, le tramway, la gare, l\'usine, les passants : chaque objet a sa phrase.', 'La mission « Le regard du passant » décrit cinq détails au présent : marche jusqu\'à chacun et touche-le. La nuit tombe pendant que tu cherches.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Distinguer le regard panoramique et le regard du passant, reconnaître personnification, énumération et contraste, et dire en quoi la ville est promesse et menace.',
     hint: 'Panoramique : d\'en haut, l\'ensemble, l\'énumération. Passant : de près, les sensations, la foule.',
@@ -92,10 +117,14 @@ function init() {
   });
   M.soleil.shadow.camera.far = 200; M.soleil.shadow.bias = -0.0004;
   M.scene.traverse((x) => { if (x.isHemisphereLight) hemi = x; }); dome = M.scene.getObjectByName('ciel');
+  // une lumière d'appoint bleutée, sans ombre, qui relève les façades à contre-jour
+  contreJour = new THREE.DirectionalLight(0xbfd4ff, 0.35); contreJour.position.set(-20, 16, -12); M.scene.add(contreJour);
   zinc = M.pbr('metal_plate', { repetition: 1, couleur: 0x4f5862, rugosite: 0.6, metal: 0.55 });
   construireBoulevard(); construireImmeubles(); construireMobilier(); construireGrandMagasin(); construireGare(); construireUsine(); construireVehicules(); construireFoule(); construireCiel();
+  construirePersonnages(); construireMarche(); construireMission();
   construirePanneau(); changerRegard('passant'); appliquerHeure();
   M.boucle(animer);
+  window.__monde = { missionActive: () => missionActive, trouves: () => Object.keys(trouve), finie: () => !!mission && mission.estFinie(), teleporter: (x, z) => { M.camera.position.x = x; M.camera.position.z = z; }, direction: () => M.camera.getWorldDirection(new THREE.Vector3()).toArray(), position: () => M.camera.position.toArray(), details: DETAILS.map((d) => ({ id: d.id, point: d.point, poste: d.poste })), lancer: lancerMission, enMarche: () => !!marche && marche.estActif(), vue: (p, c) => { M.camera.position.fromArray(p); M.controls.target.fromArray(c); M.controls.update(); }, fiacre: () => fiacre.position.toArray(), tram: () => tram.position.toArray(), heure: (h) => { heure = h; panneau.querySelector('#vi-heure').value = Math.round(h * 100); appliquerHeure(); majTexte(); } };
 }
 
 /* ---------- chaussée pavée, trottoirs, bordures, rails, plaques ---------- */
@@ -197,14 +226,20 @@ function construireMobilier() {
   }
   [socles, futs, bagues, traverses, lanternes, flammes, chapiteaux, fleches].forEach(finaliser); [bagues, traverses, fleches, chapiteaux].forEach((m) => { m.castShadow = false; }); lampes = { lanterne: matLanterne, flamme: matFlamme };
   // quatre lumières de nuit près du départ du parcours
-  [[-6.2, 24], [6.2, 24], [-6.2, 8], [6.2, 8]].forEach(([x, z]) => { const l = new THREE.PointLight(0xffb86a, 0, 16, 2); l.position.set(x, Y + 4.0, z); M.scene.add(l); lumieresNuit.push(l); });
+  [[-6.2, 24], [6.2, 24], [-6.2, 8], [6.2, 8], [6.2, -8], [-6.2, -24], [6.2, -24]].forEach(([x, z]) => { const l = new THREE.PointLight(0xffb86a, 0, 16, 2); l.position.set(x, Y + 4.0, z); M.scene.add(l); lumieresNuit.push(l); });
   // les arbres : tronc en écorce, deux masses de feuillage irrégulières
   const troncs = instancier(preparerAo(uv(new THREE.CylinderGeometry(0.15, 0.24, 3.0, 10), 1, 3)), pbr('bark_brown_02', { repetition: 1, rugosite: 0.95 }), n, 'Arbres d\'alignement');
   const geoF = new THREE.IcosahedronGeometry(1.7, 2); const pa = geoF.attributes.position; for (let i = 0; i < pa.count; i += 1) { const k = 0.9 + hasard() * 0.2; pa.setXYZ(i, pa.getX(i) * k, pa.getY(i) * k * 0.9, pa.getZ(i) * k); } geoF.computeVertexNormals();
-  const feuillages = instancier(geoF, mat(0x4d7a3a, { rugosite: 0.95 }), n * 2, 'Arbres d\'alignement');
+  const feuillages = instancier(geoF, mat(0xffffff, { rugosite: 0.95 }), n * 3, 'Arbres d\'alignement');
   const grilles = instancier(new THREE.CylinderGeometry(1.1, 1.1, 0.04, 16), mat(0x2a2d31, { rugosite: 0.6, metal: 0.5 }), n, 'Arbres d\'alignement');
-  for (let z = -28; z <= 28; z += 8) for (const x of [-9.5, 9.5]) { const s = 0.9 + hasard() * 0.35; poser(troncs, x, Y + 1.5, z); poser(grilles, x, Y + 0.02, z); poser(feuillages, x, Y + 3.0 + 1.3 * s, z, hasard() * 3, s); poser(feuillages, x + 0.6, Y + 3.0 + 1.9 * s, z + 0.5, hasard() * 3, s * 0.72); }
-  [troncs, feuillages, grilles].forEach(finaliser);
+  const verts = [0x4d7a3a, 0x58863f, 0x3f6a33, 0x6a8f3c]; const cf = new THREE.Color();
+  for (let z = -28; z <= 28; z += 8) for (const x of [-9.5, 9.5]) {
+    const s = 0.9 + hasard() * 0.35; poser(troncs, x, Y + 1.5, z); poser(grilles, x, Y + 0.02, z);
+    feuillages.setColorAt(feuillages.userData.n, cf.set(verts[feuillages.userData.n % 4])); poser(feuillages, x, Y + 2.9 + 1.3 * s, z, hasard() * 3, s);
+    feuillages.setColorAt(feuillages.userData.n, cf.set(verts[(feuillages.userData.n + 1) % 4])); poser(feuillages, x + 0.6, Y + 2.9 + 1.9 * s, z + 0.5, hasard() * 3, s * 0.72);
+    feuillages.setColorAt(feuillages.userData.n, cf.set(verts[(feuillages.userData.n + 2) % 4])); poser(feuillages, x - 0.5, Y + 2.9 + 1.7 * s, z - 0.6, hasard() * 3, s * 0.66);
+  }
+  [troncs, feuillages, grilles].forEach(finaliser); if (feuillages.instanceColor) feuillages.instanceColor.needsUpdate = true;
   // les bancs
   const bois = pbr('brown_planks_09', { repetition: 1, couleur: 0x6e4a2e, rugosite: 0.8 });
   const assises = instancier(preparerAo(new THREE.BoxGeometry(1.8, 0.06, 0.45)), bois, 8, 'Boulevard'); const dossiers = instancier(preparerAo(new THREE.BoxGeometry(1.8, 0.5, 0.05)), bois, 8, 'Boulevard'); const flancs = instancier(new THREE.BoxGeometry(0.08, 0.5, 0.5), fonte, 16, 'Boulevard');
@@ -246,6 +281,7 @@ function construireGrandMagasin() {
   mesh(new THREE.BoxGeometry(2.6, 0.1, 0.1), mat(0x2b2f34, { metal: 0.6 }), [-5.8, 4.95, -5.8], gm); mesh(new THREE.BoxGeometry(2.6, 0.1, 0.1), mat(0x2b2f34, { metal: 0.6 }), [-5.8, 4.95, 5.8], gm);
   for (let k = 1; k <= 3; k += 1) for (const dz of [-4, -1.5, 1.5, 4]) { const f = mesh(new THREE.PlaneGeometry(1.4, 2.2), new THREE.MeshPhysicalMaterial({ color: 0x1c2733, roughness: 0.08, metalness: 0.4 }), [-4.51, 5.6 + k * 2.7, dz], gm); f.rotation.y = -Math.PI / 2; f.castShadow = false; }
   const enseigne = mesh(new THREE.PlaneGeometry(7, 1.1), new THREE.MeshBasicMaterial({ map: textureTexte('AU BONHEUR DES DAMES', { taille: 40, fond: '#7a1f2b', couleur: '#ffd86b' }) }), [-4.55, 6.0, 0], gm); enseigne.rotation.y = -Math.PI / 2; enseigne.castShadow = false;
+  [34, 42].forEach((z) => { const l = new THREE.PointLight(0xffd9a0, 0, 14, 2); l.position.set(9.6, 4.4, z); M.scene.add(l); lumieresMagasin.push(l); });
   legender(gm, 'Grand magasin', leg('Grand magasin'));
 }
 
@@ -312,12 +348,6 @@ function cheval(parent, couleur, sens) {
   mesh(new THREE.TorusGeometry(0.36, 0.03, 6, 16), mat(0x2a1a10), [0, 1.18, sens * 0.3], g).rotation.x = Math.PI / 2;
   return g;
 }
-function personnage(parent, couleur, position, chapeau) {
-  const { mesh, mat } = M; const g = new THREE.Group(); g.position.fromArray(position); parent.add(g);
-  mesh(new THREE.CapsuleGeometry(0.2, 0.7, 4, 10), mat(couleur, { rugosite: 0.9 }), [0, 0.65, 0], g); mesh(new THREE.SphereGeometry(0.15, 12, 10), mat(0xe8c9a8), [0, 1.3, 0], g);
-  if (chapeau) { mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.26, 12), mat(0x111111), [0, 1.55, 0], g); mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.02, 14), mat(0x111111), [0, 1.42, 0], g); }
-  return g;
-}
 
 /* ---------- fiacre et tramway à chevaux ---------- */
 function construireVehicules() {
@@ -332,7 +362,7 @@ function construireVehicules() {
   [-0.81, 0.81].forEach((dx) => [-0.4, 0.55].forEach((dz) => { const v = mesh(new THREE.PlaneGeometry(0.7, 0.55), verre, [dx, 1.6, dz], fiacre); v.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2; v.castShadow = false; }));
   mesh(new THREE.BoxGeometry(1.5, 0.5, 0.9), boisSombre, [0, 2.05, -1.55], fiacre); mesh(new THREE.BoxGeometry(1.5, 0.08, 0.6), boisSombre, [0, 1.65, -1.9], fiacre);
   [-0.75, 0.75].forEach((dx) => mesh(new THREE.BoxGeometry(0.16, 0.26, 0.16), new THREE.MeshStandardMaterial({ color: 0xffe3a8, emissive: 0xffb347, emissiveIntensity: 0.5 }), [dx, 2.25, -1.25], fiacre).castShadow = false);
-  const cocher = personnage(fiacre, 0x2b2b33, [0, 2.3, -1.5], true); cocher.scale.setScalar(0.9);
+  mesh(new THREE.BoxGeometry(1.4, 0.08, 0.5), boisSombre, [0, 1.9, -2.25], fiacre);
   fiacre.userData.roues = [];
   [[-0.9, 0.8, 0.75], [0.9, 0.8, 0.75], [-0.85, -1.0, 0.55], [0.85, -1.0, 0.55]].forEach(([dx, dz, r]) => { const w = mesh(roue(r), boisSombre, [dx, r, dz], fiacre); w.rotation.y = Math.PI / 2; fiacre.userData.roues.push(w); });
   mesh(new THREE.BoxGeometry(0.1, 0.1, 2.4), fer, [0, 0.75, 0.0], fiacre);
@@ -350,7 +380,6 @@ function construireVehicules() {
   [[-1.0, 2.2], [1.0, 2.2], [-1.0, -2.2], [1.0, -2.2]].forEach(([dx, dz]) => { const w = mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.1, 20), fer, [dx, 0.42, dz], tram); w.rotation.z = Math.PI / 2; tram.userData.roues.push(w); });
   const ensT = mesh(new THREE.PlaneGeometry(3.4, 0.36), new THREE.MeshBasicMaterial({ map: textureTexte('GARE · BOULEVARD · MAGASINS', { taille: 28, fond: '#f0e6cf', couleur: '#1d2a22' }) }), [1.13, 1.45, 0], tram); ensT.rotation.y = Math.PI / 2; ensT.castShadow = false;
   const ensT2 = ensT.clone(); ensT2.position.x = -1.13; ensT2.rotation.y = -Math.PI / 2; tram.add(ensT2);
-  personnage(tram, 0x2b2b33, [0.4, 0.84, 3.6], true); personnage(tram, 0x6b4a3a, [-0.5, 0.84, -3.6], true);
   [-0.6, 0.6].forEach((dx) => mesh(new THREE.CylinderGeometry(0.035, 0.035, 2.4, 8), boisSombre, [dx, 1.0, 5.2], tram).rotation.x = Math.PI / 2);
   const c1 = cheval(tram, 0x7a5a3a, 1); c1.position.set(-0.55, 0, 6.4); const c2 = cheval(tram, 0x3a2a22, 1); c2.position.set(0.55, 0, 6.4); chevaux.push(c1, c2);
   legender(tram, 'Tramway', leg('Tramway'));
@@ -358,7 +387,7 @@ function construireVehicules() {
 
 /* ---------- la foule, instanciée : corps, jupes, têtes, chapeaux ---------- */
 function construireFoule() {
-  const { mat } = M; const n = 36; const teintes = [0x2b2b33, 0x4a3a55, 0x6b4a3a, 0x3a4a6b, 0x7a6a5a, 0x5a2a3a, 0x8a7a66, 0x2f3f33];
+  const { mat } = M; const n = 30; const teintes = [0x2b2b33, 0x4a3a55, 0x6b4a3a, 0x3a4a6b, 0x7a6a5a, 0x5a2a3a, 0x8a7a66, 0x2f3f33];
   const corps = instancier(new THREE.CapsuleGeometry(0.2, 0.7, 4, 10), mat(0xffffff, { rugosite: 0.9 }), n, 'Foule');
   const jupes = instancier(new THREE.ConeGeometry(0.42, 1.0, 12), mat(0xffffff, { rugosite: 0.95 }), n, 'Foule');
   const tetes = instancier(new THREE.SphereGeometry(0.15, 12, 10), mat(0xe8c9a8), n, 'Foule');
@@ -395,10 +424,145 @@ function construireCiel() {
   etoiles = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xdfe6ff, size: 1.8, transparent: true, opacity: 0, depthWrite: false, fog: false })); etoiles.raycast = () => {}; etoiles.frustumCulled = false; M.scene.add(etoiles);
 }
 
+/* ---------- les personnages articulés : passants en tenue d'époque, marchand de journaux, cocher, conducteur ---------- */
+const TENUES = [
+  { haut: 0x2b2b33, bas: 0x23232a, chapeau: 0x111111, cheveux: 0x3a2a1e, canne: true, redingote: true, col: true, moustache: true },
+  { haut: 0x4a3a2a, bas: 0x3a2f28, chapeau: 0x111111, cheveux: 0x6b5a4a, redingote: true, col: true },
+  { haut: 0x5a2a3a, jupe: 0x5a2a3a, chapeau: 0x3a4a6b, cheveux: 0x6b4a2a, ombrelle: 0xf0e6cf },
+  { haut: 0x3a4a6b, jupe: 0x2f3f5a, chapeau: 0xf0e6cf, cheveux: 0x2a1a10, panier: true },
+  { haut: 0x7a6a5a, bas: 0x4a4038, chapeau: 0x3a3a3a, cheveux: 0x1e1a16, tablier: 0x3b3f4a, moustache: true },
+  { haut: 0x2f3f33, jupe: 0x2f3f33, chapeau: 0x8a2b35, cheveux: 0x3a2a1e, panier: true },
+];
+/* Habille un personnage de la base : redingote, col, moustache, canne, panier, ombrelle. Renvoie une pose à rejouer chaque image. */
+function habiller(p, tenue) {
+  const { mat } = M; const u = (tenue.taille || 1.7) / 1.7; const g = p.groupe; const poses = [];
+  if (tenue.redingote) { const pan = new THREE.Mesh(new THREE.ConeGeometry(0.25 * u, 0.42 * u, 16, 1, true), new THREE.MeshStandardMaterial({ color: tenue.haut, roughness: 0.85, side: THREE.DoubleSide })); pan.position.y = 0.72 * u; pan.castShadow = true; g.add(pan); }
+  if (tenue.col) { const col = new THREE.Mesh(new THREE.BoxGeometry(0.09 * u, 0.09 * u, 0.03 * u), mat(0xf4efe4, { rugosite: 0.8 })); col.position.set(0, 1.4 * u, 0.1 * u); g.add(col); }
+  if (tenue.moustache) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.06 * u, 0.014 * u, 0.012 * u), mat(0x2a1a10)); m.position.set(0, 1.545 * u, 0.112 * u); g.add(m); }
+  if (tenue.chapeau && tenue.chapeau !== 0x111111 && !tenue.jupe) { const visiere = new THREE.Mesh(new THREE.BoxGeometry(0.16 * u, 0.012 * u, 0.09 * u), mat(tenue.chapeau)); visiere.position.set(0, 1.695 * u, 0.15 * u); g.add(visiere); }
+  if (tenue.canne) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.011 * u, 0.011 * u, 0.7 * u, 6), mat(0x2a1a10, { rugosite: 0.5 })); c.position.set(0.02 * u, -0.95 * u, 0.02 * u); p.membres.brasD.add(c); const pommeau = new THREE.Mesh(new THREE.SphereGeometry(0.025 * u, 8, 6), mat(0xd8b85a, { metal: 0.8, rugosite: 0.3 })); pommeau.position.set(0.02 * u, -0.6 * u, 0.02 * u); p.membres.brasD.add(pommeau); }
+  if (tenue.panier) { const pa = new THREE.Group(); pa.position.set(0, -0.72 * u, 0.02 * u); p.membres.brasG.add(pa); const corps = new THREE.Mesh(new THREE.CylinderGeometry(0.11 * u, 0.08 * u, 0.13 * u, 12), mat(0x8a6a3a, { rugosite: 0.95 })); corps.position.y = -0.06 * u; pa.add(corps); const anse = new THREE.Mesh(new THREE.TorusGeometry(0.09 * u, 0.012 * u, 6, 14, Math.PI), mat(0x6a4a2a)); anse.position.y = 0.0; pa.add(anse); const linge = new THREE.Mesh(new THREE.SphereGeometry(0.08 * u, 10, 8), mat(0xf0e6cf, { rugosite: 0.95 })); linge.position.y = 0.02 * u; linge.scale.y = 0.5; pa.add(linge); }
+  if (tenue.ombrelle) {
+    // le bras droit reste levé ; le porte-ombrelle compense l'angle pour que le manche soit vertical
+    const porte = new THREE.Group(); porte.position.set(0, -0.62 * u, 0); porte.rotation.x = 1.45; p.membres.brasD.add(porte);
+    const manche = new THREE.Mesh(new THREE.CylinderGeometry(0.01 * u, 0.01 * u, 1.0 * u, 6), mat(0x2a1a10)); manche.position.set(0, 0.5 * u, 0); porte.add(manche);
+    const coupole = new THREE.Mesh(new THREE.ConeGeometry(0.42 * u, 0.16 * u, 18, 1, true), new THREE.MeshStandardMaterial({ color: tenue.ombrelle, roughness: 0.9, side: THREE.DoubleSide })); coupole.position.y = 0.5 * u; manche.add(coupole);
+    poses.push(() => { p.membres.brasD.rotation.x = -1.45; p.membres.brasD.rotation.z = -0.12; });
+  }
+  g.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+  return () => poses.forEach((f) => f());
+}
+function construirePersonnages() {
+  const { mat, mesh } = M;
+  // six passants qui font les cent pas sur les trottoirs, chacun sur sa ligne
+  const lignes = [[7.2, -30, 30], [-7.3, 28, -30], [7.6, 36, -20], [-7.0, -26, 34], [8.9, -2, 17], [-8.8, 10, -28]];
+  TENUES.forEach((tenue, i) => {
+    const [x, z0, z1] = lignes[i]; const taille = tenue.jupe ? 1.62 : 1.72;
+    const spec = Object.assign({ nom: 'Foule', phrase: leg('Foule'), position: [x, 0.18, z0 + (z1 - z0) * (0.2 + 0.6 * hasard())], taille, vitesse: 0.9 + hasard() * 0.4, graine: i * 1.7, voix: false }, tenue);
+    let vers = i % 2 ? z0 : z1;
+    spec.surArrivee = () => { vers = vers === z0 ? z1 : z0; setTimeout(() => p.allerA([x, 0.18, vers]), 600 + hasard() * 1800); };
+    const p = M.personnage(spec); p.pose = habiller(p, Object.assign({ taille }, tenue)); p.allerA([x, 0.18, vers]); passants.push(p);
+  });
+  // le marchand de journaux, près du départ, qui crie les titres
+  marchand = M.personnage({ nom: 'Marchand de journaux', phrase: 'Il crie les titres du jour, un sou le journal : la ville se lit aussi dans ses feuilles, feuilletons, faits divers et réclames.', position: [9.0, 0.18, 19.5], taille: 1.6, peau: 0xd9b48f, haut: 0x6b5a4a, bas: 0x3a3a3a, chapeau: 0x3a3a3a, cheveux: 0x1e1a16, tablier: 0x8a7a66, graine: 9, voix: false });
+  marchand.pose = habiller(marchand, { taille: 1.6, chapeau: 0x3a3a3a, moustache: true });
+  marchand.regarder([7.4, 0, 26]);
+  const journal = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.34), new THREE.MeshStandardMaterial({ map: textureTexte('LE PETIT\nJOURNAL', { taille: 30, fond: '#f4efe4', couleur: '#1d2228' }), side: THREE.DoubleSide, roughness: 0.9 })); journal.position.set(0, -0.6, 0.06); journal.rotation.x = 0.5; marchand.membres.brasG.add(journal);
+  const pile = new THREE.Group(); pile.position.set(9.0, 0.18, 20.2); M.scene.add(pile); M.legender(pile, 'Marchand de journaux', 'Une pile de journaux du jour, à un sou.');
+  for (let k = 0; k < 5; k += 1) { const j = mesh(new THREE.BoxGeometry(0.4, 0.03, 0.3), mat(k % 2 ? 0xf4efe4 : 0xe8e2d2, { rugosite: 0.95 }), [0, 0.015 + k * 0.032, 0], pile); j.rotation.y = (hasard() - 0.5) * 0.3; }
+  // le cocher, assis sur le siège du fiacre ; le conducteur et un voyageur sur les plates-formes du tramway
+  cocher = M.personnage({ nom: 'Fiacre', phrase: leg('Fiacre'), position: [2.5, 1.55, 8.45], taille: 1.6, haut: 0x2b2b33, bas: 0x23232a, chapeau: 0x111111, cheveux: 0x3a2a1e, graine: 4, voix: false });
+  cocher.pose = habiller(cocher, { taille: 1.6, haut: 0x2b2b33, col: true, moustache: true, redingote: true });
+  const fouet = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.01, 1.1, 5), mat(0x3a2a1a)); fouet.position.set(0, -0.62 * 0.94 - 0.3, 0.35); fouet.rotation.x = -0.9; cocher.membres.brasD.add(fouet);
+  conducteur = M.personnage({ nom: 'Tramway', phrase: leg('Tramway'), position: [-2.6, 0.84, -26.4], taille: 1.65, haut: 0x2f5a3f, bas: 0x23232a, chapeau: 0x2f5a3f, cheveux: 0x3a2a1e, graine: 2, voix: false });
+  conducteur.pose = habiller(conducteur, { taille: 1.65, chapeau: 0x2f5a3f, moustache: true });
+  voyageur = M.personnage({ nom: 'Tramway', phrase: leg('Tramway'), position: [-3.5, 0.84, -33.6], taille: 1.68, haut: 0x6b4a3a, bas: 0x3a2f28, chapeau: 0x111111, cheveux: 0x6b5a4a, graine: 6, voix: false });
+  voyageur.pose = habiller(voyageur, { taille: 1.68, haut: 0x6b4a3a, col: true, redingote: true });
+}
+
+/* ---------- la marche sur le boulevard : limites des trottoirs, collisions, pas ---------- */
+function collisionVille(x, z) {
+  for (let zz = -24; zz <= 32; zz += 8) for (const lx of [-6.2, 6.2]) if (Math.hypot(x - lx, z - zz) < 0.45) return true;
+  for (let zz = -28; zz <= 28; zz += 8) for (const ax of [-9.5, 9.5]) if (Math.hypot(x - ax, z - zz) < 0.55) return true;
+  for (const zz of [-20, -4, 12, 28]) for (const bx of [-8.2, 8.2]) if (Math.abs(x - bx) < 0.55 && Math.abs(z - zz) < 1.15) return true;
+  if (Math.hypot(x - 8.5, z + 6) < 1.0 || Math.hypot(x + 8.5, z - 14) < 1.0) return true;
+  if (Math.hypot(x - 8.5, z - 22) < 1.2) return true;
+  if (Math.hypot(x - 9.0, z - 19.8) < 0.75) return true;
+  return false;
+}
+function construireMarche() {
+  marche = M.marcher({
+    depart: [7.4, 0, 26], hauteur: 1.62, vitesse: 3.2, limites: { xmin: -10.2, xmax: 10.2, zmin: -41.6, zmax: 41 },
+    solA: (x) => (Math.abs(x) > 6 ? 0.18 : 0.07), collision: collisionVille,
+    aide: 'Flèches ou ZQSD pour marcher, Maj pour courir, glisse pour regarder. Échap : vue libre.',
+    surPas: (dt) => { pasAcc += dt; if (pasAcc > 0.46) { pasAcc = 0; M.son('pas', { volume: 0.07 }); } },
+    surChangement: (actif) => { document.body.classList.toggle('vi-marche', actif); const b = panneau && panneau.querySelector('#vi-marcher'); if (b) { b.setAttribute('aria-pressed', String(actif)); b.textContent = actif ? 'Vue libre (Échap)' : 'Marcher sur le trottoir'; } if (!actif) placerCamera(true); },
+  });
+  // pendant la marche, les flèches et ZQSD sont au marcheur : la coquille ne tourne pas la scène et ne change pas la qualité
+  window.addEventListener('keydown', (e) => { if (!marche.estActif() || e.ctrlKey || e.metaKey || e.altKey) return; if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; if (/^(Arrow(Up|Down|Left|Right)|[zqsdwaZQSDWA]|Shift)$/.test(e.key)) e.preventDefault(); if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); marche.desactiver(); } }, true);
+}
+
+/* ---------- la mission : cinq détails décrits au présent, à retrouver en marchant ---------- */
+function construireMission() {
+  mission = M.mission({
+    titre: 'Le regard du passant', chrono: true, chronoCible: 240, gagner: false, cachee: true,
+    intro: 'Mission : marche sur le trottoir et retrouve les cinq détails que le texte décrit. Touche chacun quand tu es tout près. La nuit tombe pendant que tu cherches.',
+    objectifs: DETAILS.map((d) => ({ id: d.id, texte: d.court })),
+    surFin: finMission,
+  });
+}
+function lancerMission() {
+  if (missionActive || !mission) return;
+  trouve = {}; missionActive = true; lanceMission = true; journalLu = M.socle.journal.length;
+  if (regard !== 'passant') changerRegard('passant');
+  if (!marche.estActif()) marche.activer([7.4, 0, 26]);
+  heure = 0.08; panneau.querySelector('#vi-heure').value = Math.round(heure * 100); appliquerHeure(); majTexte();
+  mission.montrer(); mission.commencer(); majDetail();
+  const b = panneau.querySelector('#vi-mission'); b.disabled = true; b.textContent = 'Mission en cours';
+  if (window.matchMedia('(max-width: 720px)').matches) replier(true);
+}
+function majDetail() {
+  const el = panneau.querySelector('#vi-detail'); const d = DETAILS.find((x) => !trouve[x.id]);
+  if (!missionActive || !d) { el.hidden = true; return; }
+  const k = DETAILS.indexOf(d) + 1; el.hidden = false; el.innerHTML = '<small>Détail ' + k + ' sur 5 : le texte dit</small>' + d.texte.replace(/</g, '&lt;');
+}
+function distanceA(d) {
+  const c = M.camera.position; let best = Infinity;
+  if (d.id === 'reverbere') { for (let zz = -24; zz <= 32; zz += 8) for (const lx of [-6.2, 6.2]) best = Math.min(best, Math.hypot(c.x - lx, c.z - zz)); return best; }
+  if (d.id === 'colonne') return Math.min(Math.hypot(c.x - 8.5, c.z + 6), Math.hypot(c.x + 8.5, c.z - 14));
+  if (d.id === 'gare') return Math.hypot(c.x, c.z + 43);
+  if (d.id === 'enseigne') return Math.hypot(Math.max(0, c.x - 11), c.z - 38);
+  return Math.hypot(c.x - d.point[0], c.z - d.point[2]);
+}
+function traiterToucher(nom) {
+  const d = DETAILS.find((x) => !trouve[x.id]); if (!d) return;
+  if (nom === d.cible) {
+    const dist = distanceA(d);
+    if (dist > d.rayon) { apiJeu.toast('C\'est bien ça, mais le passant regarde de près : approche-toi encore (' + Math.round(dist) + ' m).', 2600); M.son('tic', { volume: 0.12 }); return; }
+    trouve[d.id] = true; mission.valider(d.id, 100); majDetail();
+    const suivant = DETAILS.find((x) => !trouve[x.id]);
+    if (suivant) apiJeu.say('Trouvé. Détail suivant : ' + suivant.texte, 'fier');
+  } else if (DETAILS.some((x) => x.cible === nom)) { apiJeu.toast('Ça, c\'est : ' + nom + '. Le texte décrit autre chose, relis-le.', 2400); }
+}
+function finMission(reussie, secondes, score) {
+  missionActive = false; majDetail();
+  const mmss = String(Math.floor(secondes / 60)).padStart(2, '0') + ':' + String(Math.floor(secondes % 60)).padStart(2, '0');
+  const etoiles = reussie ? (secondes <= 240 ? 3 : 2) : 1;
+  [0, 900, 1800].forEach((ms) => setTimeout(() => M.son('cloche', { volume: 0.18, frequence: 660 }), ms));
+  const b = panneau.querySelector('#vi-mission'); b.disabled = false; b.textContent = 'Rejouer la mission';
+  if (modeJeu === 'detente') { apiJeu.win({ score, stars: etoiles, title: 'Le regard du passant : cinq détails en ' + mmss, detail: { mission: 'regard-du-passant', secondes: Math.round(secondes), trouves: Object.keys(trouve) }, buddy: 'Tu as regardé la ville comme le passant : de près, détail après détail, jusqu\'à la nuit.' }); }
+  else { apiJeu.addScore(etoiles * 50); apiJeu.say('Mission réussie en ' + mmss + '. Les défis continuent : regarde la ville de nuit.', 'fier'); apiJeu.toast('Mission réussie en ' + mmss + '.', 3000); setTimeout(() => { if (!missionActive) mission.cacher(); }, 9000); }
+}
+function replier(oui) { panneau.classList.toggle('vi-replie', oui); const b = panneau.querySelector('.vi-pli'); b.textContent = oui ? 'Déplier' : 'Replier'; b.setAttribute('aria-expanded', String(!oui)); }
+
 /* ---------- le panneau ---------- */
 function construirePanneau() {
-  panneau = M.panneau(`<h3>Le regard</h3>
+  panneau = M.panneau(`<div class="vi-tete"><h3>Le regard</h3><button class="vi-pli" type="button" aria-expanded="true">Replier</button></div>
+    <p class="mb-carte vi-detail" id="vi-detail" hidden></p>
+    <div class="vi-corps">
     <div class="mb-groupe" role="group" aria-label="Regard"><button class="mb-bouton" type="button" data-regard="passant" aria-pressed="true">Regard du passant</button><button class="mb-bouton" type="button" data-regard="panoramique" aria-pressed="false">Regard panoramique</button></div>
+    <button class="mb-bouton" type="button" id="vi-marcher" aria-pressed="false">Marcher sur le trottoir</button>
+    <button class="mb-bouton primaire" type="button" id="vi-mission">Mission : le regard du passant</button>
     <label>Avancer sur le boulevard <input class="mb-plage" id="vi-pos" type="range" min="0" max="100" step="1" value="0" aria-label="Position sur le boulevard"></label>
     <label>L'heure <span class="mb-val" id="vi-h">Midi</span><input class="mb-plage" id="vi-heure" type="range" min="0" max="100" step="1" value="0" aria-label="Heure de la journée, du midi à la nuit"></label>
     <p class="mb-carte" id="vi-texte"></p>
@@ -406,10 +570,14 @@ function construirePanneau() {
       <p><b>Personnification</b> : « la ville tend ses bras ». La ville agit comme une personne.</p>
       <p><b>Énumération</b> : toits, cheminées, dômes, clochers, fumées. Une liste qui donne l'ampleur.</p>
       <p><b>Contraste</b> : lumière des vitrines, ombre des ruelles. Deux images opposées côte à côte.</p>
-    </details>`);
+    </details>
+    </div>`);
   panneau.querySelectorAll('[data-regard]').forEach((b) => b.addEventListener('click', () => changerRegard(b.getAttribute('data-regard'))));
   panneau.querySelector('#vi-pos').addEventListener('input', (e) => { position = Number(e.target.value); placerCamera(false); });
   panneau.querySelector('#vi-heure').addEventListener('input', (e) => { heure = Number(e.target.value) / 100; appliquerHeure(); majTexte(); });
+  panneau.querySelector('#vi-marcher').addEventListener('click', () => { if (marche.estActif()) marche.desactiver(); else { if (regard !== 'passant') changerRegard('passant'); marche.activer([7.4, 0, 26 - position * 0.56]); } });
+  panneau.querySelector('#vi-mission').addEventListener('click', lancerMission);
+  panneau.querySelector('.vi-pli').addEventListener('click', () => replier(!panneau.classList.contains('vi-replie')));
 }
 const moment = () => (heure < 0.45 ? 'jour' : heure < 0.7 ? 'soir' : 'nuit');
 function majTexte() {
@@ -419,11 +587,13 @@ function majTexte() {
 }
 function changerRegard(r) {
   regard = r; panneau.querySelectorAll('[data-regard]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-regard') === r)));
+  if (r === 'panoramique' && marche && marche.estActif()) marche.desactiver();
   majTexte(); placerCamera(true);
-  shell.say(TEXTES[regard][moment()][0], 'concentre');
+  if (!missionActive) shell.say(TEXTES[regard][moment()][0], 'concentre');
 }
 function placerCamera(saut) {
   const z = 26 - position * 0.56;
+  if (marche && marche.estActif()) { M.camera.position.z = z; return; }
   if (regard === 'passant') { M.camera.position.set(7.4, 1.7, z); M.controls.target.set(0, 1.6, z - 12); M.controls.minDistance = 1; M.controls.maxPolarAngle = Math.PI * 0.52; }
   else { M.camera.position.set(saut ? 16 : M.camera.position.x, 46, z + 24); M.controls.target.set(0, 0, z - 16); M.controls.minDistance = 8; M.controls.maxPolarAngle = Math.PI * 0.45; }
   M.controls.update();
@@ -439,7 +609,8 @@ function appliquerHeure() {
   if (hemi) { hemi.intensity = lerp3n(0.75, 0.45, 0.12, h); hemi.color.copy(lerp3(0xdfe9ff, 0xffb08a, 0x1a2238, h)); }
   scene.environmentIntensity = lerp3n(0.9, 0.5, 0.12, h);
   lampes.lanterne.emissiveIntensity = lerp3n(0.15, 1.1, 2.6, h); lampes.flamme.emissiveIntensity = lerp3n(0, 2.0, 4.0, h);
-  lumieresNuit.forEach((l) => { l.intensity = lerp3n(0, 3, 9, h); });
+  lumieresNuit.forEach((l) => { l.intensity = lerp3n(0, 2.5, 6, h); }); lumieresMagasin.forEach((l) => { l.intensity = lerp3n(0, 3, 7, h); });
+  if (contreJour) contreJour.intensity = lerp3n(0.35, 0.18, 0.05, h);
   fenetresAllumees.material.emissiveIntensity = lerp3n(0, 0.5, 1.3, h); vitrines.material.emissiveIntensity = lerp3n(0, 0.9, 1.7, h); archeGare.material.emissiveIntensity = lerp3n(0, 0.4, 0.9, h);
   etoiles.material.opacity = Math.max(0, (h - 0.6) / 0.4) * 0.9;
 }
@@ -453,8 +624,47 @@ function animer(dt, t) {
   for (let i = 0; i < v.length; i += 1) { const s = v[i]; s.age += dt; if (s.age > s.vie) { s.age = 0; } const k = s.age; pa.setXYZ(i, o.x + s.vx * k + s.dx * k, o.y + s.vy * k, o.z + s.vz * k + s.dz * k); }
   pa.needsUpdate = true;
   if (heure > 0.3) lampes.flamme.emissiveIntensity = lerp3n(0, 2.0, 4.0, heure) * (0.9 + 0.1 * Math.sin(t * 9));
+  animerPersonnages(dt, t); animerSons(dt, t);
+  // la mission : les touchers lus dans le journal de la coquille, la nuit qui tombe au fil du chrono
+  const journal = M.socle.journal;
+  while (journalLu < journal.length) { const j = journal[journalLu]; journalLu += 1; if (j.type === 'legende' && missionActive && !mission.estFinie()) traiterToucher(j.nom); }
+  if (missionActive && !mission.estFinie()) {
+    const faits = Object.keys(trouve).length; const h = Math.min(1, Math.max(0.08, mission.ecoule() / 300, faits * 0.22));
+    if (Math.abs(h - heure) > 0.004) { heure = h; panneau.querySelector('#vi-heure').value = Math.round(h * 100); appliquerHeure(); majTexte(); }
+  }
+}
+/* Les rôles : passants qui marchent, marchand qui crie, cocher et conducteur qui suivent leur voiture. */
+function animerPersonnages(dt, t) {
+  passants.forEach((p) => p.pose());
+  const ca = M.camera.position;
+  // le marchand : un cri toutes les dix secondes environ, le bras levé
+  criT -= dt; marchand.pose();
+  if (criT <= 0) { criT = 8 + hasard() * 5; marchand.dire(CRIS[Math.floor(hasard() * CRIS.length)], 3.5); marchand.groupe.userData.bras = 1.4; if (Math.hypot(ca.x - 9.0, ca.z - 19.5) < 18) M.son('souffle', { volume: 0.05 }); }
+  if (marchand.groupe.userData.bras > 0) { marchand.groupe.userData.bras -= dt; marchand.membres.brasD.rotation.x = -2.3; marchand.membres.brasD.rotation.z = -0.35; }
+  // le cocher, assis, les rênes aux mains ; il prévient quand le fiacre frôle le marcheur
+  cocher.groupe.position.set(fiacre.position.x, fiacre.position.y + 1.52, fiacre.position.z - 1.8); cocher.groupe.rotation.y = Math.PI; cocher.pose();
+  cocher.membres.jambeG.rotation.x = -1.05; cocher.membres.jambeD.rotation.x = -1.05; cocher.membres.brasG.rotation.x = -0.95; cocher.membres.brasD.rotation.x = -0.85; cocher.membres.brasG.rotation.z = 0.15; cocher.membres.brasD.rotation.z = -0.15;
+  const dFiacre = Math.hypot(ca.x - fiacre.position.x, ca.z - fiacre.position.z);
+  if (marche.estActif() && dFiacre < 4.5 && !fiacre.userData.crie) { fiacre.userData.crie = true; cocher.dire('Gare devant !', 2); } else if (dFiacre > 12) fiacre.userData.crie = false;
+  // le conducteur du tramway debout à l'avant, le voyageur sur la plate-forme arrière
+  conducteur.groupe.position.set(tram.position.x + 0.4, tram.position.y + 0.84, tram.position.z + 3.6); conducteur.groupe.rotation.y = 0; conducteur.pose(); conducteur.membres.brasG.rotation.x = -0.8; conducteur.membres.brasD.rotation.x = -0.8;
+  voyageur.groupe.position.set(tram.position.x - 0.5, tram.position.y + 0.84, tram.position.z - 3.6); voyageur.groupe.rotation.y = Math.PI; voyageur.pose(); voyageur.membres.brasG.rotation.x = -0.6; voyageur.membres.brasG.rotation.z = 0.5;
+}
+/* Les sons de la ville : sabots des chevaux selon la distance, eau de la fontaine en approchant. */
+function animerSons(dt, t) {
+  if (!ambiances.ville) return; const ca = M.camera.position;
+  sabotsAcc += dt;
+  if (sabotsAcc > 0.27) {
+    sabotsAcc = 0; const dT = Math.hypot(ca.x - tram.position.x, ca.z - tram.position.z); const dF = Math.hypot(ca.x - fiacre.position.x, ca.z - fiacre.position.z); const d = Math.min(dT, dF);
+    if (d < 26) { const v = (1 - d / 26); M.son('coup', { volume: 0.09 * v }); if (hasard() < 0.5) M.son('clic', { volume: 0.035 * v, frequence: 480 + hasard() * 120 }); }
+  }
+  eauT += dt;
+  if (eauT > 0.4) { eauT = 0; const d = Math.hypot(ca.x - 8.5, ca.z - 22); ambiances.eau.volume(0.16 * Math.max(0, 1 - d / 12)); }
 }
 function demarrer(mode, api) {
+  modeJeu = mode; apiJeu = api;
+  if (!ambiances.ville) { ambiances.ville = M.ambiance({ type: 'ville', volume: 0.16 }); ambiances.eau = M.ambiance({ type: 'eau', volume: 0 }); }
+  if (mode === 'detente') { api.say('Marche sur le trottoir, touche ce que tu vois, fais venir la nuit. La mission commence : cinq détails à retrouver.', 'joyeux'); setTimeout(() => { if (!missionActive && !lanceMission) lancerMission(); }, 1800); return; }
   if (mode !== 'cours') { api.say('Change de regard, avance sur le boulevard, fais venir la nuit, touche ce que tu vois. Chaque objet a sa phrase.', 'joyeux'); return; }
   api.defis([
     { type: 'verifier', texte: 'Passe au <b>regard du passant</b>, à hauteur d\'homme.', bouton: 'C\'est fait', verifier: () => regard === 'passant', indice: 'Le bouton « Regard du passant » dans le panneau.', explication: 'Le passant voit de près : détails, bruits, foule. C\'est le regard de Baudelaire dans « Le Spleen de Paris ».', avant: () => changerRegard('panoramique') },

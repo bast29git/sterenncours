@@ -20,6 +20,23 @@
   .ch-cmp i { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
   .ch-cmp b { font-weight: 700; }
   .ch-petit { font-size: 12px; color: var(--fg-muted); }
+  .ch-tete { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .ch-tete h3 { margin: 0; }
+  .ch-pli { font: inherit; font-size: 11.5px; font-weight: 700; min-height: 28px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--fg); cursor: pointer; }
+  .ch-corps { display: flex; flex-direction: column; gap: 9px; }
+  .mb-panneau.ch-replie .ch-corps > :not(.ch-garde) { display: none; }
+  .ch-mission { border-left: 4px solid var(--accent); display: flex; flex-direction: column; gap: 6px; }
+  .ch-mission small { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+  .ch-saisie { display: flex; gap: 6px; align-items: center; }
+  .ch-saisie input { flex: 1 1 60px; min-width: 0; width: 60px; font: inherit; font-family: var(--font-data); font-size: 14px; min-height: 36px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); }
+  .ch-saisie .mb-bouton { flex: none; min-height: 36px; }
+  @media (max-width: 720px) { .mb-panneau.ch-replie { width: 40vw; } body.ch-marche .ksh-defi { bottom: 150px; width: min(560px, calc(100% - 24px)); } }
+  /* la mission et la marche de la base, ajustées à ce monde : liste compacte, joystick réservé au tactile, aide repliée sur petit écran */
+  .mb-mission { font-size: 12.5px; }
+  .mb-mission ol { gap: 3px; }
+  .mb-mission li { padding: 3px 6px; }
+  @media (hover: hover) and (pointer: fine) { .mb-stick { display: none !important; } }
+  @media (max-width: 720px) { .mb-aide-marche { display: none; } }
 </style>
 </head>
 <body>
@@ -37,6 +54,15 @@ const X0 = -3.0; const X1 = 53.2; const W = 3.6; const H = 2.4; const LARG = X1 
 const XFACE = 0.28; // la face du haut-parleur : le zéro de la règle
 let milieu = 'air'; let D = 34; let ralenti = 40; let vue = 'libre';
 let M, panneau, mur, emetteur, membrane, led, micro, onde, traine = [], anneaux = {}, particules, volume, chrono, oscillo, prop = null, dernierResultat = null;
+let technicien = null, posteT = 0, posteAttente = 6, regleT = 0, marche = null, mission = null, missionActive = false, mesures = {}, modeJeu = 'detente', apiJeu = null, lanceMission = false, ambianceSalle = null, pasAcc = 0;
+const ORDRE = ['air', 'eau', 'acier'];
+/* Les postes du technicien : où il se tient, ce qu'il regarde, ce qu'il dit en réglant. */
+const POSTES = [
+  { a: [0.85, 0, -1.45], vers: [0.35, 0.73, -1.3], dit: 'Chronomètre à zéro.' },
+  { a: [-0.2, 0, 0.75], vers: [0.2, 0.25, 0], dit: 'Membrane propre, câble branché.' },
+  { a: [1.4, 0, 1.15], vers: [1.25, 0.3, 0.62], dit: 'Le micro regarde le réflecteur.' },
+  { a: [0.15, 0, -1.5], vers: [-0.55, 0.3, -1.0], dit: 'Je règle l\'amplificateur.' },
+];
 const F = (x, n) => x.toFixed(n).replace('.', ',');
 const nb = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const temps = (m) => 2 * D / MILIEUX[m || milieu].v;
@@ -61,7 +87,7 @@ const shell = window.Konstrio.createGame({
   intro: {
     greet: 'Une longue galerie d\'essai, un haut-parleur, un réflecteur sur rails, un micro. Émets un son, chronomètre l\'aller-retour, calcule la vitesse.',
     rule: 'Le son part du haut-parleur, touche le réflecteur et revient au micro. Le temps mesuré vaut 2 × D ÷ v. Change le milieu : air, eau, acier.',
-    how: ['Glisse pour tourner, molette pour zoomer. Le panneau propose trois vues.', 'Règle la distance D, choisis le milieu, puis « Émettre un son » : l\'onde avance au ralenti et le chronomètre affiche le vrai temps.', '« Comparer les trois milieux » lance trois ondes en même temps.', 'Touche le haut-parleur, le micro, le réflecteur, l\'oscilloscope : chaque objet a sa légende.'],
+    how: ['Glisse pour tourner, molette pour zoomer. Le panneau propose trois vues, et « Marcher » te pose dans la galerie : flèches ou ZQSD, Maj pour courir.', 'Règle la distance D, choisis le milieu, puis « Émettre un son » : l\'onde avance au ralenti et le chronomètre affiche le vrai temps.', '« Comparer les trois milieux » lance trois ondes en même temps.', 'La mission « Trois mesures pour un rapport » : dans l\'air, l\'eau puis l\'acier, émets, lis le chronomètre, calcule v = 2 D ÷ t et saisis ta valeur. Le technicien note.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Utiliser v = d ÷ t avec un écho, et comparer la vitesse du son dans l\'air, l\'eau et l\'acier.',
     hint: 'Aller-retour : le son parcourt 2 × D. Donc t = 2 × D ÷ v.',
@@ -96,9 +122,10 @@ function init() {
     legendes: LEGENDES, libelle: 'Une longue galerie d\'essai acoustique avec un haut-parleur, un micro et un réflecteur mobile sur rails',
   });
   M.soleil.target.position.set(9, 0, 0); M.scene.add(M.soleil.target);
-  construireGalerie(); construireMateriel(); construireOnde(); construirePanneau();
+  construireGalerie(); construireMateriel(); construireOnde(); construireTechnicien(); construireMarche(); construireMission(); construirePanneau();
   placer(); appliquerMilieu();
   M.boucle(animer);
+  window.__monde = { missionActive: () => missionActive, mesures: () => Object.keys(mesures), finie: () => !!mission && mission.estFinie(), lancer: lancerMission, enMarche: () => !!marche && marche.estActif(), teleporter: (x, z) => { M.camera.position.x = x; M.camera.position.z = z; }, position: () => M.camera.position.toArray(), milieu: () => milieu, D: () => D, resultat: () => dernierResultat, vue: (p, c) => { M.camera.position.fromArray(p); M.controls.target.fromArray(c); M.controls.update(); }, technicien: () => technicien.position().toArray() };
 }
 
 /* ---------- La galerie : sol, murs, plafond, piliers, lampes, rails, règle, décor ---------- */
@@ -232,6 +259,8 @@ function construireMateriel() {
   // deux lumières d'appoint : chaude au-dessus du haut-parleur, froide sur la table
   const l1 = new THREE.PointLight(0xffe2b8, 3, 6, 2); l1.position.set(0.2, 1.6, 0.4); scene.add(l1);
   const l2 = new THREE.PointLight(0xcfe3ff, 1.6, 4, 2); l2.position.set(-0.5, 1.3, -0.9); scene.add(l2);
+  const l3 = new THREE.PointLight(0x3ddc84, 1.1, 3.2, 2); l3.position.set(X0 + 0.35, 0.75, 0.9); scene.add(l3);
+  const l4 = new THREE.PointLight(0xffe2b8, 1.2, 5, 2); l4.position.set(2.2, 1.9, 0.6); scene.add(l4);
   dessinerChrono('0,000 s', 'AIR · D = ' + D + ' m'); dessinerOscillo([], 1);
 }
 
@@ -286,13 +315,117 @@ function dessinerOscillo(fronts, T) {
   oscillo.t.needsUpdate = true;
 }
 
+/* ---------- Le technicien du laboratoire : blouse, lunettes, bloc-notes ; il règle le matériel et commente ---------- */
+function construireTechnicien() {
+  const { mat } = M;
+  technicien = M.personnage({ nom: 'Technicien', phrase: 'Il règle l\'amplificateur, le micro et le chronomètre, puis note chaque mesure sur son bloc.', position: POSTES[0].a, taille: 1.74, peau: 0xe3bf9f, haut: 0xf2f0ea, bas: 0x3a4a5a, cheveux: 0x4a3a2a, graine: 3, vitesse: 0.8, voix: false,
+    surArrivee: () => { technicien.enRoute = false; const p = POSTES[posteT]; technicien.regarder(p.vers); regleT = 2.2; technicien.dire(p.dit, 3); posteAttente = 9 + Math.random() * 6; } });
+  const u = 1.74 / 1.7; const g = technicien.groupe;
+  [-0.04, 0.04].forEach((x) => { const v = new THREE.Mesh(new THREE.TorusGeometry(0.028 * u, 0.004 * u, 6, 16), mat(0x2a2d32, { metal: 0.6, rugosite: 0.4 })); v.position.set(x * u, 1.6 * u, 0.118 * u); g.add(v); });
+  const pont = new THREE.Mesh(new THREE.BoxGeometry(0.03 * u, 0.004 * u, 0.004 * u), mat(0x2a2d32)); pont.position.set(0, 1.6 * u, 0.118 * u); g.add(pont);
+  const poche = new THREE.Mesh(new THREE.BoxGeometry(0.1 * u, 0.1 * u, 0.012 * u), mat(0xe6e3dc, { rugosite: 0.9 })); poche.position.set(0.08 * u, 1.22 * u, 0.165 * u); g.add(poche);
+  const stylo = new THREE.Mesh(new THREE.CylinderGeometry(0.005 * u, 0.005 * u, 0.1 * u, 6), mat(0x2b5aa8, { rugosite: 0.4 })); stylo.position.set(0.1 * u, 1.3 * u, 0.17 * u); g.add(stylo);
+  const bloc = new THREE.Group(); bloc.position.set(0, -0.6 * u, 0.06 * u); bloc.rotation.x = -0.9; technicien.membres.brasG.add(bloc);
+  const planche = new THREE.Mesh(new THREE.BoxGeometry(0.17 * u, 0.23 * u, 0.012 * u), mat(0x6b4a2a, { rugosite: 0.8 })); bloc.add(planche);
+  const feuille = new THREE.Mesh(new THREE.PlaneGeometry(0.15 * u, 0.2 * u), new THREE.MeshStandardMaterial({ map: textureTexte('RAPPORT\nair · eau · acier', { taille: 22, fond: '#f6f1e4', couleur: '#1d2228' }), roughness: 0.9 })); feuille.position.z = 0.007 * u; bloc.add(feuille);
+  const pince = new THREE.Mesh(new THREE.BoxGeometry(0.06 * u, 0.02 * u, 0.02 * u), mat(0xb9bec6, { metal: 0.9, rugosite: 0.3 })); pince.position.set(0, 0.11 * u, 0.01 * u); bloc.add(pince);
+  g.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+  technicien.regarder(POSTES[0].vers);
+}
+function animerTechnicien(dt) {
+  posteAttente -= dt;
+  if (posteAttente <= 0 && !technicien.enRoute) {
+    technicien.enRoute = true; posteT = (posteT + 1) % POSTES.length; const p = POSTES[posteT];
+    technicien.allerA(p.a);
+  }
+  if (regleT > 0) { regleT -= dt; technicien.membres.brasD.rotation.x = -1.1 + Math.sin(regleT * 9) * 0.08; technicien.membres.brasD.rotation.z = -0.1; }
+  technicien.membres.brasG.rotation.x = -1.25; technicien.membres.brasG.rotation.z = 0.25;
+}
+
+/* ---------- La marche dans la galerie ---------- */
+function collisionGalerie(x, z) {
+  if (Math.abs(x + 0.55) < 0.45 && Math.abs(z + 1.0) < 0.32) return true;
+  if (Math.abs(x) < 0.38 && Math.abs(z) < 0.38) return true;
+  if (Math.hypot(x - 1.0, z - 0.62) < 0.28) return true;
+  if (Math.hypot(x - 0.35, z + 1.3) < 0.22) return true;
+  if (Math.abs(x - mur.position.x) < 0.42 && Math.abs(z) < 1.75) return true;
+  if (x < X0 + 0.9 && z < -0.75) return true;
+  if (technicien && Math.hypot(x - technicien.position().x, z - technicien.position().z) < 0.35) return true;
+  return false;
+}
+function construireMarche() {
+  marche = M.marcher({
+    depart: [-2.3, 0, 1.1], hauteur: 1.55, vitesse: 2.2, limites: { xmin: X0 + 0.35, xmax: X1 - 0.35, zmin: -W / 2 + 0.3, zmax: W / 2 - 0.3 }, collision: collisionGalerie,
+    aide: 'Flèches ou ZQSD pour marcher, Maj pour courir, glisse pour regarder. Échap : vue libre.',
+    surPas: (dt) => { pasAcc += dt; if (pasAcc > 0.5) { pasAcc = 0; M.son('pas', { volume: 0.06 }); setTimeout(() => M.son('pas', { volume: 0.02 }), 140); } },
+    surChangement: (actif) => { document.body.classList.toggle('ch-marche', actif); const b = panneau && panneau.querySelector('#ch-marcher'); if (b) { b.setAttribute('aria-pressed', String(actif)); b.textContent = actif ? 'Vue libre (Échap)' : 'Marcher dans la galerie'; } if (!actif) changerVue(vue); },
+  });
+  window.addEventListener('keydown', (e) => { if (!marche.estActif() || e.ctrlKey || e.metaKey || e.altKey) return; if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; if (/^(Arrow(Up|Down|Left|Right)|[zqsdwaZQSDWA]|Shift)$/.test(e.key)) e.preventDefault(); if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); marche.desactiver(); } }, true);
+}
+
+/* ---------- La mission : trois mesures pour un rapport ---------- */
+function construireMission() {
+  mission = M.mission({
+    titre: 'Trois mesures pour un rapport', chrono: true, chronoCible: 300, gagner: false, cachee: true,
+    intro: 'Mission : mesure la vitesse du son dans l\'air, puis dans l\'eau, puis dans l\'acier. Pour chaque milieu : règle la distance, émets un son, lis le chronomètre, calcule v = 2 D ÷ t et saisis ta valeur.',
+    objectifs: ORDRE.map((k) => ({ id: k, texte: 'Vitesse dans l\'' + k + ' : mesurer, calculer, saisir' })),
+    surFin: finMission,
+  });
+}
+const courant = () => ORDRE.find((k) => !mesures[k]);
+function lancerMission() {
+  if (missionActive || !mission) return;
+  mesures = {}; missionActive = true; lanceMission = true;
+  choisirMilieu('air'); mission.montrer(); mission.commencer(); majMission();
+  const b = panneau.querySelector('#ch-mission-btn'); b.disabled = true; b.textContent = 'Mission en cours';
+  technicien.dire('Trois mesures : air, eau, acier. Je note.', 4);
+  if (window.matchMedia('(max-width: 720px)').matches) replier(true);
+}
+function majMission() {
+  const zone = panneau.querySelector('#ch-mission'); const k = courant();
+  if (!missionActive || !k) { zone.hidden = true; return; }
+  zone.hidden = false; zone.querySelector('small').textContent = 'Mesure ' + (ORDRE.indexOf(k) + 1) + ' sur 3 : ' + k;
+  zone.querySelector('#ch-consigne').textContent = 'Dans l\'' + k + ' : règle D, émets un son, lis t sur le chronomètre, puis calcule v = 2 × D ÷ t et saisis-la (à 5 % près).';
+  zone.querySelector('#ch-saisie').value = '';
+}
+function verifierSaisie() {
+  const k = courant(); if (!k) return;
+  const champ = panneau.querySelector('#ch-saisie'); const v = Number(String(champ.value).replace(',', '.').replace(/\s/g, ''));
+  if (!dernierResultat || dernierResultat.milieu !== k) { apiJeu.toast('Émets d\'abord un son dans l\'' + k + ' et attends l\'écho.', 2600); technicien.dire('Pas encore de mesure dans l\'' + k + '.', 3); return; }
+  if (!(v > 0)) { apiJeu.toast('Saisis une vitesse en m/s, par exemple 340.', 2200); champ.focus(); return; }
+  const vrai = MILIEUX[k].v; const te = dernierResultat.t; const Dm = dernierResultat.D;
+  if (Math.abs(v - vrai) <= 0.05 * vrai) {
+    mesures[k] = { v, D: Dm, t: te }; mission.valider(k, 100); technicien.dire('Noté : ' + nb(Math.round(v)) + ' m/s dans l\'' + k + '.', 3.5);
+    const suivant = courant(); if (suivant) { choisirMilieu(suivant); apiJeu.say('Juste : environ ' + nb(vrai) + ' m/s dans l\'' + k + '. Milieu suivant : ' + suivant + '. Règle D, émets, lis, calcule.', 'fier'); }
+    majMission();
+  } else {
+    M.son('tic', { volume: 0.15 });
+    apiJeu.toast('Pas tout à fait. v = 2 × ' + Dm + ' ÷ ' + F(te, te < 0.05 ? 4 : 3) + ' : recalcule.', 3200);
+    technicien.dire('Deux fois D, divisé par t.', 3); champ.select();
+  }
+}
+function choisirMilieu(k) { milieu = k; panneau.querySelectorAll('[data-milieu]').forEach((x) => x.setAttribute('aria-pressed', String(x.getAttribute('data-milieu') === k))); appliquerMilieu(); placer(); }
+function finMission(reussie, secondes, score) {
+  missionActive = false; majMission();
+  const mmss = String(Math.floor(secondes / 60)).padStart(2, '0') + ':' + String(Math.floor(secondes % 60)).padStart(2, '0');
+  const etoiles = reussie ? (secondes <= 300 ? 3 : 2) : 1;
+  [0, 500].forEach((ms) => setTimeout(() => M.son('cloche', { volume: 0.18, frequence: 988 }), ms));
+  const b = panneau.querySelector('#ch-mission-btn'); b.disabled = false; b.textContent = 'Rejouer la mission';
+  technicien.dire('Rapport complet : air, eau, acier.', 4);
+  if (modeJeu === 'detente') apiJeu.win({ score, stars: etoiles, title: 'Trois mesures en ' + mmss, detail: { mission: 'trois-mesures', secondes: Math.round(secondes), mesures }, buddy: 'Trois milieux, trois vitesses : plus la matière est dense et rigide, plus le son va vite.' });
+  else { apiJeu.addScore(etoiles * 50); apiJeu.say('Rapport complet en ' + mmss + '. Les défis continuent.', 'fier'); apiJeu.toast('Mission réussie en ' + mmss + '.', 3000); setTimeout(() => { if (!missionActive) mission.cacher(); }, 9000); }
+}
+function replier(oui) { panneau.classList.toggle('ch-replie', oui); const b = panneau.querySelector('.ch-pli'); b.textContent = oui ? 'Déplier' : 'Replier'; b.setAttribute('aria-expanded', String(!oui)); }
+
 /* ---------- Le panneau de commandes ---------- */
 function construirePanneau() {
-  panneau = M.panneau(`<h3>La mesure</h3>
-    <label>Distance du mur D <span class="mb-val" id="ch-d">${D} m</span><input class="mb-plage" id="ch-ds" type="range" min="10" max="200" step="1" value="${D}" aria-label="Distance du mur"></label>
+  panneau = M.panneau(`<div class="ch-tete"><h3>La mesure</h3><button class="ch-pli" type="button" aria-expanded="true">Replier</button></div>
+    <div class="ch-corps">
+    <div class="mb-carte ch-mission ch-garde" id="ch-mission" hidden><small></small><span id="ch-consigne"></span><div class="ch-saisie"><label class="ch-petit" for="ch-saisie">v (m/s)</label><input id="ch-saisie" type="text" inputmode="decimal" autocomplete="off" aria-label="Vitesse calculée en mètres par seconde"><button class="mb-bouton primaire" type="button" id="ch-valider">Vérifier</button></div></div>
+    <label class="ch-garde">Distance du mur D <span class="mb-val" id="ch-d">${D} m</span><input class="mb-plage" id="ch-ds" type="range" min="10" max="200" step="1" value="${D}" aria-label="Distance du mur"></label>
     <div class="mb-groupe" role="group" aria-label="Milieu">${Object.keys(MILIEUX).map((k) => `<button class="mb-bouton" type="button" data-milieu="${k}" aria-pressed="${k === milieu}">${MILIEUX[k].nom} · ${nb(MILIEUX[k].v)} m/s</button>`).join('')}</div>
-    <button class="mb-bouton primaire" type="button" id="ch-emettre">Émettre un son</button>
-    <div class="mb-mesures"><span>Chronomètre</span><b id="ch-t">0,000 s</b><span>Distance parcourue 2 D</span><b id="ch-2d">·</b><span>Vitesse v = 2 D ÷ t</span><b id="ch-v">·</b></div>
+    <button class="mb-bouton primaire ch-garde" type="button" id="ch-emettre">Émettre un son</button>
+    <div class="mb-mesures ch-garde"><span>Chronomètre</span><b id="ch-t">0,000 s</b><span>Distance parcourue 2 D</span><b id="ch-2d">·</b><span>Vitesse v = 2 D ÷ t</span><b id="ch-v">·</b></div>
     <p class="mb-carte" id="ch-calc"></p>
     <details class="ch-details"><summary>Outils</summary>
       <p class="ch-petit">Ralenti de l'animation</p>
@@ -301,7 +434,15 @@ function construirePanneau() {
       <div class="ch-cmp" id="ch-cmp" hidden></div>
       <p class="ch-petit">Point de vue</p>
       <div class="mb-groupe" role="group" aria-label="Point de vue">${[['libre', 'Libre'], ['cote', 'De côté'], ['micro', 'Du micro']].map(([k, n]) => `<button class="mb-bouton" type="button" data-vue="${k}" aria-pressed="${k === vue}">${n}</button>`).join('')}</div>
-    </details>`);
+      <button class="mb-bouton" type="button" id="ch-marcher" aria-pressed="false">Marcher dans la galerie</button>
+    </details>
+    <button class="mb-bouton" type="button" id="ch-mission-btn">Mission : trois mesures</button>
+    </div>`);
+  panneau.querySelector('#ch-marcher').addEventListener('click', () => { if (marche.estActif()) marche.desactiver(); else marche.activer(); });
+  panneau.querySelector('#ch-mission-btn').addEventListener('click', lancerMission);
+  panneau.querySelector('#ch-valider').addEventListener('click', verifierSaisie);
+  panneau.querySelector('#ch-saisie').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); verifierSaisie(); } });
+  panneau.querySelector('.ch-pli').addEventListener('click', () => replier(!panneau.classList.contains('ch-replie')));
   panneau.querySelector('#ch-ds').addEventListener('input', (e) => { D = Number(e.target.value); placer(); if (vue !== 'libre') changerVue(vue); });
   panneau.querySelectorAll('[data-milieu]').forEach((b) => b.addEventListener('click', () => { milieu = b.getAttribute('data-milieu'); panneau.querySelectorAll('[data-milieu]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); appliquerMilieu(); placer(); }));
   panneau.querySelectorAll('[data-ralenti]').forEach((b) => b.addEventListener('click', () => { ralenti = Number(b.getAttribute('data-ralenti')); panneau.querySelectorAll('[data-ralenti]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); if (!prop) placer(); }));
@@ -328,12 +469,13 @@ function emettre() {
   if (prop) return;
   prop = { comparatif: false, age: 0, T: temps() * 1.15, fronts: [{ milieu, t: 0, fini: false, x: XFACE, sens: 1 }] };
   onde.visible = true; onde.position.x = XFACE; panneau.querySelector('#ch-cmp').hidden = true; shell.sound('click');
+  M.son('cloche', { frequence: 880, volume: 0.22 }); technicien.dire('Son émis. Le chrono tourne.', 2.5); technicien.regarder([xMur(), 0.3, 0]);
 }
 function comparer() {
   if (prop) return;
   prop = { comparatif: true, age: 0, T: temps('air') * 1.15, fronts: Object.keys(MILIEUX).map((k) => ({ milieu: k, t: 0, fini: false, x: XFACE, sens: 1, anneau: anneaux[k] })) };
   prop.fronts.forEach((f) => { f.anneau.visible = true; f.anneau.position.x = XFACE; });
-  panneau.querySelector('#ch-cmp').hidden = false; majComparaison(); shell.sound('click');
+  panneau.querySelector('#ch-cmp').hidden = false; majComparaison(); shell.sound('click'); M.son('cloche', { frequence: 880, volume: 0.22 });
   shell.say('Trois ondes partent ensemble. Celle de l\'acier revient la première, celle de l\'air la dernière : à distance égale, le temps dépend seulement de la vitesse.', 'concentre');
 }
 function majComparaison() {
@@ -342,6 +484,7 @@ function majComparaison() {
 }
 function changerVue(k) {
   vue = k; panneau.querySelectorAll('[data-vue]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-vue') === k)));
+  if (marche && marche.estActif()) { marche.desactiver(); return; }
   const xm = XFACE + D * ECH / 2;
   if (k === 'libre') { M.camera.position.set(-2.3, 1.25, -1.6); M.controls.target.set(2.8, 0.75, 0.1); }
   else if (k === 'cote') { const dist = Math.max(4.5, D * ECH * 0.75); M.camera.position.set(xm, 1.2 + dist * 0.12, dist); M.controls.target.set(xm, 0.7, 0); }
@@ -350,6 +493,7 @@ function changerVue(k) {
 }
 /* ---------- La boucle : membrane, fronts d'onde, particules, chronomètre, oscilloscope ---------- */
 function animer(dt, t) {
+  animerTechnicien(dt);
   const vibre = prop && !prop.comparatif && prop.age < 0.35;
   membrane.position.x = 0.25 + (vibre ? 0.012 * Math.sin(t * 90) : 0);
   led.material.emissiveIntensity = prop ? 1.2 + 0.8 * Math.sin(t * 12) : 1.2;
@@ -366,15 +510,16 @@ function animer(dt, t) {
     const f = prop.fronts[0]; const te = temps(f.milieu);
     onde.visible = !f.fini; onde.position.x = f.x; traine.forEach((m, k) => { m.position.x = -(k + 1) * 0.4 * f.sens; });
     deplacerParticules(f.x, f.sens, f.fini ? 0 : 1);
-    const txt = F(Math.min(f.t, te), 3) + ' s'; panneau.querySelector('#ch-t').textContent = txt; dessinerChrono(txt, MILIEUX[f.milieu].nom.toUpperCase() + ' · D = ' + D + ' m');
+    const txt = F(Math.min(f.t, te), te < 0.05 ? 4 : 3) + ' s'; panneau.querySelector('#ch-t').textContent = txt; dessinerChrono(txt, MILIEUX[f.milieu].nom.toUpperCase() + ' · D = ' + D + ' m');
     dessinerOscillo(prop.fronts, prop.T);
     if (f.fini) {
       const v = Math.round(2 * D / te); panneau.querySelector('#ch-v').textContent = nb(v) + ' m/s';
       panneau.querySelector('#ch-calc').textContent = 'v = 2 × ' + D + ' ÷ ' + F(te, 3) + ' = ' + nb(v) + ' m/s : c\'est bien la vitesse du son dans l\'' + MILIEUX[f.milieu].nom + '.';
-      dernierResultat = { milieu: f.milieu, D }; shell.sound('pop'); prop = null;
+      dernierResultat = { milieu: f.milieu, D, t: Number(Math.min(f.t, te).toFixed(te < 0.05 ? 4 : 3)) }; shell.sound('pop'); prop = null;
+      M.son('cloche', { frequence: 880, volume: 0.1 }); technicien.dire('Écho reçu : ' + F(te, te < 0.05 ? 4 : 3) + ' s. À toi : v = 2 D ÷ t.', 4);
     }
   } else {
-    if (vientDeFinir) shell.sound('tick');
+    if (vientDeFinir) { shell.sound('tick'); M.son('cloche', { frequence: 740, volume: 0.09 }); }
     majComparaison(); dessinerOscillo(prop.fronts, prop.T);
     const f = prop.fronts.find((x) => x.milieu === milieu) || prop.fronts[0]; const txt = F(Math.min(f.t, temps(f.milieu)), 3) + ' s';
     panneau.querySelector('#ch-t').textContent = txt; dessinerChrono(txt, 'COMPARAISON · ' + MILIEUX[f.milieu].nom.toUpperCase());
@@ -382,6 +527,9 @@ function animer(dt, t) {
   }
 }
 function demarrer(mode, api) {
+  modeJeu = mode; apiJeu = api;
+  if (!ambianceSalle) ambianceSalle = M.ambiance({ type: 'salle', volume: 0.1 });
+  if (mode === 'detente') { api.say('Règle la distance, émets un son, lis le chronomètre. La mission commence : trois mesures pour un rapport.', 'joyeux'); setTimeout(() => { if (!missionActive && !lanceMission) lancerMission(); }, 1800); return; }
   if (mode !== 'cours') { api.say('Règle la distance, choisis le milieu, émets un son. Le chronomètre affiche le vrai temps de l\'aller-retour. Compare ensuite les trois milieux.', 'joyeux'); return; }
   api.defis([
     { type: 'qcm', texte: 'Quelle est la vitesse du son dans l\'air ?', choix: ['340 m/s', '3 400 m/s', '34 m/s', '300 000 km/s'], reponse: 0, explication: 'Environ 340 m/s dans l\'air. 300 000 km/s, c\'est la lumière : près d\'un million de fois plus vite.' },
