@@ -183,11 +183,23 @@ quelque chose, pas seulement signaler l'erreur.
   `public/data/contenu/<matiere>/<ref>-evaluation-corrige.html` pour le professeur (corrigés
   dépliés, barème). Le cahier d'exercices à la main existe pour chaque leçon.
 - **Audit des contenus** : `npm run audit:contenus` (`build/audit-contenus.mjs`) vérifie les 84
-  leçons et écrit `00-pilotage/audit-contenus.md` ; il sort en erreur sur un manque bloquant.
-- **Modules de début d'année** (`site/modules.js`, `site/visite.js`) : « Faire connaissance »,
-  « Où j'en suis », visite guidée ; réponses dans le profil partagé (`/api/profil`, clés `moi.*`),
-  lues par le professeur sur la page « Sterenn ». Le générateur d'année les place sur la première
-  séance avec un bloc de français. Les leçons `module/<id>` sont résolues par `N.libelleLecon`.
+  leçons et écrit `00-pilotage/audit-contenus.md` ; il sort en erreur sur un manque bloquant. Il
+  contrôle les quatre documents (plan, pauses, matériel, mots-clés, auto-test, trois niveaux
+  d'exercices, corrigés d'au moins 120 caractères, échelle à quatre niveaux, barème), la banque
+  question par question (types `qcm`, `vraifaux`, `saisie`, `associer`, `trous` ; réponses valides ;
+  explications d'au moins 50 caractères), l'univers de Sterenn (un exercice sur cinq) et la
+  couverture de chaque attendu du programme par au moins une leçon. Objectif tenu : 0 manque,
+  0 alerte ; chaque leçon a au moins un jeu rattaché (`site/data/jeux.js`).
+- **Modules de début d'année** (`site/modules.js`, `site/visite.js`) : « Faire connaissance » en
+  huit écrans (la première séance cochée au fil de l'heure, ses univers qui habillent les énoncés
+  et choisissent la palette, sa carte, comment elle apprend en cinq choix qui disent ce que Bastien
+  fera, le jeu des trois questions face aux réponses de Bastien avec détection d'un point commun,
+  la carte de Bastien et sa réponse, les règles signées et imprimables en pacte, un premier jeu tiré
+  de ses univers), « Où j'en suis », visite guidée ; réponses dans le profil partagé (`/api/profil`,
+  clés `moi.*` ; côté professeur `bastien.carte`, `bastien.trois`, `bastien.reponse`), lues et
+  complétées par le professeur sur la page « Sa carte ». Le générateur d'année les place sur la
+  première séance avec un bloc de français. Les leçons `module/<id>` sont résolues par
+  `N.libelleLecon`.
 - **Semaine** : Sterenn déclare une absence avec un mot et déplace ses temps personnels
   (`PATCH /api/seances/:id/eleve`) ; le professeur applique un horaire à tout un jour de semaine
   (`POST /api/seances/horaire`).
@@ -202,6 +214,15 @@ quelque chose, pas seulement signaler l'erreur.
 - **Client** (`site/app.js`) : `N.api` borne chaque appel à vingt secondes, reprend une lecture
   après un 429, attache `err.code`, `err.champ` et `err.requete` ; `N.signaler(message, type,
   { libelle, faire })` file les messages du bandeau et accepte une action (Annuler, Réessayer).
+- **Espace professeur** (`site/vue-prof.js`, `vue-prof-pages.js`, `prof.css`) : **six sections**
+  (`SECTIONS`) : Aujourd'hui, Séances, Sterenn, Matières, Échanges, Réglages. Chaque section porte
+  ses pages en **onglets** en tête de page (`onglets()`, inséré par `afficher`) et dépliées sous
+  l'entrée active de la barre latérale ; toutes les anciennes routes restent valables. Deux
+  assistants : **« Démarrer l'année »** (`#/assistant`, sept étapes, certaines détectées toutes
+  seules, état dans `bastien.assistant`, carte sur Aujourd'hui tant que tout n'est pas fait) et
+  **« Préparer la séance »** (`#/preparer/<id>`, cinq étapes : leçons et documents, accès en un
+  clic, travail personnel, un mot pour Sterenn, bilan « prête » dans `bastien.preparee.<id>`).
+  Texte à 15 px, neutres plus contrastés, blocs plus aérés.
 
 ## 3 ter. Rythme de travail et supports
 

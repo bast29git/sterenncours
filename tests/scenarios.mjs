@@ -122,6 +122,16 @@ export const SCENARIOS = {
     const { page, erreurs } = await ouvrir(nav, BASE, ELEVE);
     await aller(page, '#/decouverte', 1500);
     ok((await page.locator('.e-horaire li').count()) === 6, 'programme de la première séance');
+    // F210 : huit écrans, les univers révèlent un exemple, les trois questions révèlent Bastien.
+    ok((await page.locator('.e-diapo-etapes button').count()) === 8, 'huit écrans');
+    await page.click('[data-etape="1"]'); await page.waitForTimeout(600);
+    await page.click('[data-univers="aurores"]'); await page.waitForTimeout(200);
+    ok(await page.locator('#m-exemple').isVisible(), 'exemple d\'univers révélé');
+    await page.click('[data-etape="4"]'); await page.waitForTimeout(600);
+    await page.fill('[data-trois="plat"]', 'Des crêpes au sucre'); await page.waitForTimeout(200);
+    ok(await page.locator('.e-trois li:nth-child(3) .e-trois-bastien').isVisible(), 'réponse de Bastien révélée');
+    await page.click('[data-etape="6"]'); await page.waitForTimeout(600);
+    ok((await page.locator('#m-imprimer').count()) === 1, 'pacte imprimable');
     await aller(page, '#/visite', 2500);
     ok((await page.locator('.e-visite-carte').count()) === 1, 'visite lancée');
     await page.keyboard.press('Escape'); await page.waitForTimeout(500);
@@ -228,6 +238,28 @@ SCENARIOS['messages : correction, retrait annulable, recherche'] = async functio
   ok((await page.locator('.e-msg-tete time').count()) >= 1, 'heures relatives');
   ok(!erreurs.length, 'sans erreur JS : ' + erreurs.join(' | '));
 };
+
+SCENARIOS['assistants du professeur : démarrer l\'année, préparer la séance'] = async (nav, BASE) => {
+    const { page, erreurs } = await ouvrir(nav, BASE, PROF);
+    ok((await page.locator('.p-sections > li').count()) === 6, 'six sections');
+    await aller(page, '#/assistant', 1200);
+    ok((await page.locator('.p-etapes-assistant li').count()) === 7, 'sept étapes');
+    const case1 = page.locator('[data-etape-assistant="codes"]');
+    if (await case1.count()) { const avant = await case1.isChecked(); await case1.click(); await page.waitForTimeout(900); ok((await page.locator('[data-etape-assistant="codes"]').isChecked()) !== avant, 'étape cochée et rechargée'); }
+    ok((await page.locator('.p-onglets-section a').count()) === 4, 'onglets de la section Réglages');
+    const id = await page.evaluate(() => { const a = window.NOYAU.jourIso(); return (window.NOYAU.etat.seances.filter((s) => s.date > a && s.type === 'cours').sort((x, y) => x.date.localeCompare(y.date))[0] || {}).id; });
+    if (id) {
+      await aller(page, '#/preparer/' + id, 1200);
+      ok((await page.locator('.p-assistant-etapes button').count()) === 5, 'préparer : cinq étapes');
+      await page.fill('#pr-objectif', 'Objectif de test ' + Date.now()); await page.click('#pr-suiv'); await page.waitForTimeout(1200);
+      ok((await page.locator('.p-prep-acces, .p-vide').count()) >= 1, 'étape des accès affichée');
+      await page.click('[data-prep-etape="4"]'); await page.waitForTimeout(900);
+      ok((await page.locator('.p-prep-bilan li').count()) === 5, 'bilan en cinq points');
+      const s = await page.evaluate((i) => (window.NOYAU.etat.seances.find((x) => x.id === i) || {}).objectif, id);
+      ok(/Objectif de test/.test(s || ''), 'objectif enregistré par l\'assistant');
+    }
+    ok(!erreurs.length, 'sans erreur JS : ' + erreurs.join(' | '));
+  };
 
 export async function lancerScenarios(BASE) {
   const nav = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--no-sandbox'] });

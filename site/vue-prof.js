@@ -17,49 +17,33 @@
   let sante = null;         // état des ressources Cloudflare, lu une fois
   let brancheChrome = false; // barre latérale et recherche : branchées une fois
 
-  const GROUPES = [
-    {
-      titre: 'Pilotage',
-      items: [
-        { route: 'accueil', ico: 'ic-accueil', texte: 'Aujourd\'hui' },
-        { route: 'mois', ico: 'ic-calendrier', texte: 'Planning' },
-        { route: 'suivi', ico: 'ic-graphique', texte: 'Suivi des acquis' },
-        { route: 'socle', ico: 'ic-cible', texte: 'Socle par domaine' },
-        { route: 'periodes', ico: 'ic-livre', texte: 'Vue par période' },
-        { route: 'acces', ico: 'ic-verrou', texte: 'Accès et déblocages' },
-        { route: 'sterenn', ico: 'ic-etoile', texte: 'Sterenn' },
-      ],
-    },
-    {
-      titre: 'Échanges',
-      items: [
-        { route: 'messages', ico: 'ic-message', texte: 'Messages' },
-        { route: 'depots', ico: 'ic-boite', texte: 'Dépôts' },
-      ],
-    },
-    {
-      titre: 'Ressources',
-      items: [
-        { route: 'matieres', ico: 'ic-planete', texte: 'Matières' },
-        { route: 'programme', ico: 'ic-livre', texte: 'Programme officiel' },
-        { route: 'jeux', ico: 'ic-etincelle', texte: 'Jeux et mondes' },
-        { route: 'documents', ico: 'ic-telecharger', texte: 'Dossiers PDF' },
-      ],
-    },
-    {
-      titre: 'Outils',
-      items: [
-        { route: 'planning', ico: 'ic-etincelle', texte: 'Générateur d\'année' },
-        { route: 'reglages', ico: 'ic-reglage', texte: 'Réglages' },
-        { route: 'journal', ico: 'ic-loupe', texte: 'Journal et santé' },
-        { route: 'aide', ico: 'ic-livre', texte: 'Aide' },
-      ],
-    },
+  /* F205 : six entrées, pas dix-huit. Chaque section porte ses pages en onglets, dans la page et sous l'entrée active. */
+  const SECTIONS = [
+    { route: 'accueil', ico: 'ic-accueil', texte: 'Aujourd\'hui', sous: [] },
+    { route: 'mois', ico: 'ic-calendrier', texte: 'Séances', sous: [
+      { route: 'mois', texte: 'Planning' }, { route: 'planning', texte: 'Générateur d\'année' },
+    ] },
+    { route: 'suivi', ico: 'ic-graphique', texte: 'Sterenn', sous: [
+      { route: 'suivi', texte: 'Suivi des acquis' }, { route: 'socle', texte: 'Socle' }, { route: 'periodes', texte: 'Périodes' },
+      { route: 'bulletin', texte: 'Bulletin' }, { route: 'acces', texte: 'Accès' }, { route: 'sterenn', texte: 'Sa carte' },
+    ] },
+    { route: 'matieres', ico: 'ic-planete', texte: 'Matières', sous: [
+      { route: 'matieres', texte: 'Les matières' }, { route: 'programme', texte: 'Programme officiel' },
+      { route: 'jeux', texte: 'Jeux et mondes' }, { route: 'documents', texte: 'Dossiers PDF' },
+    ] },
+    { route: 'messages', ico: 'ic-message', texte: 'Échanges', sous: [
+      { route: 'messages', texte: 'Messages' }, { route: 'depots', texte: 'Dépôts' },
+    ] },
+    { route: 'reglages', ico: 'ic-reglage', texte: 'Réglages', sous: [
+      { route: 'reglages', texte: 'Réglages' }, { route: 'assistant', texte: 'Démarrer l\'année' },
+      { route: 'journal', texte: 'Journal et santé' }, { route: 'aide', texte: 'Aide' },
+    ] },
   ];
+  const sectionDe = (route) => SECTIONS.find((g) => g.route === route || g.sous.some((x) => x.route === route)) || SECTIONS[0];
 
   const PARENT = {
     matiere: 'matieres', lecon: 'matieres', exos: 'matieres',
-    seance: 'mois', calendrier: 'mois', recherche: 'matieres',
+    seance: 'mois', calendrier: 'mois', preparer: 'mois', recherche: 'matieres',
   };
 
   /* ---------- Chrome : barre latérale, fil d'Ariane, recherche ------------- */
@@ -73,18 +57,14 @@
       mois: String(N.etat.seances.length),
     };
 
-    document.getElementById('p-nav').innerHTML = GROUPES.map((g) => `
-      <section class="p-groupe">
-        <h2>${N.ech(g.titre)}</h2>
-        <ul>${g.items.map((i) => {
-      const actif = i.route === courant ? ' class="actif"' : '';
-      const alerte = i.route === 'messages' && N.etat.messagesNonLus
-        ? `<span class="alerte">${N.etat.messagesNonLus}</span>` : '';
-      const compte = !alerte && compteurs[i.route] ? `<span class="compte">${compteurs[i.route]}</span>` : '';
-      return `<li><a href="#/${i.route}"${actif} data-libelle="${N.ech(i.texte)}">
-        ${N.ic(i.ico, 'ico')}<span>${N.ech(i.texte)}</span>${alerte}${compte}</a></li>`;
-    }).join('')}</ul>
-      </section>`).join('');
+    const section = sectionDe(courant);
+    document.getElementById('p-nav').innerHTML = `<ul class="p-sections">${SECTIONS.map((g) => {
+      const actif = g === section;
+      const alerte = g.route === 'messages' && N.etat.messagesNonLus ? `<span class="alerte">${N.etat.messagesNonLus}</span>` : '';
+      const compte = !alerte && compteurs[g.route] ? `<span class="compte">${compteurs[g.route]}</span>` : '';
+      const sous = actif && g.sous.length > 1 ? `<ul class="p-sous">${g.sous.map((x) => `<li><a href="#/${x.route}"${x.route === courant ? ' class="actif" aria-current="page"' : ''}>${N.ech(x.texte)}</a></li>`).join('')}</ul>` : '';
+      return `<li class="${actif ? 'ouverte' : ''}"><a href="#/${g.route}"${actif ? ' class="actif"' : ''} data-libelle="${N.ech(g.texte)}">${N.ic(g.ico, 'ico')}<span>${N.ech(g.texte)}</span>${alerte}${compte}</a>${sous}</li>`;
+    }).join('')}</ul>`;
 
     const relie = sante && sante.relie ? sante.relie : {};
     document.getElementById('p-lateral-pied').innerHTML = `
@@ -95,6 +75,11 @@
 
   function fil(morceaux) {
     // F168 : le dernier maillon porte aria-current ; F169 : l'onglet du navigateur nomme la page.
+    // F205 : les anciens groupes (Pilotage, Ressources, Outils) cèdent la place à la section courante.
+    if (morceaux.length > 1 && ['Pilotage', 'Ressources', 'Outils', 'Échanges'].indexOf(morceaux[0].t) !== -1) {
+      const brut = (location.hash || '#/accueil').replace(/^#\/?/, '').split('/')[0] || 'accueil';
+      const g = sectionDe(PARENT[brut] || brut); morceaux = [{ t: g.texte, h: '#/' + g.route }].concat(morceaux.slice(1));
+    }
     document.getElementById('p-fil').innerHTML = morceaux.map((m, i) => {
       const dernier = i === morceaux.length - 1;
       const texte = dernier ? `<b aria-current="page">${N.ech(m.t)}</b>` : (m.h ? `<a href="${m.h}">${N.ech(m.t)}</a>` : N.ech(m.t));
@@ -152,8 +137,15 @@
   function filDeRoute() {
     const p = (location.hash || '#/accueil').replace(/^#\/?/, '').split('/');
     const courant = PARENT[p[0]] || p[0];
-    for (const g of GROUPES) { const i = g.items.find((x) => x.route === courant); if (i) return [{ t: g.titre }, { t: i.texte, h: '#/' + i.route }]; }
-    return [{ t: 'Espace professeur' }];
+    const g = sectionDe(courant); const i = g.sous.find((x) => x.route === courant);
+    return i ? [{ t: g.texte, h: '#/' + g.route }, { t: i.texte, h: '#/' + i.route }] : [{ t: g.texte }];
+  }
+  /** F206 : les pages d'une même section se suivent en onglets, en tête de page. */
+  function onglets() {
+    const brut = (location.hash || '#/accueil').replace(/^#\/?/, '').split('/')[0] || 'accueil';
+    const courant = PARENT[brut] || brut; const g = sectionDe(courant);
+    if (g.sous.length < 2) return '';
+    return `<nav class="p-onglets-section" aria-label="Pages de la section ${N.ech(g.texte)}">${g.sous.map((x) => `<a href="#/${x.route}"${x.route === courant ? ' class="actif" aria-current="page"' : ''}>${N.ech(x.texte)}</a>`).join('')}</nav>`;
   }
   // B40 : g puis a (accueil), p (planning), s (suivi), m (messages) ; « / » pour la recherche.
   let touchePrefixe = false;
@@ -166,7 +158,7 @@
   });
 
   function afficher(html, morceaux) {
-    vue().innerHTML = html;
+    vue().innerHTML = onglets() + html;
     etiqueterTableaux(vue());
     // Une zone qui défile se parcourt au clavier.
     vue().querySelectorAll('.p-journal, .p-tableau-defilant').forEach((z) => { z.setAttribute('tabindex', '0'); });
@@ -444,7 +436,7 @@
       <p class="p-seance-obj">${N.ech(s.objectif || 'Sans objectif noté')}</p>
       <ol class="p-ordre-jour">${lignes.join('')}</ol>
       ${s.travail ? `<p class="p-seance-travail">Travail personnel annoncé : ${N.ech(s.travail)}</p>` : ''}
-      ${aVenir ? `<div class="p-seance-actions"><a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/seance/${s.id}">Préparer</a></div>` : `
+      ${aVenir ? `<div class="p-seance-actions"><a class="p-bouton p-bouton-mini" href="#/preparer/${s.id}">Préparer la séance, pas à pas</a><a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/seance/${s.id}">Fiche de la séance</a></div>` : `
       <form class="p-form p-bilan-rapide" data-bilan="${s.id}">
         <div class="ligne">
           <div><label for="b-acquis-${s.id}">Acquis nommé</label><input id="b-acquis-${s.id}" name="acquis" type="text" maxlength="200" placeholder="ce qu'elle sait faire maintenant"></div>
@@ -589,10 +581,17 @@
     }));
     aReprendre.sort((a, b) => b.jours - a.jours);
 
+    const assistant = etatAssistant();
     afficher(
       entete('Aujourd\'hui', N.ech(N.enFrancais(aujourd, true)) + ' · semaine du ' + N.ech(N.enFrancais(lundi)),
         `<a class="p-bouton p-bouton-fantome" href="#/mois">Voir le planning</a>
-         <a class="p-bouton" href="#/suivi">Suivi des acquis</a>`)
+         ${prochainCours ? `<a class="p-bouton" href="#/preparer/${prochainCours.id}">Préparer la prochaine séance</a>` : '<a class="p-bouton" href="#/suivi">Suivi des acquis</a>'}`)
+      + (assistant.visible ? `<section class="p-assistant-carte" aria-labelledby="p-assistant-titre">
+          <div><h2 id="p-assistant-titre">Démarrer l'année : ${assistant.faits} étape(s) sur ${assistant.total}</h2>
+          <p>${assistant.prochaine ? 'Prochaine étape : <b>' + N.ech(assistant.prochaine.titre) + '</b>. ' : ''}Un parcours guidé, une chose à la fois, pour mettre l'espace en route.</p></div>
+          <div class="p-assistant-barre" aria-hidden="true"><i style="width:${Math.round((assistant.faits / assistant.total) * 100)}%"></i></div>
+          <div class="p-seance-actions"><a class="p-bouton" href="#/assistant">${assistant.faits ? 'Reprendre' : 'Commencer'}</a><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="p-assistant-masquer">Ne plus afficher ici</button></div>
+        </section>` : '')
       + `<ul class="p-kpis">
           <li class="pos"><span class="v">${c.validees}</span><span class="l">leçons validées sur ${c.total}</span></li>
           <li class="${c.fragiles ? 'att' : ''}"><span class="v">${c.fragiles}</span><span class="l">à reprendre</span></li>
@@ -666,6 +665,8 @@
     brancherPropositions(vueAccueil);
     brancherSeanceJour(vueAccueil);
     reponseRapide();
+    const masquer = document.getElementById('p-assistant-masquer');
+    if (masquer) masquer.addEventListener('click', async () => { const a = Object.assign({}, N.profil('bastien.assistant', {}) || {}, { masque: true }); try { await N.enregistrerProfil('bastien.assistant', a); vueAccueil(); } catch (e) { N.signaler(e.message); } });
     vue().querySelectorAll('[data-reporter]').forEach((b) => b.addEventListener('click', () => reporterSeance(b.getAttribute('data-reporter'), vueAccueil)));
     vue().querySelectorAll('[data-choisir]').forEach((b) => b.addEventListener('click', () => { const o = vue().querySelector(`[data-options="${b.getAttribute('data-choisir')}"]`); o.hidden = !o.hidden; }));
     vue().querySelectorAll('[data-choix-seance]').forEach((b) => b.addEventListener('click', async () => {
@@ -2479,6 +2480,17 @@
     const nomMat = (id) => { const m = N.matiere(id); return m ? m.icone + ' ' + m.nom : 'non renseignée'; };
     const REGLES = { pause: 'Une pause de cinq minutes toutes les vingt-cinq minutes', stop: 'Elle peut dire « stop » sans expliquer', consigne: 'Une seule consigne à la fois', fin: 'La séance finit à l\'heure', acquis: 'Ce qui est acquis est nommé et coché', plan: 'Le plan de la séance est annoncé au début' };
     const PREVENIR = { veille: 'la veille, par message', debut: 'au début de la séance', juste: 'juste avant' };
+    const UNIVERS_NOMS = { maomao: 'Maomao et l\'apothicairerie', myne: 'Myne et les livres', yuzu: 'Yuzu, les saisons et les fêtes', aurores: 'Les aurores boréales', feutres: 'Les feutres et le dessin' };
+    const COULEURS_NOMS = { turquoise: 'Turquoise clair', indien: 'Bleu indien', violet: 'Violet pastel', rose: 'Rose', vert: 'Vert opale', ambre: 'Ambre' };
+    const APPRENDS_TEXTES = [
+      { cle: 'bloque', q: 'Quand elle bloque', options: { seule: ['Elle réessaie seule d\'abord'], indice: ['Un indice tout de suite'], ensemble: ['Le premier pas ensemble'] } },
+      { cle: 'consigne', q: 'La consigne qu\'elle comprend le mieux', options: { phrase: ['Une phrase, une action'], liste: ['Une liste numérotée'], exemple: ['Un exemple fait, puis à elle'] } },
+      { cle: 'rythme', q: 'Son rythme', options: { lent: ['Lentement et sûrement'], vite: ['Vite, quitte à revenir'], selon: ['Selon la matière'] } },
+      { cle: 'pause', q: 'Les pauses', options: { 20: ['Toutes les 20 minutes'], 25: ['Toutes les 25 minutes'], demande: ['Quand elle le demande'] } },
+      { cle: 'bruit', q: 'Autour d\'elle', options: { silence: ['Le silence complet'], doux: ['Un fond sonore doux'], egal: ['Peu importe'] } },
+    ];
+    const TROIS_TEXTES = [['endroit', 'Un endroit où elle aimerait aller'], ['fort', 'Une chose qu\'elle sait bien faire'], ['plat', 'Un plat qu\'elle pourrait manger tous les jours']];
+    const troisBastien = N.profil('bastien.trois', {}) || {};
     const compagnon = window.COMPAGNON ? (() => { const ch = window.COMPAGNON.lireChoix(); const cp = window.COMPAGNON.compte(); return `<div class="p-compagnon">${window.COMPAGNON.rendre({ taille: 5, dort: false })}<div><b>${N.ech(ch.nom)}</b><p class="p-aide" style="margin:.1rem 0 0">${N.ech((window.COMPAGNON.ESPECES.find((x) => x.id === ch.espece) || {}).nom || '')} · ${cp.etoiles} étoile(s), ${cp.opales} opale(s), ${cp.coeurs} cœur(s) · ${ch.accessoires.length} accessoire(s) · humeur : ${window.COMPAGNON.humeur()}</p></div></div>`; })() : '';
     const carte = c ? `
       <dl class="p-fiche-carte">
@@ -2490,6 +2502,11 @@
         <dt>Ce qui l'aide quand elle bloque</dt><dd>${(c.aide || []).length ? c.aide.map(N.ech).join(' · ') : '<i>rien coché</i>'}</dd>
         <dt>Règles retenues</dt><dd><ul class="p-liste">${(c.regles || []).map((r) => `<li>${N.ech(REGLES[r] || r)}</li>`).join('')}${c.autre ? `<li><b>Ajoutée par elle :</b> ${N.ech(c.autre)}</li>` : ''}</ul></dd>
         ${c.question ? `<dt>Sa question pour toi</dt><dd>${N.ech(c.question)}</dd>` : ''}
+        ${(c.univers || []).length || c.universAutre ? `<dt>Ses univers</dt><dd>${(c.univers || []).map((u) => N.ech(UNIVERS_NOMS[u] || u)).concat(c.universAutre ? [N.ech(c.universAutre)] : []).join(' · ')}</dd>` : ''}
+        ${c.couleur ? `<dt>Sa couleur</dt><dd>${N.ech(COULEURS_NOMS[c.couleur] || c.couleur)}</dd>` : ''}
+        ${c.apprends && Object.keys(c.apprends).length ? `<dt>Comment elle apprend</dt><dd><ul class="p-liste">${APPRENDS_TEXTES.filter((a) => c.apprends[a.cle]).map((a) => `<li><span>${N.ech(a.q)}</span><b>${N.ech((a.options[c.apprends[a.cle]] || [c.apprends[a.cle]])[0])}</b></li>`).join('')}</ul></dd>` : ''}
+        ${c.trois && Object.values(c.trois).some(Boolean) ? `<dt>Le jeu des trois questions</dt><dd><ul class="p-liste">${TROIS_TEXTES.filter((t) => c.trois[t[0]]).map((t) => `<li><span>${N.ech(t[1])}</span><b>${N.ech(c.trois[t[0]])}</b></li>`).join('')}</ul></dd>` : ''}
+        ${c.signature ? `<dt>Pacte signé</dt><dd>${N.ech(c.signature)}</dd>` : ''}
       </dl>` : '<p class="p-vide">Elle n\'a pas encore rempli sa carte. Le module « Faire connaissance » est sur son accueil.</p>';
     const bilan = pos && !pos.enCours ? `<ul class="p-liste">${PROGRAMME.matieres.map((m) => {
       const r = pos.matieres[m.id] || { justes: 0, total: 0 };
@@ -2512,6 +2529,11 @@
       + bloc('Ta carte, telle qu\'elle la lit', `<form class="p-form" id="p-form-carte">
           <div><label for="c-texte">Texte</label><textarea id="c-texte" rows="8" maxlength="1200">${N.ech(N.profil('bastien.carte', ''))}</textarea>
           <p class="p-aide">Vide, le texte par défaut du module s'affiche. Écris-la à la première personne, en tutoyant.</p></div>
+          <p class="p-aide"><b>Le jeu des trois questions</b> : tes réponses, qu'elle découvre quand elle a écrit les siennes. Vides, des réponses par défaut s'affichent.</p>
+          <div><label for="c-endroit">Un endroit où tu aimerais aller</label><input id="c-endroit" type="text" maxlength="140" value="${N.ech(troisBastien.endroit || '')}"></div>
+          <div><label for="c-fort">Une chose que tu sais bien faire</label><input id="c-fort" type="text" maxlength="140" value="${N.ech(troisBastien.fort || '')}"></div>
+          <div><label for="c-plat">Un plat que tu pourrais manger tous les jours</label><input id="c-plat" type="text" maxlength="140" value="${N.ech(troisBastien.plat || '')}"></div>
+          ${c && c.question ? `<div><label for="c-reponse">Ta réponse à sa question (« ${N.ech(c.question)} »)</label><textarea id="c-reponse" rows="3" maxlength="600">${N.ech(N.profil('bastien.reponse', ''))}</textarea></div>` : ''}
           <button class="p-bouton" type="submit">Enregistrer</button></form>`)
       + '</div></div>', [{ t: 'Pilotage' }, { t: 'Sterenn' }]);
     document.getElementById('p-form-carte').addEventListener('submit', async (ev) => {
@@ -2519,9 +2541,136 @@
       try {
         const t = document.getElementById('c-texte').value.trim();
         await N.enregistrerProfil('bastien.carte', t || null);
+        const trois = {}; ['endroit', 'fort', 'plat'].forEach((k) => { const v = document.getElementById('c-' + k).value.trim(); if (v) trois[k] = v; });
+        await N.enregistrerProfil('bastien.trois', Object.keys(trois).length ? trois : null);
+        const rep = document.getElementById('c-reponse'); if (rep) await N.enregistrerProfil('bastien.reponse', rep.value.trim() || null);
         N.signaler('Carte enregistrée.', 'succes');
       } catch (e) { N.signaler(e.message); }
     });
+  }
+
+  /* ---------- F207 : « Démarrer l'année », un parcours guidé en sept étapes -------------------- */
+  const ETAPES_ASSISTANT = [
+    { cle: 'codes', titre: 'Changer les codes d\'accès', texte: 'Les deux codes d\'entrée sont lisibles dans la page : ce sont des codes d\'usage, pas des mots de passe. Change-les quand même pour que ce soient les tiens.', lien: '#/reglages', bouton: 'Ouvrir les codes', auto: null },
+    { cle: 'carte', titre: 'Écrire ta carte et tes trois réponses', texte: 'Sterenn lit ta carte dans son module « Faire connaissance », et découvre tes trois réponses quand elle a écrit les siennes.', lien: '#/sterenn', bouton: 'Ouvrir la page Sterenn', auto: () => !!N.profil('bastien.carte') && !!N.profil('bastien.trois') },
+    { cle: 'planning', titre: 'Générer le planning de l\'année', texte: 'Trois séances par semaine, les 84 leçons réparties, un choix de leçon une séance sur quatre. Tout reste modifiable ensuite, séance par séance.', lien: '#/planning', bouton: 'Ouvrir le générateur', auto: () => N.etat.seances.length > 0 },
+    { cle: 'reglages', titre: 'Régler l\'espace de Sterenn', texte: 'Points de pause, tutrice, calculatrice, réactions, mise en forme, fils par matière, félicitations : chaque interrupteur s\'applique chez elle en moins de trente secondes.', lien: '#/reglages', bouton: 'Ouvrir les réglages', auto: null },
+    { cle: 'acces', titre: 'Vérifier les accès', texte: 'Par défaut, la règle automatique ouvre une leçon quand la précédente est validée ou programmée. Tu peux ouvrir ou fermer chaque élément à la main.', lien: '#/acces', bouton: 'Ouvrir les accès', auto: null },
+    { cle: 'premiere', titre: 'Préparer la première séance', texte: 'Elle porte les modules « Faire connaissance » et « Où j\'en suis ». L\'assistant de préparation te guide : leçons, accès, travail personnel, un mot pour Sterenn.', lien: () => { const s = N.etat.seances.filter((x) => (x.lecons || []).some((r) => r.indexOf('module/') === 0)).sort((a, b) => a.date.localeCompare(b.date))[0] || N.etat.seances.filter((x) => x.type === 'cours').sort((a, b) => a.date.localeCompare(b.date))[0]; return s ? '#/preparer/' + s.id : '#/mois'; }, bouton: 'Préparer la séance', auto: () => N.etat.seances.some((x) => (x.lecons || []).some((r) => r.indexOf('module/') === 0)) },
+    { cle: 'sauvegarde', titre: 'Activer la sauvegarde nocturne', texte: 'Le dépôt porte un travail planifié qui écrit un instantané chaque nuit. Il a besoin du secret CODE_PROF dans les réglages du dépôt sur GitHub (ton code professeur). Sans lui, la sauvegarde échoue en silence : vérifie la santé après la première nuit.', lien: '#/journal', bouton: 'Voir la santé', auto: () => !!(sante && sante.sante && sante.sante.sauvegarde && sante.sante.sauvegarde.age_heures != null && sante.sante.sauvegarde.age_heures < 48) },
+  ];
+  function etatAssistant() {
+    const a = N.profil('bastien.assistant', {}) || {}; const faitsManuels = a.faits || {};
+    const etapes = ETAPES_ASSISTANT.map((e) => { let auto = false; try { auto = !!(e.auto && e.auto()); } catch (err) { auto = false; } return Object.assign({}, e, { fait: !!faitsManuels[e.cle] || auto, auto }); });
+    const faits = etapes.filter((e) => e.fait).length;
+    return { etapes, faits, total: etapes.length, prochaine: etapes.find((e) => !e.fait) || null, visible: !a.masque && faits < etapes.length };
+  }
+  function vueAssistant() {
+    const etat = etatAssistant();
+    afficher(entete('Démarrer l\'année', `${etat.faits} étape(s) sur ${etat.total}. Chaque étape se fait sur sa page, puis se coche ici ; certaines se cochent toutes seules.`,
+      `<a class="p-bouton p-bouton-fantome" href="#/accueil">Retour à Aujourd'hui</a>`)
+      + `<div class="p-assistant-barre p-assistant-barre-page" aria-hidden="true"><i style="width:${Math.round((etat.faits / etat.total) * 100)}%"></i></div>`
+      + `<ol class="p-etapes-assistant">${etat.etapes.map((e, i) => `<li class="${e.fait ? 'fait' : ''} ${etat.prochaine && etat.prochaine.cle === e.cle ? 'courante' : ''}">
+          <span class="p-etape-num" aria-hidden="true">${e.fait ? N.ic('ic-coche') : i + 1}</span>
+          <div class="p-etape-corps"><h2>${N.ech(e.titre)}</h2><p>${N.ech(e.texte)}</p>
+            <div class="p-seance-actions"><a class="p-bouton ${e.fait ? 'p-bouton-fantome' : ''} p-bouton-mini" href="${typeof e.lien === 'function' ? e.lien() : e.lien}">${N.ech(e.bouton)}</a>
+              ${e.auto ? '<span class="p-etat p-etat-satisfaisant">détecté : fait</span>' : `<label class="p-case" style="margin:0"><input type="checkbox" data-etape-assistant="${e.cle}" ${e.fait ? 'checked' : ''}> C'est fait</label>`}</div></div>
+        </li>`).join('')}</ol>`
+      + bloc('Et après', `<p class="p-aide">Chaque séance de cours a son propre assistant « Préparer la séance » (bouton sur Aujourd'hui et dans le planning). Le journal et la santé disent chaque jour si tout tourne : base, fichiers, sessions, sauvegarde.</p>`),
+    [{ t: 'Réglages', h: '#/reglages' }, { t: 'Démarrer l\'année' }]);
+    vue().querySelectorAll('[data-etape-assistant]').forEach((c) => c.addEventListener('change', async () => {
+      const a = Object.assign({ faits: {} }, N.profil('bastien.assistant', {}) || {}); a.faits = Object.assign({}, a.faits);
+      if (c.checked) a.faits[c.getAttribute('data-etape-assistant')] = new Date().toISOString(); else delete a.faits[c.getAttribute('data-etape-assistant')];
+      try { await N.enregistrerProfil('bastien.assistant', a); vueAssistant(); } catch (e) { N.signaler(e.message); }
+    }));
+  }
+
+  /* ---------- F208 : « Préparer la séance », cinq étapes pour une séance de cours ------------- */
+  const ETAPES_PREPARER = ['Les leçons', 'Les accès', 'Le travail personnel', 'Un mot pour Sterenn', 'Prête'];
+  function vuePreparer(id, etape) {
+    const s = N.etat.seances.find((x) => x.id === id);
+    if (!s) return vueIntrouvable();
+    let i = Math.max(0, Math.min(ETAPES_PREPARER.length - 1, Number(etape) || 0));
+    const infos = (s.lecons || []).map((r) => ({ r, info: N.libelleLecon(r) })).filter((x) => x.info);
+    const lecons = infos.filter((x) => x.info.m.id !== 'module');
+    const TYPES = [['cours', 'Cours'], ['revision', 'Révision'], ['exercices', 'Exercices'], ['serie', 'Série']];
+    const decision = (k) => (N.decisionAcces ? N.decisionAcces(k) : null);
+    const titreLecons = infos.map((x) => x.info.l.titre).join(', ');
+    const prepare = N.profil('bastien.preparee.' + s.id, null);
+    const corps = () => {
+      if (i === 0) return `<p class="p-aide p-aide-grande">Ce que porte la séance du ${N.ech(N.enFrancais(s.date, true))}, ${N.ech(s.debut || '13:00')} à ${N.ech(s.fin || '14:30')}. Ouvre chaque fiche pour la relire, imprime le cahier si Sterenn travaille à la main.</p>
+        ${infos.length ? `<ul class="p-prep-lecons">${infos.map(({ r, info }) => { const module = info.m.id === 'module'; const sv = N.etat.suivi[N.cle(info.m.id, info.l.ref)]; return `<li>
+          <div class="p-prep-tete"><b>${info.m.icone} ${N.ech(info.l.titre)}</b>${module ? '<span class="p-etat p-etat-vide">module</span>' : (sv && sv.niveau ? `<span class="p-etat p-etat-${N.ech(sv.niveau)}">${N.ech(sv.niveau)}</span>` : '<span class="p-etat p-etat-vide">pas encore positionnée</span>')}</div>
+          ${module ? `<p class="p-aide">${N.ech(info.l.titre)} : se fait ensemble, sur son écran.</p>` : `<div class="p-seance-actions">
+            <a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/lecon/${info.m.id}/${info.l.ref}/cours">Fiche de cours</a>
+            <a class="p-bouton p-bouton-fantome p-bouton-mini" href="#/exos/${info.m.id}/${info.l.ref}">Exercices 1 à 4 (écran)</a>
+            <a class="p-bouton p-bouton-fantome p-bouton-mini" href="/cahiers/${info.m.id}/${info.l.ref}.html" target="_blank" rel="noopener">Cahier à imprimer</a>
+            <a class="p-bouton p-bouton-fantome p-bouton-mini" href="/data/contenu/${info.m.id}/${info.l.ref}-evaluation-corrige.html" target="_blank" rel="noopener">Sujet et corrigé</a></div>`}
+        </li>`; }).join('')}</ul>` : `<p class="p-vide">Aucune leçon rattachée à cette séance. <a href="#/seance/${s.id}">Choisis-les dans la fiche de la séance</a>, puis reviens ici.</p>`}
+        <div><label for="pr-objectif">Objectif annoncé à Sterenn</label><input id="pr-objectif" type="text" maxlength="300" value="${N.ech(s.objectif || '')}" placeholder="par exemple : savoir additionner deux fractions sans aide"><p class="p-aide">Une phrase, un verbe d'action. Elle la lit en haut de sa séance.</p></div>`;
+      if (i === 1) return `<p class="p-aide p-aide-grande">La règle automatique ouvre une leçon quand la précédente est validée ou programmée. Ici, tu ouvres à la main ce dont la séance a besoin ; « automatique » rend la décision à la règle.</p>
+        ${lecons.length ? `<table class="p-table p-prep-acces"><thead><tr><th>Leçon</th>${TYPES.map((t) => `<th>${t[1]}</th>`).join('')}<th></th></tr></thead><tbody>${lecons.map(({ info }) => { const k = N.cle(info.m.id, info.l.ref); const auto = N.accessible(info.m.id, info.l.ref); return `<tr>
+          <td>${info.m.icone} ${N.ech(info.l.titre)}</td>${TYPES.map((t) => { const d = decision(k + '/' + t[0]); return `<td><span class="p-etat ${d === true || (d === null && auto) ? 'p-etat-satisfaisant' : 'p-etat-insuffisant'}">${d === true ? 'ouvert' : d === false ? 'fermé' : auto ? 'auto, ouvert' : 'auto, fermé'}</span></td>`; }).join('')}
+          <td><div class="p-seance-actions"><button type="button" class="p-bouton p-bouton-mini" data-ouvrir="${k}">Tout ouvrir</button><button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-auto="${k}">Automatique</button></div></td></tr>`; }).join('')}</tbody></table>` : '<p class="p-vide">Pas de leçon du programme dans cette séance : rien à ouvrir.</p>'}
+        <p class="p-aide">Le détail, élément par élément et avec une date de fermeture : <a href="#/acces">Accès et déblocages</a>.</p>`;
+      if (i === 2) {
+        const suggestions = lecons.slice(0, 2).flatMap(({ info }) => [`Relire la fiche de révision « ${info.l.titre} » (15 min).`, `Exercices 5 et 6 du cahier « ${info.l.titre} » (15 min).`]);
+        return `<p class="p-aide p-aide-grande">Deux fois quinze minutes entre deux séances, annoncées, jamais sur une notion non vue ensemble. Sterenn le lit dans sa semaine.</p>
+        <div><label for="pr-travail">Travail personnel qui suit la séance</label><textarea id="pr-travail" rows="3" maxlength="500">${N.ech(s.travail || '')}</textarea></div>
+        ${suggestions.length ? `<p class="p-aide">Propositions, un clic ajoute :</p><div class="p-modeles">${suggestions.map((t) => `<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" data-suggestion="${N.ech(t)}">${N.ech(t)}</button>`).join('')}</div>` : ''}`;
+      }
+      if (i === 3) {
+        const texte = `${N.enFrancais(s.date, true)}, on travaille ${titreLecons || 'ensemble'}.${s.travail ? ' D\'ici là : ' + s.travail : ''} À ${String(s.debut || '13:00').replace(':', ' h ')}.`;
+        return `<p class="p-aide p-aide-grande">Un message court, factuel, envoyé dans le fil général. Elle sait quoi, quand, et ce qu'on attend d'elle.</p>
+        <div><label for="pr-mot">Le mot</label><textarea id="pr-mot" rows="3" maxlength="600">${N.ech(texte)}</textarea></div>
+        <div class="p-seance-actions"><button type="button" class="p-bouton" id="pr-envoyer">Envoyer à Sterenn</button><span class="p-aide" id="pr-envoye">${N.profil('bastien.mot.' + s.id) ? 'Un mot a déjà été envoyé pour cette séance le ' + N.ech(N.dateCourte(N.profil('bastien.mot.' + s.id))) + '.' : 'Pas encore envoyé.'}</span></div>`;
+      }
+      const points = [
+        [infos.length > 0, infos.length ? `${infos.length} leçon(s) ou module(s) rattachés` : 'Aucune leçon rattachée'],
+        [!!s.objectif, s.objectif ? 'Objectif annoncé : ' + s.objectif : 'Pas d\'objectif annoncé'],
+        [!!s.travail, s.travail ? 'Travail personnel annoncé' : 'Pas de travail personnel annoncé'],
+        [!!N.profil('bastien.mot.' + s.id), N.profil('bastien.mot.' + s.id) ? 'Un mot envoyé à Sterenn' : 'Pas de mot envoyé'],
+        [lecons.every(({ info }) => N.accessible(info.m.id, info.l.ref) || decision(N.cle(info.m.id, info.l.ref) + '/cours') === true), 'Les fiches de cours sont ouvertes chez elle'],
+      ];
+      return `<ul class="p-prep-bilan">${points.map(([ok, t]) => `<li class="${ok ? 'ok' : 'non'}">${N.ic(ok ? 'ic-coche' : 'ic-croix')} ${N.ech(t)}</li>`).join('')}</ul>
+        <p class="p-aide p-aide-grande">${prepare ? 'Séance marquée prête le ' + N.ech(N.dateCourte(prepare)) + '.' : 'Quand tout est coché, marque la séance comme prête : elle apparaît ainsi sur Aujourd\'hui.'}</p>
+        <div class="p-seance-actions"><button type="button" class="p-bouton" id="pr-prete">Séance prête</button><a class="p-bouton p-bouton-fantome" href="#/seance/${s.id}">Fiche complète de la séance</a></div>`;
+    };
+    afficher(entete('Préparer la séance', N.ech(N.enFrancais(s.date, true)) + ' · ' + N.ech(titreLecons || 'sans leçon'),
+      `<a class="p-bouton p-bouton-fantome" href="#/accueil">Retour à Aujourd'hui</a>`)
+      + `<section class="p-assistant">
+        <ol class="p-assistant-etapes">${ETAPES_PREPARER.map((t, k) => `<li><button type="button" data-prep-etape="${k}" class="${k === i ? 'actif' : k < i ? 'vu' : ''}" ${k === i ? 'aria-current="step"' : ''}><b>${k + 1}</b><span>${N.ech(t)}</span></button></li>`).join('')}</ol>
+        <div class="p-assistant-corps"><h2>${N.ech(ETAPES_PREPARER[i])}</h2>${corps()}</div>
+        <div class="p-assistant-pied"><button type="button" class="p-bouton p-bouton-fantome" id="pr-prec" ${i === 0 ? 'disabled' : ''}>Précédent</button><span class="p-aide">${i + 1} sur ${ETAPES_PREPARER.length}</span><button type="button" class="p-bouton" id="pr-suiv" ${i === ETAPES_PREPARER.length - 1 ? 'hidden' : ''}>Suivant</button></div>
+      </section>`,
+    [{ t: 'Séances', h: '#/mois' }, { t: N.enFrancais(s.date), h: '#/seance/' + s.id }, { t: 'Préparer' }]);
+    const sauver = async () => {
+      const corpsPatch = {}; const o = document.getElementById('pr-objectif'); const t = document.getElementById('pr-travail');
+      if (o && o.value.trim() !== (s.objectif || '')) corpsPatch.objectif = o.value.trim();
+      if (t && t.value.trim() !== (s.travail || '')) corpsPatch.travail = t.value.trim();
+      if (!Object.keys(corpsPatch).length) return;
+      try { const r = await N.api('/seances/' + s.id, { method: 'PATCH', body: JSON.stringify(corpsPatch) }); Object.assign(s, r.seance || corpsPatch); } catch (e) { N.signaler(e.message); }
+    };
+    const aller = async (k) => { await sauver(); vuePreparer(id, k); };
+    vue().querySelectorAll('[data-prep-etape]').forEach((b) => b.addEventListener('click', () => aller(Number(b.getAttribute('data-prep-etape')))));
+    document.getElementById('pr-prec').addEventListener('click', () => aller(i - 1));
+    const suiv = document.getElementById('pr-suiv'); if (suiv) suiv.addEventListener('click', () => aller(i + 1));
+    vue().querySelectorAll('[data-ouvrir]').forEach((b) => b.addEventListener('click', async () => {
+      const k = b.getAttribute('data-ouvrir'); b.disabled = true;
+      try { for (const t of TYPES) await N.api('/acces', { method: 'PUT', body: JSON.stringify({ cle: k + '/' + t[0], etat: true }) }); await N.rafraichirEtat(); N.signaler('Cours, révision, exercices et série ouverts.', 'succes'); vuePreparer(id, i); } catch (e) { b.disabled = false; N.signaler(e.message); }
+    }));
+    vue().querySelectorAll('[data-auto]').forEach((b) => b.addEventListener('click', async () => {
+      const k = b.getAttribute('data-auto'); b.disabled = true;
+      try { for (const t of TYPES) await N.api('/acces', { method: 'PUT', body: JSON.stringify({ cle: k + '/' + t[0], etat: null }) }); await N.rafraichirEtat(); N.signaler('Retour à la règle automatique.', 'succes'); vuePreparer(id, i); } catch (e) { b.disabled = false; N.signaler(e.message); }
+    }));
+    vue().querySelectorAll('[data-suggestion]').forEach((b) => b.addEventListener('click', () => { const t = document.getElementById('pr-travail'); t.value = (t.value.trim() ? t.value.trim() + ' ' : '') + b.getAttribute('data-suggestion'); t.focus(); }));
+    const envoyer = document.getElementById('pr-envoyer');
+    if (envoyer) envoyer.addEventListener('click', async () => {
+      const texte = document.getElementById('pr-mot').value.trim(); if (!texte) return; envoyer.disabled = true;
+      try { await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte, contexte: 'Séance · ' + N.enFrancais(s.date) }) }); await N.enregistrerProfil('bastien.mot.' + s.id, new Date().toISOString()); document.getElementById('pr-envoye').textContent = 'Envoyé à l\'instant.'; N.signaler('Mot envoyé à Sterenn.', 'succes'); } catch (e) { envoyer.disabled = false; N.signaler(e.message); }
+    });
+    const prete = document.getElementById('pr-prete');
+    if (prete) prete.addEventListener('click', async () => { await sauver(); try { await N.enregistrerProfil('bastien.preparee.' + s.id, new Date().toISOString()); N.signaler('Séance prête.', 'succes'); location.hash = '#/accueil'; } catch (e) { N.signaler(e.message); } });
   }
 
   /* ---------- Routage ------------------------------------------------------- */
@@ -2567,6 +2716,8 @@
       case 'reglages': return vueReglages();
       case 'acces': return vueAcces();
       case 'sterenn': return vueSterenn();
+      case 'assistant': return vueAssistant();
+      case 'preparer': return vuePreparer(p[1], p[2]);
       case 'recherche': return vueRecherche(p[1] ? decodeURIComponent(p.slice(1).join('/')) : '');
       default: return vueIntrouvable();
     }

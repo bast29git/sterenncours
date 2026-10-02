@@ -1044,6 +1044,41 @@ html[data-tuteur="0"] .e-opale-bouton, html[data-tuteur="0"] .e-opale { display:
 .e-regles label { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.55rem 0.7rem; border: 1px solid var(--e-trait); border-radius: 10px; background: var(--e-carte); cursor: pointer; line-height: 1.5; }
 .e-regles input { width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; accent-color: var(--e-vif-fonce); }
 .e-tuiles-modules li.fait a { border-color: var(--e-vif-fonce); }
+/* Faire connaissance : séance cochée, univers, choix, trois questions, pacte */
+.e-seance-avancee { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.8rem; margin: 0 0 0.8rem; }
+.e-seance-avancee b { font-size: 0.9rem; }
+.e-horaire-coche li.fait { opacity: 0.75; }
+.e-horaire-coche li.fait strong { text-decoration: line-through; text-decoration-color: var(--e-vif-fonce); }
+.e-horaire-coche label { display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; }
+.e-horaire-coche input { width: 1.15rem; height: 1.15rem; accent-color: var(--e-vif-fonce); }
+.e-univers { list-style: none; padding: 0; margin: 0 0 0.9rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.6rem; }
+.e-univers-tuile { width: 100%; height: 100%; display: grid; gap: 0.3rem; justify-items: start; text-align: left; font: inherit; padding: 0.8rem 0.9rem; border-radius: var(--e-r-petit); border: 2px solid var(--e-trait); background: var(--e-carte); color: var(--e-encre); cursor: pointer; line-height: 1.45; }
+.e-univers-tuile .ico { font-size: 1.6rem; line-height: 1; }
+.e-univers-tuile b { font-size: 1rem; }
+.e-univers-tuile .phrase { font-size: 0.85rem; color: var(--e-encre-doux); }
+.e-univers-tuile.actif { border-color: var(--e-vif-fonce); background: var(--e-voile); }
+.e-univers-tuile:focus-visible { outline: 3px solid var(--e-vif); outline-offset: 2px; }
+.e-univers-exemple { margin: 0 0 0.9rem; padding: 0.8rem 1rem; border-left: 5px solid var(--e-vif-fonce); background: var(--e-voile); border-radius: var(--e-r-petit); }
+.e-univers-exemple p { margin: 0.25rem 0 0; line-height: 1.6; }
+.e-couleurs { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+.e-couleur { width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 3px solid var(--e-carte); background: var(--c); box-shadow: 0 0 0 1px var(--e-trait-fort); cursor: pointer; }
+.e-couleur.actif { box-shadow: 0 0 0 3px var(--e-vif-fonce); }
+.e-couleur:focus-visible { outline: 3px solid var(--e-vif); outline-offset: 3px; }
+.e-choix-bloc + .e-choix-bloc { margin-top: 0.4rem; }
+.e-choix-cartes { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.5rem; }
+.e-choix-carte { display: grid; gap: 0.25rem; justify-items: start; text-align: left; font: inherit; padding: 0.7rem 0.85rem; border-radius: var(--e-r-petit); border: 2px solid var(--e-trait); background: var(--e-carte); color: var(--e-encre); cursor: pointer; line-height: 1.45; }
+.e-choix-carte b { font-size: 0.95rem; }
+.e-choix-carte span { font-size: 0.83rem; color: var(--e-encre-doux); }
+.e-choix-carte.actif { border-color: var(--e-vif-fonce); background: var(--e-voile); }
+.e-choix-carte:focus-visible { outline: 3px solid var(--e-vif); outline-offset: 2px; }
+.e-trois { list-style: none; padding: 0; margin: 0 0 0.6rem; display: grid; gap: 0.8rem; }
+.e-trois li { padding: 0.7rem 0.9rem; border: 1px solid var(--e-trait); border-radius: var(--e-r-petit); background: var(--e-carte); }
+.e-trois-q { margin: 0; font-weight: 800; }
+.e-trois .e-form-libre { margin-top: 0.4rem; }
+.e-trois-bastien { margin: 0.6rem 0 0; padding: 0.55rem 0.8rem; border-left: 4px solid var(--e-doux); background: var(--e-voile); border-radius: var(--e-r-petit); line-height: 1.55; }
+.e-trois-commun { display: inline-block; margin-left: 0.4rem; padding: 0.1rem 0.55rem; border-radius: 999px; background: var(--e-vif-fonce); color: #fff; font-size: 0.8rem; font-weight: 700; }
+.e-pacte-signature { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 0.8rem; margin-top: 0.9rem; }
+@media (max-width: 40rem) { .e-pacte-signature { grid-template-columns: 1fr; } .e-seance-avancee { grid-template-columns: 1fr; } }
 .e-pos-liste { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.5rem; }
 .e-pos-liste li { display: grid; grid-template-columns: 11rem 1fr 5rem; align-items: center; gap: 0.7rem; }
 .e-pos-mat { font-weight: 700; }
