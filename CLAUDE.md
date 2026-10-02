@@ -267,6 +267,7 @@ npm test             # tests unitaires et 12 scénarios de bout en bout (CODE_EL
 npm run audit:jeux   # les 88 jeux : chargement, erreurs, accessibilité (axe)
 npm run audit:visuel # 15 écrans comparés aux références de tests/references/ (:reference pour les refaire)
 npm run audit:a11y   # axe-core sur seize écrans des deux espaces ; un manquement sérieux fait échouer
+npm run audit:mondes # les 30 mondes 3D : démarrage, tous les défis jusqu'à la fin, captures bureau et mobile
 npm run verifier:tout # lint, build et tests unitaires d'un coup
 ```
 

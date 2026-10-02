@@ -470,3 +470,6 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 - [x] F211 La page « Sa carte » du professeur affiche univers, couleur, manière d'apprendre, trois réponses et pacte, et lui permet d'écrire ses trois réponses et sa réponse à la question de Sterenn.
 - [x] F212 Socle des mondes 3D (`monde-base.js`) : chaîne de rendu (occlusion ambiante au cran haut sur GPU réel, bloom discret, SMAA, sortie ACES), HDRI par défaut, sol PBR depuis `pbr2k`, dôme de ciel, matériaux physiques en une ligne, crans de qualité branchés.
 - [x] F213 Audit des contenus étendu (forme des quatre documents, banque question par question, univers, couverture des attendus) ; 45 corrigés réécrits pas à pas, 13 barèmes, 2 blocs de mots-clés, un cours allongé, 45 rattachements de jeux : 0 manque, 0 alerte.
+- [x] F214 Premier écran robuste : des zéros à la place d'une exception si le programme n'est pas encore arrivé, et un second essai de chargement du programme avant d'annoncer l'échec.
+- [x] F215 `npm run audit:mondes` (`tests/mondes.mjs`) : chaque monde 3D démarre, enchaîne tous ses défis jusqu'à l'écran de fin sans erreur, captures bureau et mobile, défilement horizontal relevé.
+- [x] F216 Six jeux de textures PBR CC0 supplémentaires (bois de table, parquet, mur enduit, briques, pavés, neige) avec fichier d'attribution.

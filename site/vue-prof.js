@@ -53,7 +53,7 @@
     const c = N.chiffres();
     const compteurs = {
       suivi: `${c.validees}/${c.total}`,
-      matieres: String(PROGRAMME.matieres.length),
+      matieres: window.PROGRAMME ? String(PROGRAMME.matieres.length) : '',
       mois: String(N.etat.seances.length),
     };
 

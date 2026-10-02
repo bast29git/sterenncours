@@ -19,7 +19,8 @@
     "audit:visuel:reference": "node tests/visuel.mjs --reference",
     "audit:contenus": "node build/audit-contenus.mjs",
     "audit:a11y": "node tests/a11y.mjs",
-    "verifier:tout": "npm run lint && npm run build && npm run test:unit"
+    "verifier:tout": "npm run lint && npm run build && npm run test:unit",
+    "audit:mondes": "node tests/mondes.mjs"
   },
   "dependencies": {
     "markdown-it": "^15.0.0",

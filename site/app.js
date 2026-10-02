@@ -446,6 +446,8 @@
   }
   function chiffres() {
     let total = 0; let validees = 0; let pretes = 0; let fragiles = 0;
+    // F214 : avant l'arrivée du programme, des zéros plutôt qu'une exception qui casse le premier écran.
+    if (!window.PROGRAMME) return { total, validees, pretes, fragiles };
     PROGRAMME.matieres.forEach((m) => m.lecons.forEach((l) => {
       total += 1;
       const n = niveauDe(m.id, l.ref);
@@ -744,7 +746,8 @@
       ]).then(() => { etat.secondairesPrets = true; });
       await Promise.all([
         chargerScript(role === 'prof' ? 'vue-prof.js' : 'vue-eleve.js'),
-        chargerScript(role === 'prof' ? 'data/programme.js' : 'data/programme-eleve.js').catch(() => chargerScript('data/programme.js')),
+        // F214 : le programme se recharge une fois après une courte attente avant de déclarer l'échec.
+        chargerScript(role === 'prof' ? 'data/programme.js' : 'data/programme-eleve.js').catch(() => new Promise((ok) => setTimeout(ok, 600)).then(() => chargerScript('data/programme.js'))),
         chargerScript('planificateur.js'),
         rafraichirEtat(), rafraichirSeances(),
         role === 'prof' ? secondaires : null,

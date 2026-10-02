@@ -6,3 +6,4 @@ public/
 wrangler.toml
 .wrangler/
 tests/visuel-sortie/
+tests/mondes-sortie/

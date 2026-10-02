@@ -80,7 +80,7 @@
       const opts = shuffle(r.options);
       root.innerHTML = `<div class="qz-diff">${['Facile', 'Moyen', 'Expert'].map((d, i) => `<button data-d="${i + 1}" aria-pressed="${diff === i + 1}">${d}</button>`).join('')}<button data-deux aria-pressed="${deux}" title="Jouer à deux sur le même écran, chacun son tour">À deux</button></div>
         ${deux ? `<p class="qz-tour"><b>Au tour de ${NOMS[joueur]}</b> · Sterenn ${scores[0]} · Bastien ${scores[1]}</p>` : ''}
-        <div class="qz-card">${r.visual ? `<div class="qz-visual" tabindex="0" aria-label="Illustration de la question">${r.visual}</div>` : ''}<div class="qz-prompt">${r.prompt}</div>
+        <div class="qz-card">${r.visual ? `<div class="qz-visual" tabindex="0" role="group" aria-label="Illustration de la question">${r.visual}</div>` : ''}<div class="qz-prompt">${r.prompt}</div>
         <div class="qz-opts">${opts.map(o => `<button class="qz-opt" data-o="${esc(o)}">${o}</button>`).join('')}</div><div class="qz-fb" id="qzFb"></div></div>`;
       root.querySelectorAll('.qz-diff button[data-d]').forEach(b => b.onclick = () => { diff = +b.dataset.d; api.save({ diff }); reset(); });
       root.querySelector('[data-deux]').onclick = () => { deux = !deux; api.toast(deux ? 'À deux : Sterenn commence, puis Bastien, chacun son tour.' : 'Retour au jeu en solo.', 2200); reset(); };
