@@ -82,6 +82,7 @@
   .wrap { display:flex; flex-direction:column; align-items:flex-end; gap:10px; max-width:340px; }
   .bubble { background:var(--surface,#fff); color:var(--fg,#13142B); border:1px solid var(--border,#E7E9F3); border-radius:16px 16px 4px 16px; box-shadow:var(--shadow-lg,0 18px 48px rgba(19,20,43,.16)); padding:0; width:100%; overflow:hidden; animation:kb-pop .3s cubic-bezier(.22,1,.36,1) both; }
   .bubble[hidden]{ display:none; }
+  @media (max-width: 640px) { :host { right: 10px; bottom: 76px; } .wrap { max-width: min(78vw, 300px); } .bubble { border-radius: 14px 14px 4px 14px; } }
   .hdr { display:flex; align-items:center; gap:7px; padding:9px 12px 4px; }
   .hdr .nm { font-family:'Archivo',sans-serif; font-weight:800; font-size:12px; letter-spacing:.02em; color:var(--accent-text,#5B57F0); display:flex; align-items:center; gap:6px; flex:1; }
   .hdr .nm b { width:7px; height:7px; border-radius:2px; background:var(--accent,#6E6BFF); }
@@ -163,7 +164,9 @@
       const vb=this.shadowRoot.querySelector('[data-act="voice"]'); if(vb){ vb.textContent=this._voice?'🗣️ Voix':'🔈 Voix'; vb.setAttribute('aria-pressed',this._voice); }
     }
     toggle(){ if(this.hasAttribute('collapsed')) this.removeAttribute('collapsed'); else this.setAttribute('collapsed',''); }
-    say(text, emotion, opts){ opts=opts||{}; if(emotion) this.setAttribute('emotion',emotion); this.setAttribute('message',text); this.removeAttribute('collapsed'); if(this._voice && (opts.speak!==false)) this.speak(text); }
+    say(text, emotion, opts){ opts=opts||{}; if(emotion) this.setAttribute('emotion',emotion); this.setAttribute('message',text); this.removeAttribute('collapsed');
+      // Sur petit écran, la bulle se replie seule après neuf secondes : la scène reste visible, le message reste dans la bulle.
+      clearTimeout(this._autoRepli); if(window.matchMedia && window.matchMedia('(max-width: 640px)').matches && !this.hasAttribute('inline')) this._autoRepli=setTimeout(()=>{ if(!this.matches(':hover')) this.setAttribute('collapsed',''); },9000); if(this._voice && (opts.speak!==false)) this.speak(text); }
     speak(text){ if(!synth||this._muted)return; try{ synth.cancel(); const u=new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,'').replace(/&[a-z]+;/g,' ')); u.lang='fr-FR'; if(this._frVoice)u.voice=this._frVoice; u.rate=1.02; u.pitch=1.05; u.onstart=()=>{ this._speaking=true; this.update(); }; u.onend=()=>{ this._speaking=false; this.update(); }; synth.speak(u); }catch(e){} }
     _ctxPrompt(p){ const role="Tu es Opale, une tutrice pédagogique bienveillante pour l'espace de cours Opaline. Réponds en français, de façon claire, courte et adaptée à un élève. "; const z=this.context!=='default'?("Contexte/zone : "+this.context+". "):''; return role+z+"Question : "+p; }
     async ask(prompt){
