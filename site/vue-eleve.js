@@ -2760,7 +2760,24 @@
     const releve = !!(r && r.maj_le && String(r.maj_le).slice(0, 10) >= lundi && r.meilleur >= 70);
     return { j, releve, lundi };
   }
+  /** F222 : tous les mondes 3D sur un seul écran, par matière, avec le meilleur score. */
+  function vueMondes() {
+    const mondes = (window.JEUX || []).filter((j) => j.type === '3d' && N.accesJeu(j.id));
+    const gagnes = mondes.filter(jeuGagne).length;
+    const parMatiere = PROGRAMME.matieres.map((m) => ({ m, liste: mondes.filter((j) => j.lecons.some((c) => c.split(':')[0] === m.id)) })).filter((x) => x.liste.length);
+    const vus = new Set();
+    const carte = (j, m) => { vus.add(j.id); const r = N.etat.resultats['jeu/' + j.id]; const lecons = j.lecons.filter((c) => c.split(':')[0] === m.id).map((c) => { const l = N.lecon(m, c.split(':')[1]); return l ? l.titre : c.split(':')[1]; }); return `<li class="${jeuGagne(j) ? 'gagne' : ''}"><a href="${j.url}">
+        <span class="ico" aria-hidden="true">${j.ico}</span>
+        <span class="corps"><b>${N.ech(j.titre)}</b><span>${N.ech(lecons.slice(0, 2).join(' · '))}${r && r.meilleur ? ` · meilleur score ${N.ech(String(r.meilleur))}` : ''}</span></span>
+        <span class="etat" aria-label="${jeuGagne(j) ? 'gagné' : 'à jouer'}">${jeuGagne(j) ? N.ic('ic-coche') : N.ic('ic-droite')}</span></a></li>`; };
+    afficher(`<h1>Mondes 3D</h1>
+      <nav class="e-filtre-jeux" aria-label="Jeux"><a href="#/jeux">Par matière</a><a href="#/jeux/mondes" class="actif" aria-current="page">Mondes 3D</a></nav>
+      <p class="e-intro">${mondes.length} mondes en trois dimensions, chacun rattaché à une leçon. Tourne, zoome, touche les objets : chacun a sa légende. ${gagnes ? `Déjà ${gagnes} gagné${gagnes > 1 ? 's' : ''}.` : 'Un monde gagné avec deux étoiles vaut une étoile.'}</p>
+      ${parMatiere.map(({ m, liste }) => { const l = liste.filter((j) => !vus.has(j.id)); return l.length ? `<h2 class="e-jeux-titre">${m.icone} ${N.ech(m.nom)} <span>${l.filter(jeuGagne).length}/${l.length} gagné${l.filter(jeuGagne).length > 1 ? 's' : ''}</span></h2><ul class="e-jeux-liste">${l.map((j) => carte(j, m)).join('')}</ul>` : ''; }).join('')}`);
+  }
+
   function vueJeux(mid) {
+    if (mid === 'mondes') return vueMondes();
     const jeux = window.JEUX || [];
     const gagnes = jeux.filter(jeuGagne).length;
     const matieres = PROGRAMME.matieres.filter((m) => jeuxMatiere(m.id).length);
@@ -2787,6 +2804,7 @@
         <span class="e-mat-chiffre">${g}<small>/${liste.length}</small></span></a></li>`; }).join('')}</ul>`;
     afficher(
       `<h1>${mid ? N.ech(selection[0].nom) : 'Jeux'}</h1>
+       ${mid ? '' : '<nav class="e-filtre-jeux" aria-label="Jeux"><a href="#/jeux" class="actif" aria-current="page">Par matière</a><a href="#/jeux/mondes">Mondes 3D</a></nav>'}
        <p class="e-intro">${mid ? `Les jeux de cette matière. Une partie gagnée vaut une étoile.` : `${jeux.length} jeux et mondes 3D, chacun rattaché à une leçon. Une partie gagnée vaut une étoile.${gagnes ? ` Déjà ${gagnes} gagné(s).` : ''}`}</p>
        ${defi ? `<p class="e-notif">${N.ic('ic-etincelle')} <span><b>Le défi de la semaine</b> : ${N.ech(defi.j.titre)}. ${defi.releve ? 'Relevé, bravo.' : 'Gagne-le avec deux étoiles avant dimanche.'} <a href="${defi.j.url}">${defi.releve ? 'Rejouer' : 'Jouer'}</a></span></p>` : ''}
        ${mid ? (blocs || '<p class="e-vide">Aucun jeu pour le moment.</p>') : portes}`,
