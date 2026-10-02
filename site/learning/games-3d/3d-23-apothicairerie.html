@@ -9,31 +9,57 @@
 <script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
 <script src="../konstrio.js"></script>
 <script src="../shell.js"></script>
+<style>
+  .mb-panneau details { border-top: 1px solid var(--border); padding-top: 6px; }
+  .mb-panneau details > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-muted); min-height: 28px; }
+  .mb-panneau details > summary::-webkit-details-marker { display: none; }
+  .mb-panneau details > summary::after { content: '▸'; font-size: 12px; }
+  .mb-panneau details[open] > summary::after { content: '▾'; }
+  .mb-panneau details > div { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+  .mb-panneau label { display: block; }
+  .mb-panneau .mb-mesures b { text-align: right; }
+  .ap-couches { display: flex; flex-direction: column-reverse; gap: 2px; border: 1px solid var(--border); border-radius: 8px; padding: 4px; min-height: 30px; background: var(--surface-2); }
+  .ap-couches span { display: flex; justify-content: space-between; padding: 3px 8px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #1a1200; }
+  @media (max-width: 720px) { .mb-groupe .mb-bouton { font-size: 12px; min-height: 32px; padding: 3px 6px; } }
+</style>
 </head>
 <body>
 <script type="module">
-import { creerMonde, THREE } from '../monde-base.js';
+import { creerMonde, THREE, renduLogiciel } from '../monde-base.js';
 
 const PLANTES = [
   { id: 'menthe', nom: 'Menthe', couleur: 0x3f9a4a, usage: 'digestion' }, { id: 'camomille', nom: 'Camomille', couleur: 0xe6c34a, usage: 'sommeil' },
   { id: 'thym', nom: 'Thym', couleur: 0x6f8f5a, usage: 'toux' }, { id: 'tilleul', nom: 'Tilleul', couleur: 0xb9c76a, usage: 'calme' },
 ];
-const LIQUIDES = { eau: { nom: 'eau', rho: 1.00, couleur: 0x8fc8ff }, huile: { nom: 'huile', rho: 0.92, couleur: 0xe8c14a }, miel: { nom: 'miel', rho: 1.42, couleur: 0xd08a1e } };
+const LIQUIDES = { eau: { nom: 'eau', rho: 1.00, couleur: 0x8fc8ff, css: '#9fd0ff' }, huile: { nom: 'huile', rho: 0.92, couleur: 0xe8c14a, css: '#efcf63' }, miel: { nom: 'miel', rho: 1.42, couleur: 0xd08a1e, css: '#e0a040' } };
+const POIDS = [100, 50, 20, 20, 10, 5, 2, 2, 1, 1, 0.5];
 let total = 200, pourcent = 15, liquide = 'eau', volume = 100, plante = 'menthe';
-let M, panneau, bocaux = {}, flacon, balanceAiguille, bol, contenuBol;
+let M, panneau, bocaux = {}, flacon, balance, bol, contenuBol, tas, poidsMeshes = [], boitePoids, pesee = null, equilibre = 0;
+let bocalDensites, couches = {}, dansBocal = { eau: false, huile: false, miel: false };
+let four, chauffe = null, cuisson = 0, sucre, vapeurs = [], bougie, feu, lumiereOmbre = null, logicielGlobal = false;
+/** L'ombre de la bougie (six rendus par image) : seulement au cran haut, jamais en rendu logiciel. */
+function ombresPonctuelles(actif) { if (lumiereOmbre) lumiereOmbre.castShadow = !!actif && !logicielGlobal; }
 const LEGENDES = [
   { nom: 'Balance', phrase: 'Elle mesure une masse, en grammes. Une masse, pas un volume.' },
   { nom: 'Éprouvette', phrase: 'Elle mesure un volume, en millilitres.' },
   { nom: 'Bol de mélange', phrase: 'Plante et sirop mélangés : un mélange, pas une transformation chimique.' },
   { nom: 'Fourneau', phrase: 'Chauffer du sucre jusqu\'au caramel : une transformation chimique, de nouvelles substances apparaissent.' },
-].concat(PLANTES.map((p) => ({ nom: 'Bocal de ' + p.nom.toLowerCase(), phrase: 'Plante séchée, employée pour la ' + p.usage + '.' })));
+].concat(PLANTES.map((p) => ({ nom: 'Bocal de ' + p.nom.toLowerCase(), phrase: 'Plante séchée, employée pour la ' + p.usage + '.' }))).concat([
+  { nom: 'Bocal des densités', phrase: 'Trois liquides qui ne se mélangent pas : le plus dense descend, le moins dense flotte.' },
+  { nom: 'Boîte de poids', phrase: 'Des masses marquées, de 100 g à 0,5 g : on les pose jusqu\'à l\'équilibre.' },
+  { nom: 'Mortier', phrase: 'Le pilon réduit la plante séchée en poudre : la matière change de forme, pas de nature.' },
+  { nom: 'Tiroirs', phrase: 'Chaque tiroir porte le nom de sa plante : Maomao retrouve tout sans ouvrir.' },
+  { nom: 'Flacons', phrase: 'Des teintures : une plante qui a macéré dans un liquide. Un mélange, qu\'on peut filtrer.' },
+  { nom: 'Herbes séchées', phrase: 'Les plantes sèchent la tête en bas, à l\'abri du soleil, avant d\'être rangées.' },
+  { nom: 'Bougie', phrase: 'La cire fond (changement d\'état) puis brûle (transformation chimique) : deux phénomènes dans une flamme.' },
+]);
 const shell = window.Konstrio.createGame({
   id: '3d-23-apothicairerie', code: '3D·23', title: 'L\'apothicairerie', type: '3D', duree: '12 min',
   domain: { label: 'Physique · Maths', color: '#1E8C7A' },
   intro: {
     greet: 'Une étagère de plantes, une balance, une éprouvette. Dose un sirop en pourcentage et pèse un liquide avec sa masse volumique.',
-    rule: 'Règle la masse totale du sirop et le pourcentage de plante : la balance te dit combien peser. Choisis un liquide et un volume : la masse volumique donne la masse.',
-    how: ['Touche un bocal, la balance, l\'éprouvette ou le fourneau : chaque objet a sa légende.', 'Règle la masse totale et le pourcentage : lis la masse de plante.', 'Choisis un liquide et un volume : lis la masse pesée.'],
+    rule: 'Règle la masse totale du sirop et le pourcentage de plante : la balance te dit combien peser, et les poids le prouvent. Choisis un liquide et un volume : la masse volumique donne la masse. Verse trois liquides dans un même bocal, et chauffe du sucre au fourneau.',
+    how: ['Touche un bocal, la balance, l\'éprouvette ou le fourneau : chaque objet a sa légende.', 'Règle la masse totale et le pourcentage, puis pèse avec les poids.', 'Choisis un liquide et un volume : lis la masse pesée.', 'Verse eau, huile et miel dans le bocal des densités, et chauffe le sucre.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Calculer un pourcentage d\'une masse, utiliser une masse volumique, distinguer mélange et transformation chimique.',
     hint: 'Masse = masse volumique × volume. 15 % de 200 g, c\'est 200 × 15 ÷ 100.',
@@ -44,88 +70,346 @@ const shell = window.Konstrio.createGame({
 });
 const massePlante = () => total * pourcent / 100; const masseLiquide = () => LIQUIDES[liquide].rho * volume;
 const f1 = (x) => (Math.round(x * 10) / 10).toString().replace('.', ',');
+const f2 = (x) => (Math.round(x * 100) / 100).toString().replace('.', ',');
+function decomposer(m) { const r = []; let reste = Math.round(m * 2) / 2; POIDS.forEach((p, i) => { if (p <= reste + 1e-9) { r.push(i); reste = Math.round((reste - p) * 2) / 2; } }); return r; }
+
+/* ---------- Textures dessinées : graduations, lumière du jour, étiquette ---------- */
+function textureGraduations() {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 512; const x = c.getContext('2d'); x.clearRect(0, 0, 64, 512);
+  x.strokeStyle = '#2a2a2a'; x.fillStyle = '#2a2a2a'; x.font = '700 22px Nunito, Arial, sans-serif'; x.textBaseline = 'middle';
+  for (let v = 0; v <= 250; v += 10) { const y = 500 - v / 250 * 480; const grand = v % 50 === 0; x.lineWidth = grand ? 3 : 1.5; x.beginPath(); x.moveTo(4, y); x.lineTo(grand ? 28 : 16, y); x.stroke(); if (grand) x.fillText(String(v), 32, y); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function textureJour() {
+  const c = document.createElement('canvas'); c.width = 16; c.height = 128; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, '#cfe3ff'); g.addColorStop(0.6, '#eef5ff'); g.addColorStop(1, '#fff1d6'); x.fillStyle = g; x.fillRect(0, 0, 16, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+function textureEtiquette(texte) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d');
+  x.fillStyle = '#f4ecd8'; x.fillRect(0, 0, 256, 128); x.strokeStyle = '#8a6a3a'; x.lineWidth = 6; x.strokeRect(8, 8, 240, 112);
+  x.fillStyle = '#3a2a1a'; x.font = '700 40px Nunito, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(texte, 128, 64);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+/** Un profil tourné (bocal, flacon, mortier) : liste de [rayon, hauteur]. */
+function tour(profil, segments) { return new THREE.LatheGeometry(profil.map(([r, y]) => new THREE.Vector2(r, y)), segments || 28); }
+
+/** Un environnement provisoire (dégradé ciel, sol) posé avant la première image : les matériaux compilent une seule fois, la vraie carte HDRI le remplace à son arrivée. */
+function environnementProvisoire(M) {
+  try {
+    // même largeur que les cartes HDRI (1024) : la carte PMREM a la même taille, donc les mêmes programmes de shader
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, '#9fb6cf'); g.addColorStop(0.5, '#e8e2d6'); g.addColorStop(1, '#5a4a3a'); x.fillStyle = g; x.fillRect(0, 0, 1024, 512);
+    const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
+    const pm = new THREE.PMREMGenerator(M.renderer); const env = pm.fromEquirectangular(t).texture; pm.dispose(); t.dispose();
+    if (!M.scene.environment) M.scene.environment = env;
+  } catch (e) { /* sans environnement provisoire */ }
+}
+/** Rendu logiciel (machine virtuelle, pilote absent) ? Sondé avant de créer la scène : alors ni bloom ni lissage, pour que l'image reste fluide. */
+function renduLogicielProbable() {
+  try { const c = document.createElement('canvas'); const gl = c.getContext('webgl2') || c.getContext('webgl'); if (!gl) return false; const r = renduLogiciel({ getContext: () => gl }); const ext = gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); return r; } catch (e) { return false; }
+}
 
 function init() {
-  M = creerMonde(shell, { fond: 0xe6dccb, hdri: '../assets/3d/env/workshop_1k.hdr', sol: { taille: 30, couleur: 0x7a5a3c }, ambiance: 0.8, soleil: { position: [4, 10, 7], intensite: 1.4, etendue: 12 }, camera: { position: [0, 3.2, 7.5], cible: [0, 1.4, 0], min: 2.5, max: 20 }, legendes: LEGENDES, libelle: 'Un comptoir d\'apothicaire avec des bocaux, une balance et une éprouvette' });
-  const { scene, mesh, mat, legender, etiquette } = M;
-  const bois = mat(0x6b4326, { rugosite: 0.75 });
-  mesh(new THREE.BoxGeometry(9, 4.2, 0.3), mat(0xcdb891, { rugosite: 0.95 }), [0, 2.1, -2.3]).raycast = () => {};
-  const comptoir = mesh(new THREE.BoxGeometry(8, 0.25, 2.2), bois, [0, 1.0, 0]); comptoir.raycast = () => {};
-  mesh(new THREE.BoxGeometry(8, 1.0, 2.0), mat(0x5a3820), [0, 0.5, 0]).raycast = () => {};
-  // étagère et bocaux
-  for (let j = 0; j < 2; j += 1) mesh(new THREE.BoxGeometry(7, 0.12, 0.7), bois, [0, 2.3 + j * 1.0, -1.9]).raycast = () => {};
-  PLANTES.forEach((p, i) => {
-    const g = new THREE.Group(); scene.add(g); g.position.set(-2.6 + i * 1.7, 2.36, -1.9);
-    mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.7, 24), new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, roughness: 0.1, transmission: 0.3 }), [0, 0.35, 0], g);
-    mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.5, 24), mat(p.couleur, { rugosite: 1 }), [0, 0.27, 0], g);
-    mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.08, 24), mat(0x3a2a1a), [0, 0.74, 0], g);
-    const etq = mesh(new THREE.PlaneGeometry(0.4, 0.2), mat(0xf6f1e6), [0, 0.35, 0.29], g); etq.castShadow = false;
-    legender(g, 'Bocal de ' + p.nom.toLowerCase(), LEGENDES[4 + i].phrase); bocaux[p.id] = g;
-    etiquette(p.nom, [g.position.x, 3.25, -1.7], { hauteur: 0.3 });
+  logicielGlobal = renduLogicielProbable();
+  M = creerMonde(shell, {
+    fond: 0xc9ccd0, hdri: '../assets/3d/env/workshop_1k.hdr', environnement: 0.55, ambiance: 0.65,
+    sol: { taille: 9, texture: 'wood_floor_deck', repetition: 7, carre: true, rugosite: 0.85 },
+    soleil: { position: [5, 8, 16], intensite: 1.9, couleur: 0xffe2c0, etendue: 12 },
+    camera: { position: [0.6, 3.0, 7.6], cible: [0, 1.3, 0], min: 2.5, max: 18 },
+    legendes: LEGENDES, libelle: 'Une apothicairerie : un comptoir, un meuble à tiroirs et des étagères de bocaux, une balance, une éprouvette et un fourneau',
+    surQualite: (cran) => ombresPonctuelles(cran >= 3),
+    rendu: logicielGlobal ? { bloom: false, smaa: false, gtao: false } : undefined,
   });
-  // balance à plateaux
-  const bal = new THREE.Group(); scene.add(bal); bal.position.set(-2.2, 1.12, 0.2);
-  mesh(new THREE.CylinderGeometry(0.35, 0.45, 0.1, 24), mat(0xb08d57, { metal: 0.7, rugosite: 0.3 }), [0, 0.05, 0], bal);
-  mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.1, 10), mat(0xb08d57, { metal: 0.7, rugosite: 0.3 }), [0, 0.6, 0], bal);
-  const fleau = mesh(new THREE.BoxGeometry(1.6, 0.05, 0.05), mat(0xb08d57, { metal: 0.7, rugosite: 0.3 }), [0, 1.15, 0], bal); bal.userData.fleau = fleau;
-  [-0.75, 0.75].forEach((x) => { mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.03, 24), mat(0xc9a86a, { metal: 0.7, rugosite: 0.3 }), [x, 0.55, 0], bal); for (const dz of [-0.2, 0.2]) mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.6, 6), mat(0x555555), [x, 0.85, dz], bal); });
-  balanceAiguille = mesh(new THREE.BoxGeometry(0.03, 0.35, 0.03), mat(0xE63329), [0, 1.35, 0], bal);
-  legender(bal, 'Balance', LEGENDES[0].phrase);
-  // éprouvette
-  flacon = new THREE.Group(); scene.add(flacon); flacon.position.set(0.6, 1.12, 0.3);
-  mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.2, 24, 1, true), new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, roughness: 0.05, side: THREE.DoubleSide }), [0, 0.6, 0], flacon);
-  mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.06, 24), mat(0xdddddd), [0, 0.03, 0], flacon);
-  const liq = mesh(new THREE.CylinderGeometry(0.2, 0.2, 1, 24), mat(LIQUIDES.eau.couleur, { transparent: true, opacite: 0.75 }), [0, 0.5, 0], flacon); flacon.userData.liq = liq; liq.castShadow = false;
-  legender(flacon, 'Éprouvette', LEGENDES[1].phrase);
-  // bol
-  bol = new THREE.Group(); scene.add(bol); bol.position.set(2.4, 1.12, 0.2);
-  mesh(new THREE.SphereGeometry(0.55, 28, 14, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xe9e0cf, side: THREE.DoubleSide, roughness: 0.6 }), [0, 0.55, 0], bol).rotation.x = Math.PI;
-  contenuBol = mesh(new THREE.CylinderGeometry(0.42, 0.3, 0.2, 24), mat(0x3f9a4a, { rugosite: 1 }), [0, 0.35, 0], bol); contenuBol.castShadow = false;
-  legender(bol, 'Bol de mélange', LEGENDES[2].phrase);
-  // fourneau
-  const four = new THREE.Group(); scene.add(four); four.position.set(3.6, 0, -1.4);
-  mesh(new THREE.BoxGeometry(1.1, 0.9, 0.9), mat(0x3a3a3a, { rugosite: 0.5, metal: 0.4 }), [0, 0.45, 0], four);
-  mesh(new THREE.CylinderGeometry(0.3, 0.25, 0.25, 20), mat(0x8a7a5a, { metal: 0.6, rugosite: 0.3 }), [0, 1.02, 0], four);
-  const braise = mesh(new THREE.BoxGeometry(0.5, 0.15, 0.1), mat(0xff5a1e, { emissif: 0xff4500, intensite: 1.2 }), [0, 0.3, 0.42], four); braise.castShadow = false; four.userData.braise = braise;
-  legender(four, 'Fourneau', LEGENDES[3].phrase);
+  environnementProvisoire(M);
+  const { scene, mesh, mat, legender, etiquette, meshPBR, matPhysique } = M;
+  const boite = (w, h, d, materiau, pos, parent) => mesh(new THREE.BoxGeometry(w, h, d), materiau, pos, parent);
+  const cyl = (rh, rb, h, seg, materiau, pos, parent) => mesh(new THREE.CylinderGeometry(rh, rb, h, seg), materiau, pos, parent);
+  const muet = (m) => { m.raycast = () => {}; return m; };
+  const boisTable = (rep, clair) => ({ couleur: new THREE.Color(clair ? 1.7 : 1.35, clair ? 1.55 : 1.25, clair ? 1.4 : 1.15), repetition: rep || 1, rugosite: 0.65 });
+  const boisFonce = mat(0x4a2f1c, { rugosite: 0.75 }); const boisMoyen = mat(0x7a5536, { rugosite: 0.75 });
+  const laiton = mat(0xc9a24c, { rugosite: 0.28, metal: 0.9 }); const fer = mat(0x3e3f43, { rugosite: 0.5, metal: 0.7 }); const cuivre = mat(0xb87333, { rugosite: 0.3, metal: 0.9 });
+  // un seul programme de shader pour tout le verre : transmission, une face, pas de vernis
+  const verre = matPhysique({ couleur: 0xf6fbff, transmission: 0.92, rugosite: 0.05, epaisseur: 0.08, ior: 1.5 });
+  const verreTeinte = (c) => matPhysique({ couleur: c, transmission: 0.75, rugosite: 0.08, epaisseur: 0.3, ior: 1.45 });
+  const ceramique = matPhysique({ couleur: 0xf2eee4, rugosite: 0.25, clearcoat: 0.8, clearcoatRugosite: 0.15 });
 
+  /* ---------- La boutique : murs enduits, plafond à poutres, fenêtre ---------- */
+  const platre = { couleur: 0xeadfc8, repetition: 4, rugosite: 1, normale: 0.7 };
+  muet(meshPBR(new THREE.BoxGeometry(12.3, 4.2, 0.3), 'plastered_wall_02', platre, [0, 2.1, -2.75]));
+  for (const x of [-6, 6]) muet(meshPBR(new THREE.BoxGeometry(0.3, 4.2, 10.4), 'plastered_wall_02', platre, [x, 2.1, 2.3]));
+  muet(boite(12.3, 0.16, 0.08, boisFonce, [0, 0.08, -2.58])); for (const x of [-5.85, 5.85]) muet(boite(0.08, 0.16, 10.4, boisFonce, [x, 0.08, 2.3]));
+  const plafond = new THREE.Group(); scene.add(plafond);
+  const plafondM = muet(meshPBR(new THREE.PlaneGeometry(12.3, 10.4), 'brown_planks_09', { couleur: 0x8a6a4a, repetition: 5, rugosite: 0.95 }, [0, 4.2, 2.3], plafond)); plafondM.rotation.x = Math.PI / 2;
+  for (let x = -5.2; x <= 5.3; x += 2.6) muet(boite(0.26, 0.3, 10.4, boisFonce, [x, 4.05, 2.3], plafond));
+  muet(boite(12.3, 0.3, 0.3, boisFonce, [0, 4.03, 1.2], plafond));
+  plafond.traverse((c) => { c.castShadow = false; });
+  // fenêtre à petits carreaux dans le mur de gauche
+  const jourTex = textureJour();
+  { const x = -5.80; const z = 2.2; const g = new THREE.Group(); g.position.set(x, 2.4, z); g.rotation.y = Math.PI / 2; scene.add(g);
+    const jour = muet(new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.7), new THREE.MeshBasicMaterial({ map: jourTex, color: new THREE.Color(1.35, 1.35, 1.35) }))); jour.position.z = -0.02; g.add(jour);
+    muet(mesh(new THREE.PlaneGeometry(1.5, 1.7), verre, [0, 0, 0.01], g)).castShadow = false;
+    muet(boite(1.72, 0.1, 0.16, boisFonce, [0, 0.9, 0.02], g)); muet(boite(1.72, 0.14, 0.3, boisFonce, [0, -0.9, 0.08], g));
+    muet(boite(0.1, 1.8, 0.16, boisFonce, [-0.81, 0, 0.02], g)); muet(boite(0.1, 1.8, 0.16, boisFonce, [0.81, 0, 0.02], g));
+    for (const dx of [-0.5, 0, 0.5]) muet(boite(0.04, 1.7, 0.06, boisFonce, [dx, 0, 0.04], g)); for (const dy of [-0.42, 0.42]) muet(boite(1.5, 0.04, 0.06, boisFonce, [0, dy, 0.04], g));
+    const sp = new THREE.SpotLight(0xfff1dc, 22, 10, Math.PI / 5, 0.6, 1.6); sp.position.set(-5.6, 2.8, z); sp.target.position.set(-2.5, 0, z + 0.5); scene.add(sp); scene.add(sp.target);
+    if (window.Konstrio.rayonLumineux) window.Konstrio.rayonLumineux(THREE, scene, [-5.7, 2.6, z], [-2.6, 0.02, z + 0.6], 0xfff2d0, 0.5, 0.03);
+    const pot = cyl(0.13, 0.1, 0.2, 14, mat(0xa65d3a, { rugosite: 0.9 }), [-5.55, 1.6, z + 0.45]); for (let i = 0; i < 6; i += 1) mesh(new THREE.SphereGeometry(0.06 + Math.random() * 0.04, 8, 6), mat(0x4f8a3c, { rugosite: 1 }), [-5.55 + (Math.random() - 0.5) * 0.18, 1.76 + Math.random() * 0.12, z + 0.45 + (Math.random() - 0.5) * 0.18]).userData.legende = { nom: 'Plante en pot', phrase: 'De la menthe fraîche : la même plante que dans le bocal, avant séchage.' }; pot.userData.legende = { nom: 'Plante en pot', phrase: 'De la menthe fraîche : la même plante que dans le bocal, avant séchage.' }; }
+
+  /* ---------- Le comptoir et le meuble à tiroirs ---------- */
+  const comptoir = new THREE.Group(); scene.add(comptoir);
+  muet(meshPBR(new THREE.BoxGeometry(8, 0.1, 2.2), 'wood_table_001', boisTable(2, true), [0, 1.05, 0], comptoir));
+  muet(meshPBR(new THREE.BoxGeometry(2.4, 0.012, 1.4), 'marble_01', { repetition: 1, rugosite: 0.25 }, [-0.2, 1.106, 0.1], comptoir));
+  muet(meshPBR(new THREE.BoxGeometry(8, 1.0, 2.0), 'wood_table_001', boisTable(3, false), [0, 0.5, 0], comptoir));
+  for (const x of [-3.0, -1.0, 1.0, 3.0]) { muet(boite(1.6, 0.6, 0.04, boisFonce, [x, 0.55, 1.02], comptoir)); muet(boite(1.4, 0.42, 0.02, boisMoyen, [x, 0.55, 1.04], comptoir)); }
+  muet(boite(8.2, 0.08, 2.3, boisFonce, [0, 0.04, 0], comptoir));
+  const meuble = new THREE.Group(); scene.add(meuble); meuble.position.set(0, 0, -2.25);
+  muet(meshPBR(new THREE.BoxGeometry(9, 4.0, 0.6), 'wood_table_001', boisTable(3, false), [0, 2.0, 0], meuble));
+  muet(boite(9.2, 0.12, 0.7, boisFonce, [0, 4.0, 0], meuble));
+  const tiroirs = new THREE.Group(); meuble.add(tiroirs); legender(tiroirs, 'Tiroirs', LEGENDES[11].phrase);
+  const etiqTex = ['Mentha', 'Thymus', 'Tilia', 'Salvia', 'Melissa', 'Rosa', 'Lavandula', 'Anisum', 'Papaver', 'Urtica', 'Viola', 'Malva'].map((t) => textureEtiquette(t));
+  for (let r = 0; r < 3; r += 1) for (let c = 0; c < 12; c += 1) {
+    const x = -4.1 + c * 0.745; const y = 0.32 + r * 0.42;
+    const face = meshPBR(new THREE.BoxGeometry(0.68, 0.36, 0.04), 'wood_table_001', boisTable(1, true), [x, y, 0.32], tiroirs);
+    mesh(new THREE.SphereGeometry(0.03, 10, 8), laiton, [x, y - 0.1, 0.35], tiroirs);
+    const et = mesh(new THREE.PlaneGeometry(0.26, 0.13), new THREE.MeshStandardMaterial({ map: etiqTex[(c + r * 5) % etiqTex.length], roughness: 0.9 }), [x, y + 0.05, 0.345], tiroirs); et.castShadow = false;
+  }
+  for (const y of [1.75, 2.5, 3.2]) muet(meshPBR(new THREE.BoxGeometry(8.8, 0.06, 0.7), 'wood_table_001', boisTable(2, true), [0, y, 0.05], meuble));
+  for (const x of [-4.4, -2.2, 0, 2.2, 4.4]) muet(boite(0.08, 2.2, 0.7, boisFonce, [x, 2.5, 0.05], meuble));
+
+  /* ---------- Les bocaux de plantes (légendes) et les flacons ---------- */
+  const profilBocal = [[0, 0], [0.26, 0], [0.3, 0.04], [0.3, 0.52], [0.27, 0.58], [0.21, 0.61], [0.21, 0.68], [0.24, 0.7], [0.24, 0.76]];
+  PLANTES.forEach((p, i) => {
+    const g = new THREE.Group(); scene.add(g); g.position.set(-2.4 + i * 1.6, 1.78, -2.15);
+    const corps = mesh(tour(profilBocal), verre, [0, 0, 0], g); corps.castShadow = false;
+    mesh(new THREE.CylinderGeometry(0.255, 0.255, 0.4, 24), mat(p.couleur, { rugosite: 1 }), [0, 0.22, 0], g);
+    for (let k = 0; k < 6; k += 1) mesh(new THREE.SphereGeometry(0.05, 7, 5), mat(p.couleur, { rugosite: 1 }), [(Math.random() - 0.5) * 0.3, 0.44 + Math.random() * 0.03, (Math.random() - 0.5) * 0.3], g).scale.y = 0.6;
+    mesh(new THREE.CylinderGeometry(0.2, 0.19, 0.1, 20), mat(0xb08a5c, { rugosite: 1 }), [0, 0.78, 0], g);
+    const etq = mesh(new THREE.PlaneGeometry(0.34, 0.17), new THREE.MeshStandardMaterial({ map: textureEtiquette(p.nom), roughness: 0.9 }), [0, 0.3, 0.302], g); etq.castShadow = false;
+    legender(g, 'Bocal de ' + p.nom.toLowerCase(), LEGENDES[4 + i].phrase); bocaux[p.id] = g;
+    etiquette(p.nom, [g.position.x, 2.38, -1.75], { hauteur: 0.26 });
+  });
+  const flacons = new THREE.Group(); scene.add(flacons); legender(flacons, 'Flacons', LEGENDES[12].phrase);
+  const profilFlacon = [[0, 0], [0.12, 0], [0.15, 0.03], [0.15, 0.3], [0.1, 0.38], [0.05, 0.42], [0.05, 0.56], [0.07, 0.58], [0.07, 0.62]];
+  const teintes = [0x7a2e1e, 0x2e6b3a, 0x8a6a1e, 0x24456b, 0x6b2e5e, 0x3a7a6b, 0x9a4a1e, 0x4a6b2e];
+  for (let i = 0; i < 8; i += 1) { const x = -4.0 + i * 1.12 + (i > 3 ? 0.3 : 0); const f = mesh(tour(profilFlacon, 20), verreTeinte(teintes[i]), [x, 2.53, -2.1], flacons); f.castShadow = false; mesh(new THREE.CylinderGeometry(0.06, 0.055, 0.06, 12), mat(0xb08a5c, { rugosite: 1 }), [x, 3.17, -2.1], flacons); }
+  const profilAlbarello = [[0, 0], [0.16, 0], [0.19, 0.03], [0.19, 0.1], [0.15, 0.25], [0.15, 0.4], [0.19, 0.5], [0.2, 0.55], [0.17, 0.57]];
+  for (let i = 0; i < 7; i += 1) { const x = -3.6 + i * 1.2; const a = mesh(tour(profilAlbarello, 24), ceramique, [x, 3.23, -2.1]); a.userData.legende = { nom: 'Pot de pharmacie', phrase: 'Un pot de faïence pour les onguents et les poudres : la lumière n\'y entre pas.' }; mesh(new THREE.TorusGeometry(0.15, 0.012, 6, 24), mat(0x2d5a8a, { rugosite: 0.4 }), [x, 3.5, -2.1]).rotation.x = Math.PI / 2; mesh(new THREE.TorusGeometry(0.19, 0.012, 6, 24), mat(0x2d5a8a, { rugosite: 0.4 }), [x, 3.31, -2.1]).rotation.x = Math.PI / 2; }
+  // herbes séchées suspendues à la poutre
+  const herbes = new THREE.Group(); scene.add(herbes); legender(herbes, 'Herbes séchées', LEGENDES[13].phrase);
+  [[-4.6, 1.2], [-3.9, 1.3], [2.9, 1.25], [3.6, 1.15], [4.3, 1.3]].forEach(([x, z], i) => {
+    const b = new THREE.Group(); b.position.set(x, 3.88, z); herbes.add(b);
+    cyl(0.006, 0.006, 0.5, 6, mat(0x8a7350, { rugosite: 1 }), [0, -0.25, 0], b); mesh(new THREE.TorusGeometry(0.035, 0.008, 6, 14), mat(0x8a7350, { rugosite: 1 }), [0, -0.52, 0], b).rotation.x = Math.PI / 2;
+    for (let k = 0; k < 7; k += 1) { const t = cyl(0.012, 0.045, 0.55, 6, mat([0x5f7a3a, 0x6b7f45, 0x7a7a3a, 0x8a6a4a][(k + i) % 4], { rugosite: 1 }), [0, -0.82, 0], b); t.rotation.z = (k - 3) * 0.11; t.rotation.x = Math.sin(k * 2.1) * 0.1; t.position.x = (k - 3) * 0.035; }
+  });
+
+  /* ---------- Sur le comptoir : balance, poids, mortier, éprouvette, bol, bocal des densités, bougie ---------- */
+  balance = new THREE.Group(); scene.add(balance); balance.position.set(-2.3, 1.11, 0.25);
+  cyl(0.38, 0.46, 0.08, 28, laiton, [0, 0.04, 0], balance); cyl(0.05, 0.07, 1.15, 12, laiton, [0, 0.65, 0], balance); cyl(0.09, 0.05, 0.08, 12, laiton, [0, 1.25, 0], balance);
+  const fleau = new THREE.Group(); fleau.position.set(0, 1.26, 0); balance.add(fleau); balance.userData.fleau = fleau;
+  boite(1.7, 0.05, 0.05, laiton, [0, 0, 0], fleau); boite(0.03, 0.42, 0.03, mat(0xE63329, { rugosite: 0.4 }), [0, 0.2, 0], fleau);
+  const plateaux = {};
+  [['gauche', -0.8], ['droite', 0.8]].forEach(([nom, x]) => {
+    const pt = new THREE.Group(); pt.position.set(x, 0, 0); fleau.add(pt); plateaux[nom] = pt;
+    const plat = mesh(new THREE.CylinderGeometry(0.33, 0.3, 0.025, 28), laiton, [0, -0.7, 0], pt); plat.receiveShadow = true;
+    for (const [dx, dz] of [[-0.22, -0.14], [0.22, -0.14], [0, 0.26]]) { const ch = cyl(0.006, 0.006, 0.7, 5, fer, [dx / 2, -0.35, dz / 2], pt); ch.rotation.z = Math.atan2(dx, 0.7) * 0.9; ch.rotation.x = -Math.atan2(dz, 0.7) * 0.9; }
+  });
+  balance.userData.plateaux = plateaux;
+  mesh(new THREE.BoxGeometry(0.5, 0.07, 0.24), mat(0x1a1a1a, { rugosite: 0.4 }), [0, 0.12, 0.46], balance).userData.legende = { nom: 'Balance', phrase: LEGENDES[0].phrase };
+  tas = mesh(new THREE.SphereGeometry(0.2, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat(0x3f9a4a, { rugosite: 1 }), [0, -0.6875, 0], plateaux.gauche); tas.scale.set(1, 0.45, 1); tas.castShadow = false;
+  legender(balance, 'Balance', LEGENDES[0].phrase);
+  boitePoids = new THREE.Group(); scene.add(boitePoids); boitePoids.position.set(-3.6, 1.11, 0.55); legender(boitePoids, 'Boîte de poids', LEGENDES[9].phrase);
+  meshPBR(new THREE.BoxGeometry(0.62, 0.1, 0.36), 'wood_table_001', boisTable(1, true), [0, 0.05, 0], boitePoids);
+  mesh(new THREE.BoxGeometry(0.62, 0.02, 0.36), mat(0x5a1f1f, { rugosite: 1 }), [0, 0.1, 0], boitePoids).castShadow = false;
+  POIDS.forEach((p, i) => {
+    const r = 0.028 + 0.075 * Math.cbrt(p / 100); const h = r * 1.5; const m = cyl(r * 0.92, r, h, 16, laiton, [0, 0, 0], boitePoids);
+    m.position.set(-0.24 + (i % 6) * 0.095, 0.11 + h / 2, -0.09 + Math.floor(i / 6) * 0.18); m.userData.repos = m.position.clone(); m.userData.masse = p; m.userData.h = h;
+    mesh(new THREE.CylinderGeometry(r * 0.3, r * 0.3, 0.02, 10), laiton, [0, h / 2 + 0.01, 0], m); poidsMeshes.push(m);
+  });
+  const mortier = new THREE.Group(); scene.add(mortier); mortier.position.set(-1.0, 1.11, -0.55); legender(mortier, 'Mortier', LEGENDES[10].phrase);
+  meshPBR(tour([[0, 0], [0.16, 0], [0.14, 0.05], [0.17, 0.12], [0.23, 0.26], [0.26, 0.3], [0.2, 0.3], [0.15, 0.18], [0.1, 0.1], [0, 0.09]], 28), 'marble_01', { repetition: 1, rugosite: 0.3 }, [0, 0, 0], mortier);
+  meshPBR(new THREE.CylinderGeometry(0.03, 0.035, 0.34, 12), 'marble_01', { repetition: 1, rugosite: 0.3 }, [0.08, 0.26, 0.04], mortier).rotation.z = -0.55;
+  mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.04, 16), mat(0x5f7a3a, { rugosite: 1 }), [0, 0.11, 0], mortier).castShadow = false;
+  // éprouvette graduée
+  flacon = new THREE.Group(); scene.add(flacon); flacon.position.set(0.6, 1.11, 0.3);
+  const ep = mesh(tour([[0, 0], [0.3, 0], [0.3, 0.05], [0.22, 0.07], [0.22, 1.22], [0.25, 1.25]], 28), verre, [0, 0, 0], flacon); ep.castShadow = false;
+  const grad = mesh(new THREE.PlaneGeometry(0.12, 1.1), new THREE.MeshStandardMaterial({ map: textureGraduations(), transparent: true, roughness: 0.6 }), [0, 0.62, 0.21], flacon); grad.castShadow = false;
+  const liq = mesh(new THREE.CylinderGeometry(0.205, 0.205, 1, 24), matPhysique({ couleur: LIQUIDES.eau.couleur, transmission: 0.5, rugosite: 0.1, epaisseur: 0.3, opacite: 0.9 }), [0, 0.5, 0], flacon); flacon.userData.liq = liq; liq.castShadow = false;
+  legender(flacon, 'Éprouvette', LEGENDES[1].phrase);
+  // bol de mélange
+  bol = new THREE.Group(); scene.add(bol); bol.position.set(1.9, 1.11, 0.3);
+  mesh(tour([[0, 0], [0.22, 0], [0.24, 0.03], [0.3, 0.08], [0.5, 0.3], [0.55, 0.38], [0.5, 0.38], [0.44, 0.3], [0.26, 0.1], [0, 0.08]], 32), ceramique, [0, 0, 0], bol);
+  contenuBol = mesh(new THREE.CylinderGeometry(0.4, 0.3, 0.16, 24), mat(0x3f9a4a, { rugosite: 1 }), [0, 0.16, 0], bol); contenuBol.castShadow = false;
+  const cuillere = new THREE.Group(); cuillere.position.set(0.2, 0.3, 0.1); cuillere.rotation.z = -0.9; cuillere.rotation.y = 0.4; bol.add(cuillere);
+  cyl(0.012, 0.012, 0.5, 8, mat(0xb08a5c, { rugosite: 0.9 }), [0, 0.2, 0], cuillere); mesh(new THREE.SphereGeometry(0.05, 10, 8), mat(0xb08a5c, { rugosite: 0.9 }), [0, -0.05, 0], cuillere).scale.set(1, 0.4, 1.3);
+  legender(bol, 'Bol de mélange', LEGENDES[2].phrase);
+  // bocal des densités
+  bocalDensites = new THREE.Group(); scene.add(bocalDensites); bocalDensites.position.set(3.1, 1.11, 0.1);
+  const bd = mesh(tour([[0, 0], [0.24, 0], [0.26, 0.03], [0.26, 1.05], [0.22, 1.1], [0.22, 1.16], [0.25, 1.18]], 28), verre, [0, 0, 0], bocalDensites); bd.castShadow = false;
+  Object.keys(LIQUIDES).forEach((k) => { const c = mesh(new THREE.CylinderGeometry(0.245, 0.245, 1, 24), matPhysique({ couleur: LIQUIDES[k].couleur, transmission: k === 'eau' ? 0.6 : 0.35, rugosite: 0.1, epaisseur: 0.3, opacite: 0.95 }), [0, 0.5, 0], bocalDensites); c.visible = false; c.castShadow = false; couches[k] = c; });
+  legender(bocalDensites, 'Bocal des densités', LEGENDES[8].phrase);
+  // bougie dans son bougeoir
+  bougie = new THREE.Group(); scene.add(bougie); bougie.position.set(-0.3, 1.11, -0.7); legender(bougie, 'Bougie', LEGENDES[14].phrase);
+  cyl(0.09, 0.11, 0.03, 20, laiton, [0, 0.015, 0], bougie); cyl(0.03, 0.03, 0.08, 12, laiton, [0, 0.07, 0], bougie); cyl(0.035, 0.035, 0.03, 12, laiton, [0, 0.12, 0], bougie);
+  cyl(0.028, 0.03, 0.34, 14, mat(0xf3ead6, { rugosite: 0.6 }), [0, 0.3, 0], bougie);
+  const flamme = mesh(new THREE.SphereGeometry(0.025, 10, 8), mat(0xffd27a, { emissif: 0xffa63a, intensite: 3.5 }), [0, 0.52, 0], bougie); flamme.scale.y = 1.9; flamme.castShadow = false; bougie.userData.flamme = flamme;
+  const lumBougie = new THREE.PointLight(0xffb467, 7, 7, 2); lumBougie.position.set(0, 0.56, 0); lumBougie.shadow.mapSize.set(512, 512); lumBougie.shadow.bias = -0.004; bougie.add(lumBougie); bougie.userData.lum = lumBougie; lumiereOmbre = lumBougie; ombresPonctuelles(true);
+  // livre de recettes ouvert, plume
+  const livre = new THREE.Group(); scene.add(livre); livre.position.set(-1.1, 1.11, 0.55); livre.rotation.y = 0.3;
+  boite(0.56, 0.05, 0.4, mat(0x5a2a2a, { rugosite: 0.7 }), [0, 0.025, 0], livre); for (const s of [-1, 1]) { const page = boite(0.26, 0.02, 0.36, mat(0xf2ead6, { rugosite: 1 }), [s * 0.135, 0.06, 0], livre); page.rotation.z = -s * 0.08; }
+  livre.userData.legende = { nom: 'Livre de recettes', phrase: 'Chaque remède est noté avec ses proportions : tant de plante pour tant de sirop.' }; livre.traverse((c) => { c.userData.legende = livre.userData.legende; });
+
+  /* ---------- Le fourneau en briques, la marmite de sucre, la hotte ---------- */
+  four = new THREE.Group(); scene.add(four); four.position.set(4.9, 0, -1.3); legender(four, 'Fourneau', LEGENDES[3].phrase);
+  meshPBR(new THREE.BoxGeometry(1.3, 0.95, 1.0), 'red_brick_03', { repetition: 1.5, rugosite: 1 }, [0, 0.475, 0], four);
+  boite(1.4, 0.06, 1.1, fer, [0, 0.98, 0], four);
+  mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.02, 24), fer, [0, 1.02, 0], four);
+  boite(0.5, 0.4, 0.06, mat(0x151515, { rugosite: 0.8 }), [0, 0.38, 0.49], four);
+  const braise = mesh(new THREE.BoxGeometry(0.42, 0.3, 0.03), mat(0xff5a1e, { emissif: 0xff4500, intensite: 1.2 }), [0, 0.36, 0.5], four); braise.castShadow = false; four.userData.braise = braise;
+  feu = new THREE.PointLight(0xff7a2a, 7, 6, 2); feu.position.set(0, 0.5, 0.9); four.add(feu);
+  const marmite = new THREE.Group(); marmite.position.set(0, 1.03, 0); four.add(marmite);
+  mesh(tour([[0, 0], [0.22, 0], [0.27, 0.04], [0.3, 0.2], [0.28, 0.3], [0.3, 0.32], [0.26, 0.32], [0.25, 0.22], [0.22, 0.06], [0, 0.05]], 28), cuivre, [0, 0, 0], marmite);
+  for (const s of [-1, 1]) { const anse = mesh(new THREE.TorusGeometry(0.06, 0.012, 6, 16, Math.PI), cuivre, [s * 0.3, 0.26, 0], marmite); anse.rotation.y = Math.PI / 2; }
+  sucre = mesh(new THREE.CylinderGeometry(0.24, 0.22, 0.14, 24), matPhysique({ couleur: 0xf7f3ea, rugosite: 0.9, clearcoat: 0.05 }), [0, 0.14, 0], marmite); sucre.castShadow = false;
+  for (let i = 0; i < 5; i += 1) { const v = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshBasicMaterial({ color: 0xf4f4f4, transparent: true, opacity: 0, depthWrite: false })); v.position.set(0, 1.4, 0); v.raycast = () => {}; four.add(v); vapeurs.push(v); }
+  const hotte = mesh(new THREE.CylinderGeometry(0.2, 0.95, 0.9, 4), fer, [0, 2.6, 0], four); hotte.rotation.y = Math.PI / 4; hotte.scale.z = 0.8;
+  cyl(0.2, 0.2, 1.2, 12, fer, [0, 3.6, 0], four);
+  const bouilloire = mesh(tour([[0, 0], [0.16, 0], [0.2, 0.08], [0.17, 0.2], [0.08, 0.24], [0.08, 0.27], [0.1, 0.28]], 20), cuivre, [0.45, 1.01, -0.25], four); bouilloire.userData.legende = { nom: 'Bouilloire', phrase: 'L\'eau bout à 100 °C : un changement d\'état, la vapeur reste de l\'eau.' };
+  for (const [x, z] of [[-0.5, 0.75], [-0.3, 0.75], [-0.4, 0.86]]) { const b = cyl(0.05, 0.05, 0.5, 8, mat(0x5a3a22, { rugosite: 1 }), [x, 0.05, z], four); b.rotation.z = Math.PI / 2; b.rotation.y = 0.3; }
+
+  /* ---------- Tabouret, tapis, panier ---------- */
+  const tabouret = new THREE.Group(); tabouret.position.set(-4.6, 0, 1.6); scene.add(tabouret);
+  cyl(0.2, 0.2, 0.05, 14, boisMoyen, [0, 0.46, 0], tabouret); for (let i = 0; i < 3; i += 1) { const p = cyl(0.025, 0.025, 0.46, 8, boisFonce, [0.13 * Math.cos(i * 2.1), 0.23, 0.13 * Math.sin(i * 2.1)], tabouret); p.rotation.z = 0.12 * Math.cos(i * 2.1); p.rotation.x = -0.12 * Math.sin(i * 2.1); }
+  const tapis = mesh(new THREE.BoxGeometry(3.6, 0.015, 1.6), mat(0x7a3a3a, { rugosite: 1 }), [0, 0.008, 2.4]); tapis.castShadow = false; mesh(new THREE.BoxGeometry(3.0, 0.016, 1.0), mat(0xb8893a, { rugosite: 1 }), [0, 0.009, 2.4]).castShadow = false; tapis.raycast = () => {};
+  const panier = new THREE.Group(); panier.position.set(4.9, 0, 1.4); scene.add(panier); panier.userData.legende = { nom: 'Panier de racines', phrase: 'Des racines à laver, sécher puis peser : la pesée se fait toujours sec.' };
+  meshPBR(new THREE.CylinderGeometry(0.34, 0.26, 0.4, 16, 1, true), 'brown_planks_09', { couleur: 0xb08a5c, repetition: 3, rugosite: 1 }, [0, 0.2, 0], panier).material.side = THREE.DoubleSide; cyl(0.26, 0.26, 0.03, 16, boisMoyen, [0, 0.015, 0], panier);
+  for (let i = 0; i < 6; i += 1) { const r = cyl(0.03, 0.02, 0.4, 7, mat(0x9a7a4a, { rugosite: 1 }), [(Math.random() - 0.5) * 0.3, 0.42, (Math.random() - 0.5) * 0.3], panier); r.rotation.set((Math.random() - 0.5) * 1.2, Math.random() * 3, (Math.random() - 0.5) * 1.2); }
+  panier.traverse((c) => { c.userData.legende = panier.userData.legende; });
+
+  /* ---------- Le panneau ---------- */
   panneau = M.panneau(`<h3>Le sirop</h3>
     <div class="mb-groupe" role="group" aria-label="Plante">${PLANTES.map((p) => `<button class="mb-bouton" data-plante="${p.id}" aria-pressed="${p.id === plante}">${p.nom}</button>`).join('')}</div>
     <label>Masse totale <span class="mb-val" id="ap-t">${total} g</span><input class="mb-plage" id="ap-ts" type="range" min="100" max="500" step="10" value="${total}" aria-label="Masse totale du sirop"></label>
     <label>Part de plante <span class="mb-val" id="ap-p">${pourcent} %</span><input class="mb-plage" id="ap-ps" type="range" min="5" max="30" step="1" value="${pourcent}" aria-label="Pourcentage de plante"></label>
     <div class="mb-mesures"><span>Masse de plante à peser</span><b id="ap-mp">·</b><span>Reste en sirop</span><b id="ap-ms">·</b></div>
-    <h3>Le liquide</h3>
-    <div class="mb-groupe" role="group" aria-label="Liquide">${Object.keys(LIQUIDES).map((k) => `<button class="mb-bouton" data-liq="${k}" aria-pressed="${k === liquide}">${LIQUIDES[k].nom} · ${f1(LIQUIDES[k].rho)} g/mL</button>`).join('')}</div>
-    <label>Volume <span class="mb-val" id="ap-v">${volume} mL</span><input class="mb-plage" id="ap-vs" type="range" min="10" max="250" step="10" value="${volume}" aria-label="Volume"></label>
-    <div class="mb-mesures"><span>Masse = ρ × V</span><b id="ap-ml">·</b></div>
-    <p class="mb-carte" id="ap-calc"></p>`);
-  panneau.querySelectorAll('[data-plante]').forEach((b) => b.addEventListener('click', () => { plante = b.getAttribute('data-plante'); panneau.querySelectorAll('[data-plante]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); contenuBol.material.color.set(PLANTES.find((p) => p.id === plante).couleur); }));
-  panneau.querySelectorAll('[data-liq]').forEach((b) => b.addEventListener('click', () => { liquide = b.getAttribute('data-liq'); panneau.querySelectorAll('[data-liq]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); maj(); }));
-  panneau.querySelector('#ap-ts').addEventListener('input', (e) => { total = Number(e.target.value); maj(); });
-  panneau.querySelector('#ap-ps').addEventListener('input', (e) => { pourcent = Number(e.target.value); maj(); });
-  panneau.querySelector('#ap-vs').addEventListener('input', (e) => { volume = Number(e.target.value); maj(); });
-  maj();
-  M.boucle((dt, t) => { four.userData.braise.material.emissiveIntensity = 1 + 0.4 * Math.sin(t * 7); });
+    <button class="mb-bouton primaire" id="ap-peser">Peser avec les poids</button>
+    <p class="mb-carte" id="ap-pesee">Pose les poids sur le plateau de droite jusqu'à l'équilibre.</p>
+    <details id="ap-det-liq"><summary>Le liquide</summary><div>
+      <div class="mb-groupe" role="group" aria-label="Liquide">${Object.keys(LIQUIDES).map((k) => `<button class="mb-bouton" data-liq="${k}" aria-pressed="${k === liquide}">${LIQUIDES[k].nom} · ${f2(LIQUIDES[k].rho)} g/mL</button>`).join('')}</div>
+      <label>Volume <span class="mb-val" id="ap-v">${volume} mL</span><input class="mb-plage" id="ap-vs" type="range" min="10" max="250" step="10" value="${volume}" aria-label="Volume"></label>
+      <div class="mb-mesures"><span>Masse = ρ × V</span><b id="ap-ml">·</b></div>
+      <p class="mb-carte" id="ap-calc"></p>
+    </div></details>
+    <details id="ap-det-dens"><summary>Le bocal des densités</summary><div>
+      <div class="mb-groupe" role="group" aria-label="Verser dans le bocal">${Object.keys(LIQUIDES).map((k) => `<button class="mb-bouton" data-verser="${k}" aria-pressed="false">${LIQUIDES[k].nom}</button>`).join('')}</div>
+      <div class="ap-couches" id="ap-couches" aria-live="polite"></div>
+      <p class="mb-carte" id="ap-dens">Verse 60 mL de chaque liquide : le plus dense se place en bas.</p>
+    </div></details>
+    <details id="ap-det-four"><summary>Le fourneau</summary><div>
+      <button class="mb-bouton" id="ap-chauffer">Chauffer le sucre</button>
+      <div class="mb-mesures"><span>Dans la marmite</span><b id="ap-etat">100 g de sucre</b><span>Température</span><b id="ap-temp">20 °C</b></div>
+      <p class="mb-carte" id="ap-four">Le sucre blanc va fondre, puis brunir : le caramel est une nouvelle substance.</p>
+    </div></details>`);
+  panneau.querySelectorAll('[data-plante]').forEach((b) => b.addEventListener('click', () => { plante = b.getAttribute('data-plante'); panneau.querySelectorAll('[data-plante]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); const c = PLANTES.find((p) => p.id === plante).couleur; contenuBol.material.color.set(c); tas.material.color.set(c); }));
+  panneau.querySelectorAll('[data-liq]').forEach((b) => b.addEventListener('click', () => { liquide = b.getAttribute('data-liq'); panneau.querySelectorAll('[data-liq]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); maj(false); }));
+  panneau.querySelectorAll('[data-verser]').forEach((b) => b.addEventListener('click', () => { const k = b.getAttribute('data-verser'); dansBocal[k] = !dansBocal[k]; b.setAttribute('aria-pressed', String(dansBocal[k])); majBocal(); }));
+  panneau.querySelector('#ap-ts').addEventListener('input', (e) => { total = Number(e.target.value); maj(true); });
+  panneau.querySelector('#ap-ps').addEventListener('input', (e) => { pourcent = Number(e.target.value); maj(true); });
+  panneau.querySelector('#ap-vs').addEventListener('input', (e) => { volume = Number(e.target.value); maj(false); });
+  panneau.querySelector('#ap-peser').addEventListener('click', peser);
+  panneau.querySelector('#ap-chauffer').addEventListener('click', chaufferOuRemettre);
+  maj(true); majBocal(); majFour();
+
+  /* ---------- La boucle : flammes, pesée, cuisson, vapeur ---------- */
+  M.boucle((dt, t) => {
+    four.userData.braise.material.emissiveIntensity = 1 + 0.4 * Math.sin(t * 7); feu.intensity = (chauffe ? 9 : 6) + 1.5 * Math.sin(t * 6.1);
+    const fb = 1 + 0.12 * Math.sin(t * 9) + 0.06 * Math.sin(t * 23); bougie.userData.lum.intensity = 7 * fb; bougie.userData.flamme.material.emissiveIntensity = 3.5 * fb; bougie.userData.flamme.scale.x = 1 + 0.08 * Math.sin(t * 13);
+    if (pesee) avancerPesee(dt);
+    const cible = pesee ? pesee.angle : equilibre; fleau.rotation.z += (cible - fleau.rotation.z) * Math.min(1, dt * 4);
+    Object.values(plateaux).forEach((p) => { p.rotation.z = -fleau.rotation.z; });
+    if (chauffe) { cuisson = Math.min(1, cuisson + dt / 7); majFour(); if (cuisson >= 1) { chauffe = null; majFour(); } }
+    const actif = cuisson > 0.15; vapeurs.forEach((v, i) => { const ph = ((t * 0.45 + i * 0.4) % 2); v.position.set(0.1 * Math.sin(t + i), 1.42 + ph * 0.9, 0.08 * Math.cos(t * 0.7 + i)); v.scale.setScalar(0.6 + ph * 0.8); v.material.opacity = actif ? 0.3 * (1 - ph / 2) * Math.min(1, (cuisson - 0.15) * 4) : 0; });
+  });
 }
-function maj() {
+
+/* ---------- Mise à jour des mesures : sirop, liquide, éprouvette, bol. `nouvellePesee` : la masse de plante a changé, les poids retournent dans la boîte. ---------- */
+function maj(nouvellePesee) {
   panneau.querySelector('#ap-t').textContent = total + ' g'; panneau.querySelector('#ap-p').textContent = pourcent + ' %';
   panneau.querySelector('#ap-mp').textContent = f1(massePlante()) + ' g'; panneau.querySelector('#ap-ms').textContent = f1(total - massePlante()) + ' g';
   panneau.querySelector('#ap-v').textContent = volume + ' mL'; panneau.querySelector('#ap-ml').textContent = f1(masseLiquide()) + ' g';
-  panneau.querySelector('#ap-calc').textContent = 'Plante : ' + total + ' × ' + pourcent + ' ÷ 100 = ' + f1(massePlante()) + ' g. Liquide : ' + f1(LIQUIDES[liquide].rho) + ' × ' + volume + ' = ' + f1(masseLiquide()) + ' g.';
-  const liq = flacon.userData.liq; liq.scale.y = Math.max(0.02, volume / 250); liq.position.y = 0.06 + liq.scale.y / 2; liq.material.color.set(LIQUIDES[liquide].couleur);
-  const angle = Math.min(0.25, massePlante() / 600); balanceAiguille.rotation.z = -angle * 2; balanceAiguille.parent.userData.fleau.rotation.z = -angle * 0.4;
-  contenuBol.scale.setScalar(0.6 + massePlante() / 150);
+  panneau.querySelector('#ap-calc').textContent = 'Plante : ' + total + ' × ' + pourcent + ' ÷ 100 = ' + f1(massePlante()) + ' g. Liquide : ' + f2(LIQUIDES[liquide].rho) + ' × ' + volume + ' = ' + f1(masseLiquide()) + ' g.';
+  const liq = flacon.userData.liq; liq.scale.y = Math.max(0.02, volume / 250 * 1.1); liq.position.y = 0.07 + liq.scale.y / 2; liq.material.color.set(LIQUIDES[liquide].couleur); liq.material.transmission = liquide === 'eau' ? 0.6 : 0.3;
+  contenuBol.scale.setScalar(0.6 + massePlante() / 150); tas.scale.set(0.5 + massePlante() / 120, 0.25 + massePlante() / 250, 0.5 + massePlante() / 120);
+  if (!nouvellePesee) return;
+  if (pesee) pesee = null;
+  poidsMeshes.forEach(rangerPoids);
+  equilibre = Math.min(0.2, 0.05 + massePlante() / 600);
+  panneau.querySelector('#ap-pesee').textContent = 'À peser : ' + f1(massePlante()) + ' g de ' + PLANTES.find((p) => p.id === plante).nom.toLowerCase() + '. Pose les poids sur le plateau de droite jusqu\'à l\'équilibre.';
+  panneau.querySelector('#ap-pesee').style.borderLeft = '6px solid #F5A623';
 }
+function rangerPoids(m) { if (m.parent !== boitePoids) boitePoids.add(m); m.position.copy(m.userData.repos); }
+function peser() {
+  if (pesee) return;
+  const choix = decomposer(massePlante()); poidsMeshes.forEach(rangerPoids);
+  pesee = { choix, i: 0, t: 0, angle: equilibre, poses: 0 };
+  panneau.querySelector('#ap-pesee').textContent = 'La plante fait pencher le plateau de gauche. Les poids arrivent un par un…';
+}
+function avancerPesee(dt) {
+  pesee.t += dt;
+  if (pesee.i < pesee.choix.length && pesee.t > 0.55) {
+    pesee.t = 0; const m = poidsMeshes[pesee.choix[pesee.i]]; const k = pesee.i;
+    const plateau = balance.userData.plateaux.droite; plateau.add(m);
+    const dx = (k % 3 - 1) * 0.15; const dz = (Math.floor(k / 3) - 0.5) * 0.14;
+    m.position.set(dx, -0.6875 + m.userData.h / 2, dz);
+    pesee.poses += m.userData.masse; pesee.i += 1;
+    pesee.angle = Math.min(0.2, 0.05 + Math.max(0, massePlante() - pesee.poses) / 600);
+    const liste = pesee.choix.slice(0, pesee.i).map((j) => f1(POIDS[j]) + ' g').join(' + ');
+    panneau.querySelector('#ap-pesee').textContent = 'Posés : ' + liste + ' = ' + f1(pesee.poses) + ' g.' + (pesee.i >= pesee.choix.length ? ' Le fléau est horizontal : équilibre.' : '');
+  }
+  if (pesee.i >= pesee.choix.length) { pesee.angle = 0; if (pesee.t > 0.8) { equilibre = 0; const ecart = Math.abs(pesee.poses - massePlante()) > 0.01; panneau.querySelector('#ap-pesee').textContent = 'Équilibre : ' + f1(massePlante()) + ' g ' + (ecart ? '≈' : '=') + ' ' + pesee.choix.map((j) => f1(POIDS[j]) + ' g').join(' + ') + (ecart ? ' (au demi-gramme près, le plus petit poids de la boîte).' : '.') + ' La masse de plante est pesée.'; panneau.querySelector('#ap-pesee').style.borderLeft = '6px solid #2AA98C'; pesee = null; } }
+}
+/* ---------- Le bocal des densités : les couches se classent toutes seules ---------- */
+function majBocal() {
+  const ordre = Object.keys(LIQUIDES).filter((k) => dansBocal[k]).sort((a, b) => LIQUIDES[b].rho - LIQUIDES[a].rho);
+  let y = 0.04; const h = 0.26;
+  Object.keys(LIQUIDES).forEach((k) => { couches[k].visible = false; });
+  ordre.forEach((k) => { const c = couches[k]; c.visible = true; c.scale.y = h; c.position.y = y + h / 2; y += h; });
+  const zone = panneau.querySelector('#ap-couches');
+  zone.innerHTML = ordre.length ? ordre.map((k) => `<span style="background:${LIQUIDES[k].css}"><span>${LIQUIDES[k].nom}</span><span>${f2(LIQUIDES[k].rho)} g/mL</span></span>`).join('') : '<span style="color:var(--fg-muted);justify-content:center">bocal vide</span>';
+  const d = panneau.querySelector('#ap-dens');
+  if (ordre.length === 0) d.textContent = 'Verse 60 mL de chaque liquide : le plus dense se place en bas.';
+  else if (ordre.length === 1) d.textContent = 'Un seul liquide : ' + LIQUIDES[ordre[0]].nom + ', ' + f2(LIQUIDES[ordre[0]].rho) + ' g/mL. Ajoute-en un autre pour comparer.';
+  else d.textContent = 'De bas en haut : ' + ordre.map((k) => LIQUIDES[k].nom + ' (' + f2(LIQUIDES[k].rho) + ')').join(', puis ') + '. Le liquide le plus dense est en bas, le moins dense flotte.';
+}
+/* ---------- Le fourneau : le sucre devient caramel, et ne redevient pas sucre ---------- */
+function chaufferOuRemettre() {
+  if (cuisson >= 1) { cuisson = 0; chauffe = null; majFour(); shell.say('Du sucre neuf dans la marmite. Le caramel, lui, ne redeviendra jamais du sucre.', 'concentre'); return; }
+  if (chauffe) { chauffe = null; majFour(); return; }
+  chauffe = { depuis: performance.now() }; majFour();
+}
+function majFour() {
+  const b = panneau.querySelector('#ap-chauffer'); const etat = panneau.querySelector('#ap-etat'); const temp = panneau.querySelector('#ap-temp'); const texte = panneau.querySelector('#ap-four');
+  const c = cuisson; const couleur = new THREE.Color(0xf7f3ea).lerp(new THREE.Color(0xe8c15a), Math.min(1, c * 2)).lerp(new THREE.Color(0x7a3a12), Math.max(0, c - 0.5) * 2);
+  sucre.material.color.copy(couleur); sucre.material.roughness = c < 0.25 ? 0.9 : 0.15; sucre.material.clearcoat = c < 0.25 ? 0.05 : 0.8;
+  temp.textContent = Math.round(20 + c * 165) + ' °C';
+  if (c >= 1) { b.textContent = 'Remettre du sucre'; etat.textContent = 'Caramel'; texte.textContent = 'Transformation chimique : le sucre a disparu, le caramel et de la vapeur d\'eau sont apparus. Irréversible : refroidir ne redonne pas le sucre.'; texte.style.borderLeft = '6px solid #E63329'; }
+  else if (c > 0.25) { b.textContent = chauffe ? 'Arrêter le feu' : 'Continuer à chauffer'; etat.textContent = 'Sucre fondu, qui brunit'; texte.textContent = 'À 160 °C environ, le sucre fond puis brunit : des molécules se cassent et se recombinent. De la vapeur d\'eau s\'échappe.'; texte.style.borderLeft = '6px solid #F5A623'; }
+  else { b.textContent = chauffe ? 'Arrêter le feu' : 'Chauffer le sucre'; etat.textContent = c > 0 ? 'Sucre qui chauffe' : '100 g de sucre'; texte.textContent = 'Le sucre blanc va fondre, puis brunir : le caramel est une nouvelle substance.'; texte.style.borderLeft = '6px solid #2AA98C'; }
+}
+
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Touche les bocaux, la balance, l\'éprouvette et le fourneau. Puis dose un sirop et pèse un liquide.', 'joyeux'); return; }
+  if (mode !== 'cours') { api.say('Touche les bocaux, la balance, l\'éprouvette et le fourneau. Puis dose un sirop, pèse-le avec les poids, et verse les trois liquides dans le bocal.', 'joyeux'); return; }
+  const ouvrir = (id) => () => { const d = panneau.querySelector(id); if (d) d.open = true; };
   api.defis([
     { type: 'verifier', texte: 'Prépare 200 g de sirop à 15 % de plante : règle la masse totale et le pourcentage.', bouton: 'C\'est réglé', verifier: () => total === 200 && pourcent === 15, indice: 'Curseur « Masse totale » sur 200 g, curseur « Part de plante » sur 15 %.', explication: 'La balance indique 30 g de plante : 200 × 15 ÷ 100 = 30.' },
     { type: 'qcm', texte: 'Dans 200 g de sirop à 15 % de plante, la masse de plante est…', choix: ['30 g', '15 g', '45 g', '185 g'], reponse: 0, explication: '15 % de 200 g : 200 × 15 ÷ 100 = 30 g. Le reste, 170 g, est le sirop.' },
-    { type: 'verifier', texte: 'Choisis le miel et règle 50 mL. Lis la masse.', bouton: 'C\'est fait', verifier: () => liquide === 'miel' && volume === 50, indice: 'Bouton « miel », puis le curseur Volume sur 50 mL.', explication: 'Masse = 1,42 × 50 = 71 g. Le miel est plus dense que l\'eau : 50 mL pèsent plus de 50 g.' },
+    { type: 'verifier', texte: 'Pèse la plante avec les poids : lance la pesée et attends l\'équilibre.', bouton: 'C\'est pesé', verifier: () => equilibre === 0 && !pesee, indice: 'Le bouton « Peser avec les poids ». Les poids se posent un par un sur le plateau de droite.', explication: 'Une balance à plateaux compare deux masses : quand le fléau est horizontal, la plante pèse autant que les poids posés.' },
+    { type: 'verifier', texte: 'Choisis le miel et règle 50 mL. Lis la masse.', bouton: 'C\'est fait', avant: ouvrir('#ap-det-liq'), verifier: () => liquide === 'miel' && volume === 50, indice: 'Bouton « miel », puis le curseur Volume sur 50 mL.', explication: 'Masse = 1,42 × 50 = 71 g. Le miel est plus dense que l\'eau : 50 mL pèsent plus de 50 g.' },
+    { type: 'verifier', texte: 'Verse l\'eau, l\'huile et le miel dans le bocal des densités, et regarde l\'ordre des couches.', bouton: 'C\'est versé', avant: ouvrir('#ap-det-dens'), verifier: () => dansBocal.eau && dansBocal.huile && dansBocal.miel, indice: 'Les trois boutons du bocal des densités : eau, huile, miel.', explication: 'De bas en haut : miel (1,42 g/mL), eau (1,00 g/mL), huile (0,92 g/mL). Le plus dense descend, le moins dense flotte.' },
     { type: 'qcm', texte: 'Eau et huile dans le même bocal : qui est au-dessus ?', choix: ['L\'huile : moins dense (0,92 g/mL), elle flotte', 'L\'eau', 'Elles se mélangent', 'Ça dépend de la quantité'], reponse: 0, explication: 'Le liquide de plus faible masse volumique se place au-dessus. L\'huile, 0,92 g/mL, flotte sur l\'eau, 1,00 g/mL.' },
     { type: 'toucher', texte: 'Touche la <b>balance</b>.', cible: 'Balance', explication: 'La balance mesure une masse en grammes. Le volume, lui, se mesure à l\'éprouvette, en millilitres.' },
-    { type: 'qcm', texte: 'Chauffer du sucre jusqu\'au caramel, c\'est…', choix: ['une transformation chimique : de nouvelles substances apparaissent', 'un simple mélange', 'un changement d\'état, comme la fonte de la glace', 'une dissolution'], reponse: 0, explication: 'Le sucre disparaît, le caramel et de la vapeur d\'eau apparaissent : des réactifs sont consommés, des produits se forment.' },
-    { type: 'qcm', texte: 'Pendant une transformation chimique en récipient fermé, la masse totale…', choix: ['se conserve', 'augmente', 'diminue', 'devient nulle'], reponse: 0, explication: 'Les atomes se réarrangent, aucun ne disparaît : la masse des produits égale la masse des réactifs (Lavoisier).' },
+    { type: 'qcm', texte: 'Quel volume d\'huile (0,92 g/mL) faut-il verser pour obtenir 46 g ?', choix: ['50 mL', '42,3 mL', '46 mL', '500 mL'], reponse: 0, explication: 'V = m ÷ ρ = 46 ÷ 0,92 = 50 mL. Vérification dans l\'autre sens : 0,92 × 50 = 46 g.' },
+    { type: 'qcm', texte: 'Chauffer du sucre jusqu\'au caramel, c\'est…', choix: ['une transformation chimique : de nouvelles substances apparaissent', 'un simple mélange', 'un changement d\'état, comme la fonte de la glace', 'une dissolution'], reponse: 0, avant: ouvrir('#ap-det-four'), explication: 'Le sucre disparaît, le caramel et de la vapeur d\'eau apparaissent : des réactifs sont consommés, des produits se forment. Et en récipient fermé, la masse totale se conserve (Lavoisier).' },
   ], { rejouer: () => demarrer('cours', api) });
 }
 </script>

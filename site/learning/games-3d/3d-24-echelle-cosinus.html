@@ -9,31 +9,48 @@
 <script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
 <script src="../konstrio.js"></script>
 <script src="../shell.js"></script>
+<style>
+  .mb-panneau details { border-top: 1px solid var(--border); padding-top: 6px; }
+  .mb-panneau details > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-muted); min-height: 28px; }
+  .mb-panneau details > summary::-webkit-details-marker { display: none; }
+  .mb-panneau details > summary::after { content: '▸'; font-size: 12px; }
+  .mb-panneau details[open] > summary::after { content: '▾'; }
+  .mb-panneau details > div { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+  .mb-panneau label { display: block; }
+  .mb-panneau .mb-mesures b { text-align: right; }
+  .ec-l .mb-bouton { font-family: var(--font-data); }
+  @media (max-width: 720px) { .mb-groupe .mb-bouton { font-size: 12px; min-height: 32px; padding: 3px 6px; } }
+</style>
 </head>
 <body>
 <script type="module">
-import { creerMonde, THREE } from '../monde-base.js';
+import { creerMonde, THREE, renduLogiciel, textureTexte } from '../monde-base.js';
 
-const L = 5; // longueur de l'échelle, en mètres
+let L = 5; // longueur de l'échelle, en mètres
 let d = 2.5; // distance du pied au mur
-let M, echelle, segAdj, segOpp, arcAngle, etiqAdj, etiqOpp, etiqHyp, etiqAngle, panneau;
+let M, echelle, segAdj, segOpp, arcAngle, coin, etiqAdj, etiqOpp, etiqHyp, etiqAngle, panneau, ruban, rubanBoitier, quadrillage, vise = null, vueCote = false, logicielGlobal = false, boisEchelle = null, caoutchouc = null;
 const LEGENDES = [
-  { nom: 'Hypoténuse', phrase: 'L\'échelle : le côté le plus long, en face de l\'angle droit. Ici 5 m.' },
+  { nom: 'Hypoténuse', phrase: 'L\'échelle : le côté le plus long, en face de l\'angle droit. Sa longueur L est fixe.' },
   { nom: 'Côté adjacent', phrase: 'Le sol, du pied de l\'échelle au mur : il touche l\'angle α.' },
   { nom: 'Côté opposé', phrase: 'Le mur, du sol au haut de l\'échelle : en face de l\'angle α.' },
   { nom: 'Angle α', phrase: 'L\'angle entre l\'échelle et le sol. cos α = adjacent ÷ hypoténuse.' },
   { nom: 'Mur', phrase: 'Il forme un angle droit avec le sol : le triangle est rectangle.' },
+  { nom: 'Mètre ruban', phrase: 'Une seule mesure au sol, et le cosinus donne l\'angle sans rapporteur.' },
+  { nom: 'Pot de peinture', phrase: 'Les volets à repeindre : c\'est pour ça que l\'échelle est là.' },
+  { nom: 'Tonneau de pluie', phrase: 'La gouttière y descend l\'eau du toit : un cylindre, comme en géométrie.' },
+  { nom: 'Tilleul', phrase: 'Son ombre se déplace avec le soleil : l\'ombre d\'un arbre fait aussi un triangle rectangle.' },
+  { nom: 'Réverbère', phrase: 'Un poteau vertical, un sol horizontal : encore un angle droit.' },
 ];
 const shell = window.Konstrio.createGame({
   id: '3d-24-echelle-cosinus', code: '3D·24', title: 'L\'échelle et le cosinus', type: '3D', duree: '10 min',
   domain: { label: 'Mathématiques', color: '#2E7FC2' },
   intro: {
     greet: 'Une échelle de 5 m contre un mur. Déplace son pied : l\'angle change, le cosinus aussi.',
-    rule: 'Le triangle formé par le sol, le mur et l\'échelle est rectangle. Déplace le pied et lis l\'angle, le cosinus et la hauteur atteinte.',
-    how: ['Glisse pour tourner autour de l\'échelle, molette pour zoomer.', 'Touche l\'échelle, le sol, le mur ou l\'angle : chaque côté a son nom.', 'Le curseur du panneau déplace le pied de l\'échelle.'],
+    rule: 'Le triangle formé par le sol, le mur et l\'échelle est rectangle. Déplace le pied, ou règle l\'angle, et lis le cosinus et la hauteur atteinte. La vue de côté montre la figure comme dans le cahier.',
+    how: ['Glisse pour tourner autour de l\'échelle, molette pour zoomer.', 'Touche l\'échelle, le sol, le mur ou l\'angle : chaque côté a son nom.', 'Le curseur « distance » déplace le pied ; le curseur « angle » fait le chemin inverse.', 'Le quadrillage à 1 m et la vue de côté aident à lire les longueurs.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Reconnaître le côté adjacent et l\'hypoténuse, calculer un cosinus, retrouver un angle ou une longueur.',
-    hint: 'cos α = côté adjacent ÷ hypoténuse. Ici, cos α = d ÷ 5.',
+    hint: 'cos α = côté adjacent ÷ hypoténuse. Ici, cos α = d ÷ L.',
     why: 'Avec le cosinus, une seule mesure au sol suffit pour connaître l\'angle de l\'échelle, sans rapporteur.',
   },
   learned: ['Dans un triangle rectangle, cos α = côté adjacent ÷ hypoténuse.', 'Connaissant l\'angle et l\'hypoténuse, on retrouve le côté adjacent : adjacent = hypoténuse × cos α.', 'La hauteur se calcule avec Pythagore : h² = L² − d².'],
@@ -42,38 +59,200 @@ const shell = window.Konstrio.createGame({
 
 const angle = () => Math.acos(d / L) * 180 / Math.PI;
 const hauteur = () => Math.sqrt(L * L - d * d);
+const f2 = (x) => x.toFixed(2).replace('.', ',');
+const f1 = (x) => x.toFixed(1).replace('.', ',');
+
+/** Un environnement provisoire (dégradé ciel, sol) posé avant la première image : les matériaux compilent une seule fois, la vraie carte HDRI le remplace à son arrivée. */
+function environnementProvisoire(M) {
+  try {
+    // même largeur que les cartes HDRI (1024) : la carte PMREM a la même taille, donc les mêmes programmes de shader
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, '#5f93d6'); g.addColorStop(0.5, '#e4edf6'); g.addColorStop(1, '#6a6e5a'); x.fillStyle = g; x.fillRect(0, 0, 1024, 512);
+    const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
+    const pm = new THREE.PMREMGenerator(M.renderer); const env = pm.fromEquirectangular(t).texture; pm.dispose(); t.dispose();
+    if (!M.scene.environment) M.scene.environment = env;
+  } catch (e) { /* sans environnement provisoire */ }
+}
+/** Rendu logiciel (machine virtuelle, pilote absent) ? Sondé avant de créer la scène : alors ni bloom ni lissage, pour que l'image reste fluide. */
+function renduLogicielProbable() {
+  try { const c = document.createElement('canvas'); const gl = c.getContext('webgl2') || c.getContext('webgl'); if (!gl) return false; const r = renduLogiciel({ getContext: () => gl }); const ext = gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); return r; } catch (e) { return false; }
+}
+/** Le ruban jaune du mètre : un trait tous les 10 cm, plus long tous les 50 cm, complet au mètre. */
+function textureRuban() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 32; const x = c.getContext('2d');
+  x.fillStyle = '#f2c62a'; x.fillRect(0, 0, 256, 32); x.fillStyle = '#1a1a1a';
+  for (let i = 0; i < 10; i += 1) { const px = Math.round(i * 25.6); const h = i === 0 ? 32 : i === 5 ? 20 : 11; x.fillRect(px, 32 - h, 2, h); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
 
 function init() {
-  M = creerMonde(shell, { fond: 0xdfe9f2, hdri: '../assets/3d/env/sky_day_1k.hdr', sol: { taille: 30, couleur: 0x9aa39b }, ambiance: 0.8, soleil: { position: [8, 14, 10], intensite: 1.8, etendue: 14 }, camera: { position: [7, 4.5, 9], cible: [1.5, 2, 0], min: 3, max: 30 }, legendes: LEGENDES, libelle: 'Une échelle contre un mur, avec le triangle rectangle qu\'elle forme' });
-  const { scene, mesh, mat, legender, etiquette } = M;
-  // mur : le plan x = 0, l'échelle s'appuie dessus ; le sol y = 0
-  const mur = mesh(new THREE.BoxGeometry(0.4, 6.5, 10), mat(0xd9cfc0, { rugosite: 0.9 }), [-0.2, 3.25, 0]);
-  legender(mur, 'Mur', LEGENDES[4].phrase);
-  for (let i = 0; i < 4; i += 1) { const f = mesh(new THREE.BoxGeometry(0.06, 1.1, 0.9), mat(0x7fb0d8, { rugosite: 0.2, metal: 0.1 }), [0.04, 2 + (i % 2) * 2.4, -3 + Math.floor(i / 2) * 6]); f.userData.legende = mur.userData.legende; }
-  // échelle
+  logicielGlobal = renduLogicielProbable();
+  M = creerMonde(shell, {
+    hdri: '../assets/3d/env/sky_day_1k.hdr', environnement: 0.7, ambiance: 0.75,
+    ciel: { haut: 0x2c6cc4, horizon: 0xdbe7f2, bas: 0x7d8a80 },
+    sol: { taille: 40, texture: 'aerial_grass_rock', repetition: 24, carre: true, rugosite: 1 },
+    brouillard: { couleur: 0xdbe7f2, densite: 0.006 },
+    soleil: { position: [11, 13, 7], intensite: 2.0, couleur: 0xfff1dc, etendue: 16 },
+    camera: { position: [7.5, 4.5, 9.5], cible: [1.5, 2, 0], min: 3, max: 30 },
+    rendu: logicielGlobal ? { bloom: false, smaa: false, gtao: false } : undefined,
+    legendes: LEGENDES, libelle: 'Une cour pavée devant une maison de briques, avec une échelle contre le mur et le triangle rectangle qu\'elle forme',
+  });
+  environnementProvisoire(M);
+  const { scene, mesh, mat, legender, etiquette, meshPBR, matPhysique } = M;
+  const boite = (w, h, dd, materiau, pos, parent) => mesh(new THREE.BoxGeometry(w, h, dd), materiau, pos, parent);
+  const cyl = (rh, rb, h, seg, materiau, pos, parent) => mesh(new THREE.CylinderGeometry(rh, rb, h, seg), materiau, pos, parent);
+  const muet = (m) => { m.raycast = () => {}; return m; };
+  const boisPeint = mat(0x3b6e8f, { rugosite: 0.55 }); const boisBrut = mat(0x7a5a3a, { rugosite: 0.85 }); const fer = mat(0x2f3236, { rugosite: 0.5, metal: 0.7 }); const zinc = mat(0x8d949b, { rugosite: 0.35, metal: 0.8 });
+  const verre = matPhysique({ couleur: 0xeaf4ff, transmission: 0.9, rugosite: 0.05, epaisseur: 0.05, ior: 1.5 });
+  const feuillage = mat(0x4f8a3c, { rugosite: 1 });
+
+  /* ---------- La cour pavée et son muret ---------- */
+  const cour = muet(meshPBR(new THREE.PlaneGeometry(13, 15), 'cobblestone_floor_08', { repetition: 9, rugosite: 0.9, normale: 1 }, [5.5, 0.006, -0.5])); cour.rotation.x = -Math.PI / 2; cour.receiveShadow = true;
+  for (const [x, z, w, dd] of [[12.0, -3.2, 0.4, 7.6], [12.0, 5.0, 0.4, 4.0], [5.75, -7.0, 12.9, 0.4]]) { const m = muet(meshPBR(new THREE.BoxGeometry(w, 0.9, dd), 'rock_boulder_dry', { couleur: 0xb9ad98, repetition: 3, rugosite: 1 }, [x, 0.45, z])); m.userData.legende = { nom: 'Muret', phrase: 'Un muret de pierres sèches ferme la cour.' }; }
+  for (const z of [1.0, 2.6]) muet(boite(0.12, 1.1, 0.12, fer, [12.0, 0.55, z]));
+  for (const y of [0.35, 0.95]) muet(boite(0.05, 0.05, 1.5, fer, [12.0, y, 1.8])); for (let k = 0; k < 7; k += 1) muet(boite(0.03, 1.0, 0.03, fer, [12.0, 0.6, 1.1 + k * 0.2]));
+
+  /* ---------- La maison : briques, enduit, fenêtres, volets, porte, toit ---------- */
+  const maison = new THREE.Group(); scene.add(maison); legender(maison, 'Mur', LEGENDES[4].phrase);
+  muet(meshPBR(new THREE.BoxGeometry(0.5, 3.3, 12), 'red_brick_03', { repetition: 4, rugosite: 0.95, normale: 1 }, [-0.25, 1.65, 0], maison));
+  muet(meshPBR(new THREE.BoxGeometry(0.5, 3.6, 12), 'plastered_wall_02', { couleur: 0xf2e9d8, repetition: 4, rugosite: 1, normale: 0.7 }, [-0.25, 5.1, 0], maison));
+  muet(boite(0.6, 0.12, 12.1, mat(0xd8d2c4, { rugosite: 0.9 }), [-0.25, 3.33, 0], maison));
+  muet(meshPBR(new THREE.BoxGeometry(0.56, 0.5, 12.05), 'rock_boulder_dry', { couleur: 0xa39a88, repetition: 3, rugosite: 1 }, [-0.25, 0.25, 0], maison));
+  const jourTex = (() => { const c = document.createElement('canvas'); c.width = 16; c.height = 64; const x = c.getContext('2d'); const g = x.createLinearGradient(0, 0, 0, 64); g.addColorStop(0, '#3a3f4a'); g.addColorStop(1, '#6a5f52'); x.fillStyle = g; x.fillRect(0, 0, 16, 64); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+  function fenetre(y, z, w, h, volets) {
+    const g = new THREE.Group(); g.position.set(0, y, z); maison.add(g);
+    const fond = muet(new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: jourTex }))); fond.rotation.y = Math.PI / 2; fond.position.x = 0.004; g.add(fond);
+    const vitre = muet(mesh(new THREE.PlaneGeometry(w, h), verre, [0.02, 0, 0], g)); vitre.rotation.y = Math.PI / 2; vitre.castShadow = false;
+    muet(boite(0.12, 0.1, w + 0.24, mat(0xe8e2d6, { rugosite: 0.8 }), [0.02, h / 2 + 0.05, 0], g)); muet(boite(0.22, 0.1, w + 0.3, mat(0xd8d2c4, { rugosite: 0.9 }), [0.07, -h / 2 - 0.05, 0], g));
+    for (const s of [-1, 1]) muet(boite(0.1, h + 0.1, 0.1, mat(0xe8e2d6, { rugosite: 0.8 }), [0.02, 0, s * (w / 2 + 0.05)], g));
+    muet(boite(0.06, h, 0.05, mat(0xf4f0e8, { rugosite: 0.7 }), [0.03, 0, 0], g)); muet(boite(0.06, 0.05, w, mat(0xf4f0e8, { rugosite: 0.7 }), [0.03, 0.1, 0], g));
+    if (volets) for (const s of [-1, 1]) { const v = muet(boite(0.05, h, w / 2, boisPeint, [0, 0, 0], g)); v.position.set(0.1, 0, s * (w / 2 + 0.1 + w / 4)); for (let k = 0; k < 4; k += 1) muet(boite(0.02, h * 0.18, w / 2 - 0.08, mat(0x2f5a76, { rugosite: 0.6 }), [0.13, -h * 0.36 + k * h * 0.24, s * (w / 2 + 0.1 + w / 4)], g)); }
+    return g;
+  }
+  fenetre(1.9, -3.6, 1.2, 1.5, true); fenetre(1.9, 3.6, 1.2, 1.5, true); fenetre(5.0, -3.3, 1.1, 1.4, true); fenetre(5.0, 3.6, 1.1, 1.4, true);
+  const fenHaut = fenetre(5.0, -1.2, 1.1, 1.4, false);
+  muet(boite(0.05, 1.4, 0.55, boisPeint, [0.1, 0, -0.95], fenHaut));
+  const voletDecroche = boite(0.05, 1.4, 0.55, mat(0x8a7a66, { rugosite: 0.9 }), [4.1, 0.03, 2.1]); voletDecroche.rotation.x = Math.PI / 2; voletDecroche.rotation.z = -0.3; voletDecroche.userData.legende = { nom: 'Volet décroché', phrase: 'Posé au sol pour être repeint : il remontera par l\'échelle.' };
+  for (const dz of [-0.16, 0.16]) boite(0.02, 0.5, 0.26, mat(0x3b6e8f, { rugosite: 0.6 }), [0, 0, dz], voletDecroche).userData.legende = voletDecroche.userData.legende;
+  // porte avec marche
+  const porte = new THREE.Group(); porte.position.set(0, 0, 1.9); maison.add(porte);
+  muet(boite(0.08, 2.2, 1.0, mat(0x5a2e1e, { rugosite: 0.6 }), [0.02, 1.1, 0], porte)); for (let k = 0; k < 2; k += 1) for (let j = 0; j < 2; j += 1) muet(boite(0.03, 0.8, 0.38, mat(0x6b3a26, { rugosite: 0.6 }), [0.07, 0.6 + j * 1.0, -0.22 + k * 0.44], porte));
+  muet(mesh(new THREE.SphereGeometry(0.04, 10, 8), mat(0xc9a24c, { rugosite: 0.3, metal: 0.9 }), [0.1, 1.05, 0.35], porte));
+  muet(boite(0.1, 2.35, 1.2, mat(0xd8d2c4, { rugosite: 0.9 }), [0.0, 1.17, 0], porte)); muet(meshPBR(new THREE.BoxGeometry(0.5, 0.14, 1.3), 'rock_boulder_dry', { couleur: 0xb9ad98, repetition: 1, rugosite: 1 }, [0.25, 0.07, 0], porte));
+  // toit en ardoise, gouttière, cheminée, descente
+  const toit = new THREE.Group(); toit.position.set(-0.3, 7.2, 0); toit.rotation.z = -0.62; maison.add(toit);
+  muet(boite(4.6, 0.12, 12.6, mat(0x3b4048, { rugosite: 0.85 }), [-1.8, 0, 0], toit));
+  for (let k = 0; k < 9; k += 1) muet(boite(4.5, 0.02, 0.03, mat(0x2a2e34, { rugosite: 0.9 }), [-1.8, 0.07, -5.6 + k * 1.4], toit));
+  muet(boite(0.12, 0.12, 12.6, mat(0xd8d2c4, { rugosite: 0.9 }), [0, 6.86, 0], maison));
+  const gouttiere = muet(cyl(0.09, 0.09, 12.4, 14, zinc, [0.3, 6.8, 0], maison)); gouttiere.rotation.x = Math.PI / 2;
+  muet(cyl(0.05, 0.05, 5.6, 10, zinc, [0.3, 3.95, 5.75], maison)); muet(cyl(0.05, 0.05, 0.3, 10, zinc, [0.3, 6.72, 5.75], maison));
+  muet(meshPBR(new THREE.BoxGeometry(0.7, 1.8, 0.7), 'red_brick_03', { repetition: 1, rugosite: 0.95 }, [-1.6, 7.8, -4.2], maison)); muet(boite(0.8, 0.1, 0.8, mat(0xd8d2c4, { rugosite: 0.9 }), [-1.6, 8.75, -4.2], maison));
+  // jardinières fleuries sous les fenêtres du bas
+  for (const z of [-3.6, 3.6]) {
+    const j = boite(0.3, 0.22, 1.2, mat(0x8a5a3a, { rugosite: 0.9 }), [0.25, 0.97, z], maison);
+    for (let k = 0; k < 10; k += 1) { const fl = mesh(new THREE.SphereGeometry(0.06 + Math.random() * 0.04, 8, 6), mat([0xd6465d, 0xf2a7b8, 0xffffff, 0xf2c62a][k % 4], { rugosite: 1 }), [0.25 + (Math.random() - 0.5) * 0.2, 1.14 + Math.random() * 0.1, z + (Math.random() - 0.5) * 1.0], maison); fl.userData.legende = { nom: 'Jardinière', phrase: 'Des géraniums : rien à calculer ici, juste du rouge sur la brique.' }; }
+    j.userData.legende = { nom: 'Jardinière', phrase: 'Des géraniums : rien à calculer ici, juste du rouge sur la brique.' };
+    for (let k = 0; k < 6; k += 1) mesh(new THREE.SphereGeometry(0.08, 8, 6), feuillage, [0.3 + (Math.random() - 0.5) * 0.15, 1.09, z + (Math.random() - 0.5) * 1.05], maison).userData.legende = j.userData.legende;
+  }
+  // banc contre le mur, tonneau de pluie
+  const banc = new THREE.Group(); banc.position.set(0.55, 0, -5.2); scene.add(banc); banc.userData.legende = { nom: 'Banc', phrase: 'Pour regarder l\'échelle de loin : de côté, le triangle se voit mieux.' };
+  meshPBR(new THREE.BoxGeometry(0.45, 0.06, 1.6), 'wood_table_001', { couleur: new THREE.Color(1.6, 1.45, 1.3), repetition: 1, rugosite: 0.7 }, [0, 0.45, 0], banc); for (const s of [-1, 1]) { boite(0.4, 0.42, 0.06, boisBrut, [0, 0.21, s * 0.7], banc); }
+  banc.traverse((c) => { c.userData.legende = banc.userData.legende; });
+  const tonneau = new THREE.Group(); tonneau.position.set(0.6, 0, 5.75); scene.add(tonneau); legender(tonneau, 'Tonneau de pluie', LEGENDES[7].phrase);
+  meshPBR(new THREE.CylinderGeometry(0.42, 0.4, 1.1, 22), 'brown_planks_09', { couleur: 0x8a6a48, repetition: 3, rugosite: 0.9 }, [0, 0.55, 0], tonneau);
+  for (const y of [0.18, 0.92]) mesh(new THREE.TorusGeometry(0.425, 0.022, 8, 36), fer, [0, y, 0], tonneau).rotation.x = Math.PI / 2;
+  mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.02, 22), matPhysique({ couleur: 0x4a6a72, rugosite: 0.05, metal: 0, clearcoat: 1 }), [0, 1.09, 0], tonneau).castShadow = false;
+  // pot de peinture et pinceau au pied de l'échelle
+  const peinture = new THREE.Group(); peinture.position.set(3.3, 0, 1.25); scene.add(peinture); legender(peinture, 'Pot de peinture', LEGENDES[6].phrase);
+  cyl(0.17, 0.16, 0.26, 20, zinc, [0, 0.13, 0], peinture); cyl(0.15, 0.15, 0.02, 20, mat(0x3b6e8f, { rugosite: 0.25 }), [0, 0.265, 0], peinture).castShadow = false;
+  const anse = mesh(new THREE.TorusGeometry(0.17, 0.008, 6, 20, Math.PI), fer, [0, 0.27, 0], peinture); anse.rotation.y = 0.5;
+  const pinceau = new THREE.Group(); pinceau.position.set(0.3, 0.02, 0.1); pinceau.rotation.z = Math.PI / 2; pinceau.rotation.y = 0.6; peinture.add(pinceau);
+  cyl(0.012, 0.015, 0.22, 8, boisBrut, [0, 0.11, 0], pinceau); boite(0.05, 0.08, 0.02, mat(0x3b6e8f, { rugosite: 0.8 }), [0, -0.04, 0], pinceau);
+  mesh(new THREE.CircleGeometry(0.22, 20), mat(0x3b6e8f, { rugosite: 0.3 }), [0.35, 0.008, -0.2], peinture).rotation.x = -Math.PI / 2;
+  // tilleul, réverbère, brouette
+  const arbre = new THREE.Group(); arbre.position.set(8.2, 0, -5.2); scene.add(arbre); legender(arbre, 'Tilleul', LEGENDES[8].phrase);
+  meshPBR(new THREE.CylinderGeometry(0.22, 0.34, 3.2, 12), 'bark_brown_02', { repetition: 1, rugosite: 1 }, [0, 1.6, 0], arbre);
+  for (const [dx, dy, dz, r] of [[0, 4.3, 0, 2.1], [-1.2, 3.6, 0.6, 1.4], [1.1, 3.8, -0.7, 1.5], [0.3, 5.3, 0.5, 1.3], [-0.6, 3.3, -1.1, 1.1]]) { const f = mesh(new THREE.SphereGeometry(r, 14, 10), mat(0x4a7f36, { rugosite: 1 }), [dx, dy, dz], arbre); f.scale.y = 0.85; }
+  for (let k = 0; k < 3; k += 1) { const b = cyl(0.06, 0.1, 1.6, 8, mat(0x4a3424, { rugosite: 1 }), [0, 3.2, 0], arbre); b.rotation.z = (k - 1) * 0.6; b.rotation.y = k * 2.1; b.position.set((k - 1) * 0.35, 3.5, Math.sin(k) * 0.3); }
+  const lampadaire = new THREE.Group(); lampadaire.position.set(5.6, 0, -6.2); scene.add(lampadaire); legender(lampadaire, 'Réverbère', LEGENDES[9].phrase);
+  cyl(0.14, 0.18, 0.5, 10, fer, [0, 0.25, 0], lampadaire); cyl(0.05, 0.08, 3.4, 10, fer, [0, 2.2, 0], lampadaire);
+  mesh(new THREE.CylinderGeometry(0.02, 0.22, 0.35, 6), fer, [0, 4.15, 0], lampadaire); mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.3, 6), matPhysique({ couleur: 0xfff6dc, transmission: 0.6, rugosite: 0.3, opacite: 0.9 }), [0, 3.85, 0], lampadaire).castShadow = false;
+  const brouette = new THREE.Group(); brouette.position.set(9.5, 0, 2.2); brouette.rotation.y = -0.7; scene.add(brouette); brouette.userData.legende = { nom: 'Brouette', phrase: 'Son bras forme un angle avec le sol : couché, il est facile à pousser.' };
+  boite(0.9, 0.3, 0.6, mat(0x5a7a4a, { rugosite: 0.6, metal: 0.3 }), [0, 0.42, 0], brouette); for (const s of [-1, 1]) { const bras = boite(1.4, 0.05, 0.05, boisBrut, [0.5, 0.35, s * 0.28], brouette); bras.rotation.z = 0.12; boite(0.05, 0.3, 0.05, boisBrut, [-0.35, 0.15, s * 0.28], brouette); }
+  const roue = mesh(new THREE.TorusGeometry(0.22, 0.05, 10, 24), mat(0x222222, { rugosite: 0.9 }), [-0.55, 0.27, 0], brouette); roue.rotation.x = 0; cyl(0.03, 0.03, 0.3, 8, fer, [-0.55, 0.27, 0], brouette).rotation.x = Math.PI / 2;
+  brouette.traverse((c) => { c.userData.legende = brouette.userData.legende; });
+
+  /* ---------- L'échelle (hypoténuse) ---------- */
   echelle = new THREE.Group(); scene.add(echelle);
-  const bois = mat(0xb5793d, { rugosite: 0.7 });
-  const montant = (z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.08, L, 0.08), bois); m.position.set(0, L / 2, z); m.castShadow = true; echelle.add(m); };
-  montant(-0.25); montant(0.25);
-  for (let i = 1; i < 12; i += 1) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.5, 10), bois); b.rotation.x = Math.PI / 2; b.position.set(0, i * L / 12, 0); b.castShadow = true; echelle.add(b); }
+  construireEchelle();
   legender(echelle, 'Hypoténuse', LEGENDES[0].phrase);
-  // côtés du triangle
-  segAdj = new THREE.Mesh(new THREE.BoxGeometry(1, 0.05, 0.05), mat(0xE63329, { emissif: 0xE63329, intensite: 0.4 })); scene.add(segAdj); legender(segAdj, 'Côté adjacent', LEGENDES[1].phrase);
-  segOpp = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1, 0.05), mat(0x1B82E0, { emissif: 0x1B82E0, intensite: 0.4 })); scene.add(segOpp); legender(segOpp, 'Côté opposé', LEGENDES[2].phrase);
-  arcAngle = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.75, 32, 1, 0, 1), new THREE.MeshBasicMaterial({ color: 0xF5A623, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })); arcAngle.rotation.x = 0; scene.add(arcAngle); legender(arcAngle, 'Angle α', LEGENDES[3].phrase);
-  const coin = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.02), new THREE.MeshBasicMaterial({ color: 0x1B82E0, wireframe: true })); coin.position.set(0.15, 0.15, 0.3); coin.raycast = () => {}; scene.add(coin);
+
+  /* ---------- Les côtés du triangle, l'angle, le mètre ruban, le quadrillage ---------- */
+  segAdj = new THREE.Mesh(new THREE.BoxGeometry(1, 0.05, 0.05), mat(0xE63329, { emissif: 0xE63329, intensite: 0.5 })); scene.add(segAdj); legender(segAdj, 'Côté adjacent', LEGENDES[1].phrase);
+  segOpp = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1, 0.05), mat(0x1B82E0, { emissif: 0x1B82E0, intensite: 0.5 })); scene.add(segOpp); legender(segOpp, 'Côté opposé', LEGENDES[2].phrase);
+  arcAngle = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.75, 32, 1, 0, 1), new THREE.MeshBasicMaterial({ color: 0xF5A623, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })); scene.add(arcAngle); legender(arcAngle, 'Angle α', LEGENDES[3].phrase);
+  coin = new THREE.Group(); scene.add(coin); coin.raycast = () => {};
+  const bleu = new THREE.MeshBasicMaterial({ color: 0x1B82E0 }); const c1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.02, 0.02), bleu); c1.position.set(0.15, 0.3, 0); const c2 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.3, 0.02), bleu); c2.position.set(0.3, 0.15, 0); c1.raycast = () => {}; c2.raycast = () => {}; coin.add(c1, c2); coin.position.set(0.03, 0.03, 0.55);
+  const rubanTex = textureRuban(); ruban = mesh(new THREE.BoxGeometry(1, 0.012, 0.045), new THREE.MeshStandardMaterial({ map: rubanTex, roughness: 0.6 }), [0, 0.012, 0.95]); ruban.castShadow = false;
+  rubanBoitier = boite(0.14, 0.12, 0.1, mat(0xf2c62a, { rugosite: 0.5 }), [0, 0.06, 0.95]); mesh(new THREE.BoxGeometry(0.04, 0.05, 0.06), fer, [0.04, 0.03, 0], rubanBoitier);
+  legender(ruban, 'Mètre ruban', LEGENDES[5].phrase); legender(rubanBoitier, 'Mètre ruban', LEGENDES[5].phrase);
+  quadrillage = new THREE.Group(); scene.add(quadrillage); quadrillage.visible = false;
+  const gris = new THREE.MeshBasicMaterial({ color: 0x2f3a44, transparent: true, opacity: 0.55 });
+  for (let k = 1; k <= 6; k += 1) {
+    const l1 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.006, 8.5), gris); l1.position.set(k, 0.012, -0.75); l1.raycast = () => {}; quadrillage.add(l1);
+    const l2 = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.02, 8.5), gris); l2.position.set(0.012, k, -0.75); l2.raycast = () => {}; quadrillage.add(l2);
+    const e1 = etiquette(k + ' m', [k, 0.22, 1.6], { hauteur: 0.3, fond: 'rgba(230,51,41,0.85)' }); const e2 = etiquette(k + ' m', [0.35, k, 1.6], { hauteur: 0.3, fond: 'rgba(27,130,224,0.85)' });
+    scene.remove(e1); scene.remove(e2); quadrillage.add(e1, e2);
+  }
   etiqAdj = etiquette('d', [1, 0.35, 0.6], { hauteur: 0.5, fond: 'rgba(230,51,41,0.85)' });
   etiqOpp = etiquette('h', [-0.6, 2, 0.6], { hauteur: 0.5, fond: 'rgba(27,130,224,0.85)' });
   etiqHyp = etiquette('L = 5 m', [1.6, 2.6, 0.7], { hauteur: 0.5, fond: 'rgba(120,80,30,0.85)' });
   etiqAngle = etiquette('α', [1.2, 0.5, 0.6], { hauteur: 0.5, fond: 'rgba(245,166,35,0.9)', couleur: '#1a1200' });
   placer();
+
+  /* ---------- Le panneau ---------- */
   panneau = M.panneau(`<h3>L'échelle</h3>
+    <div class="mb-groupe ec-l" role="group" aria-label="Longueur de l'échelle">${[3, 4, 5, 6].map((v) => `<button class="mb-bouton" data-l="${v}" aria-pressed="${v === L}">${v} m</button>`).join('')}</div>
     <label>Distance du pied au mur <span class="mb-val" id="ec-d">2,50 m</span><input class="mb-plage" id="ec-ds" type="range" min="0.5" max="4.9" step="0.05" value="2.5" aria-label="Distance du pied au mur"></label>
-    <div class="mb-mesures"><span>Hypoténuse L</span><b>5,00 m</b><span>Côté adjacent d</span><b id="ec-adj">·</b><span>Côté opposé h</span><b id="ec-opp">·</b><span>cos α = d ÷ L</span><b id="ec-cos">·</b><span>Angle α</span><b id="ec-a">·</b></div>
+    <label>Angle α <span class="mb-val" id="ec-a2">60°</span><input class="mb-plage" id="ec-as" type="range" min="10" max="85" step="1" value="60" aria-label="Angle entre l'échelle et le sol"></label>
+    <div class="mb-mesures"><span>Hypoténuse L</span><b id="ec-L">5,00 m</b><span>Côté adjacent d</span><b id="ec-adj">·</b><span>Côté opposé h</span><b id="ec-opp">·</b><span>cos α = d ÷ L</span><b id="ec-cos">·</b><span>Angle α</span><b id="ec-a">·</b></div>
     <p class="mb-carte" id="ec-calc"></p>
-    <p class="mb-carte" id="ec-secu"></p>`);
+    <p class="mb-carte" id="ec-secu"></p>
+    <details id="ec-det-vues"><summary>Vues et repères</summary><div class="mb-groupe">
+      <button class="mb-bouton" id="ec-cote" aria-pressed="false">Vue de côté</button><button class="mb-bouton" id="ec-libre">Vue libre</button><button class="mb-bouton" id="ec-grille" aria-pressed="false">Quadrillage 1 m</button>
+    </div></details>`);
   panneau.querySelector('#ec-ds').addEventListener('input', (e) => { d = Number(e.target.value); placer(); });
+  panneau.querySelector('#ec-as').addEventListener('input', (e) => { const a = Number(e.target.value) * Math.PI / 180; d = Math.min(L - 0.1, Math.max(0.5, L * Math.cos(a))); placer(); });
+  panneau.querySelectorAll('[data-l]').forEach((b) => b.addEventListener('click', () => reglerL(Number(b.getAttribute('data-l')))));
+  panneau.querySelector('#ec-cote').addEventListener('click', () => basculerCote(!vueCote));
+  panneau.querySelector('#ec-libre').addEventListener('click', () => { basculerCote(false); vise = { pos: new THREE.Vector3(7.5, 4.5, 9.5), cible: new THREE.Vector3(1.5, 2, 0) }; });
+  panneau.querySelector('#ec-grille').addEventListener('click', () => { quadrillage.visible = !quadrillage.visible; panneau.querySelector('#ec-grille').setAttribute('aria-pressed', String(quadrillage.visible)); });
+  M.renderer.domElement.addEventListener('pointerdown', () => { vise = null; });
   majPanneau();
+  M.boucle((dt) => { if (vise) { const k = 1 - Math.exp(-4.5 * dt); M.camera.position.lerp(vise.pos, k); M.controls.target.lerp(vise.cible, k); if (M.camera.position.distanceTo(vise.pos) < 0.02) vise = null; } });
+}
+/** Les montants et barreaux de l'échelle, pour la longueur L courante. */
+function construireEchelle() {
+  while (echelle.children.length) { const c = echelle.children.pop(); if (c.geometry) c.geometry.dispose(); }
+  if (!boisEchelle) { boisEchelle = M.pbr('brown_planks_09', { couleur: 0xd9a86c, repetition: 1, rugosite: 0.75 }); caoutchouc = M.mat(0x1d1d1d, { rugosite: 0.9 }); }
+  const bois = boisEchelle; const caout = caoutchouc;
+  const montant = (z) => { const m = new THREE.Mesh(M.preparerAo(new THREE.BoxGeometry(0.09, L, 0.045)), bois); m.position.set(0, L / 2, z); m.castShadow = true; m.receiveShadow = true; echelle.add(m); };
+  montant(-0.24); montant(0.24);
+  const n = Math.round(L / 0.3);
+  for (let i = 1; i < n; i += 1) { const b = new THREE.Mesh(M.preparerAo(new THREE.CylinderGeometry(0.018, 0.018, 0.48, 10)), bois); b.rotation.x = Math.PI / 2; b.position.set(0, i * L / n, 0); b.castShadow = true; echelle.add(b); }
+  for (const z of [-0.24, 0.24]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.07), caout); p.position.set(0, 0.03, z); p.castShadow = true; echelle.add(p); const h = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.06), caout); h.position.set(0, L - 0.03, z); echelle.add(h); }
+  echelle.traverse((c) => { if (c !== echelle) c.userData.legende = echelle.userData.legende; });
+}
+function reglerL(v) {
+  L = v; d = Math.min(d, L - 0.1); construireEchelle();
+  panneau.querySelectorAll('[data-l]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-l')) === L)));
+  const s = panneau.querySelector('#ec-ds'); s.max = String(L - 0.1); s.value = String(d);
+  etiqHyp.material.map.dispose(); const tex = textureTexte('L = ' + L + ' m', { fond: 'rgba(120,80,30,0.85)' }); etiqHyp.material.map = tex; etiqHyp.scale.set(0.5 * tex.userData.ratio, 0.5, 1);
+  placer();
+}
+function basculerCote(actif) {
+  vueCote = actif; panneau.querySelector('#ec-cote').setAttribute('aria-pressed', String(actif));
+  if (actif) { const h = hauteur(); vise = { pos: new THREE.Vector3(d / 2 + 0.3, h / 2 + 0.4, 10.5), cible: new THREE.Vector3(d / 2 + 0.3, h / 2 + 0.2, 0) }; }
 }
 function placer() {
   const a = Math.acos(d / L); const h = hauteur();
@@ -81,28 +260,33 @@ function placer() {
   segAdj.scale.x = d; segAdj.position.set(d / 2, 0.03, 0.55);
   segOpp.scale.y = h; segOpp.position.set(0.03, h / 2, 0.55);
   arcAngle.geometry.dispose(); arcAngle.geometry = new THREE.RingGeometry(0.55, 0.8, 32, 1, Math.PI - a, a); arcAngle.position.set(d, 0.02, 0.55); arcAngle.rotation.set(0, 0, 0);
-  etiqAdj.position.set(d / 2, 0.35, 0.9); etiqOpp.position.set(-0.55, h / 2, 0.9); etiqHyp.position.set(d / 2 + 0.5, h / 2 + 0.4, 0.9); etiqAngle.position.set(d - 1.0, 0.45, 0.9);
+  ruban.scale.x = d; ruban.position.set(d / 2, 0.012, 0.95); ruban.material.map.repeat.x = d; rubanBoitier.position.set(d + 0.07, 0.06, 0.95);
+  etiqAdj.position.set(d / 2, 0.38, 0.9); etiqOpp.position.set(0.5, h / 2, 1.0); etiqHyp.position.set(d / 2 + 0.55, h / 2 + 0.45, 0.9); etiqAngle.position.set(d - 1.05, 0.45, 0.9);
+  if (vueCote && !vise) basculerCote(true);
   majPanneau();
 }
-const f2 = (x) => x.toFixed(2).replace('.', ',');
 function majPanneau() {
   if (!panneau) return;
   const a = angle(); const h = hauteur(); const c = d / L;
-  panneau.querySelector('#ec-d').textContent = f2(d) + ' m'; panneau.querySelector('#ec-adj').textContent = f2(d) + ' m'; panneau.querySelector('#ec-opp').textContent = f2(h) + ' m';
-  panneau.querySelector('#ec-cos').textContent = f2(c); panneau.querySelector('#ec-a').textContent = a.toFixed(1).replace('.', ',') + '°';
-  panneau.querySelector('#ec-calc').textContent = 'cos α = ' + f2(d) + ' ÷ 5 = ' + f2(c) + ', donc α = cos⁻¹(' + f2(c) + ') ≈ ' + Math.round(a) + '°. Hauteur : h = √(5² − ' + f2(d) + '²) ≈ ' + f2(h) + ' m.';
+  panneau.querySelector('#ec-d').textContent = f2(d) + ' m'; panneau.querySelector('#ec-adj').textContent = f2(d) + ' m'; panneau.querySelector('#ec-opp').textContent = f2(h) + ' m'; panneau.querySelector('#ec-L').textContent = f2(L) + ' m';
+  panneau.querySelector('#ec-cos').textContent = f2(c); panneau.querySelector('#ec-a').textContent = f1(a) + '°'; panneau.querySelector('#ec-a2').textContent = Math.round(a) + '°';
+  const sd = panneau.querySelector('#ec-ds'); if (document.activeElement !== sd) sd.value = String(d); const sa = panneau.querySelector('#ec-as'); if (document.activeElement !== sa) sa.value = String(Math.round(a));
+  panneau.querySelector('#ec-calc').textContent = 'cos α = ' + f2(d) + ' ÷ ' + L + ' = ' + f2(c) + ', donc α = cos⁻¹(' + f2(c) + ') ≈ ' + Math.round(a) + '°. Hauteur : h = √(' + L + '² − ' + f2(d) + '²) ≈ ' + f2(h) + ' m.';
   const s = panneau.querySelector('#ec-secu'); s.textContent = a > 78 ? 'Trop raide : l\'échelle risque de basculer en arrière.' : (a < 65 ? 'Trop couchée : le pied peut glisser.' : 'Angle de sécurité (65° à 78°) : la position est stable.'); s.style.borderLeft = '6px solid ' + (a > 78 || a < 65 ? '#E63329' : '#2AA98C');
 }
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Déplace le pied de l\'échelle avec le curseur, et lis l\'angle, le cosinus et la hauteur. Touche chaque côté pour son nom.', 'joyeux'); return; }
+  if (mode !== 'cours') { api.say('Déplace le pied de l\'échelle avec le curseur, ou règle l\'angle, et lis le cosinus et la hauteur. Touche chaque côté pour son nom.', 'joyeux'); return; }
+  const cinq = () => { if (L !== 5) reglerL(5); };
   api.defis([
     { type: 'toucher', texte: 'Touche l\'<b>hypoténuse</b> du triangle.', cible: 'Hypoténuse', explication: 'L\'échelle est l\'hypoténuse : le plus long côté, en face de l\'angle droit formé par le mur et le sol.' },
     { type: 'qcm', texte: 'cos α est égal à…', choix: ['côté adjacent ÷ hypoténuse', 'côté opposé ÷ hypoténuse', 'hypoténuse ÷ côté adjacent', 'côté adjacent ÷ côté opposé'], reponse: 0, explication: 'Le cosinus d\'un angle aigu est le quotient du côté adjacent par l\'hypoténuse. Il est toujours entre 0 et 1.' },
-    { type: 'verifier', texte: 'Place le pied pour que l\'angle α soit de 60°, à 2° près.', bouton: 'C\'est réglé', verifier: () => Math.abs(angle() - 60) <= 2, indice: 'cos 60° = 0,5, donc d = 0,5 × 5 = 2,5 m.', explication: 'd = L × cos α = 5 × 0,5 = 2,5 m : le pied est à 2,5 m du mur.' },
+    { type: 'verifier', texte: 'Avec l\'échelle de 5 m, place le pied pour que l\'angle α soit de 60°, à 2° près.', bouton: 'C\'est réglé', avant: cinq, verifier: () => Math.abs(angle() - 60) <= 2, indice: 'cos 60° = 0,5, donc d = 0,5 × 5 = 2,5 m.', explication: 'd = L × cos α = 5 × 0,5 = 2,5 m : le pied est à 2,5 m du mur.' },
     { type: 'qcm', texte: 'Le pied est à 3 m du mur. Quelle hauteur atteint l\'échelle de 5 m ?', choix: ['4 m', '2 m', '5,8 m', '3 m'], reponse: 0, explication: 'Pythagore : h² = 5² − 3² = 25 − 9 = 16, donc h = 4 m.' },
-    { type: 'verifier', texte: 'Règle l\'échelle pour atteindre au moins 4,5 m de haut.', bouton: 'C\'est réglé', verifier: () => hauteur() >= 4.5, indice: 'Plus le pied est proche du mur, plus l\'échelle monte. Il faut d ≤ 2,18 m.', explication: 'h ≥ 4,5 impose d² ≤ 25 − 20,25 = 4,75, donc d ≤ 2,18 m environ.' },
+    { type: 'verifier', texte: 'Règle l\'échelle de 5 m pour atteindre au moins 4,5 m de haut.', bouton: 'C\'est réglé', avant: cinq, verifier: () => hauteur() >= 4.5, indice: 'Plus le pied est proche du mur, plus l\'échelle monte. Il faut d ≤ 2,18 m.', explication: 'h ≥ 4,5 impose d² ≤ 25 − 20,25 = 4,75, donc d ≤ 2,18 m environ.' },
     { type: 'qcm', texte: 'Le pied est à 4 m du mur : cos α = 4 ÷ 5 = 0,8. Quel est l\'angle α ?', choix: ['Environ 37°', 'Environ 53°', '80°', '45°'], reponse: 0, explication: 'α = cos⁻¹(0,8) ≈ 36,9°. La touche cos⁻¹ (ou arccos) de la calculatrice donne l\'angle à partir du cosinus.' },
     { type: 'toucher', texte: 'Touche le <b>côté adjacent</b> à l\'angle α.', cible: 'Côté adjacent', explication: 'Le côté adjacent touche l\'angle α sans être l\'hypoténuse : ici, le sol entre le pied et le mur.' },
+    { type: 'qcm', texte: 'Le pied est à 2 m du mur et L = 5 m : cos α = 2 ÷ 5 = 0,4. L\'angle α vaut environ…', choix: ['66°', '24°', '40°', '50°'], reponse: 0, explication: 'cos⁻¹(0,4) ≈ 66,4°. Plus le pied est proche du mur, plus le cosinus est petit et plus l\'angle est grand : l\'échelle est plus raide.' },
+    { type: 'verifier', texte: 'Règle l\'échelle de 5 m à l\'angle de sécurité des pompiers : 75°, à 2° près.', bouton: 'C\'est réglé', avant: cinq, verifier: () => Math.abs(angle() - 75) <= 2, indice: 'cos 75° ≈ 0,26, donc d ≈ 0,26 × 5 ≈ 1,3 m. Le curseur « Angle α » fait le calcul pour toi.', explication: 'd = L × cos 75° ≈ 5 × 0,259 ≈ 1,3 m. C\'est la règle du quart : le pied à environ un quart de la hauteur atteinte (ici h ≈ 4,8 m, un quart ≈ 1,2 m).' },
   ], { rejouer: () => demarrer('cours', api) });
 }
 </script>

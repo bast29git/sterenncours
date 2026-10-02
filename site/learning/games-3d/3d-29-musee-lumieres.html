@@ -14,26 +14,48 @@
 <script type="module">
 import { creerMonde, THREE, textureTexte } from '../monde-base.js';
 
+/*
+   Monde 29 : le musée des Lumières.
+   Une salle de musée : parquet, murs rouge sombre à cimaises et lambris, verrière au plafond, lustre à
+   bougies. Cinq portraits en silhouette (la mode du XVIIIᵉ siècle) dans des cadres dorés en relief, un
+   cartel sous chacun ; un salon (table de marbre, bergères, chandelier) ; une vitrine avec l'Encyclopédie ;
+   une presse à bras qui imprime une feuille à la demande ; une carte des correspondances.
+   Faits vérifiés : Montesquieu 1689-1755, De l'esprit des lois 1748. Voltaire 1694-1778, Traité sur la
+   tolérance 1763, affaire Calas 1762 (réhabilitation 1765). Rousseau 1712-1778, Du contrat social 1762.
+   Diderot 1713-1784 et d'Alembert 1717-1783, Encyclopédie 1751-1772 : 17 volumes de texte et 11 de
+   planches, 71 818 articles, 2 885 planches. Émilie du Châtelet 1706-1749, traduction des Principia parue
+   en 1759. Diderot chez Catherine II à Saint-Pétersbourg en 1773-1774 ; Voltaire à Ferney à partir de 1759.
+   Une presse à bras tire environ 200 à 250 feuilles à l'heure (estimation courante pour le XVIIIᵉ siècle).
+*/
 const PENSEURS = [
-  { id: 'montesquieu', nom: 'Montesquieu', dates: '1689 à 1755', oeuvre: 'De l\'esprit des lois (1748)', idee: 'Séparer les trois pouvoirs, législatif, exécutif et judiciaire, pour empêcher la tyrannie.', couleur: '#2E7FC2', initiale: 'M' },
-  { id: 'voltaire', nom: 'Voltaire', dates: '1694 à 1778', oeuvre: 'Traité sur la tolérance (1763)', idee: 'Défend la tolérance religieuse et la liberté de pensée, après l\'affaire Calas (1762).', couleur: '#B9541D', initiale: 'V' },
-  { id: 'rousseau', nom: 'Rousseau', dates: '1712 à 1778', oeuvre: 'Du contrat social (1762)', idee: 'La souveraineté appartient au peuple : la loi est l\'expression de la volonté générale.', couleur: '#1E8C7A', initiale: 'R' },
-  { id: 'diderot', nom: 'Diderot et d\'Alembert', dates: '1713 à 1784', oeuvre: 'L\'Encyclopédie (1751 à 1772)', idee: 'Rassembler tous les savoirs en 28 volumes, pour les diffuser et faire reculer l\'ignorance.', couleur: '#8A4FD3', initiale: 'D' },
-  { id: 'chatelet', nom: 'Émilie du Châtelet', dates: '1706 à 1749', oeuvre: 'Traduction des Principia de Newton (1759)', idee: 'Physicienne et mathématicienne : elle explique la physique de Newton aux Français.', couleur: '#B03A8A', initiale: 'É' },
+  { id: 'montesquieu', nom: 'Montesquieu', dates: '1689 à 1755', annee: 1748, oeuvre: 'De l\'esprit des lois (1748)', idee: 'Séparer les trois pouvoirs, législatif, exécutif et judiciaire, pour empêcher la tyrannie.', couleur: '#2E7FC2', profil: { nez: 1.0, menton: 1.0, coiffure: 'rouleaux', robe: false } },
+  { id: 'voltaire', nom: 'Voltaire', dates: '1694 à 1778', annee: 1763, oeuvre: 'Traité sur la tolérance (1763)', idee: 'Défend la tolérance religieuse et la liberté de pensée, après l\'affaire Calas (1762).', couleur: '#B9541D', profil: { nez: 1.25, menton: 1.2, coiffure: 'queue', robe: false } },
+  { id: 'rousseau', nom: 'Rousseau', dates: '1712 à 1778', annee: 1762, oeuvre: 'Du contrat social (1762)', idee: 'La souveraineté appartient au peuple : la loi est l\'expression de la volonté générale.', couleur: '#1E8C7A', profil: { nez: 1.1, menton: 0.9, coiffure: 'queue', robe: false } },
+  { id: 'diderot', nom: 'Diderot et d\'Alembert', dates: '1713 à 1784', annee: 1751, oeuvre: 'L\'Encyclopédie (1751 à 1772)', idee: 'Rassembler tous les savoirs en 28 volumes, pour les diffuser et faire reculer l\'ignorance.', couleur: '#8A4FD3', profil: { nez: 0.95, menton: 1.0, coiffure: 'libre', robe: false } },
+  { id: 'chatelet', nom: 'Émilie du Châtelet', dates: '1706 à 1749', annee: 1759, oeuvre: 'Traduction des Principia de Newton (1759)', idee: 'Physicienne et mathématicienne : elle explique la physique de Newton aux Français.', couleur: '#B03A8A', profil: { nez: 0.9, menton: 0.9, coiffure: 'chignon', robe: true } },
 ];
 const LEGENDES = PENSEURS.map((p) => ({ nom: p.nom, phrase: p.oeuvre + '. ' + p.idee })).concat([
-  { nom: 'Salon', phrase: 'Chez Madame Geoffrin ou Madame du Deffand, philosophes et savants discutent : les idées circulent.' },
-  { nom: 'Encyclopédie', phrase: '28 volumes, 71 818 articles, 2 885 planches : le grand projet des Lumières, censuré puis achevé.' },
-  { nom: 'Presse d\'imprimerie', phrase: 'Livres, journaux, brochures, souvent imprimés hors du royaume pour échapper à la censure.' },
+  { nom: 'Salon', phrase: 'Chez Madame Geoffrin ou Madame du Deffand, philosophes et savants discutent le soir : les idées circulent.' },
+  { nom: 'Encyclopédie', phrase: '28 volumes, 71 818 articles, 2 885 planches : le grand projet des Lumières, censuré puis achevé en 1772.' },
+  { nom: 'Presse d\'imprimerie', phrase: 'Livres, journaux, brochures, souvent imprimés hors du royaume pour échapper à la censure. Environ 200 feuilles à l\'heure.' },
+  { nom: 'Feuille imprimée', phrase: 'Une feuille sortie de la presse : pliée, elle devient des pages de livre ou de brochure.' },
+  { nom: 'Cartel', phrase: 'La petite plaque sous un tableau : le nom, les dates, l\'œuvre. Lis-la avant de regarder le portrait.' },
+  { nom: 'Banquette', phrase: 'Pour regarder les portraits en prenant son temps : un musée est un lieu calme.' },
+  { nom: 'Lustre', phrase: 'Des bougies : au XVIIIᵉ siècle, les salons se tiennent le soir, à la lumière des chandelles.' },
+  { nom: 'Verrière', phrase: 'La lumière du jour tombe du plafond : les musées éclairent souvent par le haut pour ne pas éblouir les tableaux.' },
+  { nom: 'Carte des correspondances', phrase: 'Les lettres relient Paris, Londres, Amsterdam, Genève, Berlin et Saint-Pétersbourg : une Europe des idées.' },
+  { nom: 'Chandelier', phrase: 'Trois bougies sur la table du salon : on lit, on écrit et on discute à leur lumière.' },
 ]);
-let M, panneau, cadres = {};
+const ETAPES = PENSEURS.map((p) => p.id).concat(['salon', 'encyclopedie', 'presse']);
+let M, panneau, cadres = {}, vue = null, etape = -1, soiree = false, chrono = false, impression = null, feuilles = 0;
+const L = {}; // lumières et objets réglables : soleil, hemi, ciel, lustre, bougies, flammes, presse
 const shell = window.Konstrio.createGame({
   id: '3d-29-musee-lumieres', code: '3D·29', title: 'Le musée des Lumières', type: '3D', duree: '12 min',
   domain: { label: 'Histoire', color: '#B9541D' },
   intro: {
-    greet: 'Une salle, cinq portraits, une presse et un salon. Chaque penseur des Lumières a son idée et son livre.',
-    rule: 'Touche un portrait pour lire l\'idée et l\'œuvre. Puis réponds aux questions : une par penseur.',
-    how: ['Glisse pour tourner dans la salle, molette pour avancer.', 'Touche un portrait, la presse, le salon ou l\'Encyclopédie.', 'Le panneau résume chaque penseur ; le bouton mène à son portrait.'],
+    greet: 'Une salle de musée : cinq portraits, un salon, une presse, l\'Encyclopédie sous vitrine. Chaque penseur des Lumières a son idée et son livre.',
+    rule: 'Touche un portrait pour lire l\'idée et l\'œuvre. Suis la visite guidée, imprime une feuille, passe en soirée. Puis réponds aux questions : une par penseur.',
+    how: ['Glisse pour tourner dans la salle, molette pour avancer.', 'Touche un portrait, son cartel, la presse, le salon, la vitrine, le lustre ou la carte.', '« Suivant » mène d\'une étape à l\'autre ; « Imprimer une feuille » fait fonctionner la presse ; « Soirée » éteint la verrière et allume les bougies.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Associer chaque philosophe des Lumières à son idée et à son œuvre, et expliquer comment les idées circulent.',
     hint: 'Montesquieu : les pouvoirs. Voltaire : la tolérance. Rousseau : le peuple souverain. Diderot : l\'Encyclopédie.',
@@ -42,64 +64,320 @@ const shell = window.Konstrio.createGame({
   learned: ['Montesquieu et la séparation des pouvoirs ; Voltaire et la tolérance ; Rousseau et la souveraineté du peuple.', 'L\'Encyclopédie de Diderot et d\'Alembert rassemble et diffuse les savoirs.', 'Les idées circulent par les salons, les cafés, les livres et les journaux, malgré la censure.'],
   onReady: init, onStart: demarrer,
 });
+const ease = (f) => (f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2);
 
+/* Un portrait en silhouette (mode du XVIIIᵉ siècle) : profil noir sur un ovale clair, dans un fond peint sombre. */
 function texturePortrait(p) {
   const c = document.createElement('canvas'); c.width = 512; c.height = 640; const x = c.getContext('2d');
-  const g = x.createLinearGradient(0, 0, 0, 640); g.addColorStop(0, '#2a2118'); g.addColorStop(1, '#0f0c08'); x.fillStyle = g; x.fillRect(0, 0, 512, 640);
-  x.fillStyle = p.couleur; x.beginPath(); x.arc(256, 250, 150, 0, Math.PI * 2); x.fill();
-  x.fillStyle = 'rgba(255,255,255,0.92)'; x.font = '900 190px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(p.initiale, 256, 262);
-  x.fillStyle = '#f2e8d5'; x.font = '700 44px Georgia, serif'; x.fillText(p.nom, 256, 500);
-  x.fillStyle = '#c9b892'; x.font = '400 30px Georgia, serif'; x.fillText(p.dates, 256, 560);
+  const fond = x.createRadialGradient(256, 300, 60, 256, 320, 420); fond.addColorStop(0, '#4a3a2a'); fond.addColorStop(1, '#120d08'); x.fillStyle = fond; x.fillRect(0, 0, 512, 640);
+  x.save(); x.beginPath(); x.ellipse(256, 300, 190, 240, 0, 0, Math.PI * 2); x.closePath();
+  const ovale = x.createLinearGradient(0, 60, 0, 540); ovale.addColorStop(0, '#efe3c8'); ovale.addColorStop(1, '#d8c7a4'); x.fillStyle = ovale; x.fill();
+  x.fillStyle = p.couleur; x.globalAlpha = 0.12; x.fill(); x.globalAlpha = 1;
+  const q = p.profil; const nz = q.nez; const mt = q.menton;
+  // le profil, tourné vers la gauche : nuque, crâne, front, nez, lèvres, menton, cou, épaules
+  x.fillStyle = '#17120d'; x.beginPath();
+  x.moveTo(300, 560);
+  x.quadraticCurveTo(296, 470, 318, 420); // nuque
+  x.quadraticCurveTo(372, 380, 368, 280); // arrière du crâne
+  x.quadraticCurveTo(360, 150, 262, 142); // sommet
+  x.quadraticCurveTo(205, 150, 196, 215); // front
+  x.quadraticCurveTo(190, 250, 200, 268); // arcade
+  x.quadraticCurveTo(186, 300, 170 - 14 * (nz - 1) * 4, 318 + 10 * (nz - 1)); // dos du nez
+  x.quadraticCurveTo(160 - 14 * (nz - 1) * 4, 334, 190, 342); // dessous du nez
+  x.quadraticCurveTo(200, 352, 192, 362); // lèvre supérieure
+  x.quadraticCurveTo(206, 374, 194, 386); // lèvre inférieure
+  x.quadraticCurveTo(190 - 8 * (mt - 1) * 5, 410, 218, 418 + 6 * (mt - 1) * 5); // menton
+  x.quadraticCurveTo(250, 420, 262, 455); // dessous du menton
+  x.quadraticCurveTo(262, 480, 250, 500); // gorge
+  x.quadraticCurveTo(150, 520, 120, 600); // épaule avant
+  x.lineTo(410, 600); x.quadraticCurveTo(392, 530, 300, 560); x.closePath(); x.fill();
+  // la coiffure
+  x.fillStyle = '#17120d';
+  if (q.coiffure === 'rouleaux') { [[318, 300], [326, 338], [330, 374]].forEach((r) => { x.beginPath(); x.arc(r[0], r[1], 24, 0, Math.PI * 2); x.fill(); }); x.beginPath(); x.ellipse(372, 440, 22, 40, 0.3, 0, Math.PI * 2); x.fill(); }
+  if (q.coiffure === 'queue') { x.beginPath(); x.ellipse(376, 430, 22, 48, -0.2, 0, Math.PI * 2); x.fill(); x.beginPath(); x.ellipse(320, 330, 28, 20, 0, 0, Math.PI * 2); x.fill(); }
+  if (q.coiffure === 'chignon') { x.beginPath(); x.ellipse(330, 150, 70, 46, -0.3, 0, Math.PI * 2); x.fill(); x.beginPath(); x.ellipse(372, 268, 26, 50, 0.2, 0, Math.PI * 2); x.fill(); }
+  if (q.robe) { x.fillStyle = '#efe3c8'; x.beginPath(); x.moveTo(236, 500); x.quadraticCurveTo(290, 540, 330, 600); x.lineTo(236, 600); x.closePath(); x.fill(); x.fillStyle = '#17120d'; x.beginPath(); x.moveTo(250, 500); x.quadraticCurveTo(292, 548, 318, 600); x.lineTo(300, 600); x.quadraticCurveTo(286, 560, 246, 522); x.closePath(); x.fill(); }
+  else { x.fillStyle = '#efe3c8'; x.beginPath(); x.moveTo(252, 500); x.quadraticCurveTo(262, 560, 236, 600); x.lineTo(286, 600); x.quadraticCurveTo(280, 540, 266, 500); x.closePath(); x.fill(); }
+  x.restore();
+  x.strokeStyle = 'rgba(201,164,74,0.9)'; x.lineWidth = 6; x.beginPath(); x.ellipse(256, 300, 190, 240, 0, 0, Math.PI * 2); x.stroke();
+  x.fillStyle = '#e9dcc0'; x.font = '700 40px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(p.nom, 256, 590);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function textureCarte() {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 720; const x = c.getContext('2d');
+  x.fillStyle = '#e9dcc0'; x.fillRect(0, 0, c.width, c.height);
+  for (let i = 0; i < 300; i += 1) { x.fillStyle = `rgba(120,90,50,${Math.random() * 0.08})`; x.fillRect(Math.random() * c.width, Math.random() * c.height, 20 + Math.random() * 60, 1 + Math.random() * 3); }
+  x.fillStyle = '#2a2018'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '800 44px Georgia, serif'; x.fillText('Les idées circulent : lettres, livres, journaux', 512, 56);
+  const villes = { Paris: [430, 400], Londres: [330, 300], Amsterdam: [500, 270], Berlin: [680, 290], Genève: [520, 500], 'Saint-Pétersbourg': [900, 170], Ferney: [540, 540], Madrid: [300, 580] };
+  x.strokeStyle = 'rgba(185,84,29,0.85)'; x.lineWidth = 5; x.setLineDash([14, 10]);
+  Object.keys(villes).forEach((v) => { if (v === 'Paris') return; const a = villes.Paris; const b = villes[v]; x.beginPath(); x.moveTo(a[0], a[1]); x.quadraticCurveTo((a[0] + b[0]) / 2, Math.min(a[1], b[1]) - 60, b[0], b[1]); x.stroke(); });
+  x.setLineDash([]);
+  Object.keys(villes).forEach((v) => { const [px, py] = villes[v]; x.fillStyle = v === 'Paris' ? '#B9541D' : '#2a2018'; x.beginPath(); x.arc(px, py, v === 'Paris' ? 16 : 11, 0, Math.PI * 2); x.fill(); x.font = (v === 'Paris' ? '800 36px' : '700 28px') + ' Georgia, serif'; x.fillStyle = '#2a2018'; x.fillText(v, px, py - 30); });
+  x.font = '600 26px Georgia, serif'; x.fillStyle = '#4a3a2a';
+  x.fillText('Voltaire écrit depuis Ferney, près de Genève. Diderot voyage jusqu\'à Saint-Pétersbourg (1773).', 512, 640);
+  x.fillText('Les livres interdits en France s\'impriment à Amsterdam, Genève ou Londres.', 512, 682);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function textureFeuille(imprimee) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 384; const x = c.getContext('2d');
+  x.fillStyle = '#f3ebd8'; x.fillRect(0, 0, c.width, c.height);
+  if (imprimee) {
+    x.fillStyle = '#1f1a14'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '800 34px Georgia, serif'; x.fillText('TRAITÉ SUR LA TOLÉRANCE', 256, 50);
+    x.font = 'italic 600 22px Georgia, serif'; x.fillText('à l\'occasion de la mort de Jean Calas', 256, 88); x.font = '600 20px Georgia, serif'; x.fillText('M. DCC. LXIII', 256, 118);
+    x.fillStyle = '#3a3029'; for (let i = 0; i < 11; i += 1) { const y = 160 + i * 19; x.fillRect(60, y, 392 * (i === 10 ? 0.55 : 0.85 + Math.random() * 0.15), 7); }
+  }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
-function init() {
-  M = creerMonde(shell, { fond: 0x1a1512, hdri: '../assets/3d/env/studio_1k.hdr', sol: { taille: 20, couleur: 0x5a3b26 }, ambiance: 0.5, soleil: { position: [0, 9, 4], intensite: 1.2, couleur: 0xffe9c8, etendue: 12 }, camera: { position: [0, 2.4, 9], cible: [0, 2, 0], min: 1.5, max: 16 }, legendes: LEGENDES, libelle: 'Une salle de musée avec cinq portraits, un salon et une presse' });
-  const { scene, mesh, mat, legender, etiquette } = M;
-  const murs = mat(0x7a2e2e, { rugosite: 0.95 });
-  mesh(new THREE.BoxGeometry(18, 6, 0.3), murs, [0, 3, -6]).raycast = () => {};
-  mesh(new THREE.BoxGeometry(0.3, 6, 12), murs, [-9, 3, 0]).raycast = () => {}; mesh(new THREE.BoxGeometry(0.3, 6, 12), murs, [9, 3, 0]).raycast = () => {};
-  mesh(new THREE.BoxGeometry(18, 0.4, 12), mat(0xefe6d2), [0, 6.1, 0]).raycast = () => {};
-  for (let i = -8; i <= 8; i += 4) { const l = new THREE.SpotLight(0xffe2b0, 25, 9, Math.PI / 6, 0.5, 1.2); l.position.set(i, 5.6, -3.2); l.target.position.set(i, 3, -6); scene.add(l); scene.add(l.target); }
-  PENSEURS.forEach((p, i) => {
-    const g = new THREE.Group(); scene.add(g); g.position.set(-7.2 + i * 3.6, 3.1, -5.8);
-    mesh(new THREE.BoxGeometry(2.4, 3.0, 0.16), mat(0xc9a44a, { metal: 0.6, rugosite: 0.35 }), [0, 0, 0], g);
-    const toile = mesh(new THREE.PlaneGeometry(2.1, 2.65), new THREE.MeshStandardMaterial({ map: texturePortrait(p), roughness: 0.8 }), [0, 0, 0.09], g); toile.castShadow = false;
-    const cartel = mesh(new THREE.PlaneGeometry(1.6, 0.36), new THREE.MeshBasicMaterial({ map: textureTexte(p.oeuvre, { taille: 22, fond: '#f2e8d5', couleur: '#1a1512' }) }), [0, -1.85, 0.05], g); cartel.castShadow = false;
-    legender(g, p.nom, LEGENDES[i].phrase); cadres[p.id] = g;
-  });
-  // salon : table et fauteuils
-  const salon = new THREE.Group(); scene.add(salon); salon.position.set(-4, 0, 1);
-  mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.08, 28), mat(0x6b3f1f, { rugosite: 0.4 }), [0, 0.75, 0], salon); mesh(new THREE.CylinderGeometry(0.1, 0.16, 0.75, 12), mat(0x4a2a12), [0, 0.37, 0], salon);
-  for (let k = 0; k < 4; k += 1) { const a = k * Math.PI / 2; const f = new THREE.Group(); salon.add(f); f.position.set(Math.cos(a) * 1.9, 0, Math.sin(a) * 1.9); f.rotation.y = -a + Math.PI / 2; mesh(new THREE.BoxGeometry(0.7, 0.16, 0.7), mat(0x9b2f3f, { rugosite: 0.9 }), [0, 0.5, 0], f); mesh(new THREE.BoxGeometry(0.7, 0.8, 0.14), mat(0x9b2f3f, { rugosite: 0.9 }), [0, 0.95, -0.28], f); [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]].forEach((q) => mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), mat(0xc9a44a, { metal: 0.6 }), [q[0], 0.22, q[1]], f)); }
-  for (let k = 0; k < 3; k += 1) mesh(new THREE.BoxGeometry(0.3, 0.05, 0.2), mat([0x2d4a7a, 0x7a2d2d, 0x2d7a4a][k]), [-0.4 + k * 0.35, 0.82, 0.1 * k], salon);
-  legender(salon, 'Salon', LEGENDES[5].phrase);
-  // vitrine avec l'Encyclopédie
-  const vit = new THREE.Group(); scene.add(vit); vit.position.set(4, 0, 1);
-  mesh(new THREE.BoxGeometry(2.2, 1.0, 1.2), mat(0x3a2a1a), [0, 0.5, 0], vit);
-  const verre = mesh(new THREE.BoxGeometry(2.2, 0.9, 1.2), new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.18, roughness: 0.05 }), [0, 1.45, 0], vit); verre.castShadow = false;
-  for (let k = 0; k < 7; k += 1) mesh(new THREE.BoxGeometry(0.22, 0.42, 0.7), mat(0x5a2a1a, { rugosite: 0.7 }), [-0.75 + k * 0.25, 1.22, 0], vit);
-  const ouvert = mesh(new THREE.BoxGeometry(0.9, 0.04, 0.6), mat(0xf2e8d5), [0.3, 1.03, 0.3], vit); ouvert.rotation.y = 0.3;
-  legender(vit, 'Encyclopédie', LEGENDES[6].phrase);
-  // presse d'imprimerie
-  const presse = new THREE.Group(); scene.add(presse); presse.position.set(6.5, 0, -2.5);
-  mesh(new THREE.BoxGeometry(1.4, 0.2, 1.0), mat(0x4a2e1a), [0, 0.9, 0], presse); mesh(new THREE.BoxGeometry(0.16, 2.6, 0.16), mat(0x4a2e1a), [-0.6, 1.3, 0], presse); mesh(new THREE.BoxGeometry(0.16, 2.6, 0.16), mat(0x4a2e1a), [0.6, 1.3, 0], presse); mesh(new THREE.BoxGeometry(1.4, 0.2, 0.4), mat(0x4a2e1a), [0, 2.5, 0], presse);
-  mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.0, 12), mat(0x8a8f96, { metal: 0.7, rugosite: 0.3 }), [0, 1.9, 0], presse); mesh(new THREE.BoxGeometry(1.0, 0.1, 0.7), mat(0x8a8f96, { metal: 0.7, rugosite: 0.3 }), [0, 1.35, 0], presse);
-  mesh(new THREE.BoxGeometry(1.0, 0.06, 0.06), mat(0x4a2e1a), [0.7, 1.9, 0], presse).rotation.z = 0.5;
-  mesh(new THREE.BoxGeometry(0.8, 0.02, 0.6), mat(0xf2e8d5), [0, 1.02, 0], presse);
-  legender(presse, 'Presse d\'imprimerie', LEGENDES[7].phrase);
-  etiquette('Salon', [-4, 2.2, 1], { hauteur: 0.35 }); etiquette('Encyclopédie', [4, 2.4, 1], { hauteur: 0.35 }); etiquette('Presse', [6.5, 3.1, -2.5], { hauteur: 0.35 });
-
-  panneau = M.panneau(`<h3>Les penseurs</h3>
-    <div class="mb-etapes">${PENSEURS.map((p, i) => `<button class="mb-bouton" data-p="${p.id}" style="border-left:6px solid ${p.couleur}"><i>${i + 1}</i>${p.nom}</button>`).join('')}</div>
-    <p class="mb-carte" id="mu-texte">Touche un portrait, ou choisis un penseur.</p>`);
-  panneau.querySelectorAll('[data-p]').forEach((b) => b.addEventListener('click', () => voir(b.getAttribute('data-p'))));
-  M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; const p = PENSEURS.find((x) => x.nom === nom); if (p) voir(p.id, true); }, 30); });
+function texturePage() {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 360; const x = c.getContext('2d');
+  x.fillStyle = '#f1e8d2'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#1f1a14'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = '800 44px Georgia, serif'; x.fillText('ENCYCLOPÉDIE,', 256, 60); x.font = '600 22px Georgia, serif'; x.fillText('ou DICTIONNAIRE RAISONNÉ', 256, 104); x.fillText('DES SCIENCES, DES ARTS ET DES MÉTIERS', 256, 134);
+  x.font = 'italic 600 20px Georgia, serif'; x.fillText('par une Société de Gens de lettres', 256, 172); x.fillText('Mis en ordre par M. Diderot et M. d\'Alembert', 256, 200);
+  x.fillStyle = '#3a3029'; for (let i = 0; i < 6; i += 1) x.fillRect(70, 240 + i * 18, 372 * (0.8 + Math.random() * 0.2), 6);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
+
+function init() {
+  M = creerMonde(shell, {
+    fond: 0x1a1512, hdri: '../assets/3d/hdri/brown_photostudio_02_1k.hdr', environnement: 0.5,
+    sol: { taille: 9.5, texture: 'wood_floor_deck', repetition: 5, carre: true, couleur: 0xd9c6a8, rugosite: 0.7 },
+    ambiance: 0.45, soleil: { position: [3, 14, 3.5], intensite: 2.0, couleur: 0xfff3e0, etendue: 11 },
+    camera: { position: [0, 2.8, 6.0], cible: [0, 2.0, -1.0], fov: 50, min: 1.5, max: 7.5 },
+    rendu: { bloom: { force: 0.28, rayon: 0.5, seuil: 0.95 } },
+    legendes: LEGENDES, libelle: 'Une salle de musée : cinq portraits dans des cadres dorés, un salon, une vitrine et une presse d\'imprimerie',
+  });
+  const { scene, mesh, mat, legender, etiquette, meshPBR, pbr, matPhysique } = M;
+  M.controls.minPolarAngle = 1.05; M.controls.minAzimuthAngle = -1.25; M.controls.maxAzimuthAngle = 1.25;
+  const adapter = () => { const asp = M.stage.clientWidth / Math.max(1, M.stage.clientHeight); M.camera.fov = asp < 0.9 ? 68 : 50; M.camera.updateProjectionMatrix(); };
+  adapter(); new ResizeObserver(adapter).observe(M.stage);
+  const ignorer = (m) => { m.raycast = () => {}; return m; };
+  L.hemi = scene.children.find((c) => c.isHemisphereLight); L.soleil = M.soleil; M.soleil.target.position.set(-1, 0, -1); scene.add(M.soleil.target);
+
+  /* ---- La salle : murs rouges à cimaise, lambris ivoire, plinthes, corniche, plafond à verrière ---- */
+  const H = 6.2; const rouge = pbr('plastered_wall_02', { repetition: 4, couleur: 0x8e3a3a, rugosite: 1, normale: 0.5 });
+  const ivoire = mat(0xe9e1d0, { rugosite: 0.55 }); const boisSombre = pbr('wood_table_001', { repetition: 1, couleur: 0x7a5234, rugosite: 0.7 });
+  const ZF = -6.15, ZA = 7.25; // faces intérieures des murs du fond et de devant
+  ignorer(mesh(new THREE.BoxGeometry(18.6, H, 0.3), rouge, [0, H / 2, ZF - 0.15])); ignorer(mesh(new THREE.BoxGeometry(18.6, H, 0.3), rouge, [0, H / 2, ZA + 0.15]));
+  ignorer(mesh(new THREE.BoxGeometry(0.3, H, 13.7), rouge, [-9.15, H / 2, 0.55])); ignorer(mesh(new THREE.BoxGeometry(0.3, H, 13.7), rouge, [9.15, H / 2, 0.55]));
+  // lambris (1,1 de haut) et plinthes, cimaise à 4,9
+  [[18, 0.1, 0, ZF + 0.05, 0], [18, 0.1, 0, ZA - 0.05, 0], [0.1, 13.4, -8.95, 0.55, 0], [0.1, 13.4, 8.95, 0.55, 0]].forEach((w) => {
+    const horizontal = w[0] > w[1]; const geo = horizontal ? new THREE.BoxGeometry(w[0], 1.1, 0.1) : new THREE.BoxGeometry(0.1, 1.1, w[1]);
+    ignorer(mesh(geo, ivoire, [w[2], 0.55, w[3]])); ignorer(mesh(horizontal ? new THREE.BoxGeometry(w[0], 0.22, 0.14) : new THREE.BoxGeometry(0.14, 0.22, w[1]), boisSombre, [w[2], 0.11, w[3]]));
+    ignorer(mesh(horizontal ? new THREE.BoxGeometry(w[0], 0.12, 0.12) : new THREE.BoxGeometry(0.12, 0.12, w[1]), ivoire, [w[2], 4.9, w[3]]));
+    ignorer(mesh(horizontal ? new THREE.BoxGeometry(w[0], 0.3, 0.3) : new THREE.BoxGeometry(0.3, 0.3, w[1]), ivoire, [w[2], H - 0.15, w[3]]));
+  });
+  const plafondMat = mat(0xf3eee4, { rugosite: 0.95 });
+  ignorer(mesh(new THREE.BoxGeometry(5, 0.3, 13.7), plafondMat, [-6.5, H + 0.15, 0.55])); ignorer(mesh(new THREE.BoxGeometry(5, 0.3, 13.7), plafondMat, [6.5, H + 0.15, 0.55]));
+  ignorer(mesh(new THREE.BoxGeometry(8, 0.3, 4.3), plafondMat, [0, H + 0.15, -4.15])); ignorer(mesh(new THREE.BoxGeometry(8, 0.3, 5.4), plafondMat, [0, H + 0.15, 4.55]));
+  // la verrière : bordure, vitre, et le jour au-dessus
+  const verriere = new THREE.Group(); scene.add(verriere); verriere.position.set(0, H, 0);
+  [[8.4, 0, -2.1], [8.4, 0, 2.1], [0.2, -4.1, 0], [0.2, 4.1, 0]].forEach((b) => { const geo = b[0] > 1 ? new THREE.BoxGeometry(8.4, 0.5, 0.2) : new THREE.BoxGeometry(0.2, 0.5, 4.4); ignorer(mesh(geo, ivoire, [b[1] || 0, 0.25, b[2] || 0], verriere)); });
+  for (let k = -3; k <= 3; k += 1) ignorer(mesh(new THREE.BoxGeometry(0.06, 0.08, 4), mat(0x3a3a3a, { metal: 0.6, rugosite: 0.4 }), [k * 1.14, 0.42, 0], verriere)).castShadow = false;
+  const vitre = ignorer(mesh(new THREE.PlaneGeometry(8, 4), matPhysique({ couleur: 0xf4f9ff, transmission: 0.95, rugosite: 0, epaisseur: 0.05, double: true }), [0, 0.4, 0], verriere)); vitre.rotation.x = Math.PI / 2; vitre.castShadow = false;
+  L.ciel = new THREE.MeshStandardMaterial({ color: 0xdff0ff, emissive: 0xdff0ff, emissiveIntensity: 1.2, roughness: 1 });
+  const ciel = ignorer(mesh(new THREE.PlaneGeometry(11, 7), L.ciel, [0, 1.3, 0], verriere)); ciel.rotation.x = Math.PI / 2; ciel.castShadow = false; ciel.receiveShadow = false;
+  legender(verriere, 'Verrière', LEGENDES[12].phrase);
+  // le titre de la salle, au-dessus des portraits
+  const titre = ignorer(mesh(new THREE.PlaneGeometry(7.2, 0.62), new THREE.MeshStandardMaterial({ map: textureTexte('LE SIÈCLE DES LUMIÈRES', { taille: 34, fond: 'none', couleur: '#d9b25a', police: 'Georgia, serif' }), transparent: true, roughness: 0.4, metalness: 0.6 }), [0, 5.5, ZF + 0.02])); titre.castShadow = false;
+
+  /* ---- Les cinq portraits : cadre doré en relief, toile, ornements, cartel, lampe de tableau ---- */
+  const or = mat(0xd4af4f, { metal: 0.85, rugosite: 0.3 }); const orSombre = mat(0xa8842f, { metal: 0.85, rugosite: 0.4 });
+  PENSEURS.forEach((p, i) => {
+    const g = new THREE.Group(); scene.add(g); g.position.set(-7.2 + i * 3.6, 3.1, ZF + 0.07);
+    mesh(new THREE.BoxGeometry(2.5, 3.1, 0.14), or, [0, 0, 0], g);
+    mesh(new THREE.BoxGeometry(2.24, 2.84, 0.2), orSombre, [0, 0, 0.02], g);
+    const toile = mesh(new THREE.PlaneGeometry(2.0, 2.6), new THREE.MeshStandardMaterial({ map: texturePortrait(p), roughness: 0.85 }), [0, 0, 0.125], g); toile.castShadow = false;
+    [[-1.12, 1.42], [1.12, 1.42], [-1.12, -1.42], [1.12, -1.42]].forEach((c) => mesh(new THREE.SphereGeometry(0.12, 14, 10), or, [c[0], c[1], 0.1], g));
+    mesh(new THREE.TorusGeometry(0.16, 0.04, 8, 20), or, [0, 1.62, 0.08], g);
+    // la lampe de tableau en laiton
+    mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8), or, [0, 1.75, 0.3], g).rotation.x = Math.PI / 2;
+    const tube = mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.3, 12), or, [0, 1.78, 0.55], g); tube.rotation.z = Math.PI / 2;
+    mesh(new THREE.BoxGeometry(1.2, 0.02, 0.08), new THREE.MeshStandardMaterial({ color: 0xfff1d0, emissive: 0xffe6b8, emissiveIntensity: 0.5 }), [0, 1.72, 0.55], g).castShadow = false;
+    legender(g, p.nom, LEGENDES[i].phrase); cadres[p.id] = g;
+    const cartel = mesh(new THREE.PlaneGeometry(1.7, 0.56), new THREE.MeshStandardMaterial({ map: textureTexte(p.nom + '\n' + p.dates + '\n' + p.oeuvre, { taille: 20, fond: '#efe6d2', couleur: '#1a1512', police: 'Georgia, serif' }), roughness: 0.6 }), [g.position.x, 1.2, ZF + 0.03]); cartel.castShadow = false;
+    legender(cartel, 'Cartel', LEGENDES[9].phrase); cartel.userData.penseur = p.id;
+    const l = new THREE.SpotLight(0xffe2b0, 7, 9, Math.PI / 6.5, 0.6, 1.2); l.position.set(g.position.x, 5.0, ZF + 1.3); l.target.position.set(g.position.x, 3.0, ZF); l.castShadow = false; scene.add(l); scene.add(l.target);
+  });
+
+  /* ---- La carte des correspondances, sur le mur gauche ---- */
+  const carte = new THREE.Group(); scene.add(carte); carte.position.set(-8.93, 3.1, -1.5); carte.rotation.y = Math.PI / 2;
+  mesh(new THREE.BoxGeometry(3.3, 2.4, 0.1), boisSombre, [0, 0, 0], carte);
+  mesh(new THREE.PlaneGeometry(3.1, 2.2), new THREE.MeshStandardMaterial({ map: textureCarte(), roughness: 0.9 }), [0, 0, 0.055], carte).castShadow = false;
+  legender(carte, 'Carte des correspondances', LEGENDES[13].phrase);
+
+  /* ---- Le lustre à bougies ---- */
+  const lustre = new THREE.Group(); scene.add(lustre); lustre.position.set(0, 4.7, 2.2);
+  mesh(new THREE.TorusGeometry(0.95, 0.05, 10, 40), or, [0, 0, 0], lustre).rotation.x = Math.PI / 2;
+  mesh(new THREE.TorusGeometry(0.45, 0.04, 10, 30), or, [0, 0.5, 0], lustre).rotation.x = Math.PI / 2;
+  mesh(new THREE.SphereGeometry(0.16, 16, 12), or, [0, -0.1, 0], lustre);
+  for (let k = 0; k < 3; k += 1) { const an = k * Math.PI * 2 / 3; const ch = mesh(new THREE.CylinderGeometry(0.015, 0.015, 1.6, 6), or, [Math.cos(an) * 0.7, 0.8, Math.sin(an) * 0.7], lustre); ch.rotation.z = Math.cos(an) * 0.35; ch.rotation.x = -Math.sin(an) * 0.35; }
+  mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.8, 6), or, [0, 1.1, 0], lustre);
+  const bougie = new THREE.CylinderGeometry(0.035, 0.04, 0.3, 10); const cire = mat(0xfaf3df, { rugosite: 0.6 });
+  L.flammes = new THREE.MeshStandardMaterial({ color: 0xffd080, emissive: 0xffb347, emissiveIntensity: 1.2, roughness: 0.4 });
+  const flamme = new THREE.SphereGeometry(0.035, 10, 8);
+  for (let k = 0; k < 10; k += 1) { const an = k * Math.PI * 2 / 10; const px = Math.cos(an) * 0.95; const pz = Math.sin(an) * 0.95; mesh(new THREE.SphereGeometry(0.05, 10, 8), or, [px, 0, pz], lustre); mesh(bougie, cire, [px, 0.2, pz], lustre).castShadow = false; const f = mesh(flamme, L.flammes, [px, 0.4, pz], lustre); f.scale.y = 1.6; f.castShadow = false; }
+  legender(lustre, 'Lustre', LEGENDES[11].phrase);
+  L.lustre = new THREE.SpotLight(0xffd9a0, 14, 0, 1.25, 0.6, 2); L.lustre.position.set(0, 4.5, 2.2); L.lustre.target.position.set(0, 0, 2.2); L.lustre.castShadow = true;
+  L.lustre.shadow.mapSize.set(1024, 1024); L.lustre.shadow.bias = -0.0005; L.lustre.shadow.normalBias = 0.03; L.lustre.shadow.camera.near = 0.3; L.lustre.shadow.camera.far = 12; scene.add(L.lustre); scene.add(L.lustre.target);
+
+  /* ---- Les banquettes, devant les portraits ---- */
+  const velours = mat(0x8e2f3f, { rugosite: 0.95 });
+  [-3.6, 3.6].forEach((bx) => {
+    const b = new THREE.Group(); scene.add(b); b.position.set(bx, 0, -2.6);
+    mesh(new THREE.BoxGeometry(2.8, 0.26, 0.9), velours, [0, 0.58, 0], b); mesh(new THREE.BoxGeometry(2.6, 0.12, 0.74), boisSombre, [0, 0.39, 0], b);
+    [[-1.2, -0.32], [1.2, -0.32], [-1.2, 0.32], [1.2, 0.32]].forEach((q) => { mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.34, 10), boisSombre, [q[0], 0.17, q[1]], b); mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.05, 10), or, [q[0], 0.025, q[1]], b); });
+    legender(b, 'Banquette', LEGENDES[10].phrase);
+  });
+
+  /* ---- Le salon : tapis, table de marbre, quatre bergères, livres, chandelier ---- */
+  const salon = new THREE.Group(); scene.add(salon); salon.position.set(-4.5, 0, 1.6);
+  const tapis = ignorer(mesh(new THREE.BoxGeometry(5.2, 0.03, 5.2), mat(0x2d3c6a, { rugosite: 1 }), [0, 0.015, 0], salon)); tapis.castShadow = false;
+  ignorer(mesh(new THREE.BoxGeometry(4.6, 0.032, 4.6), mat(0x8a2d3a, { rugosite: 1 }), [0, 0.015, 0], salon)).castShadow = false;
+  ignorer(mesh(new THREE.BoxGeometry(3.6, 0.034, 3.6), mat(0x2d3c6a, { rugosite: 1 }), [0, 0.015, 0], salon)).castShadow = false;
+  meshPBR(new THREE.CylinderGeometry(1.05, 1.05, 0.08, 40), 'marble_01', { repetition: 1, couleur: 0xf0ece4, rugosite: 0.25 }, [0, 0.79, 0], salon);
+  mesh(new THREE.TorusGeometry(1.05, 0.03, 8, 48), or, [0, 0.79, 0], salon).rotation.x = Math.PI / 2;
+  mesh(new THREE.CylinderGeometry(0.09, 0.13, 0.62, 14), boisSombre, [0, 0.44, 0], salon); mesh(new THREE.SphereGeometry(0.16, 14, 10), boisSombre, [0, 0.22, 0], salon);
+  for (let k = 0; k < 3; k += 1) { const an = k * Math.PI * 2 / 3; const pied = mesh(new THREE.BoxGeometry(0.1, 0.08, 0.6), boisSombre, [Math.cos(an) * 0.3, 0.04, Math.sin(an) * 0.3], salon); pied.rotation.y = -an + Math.PI / 2; }
+  for (let k = 0; k < 4; k += 1) {
+    const an = k * Math.PI / 2 + Math.PI / 4; const f = new THREE.Group(); salon.add(f); f.position.set(Math.cos(an) * 2.0, 0, Math.sin(an) * 2.0); f.rotation.y = -an + Math.PI / 2;
+    mesh(new THREE.BoxGeometry(0.76, 0.2, 0.74), velours, [0, 0.5, 0], f); mesh(new THREE.BoxGeometry(0.76, 0.1, 0.74), boisSombre, [0, 0.36, 0], f);
+    const dos = mesh(new THREE.BoxGeometry(0.76, 0.86, 0.14), velours, [0, 0.98, -0.34], f); dos.rotation.x = -0.12;
+    mesh(new THREE.BoxGeometry(0.76, 0.1, 0.1), or, [0, 1.42, -0.39], f);
+    [-0.36, 0.36].forEach((sx) => { mesh(new THREE.BoxGeometry(0.1, 0.1, 0.6), velours, [sx, 0.78, -0.05], f); mesh(new THREE.BoxGeometry(0.08, 0.3, 0.08), boisSombre, [sx, 0.63, 0.2], f); });
+    [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]].forEach((q) => mesh(new THREE.CylinderGeometry(0.035, 0.03, 0.32, 10), boisSombre, [q[0], 0.16, q[1]], f));
+  }
+  [[0x2d4a7a, -0.5, 0.2, 0.2], [0x7a2d2d, -0.42, 0.26, -0.1], [0x2d7a4a, 0.45, 0.2, 0.3]].forEach((l) => { const liv = mesh(new THREE.BoxGeometry(0.34, 0.05, 0.24), mat(l[0], { rugosite: 0.8 }), [l[1], 0.86 + (l[3] < 0 ? 0.05 : 0), l[3]], salon); liv.rotation.y = l[2]; });
+  const chand = new THREE.Group(); salon.add(chand); chand.position.set(0.35, 0.83, -0.15);
+  mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.04, 16), or, [0, 0.02, 0], chand); mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.3, 10), or, [0, 0.19, 0], chand);
+  [[-0.14, 0], [0.14, 0], [0, 0.12]].forEach((q) => { mesh(new THREE.CylinderGeometry(0.04, 0.045, 0.03, 10), or, [q[0], 0.33, q[1]], chand); mesh(bougie, cire, [q[0], 0.48, q[1]], chand).castShadow = false; const f = mesh(flamme, L.flammes, [q[0], 0.68, q[1]], chand); f.scale.y = 1.6; f.castShadow = false; });
+  mesh(new THREE.BoxGeometry(0.34, 0.03, 0.03), or, [0, 0.32, 0], chand); mesh(new THREE.BoxGeometry(0.03, 0.03, 0.14), or, [0, 0.32, 0.06], chand);
+  legender(chand, 'Chandelier', LEGENDES[14].phrase);
+  L.bougies = new THREE.PointLight(0xffb060, 0, 5, 2); L.bougies.position.set(-4.15, 1.6, 1.45); scene.add(L.bougies);
+  legender(salon, 'Salon', LEGENDES[5].phrase); legender(chand, 'Chandelier', LEGENDES[14].phrase);
+
+  /* ---- La vitrine de l'Encyclopédie ---- */
+  const vit = new THREE.Group(); scene.add(vit); vit.position.set(4.5, 0, 1.6);
+  meshPBR(new THREE.BoxGeometry(2.6, 1.0, 1.4), 'wood_table_001', { repetition: 1, couleur: 0x7a5236, rugosite: 0.6 }, [0, 0.5, 0], vit);
+  mesh(new THREE.BoxGeometry(2.7, 0.06, 1.5), boisSombre, [0, 1.03, 0], vit);
+  const verre = mesh(new THREE.BoxGeometry(2.5, 1.0, 1.3), matPhysique({ couleur: 0xf4fbff, transmission: 0.94, rugosite: 0.02, epaisseur: 0.1, double: true }), [0, 1.56, 0], vit); verre.castShadow = false;
+  [[-1.25, -0.65], [1.25, -0.65], [-1.25, 0.65], [1.25, 0.65]].forEach((q) => mesh(new THREE.BoxGeometry(0.04, 1.0, 0.04), or, [q[0], 1.56, q[1]], vit));
+  [[0, 2.06, -0.65, 2.5, 0.04, 0.04], [0, 2.06, 0.65, 2.5, 0.04, 0.04], [-1.25, 2.06, 0, 0.04, 0.04, 1.3], [1.25, 2.06, 0, 0.04, 0.04, 1.3]].forEach((q) => mesh(new THREE.BoxGeometry(q[3], q[4], q[5]), or, [q[0], q[1], q[2]], vit));
+  const cuir = mat(0x5a3220, { rugosite: 0.65 });
+  for (let k = 0; k < 8; k += 1) { mesh(new THREE.BoxGeometry(0.2, 0.46, 0.66), cuir, [-1.0 + k * 0.23, 1.29, -0.2], vit); for (let b = 0; b < 4; b += 1) mesh(new THREE.BoxGeometry(0.21, 0.02, 0.05), or, [-1.0 + k * 0.23, 1.12 + b * 0.11, 0.12], vit).castShadow = false; }
+  const ouvert = new THREE.Group(); vit.add(ouvert); ouvert.position.set(0.55, 1.07, 0.4); ouvert.rotation.y = 0.35;
+  mesh(new THREE.BoxGeometry(0.98, 0.05, 0.64), cuir, [0, 0.02, 0], ouvert);
+  const pageTex = texturePage();
+  [-0.245, 0.245].forEach((px) => { const pg = mesh(new THREE.BoxGeometry(0.47, 0.03, 0.6), new THREE.MeshStandardMaterial({ color: 0xf1e8d2, roughness: 0.9 }), [px, 0.06, 0], ouvert); pg.castShadow = false; });
+  const pageD = mesh(new THREE.PlaneGeometry(0.44, 0.56), new THREE.MeshStandardMaterial({ map: pageTex, roughness: 0.9 }), [0.245, 0.077, 0], ouvert); pageD.rotation.x = -Math.PI / 2; pageD.rotation.z = Math.PI / 2; pageD.castShadow = false;
+  const cartelVit = mesh(new THREE.PlaneGeometry(1.1, 0.3), new THREE.MeshStandardMaterial({ map: textureTexte('L\'Encyclopédie, 1751 à 1772\n28 volumes', { taille: 18, fond: '#efe6d2', couleur: '#1a1512', police: 'Georgia, serif' }), roughness: 0.6 }), [0, 0.82, 0.71], vit); cartelVit.castShadow = false;
+  legender(vit, 'Encyclopédie', LEGENDES[6].phrase);
+
+  /* ---- La presse à bras ---- */
+  const presse = new THREE.Group(); scene.add(presse); presse.position.set(6.3, 0, -2.4); presse.rotation.y = -0.4;
+  const chene = pbr('wood_table_001', { repetition: 1, couleur: 0xa87a52, rugosite: 0.7 }); const fer = mat(0x5a5f66, { metal: 0.8, rugosite: 0.35 });
+  mesh(new THREE.BoxGeometry(1.7, 0.24, 1.3), chene, [0, 0.12, 0], presse);
+  [-0.75, 0.75].forEach((px) => mesh(new THREE.BoxGeometry(0.24, 3.0, 0.24), chene, [px, 1.74, 0], presse));
+  mesh(new THREE.BoxGeometry(1.74, 0.26, 0.3), chene, [0, 3.15, 0], presse); mesh(new THREE.BoxGeometry(1.74, 0.24, 0.3), chene, [0, 2.15, 0], presse);
+  mesh(new THREE.BoxGeometry(0.34, 0.16, 0.34), fer, [0, 2.35, 0], presse);
+  const vis = new THREE.Group(); presse.add(vis); vis.position.set(0, 0, 0);
+  mesh(new THREE.CylinderGeometry(0.09, 0.09, 1.0, 14), fer, [0, 1.95, 0], vis);
+  for (let k = 0; k < 5; k += 1) mesh(new THREE.TorusGeometry(0.1, 0.022, 6, 20), fer, [0, 1.6 + k * 0.09, 0], vis).rotation.x = Math.PI / 2;
+  const platine = mesh(new THREE.BoxGeometry(1.0, 0.08, 0.72), fer, [0, 1.5, 0], vis);
+  mesh(new THREE.BoxGeometry(0.2, 0.12, 0.2), fer, [0, 1.58, 0], vis);
+  const pivot = new THREE.Group(); presse.add(pivot); pivot.position.set(0, 2.02, 0);
+  mesh(new THREE.BoxGeometry(1.3, 0.07, 0.07), fer, [0.65, 0, 0], pivot); mesh(new THREE.SphereGeometry(0.07, 10, 8), chene, [1.3, 0, 0], pivot);
+  [-0.44, 0.44].forEach((px) => mesh(new THREE.BoxGeometry(0.06, 0.06, 2.3), chene, [px, 1.22, 0.45], presse));
+  const coffre = new THREE.Group(); presse.add(coffre); coffre.position.set(0, 0, 0);
+  mesh(new THREE.BoxGeometry(1.0, 0.1, 0.82), chene, [0, 1.28, 0], coffre); mesh(new THREE.BoxGeometry(0.82, 0.03, 0.62), fer, [0, 1.345, 0], coffre);
+  const texBlanche = textureFeuille(false); const texImprimee = textureFeuille(true);
+  const feuille = mesh(new THREE.PlaneGeometry(0.78, 0.58), new THREE.MeshStandardMaterial({ map: texBlanche, roughness: 0.9 }), [0, 1.365, 0], coffre); feuille.rotation.x = -Math.PI / 2; feuille.castShadow = false;
+  legender(feuille, 'Feuille imprimée', LEGENDES[8].phrase);
+  // tables de côté : feuilles blanches à droite, feuilles imprimées à gauche
+  const tablette = (px) => { mesh(new THREE.BoxGeometry(0.9, 0.06, 0.7), chene, [px, 0.9, 0.5], presse); [[-0.4, 0.2], [0.4, 0.2], [-0.4, 0.8], [0.4, 0.8]].forEach((q) => mesh(new THREE.BoxGeometry(0.06, 0.88, 0.06), chene, [px + q[0], 0.44, q[1]], presse)); };
+  tablette(1.65); tablette(-1.65);
+  mesh(new THREE.BoxGeometry(0.66, 0.14, 0.5), new THREE.MeshStandardMaterial({ color: 0xf3ebd8, roughness: 0.9 }), [1.65, 1.0, 0.5], presse).castShadow = false;
+  const pile = mesh(new THREE.BoxGeometry(0.66, 0.02, 0.5), new THREE.MeshStandardMaterial({ map: texImprimee, roughness: 0.9 }), [-1.65, 0.94, 0.5], presse); pile.castShadow = false; pile.visible = false;
+  [[-0.9, 0.3], [-0.9, -0.1]].forEach((q) => { mesh(new THREE.SphereGeometry(0.09, 12, 8), mat(0x15120f, { rugosite: 0.9 }), [q[0], 2.75, q[1]], presse); mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.4, 8), chene, [q[0], 2.5, q[1]], presse); });
+  mesh(new THREE.BoxGeometry(0.4, 0.04, 0.5), chene, [-0.9, 2.28, 0.1], presse);
+  legender(presse, 'Presse d\'imprimerie', LEGENDES[7].phrase); feuille.userData.legende = { nom: 'Feuille imprimée', phrase: LEGENDES[8].phrase };
+  L.presse = { vis, platine, pivot, coffre, feuille, pile, texBlanche, texImprimee };
+
+  etiquette('Salon', [-4.5, 2.35, 1.6], { hauteur: 0.34 }); etiquette('Encyclopédie', [4.5, 2.5, 1.6], { hauteur: 0.34 }); etiquette('Presse', [6.3, 3.7, -2.4], { hauteur: 0.34 });
+
+  /* ---- Le panneau ---- */
+  panneau = M.panneau(`<h3>Visite guidée</h3>
+    <div class="mb-groupe"><button class="mb-bouton" id="mu-prec" type="button">◀ Précédent</button><button class="mb-bouton primaire" id="mu-suiv" type="button">Suivant ▶</button></div>
+    <p class="mb-carte" id="mu-texte">Touche un portrait, ou appuie sur « Suivant » pour commencer la visite.</p>
+    <h3>Les penseurs</h3>
+    <div class="mb-etapes" id="mu-liste">${PENSEURS.map((p, i) => `<button class="mb-bouton" type="button" data-p="${p.id}" style="border-left:6px solid ${p.couleur}"><i>${i + 1}</i><span>${p.nom}</span></button>`).join('')}</div>
+    <button class="mb-bouton" id="mu-chrono" type="button" aria-pressed="false">Classer par date de l'œuvre</button>
+    <h3>La salle</h3>
+    <div class="mb-groupe"><button class="mb-bouton" id="mu-imprimer" type="button">Imprimer une feuille</button><button class="mb-bouton" id="mu-soir" type="button" aria-pressed="false">Soirée</button></div>
+    <p class="mb-carte" id="mu-presse">Aucune feuille imprimée pour l'instant.</p>`);
+  panneau.querySelectorAll('[data-p]').forEach((b) => b.addEventListener('click', () => voir(b.getAttribute('data-p'))));
+  panneau.querySelector('#mu-suiv').addEventListener('click', () => visiter(1)); panneau.querySelector('#mu-prec').addEventListener('click', () => visiter(-1));
+  panneau.querySelector('#mu-chrono').addEventListener('click', (e) => { chrono = !chrono; e.currentTarget.setAttribute('aria-pressed', String(chrono)); e.currentTarget.textContent = chrono ? 'Classer dans l\'ordre des portraits' : 'Classer par date de l\'œuvre'; classer(); });
+  panneau.querySelector('#mu-imprimer').addEventListener('click', imprimer);
+  panneau.querySelector('#mu-soir').addEventListener('click', (e) => { soiree = !soiree; e.currentTarget.setAttribute('aria-pressed', String(soiree)); e.currentTarget.textContent = soiree ? 'Jour' : 'Soirée'; shell.say(soiree ? 'La verrière s\'éteint, le lustre et les bougies s\'allument : un salon se tenait le soir, à la lumière des chandelles.' : 'Le jour revient par la verrière.', 'concentre'); });
+  M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; const p = PENSEURS.find((x) => x.nom === nom); if (p) voir(p.id, true); }, 30); });
+
+  /* ---- La boucle : caméra, éclairage jour ou soirée, flammes, presse ---- */
+  const depuis = { pos: new THREE.Vector3(), cible: new THREE.Vector3() }; let kLum = 0;
+  M.boucle((dt, t) => {
+    if (vue) { vue.t = Math.min(1, vue.t + dt / 1.1); const k = ease(vue.t); M.camera.position.lerpVectors(depuis.pos, vue.pos, k); M.controls.target.lerpVectors(depuis.cible, vue.cible, k); if (vue.t >= 1) vue = null; }
+    const voulu = soiree ? 1 : 0; if (Math.abs(kLum - voulu) > 0.001) {
+      kLum += (voulu - kLum) * Math.min(1, dt * 2.5);
+      L.soleil.intensity = 2.0 * (1 - kLum); L.hemi.intensity = 0.45 - 0.33 * kLum; scene.environmentIntensity = 0.5 - 0.3 * kLum;
+      L.ciel.emissive.setRGB(0.87 - 0.78 * kLum, 0.94 - 0.82 * kLum, 1.0 - 0.75 * kLum); L.ciel.color.copy(L.ciel.emissive); L.ciel.emissiveIntensity = 1.2 - 0.7 * kLum;
+      L.lustre.intensity = 14 + 150 * kLum; L.bougies.intensity = 6 * kLum; L.flammes.emissiveIntensity = 1.2 + 2.4 * kLum;
+    }
+    L.flammes.emissiveIntensity = (1.2 + 2.4 * kLum) * (1 + 0.08 * Math.sin(t * 9.3) + 0.05 * Math.sin(t * 13.7));
+    if (impression) animerPresse(dt);
+  });
+  function allerA(pos, cible) { depuis.pos.copy(M.camera.position); depuis.cible.copy(M.controls.target); vue = { pos: new THREE.Vector3(...pos), cible: new THREE.Vector3(...cible), t: 0 }; }
+  M.allerA = allerA;
+}
+const ARRETS = {
+  salon: { pos: [-3.6, 2.7, 6.2], cible: [-4.5, 1.0, 1.6], titre: 'Le salon', texte: 'Chez Madame Geoffrin, le soir : philosophes, savants et artistes discutent autour d\'une table. Les idées circulent de bouche à oreille, puis par lettres dans toute l\'Europe.' },
+  encyclopedie: { pos: [4.2, 2.3, 4.4], cible: [4.5, 1.3, 1.6], titre: 'L\'Encyclopédie', texte: 'Diderot et d\'Alembert dirigent 28 volumes (1751 à 1772) : 71 818 articles et 2 885 planches sur les sciences, les arts et les métiers. Le roi l\'interdit un temps ; elle s\'achève quand même.' },
+  presse: { pos: [1.6, 2.6, 2.6], cible: [6.0, 1.5, -2.2], titre: 'La presse d\'imprimerie', texte: 'Livres, journaux, brochures : la presse multiplie les textes. Les écrits interdits en France s\'impriment à Amsterdam, Genève ou Londres, puis passent la frontière en cachette.' },
+};
 function voir(id, sansCamera) {
-  const p = PENSEURS.find((x) => x.id === id); const g = cadres[id];
+  const p = PENSEURS.find((x) => x.id === id); const g = cadres[id]; etape = ETAPES.indexOf(id);
   panneau.querySelector('#mu-texte').innerHTML = '<b>' + p.nom + '</b> (' + p.dates + '). ' + p.oeuvre + '. ' + p.idee;
-  if (!sansCamera) { M.controls.target.set(g.position.x, 3, -5.8); M.camera.position.set(g.position.x, 3, -1.6); M.controls.update(); }
+  panneau.querySelectorAll('[data-p]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-p') === id)));
+  if (!sansCamera) M.allerA([g.position.x, 3.0, -1.8], [g.position.x, 3.0, -5.9]);
   shell.say(p.nom + ' : ' + p.idee, 'concentre');
+}
+function visiter(sens) {
+  etape = (etape + sens + ETAPES.length) % ETAPES.length; const id = ETAPES[etape];
+  if (PENSEURS.some((p) => p.id === id)) { voir(id); return; }
+  const a = ARRETS[id]; panneau.querySelector('#mu-texte').innerHTML = '<b>' + a.titre + '</b>. ' + a.texte;
+  panneau.querySelectorAll('[data-p]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+  M.allerA(a.pos, a.cible); shell.say(a.texte, 'concentre');
+}
+function classer() {
+  const liste = panneau.querySelector('#mu-liste'); const ordre = chrono ? PENSEURS.slice().sort((a, b) => a.annee - b.annee) : PENSEURS;
+  ordre.forEach((p, i) => { const b = liste.querySelector(`[data-p="${p.id}"]`); liste.appendChild(b); b.querySelector('i').textContent = String(i + 1); b.querySelector('span').textContent = chrono ? p.annee + ' · ' + p.nom : p.nom; });
+  if (chrono) shell.say('Dans l\'ordre : 1748 De l\'esprit des lois, 1751 le premier volume de l\'Encyclopédie, 1759 la traduction de Newton, 1762 Du contrat social, 1763 le Traité sur la tolérance.', 'concentre');
+}
+/* La presse : la barre tire, la platine descend, puis le coffre sort avec la feuille imprimée. */
+const PHASES = [0.55, 0.35, 0.6, 0.5];
+function imprimer() { if (impression) return; impression = { phase: 0, t: 0 }; L.presse.feuille.material.map = L.presse.texBlanche; L.presse.feuille.material.needsUpdate = true; shell.say('La barre tire la vis, la platine presse la feuille sur les caractères encrés, puis le coffre ressort.', 'concentre'); }
+function animerPresse(dt) {
+  const P = L.presse; const I = impression; I.t += dt; const f = Math.min(1, I.t / PHASES[I.phase]); const e = ease(f);
+  if (I.phase === 0) { P.pivot.rotation.y = -1.3 * e; P.vis.position.y = -0.16 * e; }
+  else if (I.phase === 1) { P.pivot.rotation.y = -1.3 * (1 - e); P.vis.position.y = -0.16 * (1 - e); }
+  else if (I.phase === 2) { P.coffre.position.z = 1.0 * e; if (f > 0.2 && P.feuille.material.map !== P.texImprimee) { P.feuille.material.map = P.texImprimee; P.feuille.material.needsUpdate = true; } }
+  else { P.coffre.position.z = 1.0 * (1 - e); }
+  if (f >= 1) {
+    I.phase += 1; I.t = 0;
+    if (I.phase >= PHASES.length) {
+      impression = null; feuilles += 1; P.pile.visible = true; P.pile.scale.y = Math.min(12, feuilles); P.pile.position.y = 0.93 + 0.01 * Math.min(12, feuilles);
+      P.feuille.material.map = P.texBlanche; P.feuille.material.needsUpdate = true; shell.sound('pop');
+      panneau.querySelector('#mu-presse').textContent = feuilles + ' feuille' + (feuilles > 1 ? 's' : '') + ' imprimée' + (feuilles > 1 ? 's' : '') + '. À ce rythme, une presse à bras tire environ 200 feuilles à l\'heure : une brochure se répand en quelques jours.';
+    }
+  }
 }
 function demarrer(mode, api) {
   if (mode !== 'cours') { api.say('Approche-toi des portraits. Touche le salon, la presse, l\'Encyclopédie : c\'est ainsi que les idées circulent.', 'joyeux'); return; }
@@ -108,9 +386,11 @@ function demarrer(mode, api) {
     { type: 'qcm', texte: 'Montesquieu défend…', choix: ['la séparation des pouvoirs législatif, exécutif et judiciaire', 'le pouvoir absolu du roi', 'la suppression des lois', 'le retour à la nature'], reponse: 0, explication: 'Si une seule personne fait la loi, l\'applique et juge, c\'est la tyrannie. Les pouvoirs doivent se limiter les uns les autres.' },
     { type: 'qcm', texte: 'L\'Encyclopédie (1751 à 1772) est dirigée par…', choix: ['Diderot et d\'Alembert', 'Voltaire et Rousseau', 'Montesquieu et Newton', 'Louis XV et ses ministres'], reponse: 0, explication: '28 volumes pour rassembler tous les savoirs : sciences, techniques, arts. Un travail collectif, un temps interdit par le roi.' },
     { type: 'qcm', texte: 'Voltaire écrit le Traité sur la tolérance après…', choix: ['l\'affaire Calas (1762), un protestant exécuté à tort', 'la Révolution française', 'la mort de Louis XIV', 'un voyage en Amérique'], reponse: 0, explication: 'Jean Calas, protestant de Toulouse, est condamné et exécuté injustement. Voltaire obtient sa réhabilitation en 1765.' },
+    { type: 'toucher', texte: 'Touche la <b>presse d\'imprimerie</b>, l\'outil qui multiplie les textes.', cible: 'Presse d\'imprimerie', explication: 'Sans la presse, pas de diffusion : livres, journaux et brochures sortent par centaines de feuilles à l\'heure, souvent imprimés hors du royaume pour échapper à la censure.' },
     { type: 'qcm', texte: 'Pour Rousseau, la souveraineté appartient…', choix: ['au peuple', 'au roi', 'à l\'Église', 'aux nobles'], reponse: 0, explication: 'Du contrat social, 1762 : les citoyens s\'associent librement, et la loi exprime la volonté générale.' },
     { type: 'toucher', texte: 'Touche le portrait d\'<b>Émilie du Châtelet</b>.', cible: 'Émilie du Châtelet', explication: 'Physicienne et mathématicienne, elle traduit et commente Newton : les Lumières sont aussi scientifiques, et pas seulement masculines.' },
-    { type: 'qcm', texte: 'Comment les idées des Lumières circulent-elles ?', choix: ['Par les salons, les cafés, les livres, les journaux et l\'Encyclopédie', 'Par la télévision', 'Par les sermons à l\'église uniquement', 'Elles ne circulent pas : elles sont interdites'], reponse: 0, explication: 'Malgré la censure, les livres s\'impriment à l\'étranger, les salons et les cafés discutent, les correspondances relient toute l\'Europe.' },
+    { type: 'qcm', texte: 'Lequel de ces livres paraît en premier ?', choix: ['De l\'esprit des lois (Montesquieu)', 'Du contrat social (Rousseau)', 'Le Traité sur la tolérance (Voltaire)', 'Le premier volume de l\'Encyclopédie'], reponse: 0, explication: 'De l\'esprit des lois paraît en 1748, puis le premier volume de l\'Encyclopédie en 1751, Du contrat social en 1762 et le Traité sur la tolérance en 1763. Le bouton « Classer par date » le montre.' },
+    { type: 'qcm', texte: 'Comment les idées des Lumières circulent-elles ?', choix: ['Par les salons, les cafés, les livres, les journaux et l\'Encyclopédie', 'Par la télévision', 'Par les sermons à l\'église uniquement', 'Elles ne circulent pas : elles sont interdites'], reponse: 0, explication: 'Malgré la censure, les livres s\'impriment à l\'étranger, les salons et les cafés discutent, les correspondances relient toute l\'Europe : regarde la carte sur le mur de gauche.' },
   ], { rejouer: () => demarrer('cours', api) });
 }
 </script>

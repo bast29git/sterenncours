@@ -25,7 +25,7 @@
 </head>
 <body>
 <script type="module">
-import { creerMonde, THREE } from '../monde-base.js';
+import { creerMonde, THREE, renduLogiciel } from '../monde-base.js';
 
 const ETAPES = [
   { id: 'fibres', nom: 'Chiffons et bois', x: -6, texte: 'Le papier est fait de fibres de cellulose. Jusqu\'au XIXᵉ siècle, on récupère des chiffons de lin et de coton ; à partir de 1850, la pâte de bois remplace les chiffons devenus trop rares.' },
@@ -38,7 +38,9 @@ const ETAPES = [
 let fibres = 100; const EAU_L = 5; let vitesse = 5; let etape = null; let feuillesFaites = 0;
 let M, panneau, stations = {}, feuilles = [], bande, bandeTex;
 let formeG, feuilleForme, feuilleTransit, platine, vis, barreVis, pile = [], gouttes = [], roues = [], volant, bielle, tige, crosse, manivelle, moteurG, vapeur = [], plafond, poussiere;
-let sequence = null; let vise = null; let vueDessus = false;
+let sequence = null; let vise = null; let vueDessus = false; let lumiereOmbre = null; let logicielGlobal = false;
+/** L'ombre de la lanterne (six rendus par image) : seulement au cran haut, jamais en rendu logiciel. */
+function ombresPonctuelles(actif) { if (lumiereOmbre) lumiereOmbre.castShadow = !!actif && !logicielGlobal; }
 const LEGENDES = ETAPES.map((e) => ({ nom: e.nom, phrase: e.texte.split('. ')[0] + '.' })).concat([
   { nom: 'Machine à vapeur', phrase: 'La chaudière chauffe l\'eau, la vapeur pousse le piston, le volant entraîne la machine par une courroie.' },
   { nom: 'Lanterne', phrase: 'Une flamme protégée par du verre : la seule lumière de l\'atelier quand le jour baisse.' },
@@ -84,14 +86,35 @@ function textureJour() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
+/** Un environnement provisoire (dégradé ciel, sol) posé avant la première image : les matériaux compilent une seule fois, la vraie carte HDRI le remplace à son arrivée. */
+function environnementProvisoire(M) {
+  try {
+    // même largeur que les cartes HDRI (1024) : la carte PMREM a la même taille, donc les mêmes programmes de shader
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, '#9fb6cf'); g.addColorStop(0.5, '#e8e2d6'); g.addColorStop(1, '#5a4a3a'); x.fillStyle = g; x.fillRect(0, 0, 1024, 512);
+    const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
+    const pm = new THREE.PMREMGenerator(M.renderer); const env = pm.fromEquirectangular(t).texture; pm.dispose(); t.dispose();
+    if (!M.scene.environment) M.scene.environment = env;
+  } catch (e) { /* sans environnement provisoire */ }
+}
+/** Rendu logiciel (machine virtuelle, pilote absent) ? Sondé avant de créer la scène : alors ni bloom ni lissage, pour que l'image reste fluide. */
+function renduLogicielProbable() {
+  try { const c = document.createElement('canvas'); const gl = c.getContext('webgl2') || c.getContext('webgl'); if (!gl) return false; const r = renduLogiciel({ getContext: () => gl }); const ext = gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); return r; } catch (e) { return false; }
+}
+
 function init() {
+  logicielGlobal = renduLogicielProbable();
   M = creerMonde(shell, {
     fond: 0xc7d0d8, hdri: '../assets/3d/env/workshop_1k.hdr', environnement: 0.6, ambiance: 0.7,
     sol: { taille: 14, texture: 'worn_planks', repetition: 12, carre: true, rugosite: 0.9 },
     soleil: { position: [6, 9, 20], intensite: 2.0, couleur: 0xffdcb4, etendue: 18 },
     camera: { position: [1, 4.8, 12], cible: [0.5, 1.2, 0], min: 3, max: 24 },
     legendes: LEGENDES, libelle: 'Un atelier de papetier à colombages, avec six stations de fabrication et une machine à vapeur',
+    surQualite: (cran) => ombresPonctuelles(cran >= 3),
+    rendu: logicielGlobal ? { bloom: false, smaa: false, gtao: false } : undefined,
   });
+  const logiciel = logicielGlobal;
+  environnementProvisoire(M);
   const { scene, mesh, mat, legender, etiquette, meshPBR, matPhysique } = M;
   const boite = (w, h, d, materiau, pos, parent) => mesh(new THREE.BoxGeometry(w, h, d), materiau, pos, parent);
   const cyl = (rh, rb, h, seg, materiau, pos, parent) => mesh(new THREE.CylinderGeometry(rh, rb, h, seg), materiau, pos, parent);
@@ -148,7 +171,7 @@ function init() {
     const vitre = mesh(new THREE.BoxGeometry(0.24, 0.4, 0.24), verre, [0, 0.07, 0], g); vitre.castShadow = false;
     const flamme = mesh(new THREE.SphereGeometry(0.045, 10, 8), mat(0xffc46a, { emissif: 0xffa23a, intensite: 3.2 }), [0, 0.0, 0], g); flamme.scale.y = 1.6; flamme.castShadow = false;
     const lum = new THREE.PointLight(0xffb467, 11, 9, 2); lum.position.set(0, 0.02, 0); g.add(lum);
-    if (ombre) { lum.castShadow = true; lum.shadow.mapSize.set(512, 512); lum.shadow.bias = -0.004; }
+    if (ombre) { lum.shadow.mapSize.set(512, 512); lum.shadow.bias = -0.004; lumiereOmbre = lum; }
     legender(g, 'Lanterne', LEGENDES[7].phrase); lanternes.push({ flamme, lum, base: 11 });
   });
 
@@ -210,6 +233,7 @@ function init() {
   const hache = new THREE.Group(); hache.position.set(0.1, 0.43, -1.05); hache.rotation.z = -0.45; hache.rotation.y = 0.4; s1.add(hache);
   boite(0.04, 0.7, 0.04, boisClair, [0, 0.36, 0], hache); boite(0.22, 0.14, 0.03, fer, [0.1, 0.1, 0], hache); void souche;
   stations.fibres = s1;
+  ombresPonctuelles(!logiciel);
 
   /* ---------- 2. Cuve : douves, cercles, pâte, rame ---------- */
   const s2 = new THREE.Group(); scene.add(s2); s2.position.x = ETAPES[1].x; legender(s2, ETAPES[1].nom, LEGENDES[1].phrase);

@@ -329,7 +329,7 @@ function placer() {
   if (!versement) ['cone', 'pyramide'].forEach((k) => { S[k].groupe.position.copy(superpose ? S[k === 'cone' ? 'cylindre' : 'prisme'].repos : S[k].repos); S[k].groupe.rotation.set(0, 0, 0); });
   const { basesM, E, EB } = M.aux;
   Object.keys(E).forEach((k) => { E[k].position.set(S[k].repos.x, hU + (k === 'pyramide' ? 0.75 : 0.6), Z); });
-  Object.keys(basesM).forEach((k) => { const b = basesM[k]; b.visible = bases; b.position.set(S[k].repos.x, 0.012, Z); const t = (k === 'cone' || k === 'cylindre') ? rU : aU; b.scale.set(t, t, 1); });
+  Object.keys(basesM).forEach((k) => { const b = basesM[k]; b.visible = bases; b.raycast = bases ? THREE.Mesh.prototype.raycast : () => {}; b.position.set(S[k].repos.x, 0.012, Z); const t = (k === 'cone' || k === 'cylindre') ? rU : aU; b.scale.set(t, t, 1); });
   EB.cone.visible = bases; EB.pyramide.visible = bases;
   if (bases) {
     EB.cone.material.map.dispose(); EB.cone.material.map = textureTexte('B = π × ' + f1(r) + '² ≈ ' + f1(Math.PI * r * r) + ' cm²', { taille: 26, fond: 'rgba(27,130,224,0.92)' }); EB.cone.scale.set(0.36 * EB.cone.material.map.userData.ratio, 0.36, 1); EB.cone.position.set(S.cone.repos.x, 0.32, Z + rU + 0.35);

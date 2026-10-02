@@ -36,7 +36,7 @@ for (const f of mondes) {
     // Enchaîner les défis : un qcm reçoit la réponse 1, un « toucher » ou un « vérifier » passe. Sans défis
     // (mondes à mission propre), on provoque la fin : la banque de la leçon s'ouvre, on la parcourt.
     let banqueProvoquee = false;
-    for (let k = 0; k < 24; k += 1) {
+    for (let k = 0; k < 44; k += 1) {
       const etat = await page.evaluate(() => {
         const bq = document.querySelector('.ksh-banque');
         if (bq) { const suite = bq.querySelector('.ksh-banque-suite:not([hidden])'); if (suite) { suite.click(); return 'banque-suite'; } const opt = bq.querySelector('[data-c]:not(:disabled)'); if (opt) { opt.click(); return 'banque'; } return 'banque-attente'; }

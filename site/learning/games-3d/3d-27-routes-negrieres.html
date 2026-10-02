@@ -9,6 +9,18 @@
 <script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
 <script src="../konstrio.js"></script>
 <script src="../shell.js"></script>
+<style>
+  .tr-details { border: 1px solid var(--border); border-radius: 10px; padding: 0 8px 8px; }
+  .tr-details summary { cursor: pointer; font-weight: 700; font-size: 13px; min-height: 36px; display: flex; align-items: center; list-style: none; }
+  .tr-details summary::before { content: '▸'; margin-right: 6px; color: var(--fg-muted); }
+  .tr-details[open] summary::before { content: '▾'; }
+  .tr-details[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .tr-details > * + * { margin-top: 8px; }
+  .tr-petit { font-size: 12px; color: var(--fg-muted); }
+  .tr-barres { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 8px; align-items: center; font-size: 12px; }
+  .tr-barres i { display: block; height: 8px; border-radius: 4px; background: var(--accent); min-width: 3px; }
+  .tr-barres b { font-family: var(--font-data); }
+</style>
 </head>
 <body>
 <script type="module">
@@ -16,97 +28,199 @@ import { creerMonde, THREE, latlon, arcSphere } from '../monde-base.js';
 
 const R = 3;
 const PORTS = [
-  { id: 'nantes', nom: 'Nantes', lat: 47.2, lon: -1.55, texte: 'Premier port négrier français : environ 1 800 expéditions au XVIIIᵉ siècle. Les armateurs y bâtissent leurs hôtels particuliers.' },
-  { id: 'bordeaux', nom: 'Bordeaux', lat: 44.8, lon: -0.58, texte: 'Grand port du commerce colonial : sucre et café des Antilles, et quelques centaines d\'expéditions négrières.' },
-  { id: 'liverpool', nom: 'Liverpool', lat: 53.4, lon: -3.0, texte: 'Premier port négrier européen à la fin du XVIIIᵉ siècle, devant Londres et Bristol.' },
-  { id: 'lisbonne', nom: 'Lisbonne', lat: 38.7, lon: -9.1, texte: 'Les Portugais ouvrent la traite atlantique dès le XVᵉ siècle, vers le Brésil surtout.' },
-  { id: 'goree', nom: 'Gorée', lat: 14.7, lon: -17.4, texte: 'Île au large de Dakar, comptoir de traite : lieu de mémoire aujourd\'hui.' },
-  { id: 'ouidah', nom: 'Ouidah', lat: 6.35, lon: 2.1, texte: 'Sur la « côte des Esclaves » (Bénin actuel) : les captifs, achetés aux royaumes côtiers, y sont embarqués.' },
-  { id: 'luanda', nom: 'Luanda', lat: -8.8, lon: 13.2, texte: 'Comptoir portugais d\'Angola : des millions de captifs partent vers le Brésil.' },
-  { id: 'saint-domingue', nom: 'Saint-Domingue', lat: 18.5, lon: -72.3, texte: 'La colonie la plus riche du monde au XVIIIᵉ : sucre et café produits par des centaines de milliers d\'esclaves. Révolte en 1791, indépendance d\'Haïti en 1804.' },
-  { id: 'bahia', nom: 'Bahia', lat: -12.97, lon: -38.5, texte: 'Le Brésil reçoit près de 40 % des captifs déportés : plantations de canne à sucre, puis mines d\'or.' },
-  { id: 'charleston', nom: 'Charleston', lat: 32.8, lon: -79.9, texte: 'Principal port d\'arrivée en Amérique du Nord : plantations de riz, d\'indigo puis de coton.' },
+  { id: 'nantes', nom: 'Nantes', lat: 47.2, lon: -1.55, zone: 'europe', texte: 'Premier port négrier français : environ 1 800 expéditions au XVIIIᵉ siècle. Les armateurs y bâtissent leurs hôtels particuliers.' },
+  { id: 'bordeaux', nom: 'Bordeaux', lat: 44.8, lon: -0.58, zone: 'europe', texte: 'Grand port du commerce colonial : sucre et café des Antilles, et quelques centaines d\'expéditions négrières.' },
+  { id: 'liverpool', nom: 'Liverpool', lat: 53.4, lon: -3.0, zone: 'europe', texte: 'Premier port négrier européen à la fin du XVIIIᵉ siècle, devant Londres et Bristol.' },
+  { id: 'lisbonne', nom: 'Lisbonne', lat: 38.7, lon: -9.1, zone: 'europe', texte: 'Les Portugais ouvrent la traite atlantique dès le XVᵉ siècle, vers le Brésil surtout.' },
+  { id: 'goree', nom: 'Gorée', lat: 14.7, lon: -17.4, zone: 'afrique', texte: 'Île au large de Dakar, comptoir de traite : lieu de mémoire aujourd\'hui.' },
+  { id: 'ouidah', nom: 'Ouidah', lat: 6.35, lon: 2.1, zone: 'afrique', texte: 'Sur la « côte des Esclaves » (Bénin actuel) : les captifs, achetés aux royaumes côtiers comme le Dahomey, y sont embarqués.' },
+  { id: 'luanda', nom: 'Luanda', lat: -8.8, lon: 13.2, zone: 'afrique', texte: 'Comptoir portugais d\'Angola : des millions de captifs partent vers le Brésil.' },
+  { id: 'saint-domingue', nom: 'Saint-Domingue', lat: 18.5, lon: -72.3, zone: 'ameriques', texte: 'La colonie la plus riche du monde au XVIIIᵉ : sucre et café produits par des centaines de milliers d\'esclaves. Révolte en 1791, indépendance d\'Haïti en 1804.' },
+  { id: 'kingston', nom: 'Kingston', lat: 17.97, lon: -76.8, zone: 'ameriques', texte: 'Jamaïque, colonie britannique : plantations de sucre. Les Antilles britanniques reçoivent environ 2,3 millions de captifs.' },
+  { id: 'havane', nom: 'La Havane', lat: 23.1, lon: -82.4, zone: 'ameriques', texte: 'Cuba, colonie espagnole : la traite y continue tard, jusque vers 1866. L\'Amérique espagnole reçoit environ 1,3 million de captifs.' },
+  { id: 'bahia', nom: 'Bahia', lat: -12.97, lon: -38.5, zone: 'ameriques', texte: 'Le Brésil reçoit près de 40 % des captifs déportés : plantations de canne à sucre, puis mines d\'or.' },
+  { id: 'charleston', nom: 'Charleston', lat: 32.8, lon: -79.9, zone: 'ameriques', texte: 'Principal port d\'arrivée en Amérique du Nord : plantations de riz, d\'indigo puis de coton.' },
 ];
 const ROUTES = [
-  { id: 1, nom: 'Europe → Afrique', de: ['nantes', 'liverpool', 'lisbonne'], vers: ['goree', 'ouidah', 'luanda'], couleur: 0xF5A623, cargaison: 'Tissus, armes, alcool, verroterie : des produits manufacturés échangés contre des captifs.' },
-  { id: 2, nom: 'Afrique → Amériques', de: ['goree', 'ouidah', 'luanda'], vers: ['saint-domingue', 'bahia', 'charleston'], couleur: 0xE63329, cargaison: 'Des captifs enchaînés dans l\'entrepont : le « passage du milieu », un à trois mois, une mortalité de 10 à 20 %.' },
-  { id: 3, nom: 'Amériques → Europe', de: ['saint-domingue', 'bahia', 'charleston'], vers: ['nantes', 'bordeaux', 'liverpool'], couleur: 0x2AA98C, cargaison: 'Sucre, café, coton, tabac, indigo : les produits des plantations vendus en Europe.' },
+  { id: 1, nom: 'Europe → Afrique', de: ['nantes', 'liverpool', 'lisbonne'], vers: ['goree', 'ouidah', 'luanda'], couleur: 0xF5A623, cargaison: 'Tissus, armes, alcool, verroterie : des produits manufacturés échangés contre des captifs.', duree: 'Un à deux mois de mer, puis des semaines de négoce le long de la côte.' },
+  { id: 2, nom: 'Afrique → Amériques', de: ['goree', 'ouidah', 'luanda'], vers: ['saint-domingue', 'bahia', 'charleston'], couleur: 0xE63329, cargaison: 'Des captifs enchaînés dans l\'entrepont : le « passage du milieu », un à trois mois, une mortalité de 10 à 20 %.', duree: 'Un à trois mois : la traversée la plus longue et la plus meurtrière.' },
+  { id: 3, nom: 'Amériques → Europe', de: ['saint-domingue', 'bahia', 'charleston'], vers: ['nantes', 'bordeaux', 'liverpool'], couleur: 0x2AA98C, cargaison: 'Sucre, café, coton, tabac, indigo : les produits des plantations vendus en Europe.', duree: 'Un à deux mois. L\'expédition entière dure douze à dix-huit mois.' },
 ];
+const ZONES = { europe: { nom: 'Europe', couleur: 0xF5A623, lon: -3 }, afrique: { nom: 'Afrique', couleur: 0xE63329, lon: 0 }, ameriques: { nom: 'Amériques', couleur: 0x2AA98C, lon: -66 } };
 const SIECLES = [{ de: 1500, a: 1600, deportes: 0.3 }, { de: 1600, a: 1700, deportes: 1.9 }, { de: 1700, a: 1800, deportes: 6.5 }, { de: 1800, a: 1870, deportes: 3.9 }];
-const DATES = [[1685, 'Code noir : l\'esclave est un bien meuble'], [1791, 'Révolte des esclaves de Saint-Domingue'], [1794, 'Première abolition par la Convention'], [1802, 'Rétablissement par Bonaparte'], [1807, 'Le Royaume-Uni interdit la traite'], [1848, 'Abolition définitive en France (Schœlcher)']];
-let annee = 1750; let M, panneau, globe, navires = [], routesVisibles = { 1: true, 2: true, 3: true }, lignes = {};
+const DATES = [[1685, 'Code noir : l\'esclave est un bien meuble'], [1791, 'Révolte des esclaves de Saint-Domingue'], [1794, 'Première abolition par la Convention'], [1802, 'Rétablissement par Bonaparte'], [1807, 'Le Royaume-Uni interdit la traite'], [1815, 'Le congrès de Vienne condamne la traite'], [1833, 'Abolition dans les colonies britanniques'], [1848, 'Abolition définitive en France (Schœlcher)'], [1865, 'Abolition aux États-Unis (13ᵉ amendement)'], [1888, 'Abolition au Brésil, le dernier pays des Amériques']];
+const ARRIVEES = [{ port: 'bahia', region: 'Brésil', millions: 4.9, dx: 6 }, { port: 'kingston', region: 'Antilles britanniques', millions: 2.3, dx: -9 }, { port: 'havane', region: 'Amérique espagnole', millions: 1.3, dx: -6 }, { port: 'saint-domingue', region: 'Antilles françaises', millions: 1.1, dx: 9 }, { port: 'charleston', region: 'Amérique du Nord', millions: 0.4, dx: 0 }];
+let annee = 1750; let rotation = true; let arrivees = false;
+let M, panneau, globe, nuages, navires = [], flux = [], routesVisibles = { 1: true, 2: true, 3: true }, lignes = {}, barres, parId = {}, visee = null;
 const LEGENDES = PORTS.map((p) => ({ nom: p.nom, phrase: p.texte.split('. ')[0] + '.' })).concat(ROUTES.map((r) => ({ nom: r.nom, phrase: r.cargaison })));
+const F1 = (x) => String(x).replace('.', ',');
 const shell = window.Konstrio.createGame({
   id: '3d-27-routes-negrieres', code: '3D·27', title: 'Ports négriers et routes maritimes', type: '3D', duree: '12 min',
   domain: { label: 'Histoire', color: '#B9541D' },
   intro: {
     greet: 'Le commerce triangulaire sur le globe : trois côtés, des ports, des dates, et le nombre de personnes déportées.',
-    rule: 'Tourne le globe, touche un port ou une route. Le curseur des années montre l\'ampleur de la traite siècle par siècle et les grandes dates.',
-    how: ['Glisse pour tourner le globe, molette pour zoomer.', 'Touche un port (Nantes, Ouidah, Saint-Domingue…) ou une route pour sa légende.', 'Le panneau allume chaque côté du triangle et fait défiler les années.'],
+    rule: 'Tourne le globe, touche un port ou une route. Le curseur des années montre l\'ampleur de la traite siècle par siècle et les grandes dates. Les barres d\'arrivées comparent les régions.',
+    how: ['Glisse pour tourner le globe, molette pour zoomer. Les boutons « Voir » le tournent vers un continent.', 'Touche un port (Nantes, Ouidah, Saint-Domingue…) ou une route pour sa légende.', 'Le panneau allume chaque côté du triangle, fait défiler les années et affiche les arrivées par région.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Décrire les trois côtés du commerce triangulaire, situer les grands ports, et dater la traite et son abolition.',
     hint: 'Europe → Afrique : marchandises. Afrique → Amériques : captifs. Amériques → Europe : sucre, café, coton.',
-    why: 'La traite atlantique a déporté environ 12,5 millions de personnes entre le XVIᵉ et le XIXᵉ siècle. Les ports européens s\'y sont enrichis.',
+    why: 'La traite atlantique a déporté environ 12,5 millions de personnes entre le XVIᵉ et le XIXᵉ siècle ; 10,7 millions environ sont arrivées vivantes. Les ports européens s\'y sont enrichis.',
   },
-  learned: ['Le commerce triangulaire relie l\'Europe, l\'Afrique et les Amériques ; les captifs traversent l\'Atlantique lors du « passage du milieu ».', 'Le XVIIIᵉ siècle est le pic de la traite : environ 6,5 millions de personnes déportées.', 'Code noir 1685 ; première abolition 1794 ; rétablissement 1802 ; abolition définitive en France en 1848.'],
+  learned: ['Le commerce triangulaire relie l\'Europe, l\'Afrique et les Amériques ; les captifs traversent l\'Atlantique lors du « passage du milieu ».', 'Le XVIIIᵉ siècle est le pic de la traite : environ 6,5 millions de personnes déportées. Le Brésil reçoit près de 40 % des captifs.', 'Code noir 1685 ; première abolition 1794 ; rétablissement 1802 ; abolition définitive en France en 1848.'],
   onReady: init, onStart: demarrer,
 });
 
+function canevas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return { c, x: c.getContext('2d'), t }; }
+/* La carte de rugosité est déduite de la carte de jour : océans lisses (reflet du soleil), terres mates. */
+function carteRugosite(image) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const x = c.getContext('2d'); x.drawImage(image, 0, 0, 1024, 512);
+  const d = x.getImageData(0, 0, 1024, 512); const p = d.data;
+  for (let i = 0; i < p.length; i += 4) { const r = p[i]; const g = p[i + 1]; const b = p[i + 2]; const ocean = b > r + 18 && b >= g - 4 && r < 120; const v = ocean ? 92 : (r + g + b > 600 ? 150 : 230); p[i] = p[i + 1] = p[i + 2] = v; }
+  x.putImageData(d, 0, 0); const t = new THREE.CanvasTexture(c); return t;
+}
+
 function init() {
-  M = creerMonde(shell, { fond: 0x0a1020, sol: false, ombres: false, ambiance: 0.6, soleil: { position: [-20, 10, 20], intensite: 1.6 }, camera: { position: [0, 3, 10], cible: [0, 0, 0], min: 4.5, max: 24, polaire: Math.PI }, legendes: LEGENDES, libelle: 'Un globe terrestre avec les routes du commerce triangulaire' });
-  const { scene, mesh, mat, legender, etiquette } = M;
-  globe = new THREE.Group(); scene.add(globe);
-  const matTerre = mat(0x3f6fb5, { rugosite: 0.9 });
-  const terre = mesh(new THREE.SphereGeometry(R, 72, 54), matTerre, [0, 0, 0], globe); terre.castShadow = false; terre.receiveShadow = false; terre.raycast = () => {};
-  new THREE.TextureLoader().load('../assets/3d/planets/2k_earth_daymap.jpg', (t) => { t.colorSpace = THREE.SRGBColorSpace; matTerre.map = t; matTerre.color.set(0xffffff); matTerre.needsUpdate = true; }, undefined, () => {});
-  const halo = new THREE.Mesh(new THREE.SphereGeometry(R * 1.03, 48, 36), new THREE.MeshBasicMaterial({ color: 0x6fb3ff, transparent: true, opacity: 0.07, side: THREE.BackSide, depthWrite: false })); halo.raycast = () => {}; globe.add(halo);
-  const pts = []; for (let i = 0; i < 900; i += 1) { const v = new THREE.Vector3().randomDirection().multiplyScalar(120); pts.push(v.x, v.y, v.z); }
-  const gs = new THREE.BufferGeometry(); gs.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); const etoiles = new THREE.Points(gs, new THREE.PointsMaterial({ color: 0xaab4d0, size: 0.3 })); etoiles.raycast = () => {}; scene.add(etoiles);
-  // ports
-  const parId = {};
-  PORTS.forEach((p) => {
-    const pos = latlon(p.lat, p.lon, R * 1.005); const g = new THREE.Group(); g.position.copy(pos); globe.add(g); parId[p.id] = pos;
-    const pin = new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 10), mat(0xffd36a, { emissif: 0xffb300, intensite: 0.8 })); g.add(pin);
-    const zone = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), new THREE.MeshBasicMaterial({ visible: false })); g.add(zone);
-    legender(g, p.nom, LEGENDES.find((l) => l.nom === p.nom).phrase);
-    const e = etiquette(p.nom, [0, 0, 0], { hauteur: 0.28, taille: 26 }); e.position.copy(pos.clone().multiplyScalar(1.09)); globe.add(e); e.material.depthTest = true;
+  M = creerMonde(shell, {
+    fond: null, hdri: false, sol: false, ombres: false, ambiance: 0.32,
+    soleil: { position: [-22, 9, 18], intensite: 2.0, couleur: 0xfff4e4 },
+    camera: { position: [0, 2.4, 9.6], cible: [0, 0, 0], min: 4.2, max: 24, polaire: Math.PI },
+    rendu: { bloom: { force: 0.35, rayon: 0.5, seuil: 0.82 } },
+    legendes: LEGENDES, libelle: 'Un globe terrestre avec les ports et les routes du commerce triangulaire',
   });
-  // routes : arcs et navires
+  const { scene, mesh, mat, legender, etiquette } = M;
+  const appoint = new THREE.DirectionalLight(0x9fb4ff, 0.35); appoint.position.set(20, -6, -16); scene.add(appoint);
+  // la Terre : carte haute résolution, océans brillants, nuages, atmosphère
+  globe = new THREE.Group(); scene.add(globe);
+  const matTerre = new THREE.MeshStandardMaterial({ color: 0x3f6fb5, roughness: 1, metalness: 0.04 });
+  const terre = mesh(new THREE.SphereGeometry(R, 96, 72), matTerre, [0, 0, 0], globe); terre.castShadow = false; terre.receiveShadow = false; terre.raycast = () => {};
+  const charg = new THREE.TextureLoader();
+  charg.load('../assets/3d/planets/hires_terre.jpg', (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; matTerre.map = t; matTerre.color.set(0xffffff); matTerre.needsUpdate = true; }, undefined, () => { charg.load('../assets/3d/planets/2k_earth_daymap.jpg', (t) => { t.colorSpace = THREE.SRGBColorSpace; matTerre.map = t; matTerre.color.set(0xffffff); matTerre.needsUpdate = true; }); });
+  charg.load('../assets/3d/planets/2k_earth_daymap.jpg', (t) => { try { matTerre.roughnessMap = carteRugosite(t.image); matTerre.needsUpdate = true; } catch (e) { matTerre.roughness = 0.7; } }, undefined, () => {});
+  const matNuages = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, roughness: 1 });
+  nuages = new THREE.Mesh(new THREE.SphereGeometry(R * 1.014, 72, 54), matNuages); nuages.raycast = () => {}; globe.add(nuages);
+  charg.load('../assets/3d/planets/2k_earth_clouds.jpg', (t) => { matNuages.alphaMap = t; matNuages.opacity = 0.55; matNuages.needsUpdate = true; }, undefined, () => {});
+  const atmo = new THREE.Mesh(new THREE.SphereGeometry(R * 1.09, 64, 48), new THREE.ShaderMaterial({
+    uniforms: { couleur: { value: new THREE.Color(0x5fa8ff) } }, transparent: true, blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false,
+    vertexShader: 'varying vec3 vN; void main(){ vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'varying vec3 vN; uniform vec3 couleur; void main(){ float f = pow(0.66 - dot(vN, vec3(0.0, 0.0, 1.0)), 4.0); gl_FragColor = vec4(couleur * f * 1.1, f); }',
+  })); atmo.raycast = () => {}; scene.add(atmo);
+  const limbe = new THREE.Mesh(new THREE.SphereGeometry(R * 1.002, 72, 54), new THREE.ShaderMaterial({
+    uniforms: { couleur: { value: new THREE.Color(0x6fb3ff) } }, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+    vertexShader: 'varying vec3 vN; varying vec3 vP; void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vP = mv.xyz; gl_Position = projectionMatrix * mv; }',
+    fragmentShader: 'varying vec3 vN; varying vec3 vP; uniform vec3 couleur; void main(){ float f = pow(1.0 - max(0.0, dot(vN, normalize(-vP))), 3.0); gl_FragColor = vec4(couleur * f * 0.6, f * 0.6); }',
+  })); limbe.raycast = () => {}; globe.add(limbe);
+  // le fond : la Voie lactée et quelques étoiles vives
+  const fond = new THREE.Mesh(new THREE.SphereGeometry(150, 48, 24), new THREE.MeshBasicMaterial({ color: 0x8890a8, side: THREE.BackSide, fog: false })); fond.raycast = () => {}; fond.renderOrder = -10; scene.add(fond);
+  charg.load('../assets/3d/planets/2k_stars_milky_way.jpg', (t) => { t.colorSpace = THREE.SRGBColorSpace; fond.material.map = t; fond.material.color.set(0xffffff); fond.material.needsUpdate = true; }, undefined, () => {});
+  const pts = []; for (let i = 0; i < 700; i += 1) { const v = new THREE.Vector3().randomDirection().multiplyScalar(120); pts.push(v.x, v.y, v.z); }
+  const gs = new THREE.BufferGeometry(); gs.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); const etoiles = new THREE.Points(gs, new THREE.PointsMaterial({ color: 0xcfd6ea, size: 0.28, transparent: true, opacity: 0.85, fog: false })); etoiles.raycast = () => {}; scene.add(etoiles);
+  // les ports : une épingle, une bague au sol, une étiquette
+  const geoAiguille = new THREE.CylinderGeometry(0.008, 0.016, 0.22, 8); const geoTete = new THREE.SphereGeometry(0.05, 14, 10); const geoBague = new THREE.RingGeometry(0.07, 0.1, 24);
+  PORTS.forEach((p) => {
+    const pos = latlon(p.lat, p.lon, R * 1.0); const n = pos.clone().normalize(); parId[p.id] = latlon(p.lat, p.lon, R * 1.004);
+    const g = new THREE.Group(); g.position.copy(pos); g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n); globe.add(g);
+    const c = ZONES[p.zone].couleur; const matP = mat(0xfff1d6, { emissif: c, intensite: 0.9, rugosite: 0.4 });
+    const aig = new THREE.Mesh(geoAiguille, mat(0xe8e2d6, { rugosite: 0.3, metal: 0.8 })); aig.position.y = 0.11; g.add(aig);
+    const tete = new THREE.Mesh(geoTete, matP); tete.position.y = 0.25; g.add(tete);
+    const bague = new THREE.Mesh(geoBague, new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.85, side: THREE.DoubleSide })); bague.rotation.x = -Math.PI / 2; bague.position.y = 0.006; g.add(bague);
+    const zone = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), new THREE.MeshBasicMaterial({ visible: false })); zone.position.y = 0.16; g.add(zone);
+    legender(g, p.nom, LEGENDES.find((l) => l.nom === p.nom).phrase);
+    const e = etiquette(p.nom, [0, 0, 0], { hauteur: 0.24, taille: 26, fond: 'rgba(16, 22, 32, 0.82)' }); e.position.copy(pos.clone().multiplyScalar(1.14)); globe.add(e); e.material.depthTest = true;
+  });
+  // les routes : un arc, des particules qui avancent, des navires
+  const sp = canevas(64, 64); const gr = sp.x.createRadialGradient(32, 32, 1, 32, 32, 30); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.4, 'rgba(255,255,255,0.6)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); sp.x.fillStyle = gr; sp.x.fillRect(0, 0, 64, 64); sp.t.needsUpdate = true;
   ROUTES.forEach((r) => {
     const grp = new THREE.Group(); globe.add(grp); lignes[r.id] = grp;
-    r.de.forEach((a, i) => { const b = r.vers[i % r.vers.length]; const courbe = arcSphere(parId[a], parId[b], R, 0.16, 56); const geo = new THREE.TubeGeometry(courbe, 56, 0.018, 6, false); const tube = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: r.couleur, transparent: true, opacity: 0.85 })); grp.add(tube); tube.userData.legende = { nom: r.nom, phrase: r.cargaison };
-      for (let k = 0; k < 2; k += 1) { const nav = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.16, 6), mat(0xffffff, { emissif: r.couleur, intensite: 0.9 })); nav.userData.legende = tube.userData.legende; grp.add(nav); navires.push({ m: nav, courbe, t: k * 0.5, v: 0.05 + Math.random() * 0.03 }); } });
+    r.de.forEach((a, i) => {
+      const b = r.vers[i % r.vers.length]; const courbe = arcSphere(parId[a], parId[b], R, 0.14, 64);
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(courbe, 72, 0.014, 6, false), new THREE.MeshBasicMaterial({ color: r.couleur, transparent: true, opacity: 0.7 })); grp.add(tube); tube.userData.legende = { nom: r.nom, phrase: r.cargaison };
+      const n = 36; const pos = new Float32Array(n * 3); const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const points = new THREE.Points(geo, new THREE.PointsMaterial({ color: r.couleur, size: 0.075, map: sp.t, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending })); points.raycast = () => {}; points.frustumCulled = false; grp.add(points);
+      flux.push({ points, courbe, n, decal: Math.random(), v: 0.06 });
+      for (let k = 0; k < 2; k += 1) { const nav = navire(r.couleur); nav.userData.legende = tube.userData.legende; nav.traverse((c) => { c.userData.legende = tube.userData.legende; }); grp.add(nav); navires.push({ m: nav, courbe, t: (k + Math.random() * 0.4) * 0.5, v: 0.035 + Math.random() * 0.02 }); }
+    });
   });
+  // les barres d'arrivées par région, posées sur les ports des Amériques
+  barres = new THREE.Group(); barres.visible = false; globe.add(barres);
+  ARRIVEES.forEach((a) => {
+    const p = PORTS.find((x) => x.id === a.port); const pos = latlon(p.lat, p.lon, R); const n = pos.clone().normalize(); const h = 0.15 + a.millions * 0.15;
+    const g = new THREE.Group(); g.position.copy(pos); g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n); barres.add(g);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.13, h, 0.13), mat(0xbfeee4, { emissif: 0x2AA98C, intensite: 0.7, rugosite: 0.4 })); b.position.y = h / 2 + 0.02; g.add(b);
+    const phrase = a.region + ' : environ ' + F1(a.millions) + ' million' + (a.millions >= 2 ? 's' : '') + ' de captifs débarqués, sur 10,7 millions arrivés vivants.';
+    legender(g, 'Arrivées : ' + a.region, phrase);
+    const e = etiquette(a.region + '\n≈ ' + F1(a.millions) + ' M', [0, 0, 0], { hauteur: 0.34, taille: 24, fond: 'rgba(16, 60, 50, 0.85)' }); e.position.copy(latlon(p.lat, p.lon + a.dx, R + h + 0.26)); barres.add(e); e.material.depthTest = true;
+  });
+  construirePanneau(); majAnnee();
+  M.boucle(animer);
+}
+/* Un petit navire : coque, mât, voile. Le +z local pointe vers l'avant. */
+function navire(couleur) {
+  const g = new THREE.Group(); const coque = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.028, 0.15), M.mat(0x3a2a1c, { rugosite: 0.8 })); coque.position.y = 0.014; g.add(coque);
+  const mat = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.12, 6), M.mat(0x6b5240)); mat.position.y = 0.08; g.add(mat);
+  const voile = new THREE.Mesh(new THREE.PlaneGeometry(0.07, 0.08), new THREE.MeshStandardMaterial({ color: 0xf4efe4, emissive: couleur, emissiveIntensity: 0.25, side: THREE.DoubleSide, roughness: 0.9 })); voile.position.set(0, 0.09, 0.005); g.add(voile);
+  return g;
+}
+function construirePanneau() {
   panneau = M.panneau(`<h3>Les trois côtés</h3>
-    <div class="mb-etapes">${ROUTES.map((r) => `<button class="mb-bouton" data-route="${r.id}" aria-pressed="true" style="border-left:6px solid #${r.couleur.toString(16).padStart(6, '0')}"><i>${r.id}</i>${r.nom}</button>`).join('')}</div>
+    <div class="mb-etapes">${ROUTES.map((r) => `<button class="mb-bouton" type="button" data-route="${r.id}" aria-pressed="true" style="border-left:6px solid #${r.couleur.toString(16).padStart(6, '0')}"><i>${r.id}</i>${r.nom}</button>`).join('')}</div>
     <p class="mb-carte" id="tr-carg">Touche une route ou un port pour sa légende.</p>
     <h3>Les années</h3>
-    <label>Année <span class="mb-val" id="tr-an">${annee}</span><input class="mb-plage" id="tr-ans" type="range" min="1500" max="1870" step="5" value="${annee}" aria-label="Année"></label>
-    <div class="mb-mesures"><span>Déportés sur le siècle</span><b id="tr-dep">·</b><span>Total XVIᵉ à XIXᵉ</span><b>≈ 12,5 millions</b></div>
-    <p class="mb-carte" id="tr-date"></p>`);
-  panneau.querySelectorAll('[data-route]').forEach((b) => b.addEventListener('click', () => { const id = Number(b.getAttribute('data-route')); routesVisibles[id] = !routesVisibles[id]; b.setAttribute('aria-pressed', String(routesVisibles[id])); lignes[id].visible = routesVisibles[id]; panneau.querySelector('#tr-carg').textContent = ROUTES[id - 1].nom + ' : ' + ROUTES[id - 1].cargaison; shell.say(ROUTES[id - 1].cargaison, 'concentre'); }));
+    <label>Année <span class="mb-val" id="tr-an">${annee}</span><input class="mb-plage" id="tr-ans" type="range" min="1500" max="1890" step="1" value="${annee}" aria-label="Année"></label>
+    <div class="mb-mesures"><span>Déportés sur la période</span><b id="tr-dep">·</b><span>Total XVIᵉ à XIXᵉ</span><b>≈ 12,5 millions</b></div>
+    <p class="mb-carte" id="tr-date"></p>
+    <details class="tr-details"><summary>Outils</summary>
+      <p class="tr-petit">Tourner le globe vers</p>
+      <div class="mb-groupe" role="group" aria-label="Tourner le globe vers">${Object.keys(ZONES).map((z) => `<button class="mb-bouton" type="button" data-zone="${z}">${ZONES[z].nom}</button>`).join('')}</div>
+      <button class="mb-bouton" type="button" id="tr-arrivees" aria-pressed="false">Arrivées par région</button>
+      <div class="tr-barres" id="tr-barres" hidden>${ARRIVEES.map((a) => `<span>${a.region}</span><i style="width:${Math.round(a.millions / 4.9 * 100)}%"></i><b>${F1(a.millions)} M</b>`).join('')}</div>
+      <button class="mb-bouton" type="button" id="tr-rotation" aria-pressed="true">Rotation du globe</button>
+    </details>`);
+  panneau.querySelectorAll('[data-route]').forEach((b) => b.addEventListener('click', () => { const id = Number(b.getAttribute('data-route')); routesVisibles[id] = !routesVisibles[id]; b.setAttribute('aria-pressed', String(routesVisibles[id])); lignes[id].visible = routesVisibles[id]; const r = ROUTES[id - 1]; panneau.querySelector('#tr-carg').textContent = r.nom + ' : ' + r.cargaison + ' Durée : ' + r.duree; shell.say(r.cargaison + ' ' + r.duree, 'concentre'); }));
   panneau.querySelector('#tr-ans').addEventListener('input', (e) => { annee = Number(e.target.value); majAnnee(); });
-  majAnnee();
-  M.boucle((dt) => {
-    globe.rotation.y += dt * 0.02;
-    navires.forEach((n) => { n.t = (n.t + dt * n.v) % 1; const p = n.courbe.getPoint(n.t); const q = n.courbe.getPoint(Math.min(1, n.t + 0.01)); n.m.position.copy(p); n.m.lookAt(q.clone().add(globe.position)); n.m.rotateX(Math.PI / 2); });
-  });
+  panneau.querySelectorAll('[data-zone]').forEach((b) => b.addEventListener('click', () => viser(b.getAttribute('data-zone'))));
+  panneau.querySelector('#tr-arrivees').addEventListener('click', (e) => { arrivees = !arrivees; e.currentTarget.setAttribute('aria-pressed', String(arrivees)); barres.visible = arrivees; panneau.querySelector('#tr-barres').hidden = !arrivees; if (arrivees) { viser('ameriques'); shell.say('Les barres donnent le nombre de captifs débarqués par région, sur 10,7 millions arrivés vivants. Le Brésil en reçoit près de la moitié.', 'concentre'); } });
+  panneau.querySelector('#tr-rotation').addEventListener('click', (e) => { rotation = !rotation; e.currentTarget.setAttribute('aria-pressed', String(rotation)); });
+}
+/* Tourne le globe pour présenter une zone face à la caméra, et ramène la caméra devant. */
+function viser(zone) {
+  const cible = Math.PI / 2 - (ZONES[zone].lon + 180) * Math.PI / 180;
+  let delta = ((cible - globe.rotation.y) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI;
+  visee = { depart: globe.rotation.y, arrivee: globe.rotation.y + delta, t: 0, camDepart: M.camera.position.clone(), camArrivee: new THREE.Vector3(0, 2.4, 9.6) };
 }
 function majAnnee() {
-  const s = SIECLES.find((x) => annee >= x.de && annee < x.a) || SIECLES[SIECLES.length - 1];
-  panneau.querySelector('#tr-an').textContent = annee; panneau.querySelector('#tr-dep').textContent = '≈ ' + String(s.deportes).replace('.', ',') + ' million' + (s.deportes >= 2 ? 's' : '') + ' (' + s.de + ' à ' + s.a + ')';
-  const d = DATES.filter((x) => x[0] <= annee).slice(-1)[0]; panneau.querySelector('#tr-date').textContent = d ? d[0] + ' : ' + d[1] + '.' : 'XVᵉ siècle : les Portugais commencent la traite vers les îles de l\'Atlantique.';
-  const intensite = s.deportes / 6.5; navires.forEach((n) => { n.m.visible = Math.random() < 0.5 + intensite; });
+  const s = SIECLES.find((x) => annee >= x.de && annee < x.a);
+  panneau.querySelector('#tr-an').textContent = annee;
+  panneau.querySelector('#tr-dep').textContent = s ? '≈ ' + F1(s.deportes) + ' million' + (s.deportes >= 2 ? 's' : '') + ' (' + s.de + ' à ' + s.a + ')' : 'la traite atlantique a cessé';
+  const d = DATES.filter((x) => x[0] <= annee).slice(-1)[0];
+  panneau.querySelector('#tr-date').textContent = d ? d[0] + ' : ' + d[1] + '.' : 'XVIᵉ siècle : les Portugais et les Espagnols ouvrent la traite vers les Amériques.';
+  const intensite = s ? s.deportes / 6.5 : 0;
+  navires.forEach((n, i) => { n.m.visible = s ? (i % 2 === 0 || intensite > 0.5) : false; });
+  flux.forEach((f) => { f.points.material.opacity = s ? 0.45 + 0.5 * intensite : 0.12; f.points.material.size = 0.05 + 0.05 * intensite; });
+}
+const _m4 = new THREE.Matrix4(); const _x = new THREE.Vector3(); const _y = new THREE.Vector3(); const _z = new THREE.Vector3();
+function animer(dt, t) {
+  if (visee) { visee.t = Math.min(1, visee.t + dt * 1.2); const k = 1 - Math.pow(1 - visee.t, 3); globe.rotation.y = visee.depart + (visee.arrivee - visee.depart) * k; M.camera.position.lerpVectors(visee.camDepart, visee.camArrivee, k); M.controls.target.set(0, 0, 0); if (visee.t >= 1) visee = null; }
+  else if (rotation) globe.rotation.y += dt * 0.02;
+  nuages.rotation.y += dt * 0.006;
+  navires.forEach((n) => {
+    if (!n.m.visible) return;
+    n.t = (n.t + dt * n.v) % 1; const p = n.courbe.getPoint(n.t); const q = n.courbe.getPoint(Math.min(1, n.t + 0.01));
+    _z.copy(q).sub(p).normalize(); _y.copy(p).normalize(); _x.crossVectors(_y, _z).normalize(); _z.crossVectors(_x, _y).normalize();
+    _m4.makeBasis(_x, _y, _z); n.m.quaternion.setFromRotationMatrix(_m4); n.m.position.copy(p);
+  });
+  flux.forEach((f) => { const a = f.points.geometry.attributes.position; for (let i = 0; i < f.n; i += 1) { const u = (f.decal + t * f.v + i / f.n) % 1; const p = f.courbe.getPoint(u); a.setXYZ(i, p.x, p.y, p.z); } a.needsUpdate = true; });
 }
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Tourne le globe. Touche les ports et les routes, fais défiler les années.', 'joyeux'); return; }
+  if (mode !== 'cours') { api.say('Tourne le globe. Touche les ports et les routes, fais défiler les années, compare les arrivées par région.', 'joyeux'); return; }
   api.defis([
     { type: 'qcm', texte: 'Les trois côtés du commerce triangulaire :', choix: ['Europe → Afrique → Amériques → Europe', 'Europe → Asie → Afrique → Europe', 'Afrique → Europe → Asie → Afrique', 'Amériques → Europe → Asie → Amériques'], reponse: 0, explication: 'Marchandises vers l\'Afrique, captifs vers les Amériques, produits des plantations vers l\'Europe.' },
-    { type: 'toucher', texte: 'Touche le port de <b>Nantes</b>.', cible: 'Nantes', explication: 'Nantes, sur la Loire, arme environ 1 800 expéditions au XVIIIᵉ siècle : premier port négrier français.' },
+    { type: 'toucher', texte: 'Touche le port de <b>Nantes</b> (le bouton « Europe » tourne le globe).', cible: 'Nantes', explication: 'Nantes, sur la Loire, arme environ 1 800 expéditions au XVIIIᵉ siècle : premier port négrier français.' },
     { type: 'qcm', texte: 'Que transportent les navires d\'Europe vers l\'Afrique ?', choix: ['Des tissus, des armes, de l\'alcool : des produits manufacturés', 'Du sucre et du café', 'Des captifs', 'De l\'or'], reponse: 0, explication: 'Ces marchandises sont échangées contre des captifs auprès de royaumes et de marchands de la côte.' },
     { type: 'qcm', texte: 'Le « passage du milieu », c\'est…', choix: ['la traversée de l\'Atlantique par les captifs, d\'Afrique aux Amériques', 'le trajet Europe → Afrique', 'le retour des navires en Europe', 'une route terrestre'], reponse: 0, explication: 'Un à trois mois dans l\'entrepont, enchaînés ; 10 à 20 % des captifs meurent pendant la traversée.' },
     { type: 'qcm', texte: 'Au XVIIIᵉ siècle, combien de personnes sont déportées d\'Afrique vers les Amériques ?', choix: ['Environ 6,5 millions', 'Environ 60 000', 'Environ 600', 'Environ 60 millions'], reponse: 0, explication: 'Le XVIIIᵉ est le siècle du pic : plus de la moitié des 12,5 millions de déportés de toute la traite atlantique.' },
     { type: 'toucher', texte: 'Touche <b>Saint-Domingue</b>, la colonie la plus riche du XVIIIᵉ siècle.', cible: 'Saint-Domingue', explication: 'Sucre et café produits par des esclaves ; révolte en 1791, indépendance d\'Haïti en 1804 : la première république noire.' },
+    { type: 'verifier', texte: 'Fais défiler les années jusqu\'à la <b>première abolition</b> française, entre la révolte de Saint-Domingue et le rétablissement.', bouton: 'C\'est réglé', verifier: () => annee >= 1794 && annee < 1802, indice: 'Après 1791 (révolte) et avant 1802 (rétablissement) : lis la date affichée.', explication: '1794 : la Convention abolit l\'esclavage, après la révolte de Saint-Domingue. 1802 : Bonaparte le rétablit. 1848 : abolition définitive.' },
+    { type: 'qcm', texte: 'Vers quelle région arrive le plus grand nombre de captifs ? (« Arrivées par région » dans Outils)', choix: ['Le Brésil, environ 4,9 millions', 'L\'Amérique du Nord', 'Les Antilles françaises', 'L\'Europe'], reponse: 0, explication: 'Le Brésil reçoit près de 40 % des captifs : canne à sucre, puis mines d\'or. L\'Amérique du Nord actuelle en reçoit moins de 5 %.' },
     { type: 'qcm', texte: 'L\'esclavage est aboli définitivement en France en…', choix: ['1848', '1685', '1789', '1914'], reponse: 0, explication: '1794 : première abolition ; 1802 : rétablissement ; 1848 : abolition définitive, décret Schœlcher.' },
   ], { rejouer: () => demarrer('cours', api) });
 }
