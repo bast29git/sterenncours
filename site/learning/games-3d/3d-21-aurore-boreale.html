@@ -9,11 +9,34 @@
 <script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
 <script src="../konstrio.js"></script>
 <script src="../shell.js"></script>
+<style>
+  .mb-panneau details { border-top: 1px solid var(--border); padding-top: 4px; }
+  .mb-panneau details > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-muted); min-height: 28px; }
+  .mb-panneau details > summary::-webkit-details-marker { display: none; }
+  .mb-panneau details > summary::after { content: '▸'; font-size: 12px; }
+  .mb-panneau details[open] > summary::after { content: '▾'; }
+  .mb-panneau details > div { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; padding-bottom: 6px; }
+  .mb-panneau label { display: block; }
+  .au-diag { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; font-size: 12.5px; } .au-diag i { font-style: normal; font-weight: 800; } .au-diag .ok { color: #1E8C7A; } .au-diag .non { color: #B9541D; }
+  .au-cible { font-family: var(--font-data); font-size: 15px; display: flex; justify-content: space-between; align-items: center; gap: 8px; } .au-cible b { padding: 2px 10px; border-radius: 999px; color: #fff; }
+  @media (max-width: 720px) { .mb-panneau { width: min(205px, 50vw); max-height: 58%; box-sizing: border-box; } .mb-mission { width: min(165px, 42vw); font-size: 11.5px; box-sizing: border-box; padding: 8px 9px; } .mb-groupe .mb-bouton { font-size: 12px; min-height: 32px; padding: 3px 6px; } .mb-aide-marche { white-space: normal; max-width: 72vw; text-align: center; font-size: 11px; line-height: 1.3; } }
+</style>
 </head>
 <body>
 <script type="module">
 import { creerMonde, THREE, latlon } from '../monde-base.js';
 
+/*
+   Monde 21 : l'aurore boréale.
+   La Terre (jour, lumières de nuit, nuages, halo d'atmosphère), le Soleil et son vent de particules, le champ
+   magnétique en lignes de dipôle, et deux ovales d'aurores faits de trois rideaux chacun : ondulation, rayons
+   verticaux, couleur selon l'altitude (violet sous 100 km, vert de 100 à 150, vert pâle, rouge au-dessus de 200).
+   Nolwenn, l'observatrice, se tient au sol avec sa lampe frontale : la vue « depuis le sol » bascule le monde
+   pour poser la caméra sur la Terre, à sa latitude, le regard vers le ciel.
+   La mission « La chasse aux aurores » : régler latitude, vent et altitude pour voir une aurore verte, puis rouge,
+   puis violette ; chaque réglage est vérifié et tenu une seconde avant d'être validé.
+   Les altitudes sont exagérées (×8) pour rester visibles à l'échelle du globe.
+*/
 /* ====== Données de la leçon ====== */
 const COULEURS = [
   { de: 80, a: 100, nom: 'violet et bleu', gaz: 'azote', hex: '#7b5cff' },
@@ -28,17 +51,25 @@ const LEGENDES = [
   { nom: 'Terre', phrase: 'Son champ magnétique la protège du vent solaire.' },
   { nom: 'Aurore', phrase: 'Les particules excitent les gaz de la haute atmosphère, qui émettent de la lumière.' },
   { nom: 'Observateur', phrase: 'Il voit l\'aurore surtout entre 60° et 75° de latitude.' },
+  { nom: 'Lampe frontale', phrase: 'Rouge ou faible, pour garder les yeux habitués au noir : l\'aurore se voit mieux.' },
+];
+/* Les trois aurores de la chasse : ce qu'il faut régler, et ce qu'on dit quand c'est réussi. */
+const CHASSE = [
+  { id: 'verte', nom: 'Aurore verte', hex: '#2AA98C', regle: 'latitude entre 60° et 78°, altitude entre 100 et 150 km, n\'importe quel vent', altMin: 100, altMax: 149, ventMin: 1, latMin: 60, latMax: 78, bravo: 'Vert : l\'oxygène entre 100 et 150 km. La couleur la plus courante des aurores.' },
+  { id: 'rouge', nom: 'Aurore rouge', hex: '#E63329', regle: 'latitude entre 60° et 78°, altitude de 200 km ou plus, vent moyen ou fort', altMin: 200, altMax: 320, ventMin: 2, latMin: 60, latMax: 78, bravo: 'Rouge : l\'oxygène très haut, au-dessus de 200 km, quand le vent solaire est assez fort.' },
+  { id: 'violette', nom: 'Aurore violette', hex: '#8A4FD3', regle: 'latitude entre 60° et 78°, altitude sous 100 km, vent fort', altMin: 80, altMax: 99, ventMin: 3, latMin: 60, latMax: 78, bravo: 'Violet : l\'azote, sous 100 km. Seules les particules les plus rapides descendent si bas : il faut un vent fort.' },
 ];
 let etat = { latitude: 48, altitude: 120, vent: 2, lignes: true };
-let M, terre, soleil, champ, aurores = [], observateur, particules, ligneObs;
+let M, monde, terre, soleil, champ, aurores = [], auroresSol = [], cielSol = null, observateur, particules, ligneObs, neige, lumAurore, lampe, faisceau, panneau = null;
+let mission = null, chasseCourante = -1, tenuDepuis = 0, vueSol = false, marche = null, optMarche = null, qCible = new THREE.Quaternion(), modeJeu = 'detente', ambVent = null, crepite = 0, accel = 1;
 
 const shell = window.Konstrio.createGame({
   id: '3d-21-aurore-boreale', code: '3D·21', title: 'Aurore boréale', type: '3D', duree: '12 min',
   domain: { label: 'Physique · Lumière', color: '#8A4FD3' },
   intro: {
     greet: 'Le Soleil envoie un vent de particules. La Terre le dévie avec son champ magnétique. Près des pôles, le ciel s\'allume.',
-    rule: 'Regarde comment le vent solaire suit le champ magnétique jusqu\'aux pôles, puis règle la latitude de l\'observateur et l\'altitude pour lire la couleur.',
-    how: ['Glisse pour tourner la scène, molette ou deux doigts pour zoomer.', 'Touche le Soleil, le vent, le champ, l\'aurore : chaque objet a sa légende.', 'Dans le panneau, règle la latitude, l\'intensité du vent et l\'altitude.'],
+    rule: 'Regarde comment le vent solaire suit le champ magnétique jusqu\'aux pôles, puis règle la latitude de l\'observatrice, le vent et l\'altitude pour lire la couleur. La mission : voir une aurore verte, puis rouge, puis violette.',
+    how: ['Glisse pour tourner la scène, molette ou deux doigts pour zoomer. « Depuis le sol » te pose à côté de Nolwenn, le regard vers le ciel : glisse pour regarder autour.', 'Touche le Soleil, le vent, le champ, l\'aurore : chaque objet a sa légende.', 'Dans le panneau, règle la latitude, l\'intensité du vent et l\'altitude : le rideau change de couleur.', 'La chasse aux aurores : trois couleurs à obtenir, chacune avec ses réglages. Le panneau dit ce qui manque.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Expliquer d\'où vient une aurore et pourquoi ses couleurs changent avec l\'altitude.',
     hint: 'La couleur dépend du gaz excité et de l\'altitude : vert vers 100 à 150 km, rouge au-dessus de 200 km.',
@@ -49,33 +80,100 @@ const shell = window.Konstrio.createGame({
 });
 
 function couleurAltitude(alt) { return COULEURS.find((c) => alt >= c.de && alt < c.a) || COULEURS[COULEURS.length - 1]; }
+const R = 3; const U = { dirSoleilVue: { value: new THREE.Vector3(0, 0, 1) } };
+const etroit = () => window.matchMedia('(max-width: 720px)').matches;
+const dirObservateur = () => latlon(etat.latitude, -10, 1).normalize();
+
+function textureHalo() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 256; const x = c.getContext('2d');
+  const g = x.createRadialGradient(128, 128, 0, 128, 128, 128); g.addColorStop(0, 'rgba(255,250,235,1)'); g.addColorStop(0.2, 'rgba(255,235,190,0.9)'); g.addColorStop(0.45, 'rgba(255,190,110,0.3)'); g.addColorStop(1, 'rgba(255,170,80,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+/* Le rideau d'aurore : un cylindre ouvert, ondulé par le sommet, coloré par l'altitude et strié de rayons verticaux. */
+function matAurore(graine, force) {
+  return new THREE.ShaderMaterial({
+    uniforms: { temps: { value: 0 }, intensite: { value: 0.6 }, altChoisie: { value: 120 }, vent: { value: 2 }, graine: { value: graine }, force: { value: force } },
+    vertexShader: `varying vec2 vUv; uniform float temps; uniform float graine;
+      void main(){ vUv = uv; vec3 p = position; float ang = atan(p.z, p.x);
+        float w = sin(ang * 5.0 + temps * 0.35 + graine) * 0.05 + sin(ang * 11.0 - temps * 0.5 + graine * 1.7) * 0.025 + sin(ang * 23.0 + temps * 0.21) * 0.012;
+        float k = 1.0 - uv.y * 0.55; vec2 rad = normalize(p.xz); p.xz += rad * w * k;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }`,
+    fragmentShader: `varying vec2 vUv; uniform float temps; uniform float intensite; uniform float altChoisie; uniform float vent; uniform float graine; uniform float force;
+      void main(){
+        float ang = vUv.x * 6.2831853; float alt = 80.0 + vUv.y * 240.0;
+        float r1 = 0.5 + 0.5 * sin(ang * 46.0 + temps * 0.7 + graine + 2.0 * sin(ang * 6.0 - temps * 0.23));
+        float r2 = 0.5 + 0.5 * sin(ang * 19.0 - temps * 0.45 + graine * 2.0);
+        float r3 = 0.65 + 0.35 * sin(ang * 9.0 + temps * 0.17 + graine);
+        float rayons = (0.35 + 0.65 * r1 * r1) * (0.5 + 0.5 * r2) * r3;
+        float voile = 0.55 + 0.45 * r3; // une nappe douce derrière les rayons
+        float violet = exp(-pow((alt - 92.0) / 14.0, 2.0)) * (vent >= 2.5 ? 1.0 : 0.12);
+        float vert = exp(-pow((alt - 122.0) / 28.0, 2.0));
+        float pale = exp(-pow((alt - 175.0) / 30.0, 2.0)) * 0.5;
+        float rouge = smoothstep(190.0, 230.0, alt) * exp(-pow((alt - 255.0) / 60.0, 2.0)) * (vent >= 1.5 ? 1.0 : 0.2);
+        float choisie = exp(-pow((alt - altChoisie) / 28.0, 2.0));
+        vec3 c = vec3(0.55, 0.3, 1.0) * violet * (0.45 + 1.4 * choisie) + vec3(0.25, 1.0, 0.45) * vert * (0.55 + 1.2 * choisie) + vec3(0.6, 1.0, 0.7) * pale * (0.45 + choisie) + vec3(1.0, 0.25, 0.3) * rouge * (0.45 + 1.5 * choisie);
+        float fondu = smoothstep(0.0, 0.05, vUv.y) * (1.0 - smoothstep(0.55, 1.0, vUv.y));
+        float a = (violet + vert + pale + rouge) * 0.8;
+        float lum = (0.45 * voile + 0.9 * rayons) * intensite * force;
+        gl_FragColor = vec4(c * lum * 1.35, clamp(a * lum * fondu, 0.0, 1.0)); }`,
+    transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+}
 
 function init() {
-  M = creerMonde(shell, { fond: 0x03050d, sol: false, ombres: false, ambiance: 0.35, soleil: { position: [-40, 8, 10], intensite: 2.2, couleur: 0xfff2d0 }, camera: { position: [0, 6, 16], cible: [0, 0, 0], min: 5, max: 60, polaire: Math.PI }, legendes: LEGENDES, libelle: 'La Terre, le Soleil et une aurore polaire' });
+  const mobile = window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
+  M = creerMonde(shell, {
+    fond: 0x02040c, hdri: false, sol: false, ombres: false, ambiance: 0.3,
+    soleil: { position: [-40, 8, 10], intensite: 2.2, couleur: 0xfff2d0 },
+    camera: { position: [0, 6, 16], cible: [0, 0, 0], min: 0.01, max: 60, polaire: Math.PI, near: 0.02 },
+    rendu: { bloom: { force: 0.75, rayon: 0.65, seuil: 0.8 } },
+    legendes: LEGENDES, libelle: 'La Terre, le Soleil, le champ magnétique, deux ovales d\'aurores et une observatrice au sol avec sa lampe frontale',
+  });
   const { scene, mesh, mat, legender } = M;
+  M.controls.minDistance = 5;
+  const adapter = () => { const asp = M.stage.clientWidth / Math.max(1, M.stage.clientHeight); M.camera.fov = vueSol ? (asp < 0.9 ? 84 : 72) : (asp < 0.9 ? 64 : 50); M.camera.updateProjectionMatrix(); };
+  adapter(); new ResizeObserver(adapter).observe(M.stage); M.adapter = adapter;
+  const charg = new THREE.TextureLoader(); const B = '../assets/3d/planets/';
+  const texture = (nom, srgb, fait) => charg.load(B + nom, (t) => { if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; if (fait) fait(t); }, undefined, () => {});
+  monde = new THREE.Group(); scene.add(monde); // tout ce qui bascule pour la vue depuis le sol
 
-  // étoiles
-  const pts = []; for (let i = 0; i < 1200; i += 1) { const v = new THREE.Vector3().randomDirection().multiplyScalar(180 + Math.random() * 40); pts.push(v.x, v.y, v.z); }
-  const gs = new THREE.BufferGeometry(); gs.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-  const etoiles = new THREE.Points(gs, new THREE.PointsMaterial({ color: 0xcfd8ff, size: 0.35, sizeAttenuation: true })); etoiles.raycast = () => {}; scene.add(etoiles);
+  /* ---- Le ciel : Voie lactée discrète, étoiles de deux tailles ---- */
+  const ciel = new THREE.Mesh(new THREE.SphereGeometry(190, 48, 32), new THREE.MeshBasicMaterial({ color: 0x8b93a8, side: THREE.BackSide, fog: false })); ciel.raycast = () => {}; ciel.rotation.y = 2.1; ciel.rotation.z = 0.5; scene.add(ciel);
+  texture('2k_stars_milky_way.jpg', true, (t) => { ciel.material.map = t; ciel.material.needsUpdate = true; });
+  const etoilesDe = (n, taille, couleur) => { const pts = []; for (let i = 0; i < n; i += 1) { const v = new THREE.Vector3().randomDirection().multiplyScalar(170 + Math.random() * 15); pts.push(v.x, v.y, v.z); } const gs = new THREE.BufferGeometry(); gs.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); const e = new THREE.Points(gs, new THREE.PointsMaterial({ color: couleur, size: taille, sizeAttenuation: true, transparent: true, opacity: 0.95 })); e.raycast = () => {}; scene.add(e); return e; };
+  etoilesDe(1600, 0.4, 0xcfd8ff); const etoilesVives = etoilesDe(140, 0.9, 0xfff3dc);
 
-  // Terre (texture si disponible)
-  const R = 3;
-  const matTerre = mat(0x3f6fb5, { rugosite: 0.8 });
-  terre = mesh(new THREE.SphereGeometry(R, 64, 48), matTerre, [0, 0, 0]); terre.castShadow = false; terre.receiveShadow = false;
-  new THREE.TextureLoader().load('../assets/3d/planets/2k_earth_daymap.jpg', (t) => { t.colorSpace = THREE.SRGBColorSpace; matTerre.map = t; matTerre.color.set(0xffffff); matTerre.needsUpdate = true; }, undefined, () => {});
-  terre.rotation.y = -Math.PI / 2;
+  /* ---- La Terre : texture, lumières de nuit masquées côté jour, nuages, limbe et halo d'atmosphère ---- */
+  const matTerre = new THREE.MeshStandardMaterial({ color: 0x3f6fb5, roughness: 0.8, metalness: 0, emissive: 0xffffff, emissiveIntensity: 0 });
+  matTerre.onBeforeCompile = (sh) => {
+    sh.uniforms.dirSoleilVue = U.dirSoleilVue;
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 dirSoleilVue;')
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n float nuit = smoothstep(0.12, -0.18, dot(normalize(vNormal), dirSoleilVue)); totalEmissiveRadiance *= nuit;')
+      .replace('#include <opaque_fragment>', ' float limbe = pow(1.0 - max(dot(normalize(vNormal), normalize(vViewPosition)), 0.0), 3.5); float jour = clamp(dot(normalize(vNormal), dirSoleilVue) * 0.6 + 0.5, 0.0, 1.0); outgoingLight += vec3(0.30, 0.55, 1.0) * limbe * (0.25 + 0.75 * jour) * 0.6;\n#include <opaque_fragment>');
+  };
+  terre = mesh(new THREE.SphereGeometry(R, 96, 64), matTerre, [0, 0, 0], monde); terre.castShadow = false; terre.receiveShadow = false; terre.rotation.y = -Math.PI / 2;
+  texture(mobile ? '2k_earth_daymap.jpg' : 'hires_terre.jpg', true, (t) => { matTerre.map = t; matTerre.color.set(0xffffff); matTerre.needsUpdate = true; });
+  texture('2k_earth_nightmap.jpg', true, (t) => { matTerre.emissiveMap = t; matTerre.emissiveIntensity = 1.0; matTerre.needsUpdate = true; });
   legender(terre, 'Terre', LEGENDES[3].phrase);
-  const atmo = new THREE.Mesh(new THREE.SphereGeometry(R * 1.04, 48, 36), new THREE.MeshBasicMaterial({ color: 0x6fb3ff, transparent: true, opacity: 0.08, side: THREE.BackSide, depthWrite: false })); atmo.raycast = () => {}; scene.add(atmo);
+  const nuages = new THREE.Mesh(new THREE.SphereGeometry(R * 1.012, 72, 48), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, roughness: 1 })); nuages.raycast = () => {}; monde.add(nuages);
+  texture('2k_earth_clouds.jpg', false, (t) => { nuages.material.alphaMap = t; nuages.material.opacity = 0.7; nuages.material.needsUpdate = true; });
+  const atmo = new THREE.Mesh(new THREE.SphereGeometry(R * 1.08, 64, 48), new THREE.ShaderMaterial({
+    uniforms: { couleur: { value: new THREE.Color(0x4f9cff) }, dirSoleilVue: U.dirSoleilVue },
+    vertexShader: 'varying vec3 vN; varying vec3 vP; void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vP = mv.xyz; gl_Position = projectionMatrix * mv; }',
+    fragmentShader: 'varying vec3 vN; varying vec3 vP; uniform vec3 couleur; uniform vec3 dirSoleilVue; void main(){ vec3 v = normalize(-vP); float d = dot(vN, v); float i = pow(clamp(0.72 - d, 0.0, 1.0), 3.2) * 1.4; float jour = clamp(dot(vN, dirSoleilVue) * 0.6 + 0.55, 0.0, 1.0); gl_FragColor = vec4(couleur * i * (0.2 + 0.8 * jour), i); }',
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
+  })); atmo.raycast = () => {}; atmo.renderOrder = 2; monde.add(atmo);
 
-  // Soleil
-  soleil = mesh(new THREE.SphereGeometry(4, 40, 30), new THREE.MeshBasicMaterial({ color: 0xffd36a }), [-46, 6, 10]);
-  const halo = new THREE.Mesh(new THREE.SphereGeometry(5.6, 32, 24), new THREE.MeshBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false })); halo.position.copy(soleil.position); halo.raycast = () => {}; scene.add(halo);
+  /* ---- Le Soleil : sphère texturée, halo, et la lumière qui vient de lui ---- */
+  soleil = mesh(new THREE.SphereGeometry(4, 40, 30), new THREE.MeshBasicMaterial({ color: 0xffd36a }), [-46, 6, 10], monde);
+  texture('2k_sun.jpg', true, (t) => { soleil.material.map = t; soleil.material.color.set(0xffe9a8); soleil.material.needsUpdate = true; });
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: textureHalo(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); halo.position.copy(soleil.position); halo.scale.set(19, 19, 1); halo.raycast = () => {}; monde.add(halo);
   legender(soleil, 'Soleil', LEGENDES[0].phrase);
+  M.soleil.parent.remove(M.soleil); monde.add(M.soleil); M.soleil.position.set(-40, 8, 10); M.soleil.target.position.set(0, 0, 0); monde.add(M.soleil.target);
 
-  // Champ magnétique : lignes d'un dipôle dans six plans méridiens
-  champ = new THREE.Group(); scene.add(champ);
-  const matLigne = new THREE.LineBasicMaterial({ color: 0x5fd4ff, transparent: true, opacity: 0.55 });
+  /* ---- Le champ magnétique : lignes d'un dipôle dans six plans méridiens ---- */
+  champ = new THREE.Group(); monde.add(champ);
+  const matLigne = new THREE.LineBasicMaterial({ color: 0x5fd4ff, transparent: true, opacity: 0.5 });
   const courbes = [];
   for (let k = 0; k < 6; k += 1) {
     const phi = k * Math.PI / 6;
@@ -93,46 +191,93 @@ function init() {
       }
     }
   }
-  // un tube invisible mais touchable au-dessus de l'équateur pour la légende du champ
   const touche = new THREE.Mesh(new THREE.TorusGeometry(R * 2.2, 0.35, 8, 48), new THREE.MeshBasicMaterial({ visible: false })); touche.rotation.x = Math.PI / 2; champ.add(touche);
   champ.traverse((o) => { o.userData.legende = { nom: 'Champ magnétique', phrase: LEGENDES[2].phrase }; });
 
-  // Aurores : un rideau autour de chaque pôle, couleur selon l'altitude (exagérée ×8 pour être visible)
-  const matAurore = (signe) => new THREE.ShaderMaterial({
-    uniforms: { temps: { value: 0 }, intensite: { value: 0.6 }, bas: { value: new THREE.Color('#7b5cff') }, milieu: { value: new THREE.Color('#4dff8a') }, haut: { value: new THREE.Color('#ff4d5e') } },
-    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: `varying vec2 vUv; uniform float temps; uniform float intensite; uniform vec3 bas; uniform vec3 milieu; uniform vec3 haut;
-      void main(){ float a = vUv.y; vec3 c = a < 0.35 ? mix(bas, milieu, a / 0.35) : (a < 0.7 ? milieu : mix(milieu, haut, (a - 0.7) / 0.3));
-        float rideau = 0.55 + 0.45 * sin(vUv.x * 40.0 + temps * 0.8) * sin(vUv.x * 13.0 - temps * 0.5);
-        float fondu = smoothstep(0.0, 0.12, a) * (1.0 - smoothstep(0.55, 1.0, a));
-        gl_FragColor = vec4(c, rideau * fondu * intensite); }`,
-    transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending,
-  });
+  /* ---- Les aurores : trois rideaux par pôle, ondulés, rayés, colorés par l'altitude ---- */
   for (const signe of [1, -1]) {
-    const lat = 68 * Math.PI / 180; const rayon = R * Math.cos(lat) * 1.02; const y0 = R * Math.sin(lat) * signe;
-    const geo = new THREE.CylinderGeometry(rayon * 0.92, rayon, 1.6, 96, 1, true);
-    const m = new THREE.Mesh(geo, matAurore(signe)); m.position.y = y0 + 0.8 * signe; if (signe < 0) m.rotation.x = Math.PI;
-    m.userData.legende = { nom: 'Aurore', phrase: LEGENDES[4].phrase }; scene.add(m); aurores.push(m);
+    [[1.0, 1.0, 1.6, 0.0], [0.955, 0.6, 1.45, 2.4], [1.055, 0.45, 1.75, 4.1]].forEach(([k, force, haut, graine], n) => {
+      const lat = 68 * Math.PI / 180; const rayon = R * Math.cos(lat) * 1.02 * k; const y0 = R * Math.sin(lat) * signe;
+      const geo = new THREE.CylinderGeometry(rayon * 0.9, rayon, haut, 128, 24, true);
+      const m = new THREE.Mesh(geo, matAurore(graine + (signe < 0 ? 7 : 0), force)); m.position.y = y0 + haut / 2 * signe; if (signe < 0) m.rotation.x = Math.PI;
+      m.renderOrder = 5 + n; m.userData.legende = { nom: 'Aurore', phrase: LEGENDES[4].phrase }; if (n > 0) m.raycast = () => {}; monde.add(m); aurores.push(m);
+    });
   }
+  lumAurore = new THREE.PointLight(0x4dff8a, 0, 3.5, 1.6); monde.add(lumAurore);
+  // depuis le sol : trois rideaux en arc dans le ciel du nord, à bonne distance, les mêmes couleurs
+  cielSol = new THREE.Group(); cielSol.position.set(0, R, 0); cielSol.visible = false; scene.add(cielSol);
+  [[7.0, 1.0, 2.6, 1.3, 0], [6.3, 0.55, 2.2, 3.9, 0.25], [7.8, 0.45, 3.0, 5.2, -0.1]].forEach(([rayon, force, haut, graine, decal], n) => {
+    const geo = new THREE.CylinderGeometry(rayon * 0.92, rayon, haut, 128, 24, true, -Math.PI * 0.45, Math.PI * 0.9);
+    const m = new THREE.Mesh(geo, matAurore(graine + 11, force)); m.position.set(0, 1.1 + haut / 2, -9); m.renderOrder = 5 + n; m.raycast = () => {}; m.userData.sol = true; m.userData.haut = haut; m.userData.decal = decal; cielSol.add(m); auroresSol.push(m);
+  });
+  const toucheSol = new THREE.Mesh(new THREE.CylinderGeometry(7.4, 7.4, 3.2, 32, 1, true, -Math.PI * 0.45, Math.PI * 0.9), new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })); toucheSol.position.set(0, 2.6, -9); toucheSol.userData.legende = { nom: 'Aurore', phrase: LEGENDES[4].phrase }; cielSol.add(toucheSol);
 
-  // Vent solaire : particules, en ligne droite puis le long d'une ligne de champ
+  /* ---- Le vent solaire : particules, en ligne droite puis le long d'une ligne de champ ---- */
   const N = 420; const pos = new Float32Array(N * 3); const part = [];
   for (let i = 0; i < N; i += 1) part.push(nouvelleParticule(courbes, true));
   const gp = new THREE.BufferGeometry(); gp.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   particules = new THREE.Points(gp, new THREE.PointsMaterial({ color: 0xfff0a0, size: 0.16, transparent: true, opacity: 0.9 }));
-  particules.userData.legende = { nom: 'Vent solaire', phrase: LEGENDES[1].phrase }; scene.add(particules);
-  const zoneVent = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 30, 12, 1, true), new THREE.MeshBasicMaterial({ visible: false })); zoneVent.rotation.z = Math.PI / 2; zoneVent.position.set(-24, 3, 5); zoneVent.userData.legende = particules.userData.legende; scene.add(zoneVent);
+  particules.userData.legende = { nom: 'Vent solaire', phrase: LEGENDES[1].phrase }; monde.add(particules);
+  const zoneVent = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 30, 12, 1, true), new THREE.MeshBasicMaterial({ visible: false })); zoneVent.rotation.z = Math.PI / 2; zoneVent.position.set(-24, 3, 5); zoneVent.userData.legende = particules.userData.legende; monde.add(zoneVent);
 
-  // observateur
-  observateur = mesh(new THREE.ConeGeometry(0.14, 0.4, 12), mat(0xffffff, { emissif: 0xffffff, intensite: 0.5 }));
-  legender(observateur, 'Observateur', LEGENDES[5].phrase);
-  ligneObs = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 1, 0)]), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 })); ligneObs.raycast = () => {}; scene.add(ligneObs);
+  /* ---- Nolwenn, l'observatrice : parka, bonnet, lampe frontale (vraie lumière) et son champ de neige ---- */
+  observateur = M.personnage({ nom: 'Observateur', phrase: LEGENDES[5].phrase, position: [0, R, 0], taille: 0.34, peau: 0xe6c3a5, haut: 0xd84a3a, bas: 0x2a2f3a, cheveux: 0x3a2418, vitesse: 0.3, graine: 3, voix: true });
+  monde.add(observateur.groupe);
+  (function habiller() {
+    const u = 0.34 / 1.7; const g = observateur.groupe; const mp = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.8 }, o || {}));
+    const bonnet = new THREE.Mesh(new THREE.SphereGeometry(0.13 * u, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.52), mp(0x2a5a8a)); bonnet.position.y = 1.6 * u; g.add(bonnet);
+    const pompon = new THREE.Mesh(new THREE.SphereGeometry(0.035 * u, 10, 8), mp(0xf2f0ea)); pompon.position.y = 1.745 * u; g.add(pompon);
+    const echarpe = new THREE.Mesh(new THREE.TorusGeometry(0.1 * u, 0.035 * u, 8, 18), mp(0xf2c62a)); echarpe.rotation.x = Math.PI / 2; echarpe.position.y = 1.4 * u; g.add(echarpe);
+    const capuche = new THREE.Mesh(new THREE.TorusGeometry(0.14 * u, 0.03 * u, 8, 20, Math.PI), mp(0xd84a3a)); capuche.rotation.z = Math.PI; capuche.position.set(0, 1.42 * u, -0.06 * u); g.add(capuche);
+    const bandeau = new THREE.Mesh(new THREE.TorusGeometry(0.118 * u, 0.012 * u, 6, 20), mp(0x1a1a1a)); bandeau.rotation.x = Math.PI / 2; bandeau.position.y = 1.62 * u; g.add(bandeau);
+    lampe = new THREE.Mesh(new THREE.CylinderGeometry(0.03 * u, 0.03 * u, 0.03 * u, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xfff2c0, emissiveIntensity: 2.5 })); lampe.rotation.x = Math.PI / 2; lampe.position.set(0, 1.62 * u, 0.12 * u); g.add(lampe);
+    lampe.userData.legende = { nom: 'Lampe frontale', phrase: LEGENDES[6].phrase }; bandeau.userData.legende = lampe.userData.legende;
+    const spot = new THREE.SpotLight(0xfff0c8, 5, 2.4, 0.42, 0.55, 1.4); spot.position.set(0, 1.62 * u, 0.12 * u); const cibleSpot = new THREE.Object3D(); cibleSpot.position.set(0, 0.2 * u, 1.6 * u); g.add(cibleSpot); spot.target = cibleSpot; g.add(spot);
+    faisceau = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.9, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff0c8, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); faisceau.position.set(0, 1.5 * u, 0.12 * u + 0.44); faisceau.rotation.x = -(Math.PI / 2 - 0.3); faisceau.raycast = () => {}; g.add(faisceau);
+    g.traverse((mm) => { if (mm.isMesh && !mm.userData.legende) mm.userData.legende = g.userData.legende; });
+  })();
+  ligneObs = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 1, 0)]), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })); ligneObs.raycast = () => {}; monde.add(ligneObs);
+  neige = M.meshPBR(new THREE.SphereGeometry(R + 0.004, 64, 24, 0, Math.PI * 2, 0, 0.26), 'snow_02', { repetition: 6, couleur: 0xcfd8e4, rugosite: 0.9 }, [0, 0, 0], monde); neige.raycast = () => {}; neige.visible = false; neige.castShadow = false;
   placerObservateur();
 
+  /* ---- La vue depuis le sol : le monde bascule, la caméra se pose près de Nolwenn ---- */
+  optMarche = {
+    depart: [0, 0, 0.42], hauteur: 0.3, sol: R, vitesse: 0.18, yaw: 0, limites: { xmin: -0.5, xmax: 0.5, zmin: -0.5, zmax: 0.5 },
+    collision: (x, z) => Math.hypot(x, z) < 0.07,
+    aide: 'Glisse pour regarder le ciel, flèches pour quelques pas. Échap : revenir dans l\'espace.',
+    surChangement: (actif) => { if (!actif && vueSol) basculerSol(false); },
+  };
+  marche = M.marcher(optMarche);
+
   panneaux();
+
+  /* ---- La mission : trois aurores, dans l'ordre, chacune tenue une seconde ---- */
+  mission = M.mission({
+    titre: 'La chasse aux aurores', chrono: true, chronoCible: 180, cachee: true, annonce: false,
+    objectifs: CHASSE.map((c, i) => ({ id: c.id, texte: c.nom, points: 100, verifier: () => chasseCourante === i && reglagesBons(c) && (performance.now() - tenuDepuis) > 1100 / accel, apres: () => chasseReussie(i) })),
+    surFin: (reussie, secondes, score) => finMission(reussie, secondes, score),
+    gagner: false, bravo: 'Verte, rouge, violette : les trois aurores sont dans la boîte.',
+  });
+
+  const _s = new THREE.Vector3(); const qIdent = new THREE.Quaternion();
   M.boucle((dt, t) => {
-    aurores.forEach((a) => { a.material.uniforms.temps.value = t; a.material.uniforms.intensite.value = 0.25 + 0.3 * etat.vent; });
-    terre.rotation.y += dt * 0.02; halo.scale.setScalar(1 + 0.03 * Math.sin(t * 2));
+    const cc = couleurAltitude(etat.altitude); const visibleIci = etat.latitude >= 60 && etat.latitude <= 78;
+    aurores.concat(auroresSol).forEach((a) => { const u = a.material.uniforms; u.temps.value = t; u.intensite.value = (0.22 + 0.2 * etat.vent) * (a.userData.sol && !visibleIci ? 0.3 : 1); u.altChoisie.value = etat.altitude; u.vent.value = etat.vent; });
+    aurores.forEach((a) => { a.visible = !vueSol; }); cielSol.visible = vueSol; particules.visible = !vueSol; champ.visible = etat.lignes && !vueSol; soleil.visible = !vueSol; halo.visible = !vueSol; ligneObs.visible = !vueSol;
+    const yLat = 1.1 + Math.max(-0.9, Math.min(0.9, (etat.latitude - 56) * 0.06)); auroresSol.forEach((a) => { a.position.y = yLat + a.userData.haut / 2 + a.userData.decal; });
+    lumAurore.color.set(cc.hex); lumAurore.intensity = vueSol ? (0.25 + 0.35 * etat.vent) * (visibleIci ? 1 : 0.35) * (0.8 + 0.2 * Math.sin(t * 1.3)) : 0;
+    if (!vueSol) terre.rotation.y += dt * 0.02;
+    nuages.visible = !vueSol;
+    halo.scale.setScalar(19 * (1 + 0.03 * Math.sin(t * 2)));
+    etoilesVives.material.opacity = 0.7 + 0.3 * Math.sin(t * 1.9);
+    // le monde bascule en douceur vers la vue demandée
+    monde.quaternion.slerp(vueSol ? qCible : qIdent, Math.min(1, dt * 3.2));
+    soleil.getWorldPosition(_s); U.dirSoleilVue.value.copy(_s).normalize().transformDirection(M.camera.matrixWorldInverse);
+    // le crépitement discret, quand l'aurore est bien visible
+    crepite -= dt; if (crepite < 0) { crepite = 0.25 + Math.random() * 1.3 / Math.max(1, etat.vent); if (visibleIci && modeJeu) M.son('tic', { volume: 0.012 + 0.012 * etat.vent, frequence: 1800 + Math.random() * 2200 }); }
+    // la mission : on mesure depuis combien de temps les réglages tiennent
+    if (chasseCourante >= 0 && !reglagesBons(CHASSE[chasseCourante])) tenuDepuis = performance.now();
+    // le vent solaire
     const arr = particules.geometry.attributes.position.array; const vitesse = 6 + etat.vent * 3;
     for (let i = 0; i < part.length; i += 1) {
       const p = part[i];
@@ -142,47 +287,139 @@ function init() {
     }
     particules.geometry.attributes.position.needsUpdate = true;
   });
+  window.__au = { etat: () => ({ ...etat, chasse: chasseCourante, vueSol, finie: mission.estFinie() }), regler: (o) => { Object.assign(etat, o); placerObservateur(); if (panneau) panneau.maj(); }, lancerMission, basculerSol, mission, accelerer: (k) => { accel = k; } };
 }
 function nouvelleParticule(courbes, partout) {
   return { phase: 0, x: partout ? -40 + Math.random() * 30 : -40 - Math.random() * 6, y: (Math.random() - 0.5) * 7, z: (Math.random() - 0.5) * 7 + 2, t: 0, courbe: null, sens: 1 };
 }
+/* Pose Nolwenn debout sur la Terre à sa latitude, tournée vers le nord, avec son champ de neige sous les pieds. */
 function placerObservateur() {
-  const p = latlon(etat.latitude, -10, 3.05); observateur.position.copy(p); observateur.lookAt(p.clone().multiplyScalar(2)); observateur.rotateX(Math.PI / 2);
-  ligneObs.geometry.setFromPoints([p, p.clone().multiplyScalar(1.5)]);
+  const n = dirObservateur(); const p = n.clone().multiplyScalar(R + 0.002); const g = observateur.groupe;
+  g.position.copy(p); g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
+  const nord = new THREE.Vector3(0, 1, 0).sub(n.clone().multiplyScalar(n.y)).normalize();
+  const avant = new THREE.Vector3(0, 0, 1).applyQuaternion(g.quaternion); const droite = new THREE.Vector3(1, 0, 0).applyQuaternion(g.quaternion);
+  g.rotateY(Math.atan2(nord.dot(droite), nord.dot(avant)));
+  ligneObs.geometry.setFromPoints([p, p.clone().multiplyScalar(1.4)]);
+  neige.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
+  lumAurore.position.copy(latlon(Math.min(72, etat.latitude + 4), -10, R + 0.25));
+  qCible.setFromUnitVectors(n, new THREE.Vector3(0, 1, 0));
+  if (vueSol && marche) { optMarche.yaw = capNord().yaw; cielSol.rotation.y = optMarche.yaw; }
+}
+/* Le cap du nord vu depuis le sol, une fois le monde basculé (l'observatrice est alors au sommet). */
+function capNord() {
+  const nordMonde = new THREE.Vector3(0, 1, 0).applyQuaternion(qCible); // l'axe des pôles, après bascule
+  const t = nordMonde.clone().sub(new THREE.Vector3(0, 1, 0).multiplyScalar(nordMonde.y)); if (t.lengthSq() < 1e-6) t.set(0, 0, -1); t.normalize();
+  return { yaw: Math.atan2(-t.x, -t.z), depart: [-t.x * 0.42, 0, -t.z * 0.42] };
+}
+/* Nolwenn parle : bulle au-dessus de sa tête dans l'espace, voix seule depuis le sol (la bulle serait trop près). */
+function parler(texte, secondes) {
+  if (vueSol) { shell.say(texte, 'joyeux'); return; }
+  observateur.dire(texte, secondes || 4);
+  const b = M.scene.children[M.scene.children.length - 1]; if (b && b.isSprite) { observateur.groupe.getWorldPosition(b.position); b.position.y += 0.5; b.scale.multiplyScalar(0.85); }
+}
+function basculerSol(on) {
+  if (on === vueSol) return; vueSol = on;
+  if (panneau) { panneau.querySelector('#au-sol').setAttribute('aria-pressed', String(on)); panneau.querySelector('#au-sol').textContent = on ? 'Revenir dans l\'espace' : 'Depuis le sol, avec Nolwenn'; }
+  neige.visible = on; if (M.adapter) M.adapter();
+  if (on) {
+    const cap = capNord(); optMarche.yaw = cap.yaw; optMarche.depart = cap.depart; cielSol.rotation.y = cap.yaw; marche.activer();
+    shell.say('Tu es au sol, à côté de Nolwenn, à ' + etat.latitude + '° de latitude. Glisse pour lever les yeux : le rideau est au nord.', 'joyeux');
+    if (ambVent) ambVent.volume(0.3);
+  } else { if (marche.estActif()) marche.desactiver(); if (ambVent) ambVent.volume(0.16); }
 }
 function visible() { return etat.latitude >= 60 && etat.latitude <= 78; }
+function reglagesBons(c) { return etat.latitude >= c.latMin && etat.latitude <= c.latMax && etat.altitude >= c.altMin && etat.altitude <= c.altMax && etat.vent >= c.ventMin; }
 
 function panneaux() {
-  const c = couleurAltitude(etat.altitude);
   const p = M.panneau(`<h3>Réglages</h3>
-    <label>Latitude de l'observateur <span class="mb-val" id="au-lat">${etat.latitude}°</span><input class="mb-plage" id="au-lats" type="range" min="0" max="90" step="1" value="${etat.latitude}" aria-label="Latitude"></label>
+    <label>Latitude de l'observatrice <span class="mb-val" id="au-lat">${etat.latitude}°</span><input class="mb-plage" id="au-lats" type="range" min="0" max="90" step="1" value="${etat.latitude}" aria-label="Latitude"></label>
     <p id="au-vis" class="mb-carte"></p>
     <label>Intensité du vent solaire <span class="mb-val" id="au-vent">${['', 'faible', 'moyenne', 'forte'][etat.vent]}</span><input class="mb-plage" id="au-vents" type="range" min="1" max="3" step="1" value="${etat.vent}" aria-label="Intensité du vent solaire"></label>
-    <button class="mb-bouton" id="au-lignes" aria-pressed="true">Lignes du champ magnétique</button>
-    <h3>Altitude et couleur</h3>
     <label>Altitude <span class="mb-val" id="au-alt">${etat.altitude} km</span><input class="mb-plage" id="au-alts" type="range" min="80" max="320" step="5" value="${etat.altitude}" aria-label="Altitude"></label>
     <p class="mb-carte" id="au-coul"></p>
-    <div class="mb-mesures"><span>Lumière Soleil → Terre</span><b>8 min</b><span>Vent solaire Soleil → Terre</span><b>1 à 3 jours</b><span>Distance</span><b>150 millions de km</b></div>`);
+    <details id="au-det-mission" open><summary>Mission : la chasse aux aurores</summary><div>
+      <div id="au-mission-avant"><button class="mb-bouton primaire" id="au-mission" type="button">Commencer la chasse</button></div>
+      <div id="au-mission-pendant" hidden>
+        <div class="au-cible"><span>À obtenir</span><b id="au-cible">·</b></div>
+        <p class="mb-carte" id="au-regle"></p>
+        <div class="au-diag" id="au-diag"></div>
+      </div>
+    </div></details>
+    <details id="au-det-vue" open><summary>Point de vue</summary><div>
+      <button class="mb-bouton" id="au-sol" aria-pressed="false">Depuis le sol, avec Nolwenn</button>
+      <button class="mb-bouton" id="au-lignes" aria-pressed="true">Lignes du champ magnétique</button>
+    </div></details>
+    <details id="au-det-chiffres"><summary>Quelques chiffres</summary><div>
+      <div class="mb-mesures"><span>Lumière Soleil → Terre</span><b>8 min</b><span>Vent solaire Soleil → Terre</span><b>1 à 3 jours</b><span>Distance</span><b>150 millions de km</b></div>
+    </div></details>`);
+  panneau = p;
   const maj = () => {
     p.querySelector('#au-lat').textContent = etat.latitude + '°';
     p.querySelector('#au-vis').textContent = visible() ? 'À ' + etat.latitude + '° de latitude, l\'aurore est visible : c\'est la zone des ovales auroraux.' : (etat.latitude > 78 ? 'Au pôle même, l\'aurore est plus rare : l\'ovale passe autour, pas au-dessus.' : 'À ' + etat.latitude + '°, l\'aurore n\'est visible que lors des tempêtes solaires les plus fortes.');
     const cc = couleurAltitude(etat.altitude); const zone = p.querySelector('#au-coul'); zone.textContent = 'À ' + etat.altitude + ' km : lumière ' + cc.nom + ', émise par l\'' + cc.gaz + '.'; zone.style.borderLeft = '6px solid ' + cc.hex;
     p.querySelector('#au-alt').textContent = etat.altitude + ' km';
     p.querySelector('#au-vent').textContent = ['', 'faible', 'moyenne', 'forte'][etat.vent];
+    const sl = p.querySelector('#au-lats'); if (document.activeElement !== sl) sl.value = String(etat.latitude); const sv = p.querySelector('#au-vents'); if (document.activeElement !== sv) sv.value = String(etat.vent); const sa = p.querySelector('#au-alts'); if (document.activeElement !== sa) sa.value = String(etat.altitude);
+    majBilan();
   };
+  p.maj = maj;
   p.querySelector('#au-lats').addEventListener('input', (e) => { etat.latitude = Number(e.target.value); placerObservateur(); maj(); });
   p.querySelector('#au-vents').addEventListener('input', (e) => { etat.vent = Number(e.target.value); maj(); });
   p.querySelector('#au-alts').addEventListener('input', (e) => { etat.altitude = Number(e.target.value); maj(); });
   p.querySelector('#au-lignes').addEventListener('click', (e) => { etat.lignes = !etat.lignes; champ.visible = etat.lignes; e.currentTarget.setAttribute('aria-pressed', String(etat.lignes)); });
+  p.querySelector('#au-sol').addEventListener('click', () => basculerSol(!vueSol));
+  p.querySelector('#au-mission').addEventListener('click', () => lancerMission());
   maj();
+}
+/* Ce qui est bon et ce qui manque, réglage par réglage, pour l'aurore visée. */
+function majBilan() {
+  if (!panneau || chasseCourante < 0) return; const c = CHASSE[chasseCourante];
+  const ligne = (nom, ok, valeur, attendu) => `<i class="${ok ? 'ok' : 'non'}">${ok ? '✓' : '✗'} ${nom}</i><span>${valeur}${ok ? '' : ' (il faut ' + attendu + ')'}</span>`;
+  const okLat = etat.latitude >= c.latMin && etat.latitude <= c.latMax; const okAlt = etat.altitude >= c.altMin && etat.altitude <= c.altMax; const okVent = etat.vent >= c.ventMin;
+  panneau.querySelector('#au-diag').innerHTML = ligne('Latitude', okLat, etat.latitude + '°', 'entre ' + c.latMin + '° et ' + c.latMax + '°') + ligne('Altitude', okAlt, etat.altitude + ' km', c.altMax >= 320 ? c.altMin + ' km ou plus' : (c.altMin <= 80 ? 'moins de 100 km' : 'entre ' + c.altMin + ' et ' + (c.altMax + 1) + ' km')) + ligne('Vent', okVent, ['', 'faible', 'moyen', 'fort'][etat.vent], ['', 'n\'importe lequel', 'moyen ou fort', 'fort'][c.ventMin]);
+}
+function lancerMission() {
+  if (!mission || (chasseCourante >= 0 && !mission.estFinie())) return;
+  chasseCourante = -1;
+  panneau.querySelector('#au-mission-avant').hidden = true; panneau.querySelector('#au-mission-pendant').hidden = false;
+  if (etroit()) { ['au-det-vue', 'au-det-chiffres'].forEach((id) => { panneau.querySelector('#' + id).open = false; }); }
+  mission.commencer(); mission.montrer();
+  parler('La chasse commence : une verte, une rouge, puis une violette.', 4);
+  shell.say('La chasse aux aurores : trois couleurs à obtenir, dans l\'ordre, avec la latitude, le vent et l\'altitude. Le panneau te dit ce qui manque.', 'concentre');
+  setTimeout(() => lancerChasse(0), 2200);
+}
+function lancerChasse(i) {
+  if (!mission || mission.estFinie()) return;
+  chasseCourante = i; tenuDepuis = performance.now(); const c = CHASSE[i];
+  const b = panneau.querySelector('#au-cible'); b.textContent = c.nom; b.style.background = c.hex;
+  panneau.querySelector('#au-regle').textContent = 'Il faut : ' + c.regle + '. Tiens les réglages une seconde.';
+  majBilan(); M.son('cloche', { volume: 0.16, frequence: 1046 });
+  shell.say(c.nom + '. Il faut : ' + c.regle + '.', 'concentre');
+}
+function chasseReussie(i) {
+  const c = CHASSE[i]; M.son('cloche', { volume: 0.24 }); chasseCourante = -1;
+  shell.say(c.bravo + (i < 2 ? ' À la suivante.' : ''), 'fier'); parler(c.nom + ' : vue.', 3);
+  if (i < CHASSE.length - 1) setTimeout(() => lancerChasse(i + 1), 2800);
+}
+function finMission(reussie, secondes, score) {
+  const mm = Math.floor(secondes / 60); const ss = String(Math.floor(secondes % 60)).padStart(2, '0');
+  panneau.querySelector('#au-mission-pendant').hidden = true; const avant = panneau.querySelector('#au-mission-avant'); avant.hidden = false; avant.querySelector('#au-mission').textContent = 'Rejouer la chasse';
+  if (modeJeu === 'cours') shell.toast(`Chasse réussie en ${mm}:${ss}, ${score} points. Les défis continuent.`, 3200);
+  else setTimeout(() => shell.win({ score, stars: secondes <= 180 ? 3 : 2, title: `La chasse aux aurores : réussie en ${mm}:${ss}`, detail: { mission: 'La chasse aux aurores', secondes: Math.round(secondes) }, buddy: 'Verte, rouge, violette : tu sais lire une aurore.' }), 1500);
 }
 
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Explore : touche le Soleil, le vent, le champ magnétique, l\'aurore. Le panneau règle la latitude et l\'altitude.', 'joyeux'); return; }
+  modeJeu = mode;
+  if (!ambVent) ambVent = M.ambiance({ fichier: '../assets/3d/audio/vent-parc.mp3', type: 'vent', volume: 0.16 });
+  if (mode !== 'cours') {
+    api.say('Explore : touche le Soleil, le vent, le champ magnétique, l\'aurore. Le panneau règle la latitude et l\'altitude, et « Depuis le sol » te pose à côté de Nolwenn. La chasse commence dans un instant.', 'joyeux');
+    setTimeout(() => { if (!mission.estFinie() && chasseCourante < 0) lancerMission(); }, 4500);
+    return;
+  }
   api.defis([
     { type: 'qcm', texte: 'D\'où viennent les particules qui font l\'aurore ?', choix: ['Du Soleil : le vent solaire', 'De la Lune', 'Du centre de la Terre', 'Des nuages'], reponse: 0, explication: 'Le Soleil émet un vent de particules chargées, qui met un à trois jours pour arriver.' },
     { type: 'toucher', texte: 'Touche le <b>champ magnétique</b> de la Terre (les lignes bleues).', cible: 'Champ magnétique', explication: 'Le champ magnétique dévie les particules et les guide vers les deux pôles.' },
-    { type: 'verifier', texte: 'Place l\'observateur là où l\'aurore est visible : latitude entre 60° et 78°.', bouton: 'C\'est réglé', verifier: () => visible(), indice: 'Utilise le curseur de latitude. La zone des aurores commence vers 60°.', explication: 'Les aurores dessinent un ovale autour de chaque pôle magnétique, vers 60° à 75° de latitude.' },
+    { type: 'verifier', texte: 'Place l\'observatrice là où l\'aurore est visible : latitude entre 60° et 78°.', bouton: 'C\'est réglé', verifier: () => visible(), indice: 'Utilise le curseur de latitude. La zone des aurores commence vers 60°.', explication: 'Les aurores dessinent un ovale autour de chaque pôle magnétique, vers 60° à 75° de latitude.' },
     { type: 'qcm', texte: 'Quelle couleur apparaît au-dessus de 200 km d\'altitude ?', choix: ['Rouge', 'Vert', 'Bleu', 'Jaune'], reponse: 0, explication: 'Très haut, l\'oxygène est rare et émet une lumière rouge. Le vert, le plus fréquent, vient de l\'oxygène entre 100 et 150 km.' },
     { type: 'verifier', texte: 'Règle l\'altitude dans la zone verte, entre 100 et 150 km.', bouton: 'C\'est réglé', verifier: () => etat.altitude >= 100 && etat.altitude < 150, indice: 'Le curseur Altitude, dans le panneau. Lis la couleur annoncée.', explication: 'Entre 100 et 150 km, l\'oxygène excité émet du vert : la couleur la plus courante des aurores.' },
     { type: 'qcm', texte: 'Pourquoi les aurores se forment-elles près des pôles ?', choix: ['Les lignes du champ magnétique y plongent vers le sol', 'Il y fait plus froid', 'Le Soleil y est plus proche', 'La Terre y tourne plus vite'], reponse: 0, explication: 'Les particules suivent les lignes du champ. Près des pôles, ces lignes entrent dans l\'atmosphère : les particules y rencontrent les gaz.' },

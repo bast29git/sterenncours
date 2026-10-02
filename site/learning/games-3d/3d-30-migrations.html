@@ -9,6 +9,18 @@
 <script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
 <script src="../konstrio.js"></script>
 <script src="../shell.js"></script>
+<style>
+  .mb-panneau details { border-top: 1px solid var(--border); padding-top: 4px; }
+  .mb-panneau details > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-muted); min-height: 28px; }
+  .mb-panneau details > summary::-webkit-details-marker { display: none; }
+  .mb-panneau details > summary::after { content: '▸'; font-size: 12px; }
+  .mb-panneau details[open] > summary::after { content: '▾'; }
+  .mb-panneau details > div { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; padding-bottom: 6px; }
+  .mb-panneau label { display: block; }
+  .mi-parcours { border-left: 6px solid var(--border); padding-left: 9px; font-size: 13px; line-height: 1.45; }
+  .mi-etape { display: flex; gap: 8px; align-items: center; font-size: 13px; } .mi-etape i { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; border: 2px solid var(--border); font-style: normal; font-size: 11px; flex: none; } .mi-etape.fait i { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+  @media (max-width: 720px) { .mb-panneau { width: min(205px, 50vw); max-height: 58%; box-sizing: border-box; } .mb-mission { width: min(165px, 42vw); font-size: 11.5px; box-sizing: border-box; padding: 8px 9px; } .mb-groupe .mb-bouton { font-size: 12px; min-height: 32px; padding: 3px 6px; } .mb-aide-marche { white-space: normal; max-width: 72vw; text-align: center; font-size: 11px; line-height: 1.3; } }
+</style>
 </head>
 <body>
 <script type="module">
@@ -17,10 +29,13 @@ import { creerMonde, THREE, latlon, arcSphere } from '../monde-base.js';
 /*
    Monde 30 : la carte des migrations.
    Un globe terrestre texturé en haute résolution (lumières des villes sur la face de nuit, nuages qui
-   tournent lentement, halo d'atmosphère, fond de Voie lactée, Soleil), les grands flux migratoires en arcs
+   tournent lentement, halo d'atmosphère, fond de Voie lactée, Soleil, Lune), les grands flux migratoires en arcs
    lumineux dont l'épaisseur traduit l'ampleur, des particules qui avancent, des repères touchables par
    région. Les types de flux (« eco », « refuge », « etude », « climat ») sont propres à ce monde ; les
    défis utilisent les types du socle (qcm, toucher, verifier).
+   Trois parcours de personnes, racontés sobrement, s'ouvrent au toucher de trois flux. La mission « Lire la carte »
+   demande de retrouver sur le globe le flux qui correspond à une description (raison, régions, ordre de grandeur),
+   de le toucher, puis de régler le curseur des années sur l'année décrite.
    Sources des ordres de grandeur (arrondis) : ONU DESA, International Migrant Stock 2020 (281 millions de
    migrants internationaux, 3,6 % de l'humanité ; 153 millions en 1990, 173 en 2000, 221 en 2010 ; environ
    11 millions de personnes nées au Mexique vivant aux États-Unis ; plus de 50 millions de personnes nées à
@@ -29,7 +44,8 @@ import { creerMonde, THREE, latlon, arcSphere } from '../monde-base.js';
    près de 6 millions d'Ukrainiens enregistrés en Europe en 2022-2023) ; R4V et HCR (2,5 millions de
    Vénézuéliens en Colombie) ; Institute of International Education (environ 300 000 étudiants chinois aux
    États-Unis) ; IDMC (déplacements liés aux cyclones et aux inondations au Bangladesh) ; Banque mondiale
-   (remises : plus de 600 milliards de dollars par an).
+   (remises : plus de 600 milliards de dollars par an). Les trois personnes des parcours sont des personnages
+   composés à partir de situations courantes, pas des personnes réelles.
 */
 const R = 3;
 const LIEUX = {
@@ -49,19 +65,27 @@ const FLUX = [
   { de: 'chine', vers: 'usa', type: 'etude', volume: 0.3, texte: 'Environ 300 000 étudiants chinois dans les universités américaines.' },
   { de: 'bangladesh', vers: 'bangladesh', type: 'climat', volume: 1, texte: 'Au Bangladesh, cyclones et montée des eaux déplacent chaque année des centaines de milliers de personnes, à l\'intérieur du pays.' },
 ];
+/* Trois parcours, racontés sobrement : qui, d'où, vers où, pourquoi, et l'année qui sert de repère sur le curseur. */
+const PARCOURS = [
+  { flux: 4, an: 2, prenom: 'Rajesh', texte: 'Rajesh, 24 ans, quitte le Kerala, dans le sud de l\'Inde, en 2010 pour un chantier à Dubaï. Son contrat dure deux ans ; il envoie chaque mois une partie de son salaire à sa famille. En 2010, l\'ONU compte 221 millions de migrants dans le monde.', description: 'Travail. Départ d\'Asie du Sud vers des pays producteurs de pétrole, pour des chantiers. Environ 15 millions de personnes : le flux le plus épais du globe.', annee: 'l\'année où le monde comptait 221 millions de migrants' },
+  { flux: 3, an: 3, prenom: 'Rana', texte: 'Rana, 31 ans, quitte Alep, en Syrie, en 2013 avec ses deux enfants. Elle est enregistrée comme réfugiée à Gaziantep, en Turquie, à cent kilomètres de chez elle, où elle travaille dans un atelier de couture. En 2020, le monde compte 281 millions de migrants.', description: 'Refuge. Fuir une guerre vers le pays voisin, devenu le premier pays d\'accueil de réfugiés au monde. 3,6 millions de personnes.', annee: 'l\'année où le monde comptait 281 millions de migrants' },
+  { flux: 0, an: 0, prenom: 'Marisol', texte: 'Marisol, 22 ans, quitte l\'État d\'Oaxaca, au Mexique, en 1991 pour travailler dans les champs de Californie. Elle y vit encore ; ses enfants sont nés aux États-Unis. En 1990, le monde comptait 153 millions de migrants.', description: 'Travail. Du Mexique vers le grand pays voisin du nord : le premier couloir migratoire du monde, environ 11 millions de personnes.', annee: 'l\'année où le monde comptait 153 millions de migrants' },
+];
 const STOCK = [{ an: 1990, millions: 153, part: 2.9 }, { an: 2000, millions: 173, part: 2.8 }, { an: 2010, millions: 221, part: 3.2 }, { an: 2020, millions: 281, part: 3.6 }];
 let visibles = { eco: true, refuge: true, etude: true, climat: true }; let M, panneau, axe, globe, nuages, arcs = [], particules = [], instances = null, tourne = true, vue = null, fluxChoisi = -1, anIndex = 3;
+let mission = null, parcoursCourant = -1, fluxTouche = -1, toucheOk = false, modeJeu = 'detente', ambEspace = null, essais = 0;
 const U = { dirSoleilVue: { value: new THREE.Vector3(0, 0, 1) } };
 const LEGENDES = Object.values(LIEUX).map((l) => ({ nom: l.nom, phrase: '' })).concat(Object.values(TYPES).map((t) => ({ nom: t.nom, phrase: t.texte }))).concat([
   { nom: 'Soleil', phrase: 'Il éclaire une moitié de la Terre ; de l\'autre côté, c\'est la nuit et les villes s\'allument.' },
+  { nom: 'Lune', phrase: 'Elle fait le tour de la Terre en vingt-sept jours. Aucun humain n\'y migre : pas d\'air, pas d\'eau.' },
 ]);
 const shell = window.Konstrio.createGame({
   id: '3d-30-migrations', code: '3D·30', title: 'Carte des migrations', type: '3D', duree: '12 min',
   domain: { label: 'Géographie', color: '#1E8C7A' },
   intro: {
     greet: 'Un monde de migrants : les grands flux animés sur le globe, avec leurs chiffres et leurs raisons.',
-    rule: 'Chaque arc est un flux migratoire, coloré selon sa raison : travail, refuge, études, climat. Son épaisseur dit son ampleur. Touche un arc ou une région pour lire le chiffre.',
-    how: ['Glisse pour tourner le globe, molette pour zoomer.', 'Touche un flux ou une région : sa légende s\'affiche.', '« Flux suivant » amène chaque flux face à toi avec son chiffre ; le curseur des années montre l\'évolution depuis 1990 ; le panneau allume ou éteint chaque type de migration.'],
+    rule: 'Chaque arc est un flux migratoire, coloré selon sa raison : travail, refuge, études, climat. Son épaisseur dit son ampleur. Touche un arc ou une région pour lire le chiffre ; trois flux racontent aussi le parcours d\'une personne. La mission « Lire la carte » : retrouver un flux d\'après sa description, puis régler l\'année.',
+    how: ['Glisse pour tourner le globe, molette pour zoomer.', 'Touche un flux ou une région : sa légende s\'affiche. Trois flux ouvrent un parcours.', '« Flux suivant » amène chaque flux face à toi avec son chiffre ; le curseur des années montre l\'évolution depuis 1990 ; le panneau allume ou éteint chaque type de migration.', 'La mission : lis la description, touche le bon flux sur le globe, puis place le curseur des années sur l\'année demandée.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Lire une carte de flux, distinguer migrant économique et réfugié, et retenir les ordres de grandeur.',
     hint: 'Les migrants internationaux : 281 millions en 2020, soit 3,6 % de l\'humanité. La plupart restent dans leur région.',
@@ -72,6 +96,7 @@ const shell = window.Konstrio.createGame({
 });
 const ease = (f) => (f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2);
 const fr = (x) => String(x).replace('.', ',');
+const etroit = () => window.matchMedia('(max-width: 720px)').matches;
 
 function textureSoleil() {
   const c = document.createElement('canvas'); c.width = 256; c.height = 256; const x = c.getContext('2d');
@@ -94,15 +119,15 @@ function init() {
   const charg = new THREE.TextureLoader(); const B = '../assets/3d/planets/';
   const texture = (nom, srgb, fait) => charg.load(B + nom, (t) => { if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; if (fait) fait(t); }, undefined, () => {});
 
-  /* ---- Le ciel : Voie lactée, étoiles scintillantes, Soleil ---- */
+  /* ---- Le ciel : Voie lactée, étoiles scintillantes de deux tailles, Soleil ---- */
   const ciel = new THREE.Mesh(new THREE.SphereGeometry(160, 48, 32), new THREE.MeshBasicMaterial({ color: 0xc4cbdc, side: THREE.BackSide, fog: false })); ciel.raycast = () => {}; ciel.rotation.y = 1.2; scene.add(ciel);
   texture('2k_stars_milky_way.jpg', true, (t) => { ciel.material.map = t; ciel.material.needsUpdate = true; });
-  const pts = []; for (let i = 0; i < 1400; i += 1) { const v = new THREE.Vector3().randomDirection().multiplyScalar(140); pts.push(v.x, v.y, v.z); }
-  const gs = new THREE.BufferGeometry(); gs.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); const etoiles = new THREE.Points(gs, new THREE.PointsMaterial({ color: 0xdfe6ff, size: 0.35, sizeAttenuation: true })); etoiles.raycast = () => {}; scene.add(etoiles);
+  const etoilesDe = (n, taille, couleur) => { const pts = []; for (let i = 0; i < n; i += 1) { const v = new THREE.Vector3().randomDirection().multiplyScalar(140); pts.push(v.x, v.y, v.z); } const gs = new THREE.BufferGeometry(); gs.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); const e = new THREE.Points(gs, new THREE.PointsMaterial({ color: couleur, size: taille, sizeAttenuation: true, transparent: true, opacity: 0.95 })); e.raycast = () => {}; scene.add(e); return e; };
+  const etoiles = etoilesDe(1400, 0.35, 0xdfe6ff); const etoilesVives = etoilesDe(120, 0.8, 0xfff4dc);
   const soleilSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: textureSoleil(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); soleilSprite.position.copy(M.soleil.position).normalize().multiplyScalar(120); soleilSprite.scale.set(22, 22, 1); scene.add(soleilSprite);
-  const soleilCoeur = mesh(new THREE.SphereGeometry(2.2, 20, 14), new THREE.MeshBasicMaterial({ color: 0xfff6dc })); soleilCoeur.position.copy(soleilSprite.position); soleilCoeur.castShadow = false; legender(soleilCoeur, 'Soleil', LEGENDES[LEGENDES.length - 1].phrase);
+  const soleilCoeur = mesh(new THREE.SphereGeometry(2.2, 20, 14), new THREE.MeshBasicMaterial({ color: 0xfff6dc })); soleilCoeur.position.copy(soleilSprite.position); soleilCoeur.castShadow = false; legender(soleilCoeur, 'Soleil', LEGENDES[LEGENDES.length - 2].phrase);
 
-  /* ---- La Terre : axe incliné, texture haute résolution, lumières de nuit, limbe bleu ---- */
+  /* ---- La Terre : axe incliné, texture haute résolution, lumières de nuit, limbe bleu, nuages, halo ---- */
   axe = new THREE.Group(); axe.rotation.z = 23.4 * Math.PI / 180; scene.add(axe);
   globe = new THREE.Group(); axe.add(globe);
   const matTerre = new THREE.MeshStandardMaterial({ color: 0x3f6fb5, roughness: 0.78, metalness: 0, emissive: 0xffffff, emissiveIntensity: 0 });
@@ -123,6 +148,11 @@ function init() {
     fragmentShader: 'varying vec3 vN; varying vec3 vP; uniform vec3 couleur; uniform vec3 dirSoleilVue; void main(){ vec3 v = normalize(-vP); float d = dot(vN, v); float i = pow(clamp(0.72 - d, 0.0, 1.0), 3.2) * 1.5; float jour = clamp(dot(vN, dirSoleilVue) * 0.6 + 0.55, 0.0, 1.0); gl_FragColor = vec4(couleur * i * (0.25 + 0.75 * jour), i); }',
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
   })); atmo.raycast = () => {}; atmo.renderOrder = 2; scene.add(atmo);
+  // la Lune, petite et lointaine, qui tourne lentement
+  const lune = mesh(new THREE.SphereGeometry(0.55, 32, 24), new THREE.MeshStandardMaterial({ color: 0xbdbdbd, roughness: 1 }), [11, 1.5, -6]); lune.castShadow = false; lune.receiveShadow = false;
+  texture('2k_moon.jpg', true, (t) => { lune.material.map = t; lune.material.color.set(0xffffff); lune.material.needsUpdate = true; });
+  legender(lune, 'Lune', LEGENDES[LEGENDES.length - 1].phrase);
+  const lumiereLune = new THREE.PointLight(0x9fb8e8, 0.6, 30, 1.5); scene.add(lumiereLune);
 
   /* ---- Les repères touchables ---- */
   const pos = {}; const blanc = mat(0xffffff, { emissif: 0xffffff, intensite: 1.2 });
@@ -143,26 +173,38 @@ function init() {
   instances = new THREE.InstancedMesh(new THREE.SphereGeometry(0.045, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }), nParticules); instances.raycast = () => {}; instances.frustumCulled = false; globe.add(instances);
   const matrice = new THREE.Matrix4(); const couleur = new THREE.Color();
   FLUX.forEach((f, idx) => {
-    const t = TYPES[f.type];
+    const t = TYPES[f.type]; const parcours = PARCOURS.find((p) => p.flux === idx);
+    const suite = parcours ? ' Parcours : ' + parcours.texte : '';
     if (f.de === f.vers) {
       const anneau = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.025, 8, 40), new THREE.MeshStandardMaterial({ color: t.couleur, emissive: t.couleur, emissiveIntensity: 1.6, roughness: 0.5 }));
       anneau.position.copy(pos[f.de].clone().multiplyScalar(1.012)); anneau.lookAt(new THREE.Vector3()); anneau.userData.legende = { nom: t.nom, phrase: f.texte }; anneau.userData.type = f.type; anneau.userData.flux = idx; globe.add(anneau); arcs.push(anneau); return;
     }
     const courbe = arcSphere(pos[f.de], pos[f.vers], R, 0.13 + f.volume * 0.011, 64);
     const tube = new THREE.Mesh(new THREE.TubeGeometry(courbe, 64, 0.014 + f.volume * 0.0036, 8, false), new THREE.MeshStandardMaterial({ color: t.couleur, emissive: t.couleur, emissiveIntensity: 1.5, roughness: 0.5, transparent: true, opacity: 0.92 }));
-    tube.userData.legende = { nom: t.nom, phrase: LIEUX[f.de].nom + ' → ' + LIEUX[f.vers].nom + ' : ' + f.texte }; tube.userData.type = f.type; tube.userData.flux = idx; tube.userData.courbe = courbe; globe.add(tube); arcs.push(tube);
+    tube.userData.legende = { nom: t.nom, phrase: LIEUX[f.de].nom + ' → ' + LIEUX[f.vers].nom + ' : ' + f.texte + suite }; tube.userData.type = f.type; tube.userData.flux = idx; tube.userData.courbe = courbe; globe.add(tube); arcs.push(tube);
     const n = Math.max(2, Math.round(f.volume));
     for (let k = 0; k < n; k += 1) { const i = particules.length; couleur.set(t.couleur).multiplyScalar(2.2); instances.setColorAt(i, couleur); particules.push({ i, courbe, t: k / n, v: 0.05 + (k % 3) * 0.012, type: f.type, flux: idx }); }
   });
   instances.instanceColor.needsUpdate = true;
 
   /* ---- Le panneau ---- */
-  panneau = M.panneau(`<h3>Pourquoi partir ?</h3>
+  panneau = M.panneau(`<details id="mi-det-types" open><summary>Pourquoi partir ?</summary><div>
     <div class="mb-groupe">${Object.keys(TYPES).map((k) => `<button class="mb-bouton" type="button" data-type="${k}" aria-pressed="true" style="border-left:6px solid #${TYPES[k].couleur.toString(16).padStart(6, '0')}">${TYPES[k].nom}</button>`).join('')}</div>
-    <p class="mb-carte" id="mi-texte">Touche un flux ou une région pour lire le chiffre, ou passe les flux un par un.</p>
-    <h3>Les neuf flux</h3>
+    </div></details>
+    <p class="mb-carte" id="mi-texte">Touche un flux ou une région pour lire le chiffre, ou passe les flux un par un. Trois flux racontent un parcours.</p>
+    <div class="mi-parcours" id="mi-parcours" hidden></div>
+    <details id="mi-det-mission" open><summary>Mission : lire la carte</summary><div>
+      <div id="mi-mission-avant"><button class="mb-bouton primaire" id="mi-mission" type="button">Commencer la mission</button></div>
+      <div id="mi-mission-pendant" hidden>
+        <p class="mb-carte" id="mi-description"></p>
+        <div class="mi-etape" id="mi-etape-flux"><i>1</i><span>Touche le flux sur le globe.</span></div>
+        <div class="mi-etape" id="mi-etape-an"><i>2</i><span id="mi-etape-an-texte">Règle l'année.</span></div>
+      </div>
+    </div></details>
+    <details id="mi-det-flux"><summary>Les neuf flux</summary><div>
     <div class="mb-groupe"><button class="mb-bouton" id="mi-prec" type="button" aria-label="Flux précédent">◀</button><button class="mb-bouton primaire" id="mi-suiv" type="button">Flux suivant ▶</button></div>
     <div class="mb-mesures"><span>Flux</span><b id="mi-n">·</b><span>Personnes</span><b id="mi-vol">·</b><span>Part des 281 millions</span><b id="mi-part">·</b></div>
+    </div></details>
     <h3>Migrants dans le monde (ONU)</h3>
     <label>Année <span class="mb-val" id="mi-an">2020</span><input class="mb-plage" id="mi-ans" type="range" min="0" max="3" step="1" value="3" aria-label="Année"></label>
     <div class="mb-mesures"><span>Migrants internationaux</span><b id="mi-stock">281 millions</b><span>Part de l'humanité</span><b id="mi-pct">3,6 %</b><span>Réfugiés (2020)</span><b>≈ 26 millions</b><span>Premier pays d'accueil</span><b>Turquie</b></div>
@@ -170,16 +212,46 @@ function init() {
   panneau.querySelectorAll('[data-type]').forEach((b) => b.addEventListener('click', () => { const k = b.getAttribute('data-type'); visibles[k] = !visibles[k]; b.setAttribute('aria-pressed', String(visibles[k])); arcs.forEach((a) => { if (a.userData.type === k) { a.visible = visibles[k]; a.raycast = visibles[k] ? THREE.Mesh.prototype.raycast : () => {}; } }); panneau.querySelector('#mi-texte').textContent = TYPES[k].nom + (visibles[k] ? ' : ' : ' (masqué) : ') + TYPES[k].texte; shell.say(TYPES[k].texte, 'concentre'); }));
   panneau.querySelector('#mi-suiv').addEventListener('click', () => choisirFlux((fluxChoisi + 1) % FLUX.length));
   panneau.querySelector('#mi-prec').addEventListener('click', () => choisirFlux((fluxChoisi - 1 + FLUX.length) % FLUX.length));
-  panneau.querySelector('#mi-ans').addEventListener('input', (e) => { anIndex = Number(e.target.value); majStock(); });
+  panneau.querySelector('#mi-ans').addEventListener('input', (e) => { anIndex = Number(e.target.value); M.son('tic', { volume: 0.08 }); majStock(); });
   panneau.querySelector('#mi-rot').addEventListener('click', (e) => { tourne = !tourne; e.currentTarget.setAttribute('aria-pressed', String(tourne)); });
+  panneau.querySelector('#mi-mission').addEventListener('click', () => lancerMission());
   majStock();
 
-  /* ---- La boucle : rotation, nuages, particules, direction du Soleil, mise au point ---- */
+  /* ---- Le toucher d'un flux : au plus près de l'arc à l'écran, tolérant au doigt ---- */
+  const dom = M.renderer.domElement; let appui = null; const _p = new THREE.Vector3();
+  dom.addEventListener('pointerdown', (e) => { appui = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+  dom.addEventListener('pointerup', (e) => {
+    if (!appui) return; const dd = Math.hypot(e.clientX - appui.x, e.clientY - appui.y); const dt = performance.now() - appui.t; appui = null;
+    if (dd > 8 || dt > 700) return;
+    const r = dom.getBoundingClientRect(); const px = e.clientX - r.left; const py = e.clientY - r.top; const camDir = M.camera.position.clone().normalize();
+    let meilleur = -1; let dmin = 30;
+    arcs.forEach((a) => {
+      if (!a.visible) return; const n = a.userData.courbe ? 24 : 1;
+      for (let k = 0; k <= n; k += 1) {
+        if (a.userData.courbe) _p.copy(a.userData.courbe.getPoint(k / n)); else _p.copy(a.position);
+        _p.applyMatrix4(globe.matrixWorld); if (_p.clone().normalize().dot(camDir) < 0.05) continue; // la face cachée ne compte pas
+        _p.project(M.camera); const sx = (_p.x + 1) / 2 * r.width; const sy = (1 - _p.y) / 2 * r.height; const d = Math.hypot(sx - px, sy - py);
+        if (d < dmin) { dmin = d; meilleur = a.userData.flux; }
+      }
+    });
+    if (meilleur >= 0) toucherFlux(meilleur);
+  });
+
+  /* ---- La mission ---- */
+  mission = M.mission({
+    titre: 'Lire la carte', chrono: true, chronoCible: 180, cachee: true, annonce: false,
+    objectifs: PARCOURS.map((p, i) => ({ id: 'p' + (i + 1), texte: 'Parcours ' + (i + 1) + ' : ' + p.prenom, points: 100, verifier: () => parcoursCourant === i && toucheOk && anIndex === p.an, apres: () => parcoursReussi(i) })),
+    surFin: (reussie, secondes, score) => finMission(reussie, secondes, score),
+    gagner: false, bravo: 'Trois parcours retrouvés sur la carte.',
+  });
+
+  /* ---- La boucle : rotation, nuages, Lune, particules, direction du Soleil, mise au point ---- */
   const depuis = { pos: new THREE.Vector3(), rot: 0 };
   M.boucle((dt, t) => {
     if (vue) { vue.t = Math.min(1, vue.t + dt / 1.3); const k = ease(vue.t); globe.rotation.y = depuis.rot + (vue.rot - depuis.rot) * k; M.camera.position.lerpVectors(depuis.pos, vue.pos, k); if (vue.t >= 1) vue = null; }
     else if (tourne) globe.rotation.y += dt * 0.012;
     nuages.rotation.y += dt * 0.004;
+    lune.position.set(Math.cos(t * 0.03 + 0.8) * 12.5, 1.5 + Math.sin(t * 0.03) * 0.8, Math.sin(t * 0.03 + 0.8) * -12.5); lune.rotation.y = t * 0.03; lumiereLune.position.copy(lune.position);
     for (const p of particules) {
       p.t = (p.t + dt * p.v) % 1; const cache = !visibles[p.type];
       const q = p.courbe.getPoint(p.t); const s = cache ? 0.0001 : (fluxChoisi < 0 || fluxChoisi === p.flux ? 1 : 0.55);
@@ -187,17 +259,32 @@ function init() {
     }
     instances.instanceMatrix.needsUpdate = true;
     arcs.forEach((a) => { if (a.geometry.type === 'TorusGeometry') { const s = 1 + 0.12 * Math.sin(t * 2.2); a.scale.set(s, s, 1); } });
+    etoilesVives.material.opacity = 0.75 + 0.25 * Math.sin(t * 1.7);
     U.dirSoleilVue.value.copy(M.soleil.position).normalize().transformDirection(M.camera.matrixWorldInverse);
   });
   M.depuis = depuis;
+  window.__mi = { etat: () => ({ parcours: parcoursCourant, touche: fluxTouche, toucheOk, an: anIndex, finie: mission.estFinie() }), toucherFlux, annee: (i) => { anIndex = i; panneau.querySelector('#mi-ans').value = String(i); majStock(); }, lancerMission, mission };
 }
 function majStock() {
   const s = STOCK[anIndex]; panneau.querySelector('#mi-an').textContent = String(s.an); panneau.querySelector('#mi-stock').textContent = s.millions + ' millions'; panneau.querySelector('#mi-pct').textContent = fr(s.part) + ' %';
-  if (anIndex < 3) panneau.querySelector('#mi-texte').textContent = s.an + ' : ' + s.millions + ' millions de migrants internationaux, ' + fr(s.part) + ' % de l\'humanité. En 2020 : 281 millions, soit ' + fr(Math.round(281 / s.millions * 10) / 10) + ' fois plus.';
+  if (anIndex < 3 && parcoursCourant < 0) panneau.querySelector('#mi-texte').textContent = s.an + ' : ' + s.millions + ' millions de migrants internationaux, ' + fr(s.part) + ' % de l\'humanité. En 2020 : 281 millions, soit ' + fr(Math.round(281 / s.millions * 10) / 10) + ' fois plus.';
+  majEtapes();
+}
+/* Met en valeur un flux et affiche son chiffre (et son parcours, s'il en a un). */
+function montrerFlux(i) {
+  const f = FLUX[i]; const t = TYPES[f.type];
+  arcs.forEach((a) => { const choisi = a.userData.flux === i; a.material.emissiveIntensity = choisi ? 2.6 : 0.5; a.material.opacity = choisi ? 1 : 0.35; });
+  const part = Math.round(f.volume / 281 * 1000) / 10;
+  panneau.querySelector('#mi-n').textContent = (i + 1) + ' / ' + FLUX.length + ' · ' + t.nom; panneau.querySelector('#mi-vol').textContent = f.volume < 1 ? Math.round(f.volume * 1000) + ' 000' : fr(f.volume) + ' millions'; panneau.querySelector('#mi-part').textContent = (part < 0.1 ? '< 0,1' : fr(part)) + ' %';
+  const titre = f.de === f.vers ? LIEUX[f.de].nom + ' (à l\'intérieur du pays)' : LIEUX[f.de].nom + ' → ' + LIEUX[f.vers].nom;
+  panneau.querySelector('#mi-texte').innerHTML = '<b>' + titre + '</b>. ' + f.texte;
+  const p = PARCOURS.find((x) => x.flux === i); const zone = panneau.querySelector('#mi-parcours');
+  if (p) { zone.hidden = false; zone.style.borderLeftColor = '#' + t.couleur.toString(16).padStart(6, '0'); zone.innerHTML = '<b>Le parcours de ' + p.prenom + '.</b> ' + p.texte; } else zone.hidden = true;
+  return { titre, parcours: p };
 }
 /* Amène un flux face à la caméra : le globe tourne, la caméra se place au-dessus du milieu de l'arc. */
 function choisirFlux(i) {
-  fluxChoisi = i; const f = FLUX[i]; const t = TYPES[f.type]; tourne = false; panneau.querySelector('#mi-rot').setAttribute('aria-pressed', 'false');
+  fluxChoisi = i; tourne = false; panneau.querySelector('#mi-rot').setAttribute('aria-pressed', 'false');
   const arc = arcs.find((a) => a.userData.flux === i); const local = arc.userData.courbe ? arc.userData.courbe.getPoint(0.5) : arc.position.clone();
   // l'angle du globe pour lequel le point est devant (x proche de 0, z positif), par balayage
   let meilleur = globe.rotation.y; let score = Infinity; const q = new THREE.Vector3();
@@ -206,14 +293,63 @@ function choisirFlux(i) {
   q.copy(local).applyAxisAngle(new THREE.Vector3(0, 1, 0), meilleur).applyQuaternion(axe.quaternion).normalize();
   const d = Math.min(12, Math.max(7.5, M.camera.position.length()));
   M.depuis.pos.copy(M.camera.position); M.depuis.rot = globe.rotation.y; vue = { rot, pos: q.multiplyScalar(d), t: 0 };
-  arcs.forEach((a) => { const choisi = a.userData.flux === i; a.material.emissiveIntensity = choisi ? 2.6 : 0.5; a.material.opacity = choisi ? 1 : 0.35; });
-  const part = Math.round(f.volume / 281 * 1000) / 10;
-  panneau.querySelector('#mi-n').textContent = (i + 1) + ' / ' + FLUX.length + ' · ' + t.nom; panneau.querySelector('#mi-vol').textContent = f.volume < 1 ? Math.round(f.volume * 1000) + ' 000' : fr(f.volume) + ' millions'; panneau.querySelector('#mi-part').textContent = (part < 0.1 ? '< 0,1' : fr(part)) + ' %';
-  const titre = f.de === f.vers ? LIEUX[f.de].nom + ' (à l\'intérieur du pays)' : LIEUX[f.de].nom + ' → ' + LIEUX[f.vers].nom;
-  panneau.querySelector('#mi-texte').innerHTML = '<b>' + titre + '</b>. ' + f.texte; shell.say(titre + '. ' + f.texte, 'concentre');
+  const { titre, parcours } = montrerFlux(i); const f = FLUX[i];
+  shell.say(titre + '. ' + f.texte + (parcours ? ' Le parcours de ' + parcours.prenom + ' est dans le panneau.' : ''), 'concentre');
+}
+/* Un flux touché sur le globe : mis en valeur, parcours affiché, et compté pour la mission. */
+function toucherFlux(i) {
+  fluxChoisi = i; fluxTouche = i; const { parcours } = montrerFlux(i); M.son('clic', { volume: 0.14, frequence: 720 });
+  if (parcours) shell.say('Le parcours de ' + parcours.prenom + '. ' + parcours.texte, 'concentre');
+  if (parcoursCourant >= 0 && mission && !mission.estFinie()) {
+    const p = PARCOURS[parcoursCourant];
+    if (i === p.flux) { if (!toucheOk) { toucheOk = true; M.son('cloche', { volume: 0.18, frequence: 1046 }); shell.toast('C\'est ce flux. Maintenant, l\'année.', 2200); } }
+    else { essais += 1; const f = FLUX[i]; shell.toast('Ce flux va de ' + LIEUX[f.de].nom + ' vers ' + LIEUX[f.vers].nom + ' (' + TYPES[f.type].nom.toLowerCase() + '). Relis la description.', 3000); shell.sound('bad'); }
+  }
+  majEtapes();
+}
+function majEtapes() {
+  if (!panneau || parcoursCourant < 0) return; const p = PARCOURS[parcoursCourant];
+  panneau.querySelector('#mi-etape-flux').classList.toggle('fait', toucheOk);
+  panneau.querySelector('#mi-etape-an').classList.toggle('fait', toucheOk && anIndex === p.an);
+  panneau.querySelector('#mi-etape-an-texte').textContent = 'Règle le curseur sur ' + p.annee + ' (curseur : ' + STOCK[anIndex].an + ').';
+}
+function lancerMission() {
+  if (!mission || (parcoursCourant >= 0 && !mission.estFinie())) return;
+  essais = 0; parcoursCourant = -1; toucheOk = false;
+  panneau.querySelector('#mi-mission-avant').hidden = true; panneau.querySelector('#mi-mission-pendant').hidden = false;
+  if (etroit()) { ['mi-det-types', 'mi-det-flux'].forEach((id) => { panneau.querySelector('#' + id).open = false; }); }
+  mission.commencer(); mission.montrer();
+  shell.say('Lire la carte : trois descriptions, trois flux à retrouver sur le globe, puis l\'année à régler.', 'concentre');
+  setTimeout(() => lancerParcours(0), 1800);
+}
+function lancerParcours(i) {
+  if (!mission || mission.estFinie()) return;
+  parcoursCourant = i; toucheOk = false; fluxTouche = -1; essais = 0; const p = PARCOURS[i];
+  arcs.forEach((a) => { a.material.emissiveIntensity = 1.5; a.material.opacity = 0.92; }); fluxChoisi = -1;
+  panneau.querySelector('#mi-description').textContent = 'Parcours ' + (i + 1) + '. ' + p.description;
+  panneau.querySelector('#mi-parcours').hidden = true;
+  majEtapes(); shell.say('Parcours ' + (i + 1) + '. ' + p.description + ' Touche ce flux sur le globe.', 'concentre');
+}
+function parcoursReussi(i) {
+  const p = PARCOURS[i]; M.son('cloche', { volume: 0.22 });
+  shell.say(STOCK[p.an].an + ' : c\'est l\'année de ' + p.prenom + '. ' + (i < 2 ? 'Parcours suivant.' : 'Les trois parcours sont retrouvés.'), 'fier');
+  parcoursCourant = -1;
+  if (i < PARCOURS.length - 1) setTimeout(() => lancerParcours(i + 1), 2600);
+}
+function finMission(reussie, secondes, score) {
+  const mm = Math.floor(secondes / 60); const ss = String(Math.floor(secondes % 60)).padStart(2, '0');
+  panneau.querySelector('#mi-mission-pendant').hidden = true; const avant = panneau.querySelector('#mi-mission-avant'); avant.hidden = false; avant.querySelector('#mi-mission').textContent = 'Rejouer la mission';
+  if (modeJeu === 'cours') { shell.toast(`Mission réussie en ${mm}:${ss}, ${score} points. Les défis continuent.`, 3200); }
+  else setTimeout(() => shell.win({ score, stars: secondes <= 180 ? 3 : 2, title: `Lire la carte : réussi en ${mm}:${ss}`, detail: { mission: 'Lire la carte', secondes: Math.round(secondes), essais }, buddy: 'Trois parcours retrouvés sur la carte, avec leur année.' }), 1500);
 }
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Tourne le globe et touche les flux. Chaque couleur est une raison de partir ; chaque épaisseur, un nombre de personnes.', 'joyeux'); return; }
+  modeJeu = mode;
+  if (!ambEspace) ambEspace = M.ambiance({ type: 'espace', volume: 0.05 });
+  if (mode !== 'cours') {
+    api.say('Tourne le globe et touche les flux. Chaque couleur est une raison de partir ; chaque épaisseur, un nombre de personnes. La mission commence dans un instant.', 'joyeux');
+    setTimeout(() => { if (!mission.estFinie() && parcoursCourant < 0) lancerMission(); }, 4500);
+    return;
+  }
   api.defis([
     { type: 'qcm', texte: 'Quelle part de l\'humanité vit dans un autre pays que celui de sa naissance ?', choix: ['Environ 3,6 %', 'Environ 36 %', 'Environ 0,3 %', 'Environ 60 %'], reponse: 0, explication: '281 millions de migrants internationaux en 2020 sur 7,8 milliards d\'humains : 3,6 %. La grande majorité des humains ne migre pas.' },
     { type: 'toucher', texte: 'Touche les <b>pays du Golfe</b>, qui accueillent des millions de travailleurs.', cible: 'Pays du Golfe', explication: 'Arabie saoudite, Émirats, Qatar : les travailleurs d\'Asie du Sud y sont majoritaires dans le bâtiment et les services. C\'est l\'arc le plus épais du globe.' },

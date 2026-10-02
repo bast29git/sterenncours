@@ -19,16 +19,32 @@
   .mb-panneau label { display: block; }
   .mb-panneau .mb-mesures b { text-align: right; }
   .ec-l .mb-bouton { font-family: var(--font-data); }
-  @media (max-width: 720px) { .mb-groupe .mb-bouton { font-size: 12px; min-height: 32px; padding: 3px 6px; } }
+  .ec-fen { font-family: var(--font-data); font-size: 14px; display: flex; justify-content: space-between; gap: 8px; }
+  @media (max-width: 720px) { .mb-panneau { width: min(205px, 50vw); max-height: 58%; box-sizing: border-box; } .mb-mission { width: min(165px, 42vw); font-size: 11.5px; box-sizing: border-box; padding: 8px 9px; } .mb-groupe .mb-bouton { font-size: 12px; min-height: 32px; padding: 3px 6px; } .mb-aide-marche { white-space: normal; max-width: 72vw; text-align: center; font-size: 11px; line-height: 1.3; } }
 </style>
 </head>
 <body>
 <script type="module">
 import { creerMonde, THREE, renduLogiciel, textureTexte } from '../monde-base.js';
 
+/*
+   Monde 24 : l'échelle et le cosinus.
+   Une cour pavée devant une maison de briques. L'échelle (hypoténuse) se règle en longueur, en distance du pied au mur,
+   et glisse le long du mur. Yann, le peintre en bâtiment, ne monte que si l'échelle est posée dans la zone de sécurité
+   (65° à 75°). La mission « Trois fenêtres à repeindre » : pour chaque fenêtre, choisir la bonne longueur, placer
+   l'échelle devant, régler l'angle, et valider : Yann grimpe et repeint.
+*/
 let L = 5; // longueur de l'échelle, en mètres
 let d = 2.5; // distance du pied au mur
-let M, echelle, segAdj, segOpp, arcAngle, coin, etiqAdj, etiqOpp, etiqHyp, etiqAngle, panneau, ruban, rubanBoitier, quadrillage, vise = null, vueCote = false, logicielGlobal = false, boisEchelle = null, caoutchouc = null;
+let zE = 0; // position de l'échelle le long du mur
+let M, rig, echelle, segAdj, segOpp, arcAngle, coin, etiqAdj, etiqOpp, etiqHyp, etiqAngle, panneau, ruban, rubanBoitier, quadrillage, vise = null, vueCote = false, logicielGlobal = false, boisEchelle = null, caoutchouc = null;
+let accel = 1, peintre = null, grimpe = null, marche = null, mission = null, fenetreCourante = -1, pasT = 0, modeJeu = 'detente', ambOiseaux = null, ambVent = null, essais = 0, FEN = null;
+const SECU = { min: 65, max: 75 };
+const FENETRES = [
+  { id: 'f1', nom: 'Fenêtre du bas, à gauche', z: -3.6, hmin: 2.7, hmax: 3.0, texte: 'La fenêtre du bas, à gauche : le haut de l\'échelle entre 2,7 et 3,0 m.', aide: 'Avec L = 3 m, entre 65° et 75°, le haut monte de 2,72 à 2,90 m. Une échelle de 4 m monterait trop haut.' },
+  { id: 'f2', nom: 'Fenêtre du haut, à droite', z: 3.6, hmin: 4.5, hmax: 4.9, texte: 'La fenêtre du haut, à droite : le haut de l\'échelle entre 4,5 et 4,9 m.', aide: 'Avec L = 5 m, entre 65° et 75°, le haut monte de 4,53 à 4,83 m.' },
+  { id: 'f3', nom: 'Fenêtre du haut, sans volets', z: -1.2, hmin: 5.4, hmax: 5.8, texte: 'La fenêtre du haut sans volets, jusqu\'au linteau : le haut de l\'échelle entre 5,4 et 5,8 m.', aide: 'Il faut l\'échelle de 6 m : entre 65° et 75°, son haut monte de 5,44 à 5,80 m.' },
+];
 const LEGENDES = [
   { nom: 'Hypoténuse', phrase: 'L\'échelle : le côté le plus long, en face de l\'angle droit. Sa longueur L est fixe.' },
   { nom: 'Côté adjacent', phrase: 'Le sol, du pied de l\'échelle au mur : il touche l\'angle α.' },
@@ -40,15 +56,16 @@ const LEGENDES = [
   { nom: 'Tonneau de pluie', phrase: 'La gouttière y descend l\'eau du toit : un cylindre, comme en géométrie.' },
   { nom: 'Tilleul', phrase: 'Son ombre se déplace avec le soleil : l\'ombre d\'un arbre fait aussi un triangle rectangle.' },
   { nom: 'Réverbère', phrase: 'Un poteau vertical, un sol horizontal : encore un angle droit.' },
+  { nom: 'Yann', phrase: 'Le peintre en bâtiment. Il ne monte que si l\'échelle fait entre 65° et 75° avec le sol.' },
 ];
 const shell = window.Konstrio.createGame({
   id: '3d-24-echelle-cosinus', code: '3D·24', title: 'L\'échelle et le cosinus', type: '3D', duree: '10 min',
   domain: { label: 'Mathématiques', color: '#2E7FC2' },
   intro: {
     greet: 'Une échelle de 5 m contre un mur. Déplace son pied : l\'angle change, le cosinus aussi.',
-    rule: 'Le triangle formé par le sol, le mur et l\'échelle est rectangle. Déplace le pied, ou règle l\'angle, et lis le cosinus et la hauteur atteinte. La vue de côté montre la figure comme dans le cahier.',
-    how: ['Glisse pour tourner autour de l\'échelle, molette pour zoomer.', 'Touche l\'échelle, le sol, le mur ou l\'angle : chaque côté a son nom.', 'Le curseur « distance » déplace le pied ; le curseur « angle » fait le chemin inverse.', 'Le quadrillage à 1 m et la vue de côté aident à lire les longueurs.'],
-    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    rule: 'Le triangle formé par le sol, le mur et l\'échelle est rectangle. Déplace le pied, ou règle l\'angle, et lis le cosinus et la hauteur atteinte. La vue de côté montre la figure comme dans le cahier. Puis la mission : trois fenêtres à repeindre, et Yann ne monte que si l\'échelle est bien posée.',
+    how: ['Glisse pour tourner autour de l\'échelle, molette pour zoomer. « Marcher » te promène dans la cour.', 'Touche l\'échelle, le sol, le mur ou l\'angle : chaque côté a son nom.', 'Le curseur « distance » déplace le pied ; le curseur « angle » fait le chemin inverse ; « le long du mur » glisse l\'échelle devant une fenêtre.', 'La mission : pour chaque fenêtre, choisis la longueur, place l\'échelle devant, règle l\'angle entre 65° et 75°, puis valide. Yann grimpe si tout est bon.'],
+    keys: 'Flèches : tourner · + et - : zoom · ZQSD en marche · F : la fiche · Échap : pause.',
     objectif: 'Reconnaître le côté adjacent et l\'hypoténuse, calculer un cosinus, retrouver un angle ou une longueur.',
     hint: 'cos α = côté adjacent ÷ hypoténuse. Ici, cos α = d ÷ L.',
     why: 'Avec le cosinus, une seule mesure au sol suffit pour connaître l\'angle de l\'échelle, sans rapporteur.',
@@ -61,6 +78,8 @@ const angle = () => Math.acos(d / L) * 180 / Math.PI;
 const hauteur = () => Math.sqrt(L * L - d * d);
 const f2 = (x) => x.toFixed(2).replace('.', ',');
 const f1 = (x) => x.toFixed(1).replace('.', ',');
+const etroit = () => window.matchMedia('(max-width: 720px)').matches;
+const enSecurite = () => angle() >= SECU.min && angle() <= SECU.max;
 
 /** Un environnement provisoire (dégradé ciel, sol) posé avant la première image : les matériaux compilent une seule fois, la vraie carte HDRI le remplace à son arrivée. */
 function environnementProvisoire(M) {
@@ -94,8 +113,8 @@ function init() {
     brouillard: { couleur: 0xdbe7f2, densite: 0.006 },
     soleil: { position: [11, 13, 7], intensite: 2.0, couleur: 0xfff1dc, etendue: 16 },
     camera: { position: [7.5, 4.5, 9.5], cible: [1.5, 2, 0], min: 3, max: 30 },
-    rendu: logicielGlobal ? { bloom: false, smaa: false, gtao: false } : undefined,
-    legendes: LEGENDES, libelle: 'Une cour pavée devant une maison de briques, avec une échelle contre le mur et le triangle rectangle qu\'elle forme',
+    rendu: logicielGlobal ? { bloom: false, smaa: false, gtao: false } : { bloom: { force: 0.22, rayon: 0.4, seuil: 0.95 } },
+    legendes: LEGENDES, libelle: 'Une cour pavée devant une maison de briques, avec une échelle contre le mur, le triangle rectangle qu\'elle forme et Yann, le peintre',
   });
   environnementProvisoire(M);
   const { scene, mesh, mat, legender, etiquette, meshPBR, matPhysique } = M;
@@ -119,26 +138,35 @@ function init() {
   muet(boite(0.6, 0.12, 12.1, mat(0xd8d2c4, { rugosite: 0.9 }), [-0.25, 3.33, 0], maison));
   muet(meshPBR(new THREE.BoxGeometry(0.56, 0.5, 12.05), 'rock_boulder_dry', { couleur: 0xa39a88, repetition: 3, rugosite: 1 }, [-0.25, 0.25, 0], maison));
   const jourTex = (() => { const c = document.createElement('canvas'); c.width = 16; c.height = 64; const x = c.getContext('2d'); const g = x.createLinearGradient(0, 0, 0, 64); g.addColorStop(0, '#3a3f4a'); g.addColorStop(1, '#6a5f52'); x.fillStyle = g; x.fillRect(0, 0, 16, 64); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
-  function fenetre(y, z, w, h, volets) {
+  FEN = {};
+  function fenetre(y, z, w, h, volets, cle) {
     const g = new THREE.Group(); g.position.set(0, y, z); maison.add(g);
     const fond = muet(new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: jourTex }))); fond.rotation.y = Math.PI / 2; fond.position.x = 0.004; g.add(fond);
     const vitre = muet(mesh(new THREE.PlaneGeometry(w, h), verre, [0.02, 0, 0], g)); vitre.rotation.y = Math.PI / 2; vitre.castShadow = false;
-    muet(boite(0.12, 0.1, w + 0.24, mat(0xe8e2d6, { rugosite: 0.8 }), [0.02, h / 2 + 0.05, 0], g)); muet(boite(0.22, 0.1, w + 0.3, mat(0xd8d2c4, { rugosite: 0.9 }), [0.07, -h / 2 - 0.05, 0], g));
-    for (const s of [-1, 1]) muet(boite(0.1, h + 0.1, 0.1, mat(0xe8e2d6, { rugosite: 0.8 }), [0.02, 0, s * (w / 2 + 0.05)], g));
-    muet(boite(0.06, h, 0.05, mat(0xf4f0e8, { rugosite: 0.7 }), [0.03, 0, 0], g)); muet(boite(0.06, 0.05, w, mat(0xf4f0e8, { rugosite: 0.7 }), [0.03, 0.1, 0], g));
-    if (volets) for (const s of [-1, 1]) { const v = muet(boite(0.05, h, w / 2, boisPeint, [0, 0, 0], g)); v.position.set(0.1, 0, s * (w / 2 + 0.1 + w / 4)); for (let k = 0; k < 4; k += 1) muet(boite(0.02, h * 0.18, w / 2 - 0.08, mat(0x2f5a76, { rugosite: 0.6 }), [0.13, -h * 0.36 + k * h * 0.24, s * (w / 2 + 0.1 + w / 4)], g)); }
+    const cadreMat = new THREE.MeshStandardMaterial({ color: 0xe8e2d6, roughness: 0.8 });
+    muet(boite(0.12, 0.1, w + 0.24, cadreMat, [0.02, h / 2 + 0.05, 0], g)); muet(boite(0.22, 0.1, w + 0.3, mat(0xd8d2c4, { rugosite: 0.9 }), [0.07, -h / 2 - 0.05, 0], g));
+    for (const s of [-1, 1]) muet(boite(0.1, h + 0.1, 0.1, cadreMat, [0.02, 0, s * (w / 2 + 0.05)], g));
+    muet(boite(0.06, h, 0.05, cadreMat, [0.03, 0, 0], g)); muet(boite(0.06, 0.05, w, cadreMat, [0.03, 0.1, 0], g));
+    const voletsMat = new THREE.MeshStandardMaterial({ color: 0x8a7a66, roughness: 0.9 });
+    if (volets) for (const s of [-1, 1]) { const v = muet(boite(0.05, h, w / 2, voletsMat, [0, 0, 0], g)); v.position.set(0.1, 0, s * (w / 2 + 0.1 + w / 4)); for (let k = 0; k < 4; k += 1) muet(boite(0.02, h * 0.18, w / 2 - 0.08, voletsMat, [0.13, -h * 0.36 + k * h * 0.24, s * (w / 2 + 0.1 + w / 4)], g)); }
+    if (cle) FEN[cle] = { groupe: g, cadre: cadreMat, volets: voletsMat, y, z, w, h };
     return g;
   }
-  fenetre(1.9, -3.6, 1.2, 1.5, true); fenetre(1.9, 3.6, 1.2, 1.5, true); fenetre(5.0, -3.3, 1.1, 1.4, true); fenetre(5.0, 3.6, 1.1, 1.4, true);
-  const fenHaut = fenetre(5.0, -1.2, 1.1, 1.4, false);
+  fenetre(1.9, -3.6, 1.2, 1.5, true, 'f1'); fenetre(1.9, 3.6, 1.2, 1.5, true); fenetre(5.0, -3.3, 1.1, 1.4, true); fenetre(5.0, 3.6, 1.1, 1.4, true, 'f2');
+  const fenHaut = fenetre(5.0, -1.2, 1.1, 1.4, false, 'f3');
   muet(boite(0.05, 1.4, 0.55, boisPeint, [0.1, 0, -0.95], fenHaut));
   const voletDecroche = boite(0.05, 1.4, 0.55, mat(0x8a7a66, { rugosite: 0.9 }), [4.1, 0.03, 2.1]); voletDecroche.rotation.x = Math.PI / 2; voletDecroche.rotation.z = -0.3; voletDecroche.userData.legende = { nom: 'Volet décroché', phrase: 'Posé au sol pour être repeint : il remontera par l\'échelle.' };
   for (const dz of [-0.16, 0.16]) boite(0.02, 0.5, 0.26, mat(0x3b6e8f, { rugosite: 0.6 }), [0, 0, dz], voletDecroche).userData.legende = voletDecroche.userData.legende;
+  // les autres volets déjà repeints en bleu : ceux de la mission restent gris, Yann les peindra
+  Object.keys(FEN).forEach((k) => { FEN[k].volets.color.set(0x8a7a66); });
+  maison.traverse((m) => { if (m.isMesh && m.material && m.material.color && m.material.color.getHex() === 0x8a7a66 && !Object.values(FEN).some((f) => f.volets === m.material)) m.material = boisPeint; });
   // porte avec marche
   const porte = new THREE.Group(); porte.position.set(0, 0, 1.9); maison.add(porte);
   muet(boite(0.08, 2.2, 1.0, mat(0x5a2e1e, { rugosite: 0.6 }), [0.02, 1.1, 0], porte)); for (let k = 0; k < 2; k += 1) for (let j = 0; j < 2; j += 1) muet(boite(0.03, 0.8, 0.38, mat(0x6b3a26, { rugosite: 0.6 }), [0.07, 0.6 + j * 1.0, -0.22 + k * 0.44], porte));
   muet(mesh(new THREE.SphereGeometry(0.04, 10, 8), mat(0xc9a24c, { rugosite: 0.3, metal: 0.9 }), [0.1, 1.05, 0.35], porte));
   muet(boite(0.1, 2.35, 1.2, mat(0xd8d2c4, { rugosite: 0.9 }), [0.0, 1.17, 0], porte)); muet(meshPBR(new THREE.BoxGeometry(0.5, 0.14, 1.3), 'rock_boulder_dry', { couleur: 0xb9ad98, repetition: 1, rugosite: 1 }, [0.25, 0.07, 0], porte));
+  const lampePorte = new THREE.PointLight(0xffe2b0, 4, 5, 2); lampePorte.position.set(0.5, 2.6, 1.9); scene.add(lampePorte);
+  muet(mesh(new THREE.SphereGeometry(0.07, 10, 8), mat(0xfff3d8, { emissif: 0xffd9a0, intensite: 1.2 }), [0.35, 2.6, 1.9])); muet(boite(0.3, 0.06, 0.2, fer, [0.2, 2.72, 1.9]));
   // toit en ardoise, gouttière, cheminée, descente
   const toit = new THREE.Group(); toit.position.set(-0.3, 7.2, 0); toit.rotation.z = -0.62; maison.add(toit);
   muet(boite(4.6, 0.12, 12.6, mat(0x3b4048, { rugosite: 0.85 }), [-1.8, 0, 0], toit));
@@ -182,25 +210,24 @@ function init() {
   const roue = mesh(new THREE.TorusGeometry(0.22, 0.05, 10, 24), mat(0x222222, { rugosite: 0.9 }), [-0.55, 0.27, 0], brouette); roue.rotation.x = 0; cyl(0.03, 0.03, 0.3, 8, fer, [-0.55, 0.27, 0], brouette).rotation.x = Math.PI / 2;
   brouette.traverse((c) => { c.userData.legende = brouette.userData.legende; });
 
-  /* ---------- L'échelle (hypoténuse) ---------- */
-  echelle = new THREE.Group(); scene.add(echelle);
+  /* ---------- Le gréement : l'échelle (hypoténuse), les côtés du triangle, l'angle, le mètre ruban, le tout glisse le long du mur ---------- */
+  rig = new THREE.Group(); scene.add(rig);
+  echelle = new THREE.Group(); rig.add(echelle);
   construireEchelle();
   legender(echelle, 'Hypoténuse', LEGENDES[0].phrase);
-
-  /* ---------- Les côtés du triangle, l'angle, le mètre ruban, le quadrillage ---------- */
-  segAdj = new THREE.Mesh(new THREE.BoxGeometry(1, 0.05, 0.05), mat(0xE63329, { emissif: 0xE63329, intensite: 0.5 })); scene.add(segAdj); legender(segAdj, 'Côté adjacent', LEGENDES[1].phrase);
-  segOpp = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1, 0.05), mat(0x1B82E0, { emissif: 0x1B82E0, intensite: 0.5 })); scene.add(segOpp); legender(segOpp, 'Côté opposé', LEGENDES[2].phrase);
-  arcAngle = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.75, 32, 1, 0, 1), new THREE.MeshBasicMaterial({ color: 0xF5A623, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })); scene.add(arcAngle); legender(arcAngle, 'Angle α', LEGENDES[3].phrase);
-  coin = new THREE.Group(); scene.add(coin); coin.raycast = () => {};
+  segAdj = new THREE.Mesh(new THREE.BoxGeometry(1, 0.05, 0.05), mat(0xE63329, { emissif: 0xE63329, intensite: 0.5 })); rig.add(segAdj); legender(segAdj, 'Côté adjacent', LEGENDES[1].phrase);
+  segOpp = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1, 0.05), mat(0x1B82E0, { emissif: 0x1B82E0, intensite: 0.5 })); rig.add(segOpp); legender(segOpp, 'Côté opposé', LEGENDES[2].phrase);
+  arcAngle = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.75, 32, 1, 0, 1), new THREE.MeshBasicMaterial({ color: 0xF5A623, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })); rig.add(arcAngle); legender(arcAngle, 'Angle α', LEGENDES[3].phrase);
+  coin = new THREE.Group(); rig.add(coin); coin.raycast = () => {};
   const bleu = new THREE.MeshBasicMaterial({ color: 0x1B82E0 }); const c1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.02, 0.02), bleu); c1.position.set(0.15, 0.3, 0); const c2 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.3, 0.02), bleu); c2.position.set(0.3, 0.15, 0); c1.raycast = () => {}; c2.raycast = () => {}; coin.add(c1, c2); coin.position.set(0.03, 0.03, 0.55);
-  const rubanTex = textureRuban(); ruban = mesh(new THREE.BoxGeometry(1, 0.012, 0.045), new THREE.MeshStandardMaterial({ map: rubanTex, roughness: 0.6 }), [0, 0.012, 0.95]); ruban.castShadow = false;
-  rubanBoitier = boite(0.14, 0.12, 0.1, mat(0xf2c62a, { rugosite: 0.5 }), [0, 0.06, 0.95]); mesh(new THREE.BoxGeometry(0.04, 0.05, 0.06), fer, [0.04, 0.03, 0], rubanBoitier);
+  const rubanTex = textureRuban(); ruban = mesh(new THREE.BoxGeometry(1, 0.012, 0.045), new THREE.MeshStandardMaterial({ map: rubanTex, roughness: 0.6 }), [0, 0.012, 0.95], rig); ruban.castShadow = false;
+  rubanBoitier = boite(0.14, 0.12, 0.1, mat(0xf2c62a, { rugosite: 0.5 }), [0, 0.06, 0.95], rig); mesh(new THREE.BoxGeometry(0.04, 0.05, 0.06), fer, [0.04, 0.03, 0], rubanBoitier);
   legender(ruban, 'Mètre ruban', LEGENDES[5].phrase); legender(rubanBoitier, 'Mètre ruban', LEGENDES[5].phrase);
   quadrillage = new THREE.Group(); scene.add(quadrillage); quadrillage.visible = false;
   const gris = new THREE.MeshBasicMaterial({ color: 0x2f3a44, transparent: true, opacity: 0.55 });
   for (let k = 1; k <= 6; k += 1) {
-    const l1 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.006, 8.5), gris); l1.position.set(k, 0.012, -0.75); l1.raycast = () => {}; quadrillage.add(l1);
-    const l2 = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.02, 8.5), gris); l2.position.set(0.012, k, -0.75); l2.raycast = () => {}; quadrillage.add(l2);
+    const l1 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.006, 12), gris); l1.position.set(k, 0.012, 0); l1.raycast = () => {}; quadrillage.add(l1);
+    const l2 = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.02, 12), gris); l2.position.set(0.012, k, 0); l2.raycast = () => {}; quadrillage.add(l2);
     const e1 = etiquette(k + ' m', [k, 0.22, 1.6], { hauteur: 0.3, fond: 'rgba(230,51,41,0.85)' }); const e2 = etiquette(k + ' m', [0.35, k, 1.6], { hauteur: 0.3, fond: 'rgba(27,130,224,0.85)' });
     scene.remove(e1); scene.remove(e2); quadrillage.add(e1, e2);
   }
@@ -208,6 +235,30 @@ function init() {
   etiqOpp = etiquette('h', [-0.6, 2, 0.6], { hauteur: 0.5, fond: 'rgba(27,130,224,0.85)' });
   etiqHyp = etiquette('L = 5 m', [1.6, 2.6, 0.7], { hauteur: 0.5, fond: 'rgba(120,80,30,0.85)' });
   etiqAngle = etiquette('α', [1.2, 0.5, 0.6], { hauteur: 0.5, fond: 'rgba(245,166,35,0.9)', couleur: '#1a1200' });
+  [etiqAdj, etiqOpp, etiqHyp, etiqAngle].forEach((e) => { scene.remove(e); rig.add(e); });
+
+  /* ---------- Yann, le peintre : salopette bleue, tee-shirt blanc, casquette, pinceau à la main ---------- */
+  peintre = M.personnage({ nom: 'Yann', phrase: LEGENDES[10].phrase, position: [3.6, 0, 2.3], taille: 1.78, peau: 0xd9a98a, haut: 0xf2f0ea, bas: 0x3b5a8a, cheveux: 0x2a1c14, vitesse: 1.2, graine: 5, voix: true });
+  (function habiller() {
+    const u = 1.78 / 1.7; const g = peintre.groupe; const mp = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.7 }, o || {}));
+    const jean = mp(0x3b5a8a, { roughness: 0.9 });
+    const bavette = new THREE.Mesh(new THREE.BoxGeometry(0.2 * u, 0.2 * u, 0.02 * u), jean); bavette.position.set(0, 1.2 * u, 0.17 * u); g.add(bavette);
+    for (const s of [-1, 1]) { const bretelle = new THREE.Mesh(new THREE.BoxGeometry(0.035 * u, 0.26 * u, 0.015 * u), jean); bretelle.position.set(s * 0.075 * u, 1.37 * u, 0.165 * u); bretelle.rotation.x = -0.35; g.add(bretelle); const bouton = new THREE.Mesh(new THREE.SphereGeometry(0.012 * u, 8, 6), mp(0xc9a24c, { metalness: 0.8, roughness: 0.3 })); bouton.position.set(s * 0.075 * u, 1.29 * u, 0.185 * u); g.add(bouton); }
+    const poche = new THREE.Mesh(new THREE.BoxGeometry(0.1 * u, 0.08 * u, 0.008 * u), mp(0x2f4a74)); poche.position.set(0, 1.19 * u, 0.182 * u); g.add(poche);
+    for (let k = 0; k < 6; k += 1) { const t = new THREE.Mesh(new THREE.CircleGeometry((0.012 + Math.random() * 0.012) * u, 8), mp([0x3b6e8f, 0xf2f0ea, 0xd8d2c4][k % 3])); t.position.set((Math.random() - 0.5) * 0.16 * u, (1.05 + Math.random() * 0.25) * u, 0.192 * u); g.add(t); }
+    // la casquette : calotte et visière
+    const tissu = mp(0xE63329, { roughness: 0.85 });
+    const calotte = new THREE.Mesh(new THREE.SphereGeometry(0.128 * u, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), tissu); calotte.position.y = 1.615 * u; calotte.scale.set(0.98, 0.95, 1.0); g.add(calotte);
+    const visiere = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * u, 0.15 * u, 0.012 * u, 18, 1, false, -Math.PI * 0.42, Math.PI * 0.84), tissu); visiere.position.set(0, 1.615 * u, 0.02 * u); g.add(visiere);
+    const boutonC = new THREE.Mesh(new THREE.SphereGeometry(0.012 * u, 8, 6), tissu); boutonC.position.y = 1.74 * u; g.add(boutonC);
+    // le pinceau dans la main droite, un chiffon à la ceinture
+    const manche = new THREE.Mesh(new THREE.CylinderGeometry(0.01 * u, 0.012 * u, 0.2 * u, 8), mp(0x7a5a3a)); manche.position.set(0, -0.58 * u, 0.03 * u); manche.rotation.x = 0.4; peintre.membres.brasD.add(manche);
+    const poils = new THREE.Mesh(new THREE.BoxGeometry(0.05 * u, 0.07 * u, 0.02 * u), mp(0x3b6e8f)); poils.position.set(0, -0.7 * u, 0.08 * u); poils.rotation.x = 0.4; peintre.membres.brasD.add(poils);
+    const chiffon = new THREE.Mesh(new THREE.BoxGeometry(0.06 * u, 0.12 * u, 0.03 * u), mp(0xe8e2d6, { roughness: 1 })); chiffon.position.set(0.17 * u, 0.82 * u, 0.02 * u); g.add(chiffon);
+    g.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.userData.legende = g.userData.legende; } });
+  })();
+  peintre.regarder([2, 0, -2]);
+
   placer();
 
   /* ---------- Le panneau ---------- */
@@ -215,21 +266,59 @@ function init() {
     <div class="mb-groupe ec-l" role="group" aria-label="Longueur de l'échelle">${[3, 4, 5, 6].map((v) => `<button class="mb-bouton" data-l="${v}" aria-pressed="${v === L}">${v} m</button>`).join('')}</div>
     <label>Distance du pied au mur <span class="mb-val" id="ec-d">2,50 m</span><input class="mb-plage" id="ec-ds" type="range" min="0.5" max="4.9" step="0.05" value="2.5" aria-label="Distance du pied au mur"></label>
     <label>Angle α <span class="mb-val" id="ec-a2">60°</span><input class="mb-plage" id="ec-as" type="range" min="10" max="85" step="1" value="60" aria-label="Angle entre l'échelle et le sol"></label>
-    <div class="mb-mesures"><span>Hypoténuse L</span><b id="ec-L">5,00 m</b><span>Côté adjacent d</span><b id="ec-adj">·</b><span>Côté opposé h</span><b id="ec-opp">·</b><span>cos α = d ÷ L</span><b id="ec-cos">·</b><span>Angle α</span><b id="ec-a">·</b></div>
-    <p class="mb-carte" id="ec-calc"></p>
+    <label>Le long du mur <span class="mb-val" id="ec-z">0,0 m</span><input class="mb-plage" id="ec-zs" type="range" min="-4.5" max="4.5" step="0.1" value="0" aria-label="Position de l'échelle le long du mur"></label>
     <p class="mb-carte" id="ec-secu"></p>
+    <details id="ec-det-mission" open><summary>Mission : trois fenêtres</summary><div>
+      <div id="ec-mission-avant"><button class="mb-bouton primaire" id="ec-mission" type="button">Commencer la mission</button></div>
+      <div id="ec-mission-pendant" hidden>
+        <div class="ec-fen"><span>Fenêtre</span><b id="ec-fen-n">·</b></div>
+        <p class="mb-carte" id="ec-consigne"></p>
+        <button class="mb-bouton primaire" id="ec-valider" type="button">Valider : Yann, tu montes ?</button>
+      </div>
+    </div></details>
+    <details id="ec-det-calc" open><summary>Calculs</summary><div>
+      <div class="mb-mesures"><span>Hypoténuse L</span><b id="ec-L">5,00 m</b><span>Côté adjacent d</span><b id="ec-adj">·</b><span>Côté opposé h</span><b id="ec-opp">·</b><span>cos α = d ÷ L</span><b id="ec-cos">·</b><span>Angle α</span><b id="ec-a">·</b></div>
+      <p class="mb-carte" id="ec-calc"></p>
+    </div></details>
     <details id="ec-det-vues"><summary>Vues et repères</summary><div class="mb-groupe">
-      <button class="mb-bouton" id="ec-cote" aria-pressed="false">Vue de côté</button><button class="mb-bouton" id="ec-libre">Vue libre</button><button class="mb-bouton" id="ec-grille" aria-pressed="false">Quadrillage 1 m</button>
+      <button class="mb-bouton" id="ec-cote" aria-pressed="false">Vue de côté</button><button class="mb-bouton" id="ec-libre">Vue libre</button><button class="mb-bouton" id="ec-grille" aria-pressed="false">Quadrillage 1 m</button><button class="mb-bouton" id="ec-marcher" aria-pressed="false">Marcher dans la cour</button>
     </div></details>`);
   panneau.querySelector('#ec-ds').addEventListener('input', (e) => { d = Number(e.target.value); placer(); });
   panneau.querySelector('#ec-as').addEventListener('input', (e) => { const a = Number(e.target.value) * Math.PI / 180; d = Math.min(L - 0.1, Math.max(0.5, L * Math.cos(a))); placer(); });
+  panneau.querySelector('#ec-zs').addEventListener('input', (e) => { zE = Number(e.target.value); placer(); });
   panneau.querySelectorAll('[data-l]').forEach((b) => b.addEventListener('click', () => reglerL(Number(b.getAttribute('data-l')))));
   panneau.querySelector('#ec-cote').addEventListener('click', () => basculerCote(!vueCote));
-  panneau.querySelector('#ec-libre').addEventListener('click', () => { basculerCote(false); vise = { pos: new THREE.Vector3(7.5, 4.5, 9.5), cible: new THREE.Vector3(1.5, 2, 0) }; });
+  panneau.querySelector('#ec-libre').addEventListener('click', () => { if (marche && marche.estActif()) marche.desactiver(); basculerCote(false); vise = { pos: new THREE.Vector3(7.5, 4.5, 9.5), cible: new THREE.Vector3(1.5, 2, 0) }; });
   panneau.querySelector('#ec-grille').addEventListener('click', () => { quadrillage.visible = !quadrillage.visible; panneau.querySelector('#ec-grille').setAttribute('aria-pressed', String(quadrillage.visible)); });
+  panneau.querySelector('#ec-marcher').addEventListener('click', () => marche.bascule());
+  panneau.querySelector('#ec-mission').addEventListener('click', () => lancerMission());
+  panneau.querySelector('#ec-valider').addEventListener('click', () => validerFenetre());
   M.renderer.domElement.addEventListener('pointerdown', () => { vise = null; });
   majPanneau();
-  M.boucle((dt) => { if (vise) { const k = 1 - Math.exp(-4.5 * dt); M.camera.position.lerp(vise.pos, k); M.controls.target.lerp(vise.cible, k); if (M.camera.position.distanceTo(vise.pos) < 0.02) vise = null; } });
+
+  /* ---------- La marche dans la cour ---------- */
+  marche = M.marcher({
+    depart: [6.5, 0, 3.5], hauteur: 1.65, vitesse: 2.6, yaw: 1.2,
+    limites: { xmin: 0.7, xmax: 11.4, zmin: -6.4, zmax: 6.4 },
+    collision: (x, z) => Math.hypot(x - 0.6, z - 5.75) < 0.7 || Math.hypot(x - 8.2, z + 5.2) < 0.6 || Math.hypot(x - 5.6, z + 6.2) < 0.4 || (Math.abs(x - 9.5) < 1.0 && Math.abs(z - 2.2) < 0.8) || (x < 1.1 && Math.abs(z + 5.2) < 1.0) || (peintre && Math.hypot(x - peintre.position().x, z - peintre.position().z) < 0.6) || (Math.abs(x - d / 2) < d / 2 + 0.3 && Math.abs(z - zE) < 0.5) || Math.hypot(x - 3.3, z - 1.25) < 0.35,
+    aide: 'Flèches ou ZQSD pour marcher, Maj pour courir, glisse pour regarder. Échap : vue libre.',
+    surPas: (dt) => { pasT += dt; if (pasT > 0.45) { pasT = 0; M.son('pas', { volume: 0.09 }); } },
+    surChangement: (actif) => { panneau.querySelector('#ec-marcher').setAttribute('aria-pressed', String(actif)); panneau.querySelector('#ec-marcher').textContent = actif ? 'Revenir à la vue libre' : 'Marcher dans la cour'; if (actif) { vise = null; vueCote = false; panneau.querySelector('#ec-cote').setAttribute('aria-pressed', 'false'); shell.say('Promène-toi dans la cour : regarde l\'échelle de côté, de face, de près. Échap pour revenir.', 'joyeux'); } },
+  });
+
+  /* ---------- La mission : trois fenêtres, un chrono ---------- */
+  mission = M.mission({
+    titre: 'Trois fenêtres à repeindre', chrono: true, chronoCible: 240, cachee: true, annonce: false,
+    objectifs: FENETRES.map((f) => ({ id: f.id, texte: f.nom, points: 100 })),
+    surFin: (reussie, secondes, score) => finMission(reussie, secondes, score),
+    gagner: false, bravo: 'Trois fenêtres repeintes, l\'échelle toujours bien posée.',
+  });
+
+  M.boucle((dt, t) => {
+    if (vise && !(marche && marche.estActif())) { const k = 1 - Math.exp(-4.5 * dt); M.camera.position.lerp(vise.pos, k); M.controls.target.lerp(vise.cible, k); if (M.camera.position.distanceTo(vise.pos) < 0.02) vise = null; }
+    animerGrimpe(dt, t);
+  });
+  window.__ec = { etat: () => ({ L, d, zE, angle: angle(), hauteur: hauteur(), fenetre: fenetreCourante, grimpe: !!grimpe, finie: mission.estFinie() }), regler: (l, dist, z) => { if (l !== L) reglerL(l); d = dist; zE = z; placer(); }, validerFenetre, lancerMission, mission, accelerer: (k) => { accel = k; } };
 }
 /** Les montants et barreaux de l'échelle, pour la longueur L courante. */
 function construireEchelle() {
@@ -244,18 +333,21 @@ function construireEchelle() {
   echelle.traverse((c) => { if (c !== echelle) c.userData.legende = echelle.userData.legende; });
 }
 function reglerL(v) {
+  if (grimpe) return;
   L = v; d = Math.min(d, L - 0.1); construireEchelle();
   panneau.querySelectorAll('[data-l]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-l')) === L)));
   const s = panneau.querySelector('#ec-ds'); s.max = String(L - 0.1); s.value = String(d);
   etiqHyp.material.map.dispose(); const tex = textureTexte('L = ' + L + ' m', { fond: 'rgba(120,80,30,0.85)' }); etiqHyp.material.map = tex; etiqHyp.scale.set(0.5 * tex.userData.ratio, 0.5, 1);
+  M.son('coup', { volume: 0.2 });
   placer();
 }
 function basculerCote(actif) {
   vueCote = actif; panneau.querySelector('#ec-cote').setAttribute('aria-pressed', String(actif));
-  if (actif) { const h = hauteur(); vise = { pos: new THREE.Vector3(d / 2 + 0.3, h / 2 + 0.4, 10.5), cible: new THREE.Vector3(d / 2 + 0.3, h / 2 + 0.2, 0) }; }
+  if (actif) { if (marche && marche.estActif()) marche.desactiver(); const h = hauteur(); vise = { pos: new THREE.Vector3(d / 2 + 0.3, h / 2 + 0.4, zE + 10.5), cible: new THREE.Vector3(d / 2 + 0.3, h / 2 + 0.2, zE) }; }
 }
 function placer() {
   const a = Math.acos(d / L); const h = hauteur();
+  rig.position.z = zE;
   echelle.position.set(d, 0, 0); echelle.rotation.z = (Math.PI / 2 - a);
   segAdj.scale.x = d; segAdj.position.set(d / 2, 0.03, 0.55);
   segOpp.scale.y = h; segOpp.position.set(0.03, h / 2, 0.55);
@@ -269,13 +361,101 @@ function majPanneau() {
   if (!panneau) return;
   const a = angle(); const h = hauteur(); const c = d / L;
   panneau.querySelector('#ec-d').textContent = f2(d) + ' m'; panneau.querySelector('#ec-adj').textContent = f2(d) + ' m'; panneau.querySelector('#ec-opp').textContent = f2(h) + ' m'; panneau.querySelector('#ec-L').textContent = f2(L) + ' m';
-  panneau.querySelector('#ec-cos').textContent = f2(c); panneau.querySelector('#ec-a').textContent = f1(a) + '°'; panneau.querySelector('#ec-a2').textContent = Math.round(a) + '°';
-  const sd = panneau.querySelector('#ec-ds'); if (document.activeElement !== sd) sd.value = String(d); const sa = panneau.querySelector('#ec-as'); if (document.activeElement !== sa) sa.value = String(Math.round(a));
+  panneau.querySelector('#ec-cos').textContent = f2(c); panneau.querySelector('#ec-a').textContent = f1(a) + '°'; panneau.querySelector('#ec-a2').textContent = Math.round(a) + '°'; panneau.querySelector('#ec-z').textContent = f1(zE) + ' m';
+  const sd = panneau.querySelector('#ec-ds'); if (document.activeElement !== sd) sd.value = String(d); const sa = panneau.querySelector('#ec-as'); if (document.activeElement !== sa) sa.value = String(Math.round(a)); const sz = panneau.querySelector('#ec-zs'); if (document.activeElement !== sz) sz.value = String(zE);
   panneau.querySelector('#ec-calc').textContent = 'cos α = ' + f2(d) + ' ÷ ' + L + ' = ' + f2(c) + ', donc α = cos⁻¹(' + f2(c) + ') ≈ ' + Math.round(a) + '°. Hauteur : h = √(' + L + '² − ' + f2(d) + '²) ≈ ' + f2(h) + ' m.';
-  const s = panneau.querySelector('#ec-secu'); s.textContent = a > 78 ? 'Trop raide : l\'échelle risque de basculer en arrière.' : (a < 65 ? 'Trop couchée : le pied peut glisser.' : 'Angle de sécurité (65° à 78°) : la position est stable.'); s.style.borderLeft = '6px solid ' + (a > 78 || a < 65 ? '#E63329' : '#2AA98C');
+  const s = panneau.querySelector('#ec-secu'); s.textContent = a > SECU.max ? 'Trop raide : l\'échelle risque de basculer en arrière.' : (a < SECU.min ? 'Trop couchée : le pied peut glisser.' : 'Angle de sécurité (65° à 75°) : la position est stable.'); s.style.borderLeft = '6px solid ' + (a > SECU.max || a < SECU.min ? '#E63329' : '#2AA98C');
+  const f = fenetreCourante >= 0 ? FENETRES[fenetreCourante] : null;
+  if (f) { const z = panneau.querySelector('#ec-consigne'); z.textContent = f.texte + ' Maintenant : L = ' + L + ' m, haut à ' + f2(h) + ' m, α = ' + Math.round(a) + '°, échelle à ' + f1(zE) + ' m le long du mur (fenêtre à ' + f1(f.z) + ' m).'; }
+}
+/* Yann parle : bulle au-dessus de sa tête, voix d'Opale. */
+function parler(texte, secondes) { if (peintre) peintre.dire(couper(texte, 30), secondes || 4); else shell.say(texte, 'concentre'); }
+/* Coupe une phrase en lignes d'au plus n caractères, pour la bulle. */
+function couper(texte, n) { const mots = String(texte).split(' '); const lignes = ['']; mots.forEach((m) => { if ((lignes[lignes.length - 1] + ' ' + m).trim().length > n) lignes.push(m); else lignes[lignes.length - 1] = (lignes[lignes.length - 1] + ' ' + m).trim(); }); return lignes.join('\n'); }
+
+/* ---------- La mission ---------- */
+function lancerMission() {
+  if (!mission || grimpe || (fenetreCourante >= 0 && !mission.estFinie())) return;
+  essais = 0; fenetreCourante = -1;
+  panneau.querySelector('#ec-mission-avant').hidden = true; panneau.querySelector('#ec-mission-pendant').hidden = false;
+  if (etroit()) { ['ec-det-calc', 'ec-det-vues'].forEach((id) => { panneau.querySelector('#' + id).open = false; }); }
+  mission.commencer(); mission.montrer();
+  parler('Trois fenêtres à repeindre. Pose-moi l\'échelle devant chacune, entre 65° et 75°, et je monte.', 5);
+  setTimeout(() => lancerFenetre(0), 2200);
+}
+function lancerFenetre(i) {
+  if (!mission || mission.estFinie()) return;
+  fenetreCourante = i; essais = 0; const f = FENETRES[i];
+  panneau.querySelector('#ec-fen-n').textContent = (i + 1) + ' / 3'; majPanneau();
+  // les volets (ou le cadre) de la fenêtre visée clignotent doucement, en orange
+  Object.keys(FEN).forEach((k) => { FEN[k].cadre.emissive.set(0x000000); });
+  FEN[f.id].cadre.emissive.set(0xF5A623); FEN[f.id].cadre.emissiveIntensity = 0.35;
+  parler(f.texte, 6); M.son('cloche', { volume: 0.16, frequence: 988 });
+  peintre.allerA([Math.min(4.5, d + 0.9), 0, zE + 1.1], 1.3);
+}
+/* Le bouton « Valider » : Yann accepte ou refuse, et dit pourquoi. */
+function validerFenetre() {
+  if (fenetreCourante < 0 || grimpe || !mission || mission.estFinie()) return false;
+  const f = FENETRES[fenetreCourante]; const a = angle(); const h = hauteur();
+  M.son('coup', { volume: 0.35 }); // l'échelle se pose
+  let refus = null;
+  if (a < SECU.min) refus = `À ${Math.round(a)}°, elle est trop couchée : le pied va glisser. Je ne monte pas.`;
+  else if (a > SECU.max) refus = `À ${Math.round(a)}°, elle est trop droite : elle va basculer en arrière. Je ne monte pas.`;
+  else if (Math.abs(zE - f.z) > 0.8) refus = `L'angle est bon, mais l'échelle n'est pas devant la fenêtre : glisse-la le long du mur, vers ${f1(f.z)} m.`;
+  else if (h < f.hmin) refus = `Le haut n'est qu'à ${f2(h)} m, il en faut au moins ${f1(f.hmin)}. Une échelle plus longue, sans dépasser 75°.`;
+  else if (h > f.hmax) refus = `Le haut est à ${f2(h)} m, c'est trop : au plus ${f1(f.hmax)} m. Une échelle plus courte, sans descendre sous 65°.`;
+  if (refus) { essais += 1; parler(essais >= 2 ? refus + ' ' + f.aide : refus, 7); shell.sound('bad'); peintre.regarder([d, 0, zE]); return false; }
+  parler(`${Math.round(a)}° et ${f2(h)} m : c'est bien posé, je monte.`, 4);
+  grimpe = { fenetre: fenetreCourante, phase: 0, t: 0, d, L, zE, h };
+  return true;
+}
+/* La montée : Yann va au pied, grimpe le long de l'échelle, peint, redescend. */
+function animerGrimpe(dt, t) {
+  if (!grimpe) return; dt *= accel; const G = grimpe; const g = peintre.groupe; const m = peintre.membres;
+  const pied = new THREE.Vector3(G.d + 0.32 * G.h / G.L, 0.32 * G.d / G.L, G.zE); // sur le premier barreau, un peu en avant de l'échelle
+  if (G.phase === 0) {
+    if (G.t === 0) { peintre.allerA([pied.x + 0.25, 0, G.zE + 0.1], 1.6); G.t = 0.001; }
+    if (accel > 1) { g.position.set(pied.x + 0.25, 0, G.zE + 0.1); peintre.allerA([pied.x + 0.25, 0, G.zE + 0.1]); }
+    const p = peintre.position(); if (Math.hypot(p.x - (pied.x + 0.25), p.z - (G.zE + 0.1)) < 0.12) { G.phase = 1; G.t = 0; g.rotation.y = -Math.PI / 2; }
+    return;
+  }
+  const haut = 0.82; // part de l'échelle grimpée
+  const pos = (k) => new THREE.Vector3(G.d * (1 - k) + 0.32 * G.h / G.L, k * G.h + 0.32 * G.d / G.L, G.zE);
+  if (G.phase === 1) {
+    G.t += dt / 3.2; const k = Math.min(1, G.t) * haut; g.position.copy(pos(k)); g.rotation.y = -Math.PI / 2;
+    const ph = G.t * 14; m.jambeG.rotation.x = -0.7 + Math.sin(ph) * 0.45; m.jambeD.rotation.x = -0.7 - Math.sin(ph) * 0.45; m.brasG.rotation.x = -2.2 + Math.sin(ph) * 0.3; m.brasD.rotation.x = -2.2 - Math.sin(ph) * 0.3;
+    if (Math.floor(ph / Math.PI) !== Math.floor((ph - dt * 14 / 3.2) / Math.PI)) M.son('pas', { volume: 0.08 });
+    if (G.t >= 1) { G.phase = 2; G.t = 0; }
+  } else if (G.phase === 2) {
+    G.t += dt / 2.6; g.position.copy(pos(haut)); m.jambeG.rotation.x = -0.7; m.jambeD.rotation.x = -0.7; m.brasG.rotation.x = -2.0;
+    m.brasD.rotation.x = -2.6 + Math.sin(t * 9) * 0.35; m.brasD.rotation.z = -0.3 + Math.sin(t * 4.5) * 0.25;
+    const f = FEN[FENETRES[G.fenetre].id]; f.volets.color.lerp(new THREE.Color(0x3b6e8f), Math.min(1, dt * 1.2)); f.cadre.color.lerp(new THREE.Color(0xf8f6f0), Math.min(1, dt * 1.2));
+    if (G.t >= 1) { G.phase = 3; G.t = 0; f.cadre.emissive.set(0x000000); mission.valider(FENETRES[G.fenetre].id); M.son('cloche', { volume: 0.22 }); }
+  } else if (G.phase === 3) {
+    G.t += dt / 3.0; const k = (1 - Math.min(1, G.t)) * haut; g.position.copy(pos(k)); g.rotation.y = -Math.PI / 2;
+    const ph = G.t * 14; m.jambeG.rotation.x = -0.7 + Math.sin(ph) * 0.45; m.jambeD.rotation.x = -0.7 - Math.sin(ph) * 0.45; m.brasG.rotation.x = -2.2 + Math.sin(ph) * 0.3; m.brasD.rotation.x = -2.2 - Math.sin(ph) * 0.3; m.brasD.rotation.z = 0;
+    if (G.t >= 1) {
+      g.position.set(pied.x + 0.25, 0, G.zE + 0.1); ['jambeG', 'jambeD', 'brasG', 'brasD'].forEach((n) => { m[n].rotation.x = 0; });
+      grimpe = null; const i = G.fenetre;
+      if (i < FENETRES.length - 1 && !mission.estFinie()) { parler('Repeinte. À la suivante.', 3); setTimeout(() => lancerFenetre(i + 1), 1800); }
+      else fenetreCourante = -1;
+    }
+  }
+}
+function finMission(reussie, secondes, score) {
+  const mm = Math.floor(secondes / 60); const ss = String(Math.floor(secondes % 60)).padStart(2, '0');
+  panneau.querySelector('#ec-mission-pendant').hidden = true; const avant = panneau.querySelector('#ec-mission-avant'); avant.hidden = false; avant.querySelector('#ec-mission').textContent = 'Rejouer la mission';
+  if (modeJeu === 'cours') { shell.toast(`Mission réussie en ${mm}:${ss}, ${score} points. Les défis continuent.`, 3200); shell.say(`Trois fenêtres repeintes en ${mm} min ${ss}. Tu peux finir les défis.`, 'fier'); }
+  else { shell.say(`Trois fenêtres repeintes en ${mm} min ${ss}.`, 'fier'); setTimeout(() => shell.win({ score, stars: secondes <= 240 ? 3 : 2, title: `Trois fenêtres à repeindre : réussi en ${mm}:${ss}`, detail: { mission: 'Trois fenêtres à repeindre', secondes: Math.round(secondes) }, buddy: 'Trois fenêtres repeintes, l\'échelle toujours entre 65° et 75°.' }), 4200); }
 }
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Déplace le pied de l\'échelle avec le curseur, ou règle l\'angle, et lis le cosinus et la hauteur. Touche chaque côté pour son nom.', 'joyeux'); return; }
+  modeJeu = mode;
+  if (!ambOiseaux) { ambOiseaux = M.ambiance({ fichier: '../assets/3d/audio/oiseaux-parc.mp3', type: 'foret', volume: 0.16 }); ambVent = M.ambiance({ type: 'vent', volume: 0.05 }); }
+  if (mode !== 'cours') {
+    api.say('Déplace le pied de l\'échelle avec le curseur, ou règle l\'angle, et lis le cosinus et la hauteur. Touche chaque côté pour son nom. La mission commence dans un instant.', 'joyeux');
+    setTimeout(() => { if (!mission.estFinie() && fenetreCourante < 0) lancerMission(); }, 4500);
+    return;
+  }
   const cinq = () => { if (L !== 5) reglerL(5); };
   api.defis([
     { type: 'toucher', texte: 'Touche l\'<b>hypoténuse</b> du triangle.', cible: 'Hypoténuse', explication: 'L\'échelle est l\'hypoténuse : le plus long côté, en face de l\'angle droit formé par le mur et le sol.' },
