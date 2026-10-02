@@ -9,6 +9,19 @@
 <script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
 <script src="../konstrio.js"></script>
 <script src="../shell.js"></script>
+<style>
+  .mb-panneau details { border-top: 1px solid var(--border); padding-top: 6px; }
+  .mb-panneau details > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-muted); min-height: 28px; }
+  .mb-panneau details > summary::-webkit-details-marker { display: none; }
+  .mb-panneau details > summary::after { content: '▸'; font-size: 12px; }
+  .mb-panneau details[open] > summary::after { content: '▾'; }
+  .mb-panneau details > div { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+  .mb-panneau label { display: block; }
+  .mb-panneau .mb-mesures b { text-align: right; }
+  .pa-progres { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .pa-progres i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s linear; }
+  @media (max-width: 720px) { .mb-etapes { gap: 3px; } .mb-etapes .mb-bouton { min-height: 30px; padding: 2px 8px; font-size: 12px; } .mb-etapes .mb-bouton i { width: 18px; height: 18px; font-size: 11px; } }
+</style>
 </head>
 <body>
 <script type="module">
@@ -20,17 +33,24 @@ const ETAPES = [
   { id: 'forme', nom: 'Forme (tamis)', x: -1, texte: 'L\'ouvrier plonge la forme, un cadre tendu d\'un tamis de fils de laiton, dans la cuve. L\'eau s\'écoule, les fibres restent : une feuille se forme en quelques secondes.' },
   { id: 'presse', nom: 'Presse', x: 1.5, texte: 'Les feuilles humides, séparées par des feutres, passent sous la presse : l\'eau est chassée, les fibres se soudent.' },
   { id: 'sechoir', nom: 'Séchoir', x: 4, texte: 'Les feuilles sèchent suspendues sur des cordes, dans l\'étendoir, pendant plusieurs jours.' },
-  { id: 'machine', nom: 'Machine à papier', x: 7, texte: 'En 1799, Louis-Nicolas Robert invente la machine à papier continu : une toile sans fin remplace la forme. Au XIXᵉ, la vapeur l\'entraîne : des kilomètres de papier par jour, des usines, des ouvriers regroupés dans les villes.' },
+  { id: 'machine', nom: 'Machine à papier', x: 7.4, texte: 'En 1799, Louis-Nicolas Robert invente la machine à papier continu : une toile sans fin remplace la forme. Au XIXᵉ, la vapeur l\'entraîne : des kilomètres de papier par jour, des usines, des ouvriers regroupés dans les villes.' },
 ];
-let fibres = 100; const EAU_L = 5; let etape = null; let M, panneau, stations = {}, feuilles = [], bande;
-const LEGENDES = ETAPES.map((e) => ({ nom: e.nom, phrase: e.texte.split('. ')[0] + '.' }));
+let fibres = 100; const EAU_L = 5; let vitesse = 5; let etape = null; let feuillesFaites = 0;
+let M, panneau, stations = {}, feuilles = [], bande, bandeTex;
+let formeG, feuilleForme, feuilleTransit, platine, vis, barreVis, pile = [], gouttes = [], roues = [], volant, bielle, tige, crosse, manivelle, moteurG, vapeur = [], plafond, poussiere;
+let sequence = null; let vise = null; let vueDessus = false;
+const LEGENDES = ETAPES.map((e) => ({ nom: e.nom, phrase: e.texte.split('. ')[0] + '.' })).concat([
+  { nom: 'Machine à vapeur', phrase: 'La chaudière chauffe l\'eau, la vapeur pousse le piston, le volant entraîne la machine par une courroie.' },
+  { nom: 'Lanterne', phrase: 'Une flamme protégée par du verre : la seule lumière de l\'atelier quand le jour baisse.' },
+  { nom: 'Livres reliés', phrase: 'Le but de tout l\'atelier : des feuilles assemblées, cousues et reliées, comme ceux que fabrique Myne.' },
+]);
 const shell = window.Konstrio.createGame({
   id: '3d-22-atelier-papier', code: '3D·22', title: 'L\'atelier de la Faiseuse de livres', type: '3D', duree: '12 min',
   domain: { label: 'Histoire · Physique', color: '#B9541D' },
   intro: {
     greet: 'Des chiffons à la feuille, puis de la feuille à la machine : l\'atelier où l\'on fabrique le papier, avant et après la révolution industrielle.',
-    rule: 'Suis les six étapes de la fabrication du papier. Prépare la pâte avec la bonne proportion de fibres, puis découvre ce que la machine à vapeur change.',
-    how: ['Touche une station de l\'atelier, ou choisis-la dans le panneau.', 'Règle la masse de fibres dans la cuve et lis la proportion.', 'La dernière station montre la machine à papier du XIXᵉ siècle.'],
+    rule: 'Suis les six étapes de la fabrication du papier. Prépare la pâte avec la bonne proportion de fibres, fabrique une feuille à la main, puis compare avec la machine à vapeur.',
+    how: ['Touche une station de l\'atelier, ou choisis-la dans le panneau.', 'Règle la masse de fibres dans la cuve et lis la proportion.', 'Lance « Fabriquer une feuille » et suis la feuille de la cuve au séchoir.', 'Règle la vitesse de la machine à vapeur et compare avec le travail à la main.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Décrire la fabrication du papier, calculer une proportion et une masse avec la masse volumique, et expliquer ce que l\'usine change au XIXᵉ siècle.',
     hint: 'Pâte à 2 % : 100 g de fibres pour 5 L d\'eau, soit 5 kg d\'eau.',
@@ -41,99 +61,399 @@ const shell = window.Konstrio.createGame({
 });
 const proportion = () => fibres / (fibres + EAU_L * 1000) * 100;
 const f1 = (x) => (Math.round(x * 10) / 10).toString().replace('.', ',');
+const fEnt = (x) => Math.round(x).toLocaleString('fr-FR').replace(/ | /g, ' ');
+const lisse = (p) => p * p * (3 - 2 * p);
+
+/* ---------- Textures dessinées : grille de laiton, papier vergé, lumière du jour ---------- */
+function textureGrille() {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+  x.clearRect(0, 0, 128, 128); x.strokeStyle = '#d6b45a'; x.lineWidth = 1.6;
+  for (let i = 0; i <= 128; i += 8) { x.beginPath(); x.moveTo(i + 0.5, 0); x.lineTo(i + 0.5, 128); x.stroke(); x.beginPath(); x.moveTo(0, i + 0.5); x.lineTo(128, i + 0.5); x.stroke(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function texturePapier() {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+  x.fillStyle = '#f3ecdc'; x.fillRect(0, 0, 256, 256);
+  x.strokeStyle = 'rgba(120, 100, 70, 0.10)'; x.lineWidth = 1; for (let y = 2; y < 256; y += 4) { x.beginPath(); x.moveTo(0, y + 0.5); x.lineTo(256, y + 0.5); x.stroke(); }
+  for (let i = 0; i < 900; i += 1) { x.fillStyle = `rgba(110, 90, 60, ${0.05 + Math.random() * 0.12})`; x.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2, 1); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function textureJour() {
+  const c = document.createElement('canvas'); c.width = 16; c.height = 128; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, '#cfe3ff'); g.addColorStop(0.6, '#eef5ff'); g.addColorStop(1, '#fff1d6'); x.fillStyle = g; x.fillRect(0, 0, 16, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
 
 function init() {
-  M = creerMonde(shell, { fond: 0xe9e2d3, hdri: '../assets/3d/env/workshop_1k.hdr', sol: { taille: 40, couleur: 0x8f7a5c }, ambiance: 0.85, soleil: { position: [6, 12, 8], intensite: 1.5, etendue: 16 }, camera: { position: [1, 5, 11], cible: [0.5, 1, 0], min: 3, max: 30 }, legendes: LEGENDES, libelle: 'Un atelier de papetier, avec six stations de fabrication' });
-  const { scene, mesh, mat, legender, etiquette } = M;
-  // murs et poutres
-  const murFond = mesh(new THREE.BoxGeometry(18, 5, 0.3), mat(0xd8c8a8, { rugosite: 0.95 }), [0.5, 2.5, -3.2]); murFond.raycast = () => {};
-  for (let i = -8; i <= 9; i += 3.4) { const p = mesh(new THREE.BoxGeometry(0.25, 0.25, 7), mat(0x6b4a2b), [i, 4.9, 0]); p.raycast = () => {}; }
-  const bois = mat(0x9b6b3c, { rugosite: 0.7 }); const metal = mat(0x8a8f96, { rugosite: 0.35, metal: 0.6 });
-  // 1 chiffons et bois
-  const s1 = new THREE.Group(); scene.add(s1); s1.position.x = ETAPES[0].x;
-  mesh(new THREE.CylinderGeometry(0.6, 0.5, 0.7, 20), bois, [0, 0.35, 0], s1);
-  for (let i = 0; i < 6; i += 1) mesh(new THREE.SphereGeometry(0.16 + Math.random() * 0.08, 10, 8), mat([0xe8e0d0, 0xc9d3e6, 0xf2d2c8][i % 3]), [(Math.random() - 0.5) * 0.7, 0.8 + Math.random() * 0.15, (Math.random() - 0.5) * 0.7], s1);
-  for (let i = 0; i < 3; i += 1) { const b = mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.2, 10), mat(0x7a5230), [0.9, 0.12 + i * 0.24, -0.6 + i * 0.1], s1); b.rotation.z = Math.PI / 2; }
-  stations.fibres = s1;
-  // 2 cuve
-  const s2 = new THREE.Group(); scene.add(s2); s2.position.x = ETAPES[1].x;
-  mesh(new THREE.CylinderGeometry(1, 0.85, 0.9, 28, 1, true), new THREE.MeshStandardMaterial({ color: 0x8a6a45, side: THREE.DoubleSide, roughness: 0.8 }), [0, 0.45, 0], s2);
-  const pate = mesh(new THREE.CylinderGeometry(0.96, 0.96, 0.05, 28), mat(0xe9e4d4, { rugosite: 1 }), [0, 0.82, 0], s2); s2.userData.pate = pate;
-  stations.cuve = s2;
-  // 3 forme
-  const s3 = new THREE.Group(); scene.add(s3); s3.position.x = ETAPES[2].x;
-  const cadre = mesh(new THREE.BoxGeometry(1.3, 0.06, 1.0), bois, [0, 0.9, 0], s3); cadre.rotation.z = 0.25;
-  const tamis = mesh(new THREE.PlaneGeometry(1.15, 0.85), new THREE.MeshStandardMaterial({ color: 0xc9a44a, side: THREE.DoubleSide, roughness: 0.5, metalness: 0.4, transparent: true, opacity: 0.8 }), [0, 0.94, 0], s3); tamis.rotation.x = -Math.PI / 2; tamis.rotation.y = 0.25; tamis.rotation.order = 'YXZ';
-  mesh(new THREE.BoxGeometry(0.5, 0.9, 0.5), bois, [0, 0.45, 0], s3);
-  stations.forme = s3;
-  // 4 presse
-  const s4 = new THREE.Group(); scene.add(s4); s4.position.x = ETAPES[3].x;
-  mesh(new THREE.BoxGeometry(1.4, 0.2, 1.1), bois, [0, 0.1, 0], s4); mesh(new THREE.BoxGeometry(1.4, 0.2, 1.1), bois, [0, 1.3, 0], s4);
-  mesh(new THREE.BoxGeometry(0.15, 1.2, 0.15), bois, [-0.6, 0.7, 0], s4); mesh(new THREE.BoxGeometry(0.15, 1.2, 0.15), bois, [0.6, 0.7, 0], s4);
-  const vis = mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 12), metal, [0, 1.6, 0], s4); mesh(new THREE.BoxGeometry(1.0, 0.08, 0.08), metal, [0, 2.15, 0], s4);
-  for (let i = 0; i < 6; i += 1) mesh(new THREE.BoxGeometry(1.1, 0.03, 0.8), mat(i % 2 ? 0xf3efe4 : 0x9c9a92), [0, 0.22 + i * 0.05, 0], s4);
-  stations.presse = s4;
-  // 5 séchoir
-  const s5 = new THREE.Group(); scene.add(s5); s5.position.x = ETAPES[4].x;
-  mesh(new THREE.BoxGeometry(0.1, 2.6, 0.1), bois, [-1.1, 1.3, 0], s5); mesh(new THREE.BoxGeometry(0.1, 2.6, 0.1), bois, [1.1, 1.3, 0], s5);
-  for (let j = 0; j < 2; j += 1) { mesh(new THREE.CylinderGeometry(0.015, 0.015, 2.2, 6), mat(0x554433), [0, 2.4 - j * 0.9, 0], s5).rotation.z = Math.PI / 2; for (let i = 0; i < 4; i += 1) { const fe = mesh(new THREE.PlaneGeometry(0.42, 0.55), new THREE.MeshStandardMaterial({ color: 0xf6f1e6, side: THREE.DoubleSide, roughness: 1 }), [-0.75 + i * 0.5, 2.1 - j * 0.9, 0], s5); fe.castShadow = false; feuilles.push(fe); } }
-  stations.sechoir = s5;
-  // 6 machine à papier
-  const s6 = new THREE.Group(); scene.add(s6); s6.position.x = ETAPES[5].x;
-  mesh(new THREE.BoxGeometry(3.2, 0.9, 1.2), mat(0x3d4a56, { rugosite: 0.5, metal: 0.5 }), [0, 0.45, 0], s6);
-  for (let i = 0; i < 4; i += 1) { const r = mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.3, 20), metal, [-1.2 + i * 0.8, 1.1, 0], s6); r.rotation.x = Math.PI / 2; }
-  bande = mesh(new THREE.BoxGeometry(3.4, 0.02, 1.0), mat(0xf6f1e6), [0, 1.33, 0], s6);
-  const cheminee = mesh(new THREE.CylinderGeometry(0.18, 0.22, 2.2, 14), mat(0x3a3a3a), [1.9, 1.9, -0.3], s6);
-  s6.userData.fumee = []; for (let i = 0; i < 5; i += 1) { const fum = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), new THREE.MeshBasicMaterial({ color: 0xbbbbbb, transparent: true, opacity: 0.35 })); fum.position.set(1.9, 3.1 + i * 0.4, -0.3); fum.raycast = () => {}; s6.add(fum); s6.userData.fumee.push(fum); }
-  stations.machine = s6;
-  ETAPES.forEach((e, i) => { legender(stations[e.id], e.nom, LEGENDES[i].phrase); etiquette((i + 1) + '. ' + e.nom, [e.x, 3.2, 0.2], { hauteur: 0.42 }); });
+  M = creerMonde(shell, {
+    fond: 0xc7d0d8, hdri: '../assets/3d/env/workshop_1k.hdr', environnement: 0.6, ambiance: 0.7,
+    sol: { taille: 14, texture: 'worn_planks', repetition: 12, carre: true, rugosite: 0.9 },
+    soleil: { position: [6, 9, 20], intensite: 2.0, couleur: 0xffdcb4, etendue: 18 },
+    camera: { position: [1, 4.8, 12], cible: [0.5, 1.2, 0], min: 3, max: 24 },
+    legendes: LEGENDES, libelle: 'Un atelier de papetier à colombages, avec six stations de fabrication et une machine à vapeur',
+  });
+  const { scene, mesh, mat, legender, etiquette, meshPBR, matPhysique } = M;
+  const boite = (w, h, d, materiau, pos, parent) => mesh(new THREE.BoxGeometry(w, h, d), materiau, pos, parent);
+  const cyl = (rh, rb, h, seg, materiau, pos, parent) => mesh(new THREE.CylinderGeometry(rh, rb, h, seg), materiau, pos, parent);
+  const muet = (m) => { m.raycast = () => {}; return m; };
+  const poutreMat = mat(0x5e3f26, { rugosite: 0.85 }); const boisClair = mat(0xa8835a, { rugosite: 0.8 }); const boisFonce = mat(0x6e4b2c, { rugosite: 0.8 });
+  const fer = mat(0x4a4d52, { rugosite: 0.45, metal: 0.7 }); const laiton = mat(0xc9a24c, { rugosite: 0.3, metal: 0.85 });
+  const corde = mat(0x8a7350, { rugosite: 1 }); const feutre = mat(0x8f8b82, { rugosite: 1 });
+  const papierTex = texturePapier(); const papierMat = new THREE.MeshStandardMaterial({ map: papierTex, roughness: 0.95, side: THREE.DoubleSide });
+  const grilleTex = textureGrille(); grilleTex.repeat.set(7, 5);
+  const grilleMat = new THREE.MeshStandardMaterial({ map: grilleTex, transparent: true, alphaTest: 0.25, roughness: 0.35, metalness: 0.8, side: THREE.DoubleSide });
+  const verre = matPhysique({ couleur: 0xf4f9ff, transmission: 0.92, rugosite: 0.06, epaisseur: 0.05, ior: 1.5 });
 
+  /* ---------- La pièce : murs à colombages, fenêtres, plafond de poutres ---------- */
+  const platre = { couleur: 0xf1e6d2, repetition: 6, rugosite: 1, normale: 0.7 };
+  muet(meshPBR(new THREE.BoxGeometry(23, 3.9, 0.3), 'plastered_wall_02', platre, [0.5, 3.25, -4.2]));
+  muet(meshPBR(new THREE.BoxGeometry(23, 1.3, 0.34), 'rock_boulder_dry', { couleur: 0xa89a86, repetition: 5, rugosite: 1 }, [0.5, 0.65, -4.2]));
+  for (const x of [-11, 12]) {
+    muet(meshPBR(new THREE.BoxGeometry(0.3, 3.9, 11.2), 'plastered_wall_02', { couleur: 0xf1e6d2, repetition: 4, rugosite: 1, normale: 0.7 }, [x, 3.25, 1.4]));
+    muet(meshPBR(new THREE.BoxGeometry(0.34, 1.3, 11.2), 'rock_boulder_dry', { couleur: 0xa89a86, repetition: 3, rugosite: 1 }, [x, 0.65, 1.4]));
+    muet(boite(0.36, 0.14, 11.2, poutreMat, [x, 1.33, 1.4]));
+  }
+  // colombages : poteaux, sablière, écharpes
+  muet(boite(23.2, 0.22, 0.38, poutreMat, [0.5, 1.33, -4.15])); muet(boite(23.2, 0.26, 0.38, poutreMat, [0.5, 5.07, -4.15]));
+  const FENETRES = [-4.75, 0.25, 5.7];
+  for (let x = -10.9; x <= 12; x += 2.3) if (FENETRES.every((fx) => Math.abs(x - fx) > 1.05)) muet(boite(0.2, 3.9, 0.36, poutreMat, [x, 3.2, -4.15]));
+  for (const x of [-9.75, 8.65, 10.9]) { const e = muet(boite(0.14, 3.1, 0.3, poutreMat, [x, 3.15, -4.13])); e.rotation.z = x < 0 ? 0.62 : -0.62; }
+  plafond = new THREE.Group(); scene.add(plafond);
+  const plafondM = muet(meshPBR(new THREE.PlaneGeometry(23.4, 11.4), 'brown_planks_09', { couleur: 0x7d5e40, repetition: 8, rugosite: 0.95 }, [0.5, 5.2, 1.4], plafond)); plafondM.rotation.x = Math.PI / 2;
+  for (let x = -10.9; x <= 12; x += 2.3) muet(boite(0.3, 0.32, 11.4, poutreMat, [x, 5.0, 1.4], plafond));
+  muet(boite(23.4, 0.34, 0.34, poutreMat, [0.5, 4.98, 1.3], plafond));
+  plafond.traverse((c) => { c.castShadow = false; }); // le soleil entre comme si le toit était de verre : la pièce reste lisible
+  // fenêtres : encadrement, meneaux, verre et lumière du jour
+  const jourTex = textureJour();
+  const spots = [];
+  for (const x of FENETRES) {
+    const jour = muet(new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), new THREE.MeshBasicMaterial({ map: jourTex, color: new THREE.Color(1.35, 1.35, 1.35) }))); jour.position.set(x, 3.1, -4.03); scene.add(jour);
+    muet(mesh(new THREE.PlaneGeometry(1.5, 1.5), verre, [x, 3.1, -3.99])).castShadow = false;
+    muet(boite(1.72, 0.1, 0.16, boisFonce, [x, 3.9, -4.0])); muet(boite(1.72, 0.14, 0.26, boisFonce, [x, 2.3, -3.96]));
+    muet(boite(0.1, 1.6, 0.16, boisFonce, [x - 0.81, 3.1, -4.0])); muet(boite(0.1, 1.6, 0.16, boisFonce, [x + 0.81, 3.1, -4.0]));
+    muet(boite(0.05, 1.5, 0.08, boisFonce, [x, 3.1, -3.96])); muet(boite(1.5, 0.05, 0.08, boisFonce, [x, 3.1, -3.96]));
+    const sp = new THREE.SpotLight(0xfff1dc, 18, 11, Math.PI / 5.5, 0.6, 1.6); sp.position.set(x, 3.4, -3.8); sp.target.position.set(x + 0.8, 0, -0.6); scene.add(sp); scene.add(sp.target); spots.push(sp);
+    if (window.Konstrio.rayonLumineux) window.Konstrio.rayonLumineux(THREE, scene, [x, 3.3, -3.9], [x + 0.9, 0.02, -0.5], 0xfff2d0, 0.45, 0.03);
+  }
+  // pot de fleurs sur un appui
+  const pot = cyl(0.14, 0.1, 0.22, 14, mat(0xa65d3a, { rugosite: 0.9 }), [5.3, 2.48, -3.85]); legender(pot, 'Pot de fleurs', 'Une plante sur l\'appui de la fenêtre : un peu de vert dans la poussière des chiffons.');
+  for (let i = 0; i < 5; i += 1) mesh(new THREE.SphereGeometry(0.07 + Math.random() * 0.04, 8, 6), mat(0x4f8a3c, { rugosite: 1 }), [5.3 + (Math.random() - 0.5) * 0.2, 2.65 + Math.random() * 0.12, -3.85 + (Math.random() - 0.5) * 0.15]).userData.legende = pot.userData.legende;
+
+  /* ---------- Lanternes : verre, flamme, lumière ---------- */
+  const lanternes = [];
+  [[-2.2, true], [5.2, false]].forEach(([x, ombre]) => {
+    const g = new THREE.Group(); g.position.set(x, 3.55, 1.3); scene.add(g);
+    cyl(0.012, 0.012, 1.1, 6, fer, [0, 0.85, 0], g); cyl(0.17, 0.2, 0.06, 12, fer, [0, 0.3, 0], g); cyl(0.14, 0.14, 0.05, 12, fer, [0, -0.16, 0], g);
+    for (const [dx, dz] of [[-0.12, -0.12], [0.12, -0.12], [-0.12, 0.12], [0.12, 0.12]]) boite(0.03, 0.42, 0.03, fer, [dx, 0.07, dz], g);
+    const vitre = mesh(new THREE.BoxGeometry(0.24, 0.4, 0.24), verre, [0, 0.07, 0], g); vitre.castShadow = false;
+    const flamme = mesh(new THREE.SphereGeometry(0.045, 10, 8), mat(0xffc46a, { emissif: 0xffa23a, intensite: 3.2 }), [0, 0.0, 0], g); flamme.scale.y = 1.6; flamme.castShadow = false;
+    const lum = new THREE.PointLight(0xffb467, 11, 9, 2); lum.position.set(0, 0.02, 0); g.add(lum);
+    if (ombre) { lum.castShadow = true; lum.shadow.mapSize.set(512, 512); lum.shadow.bias = -0.004; }
+    legender(g, 'Lanterne', LEGENDES[7].phrase); lanternes.push({ flamme, lum, base: 11 });
+  });
+
+  /* ---------- Mobilier et décor : étagères de livres, pupitre, tonneaux, échelle ---------- */
+  const palette = [0x6b2e2e, 0x2f4a6b, 0x4a6b3a, 0x7a5a2a, 0x8c7b5a, 0x553a6b, 0x9a6a3c];
+  function etagere(x0, largeur, y) {
+    const pl = meshPBR(new THREE.BoxGeometry(largeur, 0.06, 0.32), 'wood_table_001', { couleur: new THREE.Color(1.6, 1.45, 1.3), repetition: 2, rugosite: 0.8 }, [x0 + largeur / 2, y, -3.8]);
+    legender(pl, 'Livres reliés', LEGENDES[8].phrase);
+    for (const dx of [0.12, largeur - 0.12]) boite(0.05, 0.05, 0.28, boisFonce, [x0 + dx, y - 0.055, -3.82]).userData.legende = pl.userData.legende;
+    let x = x0 + 0.08;
+    while (x < x0 + largeur - 0.1) { const e = 0.045 + Math.random() * 0.05; const h = 0.2 + Math.random() * 0.1; const l = boite(e, h, 0.22, mat(palette[Math.floor(Math.random() * palette.length)], { rugosite: 0.7 }), [x + e / 2, y + 0.03 + h / 2, -3.8]); l.userData.legende = pl.userData.legende; x += e + 0.01; }
+    return pl;
+  }
+  etagere(-10.6, 2.6, 2.2); etagere(-10.6, 2.6, 2.9); etagere(10.55, 1.2, 2.2); etagere(10.55, 1.2, 2.9);
+  // pupitre d'écriture : plume, encrier, feuilles
+  const pupitre = new THREE.Group(); pupitre.position.set(-9.2, 0, -2.6); scene.add(pupitre);
+  meshPBR(new THREE.BoxGeometry(1.4, 0.07, 0.8), 'wood_table_001', { couleur: new THREE.Color(1.6, 1.45, 1.3), repetition: 1, rugosite: 0.7 }, [0, 0.8, 0], pupitre);
+  for (const [dx, dz] of [[-0.62, -0.32], [0.62, -0.32], [-0.62, 0.32], [0.62, 0.32]]) boite(0.07, 0.78, 0.07, boisFonce, [dx, 0.39, dz], pupitre);
+  const encrier = cyl(0.05, 0.06, 0.09, 12, mat(0x1d1a24, { rugosite: 0.3 }), [0.45, 0.88, -0.15], pupitre);
+  const plume = cyl(0.006, 0.012, 0.42, 6, mat(0xf2ead8, { rugosite: 0.9 }), [0.52, 1.08, -0.1], pupitre); plume.rotation.z = -0.5; plume.rotation.x = 0.3;
+  const ramette = mesh(new THREE.BoxGeometry(0.38, 0.04, 0.5), papierMat, [-0.2, 0.86, 0.05], pupitre);
+  legender(pupitre, 'Pupitre', 'La plume et l\'encre : le papier fabriqué ici finit sous une écriture.'); void encrier; void ramette;
+  const tabouret = new THREE.Group(); tabouret.position.set(-9.1, 0, -1.6); scene.add(tabouret);
+  cyl(0.2, 0.2, 0.05, 14, boisClair, [0, 0.46, 0], tabouret); for (let i = 0; i < 3; i += 1) { const p = cyl(0.025, 0.025, 0.46, 8, boisFonce, [0.13 * Math.cos(i * 2.1), 0.23, 0.13 * Math.sin(i * 2.1)], tabouret); p.rotation.z = 0.12 * Math.cos(i * 2.1); p.rotation.x = -0.12 * Math.sin(i * 2.1); }
+  // tonneaux
+  for (const [x, z] of [[-9.6, 1.4], [-9.6, 2.5], [-8.6, 2.0]]) {
+    const t = new THREE.Group(); t.position.set(x, 0, z); scene.add(t);
+    meshPBR(new THREE.CylinderGeometry(0.4, 0.4, 0.9, 20), 'brown_planks_09', { couleur: 0x9a7349, repetition: 3, rugosite: 0.85 }, [0, 0.45, 0], t).rotation.y = Math.random();
+    for (const y of [0.15, 0.75]) { const h = mesh(new THREE.TorusGeometry(0.41, 0.02, 8, 36), fer, [0, y, 0], t); h.rotation.x = Math.PI / 2; }
+    legender(t, 'Tonneau', 'La colle et l\'eau de réserve : la feuille sèche est trempée dans une colle animale pour que l\'encre ne bave pas.');
+  }
+  // échelle appuyée au mur
+  const echelle = new THREE.Group(); echelle.position.set(-7.0, 0, -3.3); echelle.rotation.x = -0.26; scene.add(echelle);
+  for (const dx of [-0.2, 0.2]) boite(0.06, 2.8, 0.06, boisClair, [dx, 1.4, 0], echelle);
+  for (let i = 1; i < 8; i += 1) cyl(0.02, 0.02, 0.4, 8, boisClair, [0, i * 0.35, 0], echelle).rotation.z = Math.PI / 2;
+  legender(echelle, 'Échelle', 'Pour atteindre les cordes hautes de l\'étendoir.');
+  // balai
+  const balai = new THREE.Group(); balai.position.set(11.6, 0, 0.6); balai.rotation.z = 0.18; scene.add(balai);
+  cyl(0.015, 0.015, 1.5, 6, boisClair, [0, 0.95, 0], balai); cyl(0.05, 0.11, 0.3, 10, mat(0xb79b62, { rugosite: 1 }), [0, 0.15, 0], balai);
+  // flaques sous la cuve et la presse
+  for (const x of [-3.5, 1.5]) { const fl = new THREE.Mesh(new THREE.CircleGeometry(1.45, 32), new THREE.MeshStandardMaterial({ color: 0x1d1610, transparent: true, opacity: 0.18, roughness: 0.15, metalness: 0 })); fl.rotation.x = -Math.PI / 2; fl.position.set(x, 0.006, 0.1); fl.receiveShadow = true; fl.raycast = () => {}; scene.add(fl); }
+  // poussière dans la lumière
+  { const n = 160; const pos = new Float32Array(n * 3); for (let i = 0; i < n; i += 1) { pos[i * 3] = -8 + Math.random() * 17; pos[i * 3 + 1] = 0.3 + Math.random() * 4; pos[i * 3 + 2] = -3.5 + Math.random() * 7; }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    poussiere = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xfff1d0, size: 0.035, transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending })); poussiere.raycast = () => {}; scene.add(poussiere); }
+
+  /* ---------- 1. Chiffons et bois ---------- */
+  const s1 = new THREE.Group(); scene.add(s1); s1.position.x = ETAPES[0].x; legender(s1, ETAPES[0].nom, LEGENDES[0].phrase);
+  meshPBR(new THREE.CylinderGeometry(0.6, 0.48, 0.7, 20, 1, true), 'brown_planks_09', { couleur: 0xb08a5c, repetition: 3, rugosite: 1 }, [0, 0.35, 0], s1).material.side = THREE.DoubleSide;
+  cyl(0.48, 0.48, 0.04, 20, boisClair, [0, 0.02, 0], s1); mesh(new THREE.TorusGeometry(0.6, 0.03, 8, 30), boisFonce, [0, 0.7, 0], s1).rotation.x = Math.PI / 2;
+  const tissus = [0xd9d0bd, 0xaebbd0, 0xd8b8ad, 0xc9b58f, 0x9fadbf, 0xcfc2ac, 0xb8a391, 0xe2dccb];
+  for (let i = 0; i < 8; i += 1) { const r = mesh(new THREE.SphereGeometry(0.17 + Math.random() * 0.05, 10, 7), mat(tissus[i % tissus.length], { rugosite: 1 }), [(Math.random() - 0.5) * 0.62, 0.7 + Math.random() * 0.08, (Math.random() - 0.5) * 0.62], s1); r.scale.set(1.1 + Math.random() * 0.4, 0.42, 0.8 + Math.random() * 0.3); r.rotation.set((Math.random() - 0.5) * 0.5, Math.random() * 3, (Math.random() - 0.5) * 0.5); }
+  const sac = mesh(new THREE.SphereGeometry(0.42, 16, 12), mat(0xcdb892, { rugosite: 1 }), [-0.95, 0.42, 0.55], s1); sac.scale.set(1, 1.05, 0.9);
+  mesh(new THREE.TorusGeometry(0.1, 0.025, 8, 16), corde, [-0.95, 0.86, 0.55], s1).rotation.x = Math.PI / 2;
+  const buches = [[1.05, 0.14, -0.35], [1.05, 0.14, -0.07], [1.05, 0.14, 0.21], [1.05, 0.38, -0.21], [1.05, 0.38, 0.07]];
+  buches.forEach(([x, y, z]) => { const b = meshPBR(new THREE.CylinderGeometry(0.13, 0.13, 1.2, 12), 'bark_brown_02', { repetition: 1, rugosite: 1 }, [x, y, z], s1); b.rotation.z = Math.PI / 2; for (const s of [-1, 1]) { const c = mesh(new THREE.CircleGeometry(0.125, 12), mat(0xd8c29a, { rugosite: 1 }), [x + s * 0.601, y, z], s1); c.rotation.y = s * Math.PI / 2; c.castShadow = false; } });
+  const souche = meshPBR(new THREE.CylinderGeometry(0.26, 0.3, 0.42, 14), 'bark_brown_02', { repetition: 1, rugosite: 1 }, [0.1, 0.21, -1.05], s1);
+  cyl(0.25, 0.25, 0.012, 14, mat(0xd8c29a, { rugosite: 1 }), [0.1, 0.425, -1.05], s1);
+  const hache = new THREE.Group(); hache.position.set(0.1, 0.43, -1.05); hache.rotation.z = -0.45; hache.rotation.y = 0.4; s1.add(hache);
+  boite(0.04, 0.7, 0.04, boisClair, [0, 0.36, 0], hache); boite(0.22, 0.14, 0.03, fer, [0.1, 0.1, 0], hache); void souche;
+  stations.fibres = s1;
+
+  /* ---------- 2. Cuve : douves, cercles, pâte, rame ---------- */
+  const s2 = new THREE.Group(); scene.add(s2); s2.position.x = ETAPES[1].x; legender(s2, ETAPES[1].nom, LEGENDES[1].phrase);
+  const R = 1.0;
+  for (let k = 0; k < 24; k += 1) { const a = k / 24 * Math.PI * 2; const d = meshPBR(new THREE.BoxGeometry(0.275, 0.95, 0.07), 'brown_planks_09', { couleur: 0x8c6a45, repetition: 2, rugosite: 0.9 }, [R * Math.cos(a), 0.475, R * Math.sin(a)], s2); d.rotation.order = 'YXZ'; d.rotation.y = Math.PI / 2 - a; d.rotation.x = 0.07; }
+  for (const y of [0.18, 0.78]) { const h = mesh(new THREE.TorusGeometry(R + 0.03, 0.022, 8, 48), fer, [0, y, 0], s2); h.rotation.x = Math.PI / 2; }
+  cyl(R - 0.02, R - 0.02, 0.04, 32, boisFonce, [0, 0.02, 0], s2);
+  const pate = mesh(new THREE.CylinderGeometry(R - 0.04, R - 0.04, 0.03, 32), matPhysique({ couleur: 0xe9e4d4, rugosite: 0.32, clearcoat: 0.6, clearcoatRugosite: 0.3 }), [0, 0.85, 0], s2); pate.castShadow = false; s2.userData.pate = pate;
+  const rame = new THREE.Group(); rame.position.set(0.75, 0, 0.75); rame.rotation.z = -0.35; rame.rotation.x = 0.3; s2.add(rame);
+  cyl(0.02, 0.02, 1.7, 8, boisClair, [0, 0.85, 0], rame); boite(0.14, 0.4, 0.02, boisClair, [0, 1.75, 0], rame);
+  const seau = new THREE.Group(); seau.position.set(-1.45, 0, 0.6); s2.add(seau);
+  cyl(0.2, 0.16, 0.34, 16, boisClair, [0, 0.17, 0], seau); mesh(new THREE.TorusGeometry(0.2, 0.012, 6, 24), fer, [0, 0.3, 0], seau).rotation.x = Math.PI / 2;
+  const anse = mesh(new THREE.TorusGeometry(0.2, 0.01, 6, 20, Math.PI), fer, [0, 0.34, 0], seau); anse.rotation.y = 0.4;
+  cyl(0.19, 0.19, 0.02, 16, mat(0x9fb6c9, { rugosite: 0.1 }), [0, 0.3, 0], seau).castShadow = false;
+  legender(seau, 'Seau', 'Pour remplir la cuve : 1 litre d\'eau pèse 1 kilogramme.');
+  stations.cuve = s2;
+
+  /* ---------- 3. La forme sur son tréteau ---------- */
+  const s3 = new THREE.Group(); scene.add(s3); s3.position.x = ETAPES[2].x;
+  for (const dz of [-0.4, 0.4]) { for (const s of [-1, 1]) { const p = boite(0.06, 0.95, 0.06, boisFonce, [s * 0.3, 0.46, dz], s3); p.rotation.z = -s * 0.32; } }
+  boite(0.12, 0.08, 1.1, boisFonce, [0, 0.9, 0], s3); boite(0.9, 0.05, 0.05, boisFonce, [0, 0.45, -0.4], s3); boite(0.9, 0.05, 0.05, boisFonce, [0, 0.45, 0.4], s3);
+  for (let i = 0; i < 5; i += 1) boite(0.5, 0.025, 0.65, feutre, [-0.9, 0.2 + i * 0.03, 0.3], s3);
+  legender(s3, 'Forme (tamis)', LEGENDES[2].phrase);
+  formeG = new THREE.Group(); scene.add(formeG); formeG.position.set(-1, 0.99, 0); formeG.rotation.z = 0.22;
+  for (const [w, d, x, z] of [[1.3, 0.08, 0, -0.46], [1.3, 0.08, 0, 0.46], [0.08, 1.0, -0.61, 0], [0.08, 1.0, 0.61, 0]]) boite(w, 0.06, d, boisClair, [x, 0, z], formeG);
+  const tamis = mesh(new THREE.PlaneGeometry(1.15, 0.85), grilleMat, [0, 0.005, 0], formeG); tamis.rotation.x = -Math.PI / 2; tamis.castShadow = false;
+  for (let i = -2; i <= 2; i += 1) boite(0.025, 0.02, 0.85, boisClair, [i * 0.23, -0.02, 0], formeG);
+  feuilleForme = mesh(new THREE.PlaneGeometry(1.1, 0.8), new THREE.MeshStandardMaterial({ color: 0xe9e2cf, roughness: 1, side: THREE.DoubleSide, transparent: true, opacity: 0.92 }), [0, 0.014, 0], formeG); feuilleForme.rotation.x = -Math.PI / 2; feuilleForme.visible = false; feuilleForme.castShadow = false;
+  legender(formeG, 'Forme (tamis)', LEGENDES[2].phrase);
+  feuilleTransit = mesh(new THREE.PlaneGeometry(1.1, 0.8), new THREE.MeshStandardMaterial({ color: 0xe9e2cf, roughness: 1, side: THREE.DoubleSide }), [0, 1, 0]); feuilleTransit.rotation.x = -Math.PI / 2; feuilleTransit.visible = false; feuilleTransit.raycast = () => {};
+  stations.forme = s3;
+
+  /* ---------- 4. La presse à vis ---------- */
+  const s4 = new THREE.Group(); scene.add(s4); s4.position.x = ETAPES[3].x; legender(s4, 'Presse', LEGENDES[3].phrase);
+  meshPBR(new THREE.BoxGeometry(1.6, 0.26, 1.25), 'wood_table_001', { couleur: new THREE.Color(1.4, 1.3, 1.2), repetition: 1, rugosite: 0.9 }, [0, 0.13, 0], s4);
+  for (const dx of [-0.68, 0.68]) boite(0.2, 2.3, 0.22, poutreMat, [dx, 1.15, 0], s4);
+  boite(1.7, 0.28, 0.32, poutreMat, [0, 2.32, 0], s4);
+  for (let i = 0; i < 10; i += 1) { const feuille = i % 2 === 1; const c = boite(1.12, feuille ? 0.012 : 0.035, 0.84, feuille ? papierMat : feutre, [0, 0, 0], s4); c.visible = i < 6; pile.push(c); }
+  platine = meshPBR(new THREE.BoxGeometry(1.25, 0.1, 0.95), 'wood_table_001', { couleur: new THREE.Color(1.7, 1.55, 1.4), repetition: 1, rugosite: 0.8 }, [0, 1.2, 0], s4);
+  vis = cyl(0.085, 0.085, 2.0, 16, fer, [0, 1.85, 0], s4);
+  for (let i = 0; i < 7; i += 1) { const f = mesh(new THREE.TorusGeometry(0.1, 0.014, 6, 20), fer, [0, 0, 0], vis); f.position.y = -0.9 + i * 0.15; f.rotation.x = Math.PI / 2; }
+  barreVis = cyl(0.03, 0.03, 1.3, 10, fer, [0, 2.6, 0], s4); barreVis.rotation.z = Math.PI / 2;
+  for (const s of [-1, 1]) mesh(new THREE.SphereGeometry(0.05, 10, 8), laiton, [0, s * 0.65, 0], barreVis);
+  const bassine = cyl(0.3, 0.26, 0.2, 18, fer, [1.25, 0.1, 0.35], s4); legender(bassine, 'Bassine', 'L\'eau chassée par la presse : la feuille sort encore humide, le séchoir fera le reste.');
+  for (let i = 0; i < 8; i += 1) { const g = mesh(new THREE.SphereGeometry(0.02, 8, 6), mat(0xcfe3ff, { transparent: true, opacite: 0.85, rugosite: 0.1 }), [0, -1, 0]); g.visible = false; g.castShadow = false; g.raycast = () => {}; gouttes.push(g); }
+  stations.presse = s4;
+
+  /* ---------- 5. L'étendoir : cordes et feuilles ---------- */
+  const s5 = new THREE.Group(); scene.add(s5); s5.position.x = ETAPES[4].x; legender(s5, 'Séchoir', LEGENDES[4].phrase);
+  for (const dx of [-1.3, 1.3]) { boite(0.1, 2.75, 0.1, boisFonce, [dx, 1.375, 0], s5); boite(0.5, 0.08, 0.5, boisFonce, [dx, 0.04, 0], s5); }
+  boite(2.8, 0.1, 0.1, boisFonce, [0, 2.75, 0], s5);
+  for (let j = 0; j < 3; j += 1) {
+    const y = 2.5 - j * 0.72; cyl(0.012, 0.012, 2.5, 6, corde, [0, y, 0], s5).rotation.z = Math.PI / 2;
+    for (let i = 0; i < 4; i += 1) {
+      const geo = new THREE.PlaneGeometry(0.42, 0.55, 1, 8); const p = geo.attributes.position;
+      for (let k = 0; k < p.count; k += 1) { const yy = p.getY(k); p.setZ(k, 0.03 * Math.sin((yy + 0.275) / 0.55 * Math.PI * 1.5)); }
+      geo.computeVertexNormals();
+      const fe = mesh(geo, papierMat, [-0.78 + i * 0.52, y - 0.29, 0], s5); fe.castShadow = false; fe.visible = feuilles.length < 7; feuilles.push(fe);
+    }
+  }
+  const panier = cyl(0.3, 0.24, 0.3, 14, mat(0xb08a5c, { rugosite: 1 }), [1.0, 0.15, 0.7], s5); legender(panier, 'Panier', 'Les feuilles sèches sont comptées par rames de 500 feuilles.');
+  stations.sechoir = s5;
+
+  /* ---------- 6. La machine à papier et sa machine à vapeur ---------- */
+  const s6 = new THREE.Group(); scene.add(s6); s6.position.x = ETAPES[5].x; legender(s6, 'Machine à papier', LEGENDES[5].phrase);
+  const fonte = { couleur: 0xffffff, repetition: 2, rugosite: 0.8, metal: 0.4 };
+  meshPBR(new THREE.BoxGeometry(3.4, 0.5, 1.2), 'green_metal_rust', fonte, [0, 0.35, 0], s6);
+  for (const [dx, dz] of [[-1.55, -0.5], [1.55, -0.5], [-1.55, 0.5], [1.55, 0.5]]) boite(0.16, 0.12, 0.16, fer, [dx, 0.06, dz], s6);
+  const rouleau = (x, y, r, l, materiau) => { const c = cyl(r, r, l, 24, materiau, [x, y, 0], s6); c.rotation.x = Math.PI / 2; roues.push(c); for (const dz of [-l / 2 - 0.04, l / 2 + 0.04]) boite(0.08, y - 0.6, 0.08, fer, [x, 0.6 + (y - 0.6) / 2, dz], s6); return c; };
+  rouleau(-1.5, 1.0, 0.12, 1.3, laiton); rouleau(-0.35, 1.0, 0.12, 1.3, laiton);
+  const toile = mesh(new THREE.BoxGeometry(1.3, 0.012, 1.1), grilleMat, [-0.92, 1.12, 0], s6); toile.castShadow = false;
+  const pateToile = mesh(new THREE.BoxGeometry(0.9, 0.01, 1.0), mat(0xe4ded0, { rugosite: 1 }), [-1.05, 1.13, 0], s6); pateToile.castShadow = false;
+  meshPBR(new THREE.BoxGeometry(0.42, 0.4, 1.12), 'green_metal_rust', fonte, [-1.75, 1.2, 0], s6);
+  { const bas = cyl(0.12, 0.12, 1.3, 24, feutre, [0.25, 0.98, 0], s6); bas.rotation.x = Math.PI / 2; roues.push(bas); } rouleau(0.25, 1.22, 0.12, 1.3, feutre);
+  for (const [x, y] of [[0.95, 1.05], [1.5, 1.05], [2.05, 1.05]]) rouleau(x, y, 0.3, 1.2, fer);
+  const bobine = rouleau(2.75, 1.1, 0.26, 1.15, papierMat); bobine.material = papierMat;
+  bandeTex = papierTex.clone(); bandeTex.needsUpdate = true; bandeTex.repeat.set(4, 1);
+  bande = mesh(new THREE.BoxGeometry(2.55, 0.012, 1.08), new THREE.MeshStandardMaterial({ map: bandeTex, roughness: 0.95 }), [1.47, 1.36, 0], s6); bande.castShadow = false;
+  // moteur à vapeur : chaudière, foyer, cheminée, cylindre, bielle, volant, courroie
+  const moteur = new THREE.Group(); s6.add(moteur); moteurG = moteur; legender(moteur, 'Machine à vapeur', LEGENDES[6].phrase);
+  const chaud = meshPBR(new THREE.CylinderGeometry(0.5, 0.5, 2.0, 28), 'metal_plate', { couleur: 0x6a6a6a, repetition: 2, rugosite: 0.6, metal: 0.8 }, [2.6, 0.95, -2.3], moteur); chaud.rotation.x = Math.PI / 2;
+  for (const dz of [-3.2, -1.4]) boite(1.1, 0.5, 0.22, fer, [2.6, 0.3, dz], moteur);
+  const foyer = mesh(new THREE.CircleGeometry(0.2, 16), mat(0xff6a1e, { emissif: 0xff4a00, intensite: 2.4 }), [2.6, 0.78, -1.295], moteur); foyer.castShadow = false; moteur.userData.foyer = foyer;
+  mesh(new THREE.TorusGeometry(0.22, 0.03, 8, 20), fer, [2.6, 0.78, -1.29], moteur);
+  const feu = new THREE.PointLight(0xff7a2a, 6, 5, 2); feu.position.set(2.6, 0.8, -1.0); moteur.add(feu); moteur.userData.feu = feu;
+  cyl(0.18, 0.2, 3.9, 16, mat(0x2e2e2e, { rugosite: 0.7 }), [2.6, 3.3, -3.0], moteur); mesh(new THREE.TorusGeometry(0.2, 0.025, 8, 20), fer, [2.6, 5.0, -3.0], moteur).rotation.x = Math.PI / 2;
+  const mano = cyl(0.11, 0.11, 0.05, 20, mat(0xf2efe6, { rugosite: 0.4 }), [2.3, 1.6, -1.6], moteur); mano.rotation.x = Math.PI / 2; mesh(new THREE.TorusGeometry(0.11, 0.015, 8, 20), laiton, [2.3, 1.6, -1.6], moteur);
+  cyl(0.02, 0.02, 0.55, 8, laiton, [2.3, 1.275, -1.75], moteur);
+  const cylVap = cyl(0.17, 0.17, 0.7, 20, fer, [2.05, 1.1, -1.58], moteur); cylVap.rotation.z = Math.PI / 2;
+  boite(0.3, 0.95, 0.3, fer, [2.05, 0.475, -1.58], moteur);
+  tige = cyl(0.03, 0.03, 0.9, 10, laiton, [1.5, 1.1, -1.58], moteur); tige.rotation.z = Math.PI / 2;
+  crosse = boite(0.14, 0.14, 0.14, fer, [1.1, 1.1, -1.58], moteur);
+  bielle = boite(0.9, 0.06, 0.05, fer, [0.6, 1.1, -1.58], moteur);
+  manivelle = cyl(0.035, 0.035, 0.14, 10, laiton, [0.6, 1.1, -1.62], moteur); manivelle.rotation.x = Math.PI / 2;
+  volant = new THREE.Group(); volant.position.set(0.2, 1.1, -1.7); moteur.add(volant);
+  mesh(new THREE.TorusGeometry(0.66, 0.06, 10, 48), fer, [0, 0, 0], volant); cyl(0.1, 0.1, 0.16, 16, fer, [0, 0, 0], volant).rotation.x = Math.PI / 2;
+  for (let i = 0; i < 6; i += 1) { const r = boite(0.05, 1.26, 0.04, fer, [0, 0, 0], volant); r.rotation.z = i * Math.PI / 6; }
+  boite(0.2, 0.4, 0.2, fer, [0.2, 0.2, -1.85], moteur); boite(0.1, 1.1, 0.1, fer, [0.2, 0.55, -1.85], moteur).castShadow = false; cyl(0.05, 0.05, 0.4, 12, fer, [0.2, 1.1, -1.85], moteur).rotation.x = Math.PI / 2;
+  const poulie = cyl(0.18, 0.18, 0.08, 20, fer, [-1.5, 1.0, -1.7], s6); poulie.rotation.x = Math.PI / 2; roues.push(poulie);
+  cyl(0.03, 0.03, 1.1, 8, fer, [-1.5, 1.0, -1.2], s6).rotation.x = Math.PI / 2;
+  for (const s of [1, -1]) { const dy = (1.0 + s * 0.18) - (1.1 + s * 0.66); const L = Math.hypot(1.7, dy); const b = boite(L, 0.03, 0.04, mat(0x3a2a1c, { rugosite: 0.9 }), [-0.65, (1.0 + s * 0.18 + 1.1 + s * 0.66) / 2, -1.7], s6); b.rotation.z = Math.atan2(-dy, 1.7); b.castShadow = false; }
+  for (let i = 0; i < 6; i += 1) { const v = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), new THREE.MeshBasicMaterial({ color: 0xf4f4f4, transparent: true, opacity: 0.35, depthWrite: false })); v.position.set(2.2, 1.4, -1.6); v.raycast = () => {}; s6.add(v); vapeur.push(v); }
+  stations.machine = s6;
+  ETAPES.forEach((e, i) => { etiquette((i + 1) + '. ' + e.nom, [e.x, 3.05, 0.3], { hauteur: 0.4 }); });
+
+  /* ---------- Le panneau ---------- */
   panneau = M.panneau(`<h3>Les six étapes</h3>
     <div class="mb-etapes">${ETAPES.map((e, i) => `<button class="mb-bouton" data-etape="${e.id}" aria-pressed="false"><i>${i + 1}</i>${e.nom}</button>`).join('')}</div>
     <p class="mb-carte" id="pa-texte">Touche une station, ou choisis-la ici.</p>
-    <h3>La pâte dans la cuve</h3>
-    <label>Fibres <span class="mb-val" id="pa-f">${fibres} g</span><input class="mb-plage" id="pa-fs" type="range" min="20" max="400" step="10" value="${fibres}" aria-label="Masse de fibres"></label>
-    <div class="mb-mesures"><span>Eau</span><b>5 L = 5 kg</b><span>Fibres</span><b id="pa-f2">·</b><span>Proportion de fibres</span><b id="pa-p">·</b></div>
-    <p class="mb-carte" id="pa-avis"></p>`);
+    <details open><summary>Fabriquer une feuille</summary><div>
+      <button class="mb-bouton primaire" id="pa-faire">Fabriquer une feuille</button>
+      <div class="pa-progres" aria-hidden="true"><i id="pa-barre"></i></div>
+      <div class="mb-mesures"><span>Geste en cours</span><b id="pa-geste">Prête</b><span>Feuilles faites</span><b id="pa-n">0</b></div>
+    </div></details>
+    <details id="pa-det-pate"><summary>La pâte dans la cuve</summary><div>
+      <label>Fibres <span class="mb-val" id="pa-f">${fibres} g</span><input class="mb-plage" id="pa-fs" type="range" min="20" max="400" step="10" value="${fibres}" aria-label="Masse de fibres"></label>
+      <div class="mb-mesures"><span>Eau</span><b>5 L = 5 kg</b><span>Fibres</span><b id="pa-f2">·</b><span>Proportion de fibres</span><b id="pa-p">·</b></div>
+      <p class="mb-carte" id="pa-avis"></p>
+    </div></details>
+    <details id="pa-det-machine"><summary>La machine à vapeur</summary><div>
+      <label>Vitesse du papier <span class="mb-val" id="pa-v">${vitesse} m/min</span><input class="mb-plage" id="pa-vs" type="range" min="2" max="20" step="1" value="${vitesse}" aria-label="Vitesse de la machine"></label>
+      <div class="mb-mesures"><span>En 10 heures</span><b id="pa-long">·</b><span>Feuilles de 50 cm</span><b id="pa-nf">·</b><span>Une équipe à la cuve</span><b>≈ 2 000 feuilles</b></div>
+      <p class="mb-carte" id="pa-compare"></p>
+    </div></details>
+    <details><summary>Vues</summary><div class="mb-groupe">
+      <button class="mb-bouton" id="pa-dessus" aria-pressed="false">Vue de dessus</button><button class="mb-bouton" id="pa-ensemble">Vue d'ensemble</button>
+    </div></details>`);
   panneau.querySelectorAll('[data-etape]').forEach((b) => b.addEventListener('click', () => choisir(b.getAttribute('data-etape'))));
   panneau.querySelector('#pa-fs').addEventListener('input', (e) => { fibres = Number(e.target.value); majPate(); });
-  majPate();
-  renderer_legendes_clic();
+  panneau.querySelector('#pa-vs').addEventListener('input', (e) => { vitesse = Number(e.target.value); majMachine(); });
+  panneau.querySelector('#pa-faire').addEventListener('click', fabriquer);
+  panneau.querySelector('#pa-dessus').addEventListener('click', () => basculerDessus(!vueDessus));
+  panneau.querySelector('#pa-ensemble').addEventListener('click', () => { basculerDessus(false); vise = { pos: new THREE.Vector3(1, 4.8, 12), cible: new THREE.Vector3(0.5, 1.2, 0) }; });
+  majPate(); majMachine(); majPile();
+  stationParLegende();
+  M.renderer.domElement.addEventListener('pointerdown', () => { vise = null; });
+
+  /* ---------- La boucle : feuilles qui ondulent, machine, vapeur, flammes, séquence ---------- */
+  const tmp = new THREE.Vector3();
   M.boucle((dt, t) => {
-    feuilles.forEach((fe, i) => { fe.rotation.y = 0.12 * Math.sin(t * 1.2 + i); });
-    bande.position.x = 0.05 * Math.sin(t * 6);
-    stations.machine.userData.fumee.forEach((fum, i) => { fum.position.y = 3.1 + ((t * 0.5 + i * 0.4) % 2.2); fum.position.x = 1.9 + 0.15 * Math.sin(t + i); fum.material.opacity = 0.35 * (1 - ((t * 0.5 + i * 0.4) % 2.2) / 2.2); });
+    feuilles.forEach((fe, i) => { fe.rotation.y = 0.1 * Math.sin(t * 1.1 + i); });
+    const w = vitesse * 0.42;
+    roues.forEach((r) => { r.rotation.y += w * dt / Math.max(0.12, r.geometry.parameters.radiusTop); });
+    bandeTex.offset.x -= vitesse * dt * 0.06;
+    volant.rotation.z -= w * dt * 1.4;
+    const th = volant.rotation.z; const px = 0.2 + 0.4 * Math.cos(th); const py = 1.1 + 0.4 * Math.sin(th); const Lb = 0.9;
+    const cx = px + Math.sqrt(Math.max(0.01, Lb * Lb - (py - 1.1) * (py - 1.1)));
+    manivelle.position.set(px, py, -1.62);
+    crosse.position.set(cx, 1.1, -1.58); tige.position.set((cx + 2.1) / 2, 1.1, -1.58); tige.scale.y = Math.max(0.2, 2.1 - cx) / 0.9;
+    bielle.position.set((px + cx) / 2, (py + 1.1) / 2, -1.58); bielle.rotation.z = Math.atan2(1.1 - py, cx - px);
+    vapeur.forEach((v, i) => { const ph = ((t * (0.35 + vitesse * 0.03) + i * 0.33) % 2); v.position.set(2.2 + 0.12 * Math.sin(t + i), 1.45 + ph * 1.1, -1.5 - ph * 0.3); const s = 0.6 + ph * 0.9; v.scale.setScalar(s); v.material.opacity = 0.32 * (1 - ph / 2); });
+    lanternes.forEach((l, i) => { const f = 1 + 0.12 * Math.sin(t * 9 + i * 2) + 0.06 * Math.sin(t * 23 + i); l.lum.intensity = l.base * f; l.flamme.material.emissiveIntensity = 3.2 * f; });
+    if (moteurG) { moteurG.userData.foyer.material.emissiveIntensity = 2.2 + 0.5 * Math.sin(t * 6.3); moteurG.userData.feu.intensity = 5 + 1.5 * Math.sin(t * 6.3); }
+    if (poussiere) { const p = poussiere.geometry.attributes.position; for (let i = 0; i < p.count; i += 1) { p.setY(i, p.getY(i) + Math.sin(t * 0.4 + i) * 0.0006); p.setX(i, p.getX(i) + Math.cos(t * 0.3 + i * 0.7) * 0.0005); } p.needsUpdate = true; }
+    if (vise) { const k = 1 - Math.exp(-4.5 * dt); M.camera.position.lerp(vise.pos, k); M.controls.target.lerp(vise.cible, k); if (M.camera.position.distanceTo(vise.pos) < 0.02) vise = null; }
+    if (sequence) avancerSequence(dt);
+    void tmp;
   });
 }
-function renderer_legendes_clic() {
-  // choisir la station quand sa légende est touchée
-  const anc = window.__kshApi.attenteLegende; void anc;
-  document.addEventListener('ksh-legende', () => {});
+
+/* ---------- Choisir une station : par le panneau ou en touchant sa légende ---------- */
+function stationParLegende() {
   M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; const e = ETAPES.find((x) => x.nom === nom); if (e) choisir(e.id, true); }, 30); });
 }
 function choisir(id, sansCamera) {
   etape = id; const e = ETAPES.find((x) => x.id === id);
   panneau.querySelectorAll('[data-etape]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-etape') === id)));
   panneau.querySelector('#pa-texte').textContent = e.texte;
-  if (!sansCamera) { M.controls.target.set(e.x, 1, 0); M.camera.position.set(e.x + 2.5, 3.2, 5.5); }
+  if (!sansCamera && !vueDessus) vise = { pos: new THREE.Vector3(e.x + 2.6, 3.0, 5.4), cible: new THREE.Vector3(e.x, 1.1, 0) };
   shell.say(e.texte, 'concentre');
+}
+function basculerDessus(actif) {
+  vueDessus = actif; plafond.visible = !actif;
+  panneau.querySelector('#pa-dessus').setAttribute('aria-pressed', String(actif));
+  if (actif) vise = { pos: new THREE.Vector3(0.6, 17, 1.6), cible: new THREE.Vector3(0.5, 0, 0.2) };
+  else if (!vise) vise = { pos: new THREE.Vector3(1, 4.8, 12), cible: new THREE.Vector3(0.5, 1.2, 0) };
 }
 function majPate() {
   const p = proportion();
   panneau.querySelector('#pa-f').textContent = fibres + ' g'; panneau.querySelector('#pa-f2').textContent = fibres + ' g'; panneau.querySelector('#pa-p').textContent = f1(p) + ' %';
   const avis = panneau.querySelector('#pa-avis'); avis.textContent = p < 1.5 ? 'Trop liquide : la feuille sera trouée.' : p > 2.6 ? 'Trop épais : la feuille sera grumeleuse.' : 'Bonne pâte : environ 2 % de fibres, la feuille sera régulière.';
   avis.style.borderLeft = '6px solid ' + (p < 1.5 || p > 2.6 ? '#E63329' : '#2AA98C');
-  const pate = stations.cuve.userData.pate; pate.material.color.set(p < 1.5 ? 0xd9dde3 : p > 2.6 ? 0xd8c9a8 : 0xe9e4d4);
+  const pate = stations.cuve.userData.pate; pate.material.color.set(p < 1.5 ? 0xd3dbe4 : p > 2.6 ? 0xd6c5a2 : 0xe9e4d4); pate.material.roughness = p < 1.5 ? 0.15 : p > 2.6 ? 0.7 : 0.32;
 }
+function majMachine() {
+  const longueur = vitesse * 60 * 10; const nf = longueur / 0.5;
+  panneau.querySelector('#pa-v').textContent = vitesse + ' m/min'; panneau.querySelector('#pa-long').textContent = fEnt(longueur) + ' m'; panneau.querySelector('#pa-nf').textContent = fEnt(nf);
+  panneau.querySelector('#pa-compare').textContent = vitesse + ' m par minute × 60 minutes × 10 heures = ' + fEnt(longueur) + ' m, soit ' + fEnt(nf) + ' feuilles de 50 cm : ' + (nf >= 2000 ? 'environ ' + f1(nf / 2000) + ' fois' : 'moins que') + ' la production d\'une équipe à la cuve (2 000 feuilles).';
+}
+function majPile() {
+  const visibles = Math.min(pile.length, 6 + feuillesFaites);
+  let y = 0.26; pile.forEach((c, i) => { c.visible = i < visibles; if (c.visible) { const h = c.geometry.parameters.height; c.position.y = y + h / 2; y += h; } });
+  platine.userData.repos = y + 0.05; if (!sequence) { platine.position.y = platine.userData.repos; vis.position.y = platine.position.y + 1.0; }
+  panneau.querySelector('#pa-n').textContent = String(feuillesFaites);
+}
+
+/* ---------- La séquence « fabriquer une feuille » : puiser, égoutter, coucher, presser, sécher ---------- */
+const REPOS = new THREE.Vector3(-1, 0.99, 0); const CUVE_HAUT = new THREE.Vector3(-3.5, 1.75, 0); const CUVE_BAS = new THREE.Vector3(-3.5, 0.9, 0);
+const GESTES = [
+  { d: 1.3, nom: 'Puiser', vue: [-2.2, 2.6, 4.2, -2.5, 1.0, 0], f: (p) => { const q = lisse(p); formeG.position.lerpVectors(REPOS, CUVE_HAUT, q); formeG.rotation.z = 0.22 * (1 - q); } },
+  { d: 1.0, nom: 'Plonger', f: (p) => { const q = Math.sin(p * Math.PI); formeG.position.lerpVectors(CUVE_HAUT, CUVE_BAS, q); if (p > 0.5) feuilleForme.visible = true; } },
+  { d: 1.0, nom: 'Égoutter', f: (p) => { formeG.position.copy(CUVE_HAUT); formeG.rotation.z = 0.12 * Math.sin(p * Math.PI); gouttes.forEach((g, i) => { const ph = (p * 2.2 + i / 8) % 1; g.visible = true; g.position.set(-3.5 + (i - 3.5) * 0.14, 1.7 - ph * 0.8, 0.3 * Math.sin(i)); g.scale.setScalar(1); }); }, fin: () => { gouttes.forEach((g) => { g.visible = false; }); } },
+  { d: 1.2, nom: 'Coucher', vue: [0.3, 2.4, 4.4, 0.3, 1.0, 0], f: (p) => { const q = lisse(p); formeG.position.lerpVectors(CUVE_HAUT, REPOS, q); formeG.rotation.z = 0.22 * q; if (p > 0.5) { feuilleForme.visible = false; feuilleTransit.visible = true; const r = (p - 0.5) * 2; const yFin = platine.userData.repos - 0.06; feuilleTransit.position.set(-1 + 2.5 * lisse(r), 1.05 + (yFin - 1.05) * lisse(r) + 0.45 * Math.sin(r * Math.PI), 0); } } },
+  { d: 1.6, nom: 'Presser', f: (p) => { feuilleTransit.visible = false; const repos = platine.userData.repos; const q = Math.sin(p * Math.PI); platine.position.y = repos - 0.08 * q; vis.position.y = platine.position.y + 1.0; barreVis.rotation.y = p * Math.PI * 2; gouttes.forEach((g, i) => { const ph = (p * 2 + i / 8) % 1; g.visible = q > 0.3; g.position.set(1.5 + 0.56, 0.45 - ph * 0.3, 0.1 + (i - 3.5) * 0.09); }); }, fin: () => { gouttes.forEach((g) => { g.visible = false; }); } },
+  { d: 1.0, nom: 'Sécher', vue: [4.5, 2.6, 4.6, 4, 1.6, 0], f: () => { const fe = feuilles.find((x) => !x.visible); if (fe) fe.visible = true; } },
+];
+function fabriquer() {
+  if (sequence) return;
+  sequence = { i: 0, t: 0 }; panneau.querySelector('#pa-faire').disabled = true; panneau.querySelector('#pa-faire').textContent = 'Fabrication en cours';
+  choisirGeste(0);
+}
+function choisirGeste(i) {
+  const g = GESTES[i]; panneau.querySelector('#pa-geste').textContent = g.nom;
+  if (g.vue && !vueDessus) vise = { pos: new THREE.Vector3(g.vue[0], g.vue[1], g.vue[2]), cible: new THREE.Vector3(g.vue[3], g.vue[4], g.vue[5]) };
+}
+function avancerSequence(dt) {
+  const g = GESTES[sequence.i]; sequence.t += dt; const p = Math.min(1, sequence.t / g.d);
+  try { g.f(p); } catch (e) { /* un geste raté n'arrête pas la suite */ }
+  panneau.querySelector('#pa-barre').style.width = Math.round((sequence.i + p) / GESTES.length * 100) + '%';
+  if (p >= 1) {
+    if (g.fin) g.fin();
+    sequence.i += 1; sequence.t = 0;
+    if (sequence.i >= GESTES.length) {
+      sequence = null; feuillesFaites += 1; majPile();
+      formeG.position.copy(REPOS); formeG.rotation.z = 0.22; feuilleForme.visible = false; feuilleTransit.visible = false;
+      const b = panneau.querySelector('#pa-faire'); b.disabled = false; b.textContent = 'Fabriquer une feuille';
+      panneau.querySelector('#pa-geste').textContent = 'Feuille au séchoir'; panneau.querySelector('#pa-barre').style.width = '100%';
+      shell.say('Une feuille de plus au séchoir. Cinq gestes pour une feuille : la machine, elle, ne s\'arrête jamais.', 'fier');
+    } else choisirGeste(sequence.i);
+  }
+}
+
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Visite les six stations dans l\'ordre. Puis règle la pâte dans la cuve.', 'joyeux'); return; }
+  if (mode !== 'cours') { api.say('Visite les six stations dans l\'ordre, fabrique une feuille, puis règle la pâte et la machine.', 'joyeux'); return; }
+  const ouvrir = (id) => () => { const d = panneau.querySelector(id); if (d) d.open = true; };
   api.defis([
     { type: 'toucher', texte: 'Touche la <b>forme</b>, le tamis qui donne sa forme à la feuille.', cible: 'Forme (tamis)', explication: 'La forme retient les fibres et laisse passer l\'eau : c\'est elle qui fait la feuille, une à la fois.' },
-    { type: 'verifier', texte: 'Prépare une pâte à environ 2 % de fibres : règle la masse de fibres pour 5 L d\'eau.', bouton: 'C\'est réglé', verifier: () => proportion() >= 1.7 && proportion() <= 2.3, indice: '5 L d\'eau pèsent 5 000 g. 2 % de 5 000 g, c\'est 100 g.', explication: '100 g de fibres dans 5 000 g d\'eau : 100 ÷ 5 100 ≈ 2 %. La proportion se calcule avec la masse totale.' },
+    { type: 'verifier', texte: 'Prépare une pâte à environ 2 % de fibres : règle la masse de fibres pour 5 L d\'eau.', bouton: 'C\'est réglé', avant: ouvrir('#pa-det-pate'), verifier: () => proportion() >= 1.7 && proportion() <= 2.3, indice: '5 L d\'eau pèsent 5 000 g. 2 % de 5 000 g, c\'est 100 g.', explication: '100 g de fibres dans 5 000 g d\'eau : 100 ÷ 5 100 ≈ 2 %. La proportion se calcule avec la masse totale.' },
     { type: 'qcm', texte: '5 L d\'eau pèsent…', choix: ['5 kg', '500 g', '50 kg', '5 g'], reponse: 0, explication: 'La masse volumique de l\'eau est de 1 kg par litre : masse = 1 × 5 = 5 kg.' },
+    { type: 'verifier', texte: 'Fabrique une feuille à la main : lance la fabrication et attends qu\'elle arrive au séchoir.', bouton: 'C\'est fait', verifier: () => feuillesFaites >= 1, indice: 'Le bouton « Fabriquer une feuille », en haut du panneau. Attends la fin des cinq gestes.', explication: 'Puiser, plonger, égoutter, coucher, presser, sécher : une feuille à la fois, et plusieurs jours de séchage. La machine enchaîne tout cela en continu.' },
     { type: 'qcm', texte: 'Le papier est fait de…', choix: ['fibres de cellulose : chiffons, puis bois', 'plastique', 'argile', 'sable fondu'], reponse: 0, explication: 'Les chiffons de lin et de coton d\'abord ; le bois à partir de 1850, quand la demande explose.' },
     { type: 'qcm', texte: 'Ce que change la machine à papier au XIXᵉ siècle :', choix: ['une bande continue, produite par une machine à vapeur, au lieu de feuilles faites une à une', 'la couleur du papier', 'le papier devient plus cher', 'on n\'utilise plus d\'eau'], reponse: 0, explication: 'La machine à papier continu (1799) puis la vapeur : production de masse, journaux à un sou, livres pour tous.' },
     { type: 'toucher', texte: 'Touche la <b>presse</b> qui chasse l\'eau des feuilles.', cible: 'Presse', explication: 'Sous la presse, l\'eau est expulsée et les fibres se soudent entre elles.' },
+    { type: 'qcm', texte: 'La machine avance de 5 m de papier par minute. En une journée de 10 heures, elle produit…', choix: ['3 000 m', '300 m', '50 m', '30 000 m'], reponse: 0, avant: ouvrir('#pa-det-machine'), explication: '10 heures, c\'est 600 minutes. 5 × 600 = 3 000 m, soit 6 000 feuilles de 50 cm : trois fois plus qu\'une équipe à la cuve.' },
     { type: 'qcm', texte: 'Au XIXᵉ siècle, l\'usine et la machine à vapeur ont pour conséquence…', choix: ['des ouvriers regroupés dans des usines et des villes qui grandissent', 'moins de travail pour tout le monde', 'la disparition des villes', 'le retour aux ateliers familiaux'], reponse: 0, explication: 'La révolution industrielle regroupe le travail dans des usines : exode rural, croissance des villes, naissance du prolétariat.' },
   ], { rejouer: () => demarrer('cours', api) });
 }

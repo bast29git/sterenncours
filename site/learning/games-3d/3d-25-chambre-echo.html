@@ -9,95 +9,390 @@
 <script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
 <script src="../konstrio.js"></script>
 <script src="../shell.js"></script>
+<style>
+  .ch-details { border: 1px solid var(--border); border-radius: 10px; padding: 0 8px 8px; }
+  .ch-details summary { cursor: pointer; font-weight: 700; font-size: 13px; min-height: 36px; display: flex; align-items: center; list-style: none; }
+  .ch-details summary::before { content: '▸'; margin-right: 6px; color: var(--fg-muted); }
+  .ch-details[open] summary::before { content: '▾'; }
+  .ch-details[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .ch-details > * + * { margin-top: 8px; }
+  .ch-cmp { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 8px; align-items: center; font-family: var(--font-data); font-size: 13px; }
+  .ch-cmp i { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+  .ch-cmp b { font-weight: 700; }
+  .ch-petit { font-size: 12px; color: var(--fg-muted); }
+</style>
 </head>
 <body>
 <script type="module">
-import { creerMonde, THREE } from '../monde-base.js';
+import { creerMonde, THREE, textureTexte } from '../monde-base.js';
 
-const MILIEUX = { air: { nom: 'air', v: 340, couleur: 0xdfe6ec, fond: 0xe9eef3 }, eau: { nom: 'eau', v: 1480, couleur: 0x7fb6d8, fond: 0xbfdcec }, acier: { nom: 'acier', v: 5000, couleur: 0x9aa3ad, fond: 0xd2d6db } };
-let milieu = 'air', D = 34; // distance émetteur-mur, en mètres
-let M, mur, onde, emetteur, micro, panneau, salle, propagation = null;
-const ECH = 0.1; // 1 m = 0,1 unité
-const RALENTI = 40;
+/* Les trois milieux : vitesse du son, couleur de l'onde, couleur du brouillard, aspect du volume. */
+const MILIEUX = {
+  air: { nom: 'air', v: 340, couleur: 0x4fa3ff, fond: 0x9aa1a8, volume: null },
+  eau: { nom: 'eau', v: 1500, couleur: 0x2fc4b2, fond: 0x3f7f98, volume: { color: 0x2f86b8, opacity: 0.34, roughness: 0.08, metalness: 0 } },
+  acier: { nom: 'acier', v: 5000, couleur: 0xf5a623, fond: 0x6f757c, volume: { color: 0x9aa2ab, opacity: 0.62, roughness: 0.3, metalness: 0.9 } },
+};
+const ECH = 0.25; // 1 m = 0,25 unité de scène
+const X0 = -3.0; const X1 = 53.2; const W = 3.6; const H = 2.4; const LARG = X1 - X0; // la galerie d'essai
+const XFACE = 0.28; // la face du haut-parleur : le zéro de la règle
+let milieu = 'air'; let D = 34; let ralenti = 40; let vue = 'libre';
+let M, panneau, mur, emetteur, membrane, led, micro, onde, traine = [], anneaux = {}, particules, volume, chrono, oscillo, prop = null, dernierResultat = null;
+const F = (x, n) => x.toFixed(n).replace('.', ',');
+const nb = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const temps = (m) => 2 * D / MILIEUX[m || milieu].v;
+const xMur = () => XFACE + D * ECH; // la face du réflecteur
 const LEGENDES = [
-  { nom: 'Émetteur', phrase: 'Le haut-parleur : une membrane qui vibre et fait vibrer l\'air.' },
-  { nom: 'Mur', phrase: 'Le son s\'y réfléchit et revient : c\'est l\'écho.' },
+  { nom: 'Émetteur', phrase: 'Le haut-parleur : une membrane qui vibre et fait vibrer l\'air devant elle.' },
+  { nom: 'Mur', phrase: 'Le réflecteur mobile : le son s\'y réfléchit et revient. C\'est l\'écho.' },
   { nom: 'Micro', phrase: 'Il capte le retour du son et arrête le chronomètre.' },
   { nom: 'Onde sonore', phrase: 'Une vibration qui se propage dans la matière, jamais dans le vide.' },
+  { nom: 'Chronomètre', phrase: 'Il démarre quand le son part et s\'arrête quand l\'écho revient au micro.' },
+  { nom: 'Oscilloscope', phrase: 'Il dessine le son émis puis l\'écho reçu : l\'écart entre les deux pics est le temps mesuré.' },
+  { nom: 'Particules du milieu', phrase: 'Chaque particule vibre sur place et pousse la suivante : le son avance, la matière reste.' },
+  { nom: 'Règle graduée', phrase: 'Un repère tous les mètres, un nombre tous les dix mètres : elle donne la distance D du mur.' },
+  { nom: 'Rail', phrase: 'Le réflecteur roule dessus : on règle la distance D sans déplacer le haut-parleur.' },
+  { nom: 'Table de mesure', phrase: 'L\'amplificateur alimente le haut-parleur ; l\'oscilloscope et le chronomètre lisent le micro.' },
 ];
+const leg = (nom) => LEGENDES.find((l) => l.nom === nom).phrase;
+
 const shell = window.Konstrio.createGame({
   id: '3d-25-chambre-echo', code: '3D·25', title: 'La chambre d\'écho', type: '3D', duree: '10 min',
   domain: { label: 'Physique · Sons', color: '#8A4FD3' },
   intro: {
-    greet: 'Un haut-parleur, un mur, un micro. Émets un son, chronomètre l\'aller-retour, calcule la vitesse.',
-    rule: 'Le son part de l\'émetteur, touche le mur et revient au micro. Le temps mesuré vaut 2 × D ÷ v. Change le milieu : air, eau, acier.',
-    how: ['Glisse pour tourner, molette pour zoomer.', 'Règle la distance du mur et choisis le milieu dans le panneau.', '« Émettre » lance l\'onde, au ralenti, et le chronomètre affiche le vrai temps.'],
+    greet: 'Une longue galerie d\'essai, un haut-parleur, un réflecteur sur rails, un micro. Émets un son, chronomètre l\'aller-retour, calcule la vitesse.',
+    rule: 'Le son part du haut-parleur, touche le réflecteur et revient au micro. Le temps mesuré vaut 2 × D ÷ v. Change le milieu : air, eau, acier.',
+    how: ['Glisse pour tourner, molette pour zoomer. Le panneau propose trois vues.', 'Règle la distance D, choisis le milieu, puis « Émettre un son » : l\'onde avance au ralenti et le chronomètre affiche le vrai temps.', '« Comparer les trois milieux » lance trois ondes en même temps.', 'Touche le haut-parleur, le micro, le réflecteur, l\'oscilloscope : chaque objet a sa légende.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Utiliser v = d ÷ t avec un écho, et comparer la vitesse du son dans l\'air, l\'eau et l\'acier.',
     hint: 'Aller-retour : le son parcourt 2 × D. Donc t = 2 × D ÷ v.',
     why: 'Le sonar des bateaux et l\'échographie mesurent une distance avec le temps d\'un écho.',
   },
-  learned: ['Le son est une vibration qui se propage dans la matière : 340 m/s dans l\'air, 1 480 m/s dans l\'eau, 5 000 m/s dans l\'acier.', 'Avec un écho, le son parcourt deux fois la distance : t = 2 D ÷ v.', 'Le son ne se propage pas dans le vide.'],
+  learned: ['Le son est une vibration qui se propage dans la matière : environ 340 m/s dans l\'air, 1 500 m/s dans l\'eau, 5 000 m/s dans l\'acier.', 'Avec un écho, le son parcourt deux fois la distance : t = 2 D ÷ v.', 'Le son ne se propage pas dans le vide.'],
   onReady: init, onStart: demarrer,
 });
-const temps = () => 2 * D / MILIEUX[milieu].v;
-const f = (x, n) => x.toFixed(n).replace('.', ',');
+
+/* Les textures se répètent sans s'étirer : on met les UV à l'échelle de la face. */
+function uv(geo, su, sv) { const a = geo.attributes.uv; for (let i = 0; i < a.count; i += 1) a.setXY(i, a.getX(i) * su, a.getY(i) * sv); a.needsUpdate = true; return geo; }
+/* Un cylindre d'un point à un autre (pieds, bras, tubes). */
+function barre(a, b, rayon, materiau, parent) {
+  const p1 = new THREE.Vector3(...a); const p2 = new THREE.Vector3(...b); const L = p1.distanceTo(p2);
+  const m = M.mesh(new THREE.CylinderGeometry(rayon, rayon, L, 10), materiau, [0, 0, 0], parent);
+  m.position.copy(p1).add(p2).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p2.clone().sub(p1).normalize()); return m;
+}
+/* Un câble posé au sol, qui suit une suite de points. */
+function cable(points, rayon, parent) {
+  const courbe = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p)));
+  const m = M.mesh(new THREE.TubeGeometry(courbe, 48, rayon || 0.012, 7, false), M.mat(0x1b1d20, { rugosite: 0.55 }), null, parent); m.raycast = () => {}; return m;
+}
+function canevas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return { c, x: c.getContext('2d'), t }; }
 
 function init() {
-  M = creerMonde(shell, { fond: MILIEUX.air.fond, hdri: '../assets/3d/env/workshop_1k.hdr', sol: { taille: 60, couleur: 0x9c9890 }, ambiance: 0.9, soleil: { position: [10, 16, 6], intensite: 1.5, etendue: 30 }, brouillard: { couleur: 0xe9eef3, densite: 0.03 }, camera: { position: [-3, 4, 9], cible: [1.5, 1, 0], min: 2, max: 50 }, legendes: LEGENDES, libelle: 'Une longue salle avec un haut-parleur, un micro et un mur' });
-  const { scene, mesh, mat, legender } = M;
-  salle = mesh(new THREE.BoxGeometry(40, 5, 8), new THREE.MeshStandardMaterial({ color: MILIEUX.air.couleur, side: THREE.BackSide, roughness: 0.95 }), [16, 2.5, 0]); salle.raycast = () => {}; salle.castShadow = false;
+  M = creerMonde(shell, {
+    fond: 0x14171b, hdri: '../assets/3d/env/workshop_1k.hdr', environnement: 0.55, sol: false, ambiance: 0.5,
+    soleil: { position: [9, 14, 4], intensite: 1.5, couleur: 0xfff1dc, etendue: 20 },
+    brouillard: { couleur: MILIEUX.air.fond, densite: 0.012 },
+    camera: { position: [-2.3, 1.25, -1.6], cible: [2.8, 0.75, 0.1], min: 0.8, max: 70, fov: 52 },
+    rendu: { bloom: { force: 0.32, rayon: 0.5, seuil: 0.85 } },
+    legendes: LEGENDES, libelle: 'Une longue galerie d\'essai acoustique avec un haut-parleur, un micro et un réflecteur mobile sur rails',
+  });
+  M.soleil.target.position.set(9, 0, 0); M.scene.add(M.soleil.target);
+  construireGalerie(); construireMateriel(); construireOnde(); construirePanneau();
+  placer(); appliquerMilieu();
+  M.boucle(animer);
+}
+
+/* ---------- La galerie : sol, murs, plafond, piliers, lampes, rails, règle, décor ---------- */
+function construireGalerie() {
+  const { scene, mesh, mat, meshPBR, pbr, legender, preparerAo } = M;
+  const cx = (X0 + X1) / 2;
+  const sol = meshPBR(uv(new THREE.PlaneGeometry(LARG, W), LARG / 1.2, W / 1.2), 'concrete_tiles', { repetition: 1, couleur: 0xd6d2ca, rugosite: 1 }, [cx, 0, 0]); sol.rotation.x = -Math.PI / 2; sol.castShadow = false; sol.name = 'sol';
+  const murG = meshPBR(uv(new THREE.PlaneGeometry(LARG, H), LARG / 1.6, H / 1.6), 'concrete_floor_02', { repetition: 1, couleur: 0xd9d3c9 }, [cx, H / 2, -W / 2]); murG.castShadow = false;
+  const murD = meshPBR(uv(new THREE.PlaneGeometry(LARG, H), LARG / 1.6, H / 1.6), 'concrete_floor_02', { repetition: 1, couleur: 0xd9d3c9 }, [cx, H / 2, W / 2]); murD.rotation.y = Math.PI; murD.castShadow = false;
+  // lambris de bois acoustique sur le bas des murs, plinthe sombre
+  [[-1, 0], [1, Math.PI]].forEach(([s, ry]) => {
+    const l = meshPBR(uv(new THREE.PlaneGeometry(LARG, 0.75), LARG / 1.5, 0.5), 'brown_planks_09', { repetition: 1, couleur: 0xb48d5e, rugosite: 0.8 }, [cx, 0.395, s * (W / 2 - 0.012)]); l.rotation.y = ry; l.castShadow = false;
+    mesh(new THREE.BoxGeometry(LARG, 0.06, 0.03), mat(0x2a2d32, { rugosite: 0.6 }), [cx, 0.03, s * (W / 2 - 0.015)]).castShadow = false;
+  });
+  const plafond = meshPBR(uv(new THREE.PlaneGeometry(LARG, W), LARG, W), 'corrugated_iron', { repetition: 1, couleur: 0xb4b8be, rugosite: 0.7, metal: 0.3 }, [cx, H, 0]); plafond.rotation.x = Math.PI / 2; plafond.castShadow = false;
+  const fond = meshPBR(uv(new THREE.PlaneGeometry(W, H), W / 1.6, H / 1.6), 'concrete_floor_02', { repetition: 1, couleur: 0xcfc9bf }, [X1, H / 2, 0]); fond.rotation.y = -Math.PI / 2; fond.castShadow = false;
+  const entree = meshPBR(uv(new THREE.PlaneGeometry(W, H), W / 1.6, H / 1.6), 'concrete_floor_02', { repetition: 1, couleur: 0xcfc9bf }, [X0, H / 2, 0]); entree.rotation.y = Math.PI / 2; entree.castShadow = false;
+  // piliers tous les 10 m, poutres, lampes et verrières : des maillages instanciés
+  const nP = Math.floor((X1 - 0.6) / 2.5);
+  const geoP = preparerAo(uv(new THREE.BoxGeometry(0.22, H, 0.16), 1, H / 0.22));
+  const piliers = new THREE.InstancedMesh(geoP, pbr('concrete_floor_02', { repetition: 1, couleur: 0xb9b3a9 }), nP * 2);
+  const poutres = new THREE.InstancedMesh(new THREE.BoxGeometry(0.22, 0.28, W), mat(0x3a3f47, { rugosite: 0.5, metal: 0.7 }), nP);
+  const lampes = new THREE.InstancedMesh(new THREE.BoxGeometry(1.3, 0.05, 0.14), new THREE.MeshStandardMaterial({ color: 0xfff7e8, emissive: 0xfff1d6, emissiveIntensity: 1.6, roughness: 0.4 }), nP);
+  const nV = Math.floor(nP / 2);
+  const verrieres = new THREE.InstancedMesh(new THREE.PlaneGeometry(1.4, 0.9), new THREE.MeshStandardMaterial({ color: 0xdfe9f5, emissive: 0xcfe0f5, emissiveIntensity: 1.2, roughness: 0.2 }), nV);
+  const m4 = new THREE.Matrix4(); const rotV = new THREE.Matrix4().makeRotationX(Math.PI / 2);
+  for (let i = 0; i < nP; i += 1) {
+    const x = 0.6 + i * 2.5;
+    m4.makeTranslation(x, H / 2, -W / 2 + 0.08); piliers.setMatrixAt(i * 2, m4); m4.makeTranslation(x, H / 2, W / 2 - 0.08); piliers.setMatrixAt(i * 2 + 1, m4);
+    m4.makeTranslation(x, H - 0.14, 0); poutres.setMatrixAt(i, m4);
+    m4.makeTranslation(x + 1.25, H - 0.04, 0); lampes.setMatrixAt(i, m4);
+    if (i % 2 === 0 && i / 2 < nV) { m4.makeTranslation(x + 1.25, H - 0.005, 0.95).multiply(rotV); verrieres.setMatrixAt(i / 2, m4); }
+  }
+  piliers.castShadow = true; piliers.receiveShadow = true; poutres.castShadow = true; lampes.castShadow = false; verrieres.castShadow = false;
+  scene.add(piliers, poutres, lampes, verrieres);
+  // tuyaux et gaine de ventilation le long du plafond
+  [-1, 1].forEach((s) => { const t = meshPBR(uv(new THREE.CylinderGeometry(0.07, 0.07, LARG - 0.3, 16), 1, (LARG - 0.3) / 0.44), 'metal_plate', { repetition: 1, couleur: 0x8f959c, rugosite: 0.5, metal: 0.8 }, [cx, H - 0.42, s * (W / 2 - 0.24)]); t.rotation.z = Math.PI / 2; });
+  meshPBR(uv(new THREE.BoxGeometry(LARG - 0.6, 0.36, 0.45), (LARG - 0.6) / 0.45, 1), 'metal_plate_02', { repetition: 1, couleur: 0xb9bec5, rugosite: 0.45, metal: 0.7 }, [cx, H - 0.5, -0.75]);
+  // les rails du réflecteur
+  [-1.15, 1.15].forEach((z) => { const r = meshPBR(uv(new THREE.BoxGeometry(52, 0.05, 0.08), 52 / 0.3, 1), 'metal_plate', { repetition: 1, couleur: 0x7d8288, rugosite: 0.4, metal: 0.85 }, [27, 0.025, z]); legender(r, 'Rail', leg('Rail')); });
+  // la règle graduée : une seule texture de 4096 px pour 210 m, sur chaque mur
+  const reg = canevas(4096, 128); const x = reg.x; const ppm = 4096 / 210; const sx = (4096 / 52.5) / (128 / 0.2);
+  x.fillStyle = '#f1ece2'; x.fillRect(0, 0, 4096, 128); x.fillStyle = '#b3261e'; x.fillRect(0, 120, 4096, 8); x.fillStyle = '#1d2228';
+  for (let m = 0; m <= 210; m += 1) { const px = m * ppm; const h = m % 10 === 0 ? 72 : m % 5 === 0 ? 48 : 28; x.fillRect(px - (m % 10 === 0 ? 1.5 : 1), 120 - h, m % 10 === 0 ? 3 : 2, h); }
+  x.save(); x.scale(1 / sx, 1); x.font = '700 60px Nunito, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  for (let m = 10; m <= 200; m += 10) x.fillText(String(m), m * ppm * sx, 36); x.restore(); reg.t.needsUpdate = true;
+  const matRegle = new THREE.MeshStandardMaterial({ map: reg.t, roughness: 0.85 });
+  [[-1, 0], [1, Math.PI]].forEach(([s, ry]) => { const r = mesh(new THREE.PlaneGeometry(52.5, 0.2), matRegle, [XFACE + 26.25, 0.95, s * (W / 2 - 0.006)]); r.rotation.y = ry; r.castShadow = false; legender(r, 'Règle graduée', leg('Règle graduée')); });
+  // décor de l'entrée : porte, issue de secours, extincteur, caisses, panneau
+  const porte = new THREE.Group(); scene.add(porte); porte.position.set(X0, 0, 0.9);
+  mesh(new THREE.BoxGeometry(0.03, 0.58, 0.28), mat(0x2b2f34, { rugosite: 0.5, metal: 0.6 }), [0.015, 0.29, 0], porte);
+  mesh(new THREE.BoxGeometry(0.03, 0.53, 0.23), mat(0x2f5a3f, { rugosite: 0.45, metal: 0.3 }), [0.035, 0.265, 0], porte);
+  mesh(new THREE.SphereGeometry(0.014, 10, 8), mat(0xc9ccd1, { rugosite: 0.3, metal: 0.9 }), [0.055, 0.27, 0.08], porte);
+  const issue = mesh(new THREE.PlaneGeometry(0.22, 0.07), new THREE.MeshStandardMaterial({ color: 0x3ddc84, emissive: 0x1fb86a, emissiveIntensity: 1.2 }), [0.06, 0.66, 0], porte); issue.rotation.y = Math.PI / 2; issue.castShadow = false;
+  const ext = new THREE.Group(); scene.add(ext); ext.position.set(X0 + 0.07, 0.3, 0.3);
+  mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.15, 14), mat(0xc1272d, { rugosite: 0.35, metal: 0.2 }), [0, 0, 0], ext);
+  mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.04, 10), mat(0x202326, { metal: 0.8, rugosite: 0.3 }), [0, 0.095, 0], ext);
+  mesh(new THREE.BoxGeometry(0.06, 0.04, 0.02), mat(0x2b2f34, { metal: 0.6 }), [-0.04, 0.02, 0], ext);
+  [[-1.3, 0.15], [-0.95, 0.15], [-1.3, 0.45]].forEach(([z, y]) => meshPBR(new THREE.BoxGeometry(0.3, 0.3, 0.3), 'worn_planks', { repetition: 1, rugosite: 0.9 }, [X0 + 0.45, y, z]));
+  const affiche = mesh(new THREE.PlaneGeometry(1.1, 0.26), new THREE.MeshBasicMaterial({ map: textureTexte('ESSAIS ACOUSTIQUES · SILENCE PENDANT LA MESURE', { taille: 30, fond: '#1d2228', couleur: '#f6efe2' }) }), [-0.6, 1.3, W / 2 - 0.01]); affiche.rotation.y = Math.PI; affiche.castShadow = false;
+}
+
+/* ---------- Le matériel : haut-parleur, micro, réflecteur mobile, table, chronomètre ---------- */
+function construireMateriel() {
+  const { scene, mesh, mat, meshPBR, legender } = M;
+  const acier = mat(0x8a8f96, { rugosite: 0.35, metal: 0.9 }); const noirMat = mat(0x202327, { rugosite: 0.6, metal: 0.3 });
+  // le haut-parleur : socle, caisse habillée, baffle, haut-parleur de graves et tweeter
   emetteur = new THREE.Group(); scene.add(emetteur);
-  const boite = mesh(new THREE.BoxGeometry(0.6, 0.9, 0.6), mat(0x2b2f36, { rugosite: 0.6 }), [0, 0.45, 0], emetteur);
-  const membrane = mesh(new THREE.CylinderGeometry(0.3, 0.22, 0.12, 32), mat(0x7a7f88, { rugosite: 0.4, metal: 0.3 }), [0.33, 0.5, 0], emetteur); membrane.rotation.z = -Math.PI / 2;
-  legender(emetteur, 'Émetteur', LEGENDES[0].phrase); emetteur.userData.membrane = membrane;
-  micro = new THREE.Group(); scene.add(micro);
-  mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 8), mat(0x444a52), [0, 0.7, 0.8], micro); mesh(new THREE.SphereGeometry(0.12, 16, 12), mat(0x1B82E0, { emissif: 0x1B82E0, intensite: 0.5 }), [0, 1.42, 0.8], micro);
-  legender(micro, 'Micro', LEGENDES[2].phrase);
-  mur = mesh(new THREE.BoxGeometry(0.4, 4.4, 7.4), mat(0xc9b9a0, { rugosite: 0.9 }), [D * ECH, 2.2, 0]); legender(mur, 'Mur', LEGENDES[1].phrase);
-  onde = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28), new THREE.MeshBasicMaterial({ color: 0x1B82E0, transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false })); onde.visible = false; onde.position.set(0.4, 0.5, 0); scene.add(onde); legender(onde, 'Onde sonore', LEGENDES[3].phrase);
-  const regle = new THREE.Group(); scene.add(regle); regle.raycast = () => {};
-  for (let i = 0; i <= 200; i += 10) { const g = new THREE.Mesh(new THREE.BoxGeometry(0.02, i % 50 === 0 ? 0.3 : 0.15, 0.02), mat(0x222222)); g.position.set(i * ECH, 0.08, -3.6); g.raycast = () => {}; regle.add(g); }
-  M.regleEtiquettes = [50, 100, 150, 200].map((m) => M.etiquette(m + ' m', [m * ECH, 0.5, -3.6], { hauteur: 0.35 }));
+  mesh(new THREE.BoxGeometry(0.56, 0.05, 0.56), mat(0x1b1d21, { rugosite: 0.5, metal: 0.6 }), [0, 0.025, 0], emetteur);
+  meshPBR(uv(new THREE.BoxGeometry(0.46, 0.56, 0.46), 2, 2.4), 'rubber_tiles', { repetition: 1, couleur: 0x2a2c31, rugosite: 0.9 }, [0, 0.33, 0], emetteur);
+  [-1, 1].forEach((sx) => [-1, 1].forEach((sy) => [-1, 1].forEach((sz) => mesh(new THREE.BoxGeometry(0.06, 0.06, 0.06), acier, [sx * 0.22, 0.33 + sy * 0.27, sz * 0.22], emetteur))));
+  mesh(new THREE.BoxGeometry(0.02, 0.52, 0.42), mat(0x15171a, { rugosite: 0.7 }), [0.24, 0.33, 0], emetteur);
+  const tore = mesh(new THREE.TorusGeometry(0.15, 0.022, 14, 40), mat(0x3b3d42, { rugosite: 0.8 }), [0.255, 0.23, 0], emetteur); tore.rotation.y = Math.PI / 2;
+  membrane = new THREE.Group(); membrane.position.set(0.25, 0.23, 0); emetteur.add(membrane);
+  const cone = mesh(new THREE.CylinderGeometry(0.145, 0.045, 0.09, 40, 1, true), new THREE.MeshStandardMaterial({ color: 0x24262a, roughness: 0.95, side: THREE.DoubleSide }), [-0.045, 0, 0], membrane); cone.rotation.z = -Math.PI / 2;
+  mesh(new THREE.SphereGeometry(0.048, 20, 14), mat(0x3a3c40, { rugosite: 0.6, metal: 0.3 }), [-0.07, 0, 0], membrane);
+  const horn = mesh(new THREE.CylinderGeometry(0.075, 0.025, 0.06, 28, 1, true), new THREE.MeshStandardMaterial({ color: 0x9aa0a8, roughness: 0.3, metalness: 0.8, side: THREE.DoubleSide }), [0.22, 0.49, 0], emetteur); horn.rotation.z = -Math.PI / 2;
+  mesh(new THREE.SphereGeometry(0.02, 14, 10), mat(0xd8dbe0, { rugosite: 0.2, metal: 0.9 }), [0.2, 0.49, 0], emetteur);
+  led = mesh(new THREE.SphereGeometry(0.01, 10, 8), mat(0x6cff8a, { emissif: 0x3ddc84, intensite: 1.2 }), [0.252, 0.085, 0.17], emetteur); led.castShadow = false;
+  const logo = mesh(new THREE.PlaneGeometry(0.2, 0.035), new THREE.MeshBasicMaterial({ map: textureTexte('OPALINE AUDIO', { taille: 28, fond: 'none', couleur: '#cfd4da' }), transparent: true }), [0.252, 0.565, 0], emetteur); logo.rotation.y = Math.PI / 2; logo.castShadow = false;
+  [-1, 1].forEach((s) => mesh(new THREE.BoxGeometry(0.12, 0.03, 0.04), acier, [0, 0.42, s * 0.245], emetteur));
+  legender(emetteur, 'Émetteur', leg('Émetteur'));
+  // le micro sur trépied, orienté vers le réflecteur
+  micro = new THREE.Group(); micro.position.set(1.0, 0, 0.62); scene.add(micro);
+  for (let k = 0; k < 3; k += 1) { const a = k * 2 * Math.PI / 3 + 0.4; barre([0, 0.11, 0], [Math.cos(a) * 0.19, 0.005, Math.sin(a) * 0.19], 0.008, noirMat, micro); }
+  barre([0, 0.09, 0], [0, 0.42, 0], 0.012, noirMat, micro);
+  barre([0, 0.42, 0], [0.15, 0.3, 0], 0.009, noirMat, micro);
+  mesh(new THREE.SphereGeometry(0.02, 12, 10), noirMat, [0, 0.42, 0], micro);
+  const corps = mesh(new THREE.CapsuleGeometry(0.018, 0.1, 6, 14), mat(0x30343a, { rugosite: 0.3, metal: 0.8 }), [0.2, 0.3, 0], micro); corps.rotation.z = Math.PI / 2;
+  mesh(new THREE.SphereGeometry(0.03, 18, 14), mat(0xb8bec6, { rugosite: 0.55, metal: 0.85 }), [0.275, 0.3, 0], micro);
+  mesh(new THREE.SphereGeometry(0.006, 8, 6), mat(0xff5a36, { emissif: 0xff3b1f, intensite: 1.5 }), [0.17, 0.32, 0], micro).castShadow = false;
+  cable([[0.15, 0.29, 0.005], [0.02, 0.4, 0.01], [-0.01, 0.2, 0.012], [-0.03, 0.012, 0.03], [-0.6, 0.012, -0.4], [-1.3, 0.012, -1.2], [-1.5, 0.05, -1.55]], 0.008, micro);
+  legender(micro, 'Micro', leg('Micro'));
+  // le réflecteur mobile sur rails : châssis à bandes jaunes, roues, panneau d'acier, cadre, pancarte
+  mur = new THREE.Group(); scene.add(mur);
+  const ray = canevas(256, 64); ray.x.fillStyle = '#e8b800'; ray.x.fillRect(0, 0, 256, 64); ray.x.fillStyle = '#1a1a1a';
+  for (let i = -64; i < 256; i += 64) { ray.x.beginPath(); ray.x.moveTo(i, 64); ray.x.lineTo(i + 32, 64); ray.x.lineTo(i + 96, 0); ray.x.lineTo(i + 64, 0); ray.x.closePath(); ray.x.fill(); }
+  ray.t.needsUpdate = true; ray.t.wrapS = ray.t.wrapT = THREE.RepeatWrapping; ray.t.repeat.set(6, 1);
+  mesh(new THREE.BoxGeometry(0.5, 0.14, 3.0), new THREE.MeshStandardMaterial({ map: ray.t, roughness: 0.6 }), [0, 0.13, 0], mur);
+  [-1, 1].forEach((sx) => [-1, 1].forEach((sz) => { const r = mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 20), mat(0x15171a, { rugosite: 0.8 }), [sx * 0.17, 0.1, sz * 1.15], mur); r.rotation.x = Math.PI / 2; }));
+  meshPBR(uv(new THREE.BoxGeometry(0.3, 2.0, 3.2), 4, 2.5), 'metal_plate_02', { repetition: 1, couleur: 0xcfd3d8, rugosite: 0.5, metal: 0.8 }, [0, 1.2, 0], mur);
+  [-1, 1].forEach((s) => mesh(new THREE.BoxGeometry(0.36, 2.1, 0.12), mat(0x2b2f34, { rugosite: 0.5, metal: 0.7 }), [0, 1.25, s * 1.62], mur));
+  mesh(new THREE.BoxGeometry(0.36, 0.12, 3.36), mat(0x2b2f34, { rugosite: 0.5, metal: 0.7 }), [0, 2.26, 0], mur);
+  const pancarte = mesh(new THREE.PlaneGeometry(0.9, 0.16), new THREE.MeshBasicMaterial({ map: textureTexte('RÉFLECTEUR MOBILE', { taille: 34, fond: '#1d2228', couleur: '#ffd86b' }) }), [-0.156, 1.95, 0], mur); pancarte.rotation.y = -Math.PI / 2; pancarte.castShadow = false;
+  const lampeMur = new THREE.PointLight(0xfff0dc, 4, 7, 2); lampeMur.position.set(-1.0, 1.9, 0); mur.add(lampeMur);
+  legender(mur, 'Mur', leg('Mur'));
+  // la table de mesure : plateau de bois, amplificateur, oscilloscope
+  const table = new THREE.Group(); table.position.set(-0.55, 0, -1.0); scene.add(table);
+  meshPBR(uv(new THREE.BoxGeometry(0.7, 0.025, 0.4), 1.4, 0.8), 'wood_table_001', { repetition: 1, rugosite: 0.6 }, [0, 0.2125, 0], table);
+  [-1, 1].forEach((sx) => [-1, 1].forEach((sz) => mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.2, 10), acier, [sx * 0.32, 0.1, sz * 0.17], table)));
+  // les appareils sont tournés vers l'entrée, là où se tient l'observateur
+  const appareils = new THREE.Group(); appareils.rotation.y = -1.1; table.add(appareils);
+  mesh(new THREE.BoxGeometry(0.3, 0.07, 0.24), mat(0x24272c, { rugosite: 0.45, metal: 0.5 }), [-0.17, 0.26, 0], appareils);
+  for (let k = 0; k < 5; k += 1) { const b = mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.012, 12), mat(0xb9bec6, { rugosite: 0.3, metal: 0.9 }), [-0.28 + k * 0.045, 0.265, 0.125], appareils); b.rotation.x = Math.PI / 2; }
+  for (let k = 0; k < 6; k += 1) mesh(new THREE.BoxGeometry(0.012, 0.008, 0.004), mat(k < 4 ? 0x3ddc84 : 0xff9f1a, { emissif: k < 4 ? 0x1fb86a : 0xff7a00, intensite: 1 }), [-0.07 + k * 0.016, 0.282, 0.121], appareils).castShadow = false;
+  const osc = mesh(new THREE.BoxGeometry(0.24, 0.17, 0.2), mat(0xd9d4ca, { rugosite: 0.5 }), [0.14, 0.31, 0], appareils);
+  oscillo = canevas(256, 160); const ecran = mesh(new THREE.PlaneGeometry(0.18, 0.11), new THREE.MeshBasicMaterial({ map: oscillo.t }), [0.12, 0.325, 0.101], appareils); ecran.castShadow = false;
+  for (let k = 0; k < 3; k += 1) { const b = mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.01, 10), mat(0x2b2f34, { rugosite: 0.4 }), [0.23, 0.345 - k * 0.035, 0.101], appareils); b.rotation.x = Math.PI / 2; }
+  legender(table, 'Table de mesure', leg('Table de mesure'));
+  osc.userData.legende = { nom: 'Oscilloscope', phrase: leg('Oscilloscope') }; ecran.userData.legende = osc.userData.legende;
+  cable([[-0.17, 0.225, -0.12], [-0.2, 0.012, -0.1], [0.2, 0.012, 0.6], [0.35, 0.012, 0.95], [0.32, 0.15, 0.98]], 0.01, table);
+  cable([[0.17, 0.225, 0.1], [0.4, 0.012, 0.2], [1.0, 0.012, 0.9], [1.45, 0.012, 1.55], [1.52, 0.1, 1.6]], 0.008, table);
+  // le chronomètre : un afficheur sur pied, tourné vers la caméra
+  chrono = canevas(512, 160); chrono.texte = null;
+  const pied = new THREE.Group(); pied.position.set(0.35, 0, -1.3); pied.rotation.y = -1.3; scene.add(pied);
+  mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 24), noirMat, [0, 0.01, 0], pied);
+  mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 12), noirMat, [0, 0.31, 0], pied);
+  mesh(new THREE.BoxGeometry(0.72, 0.26, 0.04), mat(0x1b1d21, { rugosite: 0.45, metal: 0.4 }), [0, 0.73, 0], pied);
+  const afficheur = mesh(new THREE.PlaneGeometry(0.66, 0.2), new THREE.MeshBasicMaterial({ map: chrono.t }), [0, 0.73, 0.021], pied); afficheur.castShadow = false;
+  legender(pied, 'Chronomètre', leg('Chronomètre'));
+  // deux lumières d'appoint : chaude au-dessus du haut-parleur, froide sur la table
+  const l1 = new THREE.PointLight(0xffe2b8, 3, 6, 2); l1.position.set(0.2, 1.6, 0.4); scene.add(l1);
+  const l2 = new THREE.PointLight(0xcfe3ff, 1.6, 4, 2); l2.position.set(-0.5, 1.3, -0.9); scene.add(l2);
+  dessinerChrono('0,000 s', 'AIR · D = ' + D + ' m'); dessinerOscillo([], 1);
+}
+
+/* ---------- L'onde : front plan, traîne, anneaux de comparaison, chaîne de particules, volume du milieu ---------- */
+function construireOnde() {
+  const { scene, legender } = M;
+  const contour = (() => { const pts = []; const y0 = 0.15; const y1 = 2.25; const z1 = 1.66; [[y0, -z1 + 0.3], [y0, 0], [y0, z1 - 0.3], [y0 + 0.3, z1], [1.2, z1], [y1 - 0.3, z1], [y1, z1 - 0.3], [y1, 0], [y1, -z1 + 0.3], [y1 - 0.3, -z1], [1.2, -z1], [y0 + 0.3, -z1]].forEach(([y, z]) => pts.push(new THREE.Vector3(0, y, z))); return new THREE.CatmullRomCurve3(pts, true, 'centripetal'); })();
+  const geoAnneau = new THREE.TubeGeometry(contour, 96, 0.022, 8, true);
+  onde = new THREE.Group(); onde.visible = false; scene.add(onde);
+  const disque = new THREE.Mesh(new THREE.CircleGeometry(2.3, 48), new THREE.MeshBasicMaterial({ color: MILIEUX.air.couleur, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false })); disque.rotation.y = Math.PI / 2; disque.position.y = H / 2; onde.add(disque); onde.userData.disque = disque;
+  for (let k = 1; k <= 2; k += 1) { const d2 = new THREE.Mesh(disque.geometry, disque.material.clone()); d2.material.opacity = 0.06 * (1 - k / 3); d2.rotation.y = Math.PI / 2; d2.position.set(-k * 0.4, H / 2, 0); d2.raycast = () => {}; onde.add(d2); traine.push(d2); }
+  const anneau = new THREE.Mesh(geoAnneau, new THREE.MeshBasicMaterial({ color: 0xbfe0ff })); onde.add(anneau); onde.userData.anneau = anneau;
+  legender(onde, 'Onde sonore', leg('Onde sonore'));
+  Object.keys(MILIEUX).forEach((k) => { const a = new THREE.Mesh(geoAnneau, new THREE.MeshBasicMaterial({ color: MILIEUX[k].couleur })); a.visible = false; a.userData.legende = { nom: 'Onde sonore', phrase: leg('Onde sonore') + ' Ici dans l\'' + MILIEUX[k].nom + ', à ' + nb(MILIEUX[k].v) + ' m/s.' }; scene.add(a); anneaux[k] = a; });
+  // la chaîne de particules témoin, dans l'axe du haut-parleur
+  const n = 240; particules = new THREE.InstancedMesh(new THREE.SphereGeometry(0.028, 10, 8), new THREE.MeshStandardMaterial({ color: 0xbfe0ff, emissive: 0x4f8fdc, emissiveIntensity: 0.3, roughness: 0.4 }), n);
+  particules.userData.x = []; particules.instanceMatrix.setUsage(THREE.DynamicDrawUsage); particules.castShadow = false; particules.receiveShadow = false;
+  const xa = XFACE + 0.14; const xb = X1 - 0.7; const c = new THREE.Color();
+  for (let i = 0; i < n; i += 1) { const x = xa + (xb - xa) * i / (n - 1); particules.userData.x.push(x); particules.setColorAt(i, c.set(0xbfe0ff)); }
+  deplacerParticules(0, 1, 0); scene.add(particules); legender(particules, 'Particules du milieu', leg('Particules du milieu'));
+  // le volume du milieu entre le haut-parleur et le réflecteur (eau, acier)
+  volume = new THREE.Mesh(new THREE.BoxGeometry(1, H - 0.1, W - 0.1), new THREE.MeshPhysicalMaterial({ color: 0x2f86b8, transparent: true, opacity: 0.3, roughness: 0.1, metalness: 0, side: THREE.DoubleSide, depthWrite: false }));
+  volume.visible = false; volume.raycast = () => {}; volume.castShadow = false; volume.receiveShadow = false; volume.position.y = H / 2 - 0.03; scene.add(volume);
+}
+const _m4 = new THREE.Matrix4(); const _c = new THREE.Color(); const _base = new THREE.Color(0xbfe0ff); const _vif = new THREE.Color(0xffffff);
+/* Chaque particule est décalée par une impulsion gaussienne centrée sur le front : compression devant, détente derrière. */
+function deplacerParticules(xf, sens, amp) {
+  const xs = particules.userData.x; const w = 0.9;
+  for (let i = 0; i < xs.length; i += 1) {
+    const s = (xs[i] - xf) / w; const g = amp ? Math.exp(-s * s) : 0;
+    _m4.makeTranslation(xs[i] + sens * 0.12 * g * amp, 0.23, 0); particules.setMatrixAt(i, _m4);
+    particules.setColorAt(i, _c.copy(_base).lerp(_vif, g * amp));
+  }
+  particules.instanceMatrix.needsUpdate = true; if (particules.instanceColor) particules.instanceColor.needsUpdate = true;
+}
+function dessinerChrono(texte, sous) {
+  if (chrono.texte === texte + '|' + sous) return; chrono.texte = texte + '|' + sous; const x = chrono.x;
+  x.fillStyle = '#0b0e11'; x.fillRect(0, 0, 512, 160); x.fillStyle = '#ff5a36'; x.font = '700 92px "Courier New", monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(texte, 256, 76);
+  x.fillStyle = '#8b96a2'; x.font = '700 26px Nunito, Arial, sans-serif'; x.fillText(sous, 256, 136); chrono.t.needsUpdate = true;
+}
+/* L'écran de l'oscilloscope : le pic émis à gauche, le pic de l'écho à l'instant 2 D ÷ v, le balayage. */
+function dessinerOscillo(fronts, T) {
+  const x = oscillo.x; x.fillStyle = '#071a12'; x.fillRect(0, 0, 256, 160); x.strokeStyle = '#11402c'; x.lineWidth = 1;
+  for (let k = 0; k <= 8; k += 1) { x.beginPath(); x.moveTo(8 + k * 30, 10); x.lineTo(8 + k * 30, 150); x.stroke(); } for (let k = 0; k <= 4; k += 1) { x.beginPath(); x.moveTo(8, 10 + k * 35); x.lineTo(248, 10 + k * 35); x.stroke(); }
+  x.strokeStyle = '#58d68d'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(8, 80); x.lineTo(248, 80); x.stroke();
+  const pic = (x0, couleur, amp) => { x.strokeStyle = couleur; x.lineWidth = 2; x.beginPath(); for (let i = 0; i <= 24; i += 1) { const u = i / 24; const px = x0 + u * 14; const py = 80 - amp * Math.sin(u * Math.PI * 4) * Math.exp(-u * 3); if (i === 0) x.moveTo(px, py); else x.lineTo(px, py); } x.stroke(); };
+  if (fronts.length) pic(8, '#b9ffd6', 44);
+  let tMax = 0;
+  fronts.forEach((f) => { const te = temps(f.milieu); tMax = Math.max(tMax, f.t); if (f.t >= te) pic(8 + (te / T) * 236, '#' + MILIEUX[f.milieu].couleur.toString(16).padStart(6, '0'), 30); });
+  if (fronts.length) { x.fillStyle = 'rgba(255,255,255,0.55)'; x.fillRect(8 + Math.min(1, tMax / T) * 236, 10, 1.5, 140); }
+  x.fillStyle = '#8bd5aa'; x.font = '700 12px Nunito, Arial, sans-serif'; x.textAlign = 'left'; x.fillText(fronts.length ? 'écho ' + (fronts.length > 1 ? 'air, eau, acier' : MILIEUX[fronts[0].milieu].nom) : 'prêt', 10, 158);
+  oscillo.t.needsUpdate = true;
+}
+
+/* ---------- Le panneau de commandes ---------- */
+function construirePanneau() {
   panneau = M.panneau(`<h3>La mesure</h3>
     <label>Distance du mur D <span class="mb-val" id="ch-d">${D} m</span><input class="mb-plage" id="ch-ds" type="range" min="10" max="200" step="1" value="${D}" aria-label="Distance du mur"></label>
-    <div class="mb-groupe" role="group" aria-label="Milieu">${Object.keys(MILIEUX).map((k) => `<button class="mb-bouton" data-milieu="${k}" aria-pressed="${k === milieu}">${MILIEUX[k].nom} · ${MILIEUX[k].v} m/s</button>`).join('')}</div>
-    <button class="mb-bouton primaire" id="ch-emettre">Émettre un son</button>
+    <div class="mb-groupe" role="group" aria-label="Milieu">${Object.keys(MILIEUX).map((k) => `<button class="mb-bouton" type="button" data-milieu="${k}" aria-pressed="${k === milieu}">${MILIEUX[k].nom} · ${nb(MILIEUX[k].v)} m/s</button>`).join('')}</div>
+    <button class="mb-bouton primaire" type="button" id="ch-emettre">Émettre un son</button>
     <div class="mb-mesures"><span>Chronomètre</span><b id="ch-t">0,000 s</b><span>Distance parcourue 2 D</span><b id="ch-2d">·</b><span>Vitesse v = 2 D ÷ t</span><b id="ch-v">·</b></div>
-    <p class="mb-carte" id="ch-calc"></p>`);
-  panneau.querySelector('#ch-ds').addEventListener('input', (e) => { D = Number(e.target.value); placer(); });
-  panneau.querySelectorAll('[data-milieu]').forEach((b) => b.addEventListener('click', () => { milieu = b.getAttribute('data-milieu'); panneau.querySelectorAll('[data-milieu]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); salle.material.color.set(MILIEUX[milieu].couleur); scene.background = new THREE.Color(MILIEUX[milieu].fond); if (scene.fog) scene.fog.color.set(MILIEUX[milieu].fond); placer(); }));
+    <p class="mb-carte" id="ch-calc"></p>
+    <details class="ch-details"><summary>Outils</summary>
+      <p class="ch-petit">Ralenti de l'animation</p>
+      <div class="mb-groupe" role="group" aria-label="Ralenti">${[10, 40, 100].map((r) => `<button class="mb-bouton" type="button" data-ralenti="${r}" aria-pressed="${r === ralenti}">×${r}</button>`).join('')}</div>
+      <button class="mb-bouton" type="button" id="ch-comparer">Comparer les trois milieux</button>
+      <div class="ch-cmp" id="ch-cmp" hidden></div>
+      <p class="ch-petit">Point de vue</p>
+      <div class="mb-groupe" role="group" aria-label="Point de vue">${[['libre', 'Libre'], ['cote', 'De côté'], ['micro', 'Du micro']].map(([k, n]) => `<button class="mb-bouton" type="button" data-vue="${k}" aria-pressed="${k === vue}">${n}</button>`).join('')}</div>
+    </details>`);
+  panneau.querySelector('#ch-ds').addEventListener('input', (e) => { D = Number(e.target.value); placer(); if (vue !== 'libre') changerVue(vue); });
+  panneau.querySelectorAll('[data-milieu]').forEach((b) => b.addEventListener('click', () => { milieu = b.getAttribute('data-milieu'); panneau.querySelectorAll('[data-milieu]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); appliquerMilieu(); placer(); }));
+  panneau.querySelectorAll('[data-ralenti]').forEach((b) => b.addEventListener('click', () => { ralenti = Number(b.getAttribute('data-ralenti')); panneau.querySelectorAll('[data-ralenti]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); if (!prop) placer(); }));
+  panneau.querySelectorAll('[data-vue]').forEach((b) => b.addEventListener('click', () => changerVue(b.getAttribute('data-vue'))));
   panneau.querySelector('#ch-emettre').addEventListener('click', emettre);
-  placer();
-  M.boucle((dt, t) => {
-    emetteur.userData.membrane.position.x = 0.33 + (propagation && propagation.t < 0.3 ? 0.03 * Math.sin(t * 90) : 0);
-    if (!propagation) return;
-    propagation.t += dt / RALENTI; // temps physique écoulé
-    const v = MILIEUX[milieu].v; const parcouru = v * propagation.t; const tot = 2 * D;
-    onde.visible = true;
-    if (parcouru <= D) { onde.scale.setScalar(Math.max(0.05, parcouru * ECH)); onde.position.x = 0.4; }
-    else { const retour = parcouru - D; onde.scale.setScalar(Math.max(0.05, (D - retour) * ECH)); onde.position.x = D * ECH; }
-    panneau.querySelector('#ch-t').textContent = f(Math.min(propagation.t, temps()), 3) + ' s';
-    if (parcouru >= tot) { propagation = null; onde.visible = false; shell.sound('pop'); panneau.querySelector('#ch-t').textContent = f(temps(), 3) + ' s'; panneau.querySelector('#ch-v').textContent = Math.round(2 * D / temps()) + ' m/s'; panneau.querySelector('#ch-calc').textContent = 'v = 2 × ' + D + ' ÷ ' + f(temps(), 3) + ' = ' + Math.round(2 * D / temps()) + ' m/s : c\'est bien la vitesse du son dans l\'' + MILIEUX[milieu].nom + '.'; }
-  });
+  panneau.querySelector('#ch-comparer').addEventListener('click', comparer);
 }
 function placer() {
-  mur.position.x = D * ECH;
-  panneau.querySelector('#ch-d').textContent = D + ' m'; panneau.querySelector('#ch-2d').textContent = 2 * D + ' m'; panneau.querySelector('#ch-t').textContent = '0,000 s'; panneau.querySelector('#ch-v').textContent = '·';
-  panneau.querySelector('#ch-calc').textContent = 'Attendu : t = 2 × ' + D + ' ÷ ' + MILIEUX[milieu].v + ' = ' + f(temps(), 3) + ' s. Émets un son pour vérifier (animation ralentie ' + RALENTI + ' fois).';
-  propagation = null; onde.visible = false;
+  mur.position.x = xMur() + 0.18; // la face du panneau tombe exactement sur D
+  volume.scale.x = Math.max(0.05, D * ECH); volume.position.x = XFACE + D * ECH / 2;
+  panneau.querySelector('#ch-d').textContent = D + ' m'; panneau.querySelector('#ch-2d').textContent = nb(2 * D) + ' m'; panneau.querySelector('#ch-t').textContent = '0,000 s'; panneau.querySelector('#ch-v').textContent = '·';
+  panneau.querySelector('#ch-calc').textContent = 'Attendu : t = 2 × ' + D + ' ÷ ' + nb(MILIEUX[milieu].v) + ' = ' + F(temps(), 3) + ' s. Émets un son pour vérifier (animation ralentie ' + ralenti + ' fois).';
+  arreter(); dessinerChrono('0,000 s', MILIEUX[milieu].nom.toUpperCase() + ' · D = ' + D + ' m'); dessinerOscillo([], 1);
 }
-function emettre() { if (propagation) return; propagation = { t: 0 }; shell.sound('click'); }
+function appliquerMilieu() {
+  const m = MILIEUX[milieu]; const { scene } = M;
+  if (m.volume) { volume.visible = true; volume.material.color.set(m.volume.color); volume.material.opacity = m.volume.opacity; volume.material.roughness = m.volume.roughness; volume.material.metalness = m.volume.metalness; } else volume.visible = false;
+  if (scene.fog) scene.fog.color.set(m.fond);
+  onde.userData.disque.material.color.set(m.couleur); traine.forEach((t) => t.material.color.set(m.couleur));
+  _base.set(milieu === 'air' ? 0xbfe0ff : milieu === 'eau' ? 0xa8f0e6 : 0xffd9a8); particules.material.emissive.set(m.couleur); deplacerParticules(0, 1, 0);
+}
+function arreter() { prop = null; onde.visible = false; Object.values(anneaux).forEach((a) => { a.visible = false; }); deplacerParticules(0, 1, 0); }
+function emettre() {
+  if (prop) return;
+  prop = { comparatif: false, age: 0, T: temps() * 1.15, fronts: [{ milieu, t: 0, fini: false, x: XFACE, sens: 1 }] };
+  onde.visible = true; onde.position.x = XFACE; panneau.querySelector('#ch-cmp').hidden = true; shell.sound('click');
+}
+function comparer() {
+  if (prop) return;
+  prop = { comparatif: true, age: 0, T: temps('air') * 1.15, fronts: Object.keys(MILIEUX).map((k) => ({ milieu: k, t: 0, fini: false, x: XFACE, sens: 1, anneau: anneaux[k] })) };
+  prop.fronts.forEach((f) => { f.anneau.visible = true; f.anneau.position.x = XFACE; });
+  panneau.querySelector('#ch-cmp').hidden = false; majComparaison(); shell.sound('click');
+  shell.say('Trois ondes partent ensemble. Celle de l\'acier revient la première, celle de l\'air la dernière : à distance égale, le temps dépend seulement de la vitesse.', 'concentre');
+}
+function majComparaison() {
+  const el = panneau.querySelector('#ch-cmp'); if (!prop) return;
+  el.innerHTML = prop.fronts.map((f) => `<i style="background:#${MILIEUX[f.milieu].couleur.toString(16).padStart(6, '0')}"></i><span>${MILIEUX[f.milieu].nom}</span><b>${F(Math.min(f.t, temps(f.milieu)), 3)} s</b>`).join('');
+}
+function changerVue(k) {
+  vue = k; panneau.querySelectorAll('[data-vue]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-vue') === k)));
+  const xm = XFACE + D * ECH / 2;
+  if (k === 'libre') { M.camera.position.set(-2.3, 1.25, -1.6); M.controls.target.set(2.8, 0.75, 0.1); }
+  else if (k === 'cote') { const dist = Math.max(4.5, D * ECH * 0.75); M.camera.position.set(xm, 1.2 + dist * 0.12, dist); M.controls.target.set(xm, 0.7, 0); }
+  else { M.camera.position.set(1.05, 0.36, 0.62); M.controls.target.set(xMur(), 0.9, 0); }
+  M.controls.update();
+}
+/* ---------- La boucle : membrane, fronts d'onde, particules, chronomètre, oscilloscope ---------- */
+function animer(dt, t) {
+  const vibre = prop && !prop.comparatif && prop.age < 0.35;
+  membrane.position.x = 0.25 + (vibre ? 0.012 * Math.sin(t * 90) : 0);
+  led.material.emissiveIntensity = prop ? 1.2 + 0.8 * Math.sin(t * 12) : 1.2;
+  if (!prop) return;
+  prop.age += dt; let tousFinis = true; let vientDeFinir = false;
+  for (const f of prop.fronts) {
+    if (f.fini) continue;
+    f.t += dt / ralenti; const v = MILIEUX[f.milieu].v; const te = 2 * D / v;
+    if (f.t >= te) { f.t = te; f.fini = true; vientDeFinir = true; } else tousFinis = false;
+    const parcouru = v * f.t; const xm = parcouru <= D ? parcouru : 2 * D - parcouru; f.sens = parcouru <= D ? 1 : -1; f.x = XFACE + xm * ECH;
+    if (f.anneau) { f.anneau.position.x = f.x; f.anneau.visible = !f.fini; }
+  }
+  if (!prop.comparatif) {
+    const f = prop.fronts[0]; const te = temps(f.milieu);
+    onde.visible = !f.fini; onde.position.x = f.x; traine.forEach((m, k) => { m.position.x = -(k + 1) * 0.4 * f.sens; });
+    deplacerParticules(f.x, f.sens, f.fini ? 0 : 1);
+    const txt = F(Math.min(f.t, te), 3) + ' s'; panneau.querySelector('#ch-t').textContent = txt; dessinerChrono(txt, MILIEUX[f.milieu].nom.toUpperCase() + ' · D = ' + D + ' m');
+    dessinerOscillo(prop.fronts, prop.T);
+    if (f.fini) {
+      const v = Math.round(2 * D / te); panneau.querySelector('#ch-v').textContent = nb(v) + ' m/s';
+      panneau.querySelector('#ch-calc').textContent = 'v = 2 × ' + D + ' ÷ ' + F(te, 3) + ' = ' + nb(v) + ' m/s : c\'est bien la vitesse du son dans l\'' + MILIEUX[f.milieu].nom + '.';
+      dernierResultat = { milieu: f.milieu, D }; shell.sound('pop'); prop = null;
+    }
+  } else {
+    if (vientDeFinir) shell.sound('tick');
+    majComparaison(); dessinerOscillo(prop.fronts, prop.T);
+    const f = prop.fronts.find((x) => x.milieu === milieu) || prop.fronts[0]; const txt = F(Math.min(f.t, temps(f.milieu)), 3) + ' s';
+    panneau.querySelector('#ch-t').textContent = txt; dessinerChrono(txt, 'COMPARAISON · ' + MILIEUX[f.milieu].nom.toUpperCase());
+    if (tousFinis) { shell.sound('pop'); prop = null; panneau.querySelector('#ch-calc').textContent = 'À ' + D + ' m : air ' + F(temps('air'), 3) + ' s, eau ' + F(temps('eau'), 3) + ' s, acier ' + F(temps('acier'), 4) + ' s. Plus le milieu est dense et rigide, plus le son va vite.'; }
+  }
+}
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Règle la distance, choisis le milieu, émets un son. Le chronomètre affiche le vrai temps de l\'aller-retour.', 'joyeux'); return; }
+  if (mode !== 'cours') { api.say('Règle la distance, choisis le milieu, émets un son. Le chronomètre affiche le vrai temps de l\'aller-retour. Compare ensuite les trois milieux.', 'joyeux'); return; }
   api.defis([
     { type: 'qcm', texte: 'Quelle est la vitesse du son dans l\'air ?', choix: ['340 m/s', '3 400 m/s', '34 m/s', '300 000 km/s'], reponse: 0, explication: 'Environ 340 m/s dans l\'air. 300 000 km/s, c\'est la lumière : près d\'un million de fois plus vite.' },
-    { type: 'verifier', texte: 'Dans l\'air, règle la distance du mur pour un écho après 0,10 s.', bouton: 'C\'est réglé', verifier: () => milieu === 'air' && Math.abs(D - 17) <= 1, indice: 't = 2 D ÷ v, donc D = v × t ÷ 2 = 340 × 0,10 ÷ 2.', explication: 'D = 340 × 0,10 ÷ 2 = 17 m. L\'oreille distingue un écho à partir d\'environ 0,1 s : un mur à 17 m au moins.' },
-    { type: 'qcm', texte: 'Dans l\'eau, le son…', choix: ['va plus vite que dans l\'air, environ 1 480 m/s', 'va moins vite que dans l\'air', 'va à la même vitesse', 'ne se propage pas'], reponse: 0, explication: 'Plus le milieu est dense et rigide, plus le son va vite : eau 1 480 m/s, acier 5 000 m/s.' },
+    { type: 'toucher', texte: 'Touche l\'<b>émetteur</b>, le haut-parleur.', cible: 'Émetteur', explication: 'La membrane du haut-parleur vibre et pousse l\'air devant elle : c\'est le départ du son.' },
+    { type: 'verifier', texte: 'Dans l\'air, règle la distance du mur pour un écho après 0,10 s.', bouton: 'C\'est réglé', verifier: () => milieu === 'air' && Math.abs(D - 17) <= 1, indice: 't = 2 D ÷ v, donc D = v × t ÷ 2 = 340 × 0,10 ÷ 2.', explication: 'D = 340 × 0,10 ÷ 2 = 17 m. L\'oreille distingue un écho à partir d\'environ 0,1 s : il faut un mur à 17 m au moins.' },
+    { type: 'qcm', texte: 'Dans l\'eau, le son…', choix: ['va plus vite que dans l\'air, environ 1 500 m/s', 'va moins vite que dans l\'air', 'va à la même vitesse', 'ne se propage pas'], reponse: 0, explication: 'Plus le milieu est dense et rigide, plus le son va vite : eau 1 500 m/s, acier 5 000 m/s. Dans l\'eau, un mur à 150 m renvoie l\'écho en 2 × 150 ÷ 1 500 = 0,2 s.' },
     { type: 'qcm', texte: 'Un écho revient après 0,5 s dans l\'air. À quelle distance est le mur ?', choix: ['85 m', '170 m', '340 m', '42 m'], reponse: 0, explication: 'Distance parcourue : 340 × 0,5 = 170 m, aller et retour. Le mur est à 170 ÷ 2 = 85 m.' },
     { type: 'toucher', texte: 'Touche le <b>mur</b> qui renvoie le son.', cible: 'Mur', explication: 'Le son se réfléchit sur l\'obstacle et revient : c\'est l\'écho.' },
-    { type: 'verifier', texte: 'Choisis l\'acier, règle 100 m, émets et lis le temps.', bouton: 'C\'est fait', verifier: () => milieu === 'acier' && D === 100 && panneau.querySelector('#ch-v').textContent !== '·', indice: 'Bouton « acier », curseur sur 100, puis « Émettre un son ».', explication: 't = 2 × 100 ÷ 5 000 = 0,04 s : dans l\'acier, l\'écho revient presque aussitôt.' },
-    { type: 'qcm', texte: 'Le son, c\'est…', choix: ['une vibration qui se propage dans la matière', 'une lumière', 'une onde qui se propage aussi dans le vide', 'un courant électrique'], reponse: 0, explication: 'Sans matière, pas de son : dans le vide de l\'espace, aucune vibration ne peut se transmettre.' },
+    { type: 'verifier', texte: 'Choisis l\'acier, règle 100 m, émets et attends le retour de l\'onde.', bouton: 'C\'est fait', verifier: () => milieu === 'acier' && D === 100 && !!dernierResultat && dernierResultat.milieu === 'acier' && dernierResultat.D === 100, indice: 'Bouton « acier », curseur sur 100, puis « Émettre un son ». Attends que le chronomètre s\'arrête.', explication: 't = 2 × 100 ÷ 5 000 = 0,04 s : dans l\'acier, l\'écho revient presque aussitôt.' },
+    { type: 'qcm', texte: 'Lance « Comparer les trois milieux » (dans Outils). À distance égale, quel écho revient le premier ?', choix: ['Celui de l\'acier', 'Celui de l\'air', 'Celui de l\'eau', 'Les trois en même temps'], reponse: 0, explication: 'Le son est environ 15 fois plus rapide dans l\'acier que dans l\'air : 5 000 ÷ 340 ≈ 14,7. Son écho revient le premier, celui de l\'air le dernier.' },
+    { type: 'qcm', texte: 'Le son, c\'est…', choix: ['une vibration qui se propage dans la matière', 'une lumière', 'une onde qui se propage aussi dans le vide', 'un courant électrique'], reponse: 0, explication: 'Sans matière, pas de son : dans le vide de l\'espace, aucune vibration ne peut se transmettre. Regarde les particules : chacune vibre sur place et pousse la suivante.' },
   ], { rejouer: () => demarrer('cours', api) });
 }
 </script>

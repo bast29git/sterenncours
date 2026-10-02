@@ -12,11 +12,26 @@
 </head>
 <body>
 <script type="module">
-import { creerMonde, THREE } from '../monde-base.js';
+import { creerMonde, THREE, textureTexte } from '../monde-base.js';
 
-let r = 3, a = 4, h = 6; // rayon du cône, côté de la base carrée, hauteur commune (cm)
-let M, cone, cylindre, pyramide, prisme, liquideCyl, liquideCone, panneau, versement = null, verses = 0;
-const ECH = 0.5; // 1 cm = 0,5 unité
+/*
+   Monde 28 : l'atelier des volumes.
+   Une paillasse en bois dans un atelier éclairé par une grande fenêtre et une lampe suspendue.
+   Quatre solides de verre (cône, cylindre, pyramide, prisme). Pour verser, le cône se retourne
+   au-dessus de sa place (il devient un gobelet), le bras du robinet pivote jusqu'à lui et le remplit
+   d'eau colorée, puis le gobelet penche au-dessus du cylindre et se vide : trois versements pour remplir.
+   Même chose pour la pyramide et le prisme. Le niveau dans le récipient qui verse est coupé par un plan horizontal (clipping),
+   donc la surface de l'eau reste horizontale même quand le récipient penche.
+   Échelle : 1 cm = 0,5 unité. Les volumes affichés sont calculés sur les valeurs des curseurs.
+*/
+let r = 3, a = 4, h = 6; // rayon du cône (cm), côté de la base carrée (cm), hauteur commune (cm)
+const ECH = 0.5; const GAP = 1.4; const Z = -0.6; // 1 cm = 0,5 unité ; espace entre deux solides ; profondeur des solides sur la table
+const ROBINET = { x: -1.5, zTuyau: -3.0, y: 6.6, bec: 6.1 }; // le tuyau au fond de la table ; le bras pivote pour amener le bec au-dessus du solide à remplir
+const INCLINAISON = 1.0; // inclinaison du récipient qui verse (radians)
+const DUREES = [0.9, 1.0, 0.8, 1.1, 0.8]; // les cinq phases d'un versement (secondes)
+let M, panneau, versement = null, superpose = false, bases = false, vue = null, bras = null, angleBras = 0;
+const verses = { cone: 0, pyramide: 0 };
+const S = {}; // les solides : { groupe, verre, liquide, rayonBord, carre, repos: Vector3, x }
 const LEGENDES = [
   { nom: 'Cône', phrase: 'Base : un disque. Volume = π × r² × h ÷ 3.' },
   { nom: 'Cylindre', phrase: 'Même base et même hauteur que le cône : trois fois son volume.' },
@@ -24,79 +39,375 @@ const LEGENDES = [
   { nom: 'Prisme', phrase: 'Même base et même hauteur que la pyramide : trois fois son volume.' },
   { nom: 'Sommet', phrase: 'Le point où toutes les arêtes latérales se rejoignent.' },
   { nom: 'Hauteur', phrase: 'La distance du sommet à la base, perpendiculaire à la base.' },
+  { nom: 'Rayon', phrase: 'Du centre du disque de base jusqu\'au bord : r. L\'aire de la base est π × r².' },
+  { nom: 'Base du cône', phrase: 'Un disque d\'aire B = π × r². Le cylindre a exactement la même base.' },
+  { nom: 'Base de la pyramide', phrase: 'Un carré d\'aire B = a². Le prisme a exactement la même base.' },
+  { nom: 'Règle graduée', phrase: 'Vingt centimètres. Un centimètre sur la règle, c\'est un centimètre des solides : lis r, a et h.' },
+  { nom: 'Bécher', phrase: 'Il mesure un volume en millilitres. 1 mL = 1 cm³ : les deux unités disent la même chose.' },
+  { nom: 'Robinet', phrase: 'Son bras pivote au-dessus du cône ou de la pyramide retournés, et les remplit d\'eau colorée avant le versement.' },
+  { nom: 'Tableau', phrase: 'Les quatre formules. B, l\'aire de la base, vaut π × r² pour un disque et a² pour un carré.' },
+  { nom: 'Affiche du patron', phrase: 'Le patron du cône : un disque pour la base et un secteur de disque pour la surface latérale.' },
+  { nom: 'Lampe', phrase: 'Elle éclaire la paillasse par-dessus : regarde les ombres des solides sur le bois.' },
 ];
 const shell = window.Konstrio.createGame({
   id: '3d-28-volumes', code: '3D·28', title: 'Pyramides et cônes', type: '3D', duree: '10 min',
   domain: { label: 'Mathématiques', color: '#2E7FC2' },
   intro: {
-    greet: 'Un cône, un cylindre, une pyramide, un prisme. Verse, compare, et vois d\'où vient le « ÷ 3 ».',
-    rule: 'Règle le rayon, le côté de la base et la hauteur. Les volumes se calculent en direct. Verse le cône dans le cylindre pour vérifier qu\'il faut trois cônes.',
-    how: ['Glisse pour tourner, molette pour zoomer.', 'Les curseurs changent le rayon, le côté et la hauteur.', '« Verser » remplit le cône, puis le vide dans le cylindre : compte les versements.'],
+    greet: 'Un cône, un cylindre, une pyramide, un prisme, en verre, sur une paillasse. Verse, compare, et vois d\'où vient le « ÷ 3 ».',
+    rule: 'Règle le rayon, le côté de la base et la hauteur : les volumes se calculent en direct. Verse le cône dans le cylindre, puis la pyramide dans le prisme : il faut trois versements à chaque fois.',
+    how: ['Glisse pour tourner, molette pour zoomer. Les boutons « Libre, Plongée, Face » changent le point de vue.', 'Les curseurs changent le rayon r, le côté a et la hauteur h.', '« Verser le cône » : le robinet le remplit, puis il se vide dans le cylindre. Compte les versements.', '« Superposer » glisse le cône dans le cylindre et la pyramide dans le prisme : même base, même hauteur.', '« Aires des bases » affiche le disque et le carré avec leur aire.'],
     keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Calculer le volume d\'une pyramide et d\'un cône, et comprendre le facteur 1/3.',
     hint: 'Volume d\'un cône ou d\'une pyramide : aire de la base × hauteur ÷ 3.',
     why: 'Le cylindre contient exactement trois fois le cône de même base et de même hauteur. Le prisme contient trois fois la pyramide.',
   },
-  learned: ['Volume du cône : π × r² × h ÷ 3. Volume de la pyramide : aire de la base × h ÷ 3.', 'Un cylindre de même base et de même hauteur contient trois fois le cône.', 'Le patron d\'un cône : un disque et un secteur de disque.'],
+  learned: ['Volume du cône : π × r² × h ÷ 3. Volume de la pyramide : aire de la base × h ÷ 3.', 'Un cylindre de même base et de même hauteur contient trois fois le cône ; un prisme contient trois fois la pyramide.', 'Le patron d\'un cône : un disque et un secteur de disque. 1 mL = 1 cm³.'],
   onReady: init, onStart: demarrer,
 });
 const vCone = () => Math.PI * r * r * h / 3; const vCyl = () => Math.PI * r * r * h; const vPyr = () => a * a * h / 3; const vPri = () => a * a * h;
 const f1 = (x) => (Math.round(x * 10) / 10).toString().replace('.', ',');
+const ease = (f) => (f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2);
+const _v = new THREE.Vector3();
+
+/* Un jeu PBR avec une répétition différente en largeur et en profondeur (pour les planches d'une table longue). */
+function pbrRepete(jeu, rx, ry, opt) {
+  opt = opt || {}; const L = new THREE.TextureLoader(); const base = `../assets/3d/pbr2k/${jeu}/${jeu}_`;
+  const une = (s, srgb) => { const t = L.load(`${base}${s}_1k.jpg`, undefined, undefined, () => {}); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
+  const m = new THREE.MeshStandardMaterial({ color: opt.couleur == null ? 0xffffff : opt.couleur, roughness: opt.rugosite == null ? 1 : opt.rugosite, metalness: 0, map: une('diff', true), normalMap: une('nor_gl'), roughnessMap: une('rough'), aoMap: une('ao'), aoMapIntensity: 0.9 });
+  m.normalScale.set(opt.normale == null ? 0.8 : opt.normale, opt.normale == null ? 0.8 : opt.normale); return m;
+}
+function textureTableau() {
+  const c = document.createElement('canvas'); c.width = 1280; c.height = 512; const x = c.getContext('2d');
+  x.fillStyle = '#2b4a3c'; x.fillRect(0, 0, c.width, c.height);
+  for (let i = 0; i < 400; i += 1) { x.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`; x.fillRect(Math.random() * c.width, Math.random() * c.height, 30 + Math.random() * 90, 2 + Math.random() * 4); }
+  x.fillStyle = 'rgba(250,246,230,0.92)'; x.textBaseline = 'middle'; x.textAlign = 'left';
+  x.font = '700 54px Manrope, Nunito, Arial, sans-serif'; x.fillText('Volumes : aire de la base B × hauteur h', 60, 70);
+  x.font = '600 46px Manrope, Nunito, Arial, sans-serif';
+  x.fillText('Cône :  V = π × r² × h ÷ 3', 60, 170); x.fillText('Cylindre :  V = π × r² × h', 700, 170);
+  x.fillText('Pyramide :  V = a² × h ÷ 3', 60, 260); x.fillText('Prisme :  V = a² × h', 700, 260);
+  x.fillStyle = 'rgba(255,214,120,0.95)'; x.fillText('Cylindre = 3 cônes.   Prisme = 3 pyramides.', 60, 360);
+  x.fillStyle = 'rgba(180,225,255,0.95)'; x.fillText('1 mL = 1 cm³', 60, 445);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+function textureRegle() {
+  const c = document.createElement('canvas'); c.width = 2048; c.height = 144; const x = c.getContext('2d');
+  x.fillStyle = '#f1e8d3'; x.fillRect(0, 0, c.width, c.height);
+  x.fillStyle = '#2a2420'; x.textAlign = 'center'; x.textBaseline = 'top'; x.font = '700 40px Manrope, Nunito, Arial, sans-serif';
+  const px = (c.width - 96) / 20; // 20 cm sur la longueur utile
+  for (let i = 0; i <= 40; i += 1) { const X = 48 + i * px / 2; const grand = i % 2 === 0; x.fillRect(X - 2, 0, 4, grand ? 42 : 24); if (grand) x.fillText(String(i / 2), X, 52); }
+  x.font = '600 28px Manrope, Nunito, Arial, sans-serif'; x.textAlign = 'right'; x.fillText('cm', c.width - 20, 100);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+function textureBecher() {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height);
+  x.fillStyle = 'rgba(255,255,255,0.85)'; x.font = '700 40px Manrope, Nunito, Arial, sans-serif'; x.textBaseline = 'middle'; x.textAlign = 'left';
+  for (let i = 1; i <= 5; i += 1) { const y = c.height - 60 - i * 80; x.fillRect(160, y - 3, 70, 6); x.fillText(String(i * 50) + ' mL', 245, y); for (let k = 1; k < 5; k += 1) x.fillRect(160, y + k * 16 - 1, 36, 3); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+function texturePatron() {
+  const c = document.createElement('canvas'); c.width = 640; c.height = 800; const x = c.getContext('2d');
+  x.fillStyle = '#f4ecd9'; x.fillRect(0, 0, c.width, c.height);
+  x.fillStyle = '#2a2420'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '800 44px Manrope, Nunito, Arial, sans-serif'; x.fillText('Patron du cône', 320, 60);
+  x.strokeStyle = '#1B82E0'; x.lineWidth = 8; x.fillStyle = 'rgba(27,130,224,0.18)';
+  // le secteur : rayon = génératrice g, angle = 360° × r ÷ g (ici r = 3, h = 4, g = 5 : 216°)
+  const g = 250; const angle = 2 * Math.PI * 3 / 5; const cx = 320, cy = 330;
+  x.beginPath(); x.moveTo(cx, cy); x.arc(cx, cy, g, Math.PI / 2 - angle / 2, Math.PI / 2 + angle / 2); x.closePath(); x.fill(); x.stroke();
+  // le disque de base, tangent à l'arc
+  x.beginPath(); x.arc(cx, cy + g + 150 * 0.6, 150 * 0.6, 0, Math.PI * 2); x.fill(); x.stroke();
+  x.fillStyle = '#2a2420'; x.font = '600 30px Manrope, Nunito, Arial, sans-serif';
+  x.fillText('secteur : surface latérale', 320, 150); x.fillText('disque : la base', 320, 760);
+  x.font = '600 26px Manrope, Nunito, Arial, sans-serif'; x.fillText('l\'arc du secteur mesure 2 × π × r', 320, 650);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
 
 function init() {
-  M = creerMonde(shell, { fond: 0xe8eef2, hdri: '../assets/3d/env/studio_1k.hdr', sol: { taille: 30, couleur: 0xb8b0a4 }, ambiance: 0.9, soleil: { position: [6, 12, 8], intensite: 1.6, etendue: 12 }, camera: { position: [0, 6, 12], cible: [0, 1.6, 0], min: 3, max: 30 }, legendes: LEGENDES, libelle: 'Quatre solides sur une table : cône, cylindre, pyramide, prisme' });
-  const { scene, mesh, mat, legender, etiquette } = M;
-  const table = mesh(new THREE.BoxGeometry(14, 0.3, 6), mat(0x8c6a4a, { rugosite: 0.6 }), [0, -0.15, 0]); table.receiveShadow = true; table.raycast = () => {};
-  const verre = (c) => new THREE.MeshPhysicalMaterial({ color: c, transparent: true, opacity: 0.42, roughness: 0.1, metalness: 0, transmission: 0.2, side: THREE.DoubleSide });
-  cone = mesh(new THREE.ConeGeometry(1, 1, 48, 1, true), verre(0x1B82E0)); legender(cone, 'Cône', LEGENDES[0].phrase);
-  cylindre = mesh(new THREE.CylinderGeometry(1, 1, 1, 48, 1, true), verre(0x2AA98C)); legender(cylindre, 'Cylindre', LEGENDES[1].phrase);
-  pyramide = mesh(new THREE.ConeGeometry(1, 1, 4, 1, true), verre(0xF5A623)); legender(pyramide, 'Pyramide', LEGENDES[2].phrase);
-  prisme = mesh(new THREE.BoxGeometry(1, 1, 1), verre(0xE63329)); legender(prisme, 'Prisme', LEGENDES[3].phrase);
-  [cone, cylindre, pyramide, prisme].forEach((m) => { m.castShadow = false; });
-  liquideCone = new THREE.Mesh(new THREE.ConeGeometry(1, 1, 48), mat(0x2f8fe0, { transparent: true, opacite: 0.85 })); liquideCone.raycast = () => {}; liquideCone.visible = false; scene.add(liquideCone);
-  liquideCyl = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 48), mat(0x2f8fe0, { transparent: true, opacite: 0.85 })); liquideCyl.raycast = () => {}; liquideCyl.visible = false; scene.add(liquideCyl);
-  const sommet = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 12), mat(0xffffff, { emissif: 0xffd000, intensite: 0.9 })); scene.add(sommet); legender(sommet, 'Sommet', LEGENDES[4].phrase); pyramide.userData.sommet = sommet;
-  const hauteurLigne = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1, 8), mat(0x222222, { emissif: 0x222222, intensite: 0.3 })); scene.add(hauteurLigne); legender(hauteurLigne, 'Hauteur', LEGENDES[5].phrase); pyramide.userData.hauteur = hauteurLigne;
-  M.etiquettes = { cone: etiquette('Cône', [0, 0, 0], { hauteur: 0.45 }), cyl: etiquette('Cylindre', [0, 0, 0], { hauteur: 0.45 }), pyr: etiquette('Pyramide', [0, 0, 0], { hauteur: 0.45 }), pri: etiquette('Prisme', [0, 0, 0], { hauteur: 0.45 }) };
-  placer();
-  panneau = M.panneau(`<h3>Dimensions (cm)</h3>
-    <label>Rayon r (cône et cylindre) <span class="mb-val" id="vo-r">${r}</span><input class="mb-plage" id="vo-rs" type="range" min="1" max="5" step="0.5" value="${r}" aria-label="Rayon"></label>
-    <label>Côté a (pyramide et prisme) <span class="mb-val" id="vo-a">${a}</span><input class="mb-plage" id="vo-as" type="range" min="1" max="7" step="0.5" value="${a}" aria-label="Côté de la base"></label>
-    <label>Hauteur h (les quatre) <span class="mb-val" id="vo-h">${h}</span><input class="mb-plage" id="vo-hs" type="range" min="2" max="9" step="0.5" value="${h}" aria-label="Hauteur"></label>
-    <h3>Volumes</h3>
-    <div class="mb-mesures"><span>Cône π r² h ÷ 3</span><b id="vo-vc">·</b><span>Cylindre π r² h</span><b id="vo-vy">·</b><span>Pyramide a² h ÷ 3</span><b id="vo-vp">·</b><span>Prisme a² h</span><b id="vo-vr">·</b></div>
-    <button class="mb-bouton primaire" id="vo-verser">Verser le cône dans le cylindre</button>
-    <p class="mb-carte" id="vo-etat">Le cylindre est vide. Combien de cônes pour le remplir ?</p>`);
-  ['r', 'a', 'h'].forEach((k) => panneau.querySelector('#vo-' + k + 's').addEventListener('input', (e) => { if (k === 'r') r = Number(e.target.value); if (k === 'a') a = Number(e.target.value); if (k === 'h') h = Number(e.target.value); verses = 0; versement = null; liquideCyl.visible = false; liquideCone.visible = false; placer(); }));
-  panneau.querySelector('#vo-verser').addEventListener('click', verser);
-  M.boucle((dt) => {
-    if (!versement) return;
-    versement.t += dt * 0.9;
-    if (versement.phase === 0) { const f = Math.min(1, versement.t); liquideCone.visible = true; liquideCone.scale.set(r * ECH * f, h * ECH * f, r * ECH * f); liquideCone.position.set(-4.5, h * ECH * f / 2, 0); if (f >= 1) { versement.phase = 1; versement.t = 0; } }
-    else { const f = Math.min(1, versement.t); liquideCone.scale.set(r * ECH * (1 - f), h * ECH * (1 - f), r * ECH * (1 - f)); liquideCone.position.set(-4.5, h * ECH * (1 - f) / 2, 0); const niveau = (verses + f / 3) * h * ECH; liquideCyl.visible = true; liquideCyl.scale.set(r * ECH * 0.98, Math.max(0.001, niveau), r * ECH * 0.98); liquideCyl.position.set(-1.5, niveau / 2, 0); if (f >= 1) { verses += 1; versement = null; liquideCone.visible = false; const e = panneau.querySelector('#vo-etat'); e.textContent = verses >= 3 ? 'Trois cônes remplissent exactement le cylindre : le cône vaut un tiers du cylindre.' : verses + ' cône' + (verses > 1 ? 's' : '') + ' versé' + (verses > 1 ? 's' : '') + ' : le cylindre est rempli à ' + Math.round(verses / 3 * 100) + ' %.'; shell.sound('pop'); } }
+  M = creerMonde(shell, {
+    fond: 0xcfe3f5, hdri: '../assets/3d/env/workshop_1k.hdr', environnement: 0.9,
+    sol: { taille: 17, texture: 'concrete_tiles', repetition: 9, y: -2.2, carre: true, couleur: 0xd8d2c6 },
+    ambiance: 0.7, soleil: { position: [-22, 10, 1.5], intensite: 2.4, couleur: 0xfff1dc, etendue: 20 },
+    camera: { position: [1.2, 6.2, 14.6], cible: [0, 1.4, -0.4], fov: 48, min: 5, max: 17 },
+    rendu: { bloom: { force: 0.3, rayon: 0.5, seuil: 0.92 } },
+    legendes: LEGENDES, libelle: 'Un atelier : quatre solides de verre sur une paillasse en bois, un robinet, un bécher, une règle et un tableau de formules',
   });
+  const { scene, mesh, mat, legender, etiquette, meshPBR, pbr, matPhysique } = M;
+  M.renderer.localClippingEnabled = true; M.controls.minPolarAngle = 0.75;
+  const adapter = () => { const asp = M.stage.clientWidth / Math.max(1, M.stage.clientHeight); M.camera.fov = asp < 0.9 ? 66 : 48; M.camera.updateProjectionMatrix(); };
+  adapter(); new ResizeObserver(adapter).observe(M.stage);
+  const ignorer = (m) => { m.raycast = () => {}; return m; };
+
+  /* ---- La pièce : murs en enduit, plafond, plinthes, grande fenêtre à gauche ---- */
+  const enduit = pbr('plastered_wall_02', { repetition: 6, couleur: 0xefe6d6, rugosite: 1, normale: 0.6 });
+  const HM = 16.6, YM = 6.1; // hauteur des murs (du sol -2,2 au plafond 14,4) et leur centre
+  ignorer(mesh(new THREE.BoxGeometry(32, HM, 0.4), enduit, [0, YM, -9.2]));
+  ignorer(mesh(new THREE.BoxGeometry(0.4, HM, 24.4), enduit, [16, YM, 3]));
+  ignorer(mesh(new THREE.BoxGeometry(32, HM, 0.4), enduit, [0, YM, 15.2]));
+  // mur gauche en quatre pans autour de la fenêtre (z de -3,5 à 3,5 ; y de 2,5 à 8,5)
+  ignorer(mesh(new THREE.BoxGeometry(0.4, HM, 5.5), enduit, [-16, YM, -6.25])); ignorer(mesh(new THREE.BoxGeometry(0.4, HM, 11.7), enduit, [-16, YM, 9.35]));
+  ignorer(mesh(new THREE.BoxGeometry(0.4, 4.7, 7), enduit, [-16, 0.15, 0])); ignorer(mesh(new THREE.BoxGeometry(0.4, 5.9, 7), enduit, [-16, 11.45, 0]));
+  const plafond = ignorer(mesh(new THREE.BoxGeometry(32, 0.4, 24.4), mat(0xf3efe7, { rugosite: 0.95 }), [0, 14.6, 3])); plafond.castShadow = false;
+  const plinthe = mat(0x4a3526, { rugosite: 0.6 });
+  ignorer(mesh(new THREE.BoxGeometry(32, 0.36, 0.1), plinthe, [0, -2.02, -8.95])); ignorer(mesh(new THREE.BoxGeometry(0.1, 0.36, 24), plinthe, [15.75, -2.02, 3])); ignorer(mesh(new THREE.BoxGeometry(0.1, 0.36, 24), plinthe, [-15.75, -2.02, 3]));
+  // la fenêtre : cadre peint, croisillons, vitre, et le jour dehors (plan lumineux)
+  const peint = mat(0xf4f1ea, { rugosite: 0.5 });
+  [[-15.75, 5.5, -3.55, 0.3, 6.3, 0.22], [-15.75, 5.5, 3.55, 0.3, 6.3, 0.22], [-15.75, 8.55, 0, 0.3, 0.22, 7.3], [-15.75, 2.45, 0, 0.3, 0.22, 7.3], [-15.72, 5.5, 0, 0.14, 6.1, 0.12], [-15.72, 5.5, 0, 0.14, 0.12, 7]].forEach((f) => ignorer(mesh(new THREE.BoxGeometry(f[3], f[4], f[5]), peint, [f[0], f[1], f[2]])));
+  const vitre = ignorer(mesh(new THREE.PlaneGeometry(7, 6), matPhysique({ couleur: 0xf0f8ff, transmission: 0.96, rugosite: 0, epaisseur: 0.05, double: true }), [-15.85, 5.5, 0])); vitre.rotation.y = Math.PI / 2; vitre.castShadow = false;
+  const dehors = ignorer(mesh(new THREE.PlaneGeometry(10, 9), new THREE.MeshStandardMaterial({ color: 0xdff0ff, emissive: 0xdff0ff, emissiveIntensity: 1.5, roughness: 1 }), [-17.2, 5.5, 0])); dehors.rotation.y = Math.PI / 2; dehors.castShadow = false; dehors.receiveShadow = false;
+  const appui = ignorer(meshPBR(new THREE.BoxGeometry(0.9, 0.16, 7.6), 'marble_01', { repetition: 2, couleur: 0xeeeae2 }, [-15.6, 2.33, 0]));
+
+  /* ---- Le tableau de formules et les deux affiches ---- */
+  const cadreBois = pbr('brown_planks_09', { repetition: 1, couleur: 0x8a6240, rugosite: 0.7 });
+  const tableau = new THREE.Group(); scene.add(tableau); tableau.position.set(3.4, 5.3, -8.9);
+  mesh(new THREE.BoxGeometry(8.5, 3.6, 0.14), cadreBois, [0, 0, 0], tableau);
+  mesh(new THREE.PlaneGeometry(8, 3.2), new THREE.MeshStandardMaterial({ map: textureTableau(), roughness: 0.95 }), [0, 0, 0.075], tableau).castShadow = false;
+  mesh(new THREE.BoxGeometry(8.5, 0.1, 0.3), cadreBois, [0, -1.85, 0.1], tableau);
+  for (let k = 0; k < 3; k += 1) mesh(new THREE.BoxGeometry(0.42, 0.06, 0.06), mat([0xfff7e0, 0xf9d7a0, 0xc9e3ff][k], { rugosite: 0.9 }), [-2.4 + k * 0.6, -1.77, 0.14], tableau);
+  legender(tableau, 'Tableau', LEGENDES[12].phrase);
+  const affiche = new THREE.Group(); scene.add(affiche); affiche.position.set(-5.2, 5.4, -8.9);
+  mesh(new THREE.BoxGeometry(2.6, 3.2, 0.1), mat(0x2a2420, { rugosite: 0.5 }), [0, 0, 0], affiche);
+  mesh(new THREE.PlaneGeometry(2.4, 3.0), new THREE.MeshStandardMaterial({ map: texturePatron(), roughness: 0.9 }), [0, 0, 0.055], affiche).castShadow = false;
+  legender(affiche, 'Affiche du patron', LEGENDES[13].phrase);
+
+  /* ---- La paillasse : plateau en planches, ceinture, quatre pieds, un tabouret ---- */
+  const plateau = M.preparerAo(new THREE.BoxGeometry(20, 0.3, 7));
+  const table = ignorer(mesh(plateau, pbrRepete('wood_table_001', 4, 1.4, { rugosite: 0.8 }), [0, -0.15, 0]));
+  const boisFonce = pbr('brown_planks_09', { repetition: 1, couleur: 0x6b4a30, rugosite: 0.75 });
+  ignorer(mesh(new THREE.BoxGeometry(19.4, 0.5, 0.18), boisFonce, [0, -0.55, 3.3])); ignorer(mesh(new THREE.BoxGeometry(19.4, 0.5, 0.18), boisFonce, [0, -0.55, -3.3]));
+  ignorer(mesh(new THREE.BoxGeometry(0.18, 0.5, 6.4), boisFonce, [9.6, -0.55, 0])); ignorer(mesh(new THREE.BoxGeometry(0.18, 0.5, 6.4), boisFonce, [-9.6, -0.55, 0]));
+  [[-9.4, -3.1], [9.4, -3.1], [-9.4, 3.1], [9.4, 3.1]].forEach((p) => ignorer(mesh(new THREE.BoxGeometry(0.42, 1.9, 0.42), boisFonce, [p[0], -1.25, p[1]])));
+  ignorer(mesh(new THREE.BoxGeometry(19.0, 0.12, 0.12), boisFonce, [0, -1.6, -3.1])); ignorer(mesh(new THREE.BoxGeometry(19.0, 0.12, 0.12), boisFonce, [0, -1.6, 3.1]));
+  const tabouret = new THREE.Group(); scene.add(tabouret); tabouret.position.set(-3.6, -2.2, 5.6);
+  ignorer(meshPBR(new THREE.CylinderGeometry(0.72, 0.72, 0.12, 32), 'wood_table_001', { repetition: 1 }, [0, 1.56, 0], tabouret));
+  for (let k = 0; k < 4; k += 1) { const an = k * Math.PI / 2 + Math.PI / 4; const pied = mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.5, 10), boisFonce, [Math.cos(an) * 0.5, 0.75, Math.sin(an) * 0.5], tabouret); pied.rotation.z = -Math.cos(an) * 0.12; pied.rotation.x = Math.sin(an) * 0.12; ignorer(pied); }
+
+  /* ---- La lampe suspendue (lumière d'appoint avec ombre) et le soleil par la fenêtre ---- */
+  const lampe = new THREE.Group(); scene.add(lampe); lampe.position.set(0, 0, 0.6);
+  ignorer(mesh(new THREE.CylinderGeometry(0.02, 0.02, 6.4, 8), mat(0x1a1a1a), [0, 11.2, 0], lampe));
+  ignorer(mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.1, 24), mat(0x2a2a2a, { metal: 0.6, rugosite: 0.4 }), [0, 14.35, 0], lampe));
+  const abat = mesh(new THREE.ConeGeometry(1.25, 1.0, 40, 1, true), new THREE.MeshStandardMaterial({ color: 0x1f5d4f, roughness: 0.4, metalness: 0.5, side: THREE.DoubleSide }), [0, 7.6, 0], lampe); abat.castShadow = false;
+  const ampoule = mesh(new THREE.SphereGeometry(0.17, 20, 14), new THREE.MeshStandardMaterial({ color: 0xfff4d6, emissive: 0xffe6b0, emissiveIntensity: 3.2, roughness: 0.3 }), [0, 7.35, 0], lampe); ampoule.castShadow = false;
+  legender(lampe, 'Lampe', LEGENDES[14].phrase);
+  const spot = new THREE.SpotLight(0xffe4b8, 240, 0, 0.8, 0.5, 2); spot.position.set(0, 7.3, 0.6); spot.target.position.set(0, 0, -0.3); spot.castShadow = true;
+  spot.shadow.mapSize.set(1024, 1024); spot.shadow.bias = -0.0004; spot.shadow.normalBias = 0.02; spot.shadow.camera.near = 0.5; spot.shadow.camera.far = 14; scene.add(spot); scene.add(spot.target);
+  M.soleil.target.position.set(-2, 0, 0); scene.add(M.soleil.target); M.soleil.shadow.camera.far = 80;
+
+  /* ---- Le robinet (laiton), la règle, le bécher, l'étagère ---- */
+  const laiton = mat(0xc9a24a, { metal: 0.92, rugosite: 0.28 });
+  const robinet = new THREE.Group(); scene.add(robinet); robinet.position.set(ROBINET.x, 0, ROBINET.zTuyau);
+  mesh(new THREE.CylinderGeometry(0.3, 0.38, 0.14, 24), laiton, [0, 0.07, 0], robinet);
+  mesh(new THREE.CylinderGeometry(0.11, 0.11, 7.0, 16), laiton, [0, 3.5, 0], robinet);
+  mesh(new THREE.SphereGeometry(0.17, 16, 12), laiton, [0, ROBINET.y, 0], robinet);
+  const volant = mesh(new THREE.TorusGeometry(0.26, 0.045, 10, 28), mat(0xb8302a, { rugosite: 0.45, metal: 0.2 }), [0, 7.25, 0], robinet); volant.rotation.x = Math.PI / 2;
+  mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 8), laiton, [0, 7.1, 0], robinet);
+  bras = new THREE.Group(); bras.position.set(0, ROBINET.y, 0); robinet.add(bras);
+  const brasTube = mesh(new THREE.CylinderGeometry(0.09, 0.09, 1, 16), laiton, [0.5, 0, 0], bras); brasTube.rotation.z = Math.PI / 2;
+  const coude = mesh(new THREE.SphereGeometry(0.15, 16, 12), laiton, [1, 0, 0], bras);
+  const bec = mesh(new THREE.CylinderGeometry(0.09, 0.12, ROBINET.y - ROBINET.bec, 16), laiton, [1, -(ROBINET.y - ROBINET.bec) / 2, 0], bras);
+  bras.userData = { tube: brasTube, coude, bec };
+  reglerBras(viserBras(-5.5, Z), 1);
+  legender(robinet, 'Robinet', LEGENDES[11].phrase);
+  const regleTex = textureRegle(); const ivoire = new THREE.MeshStandardMaterial({ color: 0xf1e8d3, roughness: 0.6 });
+  const regle = mesh(new THREE.BoxGeometry(10, 0.06, 0.7), [ivoire, ivoire, new THREE.MeshStandardMaterial({ map: regleTex, roughness: 0.55 }), ivoire, ivoire, ivoire], [-2, 0.03, 3.0]);
+  legender(regle, 'Règle graduée', LEGENDES[9].phrase);
+  const eau = new THREE.MeshPhysicalMaterial({ color: 0x1f7fd6, roughness: 0.12, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05 });
+  const becher = new THREE.Group(); scene.add(becher); becher.position.set(8.4, 0, 2.4);
+  const verreClair = matPhysique({ couleur: 0xf2fbff, transmission: 0.94, rugosite: 0.03, epaisseur: 0.2, double: true });
+  const bV = mesh(new THREE.CylinderGeometry(0.9, 0.86, 2.4, 48, 1, true), verreClair, [0, 1.2, 0], becher); bV.castShadow = false;
+  const bF = mesh(new THREE.CylinderGeometry(0.86, 0.86, 0.06, 48), verreClair, [0, 0.03, 0], becher); bF.castShadow = false;
+  mesh(new THREE.CylinderGeometry(0.84, 0.84, 1.5, 48), eau, [0, 0.81, 0], becher);
+  const grad = mesh(new THREE.CylinderGeometry(0.915, 0.875, 2.3, 48, 1, true), new THREE.MeshBasicMaterial({ map: textureBecher(), transparent: true, depthWrite: false, side: THREE.DoubleSide }), [0, 1.2, 0], becher); grad.castShadow = false; grad.rotation.y = Math.PI * 0.55;
+  legender(becher, 'Bécher', LEGENDES[10].phrase);
+  const etagere = new THREE.Group(); scene.add(etagere); etagere.position.set(15.3, 3.4, -3);
+  ignorer(meshPBR(new THREE.BoxGeometry(1.0, 0.12, 5.2), 'wood_table_001', { repetition: 1 }, [0, 0, 0], etagere));
+  [-2.2, 2.2].forEach((z) => ignorer(mesh(new THREE.BoxGeometry(0.08, 0.7, 0.08), mat(0x333333, { metal: 0.6, rugosite: 0.4 }), [0.4, -0.4, z], etagere)));
+  const livres = [[0xB9541D, 0.9], [0x2E7FC2, 1.1], [0x1E8C7A, 0.8], [0xE6B422, 1.0], [0x5a3b7a, 0.95], [0x7a2d2d, 1.15], [0x3b5a7a, 0.85]]; let zl = -2.1;
+  livres.forEach((l) => { ignorer(mesh(new THREE.BoxGeometry(0.72, l[1], 0.26), mat(l[0], { rugosite: 0.8 }), [-0.02, l[1] / 2 + 0.06, zl + 0.13], etagere)); zl += 0.3; });
+  const bocal = ignorer(mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.9, 32, 1, true), verreClair, [0, 0.51, 1.6], etagere)); bocal.castShadow = false;
+  ignorer(mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.55, 32), mat(0xd8a24a, { rugosite: 0.5 }), [0, 0.34, 1.6], etagere));
+
+  /* ---- Les quatre solides de verre, leurs liquides, le filet d'eau ---- */
+  const verreTeinte = (teinte) => { const m = matPhysique({ couleur: teinte, transmission: 0.9, rugosite: 0.03, epaisseur: 0.35, ior: 1.5, double: true }); m.attenuationColor = new THREE.Color(teinte); m.attenuationDistance = 1.2; return m; };
+  const eauCoupe = new THREE.MeshPhysicalMaterial({ color: 0x1f7fd6, roughness: 0.12, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, side: THREE.DoubleSide });
+  const plan = new THREE.Plane(new THREE.Vector3(0, -1, 0), -99); eauCoupe.clippingPlanes = [plan];
+  function solide(cle, nom, teinte, geoVerre, geoLiquide, carre) {
+    const g = new THREE.Group(); scene.add(g);
+    const verre = mesh(geoVerre, verreTeinte(teinte), [0, 0.5, 0], g); verre.castShadow = false;
+    if (carre) verre.rotation.y = Math.PI / 4;
+    const liquide = mesh(geoLiquide, eauCoupe, [0, 0.5, 0], g); liquide.visible = false; liquide.raycast = () => {};
+    if (carre) liquide.rotation.y = Math.PI / 4;
+    legender(g, nom, LEGENDES.find((l) => l.nom === nom).phrase);
+    S[cle] = { groupe: g, verre, liquide, carre, repos: new THREE.Vector3(), x: 0 };
+    return S[cle];
+  }
+  solide('cone', 'Cône', 0xa9d4ff, new THREE.ConeGeometry(1, 1, 64, 1, true), new THREE.ConeGeometry(0.97, 0.97, 64), false);
+  solide('cylindre', 'Cylindre', 0xa8ecd6, new THREE.CylinderGeometry(1, 1, 1, 64, 1, true), new THREE.CylinderGeometry(0.97, 0.97, 1, 64), false);
+  solide('pyramide', 'Pyramide', 0xffdca0, new THREE.ConeGeometry(1, 1, 4, 1, true), new THREE.ConeGeometry(0.97, 0.97, 4), true);
+  solide('prisme', 'Prisme', 0xffbdb2, new THREE.CylinderGeometry(1, 1, 1, 4, 1, true), new THREE.CylinderGeometry(0.97, 0.97, 1, 4), true);
+  // les fonds de verre du cylindre et du prisme (le liquide repose dessus)
+  S.cylindre.fond = mesh(new THREE.CircleGeometry(1, 64), verreTeinte(0xa8ecd6), [0, 0.004, 0], S.cylindre.groupe); S.cylindre.fond.rotation.x = -Math.PI / 2; S.cylindre.fond.castShadow = false;
+  S.prisme.fond = mesh(new THREE.PlaneGeometry(1, 1), verreTeinte(0xffbdb2), [0, 0.004, 0], S.prisme.groupe); S.prisme.fond.rotation.x = -Math.PI / 2; S.prisme.fond.castShadow = false;
+  // les liquides des récipients : un cylindre et un pavé dont la hauteur suit le niveau
+  S.cylindre.liquide.geometry.dispose(); S.cylindre.liquide.geometry = new THREE.CylinderGeometry(1, 1, 1, 64); S.cylindre.liquide.material = eau;
+  S.prisme.liquide.geometry.dispose(); S.prisme.liquide.geometry = new THREE.BoxGeometry(1, 1, 1); S.prisme.liquide.material = eau; S.prisme.liquide.rotation.y = 0;
+  // sommet, hauteur et angle droit de la pyramide ; rayon du cône
+  const sommet = mesh(new THREE.SphereGeometry(0.11, 18, 14), mat(0xffffff, { emissif: 0xffd000, intensite: 1.1 }), [0, 1, 0], S.pyramide.groupe); legender(sommet, 'Sommet', LEGENDES[4].phrase); S.pyramide.sommet = sommet;
+  const hauteurLigne = mesh(new THREE.CylinderGeometry(0.024, 0.024, 1, 10), mat(0x1d1d1d, { emissif: 0x1d1d1d, intensite: 0.3 }), [0, 0.5, 0], S.pyramide.groupe); legender(hauteurLigne, 'Hauteur', LEGENDES[5].phrase); S.pyramide.hauteur = hauteurLigne;
+  const coin = new THREE.Group(); S.pyramide.groupe.add(coin); mesh(new THREE.BoxGeometry(0.3, 0.025, 0.025), mat(0x1d1d1d), [0.15, 0.3, 0], coin); mesh(new THREE.BoxGeometry(0.025, 0.3, 0.025), mat(0x1d1d1d), [0.3, 0.15, 0], coin); coin.children.forEach((c) => { c.userData.legende = hauteurLigne.userData.legende; });
+  const rayonLigne = mesh(new THREE.BoxGeometry(1, 0.035, 0.035), mat(0xE63329, { emissif: 0xE63329, intensite: 0.5 }), [0.5, 0.03, 0], S.cone.groupe); legender(rayonLigne, 'Rayon', LEGENDES[6].phrase); S.cone.rayon = rayonLigne;
+  // les aires des bases (disque et carré), affichées à la demande
+  const baseMat = (c) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.25, roughness: 0.6 });
+  const basesM = { cone: mesh(new THREE.CircleGeometry(1, 64), baseMat(0x1B82E0)), cylindre: mesh(new THREE.CircleGeometry(1, 64), baseMat(0x1B82E0)), pyramide: mesh(new THREE.PlaneGeometry(1, 1), baseMat(0xF5A623)), prisme: mesh(new THREE.PlaneGeometry(1, 1), baseMat(0xF5A623)) };
+  Object.keys(basesM).forEach((k) => { const b = basesM[k]; b.rotation.x = -Math.PI / 2; b.visible = false; b.castShadow = false; legender(b, k === 'cone' || k === 'cylindre' ? 'Base du cône' : 'Base de la pyramide', LEGENDES[k === 'cone' || k === 'cylindre' ? 7 : 8].phrase); });
+  // le filet d'eau qui tombe
+  const filet = mesh(new THREE.CylinderGeometry(1, 0.7, 1, 14), new THREE.MeshPhysicalMaterial({ color: 0x2f8fe0, emissive: 0x1a5fa8, emissiveIntensity: 0.35, roughness: 0.1, clearcoat: 1 })); filet.visible = false; filet.raycast = () => {}; filet.castShadow = false;
+  const E = { cone: etiquette('Cône', [0, 0, 0], { hauteur: 0.42 }), cylindre: etiquette('Cylindre', [0, 0, 0], { hauteur: 0.42 }), pyramide: etiquette('Pyramide', [0, 0, 0], { hauteur: 0.42 }), prisme: etiquette('Prisme', [0, 0, 0], { hauteur: 0.42 }) };
+  const EB = { cone: etiquette('B', [0, 0, 0], { hauteur: 0.36, fond: 'rgba(27,130,224,0.9)' }), pyramide: etiquette('B', [0, 0, 0], { hauteur: 0.36, fond: 'rgba(245,166,35,0.95)', couleur: '#1a1200' }) };
+  EB.cone.visible = false; EB.pyramide.visible = false;
+  M.aux = { basesM, filet, E, EB, plan, spot };
+
+  /* ---- Le panneau ---- */
+  panneau = M.panneau(`<h3>Dimensions (cm)</h3>
+    <label>Rayon r (cône, cylindre) <span class="mb-val" id="vo-r">${r}</span><input class="mb-plage" id="vo-rs" type="range" min="1" max="4" step="0.5" value="${r}" aria-label="Rayon"></label>
+    <label>Côté a (pyramide, prisme) <span class="mb-val" id="vo-a">${a}</span><input class="mb-plage" id="vo-as" type="range" min="1" max="6" step="0.5" value="${a}" aria-label="Côté de la base"></label>
+    <label>Hauteur h (les quatre) <span class="mb-val" id="vo-h">${h}</span><input class="mb-plage" id="vo-hs" type="range" min="2" max="9" step="0.5" value="${h}" aria-label="Hauteur"></label>
+    <h3>Volumes (cm³)</h3>
+    <div class="mb-mesures"><span>Cône π r² h ÷ 3</span><b id="vo-vc">·</b><span>Cylindre π r² h</span><b id="vo-vy">·</b><span>Pyramide a² h ÷ 3</span><b id="vo-vp">·</b><span>Prisme a² h</span><b id="vo-vr">·</b><span>Cylindre ÷ cône</span><b>3</b><span>Prisme ÷ pyramide</span><b>3</b></div>
+    <h3>Verser</h3>
+    <div class="mb-groupe"><button class="mb-bouton primaire" id="vo-verser" type="button">Verser le cône</button><button class="mb-bouton primaire" id="vo-verser-p" type="button">Verser la pyramide</button></div>
+    <p class="mb-carte" id="vo-etat">Le cylindre et le prisme sont vides. Combien de versements pour les remplir ?</p>
+    <h3>Voir</h3>
+    <div class="mb-groupe"><button class="mb-bouton" type="button" data-vue="libre" aria-pressed="true">Libre</button><button class="mb-bouton" type="button" data-vue="plongee" aria-pressed="false">Plongée</button><button class="mb-bouton" type="button" data-vue="face" aria-pressed="false">Face</button></div>
+    <button class="mb-bouton" id="vo-super" type="button" aria-pressed="false">Superposer : le cône dans le cylindre</button>
+    <button class="mb-bouton" id="vo-bases" type="button" aria-pressed="false">Aires des bases</button>
+    <button class="mb-bouton" id="vo-vider" type="button">Vider les récipients</button>`);
+  ['r', 'a', 'h'].forEach((k) => panneau.querySelector('#vo-' + k + 's').addEventListener('input', (e) => { if (k === 'r') r = Number(e.target.value); if (k === 'a') a = Number(e.target.value); if (k === 'h') h = Number(e.target.value); vider(true); placer(); }));
+  panneau.querySelector('#vo-verser').addEventListener('click', () => verser('cone'));
+  panneau.querySelector('#vo-verser-p').addEventListener('click', () => verser('pyramide'));
+  panneau.querySelector('#vo-vider').addEventListener('click', () => { vider(false); etat(); });
+  panneau.querySelector('#vo-super').addEventListener('click', (e) => { if (versement) return; superpose = !superpose; e.currentTarget.setAttribute('aria-pressed', String(superpose)); e.currentTarget.textContent = superpose ? 'Séparer les solides' : 'Superposer : le cône dans le cylindre'; panneau.querySelector('#vo-verser').disabled = superpose; panneau.querySelector('#vo-verser-p').disabled = superpose; if (superpose) shell.say('Le cône entre exactement dans le cylindre, la pyramide dans le prisme : même base, même hauteur. Il manque les deux tiers du volume.', 'concentre'); });
+  panneau.querySelector('#vo-bases').addEventListener('click', (e) => { bases = !bases; e.currentTarget.setAttribute('aria-pressed', String(bases)); placer(); if (bases) shell.say('L\'aire de la base B : π × r² pour le disque, a² pour le carré. Puis V = B × h ÷ 3.', 'concentre'); });
+  panneau.querySelectorAll('[data-vue]').forEach((b) => b.addEventListener('click', () => { panneau.querySelectorAll('[data-vue]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); changerVue(b.getAttribute('data-vue')); }));
+  placer();
+
+  /* ---- La boucle : vues, superposition, versement ---- */
+  const depuis = { pos: new THREE.Vector3(), cible: new THREE.Vector3() };
+  M.boucle((dt) => {
+    if (vue) { vue.t = Math.min(1, vue.t + dt / 0.9); const k = ease(vue.t); M.camera.position.lerpVectors(depuis.pos, vue.pos, k); M.controls.target.lerpVectors(depuis.cible, vue.cible, k); if (vue.t >= 1) vue = null; }
+    if (!versement) {
+      ['cone', 'pyramide'].forEach((k) => { const s = S[k]; const cible = superpose ? S[k === 'cone' ? 'cylindre' : 'prisme'].repos : s.repos; s.groupe.position.lerp(cible, Math.min(1, dt * 6)); s.groupe.rotation.x *= Math.max(0, 1 - dt * 6); s.groupe.rotation.z *= Math.max(0, 1 - dt * 6); });
+    } else animerVersement(dt);
+  });
+  function changerVue(nom) {
+    const c = centre(); depuis.pos.copy(M.camera.position); depuis.cible.copy(M.controls.target);
+    if (nom === 'plongee') vue = { pos: new THREE.Vector3(c, 10.2, Z + 5.6), cible: new THREE.Vector3(c, 0.4, Z), t: 0 };
+    else if (nom === 'face') vue = { pos: new THREE.Vector3(c, 2.2, Z + 11.5), cible: new THREE.Vector3(c, h * ECH / 2, Z), t: 0 };
+    else vue = { pos: new THREE.Vector3(1.2, 6.2, 14.6), cible: new THREE.Vector3(0, 1.4, -0.4), t: 0 };
+  }
 }
-function verser() { if (versement) return; if (verses >= 3) { verses = 0; liquideCyl.visible = false; } versement = { phase: 0, t: 0 }; }
+const centre = () => (S.cone.repos.x + S.prisme.repos.x) / 2;
+/* L'angle du bras du robinet pour amener le bec au-dessus du point (x, z) de la table, et sa longueur. */
+function viserBras(x, z) { const dx = x - ROBINET.x; const dz = z - ROBINET.zTuyau; return { angle: -Math.atan2(dz, dx), longueur: Math.hypot(dx, dz) }; }
+function reglerBras(vise, k) {
+  angleBras = k >= 1 ? vise.angle : angleBras + (vise.angle - angleBras) * k; bras.rotation.y = angleBras;
+  const L = vise.longueur; const u = bras.userData; u.tube.scale.y = L; u.tube.position.x = L / 2; u.coude.position.x = L; u.bec.position.x = L;
+}
+/* Le bec du robinet dans le monde (sous le coude). */
+function pointBec() { return new THREE.Vector3(ROBINET.x + Math.cos(angleBras) * bras.userData.coude.position.x, ROBINET.bec, ROBINET.zTuyau - Math.sin(angleBras) * bras.userData.coude.position.x); }
+
+/* Place les solides sur la table selon r, a, h : un rang, du cône au prisme, centré. */
 function placer() {
-  cone.scale.set(r * ECH, h * ECH, r * ECH); cone.position.set(-4.5, h * ECH / 2, 0);
-  cylindre.scale.set(r * ECH, h * ECH, r * ECH); cylindre.position.set(-1.5, h * ECH / 2, 0);
-  pyramide.scale.set(a * ECH / Math.SQRT2, h * ECH, a * ECH / Math.SQRT2); pyramide.rotation.y = Math.PI / 4; pyramide.position.set(1.8, h * ECH / 2, 0);
-  prisme.scale.set(a * ECH, h * ECH, a * ECH); prisme.position.set(4.8, h * ECH / 2, 0);
-  pyramide.userData.sommet.position.set(1.8, h * ECH + 0.02, 0);
-  pyramide.userData.hauteur.scale.y = h * ECH; pyramide.userData.hauteur.position.set(1.8, h * ECH / 2, 0);
-  const E = M.etiquettes; E.cone.position.set(-4.5, h * ECH + 0.7, 0); E.cyl.position.set(-1.5, h * ECH + 0.7, 0); E.pyr.position.set(1.8, h * ECH + 0.9, 0); E.pri.position.set(4.8, h * ECH + 0.7, 0);
-  if (panneau) { panneau.querySelector('#vo-r').textContent = f1(r); panneau.querySelector('#vo-a').textContent = f1(a); panneau.querySelector('#vo-h').textContent = f1(h); panneau.querySelector('#vo-vc').textContent = f1(vCone()) + ' cm³'; panneau.querySelector('#vo-vy').textContent = f1(vCyl()) + ' cm³'; panneau.querySelector('#vo-vp').textContent = f1(vPyr()) + ' cm³'; panneau.querySelector('#vo-vr').textContent = f1(vPri()) + ' cm³'; }
+  const rU = r * ECH, aU = a * ECH, hU = h * ECH;
+  const total = 4 * rU + 2 * aU + 3 * GAP; let x = -total / 2;
+  S.cone.repos.set(x + rU, 0, Z); S.cylindre.repos.set(x + 3 * rU + GAP, 0, Z); S.pyramide.repos.set(x + 4 * rU + 2 * GAP + aU / 2, 0, Z); S.prisme.repos.set(x + 4 * rU + 3 * GAP + 1.5 * aU, 0, Z);
+  S.cone.bord = rU; S.pyramide.bord = aU / 2; S.cylindre.bord = rU; S.prisme.bord = aU / 2;
+  const regler = (s, rayon, hauteur) => { s.verre.scale.set(rayon, hauteur, rayon); s.verre.position.y = hauteur / 2; s.liquide.scale.set(rayon, hauteur, rayon); s.liquide.position.y = hauteur / 2; };
+  regler(S.cone, rU, hU); regler(S.cylindre, rU, hU); regler(S.pyramide, aU / Math.SQRT2, hU); regler(S.prisme, aU / Math.SQRT2, hU);
+  S.cylindre.fond.scale.set(rU, rU, 1); S.prisme.fond.scale.set(aU, aU, 1);
+  S.cylindre.liquide.scale.set(rU * 0.97, 0.001, rU * 0.97); S.prisme.liquide.scale.set(aU * 0.97, 0.001, aU * 0.97);
+  S.pyramide.sommet.position.y = hU + 0.02; S.pyramide.hauteur.scale.y = hU; S.pyramide.hauteur.position.y = hU / 2;
+  S.cone.rayon.scale.x = rU; S.cone.rayon.position.x = rU / 2;
+  ['cylindre', 'prisme'].forEach((k) => { S[k].groupe.position.copy(S[k].repos); });
+  if (!versement) ['cone', 'pyramide'].forEach((k) => { S[k].groupe.position.copy(superpose ? S[k === 'cone' ? 'cylindre' : 'prisme'].repos : S[k].repos); S[k].groupe.rotation.set(0, 0, 0); });
+  const { basesM, E, EB } = M.aux;
+  Object.keys(E).forEach((k) => { E[k].position.set(S[k].repos.x, hU + (k === 'pyramide' ? 0.75 : 0.6), Z); });
+  Object.keys(basesM).forEach((k) => { const b = basesM[k]; b.visible = bases; b.position.set(S[k].repos.x, 0.012, Z); const t = (k === 'cone' || k === 'cylindre') ? rU : aU; b.scale.set(t, t, 1); });
+  EB.cone.visible = bases; EB.pyramide.visible = bases;
+  if (bases) {
+    EB.cone.material.map.dispose(); EB.cone.material.map = textureTexte('B = π × ' + f1(r) + '² ≈ ' + f1(Math.PI * r * r) + ' cm²', { taille: 26, fond: 'rgba(27,130,224,0.92)' }); EB.cone.scale.set(0.36 * EB.cone.material.map.userData.ratio, 0.36, 1); EB.cone.position.set(S.cone.repos.x, 0.32, Z + rU + 0.35);
+    EB.pyramide.material.map.dispose(); EB.pyramide.material.map = textureTexte('B = ' + f1(a) + '² = ' + f1(a * a) + ' cm²', { taille: 26, fond: 'rgba(245,166,35,0.95)', couleur: '#1a1200' }); EB.pyramide.scale.set(0.36 * EB.pyramide.material.map.userData.ratio, 0.36, 1); EB.pyramide.position.set(S.pyramide.repos.x, 0.32, Z + aU / 2 + 0.35);
+  }
+  if (panneau) { panneau.querySelector('#vo-r').textContent = f1(r); panneau.querySelector('#vo-a').textContent = f1(a); panneau.querySelector('#vo-h').textContent = f1(h); panneau.querySelector('#vo-vc').textContent = f1(vCone()); panneau.querySelector('#vo-vy').textContent = f1(vCyl()); panneau.querySelector('#vo-vp').textContent = f1(vPyr()); panneau.querySelector('#vo-vr').textContent = f1(vPri()); etat(); }
+}
+/* Le niveau d'un récipient : part du volume (0 à 1) ; la hauteur du liquide suit exactement le volume dans un cylindre ou un prisme. */
+function niveau(cle, part) { const s = S[cle]; const hU = h * ECH; const y = Math.max(0.001, part * hU); s.liquide.scale.y = y; s.liquide.position.y = y / 2 + 0.006; s.liquide.visible = part > 0.002; }
+function vider(silencieux) { versement = null; verses.cone = 0; verses.pyramide = 0; niveau('cylindre', 0); niveau('prisme', 0); S.cone.liquide.visible = false; S.pyramide.liquide.visible = false; if (M.aux) M.aux.filet.visible = false; if (!silencieux) shell.say('Les récipients sont vides.', 'calme'); }
+function etat() {
+  if (!panneau) return; const e = panneau.querySelector('#vo-etat');
+  const ligne = (n, quoi, recipient, vQ, vR) => (n === 0 ? '' : (n >= 3 ? `Trois ${quoi}s remplissent exactement le ${recipient} : ${f1(vQ)} × 3 = ${f1(vR)} cm³. ` : `${n} ${quoi}${n > 1 ? 's' : ''} versé${n > 1 ? 's' : ''} dans le ${recipient} : ${f1(vQ * n)} cm³ sur ${f1(vR)}, soit ${n}/3. `));
+  const t = ligne(verses.cone, 'cône', 'cylindre', vCone(), vCyl()) + ligne(verses.pyramide, 'pyramide', 'prisme', vPyr(), vPri());
+  e.textContent = t || 'Le cylindre et le prisme sont vides. Combien de versements pour les remplir ?';
+}
+function verser(quoi) {
+  if (versement || superpose) return;
+  const cible = quoi === 'cone' ? 'cylindre' : 'prisme';
+  if (verses[quoi] >= 3) { verses[quoi] = 0; niveau(cible, 0); etat(); }
+  const hU = h * ECH; const s = S[quoi]; const c = S[cible];
+  const th = INCLINAISON; const rr = s.bord;
+  versement = { quoi, cible, phase: 0, t: 0, niveau: -99, depart: s.repos.clone(), angleDepart: angleBras, vise: viserBras(s.repos.x, Z),
+    robinet: new THREE.Vector3(s.repos.x, ROBINET.bec - 0.55, Z),
+    verse: new THREE.Vector3(c.repos.x - rr * Math.cos(th), hU + 0.7 + rr * Math.sin(th), Z) };
+  s.liquide.visible = true;
+  shell.say(quoi === 'cone' ? 'Le robinet remplit le cône, puis le cône se vide dans le cylindre.' : 'Le robinet remplit la pyramide, puis elle se vide dans le prisme.', 'concentre');
+}
+/* Le point le plus bas du bord du récipient qui verse, dans le monde. */
+function bordBas(s) {
+  s.groupe.updateMatrixWorld(true); let best = null; const n = s.carre ? 4 : 24;
+  for (let i = 0; i < n; i += 1) { const an = s.carre ? i * Math.PI / 2 + Math.PI / 4 : i / n * Math.PI * 2; const rad = s.carre ? s.bord * Math.SQRT2 : s.bord; _v.set(Math.cos(an) * rad, 0, Math.sin(an) * rad).applyMatrix4(s.groupe.matrixWorld); if (!best || _v.y < best.y) best = _v.clone(); }
+  return best;
+}
+function animerVersement(dt) {
+  const V = versement; const s = S[V.quoi]; const hU = h * ECH; const { filet, plan } = M.aux;
+  V.t += dt * 1.1; const f = Math.min(1, V.t / DUREES[V.phase]); const e = ease(f); const g = s.groupe;
+  const arc = (p1, p2, k, bosse) => { g.position.lerpVectors(p1, p2, k); g.position.y += Math.sin(Math.PI * k) * bosse; };
+  filet.visible = false;
+  if (V.phase === 0) {
+    // le solide se retourne sur place (rotation autour de x : le sommet passe devant) et le bras vient au-dessus
+    arc(V.depart, V.robinet, e, 0.6); g.rotation.set(Math.PI * e, 0, 0); V.niveau = -99;
+    const an = V.angleDepart + (V.vise.angle - V.angleDepart) * e; angleBras = an; bras.rotation.y = an; const u = bras.userData; const L0 = u.coude.position.x; const L = L0 + (V.vise.longueur - L0) * Math.min(1, e * 1.5); u.tube.scale.y = L; u.tube.position.x = L / 2; u.coude.position.x = L; u.bec.position.x = L;
+  } else if (V.phase === 1) {
+    g.position.copy(V.robinet); g.rotation.set(Math.PI, 0, 0);
+    const bas = V.robinet.y - hU + 0.03; V.niveau = bas + (V.robinet.y - 0.04 - bas) * f;
+    const bec = pointBec(); filet.visible = true; filet.scale.set(0.08, bec.y - V.niveau, 0.08); filet.position.set(bec.x, (bec.y + V.niveau) / 2, bec.z);
+  } else if (V.phase === 2) {
+    g.position.lerpVectors(V.robinet, V.verse, e); g.position.y += Math.sin(Math.PI * e) * 0.4; g.rotation.set(Math.PI, 0, INCLINAISON * e);
+    V.niveau = Math.min(V.niveau, bordBas(s).y - 0.02);
+  } else if (V.phase === 3) {
+    g.position.copy(V.verse); g.rotation.set(Math.PI, 0, INCLINAISON);
+    const b = bordBas(s); g.updateMatrixWorld(true); const sommetY = _v.set(0, hU, 0).applyMatrix4(g.matrixWorld).y;
+    if (V.niveauDepart == null) V.niveauDepart = Math.min(V.niveau, b.y - 0.02);
+    V.niveau = V.niveauDepart + (sommetY + 0.03 - V.niveauDepart) * f;
+    const part = (verses[V.quoi] + f) / 3; niveau(V.cible, part);
+    const surface = part * hU + 0.01; filet.visible = true; filet.scale.set(0.075, Math.max(0.02, b.y - surface), 0.075); filet.position.set(b.x, (b.y + surface) / 2, b.z);
+  } else {
+    arc(V.verse, V.depart, e, 0.9); g.rotation.set(Math.PI * (1 - e), 0, INCLINAISON * (1 - e)); V.niveau = -99;
+  }
+  plan.constant = V.niveau;
+  if (f >= 1) {
+    V.phase += 1; V.t = 0;
+    if (V.phase >= DUREES.length) { verses[V.quoi] += 1; niveau(V.cible, verses[V.quoi] / 3); versement = null; s.liquide.visible = false; g.position.copy(s.repos); g.rotation.set(0, 0, 0); etat(); shell.sound('pop'); if (verses[V.quoi] >= 3) shell.say(V.quoi === 'cone' ? 'Trois cônes : le cylindre est plein. Le cône vaut un tiers du cylindre.' : 'Trois pyramides : le prisme est plein. La pyramide vaut un tiers du prisme.', 'fier'); }
+  }
 }
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Règle les dimensions et lis les volumes. Verse trois fois le cône dans le cylindre pour voir le tiers.', 'joyeux'); return; }
+  if (mode !== 'cours') { api.say('Règle les dimensions et lis les volumes. Verse trois fois le cône dans le cylindre, puis la pyramide dans le prisme, pour voir le tiers.', 'joyeux'); return; }
   api.defis([
-    { type: 'qcm', texte: 'Le volume d\'une pyramide, c\'est…', choix: ['aire de la base × hauteur ÷ 3', 'aire de la base × hauteur', 'périmètre de la base × hauteur', 'base × hauteur ÷ 2'], reponse: 0, explication: 'Comme pour le cône : V = B × h ÷ 3, où B est l\'aire de la base.' },
-    { type: 'verifier', texte: 'Règle le cône pour un volume entre 95 et 105 cm³.', bouton: 'C\'est réglé', verifier: () => vCone() >= 95 && vCone() <= 105, indice: 'V = π × r² × h ÷ 3. Avec r = 3 et h = 3,5 : environ 33 cm³ ; augmente h ou r.', explication: 'Par exemple r = 4 et h = 6 : π × 16 × 6 ÷ 3 ≈ 100,5 cm³.' },
-    { type: 'qcm', texte: 'Combien de cônes pleins faut-il pour remplir le cylindre de même base et de même hauteur ?', choix: ['3', '2', '4', '1'], reponse: 0, explication: 'Le cylindre a un volume de π r² h, le cône π r² h ÷ 3 : il faut trois cônes.' },
+    { type: 'qcm', texte: 'Le volume d\'une pyramide, c\'est…', choix: ['aire de la base × hauteur ÷ 3', 'aire de la base × hauteur', 'périmètre de la base × hauteur', 'base × hauteur ÷ 2'], reponse: 0, explication: 'Comme pour le cône : V = B × h ÷ 3, où B est l\'aire de la base. Le tableau au fond de l\'atelier donne les quatre formules.' },
+    { type: 'toucher', texte: 'Touche le <b>sommet</b> de la pyramide.', cible: 'Sommet', explication: 'Le sommet est le point commun à toutes les arêtes latérales. La hauteur part de lui, perpendiculaire à la base : c\'est la ligne noire à l\'intérieur de la pyramide.' },
+    { type: 'verifier', texte: 'Règle le cône pour un volume entre 95 et 105 cm³.', bouton: 'C\'est réglé', verifier: () => vCone() >= 95 && vCone() <= 105, indice: 'V = π × r² × h ÷ 3. Avec r = 3 et h = 3,5 : environ 33 cm³. Augmente h ou r et lis la ligne « Cône ».', explication: 'Par exemple r = 4 et h = 6 : π × 16 × 6 ÷ 3 = 32π ≈ 100,5 cm³.' },
+    { type: 'verifier', texte: 'Verse le cône <b>trois fois</b> dans le cylindre, jusqu\'à ce qu\'il soit plein.', bouton: 'C\'est fait', verifier: () => verses.cone >= 3, indice: 'Appuie sur « Verser le cône », attends la fin du versement, puis recommence : trois fois en tout.', explication: 'Trois cônes remplissent exactement le cylindre : 3 × (π r² h ÷ 3) = π r² h. Le « ÷ 3 » vient de là.' },
+    { type: 'qcm', texte: 'Combien de cônes pleins faut-il pour remplir le cylindre de même base et de même hauteur ?', choix: ['3', '2', '4', '1'], reponse: 0, explication: 'Le cylindre a un volume de π r² h, le cône π r² h ÷ 3 : il faut trois cônes. Tu viens de le voir avec l\'eau colorée.' },
     { type: 'verifier', texte: 'Règle la pyramide : base 6 cm et hauteur 5 cm. Lis son volume.', bouton: 'C\'est réglé', verifier: () => a === 6 && h === 5, indice: 'Curseur « Côté a » sur 6, curseur « Hauteur h » sur 5.', explication: 'V = 6 × 6 × 5 ÷ 3 = 180 ÷ 3 = 60 cm³.' },
-    { type: 'qcm', texte: 'Une pyramide de base carrée 6 cm et de hauteur 5 cm a pour volume…', choix: ['60 cm³', '180 cm³', '30 cm³', '90 cm³'], reponse: 0, explication: 'Aire de la base : 6 × 6 = 36 cm². Volume : 36 × 5 ÷ 3 = 60 cm³.' },
-    { type: 'toucher', texte: 'Touche le <b>sommet</b> de la pyramide.', cible: 'Sommet', explication: 'Le sommet est le point commun à toutes les arêtes latérales. La hauteur part de lui, perpendiculaire à la base.' },
-    { type: 'qcm', texte: 'Le patron d\'un cône est fait de…', choix: ['un disque et un secteur de disque', 'deux disques', 'un rectangle et un disque', 'un triangle et un carré'], reponse: 0, explication: 'La base est un disque ; la surface latérale, dépliée, est un secteur de disque de rayon la génératrice.' },
+    { type: 'qcm', texte: 'Une pyramide de base carrée 6 cm et de hauteur 5 cm a pour volume…', choix: ['60 cm³', '180 cm³', '30 cm³', '90 cm³'], reponse: 0, explication: 'Aire de la base : 6 × 6 = 36 cm². Volume : 36 × 5 ÷ 3 = 60 cm³. 180 cm³, c\'est le prisme de même base et de même hauteur.' },
+    { type: 'qcm', texte: 'Un cône de rayon 3 cm et de hauteur 4 cm a pour volume…', choix: ['12π ≈ 37,7 cm³', '36π ≈ 113,1 cm³', '4π ≈ 12,6 cm³', '24π ≈ 75,4 cm³'], reponse: 0, explication: 'V = π × 3² × 4 ÷ 3 = π × 9 × 4 ÷ 3 = 12π ≈ 37,7 cm³. 36π serait le cylindre, sans le ÷ 3.' },
+    { type: 'qcm', texte: 'Le patron d\'un cône est fait de…', choix: ['un disque et un secteur de disque', 'deux disques', 'un rectangle et un disque', 'un triangle et un carré'], reponse: 0, explication: 'La base est un disque ; la surface latérale, dépliée, est un secteur de disque. L\'affiche à gauche du tableau le montre.' },
   ], { rejouer: () => demarrer('cours', api) });
 }
 </script>
