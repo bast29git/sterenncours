@@ -125,7 +125,14 @@ quelque chose, pas seulement signaler l'erreur.
 - **Messagerie** (`site/messagerie.js`) : émojis par groupes, mise en forme légère
   (option), réactions animées, fils par matière (`messages.fil`, table `reactions`).
 - **Jeux** (`site/learning/`) : 30 mondes 3D et 58 jeux 2D rattachés aux leçons
-  (`site/data/jeux.js`), score envoyé à `/api/learning/game-score`.
+  (`site/data/jeux.js`), score envoyé à `/api/learning/game-score`. Les mondes 21 à 30 reposent sur
+  `site/learning/monde-base.js` (chaîne de rendu avec occlusion ambiante au cran haut sur GPU réel,
+  bloom discret, SMAA, sortie ACES ; HDRI par défaut ; sol et murs PBR depuis
+  `assets/3d/pbr2k/` ; dôme de ciel ; `matPhysique` pour verre, laque et métal) : décors complets,
+  objets touchables légendés, neuf défis par monde, panneaux lisibles à 390 px. Le système solaire
+  (3d-01) reste la référence de rendu. `npm run audit:mondes` rejoue chaque monde jusqu'à l'écran de
+  fin ; `npm run audit:jeux` passe les 88 jeux à axe-core. Dans les jeux, la bulle d'Opale se replie
+  seule sur petit écran. Textures et HDRI : Poly Haven, CC0 (`pbr2k/ATTRIBUTIONS.md`).
 - **Accès et déblocages** (`/api/acces`, page « Accès et déblocages ») : trois états par élément
   (cours, révision, exercices, série, évaluation, jeu) : automatique, ouvert, fermé, avec date de
   fermeture facultative. Le serveur calcule les verrous des leçons (`/api/etat`) et ne sert le
