@@ -120,7 +120,7 @@
     static get observedAttributes() { return ['emotion','message','collapsed','context']; }
     constructor() { super(); this.attachShadow({ mode:'open' }); this._muted = localStorage.getItem('konstrio-muted')==='1'; this._voice = localStorage.getItem('konstrio-voice')==='1'; this._speaking=false; this._frVoice=null; this._initVoices(); }
     _initVoices(){ if(!synth)return; const pick=()=>{ const vs=synth.getVoices(); this._frVoice = vs.find(v=>/fr-FR/i.test(v.lang)) || vs.find(v=>/fr/i.test(v.lang)) || null; }; pick(); synth.onvoiceschanged=pick; }
-    connectedCallback(){ this.render(); }
+    connectedCallback(){ if(!this._ecouteTouche){ this._ecouteTouche=true; this.addEventListener('pointerdown',()=>{ this._touche=Date.now(); clearTimeout(this._autoRepli); }); } this.render(); }
     attributeChangedCallback(){ if(this.shadowRoot.childElementCount) this.update(); }
     get emotion(){ return this.getAttribute('emotion')||'joyeux'; } set emotion(v){ this.setAttribute('emotion',v); }
     get message(){ return this.getAttribute('message')||''; } set message(v){ this.setAttribute('message',v); }
@@ -166,7 +166,7 @@
     toggle(){ if(this.hasAttribute('collapsed')) this.removeAttribute('collapsed'); else this.setAttribute('collapsed',''); }
     say(text, emotion, opts){ opts=opts||{}; if(emotion) this.setAttribute('emotion',emotion); this.setAttribute('message',text); this.removeAttribute('collapsed');
       // Sur petit écran, la bulle se replie seule après neuf secondes : la scène reste visible, le message reste dans la bulle.
-      clearTimeout(this._autoRepli); if(window.matchMedia && window.matchMedia('(max-width: 640px)').matches && !this.hasAttribute('inline')) this._autoRepli=setTimeout(()=>{ if(!this.matches(':hover')) this.setAttribute('collapsed',''); },9000); if(this._voice && (opts.speak!==false)) this.speak(text); }
+      clearTimeout(this._autoRepli); if(window.matchMedia && window.matchMedia('(max-width: 640px)').matches && !this.hasAttribute('inline')) this._autoRepli=setTimeout(()=>{ if(!(this._touche && Date.now()-this._touche<9000)) this.setAttribute('collapsed',''); },9000); if(this._voice && (opts.speak!==false)) this.speak(text); }
     speak(text){ if(!synth||this._muted)return; try{ synth.cancel(); const u=new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,'').replace(/&[a-z]+;/g,' ')); u.lang='fr-FR'; if(this._frVoice)u.voice=this._frVoice; u.rate=1.02; u.pitch=1.05; u.onstart=()=>{ this._speaking=true; this.update(); }; u.onend=()=>{ this._speaking=false; this.update(); }; synth.speak(u); }catch(e){} }
     _ctxPrompt(p){ const role="Tu es Opale, une tutrice pédagogique bienveillante pour l'espace de cours Opaline. Réponds en français, de façon claire, courte et adaptée à un élève. "; const z=this.context!=='default'?("Contexte/zone : "+this.context+". "):''; return role+z+"Question : "+p; }
     async ask(prompt){
