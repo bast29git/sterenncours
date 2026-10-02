@@ -62,6 +62,7 @@ export const SCENARIOS = {
   async 'fiche en diapositives et cahier'(nav, BASE) {
     const { page, erreurs } = await ouvrir(nav, BASE, ELEVE);
     await aller(page, '#/lecon/maths/L01/cours', 1500);
+    await page.waitForSelector('.e-diapo-etapes button', { timeout: 20000 }).catch(() => {});
     ok((await page.locator('.e-diapo-etapes button').count()) > 5, 'étapes de la fiche');
     // La fiche reprend là où elle a été laissée (profil) : on compare au compteur de départ.
     let depart = parseInt(await page.locator('#e-diapo-compte').innerText(), 10) || 1;

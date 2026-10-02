@@ -207,8 +207,11 @@ export function son(type, o) {
  *   const o = outils({ scene, camera, renderer, controls, stage, boucle, legender, etiquette });
  *   o.marcher(...), o.mission(...), o.personnage(...), o.chargerModele(...)
  */
+function injecterStyle() { if (!document.getElementById('mb-styles')) { const st = document.createElement('style'); st.id = 'mb-styles'; st.textContent = STYLE; document.head.appendChild(st); } }
+
 export function outils(ctx) {
   const { scene, camera, renderer, controls, stage } = ctx;
+  injecterStyle();
   const boucles = []; const boucle = ctx.boucle || ((f) => boucles.push(f));
   if (!ctx.boucle) { const clock = new THREE.Clock(); const pas = () => { const dt = Math.min(0.05, clock.getDelta()); boucles.forEach((f) => { try { f(dt, clock.elapsedTime); } catch (e) { /* rien */ } }); requestAnimationFrame(pas); }; requestAnimationFrame(pas); }
   const legender = ctx.legender || ((objet, nom, phrase) => { objet.userData.legende = { nom, phrase }; objet.traverse((c) => { if (c !== objet) c.userData.legende = objet.userData.legende; }); return objet; });
@@ -375,7 +378,7 @@ export function outils(ctx) {
  */
 export function creerMonde(shell, o) {
   o = o || {};
-  if (!document.getElementById('mb-styles')) { const st = document.createElement('style'); st.id = 'mb-styles'; st.textContent = STYLE; document.head.appendChild(st); }
+  injecterStyle();
   const stage = shell.stage;
   const scene = new THREE.Scene(); window.Konstrio.declarer3d({ scene });
   if (o.fond != null) scene.background = typeof o.fond === 'number' ? new THREE.Color(o.fond) : o.fond;
