@@ -15,6 +15,7 @@ import { compter } from './usage.js';
 export const onRequest = methodeNonPermise(['GET', 'POST', 'PATCH', 'DELETE']);
 const LONGUEUR_MAX = 2000;
 const FARCES = ['tarte', 'neige', 'confettis', 'coeurs', 'feu'];
+export const FARCE_DELAI = 20000;
 const MATIERES = new Set(PROGRAMME.map((m) => m.id));
 const CONTEXTE = /^[^\u0000-\u001F<>]{1,120}$/;
 
@@ -110,11 +111,13 @@ export const onRequestPost = gerer(async (context) => {
   // B72 : le même texte envoyé deux fois en dix secondes est un double clic, pas un second message.
   const dernier = await DB.prepare('SELECT id, texte, cree_le FROM messages WHERE auteur = ? ORDER BY cree_le DESC LIMIT 1').bind(session.role).first().catch(() => null);
   if (dernier && dernier.texte === texte && !farce && Date.now() - new Date(dernier.cree_le).getTime() < 10000) return erreur(MESSAGES.doublon, 409, 'doublon');
-  // B75 : une farce toutes les vingt secondes au plus.
+  // B75, B201 : une farce toutes les vingt secondes au plus. Le stockage clé-valeur n'accepte pas une durée de vie
+  // sous soixante secondes : on garde l'heure du dernier envoi une minute et on compare.
   if (farce && context.env.SESSIONS) {
     const cle = 'farce:' + session.role;
-    if (await context.env.SESSIONS.get(cle)) return erreur('Une farce à la fois : attends vingt secondes.', 429, 'trop_vite');
-    await context.env.SESSIONS.put(cle, '1', { expirationTtl: 20 });
+    const dernier = Number(await context.env.SESSIONS.get(cle)) || 0;
+    if (Date.now() - dernier < FARCE_DELAI) return erreur('Une farce à la fois : attends vingt secondes.', 429, 'trop_vite');
+    await context.env.SESSIONS.put(cle, String(Date.now()), { expirationTtl: 60 });
   }
 
   const message = {

@@ -2224,8 +2224,6 @@
 
     afficher(
       `<h1>Messages</h1>
-       <div class="e-duo-ligne">${M ? M.duoHTML('eleve') : ''}</div>
-
        <div id="e-fils"></div>
        <details class="e-plus e-msg-chercher"><summary>Chercher dans les messages</summary>
          <p class="e-msg-recherche"><label class="visuellement-cache" for="e-msg-recherche">Rechercher dans les messages</label><input type="search" id="e-msg-recherche" placeholder="Un mot, un nom de leçon" autocomplete="off"></p>
@@ -2276,6 +2274,8 @@
              <svg class="ic" aria-hidden="true"><use href="#ic-boite"/></svg></button>
            <button type="button" class="e-outil" id="e-btn-fichier" title="Joindre un document" aria-label="Joindre un document">
              <svg class="ic" aria-hidden="true"><use href="#ic-trombone"/></svg></button>
+           <button type="button" class="e-outil e-outil-farce" id="e-btn-farce" title="Faire une farce à Bastien" aria-label="Faire une farce à Bastien" aria-expanded="false" aria-controls="e-farces">
+             <span aria-hidden="true">🥧</span></button>
            <button type="button" class="e-outil" id="e-btn-humeur" title="Ajouter une émoticône" aria-label="Ajouter une émoticône">
              <svg class="ic" aria-hidden="true"><use href="#ic-etincelle"/></svg></button>
            <button type="button" class="e-outil" id="e-btn-plus" title="Autres options : leçon concernée, message vocal, envoyer plus tard" aria-label="Autres options" aria-expanded="false" aria-controls="e-outils-menu">
@@ -2289,6 +2289,8 @@
            <button type="button" id="e-btn-sujet"><svg class="ic" aria-hidden="true"><use href="#ic-livre"/></svg>Dire de quelle leçon je parle</button>
            <button type="button" id="e-btn-vocal"><svg class="ic" aria-hidden="true"><use href="#ic-emoji"/></svg>Enregistrer un message vocal (30 s)</button>
            <button type="button" id="e-btn-differe"><svg class="ic" aria-hidden="true"><use href="#ic-horloge"/></svg>Envoyer plus tard</button>
+           <button type="button" id="e-btn-photo-profil"><svg class="ic" aria-hidden="true"><use href="#ic-photo"/></svg>Changer ma photo de profil</button>
+           <input type="file" id="e-photo-profil" accept="image/*" hidden>
            <label class="e-case e-outils-menu-option"><input type="checkbox" id="e-entree-envoie" ${N.lire('opaline.entree-envoie', false) ? 'checked' : ''}> La touche Entrée envoie le message (Maj et Entrée pour aller à la ligne)</label>
          </div>
          <div class="e-cite-zone" id="e-modif-zone" hidden>
@@ -2298,6 +2300,7 @@
          </div>
 
          <div class="e-humeurs" id="e-humeurs" hidden>${M ? M.selecteurEmojis('e-emojis') : HUMEURS.map((h) => `<button type="button" data-emoji-insere="${h}">${h}</button>`).join('')}</div>
+         ${M ? M.choixFarcesHTML('e-farces', 'e-farces') : ''}
 
          <div class="e-sujets e-differes" id="e-differes" hidden>
            <p>Envoyer quand ?</p>
@@ -2533,7 +2536,7 @@
         messages = rep[0].messages || [];
         plusAnciens = rep[0].suite === true;
         if (avant) { messages = messages.concat(listeMessages); fichiers = zoneT.__fichiers || []; stockage = zoneT.__stockage !== false; }
-        else { fichiers = rep[1].fichiers || []; stockage = rep[1].stockage !== false; zoneT.__fichiers = fichiers; zoneT.__stockage = stockage; }
+        else { fichiers = (rep[1].fichiers || []).filter((f) => f.note !== 'Photo de profil'); stockage = rep[1].stockage !== false; zoneT.__fichiers = fichiers; zoneT.__stockage = stockage; }
         listeMessages = messages;
       } catch (e) { N.signaler(e.message, 'erreur', { libelle: 'Réessayer', faire: () => charger(defiler) }); return; }
       const hauteurAvant = avant ? document.documentElement.scrollHeight : 0;
@@ -2677,7 +2680,7 @@
       if (btnAnciens) btnAnciens.addEventListener('click', () => { const plusVieux = listeMessages[0]; if (plusVieux) charger(false, plusVieux.cree_le); });
       if (avant && hauteurAvant) { window.scrollTo(0, document.documentElement.scrollHeight - hauteurAvant + window.scrollY); return; }
       if (defiler !== false) { zoneT.scrollTop = zoneT.scrollHeight; const dernier = zoneT.lastElementChild; if (dernier && dernier.scrollIntoView) dernier.scrollIntoView({ block: 'end' }); }
-      if (M) { M.brancherRejouer(zoneT, 'eleve'); if (defiler !== false) await M.jouerFarcesNonLues(messages, 'prof', document.getElementById('duo-moi')); }
+      if (M) { M.brancherRejouer(zoneT, 'eleve'); if (defiler !== false) await M.jouerFarcesNonLues(messages, 'prof', null); }
       try {
         await N.api('/messages', { method: 'PATCH' });
         N.etat.messagesNonLus = 0;
@@ -2694,12 +2697,11 @@
     // F093 : un clic hors d'un menu de réactions le referme.
     document.addEventListener('click', (ev) => { if (!zoneT.isConnected || ev.target.closest('[data-reagir-menu], [data-menu]')) return; zoneT.querySelectorAll('[data-menu]:not([hidden])').forEach((b) => { b.hidden = true; }); });
     if (M) M.brancherReactions(zoneT, () => charger(false));
-    if (M) M.brancherDuo(vue(), 'eleve', () => charger(false), () => filActif);
-    // Une ligne, deux photos : la mienne se change en la touchant, celle de Bastien reçoit les farces.
-    const btnPhotoDuo = vue().querySelector('[data-duo="photo"]'); if (btnPhotoDuo) btnPhotoDuo.textContent = 'Ma photo';
-    const photoMoi = document.getElementById('duo-moi'); if (photoMoi && btnPhotoDuo) { photoMoi.style.cursor = 'pointer'; photoMoi.addEventListener('click', () => btnPhotoDuo.click()); }
-    const btnFarceDuo = vue().querySelector('[data-duo="farce"]'); const photoAutre = document.getElementById('duo-autre');
-    if (photoAutre && btnFarceDuo) { photoAutre.style.cursor = 'pointer'; photoAutre.addEventListener('click', () => btnFarceDuo.click()); }
+    // F202 : la farce part depuis les outils d'écriture, comme une photo ou un document ; la photo de profil se change dans le menu « plus ».
+    if (M) {
+      M.brancherFarces(document.getElementById('e-btn-farce'), document.getElementById('e-farces'), 'eleve', () => charger(false), () => filActif);
+      M.brancherPhoto(document.getElementById('e-btn-photo-profil'), document.getElementById('e-photo-profil'), 'eleve', () => charger(false));
+    }
     document.getElementById('e-btn-scan').addEventListener('click', () => { if (window.SCAN) window.SCAN.ouvrir({ surFini: poserPiece }); else N.signaler('Le scanner n\'est pas disponible.'); });
     const champRecherche = document.getElementById('e-msg-recherche');
     if (champRecherche) champRecherche.addEventListener('input', () => { clearTimeout(champRecherche._t); champRecherche._t = setTimeout(() => { filtreTexte = champRecherche.value.trim(); charger(false); }, 250); });

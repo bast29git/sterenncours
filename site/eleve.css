@@ -1581,6 +1581,6 @@ html[data-confort-calme] .e-opale-avatar .oeil { animation: none; }
 }
 /* F066 : toute commande tactile fait au moins 44 pixels de côté sur téléphone. */
 @media (max-width: 52rem) and (pointer: coarse) {
-  .e-outil, .e-msg-action, .e-reactions-plus, .e-reactions-puce, .e-rapides button, .e-fils-barre button, .duo-actions button, .e-filtre-jeux a, .e-rond-tete { min-height: 44px; min-width: 44px; }
-  .e-msg-action, .e-rapides button, .duo-actions button { padding-left: 0.8rem; padding-right: 0.8rem; }
+  .e-outil, .e-msg-action, .e-reactions-plus, .e-reactions-puce, .e-rapides button, .e-fils-barre button, .e-filtre-jeux a, .e-rond-tete { min-height: 44px; min-width: 44px; }
+  .e-msg-action, .e-rapides button { padding-left: 0.8rem; padding-right: 0.8rem; }
 }

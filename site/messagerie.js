@@ -194,59 +194,65 @@
     await N.enregistrerProfil(clePhoto(role), id);
     return id;
   }
-  /** L'en-tête à deux : ma photo, celle de l'autre, et les deux gestes possibles. */
-  function duoHTML(moiRole) {
-    const autre = moiRole === 'prof' ? 'eleve' : 'prof';
+  /** Le choix des farces : un panneau replié sous la zone d'écriture, ouvert par le bouton des outils. */
+  function choixFarcesHTML(id, classe) {
     const F = window.FARCES;
-    return `<div class="duo" id="duo">
-      <div class="duo-personne"><span class="duo-photo" id="duo-moi">${avatar(moiRole)}</span><b>${moiRole === 'prof' ? 'Moi' : 'Moi'}</b>
-        <span class="duo-actions"><button type="button" data-duo="photo">Changer ma photo</button></span></div>
-      <span class="duo-vs" aria-hidden="true">·</span>
-      <div class="duo-personne"><span class="duo-photo" id="duo-autre">${avatar(autre)}</span><b>${NOMS[autre]}</b>
-        <span class="duo-actions"><button type="button" data-duo="farce" aria-expanded="false">Faire une farce</button></span></div>
-      <input type="file" accept="image/*" hidden data-duo="entree">
-    </div>
-    <div class="farces-choix" id="farces-choix" hidden>${F ? F.LISTE.map((f) => `<button type="button" data-farce="${f.id}"><span aria-hidden="true">${f.ico}</span>${ech(f.nom)}</button>`).join('') : ''}</div>`;
+    return `<div class="farces-choix ${classe || ''}" id="${id}" hidden role="group" aria-label="Choisir une farce">
+      <p class="farces-aide">Une farce part comme un message et s'anime sur la photo de l'autre, dans le fil. Une toutes les vingt secondes.</p>
+      ${F ? F.LISTE.map((f) => `<button type="button" data-farce="${f.id}"><span class="ico" aria-hidden="true">${f.ico}</span><span>${ech(f.nom)}</span></button>`).join('') : ''}</div>`;
   }
-  /** Branche l'en-tête : la photo, le choix et l'envoi d'une farce. `apres` recharge le fil. */
-  function brancherDuo(zone, moiRole, apres, fil) {
+  let derniereFarce = 0;
+  /** Branche le bouton d'ouverture et l'envoi d'une farce. `apres` recharge le fil, `fil` donne le fil courant. */
+  function brancherFarces(bouton, panneau, moiRole, apres, fil) {
     const N = window.NOYAU; const F = window.FARCES;
-    const entree = zone.querySelector('[data-duo="entree"]');
-    const btnPhoto = zone.querySelector('[data-duo="photo"]');
-    if (btnPhoto && entree) {
-      btnPhoto.addEventListener('click', () => entree.click());
-      entree.addEventListener('change', async () => {
-        const f = entree.files && entree.files[0]; entree.value = '';
-        if (!f) return;
-        try { await definirAvatar(moiRole, f); N.signaler('Photo de profil enregistrée.', 'succes'); const z = document.getElementById('duo-moi'); if (z) z.innerHTML = avatar(moiRole); if (apres) apres(); } catch (e) { N.signaler(e.message); }
-      });
-    }
-    const btnFarce = zone.querySelector('[data-duo="farce"]'); const choix = document.getElementById('farces-choix');
-    if (btnFarce && choix) {
-      btnFarce.addEventListener('click', () => { choix.hidden = !choix.hidden; btnFarce.setAttribute('aria-expanded', String(!choix.hidden)); });
-      choix.querySelectorAll('[data-farce]').forEach((b) => b.addEventListener('click', async () => {
-        const id = b.getAttribute('data-farce'); choix.hidden = true; btnFarce.setAttribute('aria-expanded', 'false');
-        if (!F) return;
-        try {
-          await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: F.texteDe(id, NOMS[moiRole]), contexte: 'farce:' + id, fil: typeof fil === 'function' ? fil() : (fil || null) }) });
-          // F092 : une farce toutes les vingt secondes : le bouton le dit au lieu de laisser le serveur refuser.
-          btnFarce.disabled = true; const libelle = btnFarce.textContent; btnFarce.textContent = 'Dans 20 s';
-          setTimeout(() => { btnFarce.disabled = false; btnFarce.textContent = libelle; }, 20000);
-          const autre = moiRole === 'prof' ? 'eleve' : 'prof';
-          if (apres) await apres();
-          // La farce s'écrase sur la photo de l'autre, dans le fil : son message vient d'y apparaître.
-          await new Promise((ok) => setTimeout(ok, 450));
-          await F.jouer(id, F.cible(autre));
-        } catch (e) { N.signaler(e.message); }
-      }));
-    }
+    if (!bouton || !panneau) return;
+    const autre = moiRole === 'prof' ? 'eleve' : 'prof';
+    // F201 : une farce toutes les vingt secondes : le bouton le dit au lieu de laisser le serveur refuser, même après un rechargement du fil.
+    const libelle = bouton.getAttribute('aria-label') || bouton.title || 'Faire une farce';
+    const geler = () => {
+      const reste = Math.ceil((20000 - (Date.now() - derniereFarce)) / 1000);
+      if (reste <= 0) { bouton.disabled = false; bouton.setAttribute('aria-label', libelle); bouton.title = libelle; bouton.classList.remove('attente'); return; }
+      bouton.disabled = true; bouton.classList.add('attente'); bouton.title = `Prochaine farce dans ${reste} s`; bouton.setAttribute('aria-label', bouton.title);
+      setTimeout(geler, 1000);
+    };
+    geler();
+    const fermer = () => { panneau.hidden = true; bouton.setAttribute('aria-expanded', 'false'); };
+    bouton.addEventListener('click', () => { panneau.hidden = !panneau.hidden; bouton.setAttribute('aria-expanded', String(!panneau.hidden)); if (!panneau.hidden) { const premier = panneau.querySelector('button'); if (premier) premier.focus(); } });
+    panneau.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { fermer(); bouton.focus(); } });
+    panneau.querySelectorAll('[data-farce]').forEach((b) => b.addEventListener('click', async () => {
+      const id = b.getAttribute('data-farce'); fermer();
+      if (!F) return;
+      try {
+        await N.api('/messages', { method: 'POST', body: JSON.stringify({ texte: F.texteDe(id, NOMS[moiRole]), contexte: 'farce:' + id, fil: typeof fil === 'function' ? fil() : (fil || null) }) });
+        derniereFarce = Date.now(); geler();
+        if (apres) await apres();
+        // La farce s'écrase sur la photo de l'autre, dans le fil : son message vient d'y apparaître.
+        await new Promise((ok) => setTimeout(ok, 450));
+        await F.jouer(id, F.cible(autre));
+      } catch (e) { N.signaler(e.message); }
+    }));
   }
+  /** Branche un bouton « Changer ma photo » et son champ fichier ; `apres` reçoit l'identifiant du fichier. */
+  function brancherPhoto(bouton, entree, moiRole, apres) {
+    const N = window.NOYAU;
+    if (!bouton || !entree) return;
+    bouton.addEventListener('click', () => entree.click());
+    entree.addEventListener('change', async () => {
+      const f = entree.files && entree.files[0]; entree.value = '';
+      if (!f) return;
+      if (f.type.indexOf('image/') !== 0) { N.signaler('Choisis une image (photo ou dessin).'); return; }
+      bouton.disabled = true;
+      try { const id = await definirAvatar(moiRole, f); N.signaler('Photo de profil enregistrée.', 'succes'); if (apres) apres(id); } catch (e) { N.signaler(e.message); } finally { bouton.disabled = false; }
+    });
+  }
+  /** La photo de profil, en grand, pour une page de réglages. */
+  function photoProfilHTML(role, id) { return `<span class="photo-profil" ${id ? `id="${id}"` : ''} aria-hidden="true">${avatar(role)}</span>`; }
   /** Les farces reçues et pas encore lues se jouent sur ma photo, une à la fois (trois au plus). */
   async function jouerFarcesNonLues(messages, autreRole, cible) {
     const F = window.FARCES; if (!F) return;
     const liste = (messages || []).filter((m) => m.auteur === autreRole && !m.lu_le && F.idDe(m)).slice(-3);
     const moi = autreRole === 'prof' ? 'eleve' : 'prof';
-    for (const m of liste) await F.jouer(F.idDe(m), F.cible(moi) || cible);
+    for (const m of liste) await F.jouer(F.idDe(m), F.cible(moi) || cible || null);
   }
   /** La bulle d'une farce dans le fil, avec « Rejouer ». */
   function bulleFarce(m, classe) {
@@ -258,9 +264,9 @@
     const F = window.FARCES; if (!F) return;
     zone.querySelectorAll('[data-rejouer]').forEach((b) => b.addEventListener('click', () => {
       const victime = b.getAttribute('data-victime');
-      F.jouer(b.getAttribute('data-rejouer'), F.cible(victime) || document.getElementById(victime === moiRole ? 'duo-moi' : 'duo-autre'));
+      F.jouer(b.getAttribute('data-rejouer'), F.cible(victime) || b.closest('.e-msg, .p-msg'));
     }));
   }
 
-  window.MESSAGERIE = { EMOJIS, REACTIONS, AUTOCOLLANTS, rendreReaction, formater, filDe, barreFils, filtrer, reactionsHTML, brancherReactions, selecteurEmojis, inserer, barreFormatage, brancherFormatage, eclat, avatar, definirAvatar, duoHTML, brancherDuo, jouerFarcesNonLues, bulleFarce, brancherRejouer };
+  window.MESSAGERIE = { EMOJIS, REACTIONS, AUTOCOLLANTS, rendreReaction, formater, filDe, barreFils, filtrer, reactionsHTML, brancherReactions, selecteurEmojis, inserer, barreFormatage, brancherFormatage, eclat, avatar, definirAvatar, choixFarcesHTML, brancherFarces, brancherPhoto, photoProfilHTML, jouerFarcesNonLues, bulleFarce, brancherRejouer };
 })();

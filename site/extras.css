@@ -23,19 +23,21 @@
 .prof .scan-boite .e-bouton { font: inherit; font-weight: 700; padding: 0.55rem 1rem; border-radius: 999px; border: 0; cursor: pointer; background: var(--p-accent, #2A5BD7); color: #fff; }
 .prof .scan-boite .e-bouton-doux, .prof .scan-boite .e-bouton-fin { background: transparent; color: inherit; border: 1px solid currentColor; }
 
-/* ---------- Photos de profil et duo ---------- */
-.duo { display: flex; align-items: center; justify-content: center; gap: 1.2rem; margin: 0 0 1rem; }
-.duo-personne { display: grid; justify-items: center; gap: 0.35rem; text-align: center; }
-.duo-personne b { font-size: 0.9rem; }
-.duo-photo { position: relative; width: 5.2rem; height: 5.2rem; border-radius: 50%; overflow: visible; display: grid; place-items: center; font-size: 1.8rem; font-weight: 800; background: var(--e-voile, #eef); color: var(--e-vif-fonce, #246); border: 3px solid var(--e-carte, #fff); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12); }
-.duo-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.duo-vs { font-size: 0.8rem; font-weight: 700; opacity: 0.6; }
-.duo-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35rem; }
-.duo-actions button { font: inherit; font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 999px; border: 1px solid var(--e-trait-fort, #bbb); background: var(--e-carte, #fff); color: inherit; cursor: pointer; }
-.duo-actions button:hover { border-color: var(--e-vif, #248); }
+/* ---------- Photos de profil, dans les bulles ---------- */
+.photo-profil { width: 4.2rem; height: 4.2rem; border-radius: 50%; display: inline-grid; place-items: center; overflow: hidden; font-size: 1.5rem; font-weight: 800; background: var(--e-voile, #eef); color: var(--e-vif-fonce, #246); border: 3px solid var(--e-carte, #fff); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12); vertical-align: middle; }
+.photo-profil img { width: 100%; height: 100%; object-fit: cover; }
 .e-msg-pastille img, .p-msg-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .p-msg-photo { width: 1.6rem; height: 1.6rem; border-radius: 50%; display: inline-grid; place-items: center; font-size: 0.7rem; font-weight: 800; background: var(--p-surface-2, #eee); overflow: hidden; vertical-align: middle; }
-.farces-choix { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0 0.9rem; }
+.farces-choix { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0 0.9rem; padding: 0.55rem 0.7rem; border: 1px solid var(--e-trait, #ddd); border-radius: var(--e-r-petit, 10px); background: var(--e-carte, #fff); }
+.farces-choix .farces-aide { flex-basis: 100%; margin: 0 0 0.15rem; font-size: 0.8rem; line-height: 1.45; color: var(--e-encre-douce, #4a4a4a); }
+.farces-choix button .ico { font-size: 1.15rem; line-height: 1; }
+.e-outil-farce { font-size: 1.05rem; line-height: 1; }
+.e-outil-farce.attente, .p-bouton.attente { opacity: 0.45; }
+.farce-canevas.fin { opacity: 0; transition: opacity 0.6s; }
+.farce-nuit { position: fixed; inset: 0; z-index: 94; pointer-events: none; opacity: 0; transition: opacity 0.7s; background: radial-gradient(ellipse at 50% 35%, rgba(10, 14, 48, 0.62), rgba(4, 6, 26, 0.86)); }
+.farce-nuit.on { opacity: 1; }
+.p-photo-ligne { align-items: center; gap: 0.8rem; }
+.p-farces { margin-bottom: 0.6rem; }
 .farces-choix button { font: inherit; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.8rem; border-radius: 999px; border: 1px solid var(--e-trait-fort, #bbb); background: var(--e-carte, #fff); color: inherit; cursor: pointer; }
 .farces-choix button:hover { border-color: var(--e-vif, #248); }
 .e-bulle-farce, .p-msg-farce { display: flex; align-items: center; gap: 0.6rem; }
@@ -48,7 +50,8 @@
 .farce-coulures { position: fixed; inset: 0; z-index: 94; pointer-events: none; }
 .farce-coulures.fin { opacity: 0; transition: opacity 0.9s; }
 .farce-goutte { position: absolute; width: calc(1.1rem * var(--s, 1)); height: calc(2.2rem * var(--s, 1)); margin: -0.5rem 0 0 -0.5rem; border-radius: 50% 50% 55% 55% / 40% 40% 60% 60%; background: linear-gradient(180deg, #fff9ee, #f6e6c9); box-shadow: inset -3px -4px 6px rgba(160, 120, 60, 0.18), 0 2px 4px rgba(0, 0, 0, 0.12); animation: farce-coule calc(3s * var(--t, 1)) ease-in forwards; }
-.farce-goutte.neige { background: linear-gradient(180deg, #ffffff, #dfeefb); box-shadow: inset -2px -3px 5px rgba(120, 160, 200, 0.25); animation-duration: calc(4s * var(--t, 1)); }
+.farce-goutte.neige { width: calc(1.6rem * var(--s, 1)); height: calc(1.1rem * var(--s, 1)); border-radius: 55% 45% 50% 50% / 60% 60% 40% 40%; background: radial-gradient(circle at 35% 30%, #ffffff, #e4f0fb 70%, #cfe2f4); box-shadow: inset -2px -3px 5px rgba(120, 160, 200, 0.25), 0 1px 3px rgba(0, 0, 0, 0.1); animation: farce-fond calc(4s * var(--t, 1)) ease-in forwards; }
+@keyframes farce-fond { 0% { transform: scale(0.4); opacity: 0; } 12% { transform: scale(1); opacity: 1; } 70% { opacity: 1; } 100% { transform: scale(0.85) translateY(6px); opacity: 0; } }
 .farce-givre { position: fixed; inset: 0; z-index: 93; pointer-events: none; opacity: 0; transition: opacity 0.5s; background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0) 38%, rgba(226, 240, 252, 0.55) 70%, rgba(200, 225, 248, 0.92) 100%); }
 .farce-givre::before { content: ""; position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.35) 0 4deg, transparent 4deg 12deg); mask: radial-gradient(ellipse at center, transparent 45%, #000 100%); -webkit-mask: radial-gradient(ellipse at center, transparent 45%, #000 100%); opacity: 0.35; }
 .farce-givre.on { opacity: 1; }

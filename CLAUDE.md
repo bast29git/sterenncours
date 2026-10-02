@@ -163,15 +163,21 @@ quelque chose, pas seulement signaler l'erreur.
   couper. Le professeur le voit sur la page « Sterenn ».
 - **Scanner** (`site/scan.js`, les deux espaces) : photos redressées en niveaux de gris, papier
   blanc ; plusieurs pages font un PDF écrit dans le navigateur, envoyé par `/api/fichiers`.
-- **Photos de profil et farces** (`site/farces.js`, helpers dans `site/messagerie.js`) : photo de
-  chacun (`moi.avatar`, `prof.avatar`, fichier réduit à 320 px) ; une farce est un message de
-  contexte `farce:<id>` (tarte à la crème et énorme boule de neige en 3D plein écran via three.js,
-  confettis, pluie de cœurs, feu d'artifice), avec ses sons (WebAudio, coupés par le réglage des
-  sons). Elle vole depuis le fond de l'écran et s'écrase sur la **photo dans le fil** (la dernière
-  pastille de l'autre à l'envoi, la sienne à la lecture des messages non lus), laisse une tache et
-  des coulures, se rejoue, et se réduit à son résultat en mouvement réduit. Le professeur peut
-  effacer une discussion entière (`DELETE /api/messages?fil=`), Sterenn un de ses messages dans
-  les cinq minutes.
+- **Photos de profil et farces** (`site/farces.js`, helpers dans `site/messagerie.js`) : la photo de
+  chacun (`moi.avatar`, `prof.avatar`, fichier réduit à 320 px, note « Photo de profil » : jamais
+  listée comme un dépôt) vit **dans les bulles** du fil, sans en-tête à deux ; Sterenn la change dans
+  le menu « plus » de la zone d'écriture, le professeur dans Réglages. Une farce est un message de
+  contexte `farce:<id>`, envoyé depuis le bouton 🥧 des outils d'écriture (vingt secondes entre deux,
+  compte à rebours sur le bouton, `FARCE_DELAI` côté serveur avec une clé KV d'une minute). Les cinq
+  farces sont en 3D plein écran (three.js, studio de lumière rendu en carte d'environnement, fondu
+  de sortie) : la tarte à la crème et l'énorme boule de neige volent vers la **photo dans le fil**
+  (la dernière pastille de l'autre à l'envoi, la sienne à la lecture des messages non lus), leurs
+  éclats collent à l'écran puis glissent ; les confettis tombent en pluie instanciée ; les cœurs
+  vernis montent de la photo ; le feu d'artifice assombrit la page puis tire six gerbes. Chaque farce
+  a ses sons (WebAudio, coupés par le réglage des sons), laisse une tache et des coulures, se rejoue,
+  se réduit à son résultat en mouvement réduit, et retombe sur un canevas 2D sans WebGL. Le
+  professeur peut effacer une discussion entière (`DELETE /api/messages?fil=`), Sterenn un de ses
+  messages dans les cinq minutes.
 - **Sujets d'évaluation papier** : `public/evaluations/<matiere>/<ref>.html` pour Sterenn (servi
   quand l'évaluation est ouverte, même règle que le sujet en ligne) et
   `public/data/contenu/<matiere>/<ref>-evaluation-corrige.html` pour le professeur (corrigés

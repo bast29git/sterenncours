@@ -234,6 +234,10 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 - [x] B199 L'empreinte de l'état partagé utilise SHA-256.
 - [x] B200 L'état partagé donne l'heure du serveur (décalage d'horloge détectable).
 
+### Suite (B201 et au-delà)
+
+- [x] B201 La limite entre deux farces respecte la durée de vie minimale du stockage clé-valeur (une minute) : l'heure du dernier envoi est comparée à `FARCE_DELAI` ; avant, toute farce répondait 500. Test unitaire sur toutes les durées de vie.
+
 ## Site : 200 améliorations (F001 à F200)
 
 ### Noyau (`site/app.js`)
@@ -450,3 +454,10 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 - [x] F198 Le build vérifie que tout fichier de la coquille du service worker existe.
 - [x] F199 `npm run audit:a11y` : axe-core sur seize écrans des deux espaces, échec sur un manquement sérieux.
 - [x] F200 Ce document, et CLAUDE.md, à jour.
+
+### Suite (F201 et au-delà)
+
+- [x] F201 Le bouton de farce se gèle vingt secondes avec un compte à rebours, et le reste après un rechargement du fil.
+- [x] F202 La farce part des outils d'écriture (bouton 🥧, panneau replié) ; plus d'en-tête à deux au-dessus du fil : les photos vivent dans les bulles.
+- [x] F203 La photo de profil se change dans le menu « plus » (Sterenn) et dans Réglages (professeur) ; une photo de profil n'est jamais listée comme un dépôt.
+- [x] F204 Cinq farces en 3D : environnement lumineux (PMREM), éclats qui collent à l'écran et glissent, confettis instanciés, cœurs extrudés vernis, feu d'artifice sur voile de nuit avec traînées et éclairs, fondu de sortie du canevas, culling désactivé sur les particules.

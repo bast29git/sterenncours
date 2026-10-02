@@ -1453,7 +1453,6 @@
 
     afficher(
       entete('Messages', `${messages.length} message(s) · ${N.etat.messagesNonLus} non lu(s)`)
-      + (M ? M.duoHTML('prof') : '')
       + (M ? M.barreFils(messages, filProf, 'p-fils-barre') : '')
       + `<div class="p-modeles p-msg-outils">
           <form class="p-msg-recherche" id="m-form-recherche" role="search"><label class="visuellement-cache" for="m-q">Chercher dans les messages</label><input id="m-q" type="search" placeholder="Chercher un mot…" value="${N.ech(rechercheProf || '')}" autocomplete="off"><button type="submit" class="p-bouton p-bouton-fantome p-bouton-mini">${N.ic('ic-loupe')} Chercher</button>${rechercheProf ? '<button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-q-vider">Effacer</button>' : ''}</form>
@@ -1491,10 +1490,12 @@
           <div class="p-modeles">
             <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-emojis-btn" aria-expanded="false">${N.ic('ic-emoji')} Émojis</button>
             <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-scan">${N.ic('ic-boite')} Scanner un document</button>
+            <button type="button" class="p-bouton p-bouton-fantome p-bouton-mini" id="m-farce-btn" aria-expanded="false" aria-controls="m-farces" title="Faire une farce à Sterenn"><span aria-hidden="true">🥧</span> Farce</button>
             <select id="m-modele" aria-label="Modèle de message"><option value="">Modèle…</option>${MODELES_MESSAGE.map((t, i) => `<option value="${i}">${N.ech(t.nom)}</option>`).join('')}</select>
             <select id="m-differe" aria-label="Envoyer plus tard"><option value="">Envoyer maintenant</option><option value="soir">Ce soir à 18 h</option><option value="matin">Demain à 8 h</option><option value="lundi">Lundi à 8 h</option></select>
           </div>
           <div class="p-emojis" id="m-emojis" hidden>${M ? M.selecteurEmojis('p-emojis') : ''}</div>
+          ${M ? M.choixFarcesHTML('m-farces', 'p-farces') : ''}
           <button class="p-bouton" type="submit">Envoyer</button>
         </form>`),
       [{ t: 'Échanges' }, { t: 'Messages' }],
@@ -1503,9 +1504,9 @@
     const filMsg = document.getElementById('p-fil-msg');
     filMsg.scrollTop = filMsg.scrollHeight;
     if (M) {
-      M.brancherDuo(vue(), 'prof', () => vueMessages(null, true), () => filProf);
+      M.brancherFarces(document.getElementById('m-farce-btn'), document.getElementById('m-farces'), 'prof', () => vueMessages(null, true), () => filProf);
       M.brancherRejouer(filMsg, 'prof');
-      if (!sansChargement) await M.jouerFarcesNonLues(messages, 'eleve', document.getElementById('duo-moi'));
+      if (!sansChargement) await M.jouerFarcesNonLues(messages, 'eleve', null);
     }
     // F165 : chaque fil montre ses non lus.
     vue().querySelectorAll('.p-fils-barre [data-fil]').forEach((b) => { const n = parFil[b.getAttribute('data-fil') || 'general']; if (n) b.insertAdjacentHTML('beforeend', `<i class="p-fil-nonlus" aria-label="${n} non lu${n > 1 ? 's' : ''}">${n}</i>`); });
@@ -1665,7 +1666,8 @@
     let donnees = { fichiers: [], stockage: true };
     // F154 : filtre par famille, page suivante et quota du jour, par le serveur.
     try { donnees = await N.api('/fichiers' + (genreDepots || avantDepots ? '?' + new URLSearchParams(Object.assign({}, genreDepots ? { genre: genreDepots } : {}, avantDepots ? { avant: avantDepots, limite: '100' } : {})).toString() : '')); } catch (e) { N.signaler(e.message); }
-    const fichiers = donnees.fichiers || [];
+    // Les photos de profil ne sont pas des dépôts.
+    const fichiers = (donnees.fichiers || []).filter((f) => f.note !== 'Photo de profil');
     const delle = fichiers.filter((f) => f.auteur === 'eleve');
     const felicite = new Set((N.etat.felicitations || []).map((x) => x.fichier_id).filter(Boolean));
 
@@ -2291,6 +2293,8 @@
         <div id="r-sauvegardes"><p class="p-vide">Chargement…</p></div>`)
       + bloc('Sonde et notifications', `<p class="p-aide">L'espace interroge le serveur à intervalle régulier pour voir les nouveaux messages et réglages. Plus court, plus réactif ; plus long, moins de requêtes.</p>
         <label for="r-sonde">Délai de la sonde</label> <select id="r-sonde">${[20, 30, 45, 60, 90, 120, 180].map((v) => `<option value="${v}" ${Number(N.reglage('sonde')) === v ? 'selected' : ''}>${v} s</option>`).join('')}</select>`)
+      + bloc('Ma photo de profil', `<p class="p-aide">Elle apparaît dans les bulles de mes messages, chez Sterenn comme ici. Une image carrée convient le mieux ; elle est réduite à 320 pixels.</p>
+        <p class="p-modeles p-photo-ligne">${window.MESSAGERIE ? window.MESSAGERIE.photoProfilHTML('prof', 'r-photo-apercu') : ''}<button type="button" class="p-bouton p-bouton-fantome" id="r-photo-btn">${N.ic('ic-photo')} Changer ma photo</button><input type="file" id="r-photo" accept="image/*" hidden></p>`)
       + bloc('Affichage du pilotage', `<p class="p-aide">Retenu sur cet appareil, sans effet chez Sterenn.</p>
         <div class="ligne"><div><label for="r-accent">Couleur d'accent</label><select id="r-accent">${[['bleu', 'Bleu'], ['vert', 'Vert opale'], ['prune', 'Prune']].map(([v, t]) => `<option value="${v}" ${(N.lire('opaline.pilotage', {}).accent || 'bleu') === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
         <div><label for="r-densite">Densité des tableaux</label><select id="r-densite">${[['confortable', 'Confortable'], ['compacte', 'Compacte']].map(([v, t]) => `<option value="${v}" ${(N.lire('opaline.pilotage', {}).densite || 'confortable') === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div></div>
@@ -2308,6 +2312,8 @@
     [{ t: 'Réglages' }]);
     document.getElementById('r-sonde').addEventListener('change', async (ev) => { try { const d = await N.api('/reglages', { method: 'PUT', body: JSON.stringify({ cle: 'sonde', valeur: Number(ev.target.value) }) }); N.etat.reglages = d.reglages || N.etat.reglages; N.signaler('Sonde : toutes les ' + ev.target.value + ' secondes.', 'succes'); } catch (e) { N.signaler(e.message); } });
     document.getElementById('r-accent').addEventListener('change', (ev) => N.appliquerPilotage({ accent: ev.target.value }));
+    // F203 : la photo de profil du professeur se change ici, plus dans la messagerie.
+    if (window.MESSAGERIE) window.MESSAGERIE.brancherPhoto(document.getElementById('r-photo-btn'), document.getElementById('r-photo'), 'prof', () => { const z = document.getElementById('r-photo-apercu'); if (z) z.innerHTML = window.MESSAGERIE.avatar('prof'); });
     document.getElementById('r-densite').addEventListener('change', (ev) => N.appliquerPilotage({ densite: ev.target.value }));
     document.getElementById('r-codes').addEventListener('submit', async (ev) => {
       ev.preventDefault();

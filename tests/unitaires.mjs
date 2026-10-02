@@ -124,3 +124,15 @@ test('service worker : la coquille cite les feuilles de la direction calme et le
   assert.ok(sw.includes('paquet-eleve.js') && sw.includes('paquet-prof.js'), 'paquets');
   assert.ok(sw.includes('HORS_LIGNE'), 'page hors ligne');
 });
+
+test('serveur : aucune durée de vie du stockage clé-valeur sous la minute (B201)', async () => {
+  const { FARCE_DELAI } = await import('../functions/api/messages.js');
+  assert.equal(FARCE_DELAI, 20000);
+  const fichiers = [];
+  const parcourir = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => { const c = path.join(d, e.name); if (e.isDirectory()) parcourir(c); else if (c.endsWith('.js')) fichiers.push(c); });
+  parcourir(path.join(RACINE, 'functions'));
+  fichiers.forEach((f) => {
+    const src = fs.readFileSync(f, 'utf8');
+    for (const m of src.matchAll(/expirationTtl:\s*(\d+)/g)) assert.ok(Number(m[1]) >= 60, `${path.relative(RACINE, f)} : durée de vie ${m[1]} s trop courte`);
+  });
+});
