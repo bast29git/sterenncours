@@ -197,11 +197,14 @@ Pour chaque affirmation, indique s'il s'agit de la magnitude ou de l'intensité.
 5. Elle a une valeur différente dans chaque ville touchée.
 
 ::: corrige
-1. L'**intensité**.
-2. La **magnitude**.
-3. L'**intensité**.
-4. La **magnitude**.
-5. L'**intensité**.
+Ce qu'on cherche : distinguer la magnitude, qui mesure l'énergie libérée au foyer, de l'intensité, qui décrit les effets observés en un lieu.
+1. Elle se note en chiffres romains : l'**intensité**, sur une échelle de I à XII.
+2. Elle est unique pour un séisme donné : la **magnitude**, car un séisme libère une seule quantité d'énergie.
+3. Elle se mesure par observation des dégâts : l'**intensité**, qui dépend de ce que les personnes ressentent et de ce qui est détruit.
+4. Elle se calcule à partir des sismogrammes : la **magnitude**, à partir de l'amplitude des ondes enregistrées.
+5. Elle a une valeur différente dans chaque ville touchée : l'**intensité**, qui diminue quand on s'éloigne de l'épicentre.
+
+Pour retenir : une magnitude par séisme, une intensité par lieu.
 :::
 :::
 

@@ -45,12 +45,14 @@ Simplifie l'écriture de chaque expression.
 6. `3 × (x + 1)`
 
 ::: corrige
-1. `4a`
-2. `xy`
-3. `t`
-4. `−m`
-5. `b²`
-6. `3(x + 1)`
+Ce qu'on cherche : la même expression, écrite avec les conventions du calcul littéral.
+Règles utilisées : le signe `×` disparaît entre un nombre et une lettre, entre deux lettres et devant une parenthèse ; le nombre s'écrit toujours devant la lettre.
+1. `4 × a = 4a`.
+2. `x × y = xy`.
+3. `1 × t = t` : le facteur 1 ne s'écrit pas, multiplier par 1 ne change rien.
+4. `−1 × m = −m` : le facteur `−1` devient un simple signe `−` devant la lettre.
+5. `b × b = b²` : une lettre multipliée par elle-même s'écrit avec un exposant 2.
+6. `3 × (x + 1) = 3(x + 1)` : on garde les parenthèses, elles indiquent que le 3 multiplie toute la somme.
 :::
 :::
 
@@ -80,11 +82,16 @@ Réduis chaque expression.
 5. `3x² + 2x − x² + 5x`
 
 ::: corrige
-1. `9x`
-2. `5a`
-3. `3x + 11`
-4. `3y − 5`. Attention : `−y` vaut `−1y`, donc `4y − y = 3y`.
-5. `2x² + 7x`
+Ce qu'on cherche : une expression plus courte, avec les termes en `x` regroupés d'un côté et les nombres seuls de l'autre.
+Méthode : on repère les termes de même nature, on additionne leurs coefficients, et on recopie le signe placé devant chaque terme.
+1. `7x + 2x = (7 + 2)x = 9x`.
+2. `9a − 4a = (9 − 4)a = 5a`.
+3. `5x + 3 − 2x + 8` : termes en `x` : `5x − 2x = 3x` ; nombres : `3 + 8 = 11`. Résultat : `3x + 11`.
+4. `4y − 7 − y + 2` : termes en `y` : `4y − y = 3y`, car `−y` vaut `−1y` ; nombres : `−7 + 2 = −5`. Résultat : `3y − 5`.
+5. `3x² + 2x − x² + 5x` : termes en `x²` : `3x² − x² = 2x²` ; termes en `x` : `2x + 5x = 7x`. Résultat : `2x² + 7x`.
+
+Vérification du 3 avec `x = 1` : expression de départ `5 + 3 − 2 + 8 = 14`, expression réduite `3 + 11 = 14`. Les deux valeurs sont égales.
+Piège évité au 5 : `x²` et `x` ne sont pas de même nature, on ne les additionne jamais entre eux.
 :::
 :::
 
@@ -150,11 +157,15 @@ Développe.
 5. `2x(3x − 5)`
 
 ::: corrige
-1. `5x + 10`
-2. `3x − 21`
-3. `8x + 4`
-4. `x² + 6x`
-5. `6x² − 10x`
+Ce qu'on cherche : écrire chaque produit sous la forme d'une somme, sans parenthèses.
+Méthode : la distributivité, `k(a + b) = ka + kb`. Le facteur devant la parenthèse multiplie **chaque** terme de l'intérieur, en gardant les signes.
+1. `5(x + 2) = 5 × x + 5 × 2 = 5x + 10`.
+2. `3(x − 7) = 3 × x − 3 × 7 = 3x − 21`.
+3. `4(2x + 1) = 4 × 2x + 4 × 1 = 8x + 4`.
+4. `x(x + 6) = x × x + x × 6 = x² + 6x`.
+5. `2x(3x − 5) = 2x × 3x − 2x × 5 = 6x² − 10x`.
+
+Vérification du 5 avec `x = 2` : `2 × 2 × (6 − 5) = 4 × 1 = 4` ; et `6 × 4 − 10 × 2 = 24 − 20 = 4`. Les deux valeurs sont égales.
 :::
 :::
 
@@ -270,10 +281,15 @@ Factorise.
 4. `7x² − 7x`
 
 ::: corrige
-1. `3(x + 4)`
-2. `5(2x − 3)`
-3. `x(x + 4)`
-4. `7x(x − 1)`
+Ce qu'on cherche : écrire chaque somme sous la forme d'un produit, c'est l'opération inverse du développement.
+Méthode : on trouve le facteur commun aux deux termes, on l'écrit devant une parenthèse, et dans la parenthèse on écrit ce qui reste de chaque terme.
+1. `3x + 12` : facteur commun `3`, car `3x = 3 × x` et `12 = 3 × 4`. Donc `3x + 12 = 3(x + 4)`.
+2. `10x − 15` : facteur commun `5`, car `10x = 5 × 2x` et `15 = 5 × 3`. Donc `10x − 15 = 5(2x − 3)`.
+3. `x² + 4x` : facteur commun `x`, car `x² = x × x` et `4x = x × 4`. Donc `x² + 4x = x(x + 4)`.
+4. `7x² − 7x` : facteur commun `7x`, car `7x² = 7x × x` et `7x = 7x × 1`. Donc `7x² − 7x = 7x(x − 1)`.
+
+Vérification : on redéveloppe. `7x(x − 1) = 7x² − 7x`, on retrouve l'expression de départ.
+Piège évité au 4 : quand le facteur commun est tout un terme, il reste `1` dans la parenthèse, pas `0`.
 :::
 :::
 

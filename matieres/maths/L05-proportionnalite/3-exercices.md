@@ -165,9 +165,13 @@ Myne fabrique du papier dans son atelier. Calcule le pourcentage.
 3. `9` feuilles déchirées sur `300`
 
 ::: corrige
-1. `(12 ÷ 48) × 100 = 25 %`
-2. `(35 ÷ 140) × 100 = 25 %`
-3. `(9 ÷ 300) × 100 = 3 %`
+Ce qu'on cherche : la part que représente une quantité par rapport au total, exprimée sur 100.
+Méthode : `pourcentage = (partie ÷ total) × 100`.
+1. `12` sur `48` : `12 ÷ 48 = 0,25`, et `0,25 × 100 = 25`. Donc **25 %** des feuilles sont réussies.
+2. `35` sur `140` : `35 ÷ 140 = 0,25`, et `0,25 × 100 = 25`. Donc **25 %** des pages sont reliées.
+3. `9` sur `300` : `9 ÷ 300 = 0,03`, et `0,03 × 100 = 3`. Donc **3 %** des feuilles sont déchirées.
+
+Vérification du 1 : `25 %` de `48`, c'est le quart de 48, soit `48 ÷ 4 = 12`. On retrouve bien les 12 feuilles.
 :::
 :::
 
@@ -180,10 +184,15 @@ Donne le coefficient multiplicateur.
 4. une baisse de `5 %`
 
 ::: corrige
-1. `1,15`
-2. `0,80`
-3. `2`
-4. `0,95`
+Ce qu'on cherche : le nombre par lequel on multiplie une valeur pour appliquer la hausse ou la baisse en une seule opération.
+Méthode : une hausse de `t %` donne le coefficient `1 + t/100` ; une baisse de `t %` donne `1 − t/100`.
+1. Hausse de `15 %` : `1 + 0,15 = 1,15`.
+2. Baisse de `20 %` : `1 − 0,20 = 0,80`.
+3. Hausse de `100 %` : `1 + 1 = 2`. La valeur double.
+4. Baisse de `5 %` : `1 − 0,05 = 0,95`.
+
+Vérification du 2 : un prix de `50 €` baissé de `20 %` perd `10 €` et passe à `40 €` ; et `50 × 0,80 = 40`. Le coefficient est juste.
+Un coefficient plus grand que 1 signale une hausse, plus petit que 1 une baisse.
 :::
 :::
 
@@ -249,9 +258,13 @@ Calcule.
 3. Un cycliste parcourt `75 km` à `25 km/h`. Quelle durée ?
 
 ::: corrige
-1. `v = 480 ÷ 4 = 120 km/h`
-2. `d = 80 × 3 = 240 km`
-3. `t = 75 ÷ 25 = 3 h`
+Ce qu'on cherche : une vitesse, une distance, une durée. Les trois se relient par `d = v × t`.
+1. Vitesse : `v = d ÷ t = 480 ÷ 4 = 120`. Le train roule à **120 km/h**.
+2. Distance : `d = v × t = 80 × 3 = 240`. La voiture parcourt **240 km**.
+3. Durée : `t = d ÷ v = 75 ÷ 25 = 3`. Le cycliste roule pendant **3 h**.
+
+Vérification du 1 : à `120 km/h` pendant `4 h`, on parcourt `120 × 4 = 480 km`. C'est la distance de l'énoncé.
+Les unités doivent aller ensemble : des kilomètres et des heures donnent des km/h.
 :::
 :::
 
@@ -264,10 +277,15 @@ Calcule.
 4. `4 h 20`
 
 ::: corrige
-1. `2,5 h`
-2. `1,25 h`
-3. `3,75 h`
-4. `20 ÷ 60 ≈ 0,333`, donc environ `4,33 h`.
+Ce qu'on cherche : écrire chaque durée avec une virgule, en heures seulement.
+Méthode : les heures restent entières ; les minutes se divisent par 60, car une heure compte 60 minutes.
+1. `2 h 30` : `30 ÷ 60 = 0,5`, donc `2,5 h`.
+2. `1 h 15` : `15 ÷ 60 = 0,25`, donc `1,25 h`.
+3. `3 h 45` : `45 ÷ 60 = 0,75`, donc `3,75 h`.
+4. `4 h 20` : `20 ÷ 60 = 0,333…`, donc environ `4,33 h`. Ici la division ne tombe pas juste, on arrondit au centième.
+
+Vérification du 1 : `0,5 h`, c'est la moitié d'une heure, soit 30 minutes.
+Piège évité : `2 h 30` ne s'écrit pas `2,30 h`, car 30 minutes ne sont pas 30 centièmes d'heure.
 :::
 :::
 

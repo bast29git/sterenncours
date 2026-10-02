@@ -168,11 +168,15 @@ Remplace les indicateurs de temps et de lieu.
 5. `maintenant`
 
 ::: corrige
-1. `la veille`
-2. `le lendemain`
-3. `ce jour-là`
-4. `là`
-5. `alors`
+Ce qu'on cherche : l'indicateur qui remplace chaque mot quand on passe du discours direct au discours indirect, avec un verbe introducteur au passé.
+Pourquoi : au discours indirect, le repère n'est plus le moment où le personnage parle, mais le moment du récit. Les mots qui dépendent du « maintenant » du personnage changent donc.
+1. `hier` devient `la veille`.
+2. `demain` devient `le lendemain`.
+3. `aujourd'hui` devient `ce jour-là`.
+4. `ici` devient `là`.
+5. `maintenant` devient `alors`, ou `à ce moment-là`.
+
+Exemple : « Je pars demain », dit-elle. → Elle dit qu'elle partait le lendemain.
 :::
 :::
 

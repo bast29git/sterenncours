@@ -43,10 +43,13 @@ Complète.
 4. La première ligne de chemin de fer date de ………
 
 ::: corrige
-1. L'**Angleterre**, ou Royaume-Uni.
-2. Vers **1760**.
-3. En **1769**.
-4. En **1825**, entre Stockton et Darlington.
+Ce qu'on cherche : les quatre repères de date et de lieu du début de la révolution industrielle.
+1. Elle commence en **Angleterre**, au Royaume-Uni : le pays dispose de charbon, de capitaux et d'un grand marché.
+2. Elle débute vers **1760**, dans la seconde moitié du XVIIIᵉ siècle.
+3. James Watt perfectionne la machine à vapeur en **1769** : sa machine consomme moins de charbon et peut faire tourner les machines des usines.
+4. La première ligne de chemin de fer date de **1825**, entre Stockton et Darlington, en Angleterre.
+
+Pour vérifier l'ordre : 1760, 1769, 1825. Le chemin de fer arrive plus d'un demi-siècle après les débuts de l'industrie.
 :::
 :::
 

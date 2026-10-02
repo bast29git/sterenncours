@@ -121,6 +121,12 @@ Ce sont deux actions différentes.
 
 **Note obtenue à l'exercice 16 (devoir type) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 16
+Partie A, le récit du camping : 7 points, dont 5 pour la frise (1 par événement dans l'ordre), 2 pour les trois réponses (in Scotland, by a lake ; a storm destroyed the tent ; they stayed three more days).
+Partie B, le bulletin : 7 points, 3,5 par nouvelle, chaque nouvelle demandant who, what, where, when, why et un chiffre.
+Partie C, l'interview : 6 points, dont 2 pour les deux faits, 2 pour les deux opinions avec leurs mots-signaux, 1 pour le sentiment, 1 pour la phrase de conclusion justifiée (optimistic).
+:::
+
 ::: cocher
 - La grille est remplie des deux côtés
 - Chaque écart a été discuté

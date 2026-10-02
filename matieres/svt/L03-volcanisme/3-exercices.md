@@ -43,10 +43,13 @@ Complète les phrases.
 4. Le conduit par lequel elle remonte s'appelle la ………
 
 ::: corrige
-1. Le **magma**.
-2. La **lave**.
-3. La **chambre magmatique**.
-4. La **cheminée**.
+Ce qu'on cherche : les quatre mots du vocabulaire du volcan, du plus profond au plus superficiel.
+1. La roche fondue située en profondeur s'appelle le **magma**. Il contient aussi des gaz dissous.
+2. Une fois arrivée en surface, on l'appelle la **lave**. Même matière, mais elle a perdu une partie de ses gaz.
+3. Le réservoir où elle s'accumule s'appelle la **chambre magmatique**, à plusieurs kilomètres sous le volcan.
+4. Le conduit par lequel elle remonte s'appelle la **cheminée**. Elle relie la chambre magmatique au cratère.
+
+Pour vérifier, suis le trajet sur le schéma de la fiche de cours : chambre magmatique, cheminée, cratère ; magma en dessous, lave au-dessus.
 :::
 :::
 

@@ -135,9 +135,13 @@ Remplace les noms par les formules chimiques. N'équilibre pas encore.
 3. `dihydrogène + dioxygène → eau`
 
 ::: corrige
-1. `C + O₂ → CO₂`
-2. `CH₄ + O₂ → CO₂ + H₂O`
-3. `H₂ + O₂ → H₂O`
+Ce qu'on cherche : remplacer chaque nom par sa formule, sans toucher aux nombres de molécules.
+Formules à connaître : carbone `C`, dioxygène `O₂`, dioxyde de carbone `CO₂`, méthane `CH₄`, eau `H₂O`, dihydrogène `H₂`.
+1. `carbone + dioxygène → dioxyde de carbone` s'écrit `C + O₂ → CO₂`.
+2. `méthane + dioxygène → dioxyde de carbone + eau` s'écrit `CH₄ + O₂ → CO₂ + H₂O`.
+3. `dihydrogène + dioxygène → eau` s'écrit `H₂ + O₂ → H₂O`.
+
+Vérification : le 1 est déjà équilibré, 1 atome de carbone et 2 atomes d'oxygène de chaque côté. Les 2 et 3 ne le sont pas encore : au 3, il y a 2 atomes d'oxygène à gauche et 1 seul à droite. C'est normal, la consigne demande seulement les formules.
 :::
 :::
 

@@ -76,10 +76,13 @@ Donne la valeur de chaque expression.
 4. `12⁰`
 
 ::: corrige
-1. `6⁰ = 1`.
-2. `6¹ = 6`.
-3. `0⁵ = 0 × 0 × 0 × 0 × 0 = 0`.
-4. `12⁰ = 1`. Toute base non nulle à la puissance 0 donne 1.
+Ce qu'on cherche : la valeur de quatre puissances particulières, avec l'exposant 0, l'exposant 1 et la base 0.
+1. `6⁰ = 1`. Toute base non nulle à la puissance 0 donne 1.
+2. `6¹ = 6`. Un exposant 1 signifie que la base est écrite une seule fois.
+3. `0⁵ = 0 × 0 × 0 × 0 × 0 = 0`. Un produit où apparaît le facteur 0 vaut 0.
+4. `12⁰ = 1`. La base change, la règle ne change pas : exposant 0, résultat 1.
+
+Vérification : la suite `6²`, `6¹`, `6⁰` se lit 36, 6, 1. On divise par 6 à chaque pas, et `6 ÷ 6 = 1` : l'exposant 0 donne bien 1.
 :::
 :::
 
@@ -162,9 +165,14 @@ Simplifie en une seule puissance.
 3. `10³ × 10⁶`
 
 ::: corrige
-1. `4³ × 4⁵ = 4⁸`. Même base, on additionne : `3 + 5 = 8`.
-2. `7² × 7⁴ = 7⁶`.
-3. `10³ × 10⁶ = 10⁹`.
+Ce qu'on cherche : écrire chaque produit sous la forme d'une seule puissance.
+Méthode : la base est la même dans chaque produit, donc on garde la base et on **additionne** les exposants.
+1. `4³ × 4⁵ = 4³⁺⁵ = 4⁸`.
+2. `7² × 7⁴ = 7²⁺⁴ = 7⁶`.
+3. `10³ × 10⁶ = 10³⁺⁶ = 10⁹`.
+
+Vérification sur le 3 : `10³ × 10⁶ = 1 000 × 1 000 000 = 1 000 000 000`, soit 1 suivi de 9 zéros, c'est bien `10⁹`.
+Piège évité : on n'a pas multiplié les exposants, `4¹⁵` serait faux.
 :::
 :::
 
@@ -275,10 +283,14 @@ Donne l'écriture décimale.
 4. `10⁰`
 
 ::: corrige
-1. `10⁵ = 100 000`, 1 suivi de 5 zéros.
-2. `10⁻⁴ = 0,0001`, 4 chiffres après la virgule.
-3. `10¹ = 10`.
-4. `10⁰ = 1`.
+Ce qu'on cherche : l'écriture décimale de quatre puissances de 10.
+Méthode : avec un exposant positif `n`, on écrit 1 suivi de `n` zéros. Avec un exposant négatif `−n`, on écrit un nombre à `n` chiffres après la virgule, le dernier étant 1.
+1. `10⁵ = 100 000` : 1 suivi de 5 zéros.
+2. `10⁻⁴ = 1/10⁴ = 1/10 000 = 0,0001` : 4 chiffres après la virgule.
+3. `10¹ = 10` : 1 suivi d'un seul zéro.
+4. `10⁰ = 1` : exposant 0, résultat 1, comme pour toute base non nulle.
+
+Vérification du 2 : `0,0001 × 10 000 = 1`, donc `0,0001` est bien l'inverse de `10⁴`.
 :::
 :::
 

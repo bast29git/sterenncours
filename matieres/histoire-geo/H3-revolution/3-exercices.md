@@ -59,10 +59,13 @@ Yuzu révise avec sa sœur. Complète.
 4. Le régime politique avant 1789 est une ………
 
 ::: corrige
-1. **Trois** ordres.
-2. Le **tiers état**.
-3. Un **privilège**.
-4. Une **monarchie absolue**.
+Ce qu'on cherche : quatre repères sur la société d'Ancien Régime, avant 1789.
+1. La société est divisée en **trois** ordres : le clergé, la noblesse et le tiers état.
+2. Le **tiers état** représente environ 98 % de la population : paysans, artisans, commerçants, bourgeois.
+3. Un droit particulier attaché à un ordre s'appelle un **privilège** : par exemple, le clergé et la noblesse ne paient pas la taille, le principal impôt direct.
+4. Le régime politique avant 1789 est une **monarchie absolue** : le roi concentre tous les pouvoirs et tient son autorité de Dieu.
+
+Pour vérifier, retrouve ces quatre mots dans la première partie de la fiche de cours.
 :::
 :::
 

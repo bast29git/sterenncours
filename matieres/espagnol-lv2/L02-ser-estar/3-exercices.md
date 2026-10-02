@@ -44,11 +44,14 @@ Complète avec la bonne forme de `ser`. Ces formes serviront à présenter Maoma
 5. Ellos ……… de Madrid.
 
 ::: corrige
-1. `soy`
-2. `eres`
-3. `es`
-4. `somos`
-5. `son`
+Ce qu'on cherche : la forme de `ser` qui va avec chaque sujet. `Ser` est irrégulier au présent, on l'apprend par cœur : `soy, eres, es, somos, sois, son`.
+1. `Yo soy española.` Première personne du singulier.
+2. `Tú eres muy amable.` Deuxième personne du singulier.
+3. `Ella es profesora.` Troisième personne du singulier.
+4. `Nosotros somos hermanos.` Première personne du pluriel.
+5. `Ellos son de Madrid.` Troisième personne du pluriel.
+
+Pourquoi `ser` et pas `estar` : nationalité, caractère, métier, lien de famille et origine sont des caractéristiques stables, elles se disent avec `ser`.
 :::
 :::
 

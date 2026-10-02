@@ -122,6 +122,13 @@ Ce sont deux actions différentes.
 
 **Note obtenue à l'exercice 16 (devoir type) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 16
+Question 1, présenter l'œuvre : 4 points, 1 par élément exact : auteur et date (Victor Hugo, 1862), genre (roman), forme (cinq parties, narrateur omniscient), résumé de l'histoire.
+Question 2, la fiction pour interroger le réel : 4 points, dont 2 pour l'explication de la formule (des personnages inventés font voir des faits réels), 2 pour l'épisode choisi et situé par sa partie.
+Question 3, trois procédés : 5 points, dont 3 pour les trois procédés nommés et expliqués (1 par procédé), 2 pour les trois exemples tirés du roman.
+Question 4, le paragraphe argumenté : 7 points, dont 1,5 pour l'argument pour, 1,5 pour l'argument contre, 2 pour les deux épisodes ou citations situés, 1 pour la conclusion personnelle justifiée, 1 pour la rédaction en phrases complètes.
+:::
+
 ::: cocher
 - La grille est remplie des deux côtés
 - Chaque écart a été discuté

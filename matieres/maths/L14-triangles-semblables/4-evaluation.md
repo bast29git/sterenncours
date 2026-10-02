@@ -122,6 +122,13 @@ Ce sont deux actions différentes. Donner plus d'exercices à quelqu'un qui est 
 
 **Note obtenue à l'exercice 16 (devoir type) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 16
+Question 1, triangles semblables ou non : 4 points, dont 2 pour le calcul des troisièmes angles (70° et 65°), 2 pour la conclusion justifiée par les trois angles égaux.
+Question 2, coefficient puis DE : 5 points, dont 2 pour le coefficient `20 ÷ 8 = 2,5`, 2 pour `DE = 5 × 2,5 = 12,5 cm`, 1 pour le contrôle de cohérence (un agrandissement allonge le côté).
+Question 3, le lampadaire : 6 points, dont 2 pour l'explication (rayons du Soleil parallèles, angle droit, donc triangles semblables), 2 pour le coefficient `6 ÷ 1,2 = 5`, 2 pour la hauteur `1,5 × 5 = 7,5 m`.
+Question 4, l'aire de la petite affiche : 5 points, dont 2 pour `0,4² = 0,16`, 2 pour `0,5 × 0,16 = 0,08 m²`, 1 pour la conversion en 800 cm².
+:::
+
 ::: cocher
 - La grille est remplie des deux côtés
 - Chaque écart a été discuté

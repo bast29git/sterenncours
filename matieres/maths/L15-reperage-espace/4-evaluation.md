@@ -122,6 +122,13 @@ Ce sont deux actions différentes. Donner plus d'exercices à quelqu'un qui est 
 
 **Note obtenue à l'exercice 16 (devoir type) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 16
+Question 1, les coordonnées de B, D, E et G : 4 points, 1 par sommet, B (6 ; 0 ; 0), D (0 ; 4 ; 0), E (0 ; 0 ; 3), G (6 ; 4 ; 3).
+Question 2, le point J : 4 points, dont 2 pour l'arête [CG] trouvée grâce aux deux coordonnées au bord, 2 pour la justification du milieu (cote 1,5, moitié de la hauteur 3).
+Question 3, milieu et centre : 6 points, dont 3 pour le milieu de [AG] (3 ; 2 ; 1,5), 2 pour le centre de EFGH (3 ; 2 ; 3), 1 pour la comparaison des cotes (différentes, 1,5 et 3).
+Question 4, situer T, U et V : 6 points, 2 par point, la réponse et sa justification par les coordonnées comptant ensemble (T sur la face du dessus, U à l'extérieur, V à l'intérieur).
+:::
+
 ::: cocher
 - La grille est remplie des deux côtés
 - Chaque écart a été discuté

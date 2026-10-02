@@ -8,7 +8,8 @@ window.JEUX = [
   "ico": "🪐",
   "lecons": [
    "physique-chimie:L08",
-   "svt:L01"
+   "svt:L01",
+   "maths:L02"
   ],
   "apprend": "Astronomie · Physique"
  },
@@ -31,7 +32,8 @@ window.JEUX = [
   "titre": "Cellule & ADN",
   "ico": "🧬",
   "lecons": [
-   "svt:L05"
+   "svt:L05",
+   "svt:L10"
   ],
   "apprend": "Biologie · SVT"
  },
@@ -65,7 +67,9 @@ window.JEUX = [
   "ico": "📐",
   "lecons": [
    "maths:L10",
-   "maths:L11"
+   "maths:L11",
+   "maths:L09",
+   "maths:L15"
   ],
   "apprend": "Mathématiques"
  },
@@ -78,7 +82,9 @@ window.JEUX = [
   "lecons": [
    "histoire-geo:G1",
    "histoire-geo:G3",
-   "histoire-geo:G5"
+   "histoire-geo:G5",
+   "histoire-geo:G2",
+   "histoire-geo:G4"
   ],
   "apprend": "Géographie"
  },
@@ -149,7 +155,8 @@ window.JEUX = [
   "titre": "Chasse au phishing",
   "ico": "🎯",
   "lecons": [
-   "emc:L04"
+   "emc:L04",
+   "francais:L05"
   ],
   "apprend": "Cybersécurité"
  },
@@ -160,7 +167,8 @@ window.JEUX = [
   "titre": "Escape RGPD",
   "ico": "🎯",
   "lecons": [
-   "emc:L04"
+   "emc:L04",
+   "emc:L03"
   ],
   "apprend": "Cybersécurité"
  },
@@ -182,7 +190,8 @@ window.JEUX = [
   "titre": "Calcul mental",
   "ico": "🎯",
   "lecons": [
-   "maths:L01"
+   "maths:L01",
+   "maths:L02"
   ],
   "apprend": "Mathématiques"
  },
@@ -204,7 +213,8 @@ window.JEUX = [
   "titre": "Résous l'équation",
   "ico": "🎯",
   "lecons": [
-   "maths:L04"
+   "maths:L04",
+   "maths:L03"
   ],
   "apprend": "Mathématiques"
  },
@@ -237,7 +247,8 @@ window.JEUX = [
   "titre": "Conjugaison express",
   "ico": "🎯",
   "lecons": [
-   "francais:L08"
+   "francais:L08",
+   "francais:L07"
   ],
   "apprend": "Français & langues"
  },
@@ -260,7 +271,8 @@ window.JEUX = [
   "ico": "🎯",
   "lecons": [
    "francais:L06",
-   "francais:L09"
+   "francais:L09",
+   "francais:L07"
   ],
   "apprend": "Français & langues"
  },
@@ -386,7 +398,8 @@ window.JEUX = [
   "ico": "🎯",
   "lecons": [
    "anglais-lv1:L03",
-   "anglais-lv1:L04"
+   "anglais-lv1:L04",
+   "anglais-lv1:L01"
   ],
   "apprend": "Découverte"
  },
@@ -397,7 +410,9 @@ window.JEUX = [
   "titre": "English Listening",
   "ico": "🎯",
   "lecons": [
-   "anglais-lv1:L08"
+   "anglais-lv1:L08",
+   "anglais-lv1:L09",
+   "anglais-lv1:L10"
   ],
   "apprend": "Découverte"
  },
@@ -408,7 +423,9 @@ window.JEUX = [
   "titre": "English Sentences",
   "ico": "🎯",
   "lecons": [
-   "anglais-lv1:L07"
+   "anglais-lv1:L07",
+   "anglais-lv1:L01",
+   "anglais-lv1:L02"
   ],
   "apprend": "Découverte"
  },
@@ -419,7 +436,8 @@ window.JEUX = [
   "titre": "Vocabulario español",
   "ico": "🎯",
   "lecons": [
-   "espagnol-lv2:L01"
+   "espagnol-lv2:L01",
+   "espagnol-lv2:L04"
   ],
   "apprend": "Français & langues"
  },
@@ -442,7 +460,9 @@ window.JEUX = [
   "titre": "Escucha español",
   "ico": "🎯",
   "lecons": [
-   "espagnol-lv2:L08"
+   "espagnol-lv2:L08",
+   "espagnol-lv2:L09",
+   "espagnol-lv2:L10"
   ],
   "apprend": "Découverte"
  },
@@ -464,7 +484,8 @@ window.JEUX = [
   "titre": "Frases español",
   "ico": "🎯",
   "lecons": [
-   "espagnol-lv2:L03"
+   "espagnol-lv2:L03",
+   "espagnol-lv2:L04"
   ],
   "apprend": "Découverte"
  },
@@ -476,7 +497,8 @@ window.JEUX = [
   "ico": "🎯",
   "lecons": [
    "histoire-geo:G6",
-   "anglais-lv1:L08"
+   "anglais-lv1:L08",
+   "histoire-geo:G4"
   ],
   "apprend": "Développement"
  },
@@ -531,7 +553,9 @@ window.JEUX = [
   "titre": "Le corps humain",
   "ico": "🎯",
   "lecons": [
-   "svt:L05"
+   "svt:L05",
+   "svt:L08",
+   "svt:L09"
   ],
   "apprend": "Sciences"
  },
@@ -542,7 +566,8 @@ window.JEUX = [
   "titre": "Cellule & génétique",
   "ico": "🎯",
   "lecons": [
-   "svt:L05"
+   "svt:L05",
+   "svt:L10"
   ],
   "apprend": "Sciences"
  },
@@ -608,7 +633,12 @@ window.JEUX = [
   "titre": "Littérature",
   "ico": "🎯",
   "lecons": [
-   "francais:L03"
+   "francais:L03",
+   "francais:L02",
+   "francais:L04",
+   "francais:L12",
+   "francais:L13",
+   "francais:L14"
   ],
   "apprend": "Français & langues"
  },
@@ -619,7 +649,9 @@ window.JEUX = [
   "titre": "Figures de style",
   "ico": "🎯",
   "lecons": [
-   "francais:L01"
+   "francais:L01",
+   "francais:L04",
+   "francais:L13"
   ],
   "apprend": "Français & langues"
  },
@@ -630,7 +662,9 @@ window.JEUX = [
   "titre": "Géométrie",
   "ico": "🎯",
   "lecons": [
-   "maths:L10"
+   "maths:L10",
+   "maths:L09",
+   "maths:L15"
   ],
   "apprend": "IA & Data"
  },
@@ -675,7 +709,8 @@ window.JEUX = [
   "titre": "Arnaques en ligne",
   "ico": "🎯",
   "lecons": [
-   "emc:L04"
+   "emc:L04",
+   "francais:L05"
   ],
   "apprend": "Découverte"
  },
@@ -722,7 +757,8 @@ window.JEUX = [
   "ico": "🎯",
   "lecons": [
    "histoire-geo:G3",
-   "histoire-geo:G5"
+   "histoire-geo:G5",
+   "histoire-geo:G2"
   ],
   "apprend": "Histoire & Géo"
  },
@@ -745,7 +781,9 @@ window.JEUX = [
   "titre": "Anatomie humaine",
   "ico": "🫀",
   "lecons": [
-   "svt:L05"
+   "svt:L05",
+   "svt:L08",
+   "svt:L09"
   ],
   "apprend": "SVT · Santé"
  },
@@ -830,61 +868,62 @@ window.JEUX = [
   ],
   "apprend": "Aéronautique · Physique"
  },
-{
- "id": "2d-60-cosinus-viser",
- "type": "2d",
- "url": "learning/games-2d/2d-60-cosinus-viser.html",
- "titre": "Viser un angle avec le cosinus",
- "ico": "📐",
- "lecons": [
-  "maths:L13"
- ],
- "apprend": "Cosinus, côté adjacent, hypoténuse, cos⁻¹"
-},
-{
- "id": "2d-61-echo-distance",
- "type": "2d",
- "url": "learning/games-2d/2d-61-echo-distance.html",
- "titre": "L'écho et la distance",
- "ico": "🔊",
- "lecons": [
-  "physique-chimie:L09"
- ],
- "apprend": "Vitesse du son, écho, fréquences, niveau sonore"
-},
-{
- "id": "2d-62-ville-procedes",
- "type": "2d",
- "url": "learning/games-2d/2d-62-ville-procedes.html",
- "titre": "La ville : repérer les procédés",
- "ico": "🏙️",
- "lecons": [
-  "francais:L11"
- ],
- "apprend": "Personnification, énumération, contraste, regards sur la ville"
-},
-{
- "id": "2d-63-en-opinions",
- "type": "2d",
- "url": "learning/games-2d/2d-63-en-opinions.html",
- "titre": "English: opinions and reasons",
- "ico": "💬",
- "lecons": [
-  "anglais-lv1:L06"
- ],
- "apprend": "I think, because, however, in my opinion"
-},
-{
- "id": "2d-64-es-recuerdo",
- "type": "2d",
- "url": "learning/games-2d/2d-64-es-recuerdo.html",
- "titre": "Español: contar un recuerdo",
- "ico": "📖",
- "lecons": [
-  "espagnol-lv2:L06"
- ],
- "apprend": "Indefinido et imperfecto dans un récit"
-},
+ {
+  "id": "2d-60-cosinus-viser",
+  "type": "2d",
+  "url": "learning/games-2d/2d-60-cosinus-viser.html",
+  "titre": "Viser un angle avec le cosinus",
+  "ico": "📐",
+  "lecons": [
+   "maths:L13"
+  ],
+  "apprend": "Cosinus, côté adjacent, hypoténuse, cos⁻¹"
+ },
+ {
+  "id": "2d-61-echo-distance",
+  "type": "2d",
+  "url": "learning/games-2d/2d-61-echo-distance.html",
+  "titre": "L'écho et la distance",
+  "ico": "🔊",
+  "lecons": [
+   "physique-chimie:L09"
+  ],
+  "apprend": "Vitesse du son, écho, fréquences, niveau sonore"
+ },
+ {
+  "id": "2d-62-ville-procedes",
+  "type": "2d",
+  "url": "learning/games-2d/2d-62-ville-procedes.html",
+  "titre": "La ville : repérer les procédés",
+  "ico": "🏙️",
+  "lecons": [
+   "francais:L11"
+  ],
+  "apprend": "Personnification, énumération, contraste, regards sur la ville"
+ },
+ {
+  "id": "2d-63-en-opinions",
+  "type": "2d",
+  "url": "learning/games-2d/2d-63-en-opinions.html",
+  "titre": "English: opinions and reasons",
+  "ico": "💬",
+  "lecons": [
+   "anglais-lv1:L06",
+   "anglais-lv1:L02"
+  ],
+  "apprend": "I think, because, however, in my opinion"
+ },
+ {
+  "id": "2d-64-es-recuerdo",
+  "type": "2d",
+  "url": "learning/games-2d/2d-64-es-recuerdo.html",
+  "titre": "Español: contar un recuerdo",
+  "ico": "📖",
+  "lecons": [
+   "espagnol-lv2:L06"
+  ],
+  "apprend": "Indefinido et imperfecto dans un récit"
+ },
  {
   "id": "3d-21-aurore-boreale",
   "type": "3d",
@@ -905,7 +944,8 @@ window.JEUX = [
   "ico": "📐",
   "lecons": [
    "maths:L13",
-   "maths:L08"
+   "maths:L08",
+   "maths:L14"
   ],
   "apprend": "Maths · Cosinus et Pythagore dans un triangle rectangle"
  },
@@ -927,7 +967,8 @@ window.JEUX = [
   "titre": "Pyramides et cônes",
   "ico": "🔺",
   "lecons": [
-   "maths:L10"
+   "maths:L10",
+   "maths:L14"
   ],
   "apprend": "Maths · Volume des pyramides et des cônes"
  },
@@ -962,7 +1003,8 @@ window.JEUX = [
   "titre": "La ville au XIXᵉ siècle",
   "ico": "🏙️",
   "lecons": [
-   "francais:L11"
+   "francais:L11",
+   "francais:L14"
   ],
   "apprend": "Français · Regard panoramique et regard du passant"
  },
@@ -973,7 +1015,8 @@ window.JEUX = [
   "titre": "Ports négriers et routes maritimes",
   "ico": "⛵",
   "lecons": [
-   "histoire-geo:H1"
+   "histoire-geo:H1",
+   "emc:L02"
   ],
   "apprend": "Histoire · Commerce triangulaire, ports et abolitions"
  },
@@ -984,7 +1027,9 @@ window.JEUX = [
   "titre": "Le musée des Lumières",
   "ico": "🖼️",
   "lecons": [
-   "histoire-geo:H2"
+   "histoire-geo:H2",
+   "francais:L02",
+   "emc:L01"
   ],
   "apprend": "Histoire · Les philosophes des Lumières et leurs idées"
  },

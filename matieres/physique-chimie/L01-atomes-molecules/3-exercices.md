@@ -207,10 +207,13 @@ Un élève affirme que `3 H₂O` et `H₆O₃` désignent la même chose.
 4. Deux molécules de dioxygène.
 
 ::: corrige
-1. `N₂`, le diazote.
-2. `CH₄`, le méthane.
-3. `3 H₂O`.
-4. `2 O₂`.
+Ce qu'on cherche : la formule chimique de chaque molécule. Le symbole indique l'atome, le petit chiffre en bas à droite indique combien d'atomes de ce type la molécule contient, le grand chiffre devant indique le nombre de molécules.
+1. Deux atomes d'azote `N` : la formule s'écrit `N₂`, c'est le diazote.
+2. Un atome de carbone `C` et quatre d'hydrogène `H` : `CH₄`, le méthane. Le 1 du carbone ne s'écrit pas.
+3. Trois molécules d'eau `H₂O` : on écrit `3 H₂O`. Le 3 devant compte les molécules, pas les atomes.
+4. Deux molécules de dioxygène `O₂` : `2 O₂`.
+
+Vérification du 3 : `3 H₂O` contient `3 × 2 = 6` atomes d'hydrogène et `3 × 1 = 3` atomes d'oxygène.
 :::
 :::
 

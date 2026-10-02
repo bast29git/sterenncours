@@ -92,9 +92,13 @@ Mets ces phrases à la forme négative.
 3. `Le gusta bailar.`
 
 ::: corrige
+Ce qu'on cherche : la forme négative de phrases construites avec `gustar`.
+Méthode : la négation `no` se place **devant le pronom** (`me`, `nos`, `le`), jamais entre le pronom et le verbe. Le reste de la phrase ne change pas.
 1. `No me gusta el pescado.`
-2. `No nos gustan las matemáticas.`
-3. `No le gusta bailar.`
+2. `No nos gustan las matemáticas.` Le verbe reste au pluriel, car `las matemáticas` est au pluriel.
+3. `No le gusta bailar.` Devant un verbe à l'infinitif, `gustar` reste au singulier.
+
+Vérification : dans les trois phrases, `no` est le premier mot, juste avant le pronom. En français, on dirait « le poisson ne me plaît pas », ce qui montre que le sujet de la phrase est la chose aimée.
 :::
 :::
 
@@ -225,12 +229,16 @@ Range ces formules de la plus positive à la plus négative.
 `no me gusta nada` · `me gusta mucho` · `me gusta un poco` · `me encanta` · `no me gusta` · `me gusta`
 
 ::: corrige
-1. `me encanta`
-2. `me gusta mucho`
-3. `me gusta`
-4. `me gusta un poco`
-5. `no me gusta`
-6. `no me gusta nada`
+Ce qu'on cherche : l'échelle des formules, de « j'adore » jusqu'à « je déteste ».
+Méthode : on repère d'abord les deux extrêmes, `me encanta` (le plus fort en positif) et `no me gusta nada` (le plus fort en négatif), puis on classe le milieu grâce à l'adverbe : `mucho` renforce, `un poco` affaiblit.
+1. `me encanta` : j'adore.
+2. `me gusta mucho` : j'aime beaucoup.
+3. `me gusta` : j'aime bien.
+4. `me gusta un poco` : j'aime un peu.
+5. `no me gusta` : je n'aime pas.
+6. `no me gusta nada` : je n'aime pas du tout.
+
+Vérification : les quatre premières formules sont positives, les deux dernières contiennent `no`. `Nada` renforce la négation, il la place donc en dernier.
 :::
 :::
 
@@ -318,11 +326,14 @@ Traduis ces formules d'opinion.
 5. Je ne suis pas d'accord
 
 ::: corrige
-1. `Creo que...`
-2. `En mi opinión,...`
-3. `Me parece que...`
-4. `Estoy de acuerdo con...`
-5. `No estoy de acuerdo.`
+Ce qu'on cherche : les formules d'opinion en espagnol, à réutiliser dans un paragraphe sur ses goûts.
+1. Je crois que : `Creo que...` Du verbe `creer`, suivi d'une phrase complète.
+2. À mon avis : `En mi opinión,...` On met une virgule après, comme en français.
+3. Il me semble que : `Me parece que...` Construction avec un pronom, comme `me gusta`.
+4. Je suis d'accord avec : `Estoy de acuerdo con...` Avec `estar`, jamais `ser`, et suivi de `con`.
+5. Je ne suis pas d'accord : `No estoy de acuerdo.` La négation `no` se place devant le verbe.
+
+Vérification : les formules 1, 2 et 3 introduisent une opinion, les formules 4 et 5 réagissent à l'opinion de quelqu'un d'autre.
 :::
 :::
 

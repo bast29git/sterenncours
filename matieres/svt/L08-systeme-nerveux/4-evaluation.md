@@ -122,6 +122,13 @@ Ce sont deux actions différentes. Donner plus d'exercices à quelqu'un qui est 
 
 **Note obtenue à l'exercice 16 (devoir type) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 16
+Question 1, la chaîne complète : 5 points, 1 par élément nommé dans l'ordre : récepteur (oreille), nerf sensitif, centre nerveux (cerveau), nerf moteur, effecteur (muscles du cou).
+Question 2, réflexe et mouvement volontaire : 4 points, dont 2 pour le réflexe (rapide, non décidé, passe par la moelle épinière) avec son exemple, 2 pour le mouvement volontaire (décidé, passe par le cerveau) avec son exemple.
+Question 3, le document sur le sommeil : 5 points, dont 2 pour la lecture des chiffres (le temps de réaction passe de 0,17 s à 0,25 s après une nuit courte), 3 pour l'explication (le manque de sommeil ralentit le traitement des messages nerveux et diminue l'attention).
+Question 4, l'alcool et les synapses : 6 points, dont 1 pour le trajet de l'alcool (sang puis cerveau), 2 pour la perturbation de la transmission à la synapse, 1 pour les messages ralentis ou brouillés, 2 pour les deux conséquences sur la conduite.
+:::
+
 ::: cocher
 - La grille est remplie des deux côtés
 - Chaque écart a été discuté

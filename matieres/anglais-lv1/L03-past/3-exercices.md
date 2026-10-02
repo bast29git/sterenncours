@@ -64,12 +64,15 @@ Donne le prétérit de ces verbes irréguliers. Pour raconter la nuit des aurore
 6. leave
 
 ::: corrige
-1. `went`
-2. `saw`
-3. `took`
-4. `thought`
-5. `wrote`
-6. `left`
+Ce qu'on cherche : le prétérit de six verbes irréguliers. Il ne se construit pas avec `-ed`, il s'apprend par cœur.
+1. `go` devient `went`. La forme change complètement.
+2. `see` devient `saw`.
+3. `take` devient `took`.
+4. `think` devient `thought`. Le `gh` ne se prononce pas.
+5. `write` devient `wrote`.
+6. `leave` devient `left`.
+
+Vérification : ces formes sont les mêmes à toutes les personnes, `I went`, `she went`, `they went`. Pour les mémoriser, écris chaque verbe dans une phrase du récit de la nuit des aurores : `We went outside and saw the lights.`
 :::
 :::
 
@@ -82,10 +85,13 @@ Complète avec le prétérit du verbe entre parenthèses.
 4. We ……… (have) a great time.
 
 ::: corrige
-1. `went`
-2. `bought`
-3. `were`. `be` est le seul verbe à changer selon la personne au prétérit.
-4. `had`
+Ce qu'on cherche : la forme au prétérit du verbe entre parenthèses. Les quatre verbes sont irréguliers.
+1. `I went to London last year.` `last year` indique un moment passé terminé, donc prétérit.
+2. `She bought a new phone yesterday.` `buy` devient `bought`.
+3. `They were very tired after the match.` `be` est le seul verbe à changer selon la personne au prétérit : `was` au singulier (`I`, `he`, `she`, `it`), `were` au pluriel et avec `you`.
+4. `We had a great time.` `have` devient `had`.
+
+Vérification : les marqueurs `last year` et `yesterday` confirment le passé. Au prétérit, la forme ne change pas avec le sujet, sauf pour `be`.
 :::
 :::
 

@@ -124,6 +124,13 @@ Ce sont deux actions différentes. Donner plus d'exercices à quelqu'un qui est 
 
 **Note obtenue à l'exercice 21 (sujet de type devoir) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 21
+Question 1, la diagonale du plancher : 5 points, dont 1 pour le triangle rectangle reconnu, 2 pour l'égalité de Pythagore `d² = 2,4² + 1,8²`, 1 pour le calcul `d² = 9`, 1 pour la conclusion avec l'unité (3 m).
+Question 2, la hauteur de l'échelle : 5 points, dont 1 pour l'hypoténuse reconnue (2,6 m), 2 pour l'égalité `2,6² = 1² + h²`, 1 pour la soustraction `h² = 5,76`, 1 pour la conclusion (2,4 m).
+Question 3, l'équerre : 6 points, dont 1 pour le plus grand côté (2 m), 1 pour `2² = 4`, 2 pour `1,2² + 1,6² = 4`, 1 pour l'égalité constatée, 1 pour la conclusion par la réciproque.
+Question 4, la phrase à compléter : 4 points, 2 pour le nom exact du théorème, 2 pour l'égalité correctement écrite.
+:::
+
 ::: cocher
 - Les 8 critères sont positionnés dans les deux colonnes
 - Les écarts ont été repérés et nommés

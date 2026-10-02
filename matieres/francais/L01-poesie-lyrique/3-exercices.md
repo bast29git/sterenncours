@@ -75,10 +75,13 @@ Nomme chaque strophe d'après son nombre de vers.
 4. Une strophe de 6 vers
 
 ::: corrige
-1. Un **tercet**.
-2. Un **quatrain**.
-3. Un **distique**.
-4. Un **sizain**.
+Ce qu'on cherche : le nom de la strophe d'après son nombre de vers. Ces noms viennent du nombre lui-même : trois, quatre, deux, six.
+1. Une strophe de 3 vers est un **tercet**.
+2. Une strophe de 4 vers est un **quatrain**. C'est la strophe la plus fréquente de la poésie française.
+3. Une strophe de 2 vers est un **distique**.
+4. Une strophe de 6 vers est un **sizain**.
+
+Pour vérifier, compte les vers des strophes d'un poème de la fiche de cours et nomme-les : un sonnet, par exemple, se compose de deux quatrains puis de deux tercets.
 :::
 :::
 

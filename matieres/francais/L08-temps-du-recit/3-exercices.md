@@ -61,11 +61,14 @@ Conjugue au passé simple, troisième personne du singulier.
 5. être
 
 ::: corrige
-1. `il chanta`
-2. `il finit`
-3. `il courut`
-4. `il vint`
-5. `il fut`
+Ce qu'on cherche : la forme de la troisième personne du singulier au passé simple. La terminaison dépend du groupe du verbe.
+1. `chanter`, premier groupe : terminaison `-a`, donc `il chanta`.
+2. `finir`, deuxième groupe : terminaison `-it`, donc `il finit`. Cette forme est identique au présent, c'est le contexte qui tranche.
+3. `courir`, troisième groupe en `-u-` : `il courut`.
+4. `venir`, troisième groupe en `-in-` : `il vint`.
+5. `être`, verbe irrégulier : `il fut`.
+
+Pour vérifier, mets la phrase au pluriel : `ils chantèrent`, `ils finirent`, `ils coururent`, `ils vinrent`, `ils furent`. La voyelle du singulier se retrouve dans le pluriel.
 :::
 :::
 
@@ -79,11 +82,14 @@ Conjugue au passé simple, troisième personne du pluriel.
 5. avoir
 
 ::: corrige
-1. `ils allèrent`
-2. `ils firent`
-3. `ils prirent`
-4. `ils virent`
-5. `ils eurent`
+Ce qu'on cherche : la troisième personne du pluriel au passé simple. Elle se termine toujours par `-rent`, précédé de la voyelle du groupe.
+1. `aller`, premier groupe : `-èrent`, donc `ils allèrent`.
+2. `faire`, verbe irrégulier : `ils firent`. Le radical devient `fi-`.
+3. `prendre`, troisième groupe : `ils prirent`. Le radical devient `pri-`, le `d` disparaît.
+4. `voir`, troisième groupe : `ils virent`. Le radical devient `vi-`.
+5. `avoir`, verbe irrégulier : `ils eurent`. Le `eu` se prononce « u ».
+
+Pour vérifier, repasse au singulier : `il alla`, `il fit`, `il prit`, `il vit`, `il eut`. Le radical ne change pas entre le singulier et le pluriel.
 :::
 :::
 
@@ -240,10 +246,13 @@ Conjugue au plus-que-parfait, troisième personne du singulier.
 4. voir
 
 ::: corrige
-1. `il avait mangé`
-2. `il était parti`
-3. `il s'était levé`
-4. `il avait vu`
+Ce qu'on cherche : le plus-que-parfait, un temps composé : l'auxiliaire `avoir` ou `être` à l'imparfait, suivi du participe passé.
+1. `manger` : auxiliaire `avoir`, `il avait` + `mangé`, donc `il avait mangé`.
+2. `partir` : verbe de mouvement, auxiliaire `être`, `il était` + `parti`, donc `il était parti`. Le participe s'accorde avec le sujet.
+3. `se lever` : verbe pronominal, toujours avec `être`, donc `il s'était levé`.
+4. `voir` : auxiliaire `avoir`, participe passé `vu`, donc `il avait vu`.
+
+Pour vérifier l'auxiliaire, pense au passé composé : « il a mangé », « il est parti ». Le plus-que-parfait garde le même auxiliaire, mis à l'imparfait.
 :::
 :::
 

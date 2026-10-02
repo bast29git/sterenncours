@@ -58,9 +58,14 @@ Calcule la masse volumique de chaque échantillon.
 3. `m = 24 g`, `V = 100 cm³`
 
 ::: corrige
-1. `ρ = 79 ÷ 10 = 7,9 g/cm³`
-2. `ρ = 270 ÷ 100 = 2,7 g/cm³`
-3. `ρ = 24 ÷ 100 = 0,24 g/cm³`
+Ce qu'on cherche : la masse volumique, c'est-à-dire la masse d'un centimètre cube de chaque matière.
+Formule : `ρ = m ÷ V`, avec `m` en grammes et `V` en centimètres cubes, ce qui donne des `g/cm³`.
+1. `ρ = 79 ÷ 10 = 7,9 g/cm³`. C'est la masse volumique du fer.
+2. `ρ = 270 ÷ 100 = 2,7 g/cm³`. C'est celle de l'aluminium.
+3. `ρ = 24 ÷ 100 = 0,24 g/cm³`. Une matière très légère, comme le liège.
+
+Vérification du 1 : si 1 cm³ pèse 7,9 g, alors 10 cm³ pèsent `7,9 × 10 = 79 g`. On retrouve la masse de l'énoncé.
+Les échantillons 2 et 3 ont le même volume mais pas la même masse : c'est la matière qui fait la différence, pas la taille.
 :::
 :::
 
@@ -87,9 +92,14 @@ Calcule le volume demandé.
 3. `226 g` de plomb, `ρ = 11,3 g/cm³`.
 
 ::: corrige
-1. `V = 316 ÷ 7,9 = 40 cm³`
-2. `1 kg = 1 000 g`, donc `V = 1 000 ÷ 2,7 ≈ 370 cm³`.
-3. `V = 226 ÷ 11,3 = 20 cm³`
+Ce qu'on cherche : le volume occupé par une masse donnée de matière.
+Formule : à partir de `ρ = m ÷ V`, on obtient `V = m ÷ ρ`. La masse doit être en grammes pour obtenir des centimètres cubes.
+1. Fer : `V = 316 ÷ 7,9 = 40 cm³`.
+2. Aluminium : la masse est en kilogrammes, on convertit d'abord, `1 kg = 1 000 g`. Puis `V = 1 000 ÷ 2,7 ≈ 370 cm³` (valeur exacte 370,37…, arrondie à l'unité).
+3. Plomb : `V = 226 ÷ 11,3 = 20 cm³`.
+
+Vérification du 1 : `40 cm³` de fer pèsent `40 × 7,9 = 316 g`, la masse de l'énoncé.
+Piège évité au 2 : sans la conversion, on aurait trouvé `0,37 cm³`, mille fois trop petit.
 :::
 :::
 

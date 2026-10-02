@@ -42,10 +42,13 @@ Complète.
 4. Le genre se développe au ……… siècle.
 
 ::: corrige
-1. L'**hésitation**.
-2. L'**étrange**.
-3. Le **merveilleux**.
-4. Le **XIXᵉ** siècle.
+Ce qu'on cherche : les quatre mots du chapitre qui définissent le fantastique et ses deux voisins.
+1. Le fantastique repose sur l'**hésitation** : le lecteur ne sait pas si l'événement a une explication naturelle ou surnaturelle.
+2. Si le récit tranche pour une explication rationnelle (un rêve, une maladie, une ruse), on parle d'**étrange**.
+3. Si le récit admet le surnaturel comme normal (fées, dragons, magie), on parle de **merveilleux**.
+4. Le genre se développe au **XIXᵉ** siècle, avec Gautier, Mérimée et Maupassant.
+
+Pour retenir : étrange, l'explication existe ; merveilleux, personne ne s'étonne ; fantastique, on hésite jusqu'au bout.
 :::
 :::
 

@@ -122,6 +122,13 @@ Ce sont deux actions différentes. Donner plus d'exercices à quelqu'un qui est 
 
 **Note obtenue à l'exercice 16 (devoir type) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 16
+Question 1, bactérie, virus et microbe utile : 4 points, dont 2 pour la différence (la bactérie est une cellule qui se multiplie seule, le virus a besoin d'une cellule), 2 pour l'exemple de microbe utile avec son rôle.
+Question 2, le clou rouillé : 4 points, dont 1 pour la contamination (entrée des bactéries par la plaie), 1,5 pour l'infection (multiplication, rougeur, chaleur, douleur), 1,5 pour les phagocytes (ils avalent les bactéries, le pus en est la trace).
+Question 3, le vaccin : 6 points, dont 1 pour le contenu du vaccin (microbe affaibli ou morceau de microbe), 2,5 pour la réponse de l'organisme (anticorps et mémoire, sans la maladie), 2,5 pour la rencontre avec le vrai microbe (réponse immédiate, pas d'infection).
+Question 4, l'affiche sur les antibiotiques : 6 points, dont 2 pour bactéries et virus (inutiles contre un rhume), 2 pour la résistance, 1 pour le microbiote, 1 pour la conclusion (réservés aux infections bactériennes, sur ordonnance).
+:::
+
 ::: cocher
 - La grille est remplie des deux côtés
 - Chaque écart a été discuté

@@ -114,6 +114,16 @@ Le sang **transporte** les nutriments depuis l'intestin, l'oxygène depuis les p
 Dans un capillaire du muscle, le sang cède du glucose et de l'oxygène aux cellules, et récupère du dioxyde de carbone. Le sang ressort du muscle appauvri en oxygène.
 :::
 
+::: methode Suivre un aliment de l'assiette au muscle
+1. Dans l'assiette : un plat de pâtes, riche en amidon.
+2. Dans le tube digestif : l'amidon est découpé en glucose, de la bouche à l'intestin grêle.
+3. Dans l'intestin grêle : le glucose traverse la paroi des villosités et passe dans le sang.
+4. Dans le sang : le glucose voyage jusqu'au cœur, qui le renvoie vers tous les organes.
+5. Dans le muscle : les cellules consomment ce glucose avec l'oxygène venu des poumons, et rejettent du dioxyde de carbone dans le sang.
+
+Cette chaîne relie les trois appareils de la fiche : digestif, circulatoire, respiratoire. Refais-la avec un autre aliment, par exemple un œuf, dont les protéines deviennent des acides aminés.
+:::
+
 ## 6. Le cœur et les deux circulations
 
 Le **cœur** est une pompe. Il envoie le sang dans deux circuits.

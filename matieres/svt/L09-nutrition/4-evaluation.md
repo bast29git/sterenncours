@@ -122,6 +122,13 @@ Ce sont deux actions différentes. Donner plus d'exercices à quelqu'un qui est 
 
 **Note obtenue à l'exercice 16 (devoir type) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 16
+Question 1, besoins et rejets d'un organe : 4 points, dont 2 pour ce qu'il consomme (nutriments, oxygène) et rejette (dioxyde de carbone, déchets), 2 pour les organes d'entrée et de sortie (intestin grêle, poumons, reins).
+Question 2, la digestion du pain : 5 points, dont 2 pour la bouche (dents, action mécanique ; salive, action chimique), 1 pour l'estomac (brassage et suc gastrique), 2 pour l'intestin grêle (l'amidon devient du glucose, qui est absorbé).
+Question 3, air inspiré et air expiré : 5 points, dont 1 pour le constat (moins d'oxygène, plus de dioxyde de carbone à la sortie), 2 pour l'explication (l'oxygène est passé dans le sang, le dioxyde de carbone en est sorti), 2 pour le lieu exact, les alvéoles pulmonaires.
+Question 4, l'alimentation du camarade : 6 points, dont 1 pour la famille dominante (glucides), 2 pour ce qui manque (protéines, lipides de qualité, vitamines et minéraux), 1 pour les conséquences, 2 pour les deux changements précis.
+:::
+
 ::: cocher
 - La grille est remplie des deux côtés
 - Chaque écart a été discuté

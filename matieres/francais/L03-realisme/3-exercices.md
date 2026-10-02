@@ -42,10 +42,13 @@ Complète les phrases.
 4. Le mouvement que Zola développe à partir du réalisme s'appelle le ………
 
 ::: corrige
-1. Le **XIXᵉ** siècle.
-2. Vers **1850**.
-3. Au **romantisme**.
-4. Le **naturalisme**.
+Ce qu'on cherche : les quatre repères du chapitre sur le réalisme, un par phrase.
+1. Le réalisme est un mouvement du **XIXᵉ** siècle, celui de Balzac, Flaubert et Maupassant.
+2. Il s'affirme vers **1850**, au milieu du siècle, et domine sa seconde moitié.
+3. Il s'oppose au **romantisme**, qui mettait en avant les sentiments et l'imagination.
+4. Le mouvement que Zola développe à partir du réalisme s'appelle le **naturalisme** : il observe les personnages comme un scientifique, en tenant compte de leur hérédité et de leur milieu.
+
+Pour vérifier, relis la partie 1 de la fiche de cours : les dates et les noms y figurent dans le même ordre.
 :::
 :::
 

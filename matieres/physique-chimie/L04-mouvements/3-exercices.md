@@ -124,9 +124,13 @@ Calcule.
 3. Un train parcourt `360 km` à `180 km/h`.
 
 ::: corrige
-1. `v = 800 ÷ 100 = 8 m/s`
-2. `d = 70 × 2 = 140 km`
-3. `t = 360 ÷ 180 = 2 h`
+Ce qu'on cherche : la grandeur manquante parmi vitesse, distance et durée, reliées par `v = d ÷ t`.
+1. Vitesse : `v = d ÷ t = 800 ÷ 100 = 8 m/s`. Des mètres divisés par des secondes donnent des mètres par seconde.
+2. Distance : `d = v × t = 70 × 2 = 140 km`. Des km/h multipliés par des heures donnent des kilomètres.
+3. Durée : `t = d ÷ v = 360 ÷ 180 = 2 h`. Des kilomètres divisés par des km/h donnent des heures.
+
+Vérification du 1 : à `8 m/s` pendant `100 s`, on parcourt `8 × 100 = 800 m`, la distance de l'énoncé.
+Avant de calculer, on vérifie toujours que les unités vont ensemble : ici, aucune conversion n'était nécessaire.
 :::
 :::
 
@@ -139,10 +143,14 @@ Convertis.
 4. `126 km/h` en `m/s`
 
 ::: corrige
-1. `10 × 3,6 = 36 km/h`
-2. `36 ÷ 3,6 = 10 m/s`
-3. `25 × 3,6 = 90 km/h`
-4. `126 ÷ 3,6 = 35 m/s`
+Ce qu'on cherche : la même vitesse dans l'autre unité.
+Pourquoi 3,6 : `1 m/s`, c'est 1 m chaque seconde, donc `3 600 m` en une heure, soit `3,6 km/h`. Pour passer des m/s aux km/h on multiplie par 3,6 ; pour revenir aux m/s on divise par 3,6.
+1. `10 m/s = 10 × 3,6 = 36 km/h`.
+2. `36 km/h = 36 ÷ 3,6 = 10 m/s`. C'est l'inverse du 1, les deux résultats se confirment.
+3. `25 m/s = 25 × 3,6 = 90 km/h`.
+4. `126 km/h = 126 ÷ 3,6 = 35 m/s`.
+
+Vérification du 4 : `35 × 3,6 = 126`. Le nombre en km/h est toujours le plus grand des deux, car le km/h est une unité plus petite que le m/s.
 :::
 :::
 
@@ -171,10 +179,13 @@ Sterenn s'entraîne à vélo avant son voyage vers les aurores boréales. Un cyc
 4. Combien de temps mettrait-il pour parcourir `75 km` à cette vitesse ?
 
 ::: corrige
-1. `1 h 30 = 1,5 h`.
-2. `v = 45 ÷ 1,5 = 30 km/h`.
-3. `30 ÷ 3,6 ≈ 8,3 m/s`.
-4. `t = 75 ÷ 30 = 2,5 h`, soit `2 h 30`.
+Ce qu'on cherche : d'abord une durée en heures décimales, puis une vitesse, une conversion et une nouvelle durée.
+1. `30 min = 30 ÷ 60 = 0,5 h`, donc `1 h 30 = 1,5 h`.
+2. `v = d ÷ t = 45 ÷ 1,5 = 30 km/h`. Vérification : `30 × 1,5 = 45 km`.
+3. `30 ÷ 3,6 = 8,33…`, soit environ `8,3 m/s`. Un peu plus de 8 mètres chaque seconde.
+4. `t = d ÷ v = 75 ÷ 30 = 2,5 h`. Et `0,5 h = 30 min`, donc `2 h 30`.
+
+Vérification du 4 : `75 km`, c'est `45 km` plus `30 km` ; à `30 km/h`, les `45 km` demandent `1 h 30` et les `30 km` demandent `1 h`, soit `2 h 30` en tout.
 :::
 :::
 

@@ -44,10 +44,13 @@ Complète avec les chiffres du chapitre.
 4. Environ ……… de personnes vivent dans un habitat précaire.
 
 ::: corrige
-1. En **2007**.
-2. Environ **57 %**.
-3. Environ **68 %**.
-4. Environ **1 milliard**, soit près d'un urbain sur quatre.
+Ce qu'on cherche : les quatre chiffres clés de l'urbanisation du monde, donnés dans le chapitre.
+1. En **2007**, la population urbaine mondiale dépasse pour la première fois la population rurale : plus d'un humain sur deux vit en ville.
+2. Aujourd'hui, environ **57 %** de l'humanité vit en ville.
+3. En 2050, on prévoit environ **68 %** d'urbains, soit plus de deux humains sur trois.
+4. Environ **1 milliard** de personnes vivent dans un habitat précaire, soit près d'un urbain sur quatre.
+
+Vérification du 4 : avec environ 8 milliards d'humains et 57 % d'urbains, il y a près de 4,5 milliards d'urbains ; 1 milliard sur 4,5 milliards, c'est un peu moins d'un sur quatre.
 :::
 :::
 

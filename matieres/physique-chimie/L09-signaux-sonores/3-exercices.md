@@ -83,7 +83,11 @@ Plus le milieu est dense et rigide, plus le son est rapide.
 Quelle distance le son parcourt-il dans l'air en 5 secondes ?
 
 ::: corrige
-d = v × t = 340 × 5 = **1 700 m**, soit 1,7 km.
+Ce qu'on cherche : la distance parcourue par le son en 5 secondes dans l'air.
+Donnée du cours : la vitesse du son dans l'air est d'environ `v = 340 m/s`, ce qui signifie 340 mètres chaque seconde.
+Calcul : `d = v × t = 340 × 5 = 1 700 m`.
+Résultat : en 5 secondes, le son parcourt **1 700 m**, soit 1,7 km.
+Vérification : `1 700 ÷ 5 = 340`, on retrouve la vitesse. Les unités vont ensemble, des m/s et des secondes donnent des mètres.
 :::
 :::
 
@@ -91,7 +95,11 @@ d = v × t = 340 × 5 = **1 700 m**, soit 1,7 km.
 Un coup de canon est tiré à 2 040 m d'un spectateur. Combien de temps après avoir vu la fumée l'entend-il ?
 
 ::: corrige
-La lumière arrive presque instantanément. Le son met : t = d ÷ v = 2 040 ÷ 340 = **6 s**.
+Ce qu'on cherche : le retard du son par rapport à la lumière, pour un spectateur placé à 2 040 m.
+Pourquoi il y a un retard : la lumière va à `300 000 km/s`, elle parcourt 2 040 m en moins d'un cent-millième de seconde, la fumée est donc vue presque instantanément. Le son, lui, va à `340 m/s` seulement.
+Calcul : `t = d ÷ v = 2 040 ÷ 340 = 6 s`.
+Résultat : le spectateur entend le coup de canon **6 secondes** après avoir vu la fumée.
+Vérification : `340 × 6 = 2 040 m`, on retrouve la distance de l'énoncé. Le même phénomène explique le décalage entre l'éclair et le tonnerre.
 :::
 :::
 

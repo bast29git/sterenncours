@@ -122,6 +122,13 @@ Ce sont deux actions différentes.
 
 **Note obtenue à l'exercice 16 (devoir type) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 16
+Question 1, présenter l'œuvre : 4 points, 1 par élément exact : auteur et date (Edmond Rostand, 1897), genre (comédie héroïque), forme (cinq actes en alexandrins), résumé de l'histoire.
+Question 2, le vocabulaire du théâtre : 4 points, 1 par terme (réplique, tirade, aparté, didascalie), la définition juste et l'exemple de la pièce comptant ensemble.
+Question 3, le panache : 5 points, dont 2 pour l'explication du mot (courage et élégance, sans calcul), 3 pour les trois scènes situées par leur acte (1 par scène).
+Question 4, le paragraphe argumenté : 7 points, dont 1,5 pour l'argument pour, 1,5 pour l'argument contre, 2 pour les deux citations situées par leur acte, 1 pour la conclusion personnelle justifiée, 1 pour la rédaction en phrases complètes.
+:::
+
 ::: cocher
 - La grille est remplie des deux côtés
 - Chaque écart a été discuté

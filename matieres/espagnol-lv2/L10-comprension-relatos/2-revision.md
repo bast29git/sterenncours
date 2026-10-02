@@ -63,6 +63,21 @@ La première phrase du journaliste contient quién, qué, dónde. Les détails d
 - **Sentiment** → me sentí, qué pena, qué alegría, genial, horrible ; et la voix qui monte ou qui tombe.
 :::
 
+Les mots-signaux à reconnaître à l'oreille, avec leur traduction :
+
+::: motscles
+- `al principio` : au début ; il ouvre la première case de la frise.
+- `luego` : puis, ensuite ; il fait avancer le récit d'une case.
+- `de repente` : soudain ; il annonce une rupture, l'événement inattendu du récit.
+- `por desgracia` : malheureusement ; il annonce ce qui a mal tourné.
+- `al final` : à la fin, finalement ; il ferme la dernière case de la frise.
+- `por fin` : enfin ; il marque la fin avec un soulagement.
+- `a causa de` : à cause de ; il introduit la réponse à la question por qué.
+- `la verdad es que` : la vérité, c'est que ; il annonce une opinion ou un aveu sincère.
+- `me parece que` : il me semble que ; une opinion, pas un fait.
+- `qué pena` : quel dommage ; un mot de sentiment, comme qué alegría.
+:::
+
 ## 6. Les quatre pièges
 
 ::: piege À ne pas faire

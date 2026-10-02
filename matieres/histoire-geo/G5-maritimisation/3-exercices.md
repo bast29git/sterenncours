@@ -40,11 +40,14 @@ d. Processus par lequel les économies dépendent de plus en plus de la mer.
 e. Activité menée en mer, au large des côtes.
 
 ::: corrige
-a. **Conteneur**
-b. **Hinterland**
-c. **EVP**, équivalent vingt pieds
-d. **Maritimisation**
-e. **Offshore**
+Ce qu'on cherche : associer chaque définition au mot exact du chapitre sur la maritimisation.
+a. Caisse métallique aux dimensions normalisées dans le monde entier : le **conteneur**. Les mêmes dimensions partout permettent de le charger sur un navire, un train ou un camion sans le vider.
+b. Zone continentale desservie par un port : l'**hinterland**, l'arrière-pays du port.
+c. Unité de compte égale à un conteneur de vingt pieds : l'**EVP**, équivalent vingt pieds, qui sert à mesurer le trafic d'un port.
+d. Processus par lequel les économies dépendent de plus en plus de la mer : la **maritimisation**.
+e. Activité menée en mer, au large des côtes : **offshore**, par exemple une plateforme pétrolière ou un parc d'éoliennes en mer.
+
+Pour vérifier : chaque mot n'est utilisé qu'une fois et les cinq définitions ont reçu un mot.
 :::
 :::
 

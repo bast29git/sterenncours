@@ -249,9 +249,14 @@ Calcule les masses, avec `g = 9,8 N/kg`.
 3. Un poids de `980 N`.
 
 ::: corrige
-1. `m = 196 ÷ 9,8 = 20 kg`
-2. `m = 49 ÷ 9,8 = 5 kg`
-3. `m = 980 ÷ 9,8 = 100 kg`
+Ce qu'on cherche : la masse d'un objet à partir de son poids.
+Formule : le poids vaut `P = m × g`. Pour retrouver la masse, on divise : `m = P ÷ g`, avec `P` en newtons et `g = 9,8 N/kg`, ce qui donne des kilogrammes.
+1. `m = 196 ÷ 9,8 = 20 kg`.
+2. `m = 49 ÷ 9,8 = 5 kg`.
+3. `m = 980 ÷ 9,8 = 100 kg`.
+
+Vérification du 1 : `20 kg × 9,8 N/kg = 196 N`, on retrouve le poids de l'énoncé.
+Sur Terre, le poids en newtons vaut à peu près dix fois la masse en kilogrammes : `196 N` pour `20 kg`, l'ordre de grandeur est cohérent.
 :::
 :::
 

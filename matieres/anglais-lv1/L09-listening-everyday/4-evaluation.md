@@ -121,6 +121,12 @@ Ce sont deux actions différentes.
 
 **Note obtenue à l'exercice 16 (devoir type) : ……… / 20**
 
+::: info Barème proposé pour l'exercice 16
+Partie A, le script des promenades en bateau : 6 points, 1 par information exacte (9,50 £ ; 4 £ ; 5.15 ; pier 3 ; 07700 900789 ; Mondays).
+Partie B, le message d'Ellie : 8 points, dont 1 pour qui appelle, 2 pour ce qui a changé (le match passe de deux à quatre heures), 2 pour le lieu et l'heure du rendez-vous, 2 pour ce qu'il faut apporter, 1 pour le second conseil ; les réponses sont en phrases complètes en anglais.
+Partie C, la méthode en six phrases : 6 points, dont 2 pour l'avant (lire la consigne, deviner la situation, prévoir des mots), 2 pour le pendant (une écoute par objectif, garder la dernière version d'une information), 1 pour l'après (rédiger, vérifier avec le script), 1 pour des phrases complètes et correctes en anglais.
+:::
+
 ::: cocher
 - La grille est remplie des deux côtés
 - Chaque écart a été discuté

@@ -251,10 +251,13 @@ Complète avec `should` ou `shouldn't`.
 4. We ……… leave our bags here, it's not safe.
 
 ::: corrige
-1. `should`
-2. `shouldn't`
-3. `should`
-4. `shouldn't`
+Ce qu'on cherche : `should` pour un conseil (« tu devrais »), `shouldn't` pour déconseiller (« tu ne devrais pas »). On regarde si la phrase encourage ou met en garde.
+1. `You should drink more water, it's hot today.` Boire de l'eau quand il fait chaud est un bon conseil.
+2. `You shouldn't eat so much sugar.` Trop de sucre est déconseillé.
+3. `She should see a doctor about that cough.` Consulter pour une toux est un conseil.
+4. `We shouldn't leave our bags here, it's not safe.` La deuxième partie de la phrase explique le danger, donc on déconseille.
+
+Rappel : `should` est suivi de la base verbale, sans `to` et sans `-s` à la troisième personne : `she should see`, pas `she should sees`.
 :::
 :::
 

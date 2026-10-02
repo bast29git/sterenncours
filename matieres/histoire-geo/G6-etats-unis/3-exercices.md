@@ -40,11 +40,14 @@ d. Mise en relation croissante des parties du monde par les échanges.
 e. Entreprise organisant sa production dans plusieurs pays.
 
 ::: corrige
-a. **Technopôle**
-b. **Soft power**
-c. **Métropolisation**
-d. **Mondialisation**
-e. **Firme transnationale**
+Ce qu'on cherche : associer chaque définition au mot exact du chapitre sur les États-Unis dans la mondialisation.
+a. Espace associant universités, laboratoires, entreprises innovantes et financeurs : un **technopôle**, comme la Silicon Valley en Californie.
+b. Capacité d'influencer par l'attrait, sans contrainte : le **soft power**, par exemple le cinéma, la musique ou les universités.
+c. Concentration des activités et des pouvoirs de décision dans les grandes villes : la **métropolisation**, visible à New York ou Los Angeles.
+d. Mise en relation croissante des parties du monde par les échanges : la **mondialisation**.
+e. Entreprise organisant sa production dans plusieurs pays : une **firme transnationale**.
+
+Pour vérifier : chaque mot n'est utilisé qu'une fois et les cinq définitions ont reçu un mot.
 :::
 :::
 

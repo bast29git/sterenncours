@@ -123,10 +123,14 @@ Résous.
 4. `x/5 = 3`
 
 ::: corrige
-1. `x = 15 − 9 = 6`
-2. `x = 11 + 4 = 15`
-3. `x = 42 ÷ 6 = 7`
-4. Je multiplie les deux membres par `5` : `x = 15`.
+Ce qu'on cherche : la valeur de `x` qui rend chaque égalité vraie.
+Méthode : on fait l'opération inverse des deux côtés du signe égal pour isoler `x`.
+1. `x + 9 = 15`. On soustrait 9 des deux côtés : `x = 15 − 9 = 6`.
+2. `x − 4 = 11`. On ajoute 4 des deux côtés : `x = 11 + 4 = 15`.
+3. `6x = 42`. On divise les deux côtés par 6 : `x = 42 ÷ 6 = 7`.
+4. `x/5 = 3`. On multiplie les deux côtés par 5 : `x = 3 × 5 = 15`.
+
+Vérification : on remplace `x` dans l'équation de départ. `6 + 9 = 15`, `15 − 4 = 11`, `6 × 7 = 42`, `15 ÷ 5 = 3`. Les quatre égalités sont vraies.
 :::
 :::
 
@@ -138,9 +142,13 @@ Résous, en écrivant l'étape intermédiaire.
 3. `3x + 11 = 2`
 
 ::: corrige
-1. `2x = 19 − 7 = 12`, donc `x = 6`.
-2. `5x = 27 + 8 = 35`, donc `x = 7`.
-3. `3x = 2 − 11 = −9`, donc `x = −3`.
+Ce qu'on cherche : la valeur de `x`, en deux étapes : d'abord isoler le terme en `x`, puis diviser par son coefficient.
+1. `2x + 7 = 19`. Étape 1, on soustrait 7 des deux côtés : `2x = 19 − 7 = 12`. Étape 2, on divise par 2 : `x = 12 ÷ 2 = 6`.
+2. `5x − 8 = 27`. Étape 1, on ajoute 8 des deux côtés : `5x = 27 + 8 = 35`. Étape 2, on divise par 5 : `x = 35 ÷ 5 = 7`.
+3. `3x + 11 = 2`. Étape 1, on soustrait 11 des deux côtés : `3x = 2 − 11 = −9`. Étape 2, on divise par 3 : `x = −9 ÷ 3 = −3`.
+
+Vérification du 3 : `3 × (−3) + 11 = −9 + 11 = 2`. L'égalité est vraie, la solution est juste.
+Une solution négative est tout à fait possible : on ne modifie pas un résultat parce qu'il est négatif.
 :::
 :::
 
@@ -310,10 +318,14 @@ Maomao écrit ses problèmes de dosage de remèdes sous forme d'équations. Trad
 4. La moitié d'un nombre, augmentée de 3, vaut 11.
 
 ::: corrige
-1. `2x = 26`
-2. `x + 12 = 30`
-3. `3x − 4 = 20`
-4. `x/2 + 3 = 11`
+Ce qu'on cherche : une équation par phrase, sans la résoudre. On appelle `x` le nombre inconnu.
+Méthode : on traduit mot à mot. « Le double » : `2x`. « Le triple » : `3x`. « La moitié » : `x/2`. « Augmenté de » : `+`. « Diminué de » : `−`. « Vaut » : `=`.
+1. Le double d'un nombre vaut 26 : `2x = 26`.
+2. Un nombre augmenté de 12 vaut 30 : `x + 12 = 30`.
+3. Le triple d'un nombre, diminué de 4, vaut 20 : `3x − 4 = 20`.
+4. La moitié d'un nombre, augmentée de 3, vaut 11 : `x/2 + 3 = 11`.
+
+Vérification de lecture au 3 : on calcule d'abord le triple, puis on enlève 4. L'ordre des mots donne l'ordre des opérations, donc `3x − 4` et non `3(x − 4)`.
 :::
 :::
 

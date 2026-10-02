@@ -63,6 +63,21 @@ La première phrase du journaliste contient who, what, where. Les détails donne
 - **Sentiment** → I was so…, I felt, amazing, terrible, disappointed ; et la voix qui monte ou qui tombe.
 :::
 
+Les mots-signaux à reconnaître à l'oreille, avec leur traduction :
+
+::: motscles
+- `at first` : au début ; il ouvre la première case de la frise.
+- `then` : puis, ensuite ; il fait avancer le récit d'une case.
+- `suddenly` : soudain ; il annonce une rupture, l'événement inattendu du récit.
+- `unfortunately` : malheureusement ; il annonce ce qui a mal tourné.
+- `eventually` : finalement, au bout d'un certain temps ; il ferme le récit, jamais « éventuellement ».
+- `because of` : à cause de ; il introduit la réponse à la question why.
+- `to be honest` : pour être honnête ; il annonce une opinion personnelle.
+- `in my opinion` : à mon avis ; une opinion, pas un fait.
+- `disappointed` : déçu ; un mot de sentiment, à ranger avec amazing et terrible.
+- `actually` : en fait, en réalité ; il corrige ce qui précède, jamais « actuellement ».
+:::
+
 ## 6. Les quatre pièges
 
 ::: piege À ne pas faire
