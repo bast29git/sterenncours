@@ -170,16 +170,24 @@ quelque chose, pas seulement signaler l'erreur.
 - **Univers de Sterenn dans les énoncés** : un exercice sur cinq au moins par leçon cite Maomao,
   Myne, Yuzu, les aurores boréales ou les feutres ; le build compte les mots-clés par leçon
   (`public/data/univers.json`). La fiction habille l'énoncé, jamais les données ni le corrigé.
-- **Le compagnon** (`site/compagnon.js`, page `#/compagnon`, profil `moi.compagnon` et
-  `moi.compagnon_coeurs`) : une créature SVG que Sterenn nomme et habille ; 12 formes, 10 couleurs,
-  16 accessoires (quatre à la fois), 6 auras, 5 tours, trois stades de taille. Chaque élément
-  s'ouvre à un nombre d'**étoiles**, d'**opales** (une opale = une leçon validée) ou de **cœurs**
-  (un cœur au plus par jour, gagné par la mission du jour : fiche, série, visite ou caresse) ;
-  rien ne se referme. Il a une humeur (content, curieux, s'ennuie, dort le soir), une phrase du
-  moment, se caresse, réagit aux célébrations, tient un carnet des déblocages. Une mascotte
-  discrète, bulle au toucher seulement, apparaît en bas des pages calmes (matières, semaine,
-  jeux…), jamais sur une fiche, un jeu, une évaluation ni dans les messages ; Sterenn peut la
-  couper. Le professeur le voit sur la page « Sterenn ».
+- **Le compagnon** (`site/compagnon.js`, page `#/compagnon`, profil `moi.compagnon`,
+  `moi.compagnon_vie` et `moi.compagnon_coeurs`) : une créature SVG que Sterenn nomme, habille et
+  dont elle s'occupe. 12 formes, 10 couleurs, 6 motifs, 5 yeux, 16 accessoires (quatre à la fois),
+  6 auras, 5 tours, 7 fonds et 12 objets de chambre (cinq posés), trois stades de taille. Chaque
+  élément s'ouvre à un nombre d'**étoiles**, d'**opales** (une opale = une leçon validée), de
+  **cœurs** (un au plus par jour, gagné par la mission du jour) ou à un **niveau d'amitié** (huit
+  niveaux, points gagnés par les gestes du jour, plafonnés : la régularité compte) ; rien ne se
+  referme. Six gestes sur sa page : caresser, nourrir (les provisions viennent des réussites : une
+  fiche, une série, une leçon validée, un monde gagné), jouer (trois mini-jeux : attrape l'étoile,
+  cache-cache, la suite), brosser (au doigt ou au bouton), parler (il raconte, pose une question à
+  deux réponses et s'en souvient), photo (album de douze souvenirs, envoyables à Bastien dans les
+  messages). Deux envies du jour tirées par la date, une journée parfaite quand elles sont
+  comblées. Un tour ouvert s'apprend en refaisant sa suite. Il a une humeur (content, curieux,
+  s'ennuie, dort le soir), réagit aux célébrations, tient un carnet (déblocages, niveaux, tours,
+  photos) et une collection de treize vignettes. Une mascotte discrète, bulle au toucher seulement,
+  apparaît en bas des pages calmes (matières, semaine, jeux…), jamais sur une fiche, un jeu, une
+  évaluation ni dans les messages ; Sterenn peut la couper. Le professeur le voit sur la page
+  « Sterenn » (amitié, photos, tours).
 - **Scanner** (`site/scan.js`, les deux espaces) : photos redressées en niveaux de gris, papier
   blanc ; plusieurs pages font un PDF écrit dans le navigateur, envoyé par `/api/fichiers`.
 - **Photos de profil et farces** (`site/farces.js`, helpers dans `site/messagerie.js`) : la photo de

@@ -586,7 +586,7 @@
    * dit d'où vient l'étoile. Coupée par le réglage « felicitations ».
    */
   const CLE_ETOILES = 'opaline.etoiles';
-  function celebrer(titre, detail) {
+  function celebrer(titre, detail, genre) {
     if (!reglage('felicitations') || !document.getElementById('app-eleve')) return;
     const ancien = document.getElementById('e-fete'); if (ancien) ancien.remove();
     const el = document.createElement('div');
@@ -600,7 +600,7 @@
       <button type="button" class="e-bouton e-fete-ok">Continuer</button>
     </div>`;
     document.body.appendChild(el);
-    if (window.COMPAGNON) { try { window.COMPAGNON.reagir('etoile'); } catch (e) { /* le compagnon ne bloque jamais la fête */ } }
+    if (window.COMPAGNON) { try { window.COMPAGNON.reagir(genre || 'etoile'); } catch (e) { /* le compagnon ne bloque jamais la fête */ } }
     const liberer = piegerFocus(el, document.activeElement);
     const fermer = () => { liberer(); el.classList.add('fin'); setTimeout(() => el.remove(), 250); };
     el.querySelector('.e-fete-ok').addEventListener('click', fermer);
@@ -614,15 +614,15 @@
     ecrire(CLE_ETOILES, { total: r.total, fiches: r.fiches, series: r.series, jeux: r.jeux, lecons: r.lecons, felicitations: r.felicitations });
     if (!avant || typeof avant.total !== 'number' || r.total <= avant.total) return;
     const gain = r.total - avant.total;
-    let detail = '';
+    let detail = ''; let genre = 'etoile';
     if (r.felicitations > (avant.felicitations || 0)) {
       const f = (etat.felicitations || [])[0];
-      detail = f ? 'Bastien te félicite : ' + f.texte : 'Bastien te félicite pour ton devoir.';
-    } else if (r.lecons > (avant.lecons || 0)) detail = 'Une leçon validée par Bastien, trois étoiles.';
-    else if (r.jeux > (avant.jeux || 0)) detail = 'Un monde terminé avec au moins deux étoiles.';
-    else if (r.series > (avant.series || 0)) detail = 'Une série réussie à 70 % ou plus.';
-    else if (r.fiches > (avant.fiches || 0)) detail = 'Une fiche terminée.';
-    celebrer(gain > 1 ? `${gain} étoiles de plus` : 'Une étoile de plus', detail);
+      detail = f ? 'Bastien te félicite : ' + f.texte : 'Bastien te félicite pour ton devoir.'; genre = 'felicitation';
+    } else if (r.lecons > (avant.lecons || 0)) { detail = 'Une leçon validée par Bastien, trois étoiles.'; genre = 'lecon'; }
+    else if (r.jeux > (avant.jeux || 0)) { detail = 'Un monde terminé avec au moins deux étoiles.'; genre = 'jeu'; }
+    else if (r.series > (avant.series || 0)) { detail = 'Une série réussie à 70 % ou plus.'; genre = 'serie'; }
+    else if (r.fiches > (avant.fiches || 0)) { detail = 'Une fiche terminée.'; genre = 'fiche'; }
+    celebrer(gain > 1 ? `${gain} étoiles de plus` : 'Une étoile de plus', detail, genre);
   }
 
   /* ---------- Chargement ------------------------------------------------------ */
