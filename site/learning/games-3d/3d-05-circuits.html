@@ -68,7 +68,14 @@
   .el-navhelp li .ic { flex:none; width:26px; text-align:center; font-size:15px; }
   .el-navhelp kbd { font-family:var(--font-mono); font-size:11px; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:2px 6px; min-width:20px; text-align:center; display:inline-block; }
   .el-navhelp .elnh-x { position:absolute; top:10px; right:10px; width:30px; height:30px; border:none; border-radius:8px; background:var(--surface-2); color:var(--fg); cursor:pointer; font-size:16px; }
-  @media (max-width:720px){ .el-left{width:170px;padding:10px;gap:9px} .el-fiche{width:min(300px,86vw)} .el-readout{width:140px;padding:11px} .el-i{font-size:26px} }
+  /* mission « Allumer la maison » : bandeau à droite sous le cadran, outils de câblage en bas */
+  .mb-mission.el-zone { top:14px; right:14px; }
+  .el-maison { position:absolute; z-index:22; bottom:16px; left:50%; transform:translateX(-50%); display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:center; max-width:92vw; padding:8px 10px; background:color-mix(in srgb,var(--surface) 92%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); font-size:13px; }
+  .el-maison .consigne { flex:1 1 100%; text-align:center; line-height:1.35; } .el-maison .consigne b { color:var(--accent-text); }
+  .el-maison button { font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:38px; padding:6px 11px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; }
+  .el-maison button[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .el-maison button:focus-visible { outline:none; box-shadow:var(--ring); }
+  @media (max-width:720px){ .el-left{width:170px;padding:10px;gap:9px} .el-fiche{width:min(300px,86vw)} .el-readout{width:140px;padding:11px} .el-i{font-size:26px} .mb-mission.el-zone{ top:auto; bottom:92px; right:10px; width:min(190px,52vw); } .el-maison{ font-size:12px; } }
 </style>
 </head>
 <body>
@@ -82,8 +89,13 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, textureTexte, matPBR, preparerAo } from '../monde-base.js';
 
 const REDUCED = window.Konstrio.REDUCED;
+/* F228 : outils communs (mission, personnage, ambiance, sons), l'électricien et la mission « Allumer la maison » */
+let M = null; const boucles = []; let prof = null, profBulle = null, ambianceAtelier = null, maisonOn = false, maisonGroup = null, missionMaison = null, missionLancee = false, hiddenMaison = [];
+const maison = { fils: [], bornes: {}, lampes: {}, choix: null, ferme: false, etape: 0, courts: 0, courtActif: null, lampLights: [] };
+const PETIT = window.matchMedia('(max-width: 720px)').matches;
 let scene, camera, renderer, controls, composer, clock;
 let maxAniso = 8, softwareGL = false;
 let U = 6, R = 4, closed = false, emode = 'explore';
@@ -159,7 +171,10 @@ const shell = window.Konstrio.createGame({
   },
   learned:["Le courant ne circule que dans un circuit fermé.","Chaque composant a un rôle : pile (source), fils (chemin), ampoule/moteur/buzzer (récepteurs), interrupteur (commande).","Loi d'Ohm : I = U / R : trop de courant provoque une surcharge."],
   onReady:(api)=>init(api),
-  onStart:(m,api)=>{ if(m==='cours'){ api.setScore(0); chooseCourse(); } else { setMode('explore'); api.setLevel('libre'); } },
+  onStart:(m,api)=>{ if(m==='cours'){ api.setScore(0); chooseCourse(); } else { setMode('explore'); api.setLevel('libre'); }
+    if(!ambianceAtelier&&M){ try{ ambianceAtelier=M.ambiance({ type:'salle', volume:0.1 }); }catch(e){} }
+    setTimeout(()=>{ if(prof) prof.dire(m==='cours'?'Salut, je suis Loïc, électricien. Quand tu veux : « Allumer la maison », trois circuits à câbler.':'Salut, je suis Loïc, électricien. Dans quelques secondes, on câble la maison.', 5); }, 1500);
+    if(m!=='cours') setTimeout(()=>{ if(!missionLancee&&!sandboxOn) setMode('maison'); }, 8000); },
   onRestart:(api)=>{ if(shell.api && shell.api.mode==='cours'){ api.setScore(0); chooseCourse(); } },
   onTheme:()=>applyTheme(),
   onHint:(api)=>api.hint(shell.cfg.intro.hint),
@@ -218,7 +233,8 @@ function init(api){
     undefined,
     ()=>{ rgbe.load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); }, undefined, ()=>{}); });
 
-  buildWorkbench(); buildBoard(); buildWires(); buildComponents(); buildElectrons(); buildUI(); applyTheme();
+  M = outils({ scene, camera, renderer, controls, stage, boucle: (f) => boucles.push(f), etiquette: etiquetteAtelier });
+  buildWorkbench(); buildBoard(); buildWires(); buildComponents(); buildElectrons(); buildUI(); applyTheme(); buildProf();
   renderer.domElement.addEventListener('pointerdown', onPointerDown);
   window.addEventListener('resize', onResize); new ResizeObserver(onResize).observe(stage);
   document.addEventListener('keydown', onKey);
@@ -436,6 +452,7 @@ function buildUI(){
         <button class="el-m" data-mode="defi">💡 Défis</button>
         <button class="el-m" data-mode="trouve">🎯 Trouve</button>
         <button class="el-m" data-mode="sandbox">🔧 Bac à sable</button>
+        <button class="el-m" data-mode="maison" id="elMaisonBtn" style="grid-column:1 / -1">🏠 Allumer la maison (mission)</button>
       </div>
     </div>
     <div><h3>Loi d'Ohm</h3>
@@ -514,6 +531,9 @@ function toggleNavHelp(){ const btn=document.getElementById('elHelp'); let el=do
 
 function setMode(m){
   const fx=document.getElementById('elFiche'); if(fx)fx.classList.remove('show');
+  if(m==='maison'){ if(sandboxOn) exitSandbox(); enterMaison(); return; }
+  if(maisonOn) exitMaison();
+  if(m==='explore'||m==='trouve') defiEnCours=false;
   if(m==='sandbox'){ enterSandbox(); return; }
   if(sandboxOn) exitSandbox();
   emode=m;
@@ -530,6 +550,7 @@ function onPointerDown(e){
   const r=renderer.domElement.getBoundingClientRect();
   const v=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
   const rc=new THREE.Raycaster(); rc.setFromCamera(v,camera);
+  if(maisonOn&&maisonGroup){ const hm=rc.intersectObjects(maisonGroup.children,true); for(const h of hm){ let o=h.object; while(o&&!o.userData.borne&&!o.userData.inter&&!o.userData.filId) o=o.parent; if(o&&o.userData.borne){ choisirBorne(o.userData.borne); return; } if(o&&o.userData.inter){ basculerInterMaison(); return; } if(o&&o.userData.filId){ retirerFil(o.userData.filId); return; } } return; }
   const hits=rc.intersectObjects(scene.children,true);
   for(const h of hits){ let o=h.object; while(o && !o.userData.part) o=o.parent; if(o && o.userData.part){ onPart(o.userData.part); return; } }
 }
@@ -573,7 +594,7 @@ function updateReadout(){
 function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; if(renderer) renderer.setClearColor(dark?0x0a0e18:0x121a2e,1); if(composer&&composer.bloom) composer.bloom.strength=dark?0.62:0.5; }
 function onResize(){ const s=shell.api.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); if(composer)composer.setSize(s.clientWidth,s.clientHeight); }
 function onKey(e){ if(e.target&&e.target.tagName==='INPUT')return; const k=e.key;
-  if(k===' '||k==='Enter'){ if(emode!=='trouve'&&!sandboxOn){ toggleSwitch(); e.preventDefault(); } }
+  if(k===' '||k==='Enter'){ if(maisonOn){ basculerInterMaison(); e.preventDefault(); } else if(emode!=='trouve'&&!sandboxOn){ toggleSwitch(); e.preventDefault(); } }
   else if(k==='r'||k==='R'){ setView('34'); }
   else if(k==='1'){ setView('34'); }
   else if(k==='2'){ setView('top'); }
@@ -589,7 +610,7 @@ function openNotions(){ let el=document.getElementById('elInfo'); if(!el){ el=do
 
 /* ============ MODE COURS : chooser ============ */
 function chooseCourse(){ let b=document.getElementById('elQuiz'); if(!b){ b=document.createElement('div'); b.className='el-quiz'; b.id='elQuiz'; shell.api.stage.appendChild(b); }
-  b.innerHTML='<div>🎓 Choisis ton défi</div><div class="el-qrow"><button class="el-qo" data-c="defi">💡 Allume l\'ampoule</button><button class="el-qo" data-c="trouve">🎯 Trouve le composant</button></div>';
+  b.innerHTML='<div>🎓 Choisis ton défi</div><div class="el-qrow"><button class="el-qo" data-c="defi">💡 Allume l\'ampoule</button><button class="el-qo" data-c="trouve">🎯 Trouve le composant</button><button class="el-qo" data-c="maison">🏠 Allume la maison</button></div>';
   b.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>{ shell.sound('click'); setMode(x.dataset.c); });
   shell.api.say("Deux parcours : « Allume l'ampoule » (défis progressifs) ou « Trouve le composant ». Choisis !",'curieux');
 }
@@ -602,15 +623,15 @@ const DEFIS=[
   { title:'Défi 3 · Sans surcharge', ask:"Obtiens une belle lumière SANS surcharge : garde I entre 2 A et 4 A.", ok:()=>closed&&I()>=2&&I()<=4, done:"Excellent dosage ! Assez de courant pour éclairer, pas trop pour surchauffer." },
   { title:'Défi 4 · Série & parallèle', ask:"Ouvre le Bac à sable et essaie les deux montages : série PUIS parallèle.", ok:()=>sandboxTried.ser&&sandboxTried.par, done:"Tu as comparé les deux montages : en parallèle, chaque ampoule reçoit toute la tension !" },
 ];
-let defiIdx=0, defiDone=false;
-function startDefis(){ emode='defi'; defiIdx=0; defiDone=false; sandboxTried.ser=false; sandboxTried.par=false; shell.api.setScore(0); shell.api.setProgress(0); shell.api.setLevel('1/'+DEFIS.length); showDefi(); }
+let defiIdx=0, defiDone=false, defiEnCours=false; // le défi 4 se joue dans le bac à sable : le parcours reste actif tant qu'on n'en sort pas
+function startDefis(){ emode='defi'; defiEnCours=true; defiIdx=0; defiDone=false; sandboxTried.ser=false; sandboxTried.par=false; shell.api.setScore(0); shell.api.setProgress(0); shell.api.setLevel('1/'+DEFIS.length); showDefi(); }
 function showDefi(){ const d=DEFIS[defiIdx]; let b=document.getElementById('elQuiz'); if(!b){ b=document.createElement('div'); b.className='el-quiz'; b.id='elQuiz'; shell.api.stage.appendChild(b); }
   b.innerHTML=`<span class="qn">${defiIdx+1}/${DEFIS.length}</span><div><b>${d.title}</b></div><div style="font-size:13px">${d.ask}</div>`;
   shell.api.setLevel((defiIdx+1)+'/'+DEFIS.length); shell.api.setProgress(defiIdx/DEFIS.length);
   shell.api.say(d.ask,'concentre'); defiDone=false;
 }
-function evalDefi(){ if(emode!=='defi'||defiDone)return; const d=DEFIS[defiIdx]; if(d.ok()){ defiDone=true; shell.sound('good'); shell.api.addScore(150); shell.api.say(d.done,'fier'); shell.api.toast('✅ '+d.title); setTimeout(()=>{ defiIdx++; if(defiIdx>=DEFIS.length){ winDefis(); } else { shell.api.setProgress(defiIdx/DEFIS.length); showDefi(); } },1400); } }
-function winDefis(){ clearQuiz(); const sc=parseInt(document.querySelector('.ksh-score').textContent||'0',10); shell.api.setProgress(1);
+function evalDefi(){ if(!defiEnCours||defiDone)return; const d=DEFIS[defiIdx]; if(d.ok()){ defiDone=true; shell.sound('good'); shell.api.addScore(150); shell.api.say(d.done,'fier'); shell.api.toast('✅ '+d.title); setTimeout(()=>{ defiIdx++; if(defiIdx>=DEFIS.length){ winDefis(); } else { shell.api.setProgress(defiIdx/DEFIS.length); showDefi(); } },1400); } }
+function winDefis(){ clearQuiz(); defiEnCours=false; const sc=parseInt(document.querySelector('.ksh-score').textContent||'0',10); shell.api.setProgress(1);
   shell.api.win({ score:sc, stars:3, title:"Circuit maîtrisé : défis réussis !", learned:shell.cfg.learned, buddy:"Tu sais fermer un circuit, doser le courant et comparer série et parallèle. Bravo, petite électronicienne !", onNext:()=>{ shell.api.setScore(0); startDefis(); }, nextLabel:'Rejouer' }); }
 
 /* ============ MODE « Trouve le composant » ============ */
@@ -693,8 +714,165 @@ function rebuildSandbox(){ if(!sandboxGroup)return; while(sandboxGroup.children.
 function updateSandbox(dt){ if(!sandboxOn||!sbPath.length)return; const sp=sandboxGroup.userData.speed||0.5; const total=sbPath.length;
   sbElectrons.forEach(e=>{ e.userData.t=(e.userData.t+dt*sp*0.15)%1; const f=e.userData.t*total; const i=Math.floor(f)%total; const a=sbPath[i], b=sbPath[(i+1)%total]; e.position.lerpVectors(a,b,f-Math.floor(f)); }); }
 
+/* ============ L'ÉLECTRICIEN : figurine à l'échelle de la carte géante, casque, gilet, ceinture d'outils ============ */
+function plierTexte(t,n){ const mots=String(t).split(/\s+/); const lignes=[]; let l=''; mots.forEach(m=>{ if((l+' '+m).trim().length>n&&l){ lignes.push(l); l=m; } else l=(l+' '+m).trim(); }); if(l)lignes.push(l); return lignes; }
+function etiquetteAtelier(texte,position,opt){ opt=Object.assign({},opt||{},{ fond:'rgba(22,30,42,0.92)', couleur:'#ffffff' }); const lignes=plierTexte(texte,PETIT?20:26); const tex=textureTexte(lignes.join('\n'),opt); const sp=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, depthTest:false, toneMapped:false })); const h=(PETIT?0.46:0.6)*(lignes.length+0.8); sp.scale.set(h*tex.userData.ratio,h,1); sp.position.fromArray(position); sp.raycast=()=>{}; sp.renderOrder=12; sp.userData.bulleProf=true; scene.add(sp); profBulle=sp; return sp; }
+function buildProf(){ if(!M)return;
+  prof=M.personnage({ nom:'Loïc, électricien', phrase:"À l'échelle de cette carte géante, il est tout petit, mais c'est lui qui connaît les règles du courant.", position:[7.8,-0.62,-5.6], taille:3.4, peau:0xd9a98a, haut:0xf07d1a, bas:0x2f3a52, cheveux:0x3a2a1e, vitesse:2.2, graine:7 });
+  const u=3.4/1.7; const g=prof.groupe; const ms=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:0.6 },o||{}));
+  const add=(geo,m,p,parent)=>{ const x=new THREE.Mesh(geo,m); x.position.set(p[0],p[1],p[2]); x.castShadow=true; (parent||g).add(x); return x; };
+  // casque de chantier jaune : calotte, visière, bandeau
+  const casque=add(new THREE.SphereGeometry(0.14*u,24,14,0,Math.PI*2,0,Math.PI/2), new THREE.MeshPhysicalMaterial({ color:0xF5A623, roughness:0.35, clearcoat:0.6, clearcoatRoughness:0.25 }), [0,1.6*u,0]); casque.scale.set(1,0.95,1.05);
+  add(new THREE.CylinderGeometry(0.15*u,0.15*u,0.012*u,24), ms(0xF5A623,{ roughness:0.35 }), [0,1.6*u,0]);
+  add(new THREE.BoxGeometry(0.12*u,0.012*u,0.08*u), ms(0xe08e1a,{ roughness:0.4 }), [0,1.6*u,0.15*u]);
+  // bandes réfléchissantes du gilet, ceinture d'outils, tournevis en main droite
+  [1.02,1.18].forEach(y=> add(new THREE.CylinderGeometry(0.175*u,0.175*u,0.025*u,20,1,true), new THREE.MeshStandardMaterial({ color:0xd8dde6, roughness:0.3, emissive:0x6a7280, emissiveIntensity:0.25, side:THREE.DoubleSide }), [0,y*u,0]));
+  add(new THREE.TorusGeometry(0.17*u,0.025*u,8,24), ms(0x3a2a1e,{ roughness:0.8 }), [0,0.9*u,0]).rotation.x=Math.PI/2;
+  add(new THREE.BoxGeometry(0.08*u,0.1*u,0.05*u), ms(0x5a3d26,{ roughness:0.8 }), [0.16*u,0.86*u,0.06*u]);
+  add(new THREE.BoxGeometry(0.08*u,0.1*u,0.05*u), ms(0x5a3d26,{ roughness:0.8 }), [-0.16*u,0.86*u,0.06*u]);
+  const tournevis=add(new THREE.CylinderGeometry(0.008*u,0.008*u,0.16*u,8), ms(0xc9cdd6,{ metalness:0.9, roughness:0.25 }), [0,-0.66*u,0.05*u], prof.membres.brasD); tournevis.rotation.x=Math.PI/2;
+  add(new THREE.CylinderGeometry(0.02*u,0.016*u,0.08*u,10), ms(0xE63329,{ roughness:0.5 }), [0,-0.64*u,-0.04*u], prof.membres.brasD).rotation.x=Math.PI/2;
+  prof.regarder([0,0,6]);
+}
+
+/* ============ MISSION « ALLUMER LA MAISON » : trois circuits à câbler sur une planche, lampes réelles, court-circuit détecté ============ */
+const BORNES=[['B+',-4.4,1.3],['B-',-6.2,1.3],['L1a',-3.3,4.3],['L1b',-1.7,4.3],['L2a',1.7,4.3],['L2b',3.3,4.3],['Sa',4.4,1.3],['Sb',6.2,1.3]];
+const ETAPES_MAISON=[
+  { id:'serie', texte:'1. Série : couloir et chambre en chaîne', consigne:"Relie la pile et les <b>deux lampes</b> en une seule boucle : + → lampe 1 → lampe 2 → −.", bravo:"Montage en série : un seul chemin, le même courant traverse les deux lampes, qui se partagent la tension. Chacune brille à moitié." },
+  { id:'parallele', texte:'2. Dérivation : chaque lampe à pleine lumière', consigne:"Relie chaque lampe <b>directement</b> aux deux bornes de la pile : deux boucles séparées.", bravo:"Montage en dérivation : chaque lampe reçoit toute la tension de la pile et brille à fond, indépendamment de l'autre." },
+  { id:'inter', texte:"3. Interrupteur : une lampe commandée", consigne:"Place l'<b>interrupteur</b> en série avec une lampe, puis <b>ferme-le</b> (clique dessus) pour l'allumer.", bravo:"L'interrupteur ouvre ou ferme le chemin : fermé, le courant passe et la lampe s'allume ; ouvert, tout s'éteint." },
+];
+function motSprite(t,pos){ const tex=textureTexte(t,{ taille:30, fond:'rgba(22,30,42,0.9)', couleur:'#ffffff' }); const s=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, toneMapped:false })); s.scale.set(0.7*tex.userData.ratio,0.7,1); s.position.copy(pos); s.raycast=()=>{}; return s; }
+function maisonMateriauFil(couleur){ return new THREE.MeshPhysicalMaterial({ color:couleur, roughness:0.42, metalness:0.0, clearcoat:0.35, clearcoatRoughness:0.3, envMapIntensity:0.9 }); }
+function buildMaison(){ const g=new THREE.Group(); g.position.set(0,-0.6,0);
+  const planche=new THREE.Mesh(preparerAo(new THREE.BoxGeometry(15,8.6,0.5)), matPBR('wood_table_001',{ repetition:2, couleur:0xd9c4a3, rugosite:0.8 })); planche.position.set(0,4.3,-0.25); planche.receiveShadow=true; planche.castShadow=true; g.add(planche);
+  const pied=new THREE.Mesh(new THREE.BoxGeometry(15.2,0.5,2.4), new THREE.MeshStandardMaterial({ color:0x6b4a2f, roughness:0.8 })); pied.position.set(0,0.25,-0.3); g.add(pied);
+  // la maison peinte : façade, toit, porte, deux fenêtres (chambre à gauche, cuisine à droite)
+  const facade=new THREE.Mesh(new THREE.BoxGeometry(9,5.2,0.18), new THREE.MeshStandardMaterial({ color:0xcfc2a6, roughness:0.92 })); facade.position.set(0,4.6,0.02); g.add(facade);
+  const tuile=new THREE.MeshStandardMaterial({ color:0xb0412c, roughness:0.8 });
+  [-1,1].forEach(sg=>{ const pan=new THREE.Mesh(new THREE.BoxGeometry(5.4,0.22,0.5), tuile); pan.position.set(sg*2.4,7.9,0.05); pan.rotation.z=-sg*0.62; g.add(pan); });
+  const pignon=new THREE.Mesh(new THREE.ConeGeometry(4.6,1.6,4,1), new THREE.MeshStandardMaterial({ color:0x8a7f68, roughness:0.98 })); pignon.rotation.y=Math.PI/4; pignon.scale.set(1,1,0.04); pignon.position.set(0,8.0,0.0); g.add(pignon);
+  const porte=new THREE.Mesh(new THREE.BoxGeometry(1.1,2.0,0.08), new THREE.MeshStandardMaterial({ color:0x5a3d26, roughness:0.8 })); porte.position.set(0,3.0,0.14); g.add(porte);
+  maison.lampes={}; maison.lampLights=[];
+  [['L1',-2.5,'Chambre'],['L2',2.5,'Cuisine']].forEach(([id,x,nom])=>{
+    const cadre=new THREE.Mesh(new THREE.BoxGeometry(2.0,1.7,0.1), new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.7 })); cadre.position.set(x,5.3,0.12); g.add(cadre);
+    const vitre=new THREE.Mesh(new THREE.PlaneGeometry(1.7,1.4), new THREE.MeshStandardMaterial({ color:0x24324a, roughness:0.4, emissive:0xffd27a, emissiveIntensity:0 })); vitre.position.set(x,5.3,0.18); g.add(vitre);
+    const lampe=new THREE.Mesh(new THREE.SphereGeometry(0.28,20,16), new THREE.MeshStandardMaterial({ color:0xfff3c0, roughness:0.2, emissive:0xffd27a, emissiveIntensity:0, transparent:true, opacity:0.7 })); lampe.position.set(x,5.45,0.3); g.add(lampe);
+    const douille=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,0.3,12), goldMat()); douille.position.set(x,5.1,0.3); g.add(douille);
+    const lum=new THREE.PointLight(0xffd27a,0,7,2); lum.position.set(x,5.4,1.2); g.add(lum); maison.lampLights.push(lum);
+    maison.lampes[id]={ vitre, lampe, lum, nom }; g.add(motSprite(nom, new THREE.Vector3(x,6.55,0.3))); });
+  // la pile (bas gauche), l'interrupteur (bas droite), les bornes à relier
+  const pile=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,2.2,24), mat(0xF5A623,0.35,0.4)); pile.rotation.z=Math.PI/2; pile.position.set(-5.3,1.3,0.45); g.add(pile); maison.pile=pile;
+  const capP=new THREE.Mesh(new THREE.CylinderGeometry(0.52,0.52,0.1,24), mat(0xC9CDD6,0.95,0.25)); capP.rotation.z=Math.PI/2; capP.position.set(-4.2,1.3,0.45); g.add(capP);
+  g.add(textSprite('+', new THREE.Vector3(-4.4,2.2,0.5), 0x0e5f4a)); g.add(textSprite('−', new THREE.Vector3(-6.2,2.2,0.5), 0xE63329));
+  const socle=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.3,0.9), mat(0x232a3d,0.2,0.7)); socle.position.set(5.3,1.0,0.45); g.add(socle); socle.userData.inter=true;
+  const pivot=new THREE.Group(); pivot.position.set(4.5,1.25,0.45); const levier=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.5,12), mat(0xE0E3EA,0.9,0.22)); levier.rotation.z=-Math.PI/2; levier.position.x=0.72; pivot.add(levier); const bouton=new THREE.Mesh(new THREE.SphereGeometry(0.13,16,12), mat(0xE63329,0.3,0.4)); bouton.position.x=1.5; pivot.add(bouton); pivot.rotation.z=switchOpenRot; g.add(pivot); maison.levier=pivot; pivot.traverse(o=>{ o.userData.inter=true; });
+  g.add(textSprite('S', new THREE.Vector3(5.3,2.2,0.5), 0x1e2733));
+  maison.bornes={};
+  BORNES.forEach(([id,x,y])=>{ const b=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.18,0.35,16), goldMat()); b.position.set(x,y,0.3); b.rotation.x=Math.PI/2; b.userData.borne=id; b.material=b.material.clone(); b.material.emissive=new THREE.Color(0x000000); g.add(b); const col=new THREE.Mesh(new THREE.TorusGeometry(0.24,0.035,8,20), mat(0x2b2f36,0.3,0.6)); col.position.set(x,y,0.14); g.add(col); maison.bornes[id]=b; });
+  g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; if(!o.userData.legende) o.userData.legende={ nom:'La maison à câbler', phrase:'Une pile, deux lampes, un interrupteur : relie les bornes avec des fils.' }; } });
+  Object.values(maison.bornes).forEach(b=>{ const id=b.userData.borne; b.userData.legende={ nom:'Borne '+id, phrase:id[0]==='B'?'Une borne de la pile.':id[0]==='L'?'Une borne de la lampe '+id[1]+'.':"Une borne de l'interrupteur." }; });
+  return g; }
+function enterMaison(){ if(maisonOn)return; maisonOn=true; emode='maison'; clearQuiz();
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.mode==='maison'));
+  if(!maisonGroup){ maisonGroup=buildMaison(); scene.add(maisonGroup); }
+  Object.values(parts).forEach(p=>{ if(p.label)p.label.style.display='none'; });
+  hiddenMaison=[]; scene.children.forEach(c=>{ if(c!==maisonGroup && c!==(prof&&prof.groupe) && !(c.isSprite&&c.userData.bulleProf) && (c.isMesh||c.isGroup||c.isSprite||c.isPoints) && c.visible && !c.isLight){ hiddenMaison.push(c); c.visible=false; } });
+  maisonGroup.visible=true; bulbLight.intensity=0; if(bulbGlow)bulbGlow.visible=false;
+  const hint=document.getElementById('elHint'); if(hint)hint.style.display='none';
+  if(prof){ prof.groupe.position.set(-8.7,-0.62,2.6); prof.regarder([0,0,2.6]); }
+  focusPoint=null; flying=false; viewGoal=null; camera.position.set(0,PETIT?7:5.4,PETIT?34:24); controls.target.set(0,PETIT?2.6:3.8,0); controls.maxDistance=40;
+  if(PETIT){ const l=document.querySelector('.el-left'); if(l) l.style.display='none'; }
+  const ro=document.querySelector('.el-readout'); if(ro) ro.style.display='none';
+  let bar=document.getElementById('elMaison'); if(!bar){ bar=document.createElement('div'); bar.className='el-maison'; bar.id='elMaison'; bar.setAttribute('role','group'); bar.setAttribute('aria-label','Câblage de la maison'); shell.api.stage.appendChild(bar); }
+  bar.innerHTML='<div class="consigne" id="elMaisonC">…</div><button id="elMaisonInter" aria-pressed="false">🔘 Interrupteur</button><button id="elMaisonUndo">↶ Défaire le dernier fil</button><button id="elMaisonClear">🧹 Tout enlever</button><button id="elMaisonQuit">↩ Retour Explorer</button>';
+  bar.querySelector('#elMaisonInter').onclick=basculerInterMaison; bar.querySelector('#elMaisonUndo').onclick=()=>{ const f=maison.fils[maison.fils.length-1]; if(f) retirerFil(f.id); };
+  bar.querySelector('#elMaisonClear').onclick=()=>{ effacerFils(); shell.sound('click'); }; bar.querySelector('#elMaisonQuit').onclick=()=>{ setMode('explore'); };
+  lancerMissionMaison();
+}
+function exitMaison(){ if(!maisonOn)return; maisonOn=false; const bar=document.getElementById('elMaison'); if(bar)bar.remove(); const ro=document.querySelector('.el-readout'); if(ro) ro.style.display=''; controls.maxDistance=24; const l=document.querySelector('.el-left'); if(l) l.style.display='';
+  if(missionMaison&&missionLancee&&!missionMaison.estFinie()){ missionMaison.terminer(false); }
+  if(maisonGroup) maisonGroup.visible=false; hiddenMaison.forEach(c=>{ c.visible=true; }); hiddenMaison=[]; if(bulbGlow)bulbGlow.visible=true;
+  if(prof){ prof.groupe.position.set(7.8,-0.62,-5.6); prof.regarder([0,0,6]); }
+  camera.position.set(0.5,9,13.5); controls.target.set(0,0.4,0); shell.sound('click');
+  const b=document.getElementById('elMaisonBtn'); if(b)b.setAttribute('aria-pressed','false');
+}
+function assurerMissionMaison(){ if(missionMaison||!M)return missionMaison;
+  missionMaison=M.mission({ titre:'Allumer la maison', cachee:true, chrono:true, chronoCible:300, gagner:false, annonce:false,
+    objectifs:ETAPES_MAISON.map((e,i)=>({ id:e.id, texte:e.texte, verifier:()=>maisonOn&&maison.etape===i&&!maison.courtActif&&verifierEtape(i), points:150, apres:()=>apresEtape(i) })),
+    surFin:(reussie,secondes,score)=>finMissionMaison(reussie,secondes,score) });
+  missionMaison.zone.classList.add('el-zone'); missionMaison.zone.setAttribute('aria-label','Mission : allumer la maison');
+  return missionMaison; }
+function lancerMissionMaison(){ if(!assurerMissionMaison())return; const b=document.getElementById('elMaisonBtn'); if(b)b.setAttribute('aria-pressed','true');
+  if(missionLancee&&!missionMaison.estFinie()){ missionMaison.montrer(); majConsigne(); return; }
+  effacerFils(); maison.etape=0; maison.courts=0; maison.choix=null; if(maison.ferme) basculerInterMaison(true); missionLancee=true;
+  missionMaison.montrer(); missionMaison.commencer(); M.son('clic',{ volume:0.2 }); majConsigne();
+  shell.api.say("Mission : allumer la maison. Clique une borne, puis une autre : un fil les relie. Trois montages à réussir : série, dérivation, puis avec interrupteur. Si tu relies le + au − sans lampe, c'est un court-circuit : on te l'explique. Le chrono tourne.",'enthousiaste');
+  if(prof) setTimeout(()=>prof.dire('Premier montage : une seule boucle, les deux lampes à la suite.',5),2200);
+}
+function majConsigne(){ const c=document.getElementById('elMaisonC'); const e=ETAPES_MAISON[maison.etape]; if(c) c.innerHTML=e?e.consigne:'Les trois montages sont faits. Tu peux continuer à câbler librement.'; }
+function choisirBorne(id){ if(!maisonOn)return; const b=maison.bornes[id]; if(!b)return;
+  if(!maison.choix){ maison.choix=id; b.material.emissive.set(0x6E6BFF); b.material.emissiveIntensity=0.9; M.son('clic',{ volume:0.2 }); shell.api.say('Borne '+id+' choisie : clique maintenant la borne à relier.','concentre'); return; }
+  const a=maison.choix; maison.bornes[a].material.emissiveIntensity=0; maison.choix=null;
+  if(a===id){ shell.api.say('Un fil doit relier deux bornes différentes.','rassurant'); return; }
+  if(maison.fils.some(f=>(f.a===a&&f.b===id)||(f.a===id&&f.b===a))){ shell.api.say('Ces deux bornes sont déjà reliées.','rassurant'); return; }
+  ajouterFil(a,id); }
+function ajouterFil(a,b){ const pa=maison.bornes[a].position, pb=maison.bornes[b].position; const id='f'+Date.now()+Math.floor(Math.random()*1000);
+  const mid=pa.clone().add(pb).multiplyScalar(0.5); mid.z=0.75+Math.min(1.2,pa.distanceTo(pb)*0.12); mid.y+=0.25;
+  const courbe=new THREE.CatmullRomCurve3([pa.clone().add(new THREE.Vector3(0,0,0.35)), mid, pb.clone().add(new THREE.Vector3(0,0,0.35))]);
+  const couleurs=[0xE63329,0x1B82E0,0x1e1e1e,0x2fae6a,0xF5A623]; const couleur=couleurs[maison.fils.length%couleurs.length];
+  const gaine=new THREE.Mesh(new THREE.TubeGeometry(courbe,48,0.11,12,false), maisonMateriauFil(couleur)); gaine.castShadow=true; gaine.userData.filId=id; gaine.userData.legende={ nom:'Fil', phrase:'Un conducteur en cuivre dans une gaine de plastique. Clique-le pour le retirer.' };
+  const cuivre=new THREE.Mesh(new THREE.TubeGeometry(courbe,48,0.055,10,false), copperMat()); cuivre.userData.filId=id;
+  const grp=new THREE.Group(); grp.add(gaine,cuivre); grp.userData.filId=id; maisonGroup.add(grp);
+  maison.fils.push({ id, a, b, obj:grp, gaine }); M.son('clic',{ volume:0.3 }); evaluerMaison(true); }
+function retirerFil(id){ const i=maison.fils.findIndex(f=>f.id===id); if(i<0)return; const f=maison.fils[i]; maisonGroup.remove(f.obj); f.obj.traverse(o=>{ if(o.geometry)o.geometry.dispose(); }); maison.fils.splice(i,1); if(maison.courtActif===id) maison.courtActif=null; M.son('clic',{ volume:0.18, frequence:420 }); evaluerMaison(false); }
+function effacerFils(){ maison.fils.slice().forEach(f=>{ maisonGroup.remove(f.obj); }); maison.fils=[]; maison.courtActif=null; if(maison.choix){ maison.bornes[maison.choix].material.emissiveIntensity=0; maison.choix=null; } evaluerMaison(false); }
+function basculerInterMaison(silencieux){ maison.ferme=!maison.ferme; const b=document.getElementById('elMaisonInter'); if(b)b.setAttribute('aria-pressed',String(maison.ferme)); if(!silencieux){ M.son('clic',{ volume:0.25 }); shell.api.say(maison.ferme?'Interrupteur fermé : le chemin est continu.':'Interrupteur ouvert : le chemin est coupé.','concentre'); } evaluerMaison(false); }
+/* Le réseau : on fusionne les bornes reliées par un fil (ou par l'interrupteur fermé) en nœuds, puis on résout les potentiels avec les lampes comme résistances égales. */
+function resoudre(ferme){ const noms=BORNES.map(b=>b[0]); const parent={}; noms.forEach(n=>{ parent[n]=n; }); const find=(x)=>{ while(parent[x]!==x){ parent[x]=parent[parent[x]]; x=parent[x]; } return x; }; const union=(a,b)=>{ parent[find(a)]=find(b); };
+  maison.fils.forEach(f=>union(f.a,f.b)); if(ferme) union('Sa','Sb');
+  const np=find('B+'), nm=find('B-'); const res={ court:np===nm, courant:{ L1:0, L2:0 }, noeuds:{} }; noms.forEach(n=>{ res.noeuds[n]=find(n); }); if(res.court) return res;
+  const lampes=[['L1','L1a','L1b'],['L2','L2a','L2b']]; const nets=[...new Set(noms.map(find))]; const libres=nets.filter(n=>n!==np&&n!==nm); const m=libres.length; const A=libres.map(()=>Array(m).fill(0)); const bv=Array(m).fill(0); const V={}; V[np]=1; V[nm]=0;
+  lampes.forEach(([id,a,b])=>{ const na=find(a), nb=find(b); if(na===nb)return; [[na,nb],[nb,na]].forEach(([u,v])=>{ const i=libres.indexOf(u); if(i<0)return; A[i][i]+=1; const j=libres.indexOf(v); if(j>=0) A[i][j]-=1; else bv[i]+=V[v]; }); });
+  for(let i=0;i<m;i++){ if(Math.abs(A[i][i])<1e-9){ A[i][i]=1; bv[i]=0; } }
+  for(let i=0;i<m;i++){ let p=i; for(let r=i+1;r<m;r++) if(Math.abs(A[r][i])>Math.abs(A[p][i])) p=r; [A[i],A[p]]=[A[p],A[i]]; [bv[i],bv[p]]=[bv[p],bv[i]]; const piv=A[i][i]||1e-9; for(let r=0;r<m;r++){ if(r===i)continue; const k=A[r][i]/piv; if(!k)continue; for(let c=i;c<m;c++) A[r][c]-=k*A[i][c]; bv[r]-=k*bv[i]; } }
+  libres.forEach((n,i)=>{ V[n]=bv[i]/(A[i][i]||1e-9); });
+  lampes.forEach(([id,a,b])=>{ const na=find(a), nb=find(b); res.courant[id]=(na===nb)?0:Math.abs((V[na]||0)-(V[nb]||0)); });
+  return res; }
+function verifierEtape(i){ const r=resoudre(maison.ferme); if(r.court)return false; const n=r.noeuds; const np=n['B+'], nm=n['B-']; const direct=(a,b)=>((n[a]===np&&n[b]===nm)||(n[a]===nm&&n[b]===np));
+  if(i===0) return r.courant.L1>0.05&&r.courant.L2>0.05&&!direct('L1a','L1b')&&!direct('L2a','L2b')&&Math.abs(r.courant.L1-r.courant.L2)<0.01;
+  if(i===1) return r.courant.L1>0.9&&r.courant.L2>0.9&&direct('L1a','L1b')&&direct('L2a','L2b');
+  if(i===2){ if(!maison.ferme)return false; const o=resoudre(false); if(o.court)return false; return ['L1','L2'].some(l=>r.courant[l]>0.05&&o.courant[l]<0.01); }
+  return false; }
+function apresEtape(i){ const e=ETAPES_MAISON[i]; maison.etape=i+1; M.son('cloche',{ volume:0.18 }); shell.api.say(e.bravo,'fier'); if(prof) prof.dire(e.bravo,7);
+  if(maison.etape<ETAPES_MAISON.length){ setTimeout(()=>{ if(!maisonOn)return; effacerFils(); if(maison.ferme) basculerInterMaison(true); majConsigne(); if(prof) setTimeout(()=>prof.dire(ETAPES_MAISON[maison.etape].consigne.replace(/<[^>]+>/g,''),6),800); },2600); }
+  else majConsigne(); }
+function evaluerMaison(nouveauFil){ const r=resoudre(maison.ferme);
+  if(r.court){ if(!maison.courtActif){ maison.courtActif=maison.fils.length?maison.fils[maison.fils.length-1].id:'x'; maison.courts++; M.son('coup',{ volume:0.3 }); const f=maison.fils[maison.fils.length-1]; if(f&&f.gaine){ f.gaine.material.color.set(0xff2a1a); f.gaine.material.emissive=new THREE.Color(0xff2a1a); f.gaine.material.emissiveIntensity=0.8; }
+      const msg="Court-circuit : le + et le − de la pile sont reliés sans passer par une lampe. Presque rien ne freine le courant, qui devient énorme : la pile chauffe, les fils aussi. Le fil fautif est retiré."; shell.api.say(msg,'surpris'); if(prof) prof.dire('Stop ! Court-circuit : aucun récepteur sur le chemin entre + et −. Je retire ce fil.',6);
+      const fid=maison.courtActif; setTimeout(()=>{ if(maison.courtActif===fid) retirerFil(fid); },2200); } }
+  else maison.courtActif=null;
+  ['L1','L2'].forEach(id=>{ const l=maison.lampes[id]; const I=r.court?0:r.courant[id]; l.cible=Math.min(1,I); });
+  if(maison.pile){ maison.pile.material.emissive=new THREE.Color(r.court?0xff3300:0x000000); maison.pile.material.emissiveIntensity=r.court?0.6:0; }
+  if(nouveauFil&&!r.court){ const allume=['L1','L2'].filter(id=>r.courant[id]>0.05); if(allume.length) shell.api.say((allume.length===2?'Les deux lampes s\'allument':'La lampe '+allume[0][1]+' s\'allume')+(r.courant[allume[0]]<0.9?' à mi-puissance : le courant est partagé.':' à pleine puissance.'),'concentre'); } }
+function updateMaison(dt){ if(!maisonGroup)return; const k=Math.min(1,dt*6); const t=clock.elapsedTime;
+  ['L1','L2'].forEach(id=>{ const l=maison.lampes[id]; if(l.cible==null)l.cible=0; l.niveau=(l.niveau||0)+((l.cible||0)-(l.niveau||0))*k; const v=l.niveau; l.lampe.material.emissiveIntensity=v*2.6; l.lampe.material.opacity=0.7+v*0.3; l.vitre.material.emissiveIntensity=v*0.9; l.lum.intensity=v*3.2; });
+  if(maison.levier){ const cible=maison.ferme?switchClosedRot:switchOpenRot; maison.levier.rotation.z+=(cible-maison.levier.rotation.z)*0.2; }
+  if(maison.courtActif&&maison.pile) maison.pile.material.emissiveIntensity=0.3+Math.abs(Math.sin(t*14))*0.6;
+  if(maison.choix){ const b=maison.bornes[maison.choix]; b.material.emissiveIntensity=0.5+Math.sin(t*6)*0.4; } }
+function finMissionMaison(reussie,secondes,score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  const b=document.getElementById('elMaisonBtn'); if(b)b.setAttribute('aria-pressed','false');
+  if(!reussie){ setTimeout(()=>{ if(missionMaison)missionMaison.cacher(); },3000); missionLancee=false; return; }
+  M.son('cloche',{ volume:0.2 }); const secu=maison.courts===0?'Aucun court-circuit.':maison.courts===1?'Un court-circuit en route, bien compris maintenant.':maison.courts+' courts-circuits en route, bien compris maintenant.';
+  if(prof) prof.dire('La maison est allumée en '+duree+'. '+secu,7);
+  const stars=maison.courts>1?2:(t>300?2:3);
+  if(shell.api.mode!=='cours'){ shell.api.win({ score, stars, title:'Maison allumée en '+duree, learned:shell.cfg.learned, buddy:secu+' Série, dérivation, interrupteur : tu sais câbler une maison.' }); }
+  else { shell.api.say('Mission réussie en '+duree+' : '+score+' points de plus. '+secu,'fier'); if(shell.api.celebrate)shell.api.celebrate(); setTimeout(()=>{ if(missionMaison)missionMaison.cacher(); },9000); }
+}
+window.__monde={ maison:()=>setMode('maison'), relier:(a,b)=>{ if(!maisonOn)setMode('maison'); ajouterFil(a,b); }, borne:choisirBorne, inter:()=>basculerInterMaison(), effacer:effacerFils, resoudre:()=>resoudre(maison.ferme), etape:()=>maison.etape, courts:()=>maison.courts, mission:()=>missionMaison, prof:()=>prof, etat:()=>({ maisonOn, ferme:maison.ferme, fils:maison.fils.map(f=>[f.a,f.b]) }), defi:()=>({ idx:defiIdx, done:defiDone }), trouve:()=>trouve, mode:()=>emode, basculer:toggleSwitch, regler:(u,r)=>{ U=u; R=r; updateReadout(); evalDefi(); }, bac:()=>({ enter:enterSandbox, ser:()=>{ sbParallel=false; sandboxTried.ser=true; rebuildSandbox(); evalDefi(); }, par:()=>{ sbParallel=true; sandboxTried.par=true; rebuildSandbox(); evalDefi(); } }) };
+
 /* ============ ÉTIQUETTES 3D ============ */
-function updateLabels(){ if(sandboxOn){ Object.values(parts).forEach(p=>{ if(p.label)p.label.style.display='none'; }); return; }
+function updateLabels(){ if(sandboxOn||maisonOn){ Object.values(parts).forEach(p=>{ if(p.label)p.label.style.display='none'; }); return; }
   const stage=shell.api.stage; const show=labelsOn;
   const NAMES={ pile:'🔋 Pile', ampoule:'💡 Ampoule', interrupteur:'🔘 Interrupteur', resistance:'🟫 Résistance', moteur:'⚙️ Moteur', buzzer:'🔔 Buzzer' };
   Object.keys(NAMES).forEach(key=>{ const p=parts[key]; if(!p)return; let el=p.label; if(!show){ if(el)el.style.display='none'; return; }
@@ -706,6 +884,9 @@ function updateLabels(){ if(sandboxOn){ Object.values(parts).forEach(p=>{ if(p.l
 
 /* ============ ANIMATION ============ */
 function animate(){ requestAnimationFrame(animate); const dt=Math.min(0.05,clock.getDelta());
+  for(const f of boucles){ try{ f(dt,clock.elapsedTime); }catch(e){ /* une boucle ne casse pas le rendu */ } }
+  if(profBulle&&profBulle.parent&&prof){ const p=prof.position(); profBulle.position.set(p.x+(maisonOn?(PETIT?3.2:4.4):(PETIT?-2.4:-3.6)), p.y+(maisonOn?4.6:4.2), p.z+0.6); }
+  if(maisonOn){ updateMaison(dt); controls.update(); composer.render(); return; }
   if(viewGoal){ camera.position.lerp(viewGoal.pos,0.12); controls.target.lerp(viewGoal.tgt,0.12); if(camera.position.distanceTo(viewGoal.pos)<0.25){ camera.position.copy(viewGoal.pos); controls.target.copy(viewGoal.tgt); viewGoal=null; } }
   if(flying && focusPoint){ controls.target.lerp(focusPoint,0.08); const dir=camera.position.clone().sub(controls.target); const want=focusPoint.clone().add(dir.normalize().multiplyScalar(8.5)); camera.position.lerp(want,0.06); if(camera.position.distanceTo(want)<0.4) flying=false; }
   if(sandboxOn){ updateSandbox(dt); controls.update(); composer.render(); return; }

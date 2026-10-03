@@ -96,7 +96,10 @@
   .an-quiz.good{ background:var(--brand-teal); } .an-quiz.bad{ background:#c85a4a; }
   .an-quiz .qn{ font-family:var(--font-data); background:rgba(255,255,255,.24); border-radius:999px; padding:3px 11px; font-size:12.5px; flex:none; }
   .an-flash{ position:absolute; inset:0; z-index:10; pointer-events:none; opacity:0; transition:opacity .3s; }
+  /* ---- mission « Le trajet d'une bouchée » : bandeau au-dessus des signes vitaux ---- */
+  .mb-mission.an-zone{ top:auto; bottom:86px; right:auto; left:238px; }
   @media (max-width:760px){
+    .mb-mission.an-zone{ bottom:78px; left:172px; width:min(190px,52vw); }
     .an-left{ width:150px; padding:10px; max-height:calc(100% - 210px); }
     .an-tgrow{ grid-template-columns:1fr; }
     .an-info{ width:min(322px,88vw); }
@@ -120,6 +123,7 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 /* E10 : les maillages STL arrivent en facettes ; on fusionne les sommets puis on recalcule des normales lissées. */
 function lisserGeometrie(g){ try { const g2 = mergeVertices(g, 1e-4); g2.computeVertexNormals(); g.dispose(); return g2; } catch (e) { g.computeVertexNormals(); return g; } }
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { outils, renduLogiciel, matPBR, preparerAo, textureTexte } from '../monde-base.js';
 const REDUCED = window.Konstrio.REDUCED;
 const MOBILE = Math.min(window.innerWidth, window.innerHeight) < 760;
 
@@ -205,6 +209,10 @@ let camTarget = null, camDist = 0, camMove = false;
 let vhAll = null, vhReady = false, vhVessels = [], bpGroup = null, bpReady = false;
 let BPXF = null, tour = null, quiz = null, quizTier = 'debutant';
 const homeTarget = new THREE.Vector3(0, 2.6, 0), homePos = new THREE.Vector3(0, 3.2, 15.5);
+/* F228 : outils communs (mission, personnage, marche, ambiance), la professeure de SVT et la salle d'examen */
+let M = null; const boucles = []; let profBulle = null, prof = null, marche = null, mission = null, missionEtape = 0, missionLancee = false, ambianceSalle = null, lampe = null, software = false;
+const ECH = 9.2/1.7; // le mannequin mesure 9,2 unités : tout ce qui est à l'échelle humaine est multiplié par ECH
+const PETIT = window.matchMedia('(max-width: 760px)').matches;
 
 function applyBPXF(g){ if(!g||!BPXF) return; g.rotation.set(-Math.PI/2,0,0); g.scale.setScalar(BPXF.sc); g.position.copy(BPXF.pos); }
 function alignBody(){ if(!BPXF) return; if(skin) applyBPXF(skin); if(vhAll) applyBPXF(vhAll); }
@@ -258,7 +266,7 @@ function init(){
   stage.appendChild(renderer.domElement);
 
   // garde-fou : rendu logiciel (SwiftShader/llvmpipe) ou mode réduit/mobile → pas de GTAO (l'AO écran y échoue / coûte trop cher). Jamais de rendu cassé.
-  let software = false; try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  software = renduLogiciel(renderer);
   const W = stage.clientWidth, H = stage.clientHeight;
   // pipeline post : rendu → (AO écran si GPU réel, creux organiques) → contour de sélection → bloom doux → SMAA (bords nets des STL) → sortie ACES/sRGB
   composer = new EffectComposer(renderer);
@@ -279,6 +287,7 @@ function init(){
 
   setupControlsDefaults();
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
+  M = outils({ scene, camera, renderer, controls, stage, boucle: (f) => boucles.push(f), etiquette: etiquetteGrande });
 
   // éclairage : hémisphérique + clé (ombre) + contre-jour bleuté + rebond
   scene.add(new THREE.HemisphereLight(0xf4f8ff, 0x2a2438, 0.9));
@@ -294,12 +303,15 @@ function init(){
 
   scene.add(makeBackdrop());
   scene.add(makePodium());
+  scene.add(makeFloor());
+  lampe = makeExamLamp(); scene.add(lampe);
 
   clipPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0.15); // coupe sagittale
 
   buildAll(); loadRealModels();
   raycaster = new THREE.Raycaster(); pointer = new THREE.Vector2(-2,-2);
   buildUI(); applyTheme(); setSys('organes');
+  buildProf(); buildMarche();
 
   renderer.domElement.addEventListener('pointermove', onMove);
   renderer.domElement.addEventListener('pointerdown', onDown);
@@ -339,7 +351,8 @@ function makePodium(){
    ============================================================ */
 const boneMat = ()=> new THREE.MeshPhysicalMaterial({ color:0xefe8d6, roughness:0.62, metalness:0.0, clearcoat:0.15, clearcoatRoughness:0.7, envMapIntensity:0.75, sheen:0.3, sheenColor:new THREE.Color(0xfff6e0) });
 const muscleMat = (c)=> new THREE.MeshPhysicalMaterial({ color:c, roughness:0.46, clearcoat:0.35, clearcoatRoughness:0.5, sheen:0.6, sheenColor:new THREE.Color(0xff8f7a), envMapIntensity:0.7 });
-const organMat = (c)=> new THREE.MeshPhysicalMaterial({ color:c, roughness:0.36, clearcoat:0.6, clearcoatRoughness:0.34, envMapIntensity:1.0, sheen:0.5, sheenColor:new THREE.Color(c), emissive:new THREE.Color(c), emissiveIntensity:0.04 });
+/* organes : vernis humide, soie, et une transmission faible avec atténuation colorée qui imite la lumière qui entre un peu dans la chair (pas en rendu logiciel) */
+const organMat = (c)=> new THREE.MeshPhysicalMaterial({ color:c, roughness:0.36, clearcoat:0.6, clearcoatRoughness:0.34, envMapIntensity:1.0, sheen:0.5, sheenColor:new THREE.Color(c), emissive:new THREE.Color(c), emissiveIntensity:0.04, transmission:(software||MOBILE||REDUCED)?0:0.08, thickness:0.8, ior:1.38, attenuationColor:new THREE.Color(c), attenuationDistance:1.2 });
 const tubeMat = (c)=> new THREE.MeshStandardMaterial({ color:c, roughness:0.4, metalness:0.05, emissive:new THREE.Color(c), emissiveIntensity:0.14 });
 const skinMat = ()=> new THREE.MeshPhysicalMaterial({ color:0xe7b793, roughness:0.5, clearcoat:0.55, clearcoatRoughness:0.42, sheen:1.0, sheenColor:new THREE.Color(0xd89a76), sheenRoughness:0.45, specularIntensity:0.55, envMapIntensity:0.95, transparent:true, opacity:skinOpacity, depthWrite:false, side:THREE.DoubleSide });
 
@@ -399,6 +412,7 @@ function buildOrgans(){ const g = new THREE.Group();
   const spleen = new THREE.Mesh(new THREE.SphereGeometry(0.2,16,14), organMat(0x8a3a48)); spleen.position.set(-0.55,3.2,-0.1); spleen.scale.set(0.8,1.05,0.6); g.add(tag(shad(spleen),'rate'));
   const panc = new THREE.Mesh(new THREE.CapsuleGeometry(0.1,0.5,6,12), organMat(0xd8b878)); panc.position.set(-0.1,2.85,-0.1); panc.rotation.z = 0.5; g.add(tag(shad(panc),'pancreas'));
   const bl = new THREE.Mesh(new THREE.SphereGeometry(0.2,16,14), organMat(0xd8c84a)); bl.position.set(0,1.7,0.25); bl.scale.set(1,0.85,0.9); g.add(tag(shad(bl),'vessie'));
+  g.add(tag(shad(tube(new THREE.Vector3(0,4.9,0.05), new THREE.Vector3(-0.3,3.3,0.0), 0.07, organMat(0xd9b8c4))),'oesophage'));
   return g;
 }
 function buildRespiratory(){ const g = new THREE.Group();
@@ -471,7 +485,7 @@ function loadVHOrgans(){ const L = new STLLoader(); vhAll = new THREE.Group(); s
   VH.forEach(spec=>{ L.load('../assets/3d/models/'+spec.f, g=>{ g.computeVertexNormals();
     const mat = spec.vessel
       ? new THREE.MeshStandardMaterial({ color:spec.col, roughness:0.4, metalness:0.1, emissive:new THREE.Color(0xb02018), emissiveIntensity:0.4, side:THREE.DoubleSide })
-      : new THREE.MeshPhysicalMaterial({ color:spec.col, roughness:0.36, clearcoat:0.6, clearcoatRoughness:0.34, envMapIntensity:1.0, sheen:0.5, sheenColor:new THREE.Color(spec.col), emissive:new THREE.Color(spec.col), emissiveIntensity:0.05, transparent:spec.op<1, opacity:spec.op, side:THREE.DoubleSide });
+      : new THREE.MeshPhysicalMaterial({ color:spec.col, roughness:0.36, clearcoat:0.6, clearcoatRoughness:0.34, envMapIntensity:1.0, sheen:0.5, sheenColor:new THREE.Color(spec.col), emissive:new THREE.Color(spec.col), emissiveIntensity:0.05, transparent:spec.op<1, opacity:spec.op, side:THREE.DoubleSide, transmission:(software||MOBILE||REDUCED||spec.op<1)?0:0.08, thickness:0.8, ior:1.38, attenuationColor:new THREE.Color(spec.col), attenuationDistance:1.2 });
     const m = new THREE.Mesh(g, mat); m.userData.part = spec.part; m.userData.layers = spec.lay; if(!MOBILE) m.castShadow = true;
     if(spec.vessel) vhVessels.push(m);
     if(spec.breathe){ m.userData.breathe = 1; }
@@ -523,10 +537,12 @@ function buildUI(){ const stage = shell.stage;
     <button class="an-s" data-s="nerveux">${sw(SYSCOL.nerveux)} Nerveux</button>
     <button class="an-s" data-s="complet">🧍 Complet</button>
     <button class="an-s alt" id="anTour">🧭 Visite guidée</button>
+    <button class="an-s alt" id="anMission" aria-pressed="false">🥪 Mission : la bouchée</button>
     <button class="an-s alt" id="anNot">📚 Cours</button>`;
   stage.appendChild(sy);
   sy.querySelectorAll('[data-s]').forEach(b=> b.onclick = ()=>{ setSys(b.dataset.s); shell.sound('click'); });
   sy.querySelector('#anTour').onclick = ()=> startTour();
+  sy.querySelector('#anMission').onclick = ()=> lancerMission();
   sy.querySelector('#anNot').onclick = ()=> openNotions();
 
   // panneau gauche
@@ -538,6 +554,7 @@ function buildUI(){ const stage = shell.stage;
       <button class="an-tg" id="anCut" aria-pressed="false">✂️ Coupe</button>
       <button class="an-tg" id="anRot" aria-pressed="false">↻ Rotation</button>
       <button class="an-tg" id="anReset">🎯 Recentrer</button>
+      <button class="an-tg" id="anMarche" aria-pressed="false" style="grid-column:1 / -1">🚶 Marcher dans la salle</button>
     </div>
     <div class="an-skinrow">👤 Peau <input type="range" id="anSkin" min="0" max="70" value="14" aria-label="Transparence de la peau"></div>
     <h3 id="anListTitle">Organes</h3>
@@ -546,7 +563,8 @@ function buildUI(){ const stage = shell.stage;
   left.querySelector('#anLbl').onclick = function(){ showLabels = this.getAttribute('aria-pressed')!=='true'; this.setAttribute('aria-pressed', showLabels); shell.sound('click'); if(!showLabels) Object.values(labels).forEach(e=>e.style.display='none'); };
   left.querySelector('#anCut').onclick = function(){ cutaway = this.getAttribute('aria-pressed')!=='true'; this.setAttribute('aria-pressed', cutaway); shell.sound('click'); renderer.clippingPlanes = cutaway ? [clipPlane] : []; shell.say(cutaway?"Vue en coupe : on regarde à l'intérieur du corps, comme une tranche.":"Vue entière rétablie.",'curieux'); };
   left.querySelector('#anRot').onclick = function(){ controls.autoRotate = this.getAttribute('aria-pressed')!=='true'; this.setAttribute('aria-pressed', controls.autoRotate); };
-  left.querySelector('#anReset').onclick = ()=>{ resetView(); shell.sound('click'); };
+  left.querySelector('#anReset').onclick = ()=>{ if(marche&&marche.estActif()) marche.desactiver(); resetView(); shell.sound('click'); };
+  left.querySelector('#anMarche').onclick = ()=>{ if(marche) marche.bascule(); shell.sound('click'); };
   left.querySelector('#anSkin').oninput = function(){ skinOpacity = (+this.value)/100; skin.traverse(m=>{ if(m.material){ m.material.opacity = skinOpacity; m.visible = skinOpacity>0.01; } }); };
 
   // fiche info (droite)
@@ -596,6 +614,7 @@ function setSys(s){ sys = s; const comp = (s==='complet');
   rebuildList(); refreshBreathers(); clearSelection();
   const msg = { organes:"Les organes vitaux logés dans le tronc.", squelette:"206 os : le squelette te soutient et te protège.", muscles:"~600 muscles pour bouger et tenir debout.", circulatoire:"Le cœur, les artères (rouge) et les veines (bleu).", respiratoire:"Trachée, bronches, poumons et diaphragme.", nerveux:"Cerveau, cervelet, moelle et nerfs commandent tout.", complet:"Le corps au complet : tous les systèmes réunis." }[s];
   if(msg && !tour) shell.say(msg,'concentre');
+  if(missionLancee && mission && !mission.estFinie() && s!=='organes' && prof) prof.dire('Pour suivre la bouchée, reste sur le système Organes.', 4);
 }
 
 function refreshBreathers(){ breathers = []; const collect = root=>{ if(!root) return; root.traverse(o=>{ if(o.isMesh && o.visible!==false && (o.userData.part==='poumons')){ if(!o.userData.baseScale) o.userData.baseScale = o.scale.clone(); breathers.push({m:o, base:o.userData.baseScale}); } }); };
@@ -619,7 +638,7 @@ function setP(e){ const r = renderer.domElement.getBoundingClientRect(); pointer
 function hit(){ raycaster.setFromCamera(pointer, camera); const h = raycaster.intersectObjects(visibleParts(), false); if(!h.length) return null; let o = h[0].object; while(o && !o.userData.part) o = o.parent; return o; }
 function onMove(e){ setP(e); const o = hit(); renderer.domElement.style.cursor = o?'pointer':'grab';
   const k = o ? o.userData.part : null; if(k!==hovered){ hovered = k; updateOutline(); } }
-function onDown(e){ setP(e); const o = hit(); if(!o) return; const k = o.userData.part; if(PARTS[k]) selectPart(k, false); }
+function onDown(e){ if(marche&&marche.estActif()) return; setP(e); const o = hit(); if(!o) return; const k = o.userData.part; if(PARTS[k]){ if(M) M.son('clic',{ volume:0.18 }); selectPart(k, false); } }
 
 function selectPart(k, fromList){ const d = PARTS[k]; if(!d) return; selected = k;
   openFiche(k, d); updateOutline();
@@ -627,6 +646,7 @@ function selectPart(k, fromList){ const d = PARTS[k]; if(!d) return; selected = 
   document.querySelectorAll('#anList .an-oi').forEach(b=> b.setAttribute('aria-current', b.dataset.k===k));
   shell.say(d.role || d.info[0].replace(/<[^>]+>/g,''),'concentre'); shell.sound('pop');
   if(quiz) checkQuiz(k);
+  missionChoix(k);
 }
 function clearSelection(){ selected = null; document.querySelectorAll('#anList .an-oi').forEach(b=> b.removeAttribute('aria-current')); updateOutline(); }
 function updateOutline(){ if(!outline) return; const set = new Set(); if(selected) partMeshes(selected).forEach(m=>set.add(m)); if(hovered && hovered!==selected) partMeshes(hovered).forEach(m=>set.add(m)); outline.selectedObjects = [...set]; }
@@ -710,7 +730,12 @@ const QUIZ_TIERS = {
 };
 function short(d){ return (d.role || d.info[0]).replace(/<[^>]+>/g,'').split(/[.:;]/)[0]; }
 
-function startMode(m){ startVitals(); if(m==='cours'){ shell.setScore(0); chooseDifficulty(); } else { clearQuiz(); } }
+function startMode(m){ startVitals(); if(m==='cours'){ shell.setScore(0); chooseDifficulty(); } else { clearQuiz(); }
+  if(!ambianceSalle&&M){ try{ ambianceSalle = M.ambiance({ type:'salle', volume:0.11 }); }catch(e){} }
+  assurerMission();
+  setTimeout(()=>{ if(prof) prof.dire(m==='cours'?'Bonjour. Je suis Mme Le Goff. Quand tu veux, lance la mission : le trajet d\'une bouchée.':'Bonjour. Je suis Mme Le Goff, professeure de SVT. La mission commence dans quelques secondes.', 5); }, 1500);
+  if(m!=='cours') setTimeout(()=>{ if(!missionLancee && !tour) lancerMission(); }, 8000);
+}
 function chooseDifficulty(){ clearQuiz(); const b = document.getElementById('anHint');
   b.innerHTML = '🎯 Choisis ton niveau : ' + Object.keys(QUIZ_TIERS).map(k=>`<button class="an-s alt" data-t="${k}" style="padding:6px 12px;margin:0 3px">${QUIZ_TIERS[k].label}</button>`).join('');
   b.querySelectorAll('[data-t]').forEach(x=> x.onclick = ()=>{ shell.sound('click'); quizTier = x.dataset.t; startQuiz(); });
@@ -761,7 +786,7 @@ function startVitals(){ if(vitalsAC || shell.muted) return; try{ vitalsAC = new 
 /* ============================================================
    CLAVIER
    ============================================================ */
-function onKey(e){ const map = {'1':'organes','2':'squelette','3':'muscles','4':'circulatoire','5':'respiratoire','6':'nerveux','7':'complet'};
+function onKey(e){ if(marche&&marche.estActif()) return; const map = {'1':'organes','2':'squelette','3':'muscles','4':'circulatoire','5':'respiratoire','6':'nerveux','7':'complet'};
   if(map[e.key]){ setSys(map[e.key]); shell.sound('click'); return; }
   const k = e.key.toLowerCase();
   if(k==='l'){ const b = document.getElementById('anLbl'); if(b) b.click(); }
@@ -780,6 +805,11 @@ function onResize(){ const s = shell.stage; if(!s.clientWidth) return; camera.as
    BOUCLE
    ============================================================ */
 function animate(){ requestAnimationFrame(animate); const dt = clock.getDelta(); const t = clock.elapsedTime;
+  for(const f of boucles){ try{ f(Math.min(0.05,dt), t); }catch(e){ /* une boucle ne casse pas le rendu */ } }
+  if(profBulle&&profBulle.parent&&prof){ const p = prof.position(); profBulle.position.set(p.x-(PETIT?2.2:1.2), p.y+(PETIT?6.4:5.6), p.z+0.6); }
+  if(lampe&&lampe.userData.spot&&!REDUCED) lampe.userData.spot.intensity = lampe.userData.base*(0.985+Math.sin(t*37)*0.015);
+  if(mission&&PETIT){ const info = document.getElementById('anInfo'); mission.zone.hidden = !missionLancee||mission.estFinie()||(info&&info.classList.contains('show')); }
+  else if(mission&&missionLancee&&!mission.estFinie()) mission.zone.hidden = !!tour;
   // cœur qui bat
   const amp = REDUCED?0.05:0.16; const beat = Math.pow(Math.abs(Math.sin(t*bpm/60*Math.PI)), 6); const sc = 1+beat*amp;
   if(heart && heart.parent && heart.parent.visible!==false){ if(heart.userData.baseScale===undefined) heart.userData.baseScale = heart.scale.x; const b = heart.userData.baseScale||1; heart.scale.setScalar(b*sc); heart.traverse(c=>{ if(c.material && c.material.emissive) c.material.emissiveIntensity = 0.06+beat*0.45; }); }
@@ -792,7 +822,7 @@ function animate(){ requestAnimationFrame(animate); const dt = clock.getDelta();
   // sang procédural (repli)
   if(sys==='circulatoire' && !vhReady){ blood.forEach((b,i)=>{ b.userData.t = (b.userData.t+dt*0.16)%1; const tt = b.userData.t; const ang = tt*Math.PI*2+i; b.position.set(Math.sin(ang)*0.7*Math.sin(tt*Math.PI)+0.1, 1.0+tt*3.4, Math.cos(ang)*0.35+0.2); }); }
   // zoom doux
-  if(camMove && camTarget){ controls.target.lerp(camTarget, 0.08); const dir = camera.position.clone().sub(controls.target).normalize(); const want = camTarget.clone().add(dir.multiplyScalar(camDist)); camera.position.lerp(want, 0.06); if(camera.position.distanceTo(want)<0.35) camMove = false; }
+  if(camMove && camTarget && !(marche&&marche.estActif())){ controls.target.lerp(camTarget, 0.08); const dir = camera.position.clone().sub(controls.target).normalize(); const want = camTarget.clone().add(dir.multiplyScalar(camDist)); camera.position.lerp(want, 0.06); if(camera.position.distanceTo(want)<0.35) camMove = false; }
   if(showLabels) updateLabels();
   controls.update(); composer.render();
 }
@@ -805,6 +835,101 @@ function updateLabels(){ const stage = shell.stage; const seen = {}; const items
     if(v.z>1){ el.style.display = 'none'; return; } el.style.display = 'block';
     el.style.left = ((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top = ((-v.y*.5+.5)*stage.clientHeight)+'px'; });
 }
+
+/* ============================================================
+   SALLE D'EXAMEN : sol PBR, lampe d'examen, étiquettes à l'échelle du mannequin
+   ============================================================ */
+function plierTexte(t, n){ const mots = String(t).split(/\s+/); const lignes = []; let l = ''; mots.forEach(m=>{ if((l+' '+m).trim().length > n && l){ lignes.push(l); l = m; } else l = (l+' '+m).trim(); }); if(l) lignes.push(l); return lignes; }
+function etiquetteGrande(texte, position, opt){ opt = Object.assign({}, opt || {}, { fond:'rgba(22,30,42,0.92)', couleur:'#ffffff' }); const lignes = plierTexte(texte, PETIT ? 20 : 24); const tex = textureTexte(lignes.join('\n'), opt); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, depthTest:false, toneMapped:false })); const h = ECH*(PETIT ? 0.07 : 0.085)*(lignes.length+0.8); sp.scale.set(h*tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.raycast = ()=>{}; sp.renderOrder = 12; scene.add(sp); profBulle = sp; return sp; }
+function makeFloor(){ const geo = preparerAo(new THREE.PlaneGeometry(60,60)); const m = new THREE.Mesh(geo, matPBR('concrete_tiles', { repetition:9, couleur:0xc3c8d0, rugosite:0.92 })); m.rotation.x = -Math.PI/2; m.position.y = -3.14; m.receiveShadow = !MOBILE; m.userData.legende = { nom:'Sol de la salle', phrase:'Un revêtement souple et lavable, facile à nettoyer.' }; return m; }
+function makeExamLamp(){ const g = new THREE.Group(); const metal = new THREE.MeshStandardMaterial({ color:0xd7dbe2, metalness:0.85, roughness:0.3 }); const blanc = new THREE.MeshStandardMaterial({ color:0xf2f4f6, metalness:0.1, roughness:0.5 });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,0.25,32), metal); base.position.set(-8.2,-3.0,3.2); g.add(base);
+  const mat = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.14,8.6,16), metal); mat.position.set(-8.2,1.2,3.2); g.add(mat);
+  const bras = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,5.0,12), metal); bras.position.set(-6.1,5.7,2.6); bras.rotation.z = -Math.PI/2.5; bras.rotation.y = 0.35; g.add(bras);
+  const tete = new THREE.Group(); tete.position.set(-4.2,6.0,2.0); g.add(tete);
+  const coque = new THREE.Mesh(new THREE.CylinderGeometry(0.9,1.5,1.1,28,1,true), new THREE.MeshStandardMaterial({ color:0xf2f4f6, metalness:0.1, roughness:0.5, side:THREE.DoubleSide })); tete.add(coque);
+  const disque = new THREE.Mesh(new THREE.CircleGeometry(1.35,28), new THREE.MeshStandardMaterial({ color:0xfff6e6, emissive:0xffe9c8, emissiveIntensity:1.6, roughness:0.4 })); disque.rotation.x = Math.PI/2; disque.position.y = -0.54; tete.add(disque);
+  const capot = new THREE.Mesh(new THREE.SphereGeometry(0.9,24,12,0,Math.PI*2,0,Math.PI/2), blanc); capot.position.y = 0.55; tete.add(capot);
+  tete.lookAt(0,2.6,0); tete.rotateX(Math.PI/2);
+  const spot = new THREE.SpotLight(0xfff1dc, 2.4, 40, 0.55, 0.65, 1.2); spot.position.set(-4.2,6.0,2.0); spot.target.position.set(0,2.6,0); g.add(spot); g.add(spot.target);
+  if(!MOBILE){ spot.castShadow = true; spot.shadow.mapSize.set(1024,1024); spot.shadow.bias = -0.0005; spot.shadow.camera.near = 2; spot.shadow.camera.far = 30; }
+  g.userData.spot = spot; g.userData.base = 2.4; g.traverse(o=>{ if(o.isMesh) o.userData.legende = { nom:"Lampe d'examen", phrase:'Une lumière chaude et dirigée, pour bien voir chaque organe.' }; });
+  return g; }
+
+/* ============================================================
+   LA PROFESSEURE DE SVT : blouse blanche, badge, stéthoscope, planchette ; elle parle par bulle (lue par Opale)
+   ============================================================ */
+function buildProf(){ if(!M) return;
+  prof = M.personnage({ nom:'Mme Le Goff, professeure de SVT', phrase:'Elle guide la visite du corps et la mission de la bouchée.', position:[7.4,-3.05,-2.2], taille:1.7*ECH, peau:0xd9b08a, haut:0xf4f6f8, bas:0x2c3550, cheveux:0x4a2f1e, vitesse:1.2*ECH, graine:3 });
+  const u = ECH; const g = prof.groupe; const ms = (c,o)=> new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:0.6 }, o||{}));
+  const add = (geo, m, p, parent)=>{ const x = new THREE.Mesh(geo, m); x.position.set(p[0],p[1],p[2]); x.castShadow = !MOBILE; (parent||g).add(x); return x; };
+  add(new THREE.BoxGeometry(0.07*u,0.045*u,0.01*u), ms(0xffffff), [0.09*u,1.26*u,0.175*u]); // badge
+  add(new THREE.BoxGeometry(0.05*u,0.012*u,0.012*u), ms(0x2c3550), [0.09*u,1.262*u,0.182*u]);
+  const steto = add(new THREE.TorusGeometry(0.1*u,0.012*u,8,24,Math.PI*1.3), ms(0x1f2430,{ roughness:0.4 }), [0,1.38*u,0.06*u]); steto.rotation.x = Math.PI/2.2; steto.rotation.z = Math.PI*0.85;
+  add(new THREE.CylinderGeometry(0.028*u,0.028*u,0.016*u,16), ms(0xcfd4dc,{ metalness:0.9, roughness:0.3 }), [0.1*u,1.2*u,0.17*u]); // pavillon
+  const planche = add(new THREE.BoxGeometry(0.16*u,0.22*u,0.012*u), ms(0x6b4a2f,{ roughness:0.8 }), [0.02*u,-0.62*u,0.09*u], prof.membres.brasG); planche.rotation.x = -0.35;
+  add(new THREE.BoxGeometry(0.14*u,0.19*u,0.004*u), ms(0xfbfaf5,{ roughness:0.95 }), [0,0.005*u,0.009*u], planche);
+  add(new THREE.BoxGeometry(0.06*u,0.02*u,0.02*u), ms(0xcfd4dc,{ metalness:0.9, roughness:0.3 }), [0,0.1*u,0.012*u], planche);
+  prof.membres.brasG.rotation.x = -0.9; // la planchette tenue devant elle
+  [-0.05,0.05].forEach(x=> add(new THREE.TorusGeometry(0.028*u,0.004*u,6,16), ms(0x2c3550,{ roughness:0.3 }), [x*u,1.6*u,0.105*u]).rotation.y = 0); // lunettes
+  add(new THREE.BoxGeometry(0.03*u,0.004*u,0.004*u), ms(0x2c3550), [0,1.6*u,0.108*u]);
+  g.traverse(o=>{ if(o.isMesh&&o.material&&o.material.envMapIntensity!=null) o.material.envMapIntensity=0.5; });
+  prof.regarder([2,0,22]);
+}
+
+/* ============================================================
+   MARCHER DANS LA SALLE : première personne, à l'échelle du mannequin
+   ============================================================ */
+let tempsPas = 0;
+function buildMarche(){ if(!M) return;
+  marche = M.marcher({ depart:[2.5,0,15], hauteur:1.62*ECH, sol:-3.1, vitesse:2.4*ECH, limites:{ xmin:-20, xmax:20, zmin:-8, zmax:22 },
+    collision:(x,z)=> Math.hypot(x,z) < 4.4 || Math.hypot(x+8.2,z-3.2) < 2.0 || Math.hypot(x-7.4,z+2.2) < 1.6,
+    aide:'Flèches ou ZQSD pour marcher, glisse pour regarder. Échap : vue libre.',
+    surPas:(dt)=>{ tempsPas += dt; if(tempsPas > 0.5){ tempsPas = 0; M.son('pas',{ volume:0.1 }); } },
+    surChangement:(actif)=>{ controls.autoRotate = false; camMove = false; const b = document.getElementById('anMarche'); if(b){ b.setAttribute('aria-pressed', String(actif)); b.textContent = actif?'↩ Revenir à la vue libre':'🚶 Marcher dans la salle'; } const rb = document.getElementById('anRot'); if(rb) rb.setAttribute('aria-pressed','false'); if(actif) shell.say('Tu marches dans la salle d\'examen. Flèches ou joystick pour avancer, glisse pour regarder, Échap pour revenir.', 'joyeux'); } });
+}
+
+/* ============================================================
+   MISSION « LE TRAJET D'UNE BOUCHÉE » : quatre organes dans l'ordre, chaque erreur explique, chrono
+   ============================================================ */
+const BOUCHEE = [
+  { id:'oesophage', texte:"1. L'œsophage", fait:"La bouchée descend par l'œsophage, poussée par des vagues de muscles : le péristaltisme. Même la tête en bas, elle arriverait à l'estomac." },
+  { id:'estomac', texte:'2. L\'estomac', fait:"Dans l'estomac, la bouchée est brassée et attaquée par un acide très puissant (pH proche de 2) pendant deux à trois heures." },
+  { id:'intestin', texte:"3. L'intestin grêle", fait:"Dans l'intestin grêle, long d'environ six mètres, les nutriments traversent la paroi et passent dans le sang." },
+  { id:'colon', texte:'4. Le gros intestin', fait:"Le gros intestin récupère l'eau et abrite le microbiote. Ce qui reste est évacué : le trajet a duré un à deux jours." },
+];
+const EXPLIQUE = { foie:"Le foie fabrique la bile, qui aide à digérer les graisses, mais la bouchée ne le traverse pas.", pancreas:"Le pancréas envoie ses sucs dans l'intestin, mais la bouchée ne passe pas dedans.", coeur:"Le cœur pompe le sang ; les aliments ne passent jamais par lui.", poumons:"Les poumons reçoivent l'air, pas les aliments : la trachée se ferme quand tu avales.", trachee:"La trachée conduit l'air. Quand tu avales, une petite languette la ferme pour que la bouchée file dans l'œsophage.", reins:"Les reins filtrent le sang et fabriquent l'urine : la bouchée ne passe pas par là.", vessie:"La vessie stocke l'urine, qui vient des reins, pas de la digestion.", rate:"La rate nettoie le sang ; elle ne touche pas aux aliments." };
+function assurerMission(){ if(mission||!M) return mission;
+  mission = M.mission({ titre:"Le trajet d'une bouchée", cachee:true, chrono:true, chronoCible:150, gagner:false, annonce:false,
+    objectifs:BOUCHEE.map(e=>({ id:e.id, texte:e.texte })),
+    surFin:(reussie,secondes,score)=>finMission(reussie,secondes,score) });
+  mission.zone.classList.add('an-zone'); mission.zone.setAttribute('aria-label', "Mission : le trajet d'une bouchée");
+  return mission; }
+function lancerMission(){ if(!assurerMission()) return; if(tour) endTour(false);
+  if(missionLancee && !mission.estFinie()){ shell.say('La mission est déjà lancée : prochain organe, '+PARTS[BOUCHEE[missionEtape].id].n+'.','concentre'); mission.montrer(); return; }
+  BOUCHEE.forEach(e=>{ e.erreurs = 0; }); missionEtape = 0; missionLancee = true;
+  const b = document.getElementById('anMission'); if(b) b.setAttribute('aria-pressed','true');
+  if(sys!=='organes') setSys('organes'); resetView(); mission.montrer(); mission.commencer(); M.son('clic',{ volume:0.2 });
+  shell.say("Mission : une bouchée vient d'être avalée. Touche, dans l'ordre, les quatre organes qu'elle traverse. Une erreur n'enlève rien : elle explique. Le chrono tourne.",'enthousiaste');
+  if(prof){ prof.regarder([0,0,2]); setTimeout(()=> prof.dire("Premier organe : par où passe la bouchée juste après la bouche ?", 5), 2200); }
+}
+function missionChoix(k){ if(!missionLancee||!mission||mission.estFinie()) return; const e = BOUCHEE[missionEtape]; if(!e) return;
+  if(k===e.id){ const pts = Math.max(60, 150 - 30*(e.erreurs||0)); missionEtape++; mission.valider(e.id, pts); M.son('clic',{ volume:0.25 });
+    if(prof) prof.dire(e.fait, 6);
+    const n = BOUCHEE[missionEtape]; if(n && prof) setTimeout(()=>{ if(missionLancee&&!mission.estFinie()) prof.dire('Et ensuite ? Touche '+PARTS[n.id].n.toLowerCase()+'.', 4); }, 6500);
+  } else if(PARTS[k] && k!=='peau'){ e.erreurs = (e.erreurs||0)+1; M.son('coup',{ volume:0.12 });
+    const why = EXPLIQUE[k] || (PARTS[k].n+' : '+(PARTS[k].role||'').replace(/\.$/,'')+'.'); const prev = missionEtape? PARTS[BOUCHEE[missionEtape-1].id].n : 'la bouche';
+    if(prof) prof.dire('Pas '+PARTS[k].n.toLowerCase()+'. '+why+' Après '+prev.toLowerCase()+', cherche encore.', 7); else shell.say(why,'rassurant');
+  }
+}
+function finMission(reussie,secondes,score){ const t = Math.round(secondes); const duree = Math.floor(t/60)+' min '+(t%60)+' s';
+  const b = document.getElementById('anMission'); if(b) b.setAttribute('aria-pressed','false');
+  if(!reussie){ setTimeout(()=>{ if(mission) mission.cacher(); }, 4000); return; }
+  M.son('cloche',{ volume:0.2 }); if(prof) prof.dire('Trajet complet en '+duree+'. Tu sais maintenant par où passe un repas.', 7);
+  if(shell.mode!=='cours'){ shell.win({ score, stars:t>150?2:3, title:"Trajet d'une bouchée réussi en "+duree, learned:shell.cfg.learned, buddy:"Œsophage, estomac, intestin grêle, gros intestin : le chemin de la digestion n'a plus de secret pour toi." }); }
+  else { shell.say("Mission réussie en "+duree+' : '+score+' points de plus. Le quiz continue.','fier'); if(shell.celebrate) shell.celebrate(); setTimeout(()=>{ if(mission) mission.cacher(); }, 9000); }
+}
+window.__monde = { lancerMission, toucher:(k)=>selectPart(k,false), mission:()=>mission, etape:()=>missionEtape, prof:()=>prof, marche:()=>marche, quiz:()=>quiz };
 
 /* controls après création dans init : réglages doux */
 function setupControlsDefaults(){ controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.08; controls.minDistance = 5; controls.maxDistance = 30; controls.target.copy(homeTarget); controls.autoRotate = REDUCED; controls.autoRotateSpeed = 0.4; controls.enablePan = false; controls.rotateSpeed = 0.85; }

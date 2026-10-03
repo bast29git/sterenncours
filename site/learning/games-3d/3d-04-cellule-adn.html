@@ -57,7 +57,14 @@
   .ce-hact{ position:absolute; bottom:74px; left:50%; transform:translateX(-50%); pointer-events:auto; }
   .ce-hbtn{ font-family:var(--font-body); font-weight:800; font-size:16px; padding:14px 26px; border-radius:13px; border:none; background:linear-gradient(135deg,var(--accent),#29B6E0); color:#fff; cursor:pointer; box-shadow:var(--shadow-lg); }
   .ce-hquit{ position:absolute; bottom:18px; left:50%; transform:translateX(-50%); pointer-events:auto; font-weight:700; font-size:13px; padding:9px 18px; border-radius:11px; border:1px solid var(--border); background:color-mix(in srgb,var(--surface) 80%,transparent); color:var(--fg); cursor:pointer; }
-  @media (max-width:720px){ .ce-modes{width:166px;padding:10px} .ce-info{width:min(300px,84vw)} .ce-htitle{font-size:19px} }
+  /* mission « Visite guidée de la cellule » : bandeau en bas à gauche, consigne en bas au centre */
+  .mb-mission.ce-zone { top:auto; bottom:14px; right:auto; left:14px; font-size:12px; }
+  .mb-mission.ce-zone ol { gap:3px; } .mb-mission.ce-zone li { padding:3px 7px; }
+  .ce-mq { position:absolute; z-index:22; bottom:14px; left:50%; transform:translateX(-50%); width:max-content; max-width:min(520px, calc(100vw - 560px)); background:color-mix(in srgb,var(--surface) 95%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-lg); padding:10px 14px; display:none; font-size:13.5px; line-height:1.4; color:var(--fg); text-align:center; }
+  .ce-mq.on { display:block; } .ce-mq b { color:var(--accent-text); }
+  .ce-mq .lettres { display:inline-flex; gap:6px; margin-left:8px; vertical-align:middle; } .ce-mq .lettres i { display:inline-grid; place-items:center; width:24px; height:24px; border-radius:999px; color:#fff; font-style:normal; font-weight:800; font-size:13px; }
+  @media (max-width:1000px){ .ce-mq{ max-width:92vw; } }
+  @media (max-width:720px){ .ce-modes{width:166px;padding:10px} .ce-info{width:min(300px,84vw)} .ce-htitle{font-size:19px} .mb-mission.ce-zone{ left:10px; bottom:84px; width:min(190px,52vw); } .ce-mq{ bottom:10px; font-size:12.5px; } }
 </style>
 </head>
 <body>
@@ -71,6 +78,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, textureTexte } from '../monde-base.js';
 const REDUCED=window.Konstrio.REDUCED;
 
 /* ====== DONNÉES PÉDAGOGIQUES ====== */
@@ -95,6 +103,9 @@ let mito=null, mitoGroup=null;
 let scene,camera,renderer,composer,bloom,controls,clock,raycaster,pointer,hovered=null,selected=null;
 let cellGroup, dnaGroup, organelles=[], dnaBases=[], camTarget=null, focusDist=14, flying=false;
 let labelWrap, labelEls={};
+/* F228 : outils communs (mission, ambiance, sons), le nanorobot-guide et la visite guidée de la cellule */
+let M=null; const boucles=[]; let robot=null, robotBulle=null, robotBulleT=0, missionCell=null, missionLancee=false, etapeCell=0, paireIdx=0, ambianceEau=null, software=false, particules=null;
+const PETIT=window.matchMedia('(max-width: 720px)').matches;
 
 /* E14 : légendes des objets pour le socle commun des mondes. */
 function LEGENDE_OPALINE(ob){ const o=ob.userData&&ORG[ob.userData.key]; return o?{nom:o.name,phrase:o.sub}:null; }
@@ -137,7 +148,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight, .1, 600); camera.position.set(0,4,19);
   renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; window.Konstrio.adapterRendu(renderer); renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; stage.appendChild(renderer.domElement);
   // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produirait du noir → chaîne robuste sans GTAO
-  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  software=renduLogiciel(renderer);
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer); composer.addPass(new RenderPass(scene,camera));
   // GPU réel uniquement : occlusion ambiante en espace-écran (creuse le contact entre organites)
@@ -149,6 +160,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.08; controls.minDistance=4; controls.maxDistance=44; controls.autoRotate=REDUCED; controls.autoRotateSpeed=.35;
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
+  M=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f) });
   // éclairage doux type microscope
   scene.add(new THREE.HemisphereLight(0xdfeaff,0x101a2e,1.05));
   const key=new THREE.DirectionalLight(0xffffff,1.15); key.castShadow=true; key.shadow.mapSize.set(1024,1024); key.position.set(7,9,7); scene.add(key);
@@ -157,7 +169,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
   new RGBELoader().load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; }, undefined, ()=>{});
   scene.add(makeBackdrop());
-  buildCell(); buildDNA(); raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  buildCell(); buildDNA(); robot=makeRobot(); scene.add(robot); particules=makeParticules(); cellGroup.add(particules); raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
   buildUI(); applyTheme();
   renderer.domElement.addEventListener('pointermove',onMove); renderer.domElement.addEventListener('pointerdown',onDown);
   window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
@@ -263,8 +275,10 @@ function buildUI(){ const stage=shell.stage;
     <h3 class="mt">Expériences</h3>
     <button class="ce-tg" data-k="synth" aria-pressed="false">🧬 Synthèse d'une protéine</button>
     <button class="ce-tg" data-k="mitose" aria-pressed="false">🔬 Mitose (division)</button>
+    <button class="ce-tg" id="ceMission" aria-pressed="false" style="background:linear-gradient(135deg,var(--accent),#29B6E0);border:none;color:#fff">🤖 Mission : visite guidée</button>
     <button class="ce-tg" id="ceNot" style="background:var(--surface-2);color:var(--fg)">📚 Notions de bio</button>`; stage.appendChild(m);
   m.querySelector('#ceNot').onclick=()=>openNotions();
+  m.querySelector('#ceMission').onclick=()=>lancerMission();
   m.querySelectorAll('.ce-tg[data-k]').forEach(b=> b.onclick=()=>{ const k=b.dataset.k; const on=b.getAttribute('aria-pressed')!=='true'; b.setAttribute('aria-pressed',on); shell.sound('click');
     if(k==='dna'){ on?enterDNA():exitDNA(); }
     if(k==='vegetal'){ vegetal=on; cellGroup.userData.chloro.visible=on; cellGroup.userData.paroi.visible=on; cellGroup.userData.vac.scale.setScalar(on?1.9:1); shell.say(on?"Cellule végétale : paroi rigide, grande vacuole et chloroplastes pour la photosynthèse.":"Retour à la cellule animale.",'concentre'); }
@@ -283,6 +297,7 @@ function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x
 function pick(){ raycaster.setFromCamera(pointer,camera); const arr= dnaView? dnaBases : organelles.filter(o=>o.visible!==false); const hits=raycaster.intersectObjects(arr,true); let mem=null; for(const h of hits){ let o=h.object; while(o&&!o.userData.key&&o.userData.base===undefined)o=o.parent; if(!o)continue; if(o.userData.key==='membrane'||o.userData.key==='paroi'){ if(!mem)mem=o; continue;} return o; } return mem; }
 function onMove(e){ setP(e); const o=pick(); hovered=o; renderer.domElement.style.cursor=o?'pointer':'grab'; }
 function onDown(e){ setP(e); const o=pick(); if(!o)return; shell.sound('pop');
+  if(missionLancee&&missionCell&&!missionCell.estFinie()&&!find&&!quiz){ if(dnaView&&o.userData.base!==undefined){ reponseBase(o.userData.base); return; } if(!dnaView&&o.userData.key){ if(choixCell(o.userData.key)) return; } }
   if(dnaView&&o.userData.base!==undefined){ const b=o.userData.base; openFiche({ name:'Base '+b, sub:'Nucléotide', color:BASES[b].c, desc:["La base « "+b+" » s'apparie toujours avec « "+BASES[b].pair+" ». C'est la règle de complémentarité de l'ADN."], fun:'' }); return; }
   if(o.userData.key){ if(find){ answerFind(o.userData.key); return; }
     if(o.userData.key==='noyau'&&!dnaView){ enterDNA(); document.querySelector('[data-k="dna"]').setAttribute('aria-pressed',true); return; }
@@ -312,7 +327,12 @@ function openNotions(){ const el=document.getElementById('ceInfo'); el.innerHTML
 
 /* ====== MODE COURS : menu de défis ====== */
 function closeInfo(){ const el=document.getElementById('ceInfo'); if(el)el.classList.remove('show'); camTarget=null; selected=null; }
-function startMode(m){ mode=m; clearQuiz(); clearFind(); document.getElementById('ceHint').style.display=(m==='cours')?'none':''; if(m==='cours'){ shell.setScore(0); shell.setProgress(0); shell.setStars(0); chooseChallenge(); } }
+function startMode(m){ mode=m; clearQuiz(); clearFind(); document.getElementById('ceHint').style.display=(m==='cours')?'none':''; if(m==='cours'){ shell.setScore(0); shell.setProgress(0); shell.setStars(0); chooseChallenge(); }
+  if(!ambianceEau&&M){ try{ ambianceEau=M.ambiance({ type:'eau', volume:0.06 }); }catch(e){} }
+  assurerMission();
+  setTimeout(()=>robotDire(m==='cours'?'Je suis Yuzu, ton nanorobot. Lance la visite guidée quand tu veux.':'Je suis Yuzu, ton nanorobot. La visite guidée commence dans quelques secondes.',5),1500);
+  if(m!=='cours') setTimeout(()=>{ if(!missionLancee&&!(synth&&synth.active)&&!(mito&&mito.active)) lancerMission(); },7000);
+}
 function chooseChallenge(){ clearQuiz(); clearFind(); if(dnaView)exitDNA(); closeInfo(); let b=ensureBanner(); b.innerHTML=`<div class="qtxt">🎓 Choisis ton défi</div><div class="qrow"><button class="ce-qo" style="min-width:auto;font-size:14px;padding:0 14px" data-c="find">🔎 Trouve l'organite</button><button class="ce-qo" style="min-width:auto;font-size:14px;padding:0 14px" data-c="dna">🧬 Assemble l'ADN</button></div>`; b.querySelectorAll('[data-c]').forEach(x=>x.onclick=()=>{ shell.sound('click'); if(x.dataset.c==='find')startFind(); else chooseDifficulty(); }); shell.say("Deux défis t'attendent : reconnaître les organites, ou apparier les bases de l'ADN. Choisis !",'curieux'); }
 function ensureBanner(){ let b=document.getElementById('ceQuiz'); if(!b){ b=document.createElement('div'); b.className='ce-quiz'; b.id='ceQuiz'; shell.stage.appendChild(b); } return b; }
 
@@ -450,11 +470,101 @@ function endMitosis(){ if(!mito)return; mito.active=false; const h=document.getE
   cellGroup.visible=true; camera.position.set(0,4,19); controls.target.set(0,0,0); controls.minDistance=4; controls.maxDistance=44;
   const tb=document.querySelector('[data-k="mitose"]'); if(tb)tb.setAttribute('aria-pressed',false); shell.sound('click'); }
 
+/* ====== LE NANOROBOT-GUIDE : coupole, propulseurs, antenne, anneau de feux ; il parle par étiquette ====== */
+function makeRobot(){ const g=new THREE.Group(); g.name='nanorobot';
+  const metal=new THREE.MeshStandardMaterial({ color:0xdfe4ea, metalness:0.85, roughness:0.3 }); const sombre=new THREE.MeshStandardMaterial({ color:0x2a3240, metalness:0.6, roughness:0.45 });
+  const leg=(o,nom,phrase)=>{ o.userData.legende={nom,phrase}; o.traverse&&o.traverse(c=>{ c.userData.legende=o.userData.legende; }); return o; };
+  const corps=new THREE.Mesh(new THREE.CapsuleGeometry(0.22,0.5,8,18), metal); corps.rotation.x=Math.PI/2; g.add(leg(corps,'Nanorobot Yuzu',"Ton guide dans la cellule : mille fois plus petit qu'un grain de sable."));
+  const coupole=new THREE.Mesh(new THREE.SphereGeometry(0.2,20,14), new THREE.MeshPhysicalMaterial({ color:0x9fe0ff, transmission:software?0:0.8, transparent:true, opacity:software?0.55:1, roughness:0.05, thickness:0.3, ior:1.5, clearcoat:1 })); coupole.position.z=0.5; g.add(leg(coupole,"Coupole d'observation","Une caméra regarde tout autour : c'est elle qui filme les organites."));
+  const oeil=new THREE.Mesh(new THREE.SphereGeometry(0.07,10,8), new THREE.MeshStandardMaterial({ color:0x1b2a44, emissive:0x29B6E0, emissiveIntensity:1.2 })); oeil.position.z=0.56; g.add(oeil);
+  [-1,1].forEach(sg=>{ const prop=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.1,0.26,12), sombre); prop.rotation.x=Math.PI/2; prop.position.set(sg*0.28,-0.05,-0.3); g.add(leg(prop,'Propulseurs',"Ils poussent le robot dans le cytoplasme, un liquide épais comme du blanc d'œuf."));
+    const flamme=new THREE.Mesh(new THREE.ConeGeometry(0.07,0.3,10,1,true), new THREE.MeshBasicMaterial({ color:0x7fe3ff, transparent:true, opacity:0.5, blending:THREE.AdditiveBlending, depthWrite:false })); flamme.rotation.x=-Math.PI/2; flamme.position.set(sg*0.28,-0.05,-0.58); flamme.raycast=()=>{}; g.add(flamme); (g.userData.flammes=g.userData.flammes||[]).push(flamme); });
+  const mat=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.32,6), metal); mat.position.set(0,0.36,-0.05); g.add(leg(mat,'Antenne',"Elle envoie les images vers l'extérieur de la cellule."));
+  const boule=new THREE.Mesh(new THREE.SphereGeometry(0.04,8,8), new THREE.MeshStandardMaterial({ color:0xffd27a, emissive:0xF5A623, emissiveIntensity:1.4 })); boule.position.set(0,0.54,-0.05); g.add(boule); g.userData.boule=boule;
+  const anneau=new THREE.Mesh(new THREE.TorusGeometry(0.26,0.025,8,28), new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0x6E6BFF, emissiveIntensity:0.9 })); anneau.rotation.x=Math.PI/2; anneau.position.z=0.1; g.add(anneau); g.userData.anneau=anneau;
+  const helice=new THREE.Group(); for(let i=0;i<3;i++){ const pale=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.22,0.015), sombre); pale.rotation.z=i*Math.PI*2/3; helice.add(pale); } helice.position.z=-0.52; g.add(helice); g.userData.helice=helice;
+  g.scale.setScalar(1.15); g.userData.ang=0; g.userData.cible=null; g.position.set(5,1,5);
+  return g; }
+function makeParticules(){ const n=REDUCED?120:320; const pos=new Float32Array(n*3); let c=0; while(c<n){ const v=new THREE.Vector3((Math.random()-.5)*15,(Math.random()-.5)*15,(Math.random()-.5)*15); if(v.length()<7.4&&v.length()>2.8){ pos[c*3]=v.x; pos[c*3+1]=v.y; pos[c*3+2]=v.z; c++; } }
+  const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); const pts=new THREE.Points(geo,new THREE.PointsMaterial({ color:0xbfe8ff, size:0.09, transparent:true, opacity:0.55, depthWrite:false })); pts.raycast=()=>{}; pts.userData.key=null; return pts; }
+function robotDire(texte,secondes){ if(!robot)return; if(robotBulle){ scene.remove(robotBulle); robotBulle=null; }
+  const lignes=[]; let l=''; String(texte).split(/\s+/).forEach(m=>{ if((l+' '+m).trim().length>34&&l){ lignes.push(l); l=m; } else l=(l+' '+m).trim(); }); if(l)lignes.push(l);
+  const tex=textureTexte(lignes.join('\n'),{ taille:28, fond:'rgba(22,30,42,0.92)', couleur:'#ffffff' }); const sp=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, depthTest:false, toneMapped:false })); sp.raycast=()=>{}; sp.renderOrder=12; sp.userData.ratio=tex.userData.ratio; sp.userData.lignes=lignes.length; scene.add(sp); robotBulle=sp; robotBulleT=performance.now()+(secondes||4)*1000;
+  shell.say(texte,'joyeux'); }
+function positionCible(){ const u=robot.userData;
+  if(dnaView) return new THREE.Vector3(3.8,1.6+Math.sin(clock.elapsedTime*0.8)*0.5,2.6);
+  if(u.cible){ const c=u.cible; const p=new THREE.Vector3(); if(c.objet){ c.objet.getWorldPosition(p); } else { p.set(0,0,0); } const r=c.rayon||1.6; return p.add(new THREE.Vector3(Math.cos(u.ang)*r, 0.6, Math.sin(u.ang)*r)); }
+  return new THREE.Vector3(Math.cos(u.ang)*5.4, Math.sin(u.ang*0.7)*1.6, Math.sin(u.ang)*5.4); }
+function majRobot(dt){ if(!robot)return; const u=robot.userData; const cache=(synth&&synth.active)||(mito&&mito.active);
+  robot.visible=!cache; if(robotBulle) robotBulle.visible=!cache; if(cache)return;
+  u.ang+=dt*(u.cible?0.45:0.22); const cible=positionCible(); const d=robot.position.distanceTo(cible);
+  robot.position.lerp(cible, Math.min(1, dt*(d>3?1.1:2.4)));
+  if(d>0.3){ const q=robot.quaternion.clone(); robot.lookAt(cible); robot.quaternion.slerp(q,0.8); }
+  u.helice.rotation.z+=dt*(6+Math.min(14,d*4)); const puls=0.7+Math.sin(clock.elapsedTime*3)*0.3; u.anneau.material.emissiveIntensity=puls; u.boule.material.emissiveIntensity=1+Math.sin(clock.elapsedTime*5)*0.5;
+  u.flammes.forEach(f=>{ f.material.opacity=Math.min(0.8,0.15+d*0.2); f.scale.y=0.6+Math.min(1.2,d*0.3); });
+  if(robotBulle){ if(performance.now()>robotBulleT){ scene.remove(robotBulle); robotBulle=null; } else { const dist=camera.position.distanceTo(robot.position); const h=Math.max(0.5, dist*0.03)*(robotBulle.userData.lignes*0.55+0.6); robotBulle.scale.set(h*robotBulle.userData.ratio,h,1); robotBulle.position.copy(robot.position).add(new THREE.Vector3(0,0.75+h*0.55,0)); } }
+}
+
+/* ====== MISSION « VISITE GUIDÉE DE LA CELLULE » : quatre organites dans l'ordre, puis trois paires de bases, chrono ====== */
+const VISITE=[
+  { id:'noyau', texte:'1. Trouver le noyau', fait:"Le noyau garde l'ADN, le plan de toute la cellule. On y entrera à la fin.", rayon:3.4 },
+  { id:'membrane', texte:'2. Toucher la membrane', fait:"La membrane entoure la cellule et filtre ce qui entre et sort. Touche le bord de la cellule.", rayon:7.2 },
+  { id:'mito', texte:'3. Trouver une mitochondrie', fait:"La mitochondrie fabrique l'énergie (l'ATP) en brûlant les nutriments avec l'oxygène.", rayon:1.7 },
+  { id:'ribo', texte:'4. Trouver les ribosomes', fait:"Les ribosomes, ces petits grains, assemblent les protéines en lisant l'ARN messager.", rayon:5.2 },
+];
+const PAIRES=[['A','T'],['C','G'],['T','A']];
+const EXPLIQUE_ORG={ golgi:"L'appareil de Golgi trie et expédie les protéines.", lyso:"Le lysosome digère les déchets : c'est la recyclerie.", vacuole:"La vacuole stocke l'eau et des réserves.", re:"Le réticulum fabrique et transporte protéines et lipides.", chloro:"Le chloroplaste capte la lumière, chez les plantes.", paroi:"La paroi rigide entoure les cellules végétales." };
+function assurerMission(){ if(missionCell||!M)return missionCell;
+  missionCell=M.mission({ titre:'Visite guidée de la cellule', cachee:true, chrono:true, chronoCible:240, gagner:false, annonce:false,
+    objectifs:VISITE.map(v=>({ id:v.id, texte:v.texte })).concat(PAIRES.map((p,i)=>({ id:'p'+i, texte:(5+i)+'. Apparier la base '+p[0] }))),
+    surFin:(reussie,secondes,score)=>finMission(reussie,secondes,score) });
+  missionCell.zone.classList.add('ce-zone'); missionCell.zone.setAttribute('aria-label','Mission : visite guidée de la cellule');
+  return missionCell; }
+function consigne(html){ let el=document.getElementById('ceMq'); if(!el){ el=document.createElement('div'); el.className='ce-mq'; el.id='ceMq'; el.setAttribute('role','status'); shell.stage.appendChild(el); } if(!html){ el.classList.remove('on'); el.innerHTML=''; return; } el.innerHTML=html; el.classList.add('on'); }
+function lancerMission(){ if(!assurerMission())return; if(synth&&synth.active)endSynthesis(); if(mito&&mito.active)endMitosis();
+  if(missionLancee&&!missionCell.estFinie()){ shell.say('La visite est déjà lancée : regarde la liste des objectifs.','concentre'); missionCell.montrer(); return; }
+  clearQuiz(); clearFind(); closeInfo(); if(dnaView)exitDNA(); if(vegetal){ /* la cellule végétale reste possible */ }
+  VISITE.forEach(v=>{ v.erreurs=0; }); etapeCell=0; paireIdx=0; missionLancee=true; robot.userData.cible=null;
+  const b=document.getElementById('ceMission'); if(b)b.setAttribute('aria-pressed','true');
+  missionCell.montrer(); missionCell.commencer(); M.son('tic',{ volume:0.3 });
+  shell.say("Visite guidée : touche, dans l'ordre, le noyau, la membrane, une mitochondrie et les ribosomes. Ensuite, dans le noyau, tu apparieras trois bases de l'ADN. Chaque erreur explique. Le chrono tourne.",'enthousiaste');
+  consigne('Touche le <b>noyau</b>, au centre de la cellule.');
+  setTimeout(()=>robotDire('Suis-moi : d\'abord le noyau, au centre.',4),2200);
+}
+function choixCell(k){ const e=VISITE[etapeCell]; if(!e)return false;
+  if(k===e.id){ const pts=Math.max(60,150-30*(e.erreurs||0)); etapeCell++; M.son('tic',{ volume:0.35 }); const objet=organelles.find(o=>o.userData.key===k);
+    robot.userData.cible={ objet:(k==='membrane'||k==='ribo')?null:objet, rayon:e.rayon }; robot.userData.ang=Math.random()*6.28;
+    robotDire(e.fait,6); missionCell.valider(e.id,pts);
+    const n=VISITE[etapeCell];
+    if(n){ consigne('Touche : <b>'+ORG[n.id].name+'</b>.'); setTimeout(()=>{ if(missionLancee&&!missionCell.estFinie()) robotDire('Ensuite : '+ORG[n.id].name.toLowerCase()+'. '+ORG[n.id].sub+'.',4); },6500); }
+    else { setTimeout(()=>{ if(!missionLancee||missionCell.estFinie())return; enterDNA(); const db=document.querySelector('[data-k="dna"]'); if(db)db.setAttribute('aria-pressed',true); closeInfo(); consigneBase(); robotDire('Nous voilà dans le noyau. Touche la base qui s\'apparie avec A.',5); },2500); }
+    return true; }
+  if(k==='membrane'||k==='paroi'){ /* un clic dans le vide touche la membrane : on ne compte pas d'erreur */ return false; }
+  if(ORG[k]){ e.erreurs=(e.erreurs||0)+1; M.son('coup',{ volume:0.12 }); const why=EXPLIQUE_ORG[k]||(ORG[k].name+' : '+ORG[k].sub+'.'); robotDire('Pas '+ORG[k].name.toLowerCase()+'. '+why+' On cherche : '+ORG[e.id].name.toLowerCase()+'.',6); return true; }
+  return false; }
+function consigneBase(){ const p=PAIRES[paireIdx]; if(!p){ consigne(''); return; } consigne('Touche la base qui s\'apparie avec <b>'+p[0]+'</b> <span class="lettres">'+['A','T','G','C'].map(b=>`<i style="background:${BASES[b].c}">${b}</i>`).join('')+'</span>'); }
+function reponseBase(b){ const p=PAIRES[paireIdx]; if(!p)return; const i=paireIdx;
+  if(b===p[1]){ M.son('tic',{ volume:0.35 }); const pts=Math.max(60,150-30*(p.erreurs||0)); paireIdx++; robotDire(p[0]+' avec '+p[1]+' : exact. '+(p[0]==='A'||p[0]==='T'?'Deux liaisons les tiennent ensemble.':'Trois liaisons les tiennent ensemble.'),5); missionCell.valider('p'+i,pts); consigneBase(); }
+  else { p.erreurs=(p.erreurs||0)+1; M.son('coup',{ volume:0.12 }); robotDire(b===p[0]?'Une base ne s\'apparie jamais avec elle-même. '+p[0]+' cherche sa partenaire.':b+' ne va pas avec '+p[0]+' : '+b+' s\'apparie toujours avec '+BASES[b].pair+'. Règle : A-T et G-C.',6); }
+}
+function finMission(reussie,secondes,score){ consigne(''); const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s'; robot.userData.cible=null;
+  const b=document.getElementById('ceMission'); if(b)b.setAttribute('aria-pressed','false');
+  if(!reussie){ setTimeout(()=>{ if(missionCell)missionCell.cacher(); },4000); return; }
+  M.son('cloche',{ volume:0.2 }); robotDire('Visite terminée en '+duree+'. Quatre organites et trois paires de bases : bravo.',7);
+  if(shell.mode!=='cours'){ shell.win({ score, stars:t>240?2:3, title:'Visite guidée réussie en '+duree, learned:shell.cfg.learned, buddy:"Noyau, membrane, mitochondrie, ribosomes, puis A-T et G-C : tu as le plan de la cellule en tête." }); }
+  else { shell.say('Visite réussie en '+duree+' : '+score+' points de plus.','fier'); if(shell.celebrate)shell.celebrate(); setTimeout(()=>{ if(missionCell)missionCell.cacher(); if(mode==='cours'&&!find&&!quiz){ if(dnaView)exitDNA(); chooseChallenge(); } },7000); }
+}
+window.__monde={ lancerMission, toucher:(k)=>{ if(dnaView) return reponseBase(k); return choixCell(k); }, mission:()=>missionCell, etape:()=>etapeCell, paire:()=>paireIdx, robot:()=>robot, find:()=>find, quiz:()=>quiz, adn:()=>dnaView, repondreFind:answerFind };
+
 /* ====== ÉTIQUETTES 3D + boucle ====== */
 function updateLabels(){ for(const k in labelEls)labelEls[k].style.display='none'; if(!cellGroup.visible)return; const cur=hovered||selected; if(!cur||!cur.userData.key||!labelEls[cur.userData.key])return; const el=labelEls[cur.userData.key]; const v=new THREE.Vector3(); cur.getWorldPosition(v); v.project(camera); if(v.z>1)return; const s=shell.stage; el.style.left=((v.x*.5+.5)*s.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*s.clientHeight)+'px'; el.style.display='block'; }
 function animate(){ requestAnimationFrame(animate); const dt=Math.min(clock.getDelta(),.05);
+  for(const f of boucles){ try{ f(dt,clock.elapsedTime); }catch(e){ /* une boucle ne casse pas le rendu */ } }
+  majRobot(dt);
+  if(missionCell&&PETIT){ const info=document.getElementById('ceInfo'); missionCell.zone.hidden=!missionLancee||missionCell.estFinie()||(info&&info.classList.contains('show')); }
   if(synth&&synth.active){ updateSynth(dt); controls.update(); composer.render(); return; }
   if(mito&&mito.active){ updateMitosis(dt); controls.update(); composer.render(); return; }
+  if(particules&&!REDUCED){ particules.rotation.y-=dt*0.03; particules.rotation.x+=dt*0.008; }
   if(cellGroup.visible){ if(!REDUCED)cellGroup.rotation.y+=dt*0.05;
     organelles.forEach(o=>{ if(!o.userData.home)return; // léger flottement + surbrillance au survol
       const bob=REDUCED?0:Math.sin(clock.elapsedTime*0.7+(o.userData.phase||0))*0.04; o.position.y=o.userData.home.y+bob;
