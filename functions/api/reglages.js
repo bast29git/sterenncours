@@ -22,6 +22,8 @@ export const REGLAGES = {
   fils:          { defaut: true,  type: 'boolean', libelle: 'Fils de discussion séparés par matière' },
   felicitations: { defaut: true,  type: 'boolean', libelle: 'Message d\'encouragement automatique quand une série est réussie' },
   sonde:         { defaut: 45,    type: 'number',  libelle: 'Délai de la sonde de nouveautés, en secondes', min: 20, max: 300 },
+  // B203 : la date de la dernière remise à zéro ; un appareil qui la découvre vide ses caches locaux (F241).
+  reinitialisation: { defaut: '', type: 'string', libelle: 'Date de la dernière remise à zéro', max: 40 },
 };
 
 export async function lireReglages(DB) {
@@ -53,8 +55,9 @@ async function poser(context, session, cle, brut) {
   const regle = REGLAGES[cle];
   if (!regle) throw erreur(`Réglage inconnu : ${cle}.`, 400, 'invalide', cle);
   let valeur = brut;
-  if (typeof valeur !== regle.type) throw erreur(`La valeur de ${cle} doit être de type ${regle.type === 'boolean' ? 'oui/non' : 'nombre'}.`, 400, 'invalide', cle);
+  if (typeof valeur !== regle.type) throw erreur(`La valeur de ${cle} doit être de type ${regle.type === 'boolean' ? 'oui/non' : regle.type === 'number' ? 'nombre' : 'texte'}.`, 400, 'invalide', cle);
   if (regle.type === 'number') valeur = Math.min(regle.max, Math.max(regle.min, Math.round(valeur)));
+  if (regle.type === 'string') valeur = String(valeur).slice(0, regle.max || 200);
   await context.env.DB.prepare(
     `INSERT INTO reglages (cle, valeur, maj_le) VALUES (?, ?, ?)
      ON CONFLICT(cle) DO UPDATE SET valeur = excluded.valeur, maj_le = excluded.maj_le`,

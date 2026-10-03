@@ -80,7 +80,7 @@
   /** Valeurs par défaut des réglages professeur, si le serveur ne répond pas. */
   const REGLAGES_DEFAUT = {
     pauses: true, tuteur: true, calculatrice: true, calculatrice_maths: true, calculatrice_evaluation: false,
-    reactions: true, formatage: false, fils: true, felicitations: true, sonde: 45,
+    reactions: true, formatage: false, fils: true, felicitations: true, sonde: 45, reinitialisation: '',
   };
   const reglage = (c) => (c in etat.reglages ? etat.reglages[c] : REGLAGES_DEFAUT[c]);
   /** Les réglages qui changent l'affichage sont portés par <html> : le CSS s'en sert. */
@@ -807,6 +807,18 @@
     return p;
   }
 
+  /* F241 : après une remise à zéro côté serveur, l'appareil oublie ses caches (étoiles vues, carnet du compagnon, parties, trophées) ; les préférences d'affichage restent. */
+  function purgerSiReinitialise(marque) {
+    if (!marque) return;
+    let locale = null;
+    try { locale = localStorage.getItem('opaline.reinitialisation'); } catch (e) { return; }
+    if (locale === marque) return;
+    const garder = new Set(['opaline.sons', 'opaline.eco', 'opaline.aurore', 'opaline.qualite3d', 'opaline.pilotage', 'opaline.reinitialisation', 'konstrio-muted', 'konstrio-theme', 'konstrio-confort']);
+    try {
+      Object.keys(localStorage).forEach((k) => { if ((k.indexOf('opaline.') === 0 || k.indexOf('konstrio-') === 0) && !garder.has(k)) localStorage.removeItem(k); });
+      localStorage.setItem('opaline.reinitialisation', marque);
+    } catch (e) { /* stockage indisponible */ }
+  }
   async function rafraichirEtat() {
     try {
       const d = await api('/etat');
@@ -815,6 +827,7 @@
       etat.fiches = d.fiches || {};
       etat.ouvertures = d.ouvertures || {};
       etat.reglages = d.reglages || {};
+      purgerSiReinitialise(etat.reglages.reinitialisation);
       etat.felicitations = d.felicitations || [];
       etat.acces = d.acces || {};
       etat.verrous = d.verrous || {};

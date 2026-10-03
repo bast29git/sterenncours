@@ -238,6 +238,7 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 
 - [x] B201 La limite entre deux farces respecte la durée de vie minimale du stockage clé-valeur (une minute) : l'heure du dernier envoi est comparée à `FARCE_DELAI` ; avant, toute farce répondait 500. Test unitaire sur toutes les durées de vie.
 - [x] B202 `POST /api/learning/rendu` : le diagnostic de rendu d'un monde 3D (carte graphique, WebGL 2, mobile, étapes de dégradation, images par seconde) va au journal (`quoi=rendu3d`).
+- [x] B203 Réglage `reinitialisation` (date de la dernière remise à zéro, type texte) accepté par `/api/reglages`.
 
 ## Site : 200 améliorations (F001 à F200)
 
@@ -498,3 +499,4 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 - [x] F238 Page « Mondes 3D » réorganisée : un bilan (jauge, gagnés, essayés, à découvrir, filtres), six sections par matière de 4ᵉ (groupe `monde` dans la banque des jeux), une carte par monde avec son accroche (personnage et mission), ses leçons, ses étoiles et son meilleur score ; libellés de domaine des jeux alignés sur les matières.
 - [x] F239 Compagnon 2.0 : amitié en huit niveaux (points par geste, plafonnés par jour), envies du jour et journée parfaite, six gestes (caresser, nourrir avec des provisions venues des réussites, jouer à trois mini-jeux, brosser, parler avec mémoire des réponses, photo), tours à apprendre par leur suite, motifs et yeux, chambre (fonds et objets), album de souvenirs envoyables à Bastien, vignettes, carnet ; état dans `moi.compagnon_vie`.
 - [x] F240 Garde de rendu étendue à l'image saturée en blanc (un NaN de matériau étalé par le bloom sur certains GPU mobiles) ; sur mobile, le verre à transmission devient un verre simple ; le diagnostic note le blanc et les matériaux assainis ; l'audit des mondes attend la banque après avoir provoqué la fin.
+- [x] F241 Un appareil qui découvre une nouvelle date de remise à zéro vide ses caches locaux (étoiles vues, carnet du compagnon, parties et trophées des jeux) ; sons, qualité 3D, thème et confort restent.
