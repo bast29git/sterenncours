@@ -71,6 +71,22 @@
   .ca-qo{ font-family:var(--font-body); font-weight:700; font-size:13px; min-height:42px; padding:0 14px; border-radius:11px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.16); color:#fff; cursor:pointer; transition:.12s; }
   .ca-qo:hover{ background:rgba(255,255,255,.3); }
   @media (max-width:720px){ .ca-left{ width:158px; padding:10px; gap:9px; } .ca-fiche{ width:min(300px,86vw); } .ca-gauges{ padding:9px 11px; gap:10px; } .ca-g .v{ font-size:17px; } .ca-drive{ gap:8px; padding:9px 11px; } }
+  /* F228 : mission « Trois trajets à chronométrer » (panneau de trajet, zone de mission sous les jauges) */
+  .ca-trajet{ bottom:16px; left:252px; width:min(480px,calc(100vw - 580px)); padding:12px 14px; display:flex; flex-direction:column; gap:8px; z-index:25; }
+  .ca-trajet .row.actions{ justify-content:center; }
+  @media (max-width:900px){ .ca-trajet{ left:50%; transform:translateX(-50%); width:min(520px,94vw); } }
+  .ca-trajet .t{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); display:flex; justify-content:space-between; gap:8px; }
+  .ca-trajet .c{ font-size:13px; line-height:1.45; }
+  .ca-trajet .mes{ display:flex; gap:14px; flex-wrap:wrap; font-family:var(--font-data); font-size:12.5px; color:var(--fg-muted); } .ca-trajet .mes b{ font-size:16px; color:var(--accent-text); }
+  .ca-trajet .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .ca-trajet .row label{ font-size:12px; color:var(--fg-muted); display:flex; flex-direction:column; gap:2px; flex:1; min-width:150px; }
+  .ca-trajet input[type=number]{ font:inherit; font-size:15px; width:120px; min-height:42px; padding:4px 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface); color:var(--fg); }
+  .ca-trajet input[type=range]{ width:100%; accent-color:var(--accent); min-height:32px; }
+  .ca-trajet .ok{ color:var(--brand-teal); font-weight:700; }
+  .mb-mission.ca-mz{ top:88px; }
+  @media (max-width:720px){ .ca-trajet{ padding:9px 10px; bottom:12px; gap:6px; } .ca-trajet .c{ font-size:12px; } .mb-mission.ca-mz{ top:74px; max-height:34%; }
+    /* pendant la mission sur petit écran : le panneau de gauche et le choix du moteur se replient, la mission passe à gauche */
+    .ca-en-mission .ca-left, .ca-en-mission .ca-mode{ display:none; } .ca-en-mission .mb-mission.ca-mz{ left:10px; right:auto; width:min(230px,66vw); top:64px; } }
 </style>
 </head>
 <body>
@@ -84,6 +100,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, matPBR, preparerAo, ciel, textureTexte } from '../monde-base.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============ ÉTAT ============ */
@@ -96,6 +113,8 @@ let mode='thermique', started=false, throttle=0, rpm=0, speed=0, gear=1, crankAn
 let view='ext', explodeT=0, explodeTarget=0, cutT=0, cutTarget=0, hoodOpen=false, doorsOpen=false;
 let labelsOn=true, hovered=null, focusPoint=null, flying=false;
 let ac=null, engGain=null, engOsc=null, engLp=null;
+/* F228 : outils communs (mission, marche, personnage, ambiance), voir monde-base.js */
+const boucles=[]; let accelTest=1; let M=null, modeJeu='detente', marche=null, monitrice=null, missionTrajets=null, missionLancee=false, trajet=null, ambVent=null, ambMoteur=null, panneauStop=null, keyLight=null, dernierPas=0, suiviCam=0, sonMoteurT=0, contactShadow=null;
 const RATIOS=[0,3.4,2.1,1.4,1.05,0.82];
 const parts={};            // key -> { obj, anchor, name }
 const CYCLE=['Admission','Compression','Explosion','Échappement'];
@@ -186,8 +205,8 @@ const shell=window.Konstrio.createGame({
   },
   learned:["La chaîne de traction : énergie → moteur → transmission → roues.","Le cycle 4 temps : admission, compression, explosion, échappement.","Thermique (~30 %) vs électrique (~90 %) : rendement, couple, silence.","Le rôle de chaque organe : freins, suspension, différentiel, réservoir/batterie."],
   onReady:(api)=>init(api),
-  onStart:(m,api)=>{ if(m==='cours'){ api.setScore(0); startCourse(); } else { setDetente(); } },
-  onRestart:(api)=>{ if(shell.api && shell.api.mode==='cours'){ api.setScore(0); startCourse(); } else setDetente(); },
+  onStart:(m,api)=>{ modeJeu=m; demarrerAmbiance(); if(m==='cours'){ api.setScore(0); startCourse(); } else { setDetente(); setTimeout(()=>{ if(modeJeu!=='cours'&&!missionLancee) lancerMission(); },6500); } },
+  onRestart:(api)=>{ if(modeJeu==='cours'){ api.setScore(0); startCourse(); } else setDetente(); },
   onTheme:()=>applyTheme(),
   onHint:(api)=>api.hint(shell.cfg.intro.hint),
   onWhy:(api)=>api.say(shell.cfg.intro.why,'idee'),
@@ -230,13 +249,13 @@ function makeContactShadow(){ const s=256,c=document.createElement('canvas'); c.
 function init(api){
   shell.api=api; const stage=api.stage; clock=new THREE.Clock();
   scene=new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene });
-  camera=new THREE.PerspectiveCamera(46, stage.clientWidth/stage.clientHeight,.1,200); camera.position.set(6.5,3.6,7.2);
+  camera=new THREE.PerspectiveCamera(46, stage.clientWidth/stage.clientHeight,.1,900); camera.position.set(6.5,3.6,7.2);
   renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); window.Konstrio.adapterRendu(renderer);
   renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.92;
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8); flakeNormal=makeFlakeNormal();
   // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y échoue → chaîne robuste
-  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  let software=false; try{ software=renduLogiciel(renderer); }catch(e){ try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e2){} }
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
   if(software){
@@ -256,27 +275,31 @@ function init(api){
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.07;
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bp, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
-  controls.minDistance=4.2; controls.maxDistance=22; controls.target.set(0,0.85,0); controls.maxPolarAngle=Math.PI/2.02;
+  controls.minDistance=4.2; controls.maxDistance=26; controls.target.set(0,0.85,0); controls.maxPolarAngle=Math.PI/2.02;
   controls.autoRotate=REDUCED; controls.autoRotateSpeed=.4;
+  // F228 : outils communs branchés sur la boucle de ce monde
+  try{ M=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f) }); }catch(e){ M=null; }
 
-  // lumières studio : l'IBL (HDRI) fait le gros de l'éclairage ; ces sources sculptent ombres & contours
-  scene.add(new THREE.HemisphereLight(0xdfeaff,0x2a3350,0.28));
-  const key=new THREE.DirectionalLight(0xffffff,1.35); key.position.set(7,12,6); key.castShadow=true;
-  key.shadow.mapSize.set(4096,4096); key.shadow.camera.near=1; key.shadow.camera.far=45; key.shadow.radius=5; key.shadow.blurSamples=16;
-  key.shadow.camera.left=-9; key.shadow.camera.right=9; key.shadow.camera.top=9; key.shadow.camera.bottom=-9; key.shadow.bias=-0.0004; scene.add(key);
-  const fill=new THREE.DirectionalLight(0xbcd0ff,0.35); fill.position.set(-8,5,-6); scene.add(fill);
-  const rim=new THREE.SpotLight(0xffffff,1.2,40,Math.PI/5,0.5); rim.position.set(-6,9,8); rim.castShadow=false; scene.add(rim);
+  // lumière de fin de journée : soleil bas et chaud (grandes ombres), ciel bleu en contre-jour, dôme de ciel orangé
+  scene.add(new THREE.HemisphereLight(0xffd6ae,0x4a4232,0.42));
+  const key=new THREE.DirectionalLight(0xffc38a,1.7); key.position.set(-14,7,9); key.castShadow=true; keyLight=key;
+  key.shadow.mapSize.set(software?1024:2048,software?1024:2048); key.shadow.camera.near=1; key.shadow.camera.far=60; key.shadow.radius=software?2:5; key.shadow.blurSamples=software?4:16;
+  key.shadow.camera.left=-12; key.shadow.camera.right=12; key.shadow.camera.top=12; key.shadow.camera.bottom=-12; key.shadow.bias=-0.0004; scene.add(key); scene.add(key.target);
+  const fill=new THREE.DirectionalLight(0x8fb4ff,0.38); fill.position.set(10,6,-8); scene.add(fill);
+  const rim=new THREE.SpotLight(0xffe0c0,0.6,40,Math.PI/5,0.5); rim.position.set(6,9,-8); rim.castShadow=false; scene.add(rim);
   sparkLight=new THREE.PointLight(0xffce7a,0,4,2); sparkLight.position.set(1.5,1.15,0); scene.add(sparkLight);
+  scene.fog=new THREE.Fog(0xe9bf96, 70, 480);
+  ciel(scene, { haut:0x335a9c, horizon:0xffb078, bas:0x6a5a4c, soleil:[-0.76,0.2,0.5], rayon:700 });
 
-  buildFloor();
+  buildTerrain();
   const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
-  // HDRI atelier auto réel (Poly Haven CC0) → reflets crédibles sur le vernis + fond doux
+  // HDRI de ciel (Poly Haven CC0) pour les reflets du vernis ; le fond reste le dôme de fin de journée
   const rgbe=new RGBELoader();
-  rgbe.load('../assets/3d/hdri/autoshop_01_2k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; scene.background=hdr; scene.backgroundBlurriness=0.55; scene.backgroundIntensity=0.7; },
+  rgbe.load('../assets/3d/env/sky_day_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; scene.environmentIntensity=0.75; hdr.dispose(); },
     undefined,
     ()=>{ rgbe.load('../assets/3d/env/studio_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); }, undefined, ()=>{}); });
 
-  buildCar();
+  buildCar(); buildMonitrice(); buildPanneauStop();
   raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
   buildUI(); applyTheme(); setMode('thermique',true); setDetente();
   renderer.domElement.addEventListener('pointermove',onMove);
@@ -286,17 +309,52 @@ function init(api){
   animate();
 }
 
-/* ============ SOL ============ */
-function buildFloor(){
-  // sol de garage/atelier réel (Poly Haven CC0), tuilé + AO bakée
-  const floorMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.85,metalness:0.05,envMapIntensity:0.6});
-  applyPBR(floorMat,'garage_floor','2k',{repeat:9,normal:1.1,ao:true});
-  const fgeo=new THREE.CircleGeometry(40,96); enableAO(fgeo);
-  const floor=new THREE.Mesh(fgeo, floorMat);
-  floor.rotation.x=-Math.PI/2; floor.position.y=-0.001; floor.receiveShadow=true; scene.add(floor);
-  // ombre de contact douce sous la voiture (occlusion lisible même en rendu logiciel)
-  const cs=new THREE.Mesh(new THREE.PlaneGeometry(9,4.4), new THREE.MeshBasicMaterial({map:makeContactShadow(),transparent:true,depthWrite:false,opacity:0.9}));
-  cs.rotation.x=-Math.PI/2; cs.position.y=0.006; scene.add(cs);
+/* ============ TERRAIN : piste d'essai en fin de journée ============ */
+const ROUTE_DEBUT=-40, ROUTE_FIN=260, POST_OFF=2.46; // la borne « 0 m » est sous le pare-chocs avant au départ
+function texteLigne(){ const c=document.createElement('canvas'); c.width=64; c.height=16; const x=c.getContext('2d'); x.clearRect(0,0,64,16); x.fillStyle='rgba(245,240,225,0.9)'; x.fillRect(0,5,32,6); const t=new THREE.CanvasTexture(c); t.wrapS=THREE.RepeatWrapping; t.wrapT=THREE.ClampToEdgeWrapping; t.repeat.set((ROUTE_FIN-ROUTE_DEBUT)/4,1); t.colorSpace=THREE.SRGBColorSpace; return t; }
+function buildTerrain(){
+  // herbe et cailloux (Poly Haven CC0) tout autour de la piste
+  const herbe=matPBR('aerial_grass_rock',{ repetition:80, couleur:0xcfc9a6, rugosite:1 });
+  const hg=preparerAo(new THREE.PlaneGeometry(1200,700)); const herbeM=new THREE.Mesh(hg,herbe); herbeM.rotation.x=-Math.PI/2; herbeM.position.set(110,-0.02,0); herbeM.receiveShadow=true; scene.add(herbeM);
+  // route en asphalte (Poly Haven CC0), tuilée dans la longueur + AO bakée
+  const asph=matPBR('asphalt_02',{ repetition:1, couleur:0xb9b9b9, rugosite:1 }); [asph.map,asph.normalMap,asph.roughnessMap,asph.aoMap].forEach(t=>{ if(t) t.repeat.set((ROUTE_FIN-ROUTE_DEBUT)/3.6,2); });
+  const rg=preparerAo(new THREE.PlaneGeometry(ROUTE_FIN-ROUTE_DEBUT,7.2)); const route=new THREE.Mesh(rg,asph); route.rotation.x=-Math.PI/2; route.position.set((ROUTE_FIN+ROUTE_DEBUT)/2,-0.001,0); route.receiveShadow=true; scene.add(route);
+  // marquage : axe pointillé et bords
+  const axe=new THREE.Mesh(new THREE.PlaneGeometry(ROUTE_FIN-ROUTE_DEBUT,0.16), new THREE.MeshBasicMaterial({ map:texteLigne(), transparent:true, depthWrite:false })); axe.rotation.x=-Math.PI/2; axe.position.set((ROUTE_FIN+ROUTE_DEBUT)/2,0.004,0); scene.add(axe);
+  [3.45,-3.45].forEach(z=>{ const b=new THREE.Mesh(new THREE.PlaneGeometry(ROUTE_FIN-ROUTE_DEBUT,0.14), new THREE.MeshBasicMaterial({ color:0xf3eedd })); b.rotation.x=-Math.PI/2; b.position.set((ROUTE_FIN+ROUTE_DEBUT)/2,0.004,z); scene.add(b); });
+  // ligne de départ et bornes de distance tous les 10 m (lisibles de loin)
+  const dep=new THREE.Mesh(new THREE.PlaneGeometry(0.35,7), new THREE.MeshBasicMaterial({ color:0xffffff })); dep.rotation.x=-Math.PI/2; dep.position.set(POST_OFF,0.005,0); scene.add(dep);
+  const borneMat=new THREE.MeshStandardMaterial({ color:0xf4f1ea, roughness:0.8 }); const bg=new THREE.BoxGeometry(0.14,1.05,0.14);
+  for(let d=0; d<=200; d+=10){ const post=new THREE.Mesh(bg,borneMat); post.position.set(d+POST_OFF,0.52,4.4); post.castShadow=true; scene.add(post);
+    const tex=textureTexte(d+' m',{ taille:30, fond:'rgba(20,30,40,0.86)' }); const sp=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false })); sp.scale.set(0.5*tex.userData.ratio,0.5,1); sp.position.set(d+POST_OFF,1.4,4.4); sp.raycast=()=>{}; scene.add(sp); }
+  // quelques plots orange le long de la piste
+  const plotMat=new THREE.MeshStandardMaterial({ color:0xff6a1a, roughness:0.6 }); for(let i=0;i<8;i++){ const plot=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.6,10), plotMat); plot.position.set(-6+i*30,0.3,-4.3); plot.castShadow=true; scene.add(plot); }
+  // ombre de contact douce sous la voiture (occlusion lisible même en rendu logiciel) : elle suit la voiture
+  contactShadow=new THREE.Mesh(new THREE.PlaneGeometry(9,4.4), new THREE.MeshBasicMaterial({map:makeContactShadow(),transparent:true,depthWrite:false,opacity:0.9}));
+  contactShadow.rotation.x=-Math.PI/2; contactShadow.position.y=0.006; scene.add(contactShadow);
+}
+/* ---------- la monitrice d'auto-école, gilet et planchette ---------- */
+function buildMonitrice(){ if(!M) return;
+  monitrice=M.personnage({ nom:'Gwenn, monitrice', phrase:"Elle chronomètre tes trajets et vérifie tes calculs de vitesse.", position:[-7.4,0,-2.6], taille:1.68, peau:0xe3bb9a, haut:0x2d3f66, bas:0x2b2f3a, cheveux:0x6b3a1e, vitesse:1.3, graine:5 });
+  const u=1.68/1.7; const g=monitrice.groupe;
+  const giletMat=new THREE.MeshStandardMaterial({ color:0xd9ff1f, roughness:0.9, side:THREE.DoubleSide, emissive:0x3a4a00, emissiveIntensity:0.25 });
+  const gilet=new THREE.Mesh(new THREE.CylinderGeometry(0.195*u,0.21*u,0.36*u,18,1,true), giletMat); gilet.position.y=1.13*u; g.add(gilet);
+  const bandeMat=new THREE.MeshStandardMaterial({ color:0xe8e8e8, roughness:0.4, emissive:0xcfcfcf, emissiveIntensity:0.5 });
+  [1.04,1.2].forEach(y=>{ const b=new THREE.Mesh(new THREE.TorusGeometry(0.205*u,0.012*u,6,24), bandeMat); b.rotation.x=Math.PI/2; b.position.y=y*u; g.add(b); });
+  // planchette et chronomètre dans les mains
+  const planche=new THREE.Mesh(new THREE.BoxGeometry(0.16*u,0.22*u,0.015*u), new THREE.MeshStandardMaterial({ color:0x8a5a2b, roughness:0.8 })); planche.position.set(0.02*u,-0.56*u,0.09*u); planche.rotation.x=-0.5; monitrice.membres.brasG.add(planche);
+  const feuille=new THREE.Mesh(new THREE.PlaneGeometry(0.13*u,0.18*u), new THREE.MeshStandardMaterial({ color:0xfafafa, roughness:0.9 })); feuille.position.set(0,0,0.009*u); planche.add(feuille);
+  const chrono=new THREE.Mesh(new THREE.CylinderGeometry(0.035*u,0.035*u,0.02*u,16), new THREE.MeshStandardMaterial({ color:0x2a2f3a, metalness:0.6, roughness:0.3 })); chrono.rotation.x=Math.PI/2; chrono.position.set(0,-0.58*u,0.06*u); monitrice.membres.brasD.add(chrono);
+  monitrice.regarder([0,0,0]);
+}
+/* ---------- panneau STOP du trajet 3 ---------- */
+function buildPanneauStop(){ const g=new THREE.Group(); g.position.set(60,0,-4.3); g.visible=false; scene.add(g);
+  const mat=new THREE.MeshStandardMaterial({ color:0xc0261c, roughness:0.5, emissive:0xff2a1a, emissiveIntensity:0.1 });
+  const poteau=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,2.2,10), new THREE.MeshStandardMaterial({ color:0x7a8290, metalness:0.7, roughness:0.4 })); poteau.position.y=1.1; g.add(poteau);
+  const oct=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.55,0.05,8), mat); oct.rotation.x=Math.PI/2; oct.rotation.y=Math.PI/8; oct.position.y=2.4; g.add(oct);
+  const tex=textureTexte('STOP',{ taille:34, fond:'none', couleur:'#ffffff' }); const sp=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false })); sp.scale.set(0.5*tex.userData.ratio,0.5,1); sp.position.set(0,2.4,0.08); sp.raycast=()=>{}; g.add(sp);
+  const lum=new THREE.PointLight(0xff4a2a,0,9,2); lum.position.set(0,2.4,0.4); g.add(lum);
+  g.userData={ mat, lum }; panneauStop=g;
 }
 
 /* ============ CONSTRUCTION VOITURE ============ */
@@ -590,8 +648,14 @@ function buildUI(){
     <div class="ca-grid two">
       <button class="ca-t" id="caNot">📚 Notions</button>
       <button class="ca-t" id="caFit">↺ Vue</button>
+    </div>
+    <div class="ca-grid two">
+      <button class="ca-t" id="caMission" aria-pressed="false" style="background:linear-gradient(135deg,#5A6275,#2a3140);border-color:transparent;color:#fff">🏁 Mission</button>
+      <button class="ca-t" id="caMarche" aria-pressed="false">🚶 Marcher</button>
     </div>`;
   stage.appendChild(left);
+  left.querySelector('#caMission').onclick=()=>{ shell.sound('click'); lancerMission(); };
+  left.querySelector('#caMarche').onclick=()=>{ if(!marche) assurerMarche(); if(marche){ marche.bascule(); shell.sound('click'); } };
   const sw=left.querySelector('#caSw');
   PAINTS.forEach(([hex,name],i)=>{ const b=document.createElement('button'); b.className='ca-sw'; b.style.background=hex; b.title=name; b.setAttribute('aria-pressed', i===0?'true':'false'); b.onclick=()=>setPaint(hex,b); sw.appendChild(b); });
   left.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
@@ -727,6 +791,144 @@ function winCourse(){ const q=document.getElementById('caQuiz'); if(q)q.remove()
   course=null;
 }
 
+/* ============================================================
+   F228 : MISSION « TROIS TRAJETS À CHRONOMÉTRER » (vitesse, distance, temps, freinage)
+   ============================================================ */
+const fmt1=(x)=>(Math.round(x*10)/10).toLocaleString('fr-FR',{ minimumFractionDigits:0, maximumFractionDigits:1 });
+const DECEL=6; // freinage en m/s²
+const TRAJETS=[
+  { id:'trajet1', nom:'Trajet 1 : mesurer une vitesse', type:'distance', d:50, vMin:27, vMax:45, pas:9, vDefaut:36,
+    consigne:"Règle la vitesse (27, 36 ou 45 km/h), puis appuie sur Partir. La voiture roule sur 50 m. Lis le temps sur le chrono.",
+    question:(tr)=>`La voiture a parcouru 50 m en ${fmt1(tr.temps)} s. Quelle est sa vitesse en m/s ? Calcule v = d ÷ t.`, unite:'m/s', attendu:(tr)=>50/tr.temps,
+    aide:(tr)=>`v = d ÷ t = 50 ÷ ${fmt1(tr.temps)}. Fais la division, puis écris le résultat en m/s.`,
+    bravo:(tr)=>`Oui : 50 ÷ ${fmt1(tr.temps)} = ${fmt1(50/tr.temps)} m/s, c'est-à-dire ${fmt1(50/tr.temps*3.6)} km/h. Même vitesse, deux unités.` },
+  { id:'trajet2', nom:'Trajet 2 : calculer une distance', type:'temps', t:6, vFixe:54,
+    consigne:"La vitesse est fixée à 54 km/h, c'est-à-dire 15 m/s. Appuie sur Partir : la voiture roule pendant 6 s. Ensuite, calcule la distance parcourue : d = v × t.",
+    question:()=>"À 15 m/s pendant 6 s, quelle distance la voiture a-t-elle parcourue, en mètres ? Calcule d = v × t.", unite:'m', attendu:()=>90,
+    aide:()=>"d = v × t = 15 × 6. Fais la multiplication, puis écris le résultat en mètres.",
+    bravo:()=>"Oui : 15 × 6 = 90 m. Regarde la borne : le pare-chocs est bien à la borne 90 m." },
+  { id:'trajet3', nom:'Trajet 3 : freiner à temps', type:'freinage', vMin:54, vMax:90, pas:18, vDefaut:72,
+    consigne:"Règle la vitesse (54, 72 ou 90 km/h) et appuie sur Partir. Quand le panneau STOP s'allume, appuie sur Freiner. La voiture continue pendant 1 s (ton temps de réaction), puis elle freine.",
+    question:(tr)=>`À ${fmt1(tr.vMs)} m/s, quelle distance la voiture parcourt-elle pendant 1 s de réaction ? Calcule d = v × t.`, unite:'m', attendu:(tr)=>tr.vMs,
+    aide:(tr)=>`d = v × t = ${fmt1(tr.vMs)} × 1. Pendant 1 s, la voiture parcourt autant de mètres que sa vitesse en m/s.`,
+    bravo:(tr)=>`Oui : ${fmt1(tr.vMs)} × 1 = ${fmt1(tr.vMs)} m avant même de freiner. Puis ${fmt1(tr.dFrein)} m de freinage : ${fmt1(tr.vMs+tr.dFrein)} m au total pour s'arrêter.` },
+];
+function assurerMission(){ if(missionTrajets||!M) return missionTrajets;
+  missionTrajets=M.mission({ titre:'Trois trajets', cachee:true, chrono:true, chronoCible:300, gagner:false, annonce:false, surFin:finMission, objectifs:[
+    { id:'depart', texte:'1. Régler la vitesse, partir', points:60 },
+    { id:'trajet1', texte:'2. Trajet 1 : v = d ÷ t', points:120 },
+    { id:'trajet2', texte:'3. Trajet 2 : d = v × t', points:120 },
+    { id:'trajet3', texte:'4. Trajet 3 : freiner, d = v × t', points:140 } ] });
+  missionTrajets.zone.classList.add('ca-mz'); missionTrajets.zone.setAttribute('aria-label','Mission : trois trajets à chronométrer');
+  return missionTrajets;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  const b=document.getElementById('caMission'); if(b) b.setAttribute('aria-pressed','true');
+  if(missionLancee&&!missionTrajets.estFinie()){ missionTrajets.montrer(); majTrajet(); return; }
+  missionLancee=true; missionTrajets.montrer(); missionTrajets.commencer(); shell.api.stage.classList.add('ca-en-mission');
+  // vue extérieure, moteur en route, voiture au départ
+  view='ext'; explodeTarget=0; cutTarget=0; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.view==='ext'));
+  if(mode!=='thermique') setMode('thermique',true);
+  replacerVoiture(); focusPoint=null; flying=false;
+  if(!(marche&&marche.estActif())){ camera.position.set(car.position.x+7.5,3.4,8.5); controls.target.set(car.position.x+0.85,0.8,0); }
+  ['caDrive','caHint','caQuiz'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+  const f=document.getElementById('caFiche'); if(f) f.classList.remove('show');
+  commencerTrajet(0);
+  M.son('coup',{ volume:0.2 });
+  shell.api.say("Mission : trois trajets à chronométrer. Gwenn mesure la distance et le temps ; toi, tu calcules la vitesse ou la distance avec v = d ÷ t et d = v × t. Le chrono tourne.",'enthousiaste');
+  if(monitrice){ monitrice.regarder(car.position); setTimeout(()=>{ if(trajet) monitrice.dire('Règle ta vitesse, puis pars. Je chronomètre.',5); },2500); }
+}
+function replacerVoiture(){ car.position.x=0; suiviCam=0; if(contactShadow) contactShadow.position.x=0; if(panneauStop) panneauStop.visible=false; }
+function commencerTrajet(idx){ const T=TRAJETS[idx]; if(!T){ return; }
+  replacerVoiture();
+  trajet={ idx, T, phase:'reglage', vKmh:T.vFixe||T.vDefaut, vMs:0, vCur:0, temps:0, dist:0, stopT:0, stopAllume:false, dReaction:0, dFrein:0, essais:0 };
+  if(!(marche&&marche.estActif())){ camera.position.set(7.5,3.4,8.5); controls.target.set(0.85,0.8,0); }
+  if(T.type==='freinage'&&panneauStop){ panneauStop.visible=true; panneauStop.userData.mat.emissiveIntensity=0.1; panneauStop.userData.lum.intensity=0; }
+  majTrajet();
+}
+function partir(){ if(!trajet||trajet.phase!=='reglage') return; const tr=trajet; const T=tr.T;
+  tr.vMs=tr.vKmh/3.6; tr.vCur=tr.vMs; tr.temps=0; tr.dist=0; tr.phase='roule';
+  if(T.type==='freinage'&&panneauStop){ panneauStop.position.x=POST_OFF+tr.vMs*2.5+16; panneauStop.visible=true; }
+  started=true; startEngineSound(); const sb=document.getElementById('caStart'); if(sb){ sb.classList.add('on'); sb.textContent='⏹ Couper'; }
+  if(missionTrajets) missionTrajets.valider('depart',60);
+  M.son('clic',{ volume:0.2, frequence:700 }); majTrajet();
+}
+function freiner(){ if(!trajet||trajet.phase!=='roule'||trajet.T.type!=='freinage') return;
+  if(!trajet.stopAllume){ M.son('clic',{ volume:0.18, frequence:300 }); shell.api.say("Pas encore : attends que le panneau STOP s'allume.",'rassurant'); return; }
+  trajet.phase='reaction'; trajet.reactT=0; trajet.dReaction=0; majTrajet(); }
+function tickTrajet(dt){ const tr=trajet; const T=tr.T;
+  if(tr.phase==='roule'){ tr.temps+=dt; const pas=tr.vMs*dt; tr.dist+=pas; car.position.x+=pas;
+    if(T.type==='distance'&&tr.dist>=T.d){ car.position.x-= (tr.dist-T.d); tr.dist=T.d; tr.temps=Math.round(T.d/tr.vMs*10)/10; finirRoulage(); }
+    else if(T.type==='temps'&&tr.temps>=T.t){ car.position.x-=(tr.dist-tr.vMs*T.t); tr.dist=tr.vMs*T.t; tr.temps=T.t; finirRoulage(); }
+    else if(T.type==='freinage'){ if(!tr.stopAllume&&tr.temps>=2.5){ tr.stopAllume=true; tr.stopT=0; if(panneauStop){ panneauStop.userData.mat.emissiveIntensity=1.6; panneauStop.userData.lum.intensity=6; } M.son('tic',{ volume:0.3, frequence:1200 }); shell.api.say('STOP ! Freine.','surpris'); }
+      if(tr.stopAllume){ tr.stopT+=dt; if(tr.stopT>6){ shell.api.say("Tu n'as pas freiné : Gwenn freine pour toi. Recommençons le même trajet.",'rassurant'); tr.phase='reglage'; replacerVoiture(); started=false; updateEngineSound(); speed=0; rpm=0; if(panneauStop) panneauStop.userData.mat.emissiveIntensity=0.1; majTrajet(); return; } } }
+    speed=tr.vCur*3.6; rpm=800+speed*45; }
+  else if(tr.phase==='reaction'){ tr.reactT+=dt; const pas=tr.vMs*dt; tr.dReaction+=pas; car.position.x+=pas; tr.temps+=dt; speed=tr.vMs*3.6; rpm=800+speed*45;
+    if(tr.reactT>=1){ car.position.x-=(tr.dReaction-tr.vMs); tr.dReaction=tr.vMs; tr.phase='freine'; tr.dFrein=0; M.son('coup',{ volume:0.4 }); } }
+  else if(tr.phase==='freine'){ tr.vCur=Math.max(0,tr.vCur-DECEL*dt); const pas=tr.vCur*dt; tr.dFrein+=pas; car.position.x+=pas; tr.temps+=dt; speed=tr.vCur*3.6; rpm=800+speed*45;
+    if(tr.vCur<=0){ tr.dFrein=Math.round(tr.vMs*tr.vMs/(2*DECEL)*10)/10; if(panneauStop){ panneauStop.userData.mat.emissiveIntensity=0.1; panneauStop.userData.lum.intensity=0; } finirRoulage(); } }
+  if(tr.phase==='roule'||tr.phase==='reaction'||tr.phase==='freine'){ if(Math.floor(tr.temps*4)!==Math.floor((tr.temps-dt)*4)) majTrajet(true); }
+}
+function finirRoulage(){ const tr=trajet; tr.phase='question'; tr.vCur=0; speed=0; rpm=800; started=false; updateEngineSound(); const sb=document.getElementById('caStart'); if(sb){ sb.classList.remove('on'); sb.textContent='🔑 Démarrer'; }
+  M.son('tic',{ volume:0.25, frequence:900 }); majTrajet();
+  const T=tr.T; shell.api.say(T.question(tr),'concentre');
+  if(monitrice) monitrice.dire(T.type==='freinage'?'Arrêtée. À toi de calculer.':'Chrono arrêté. À toi de calculer.',4);
+}
+function repondre(valeur){ if(!trajet||trajet.phase!=='question') return; const tr=trajet; const T=tr.T;
+  const v=Number(String(valeur).replace(',','.')); if(!isFinite(v)){ shell.api.say('Écris un nombre, par exemple 12,5.','rassurant'); return; }
+  const att=T.attendu(tr); const ok=Math.abs(v-att)<=0.05*att+1e-9; tr.essais++;
+  if(!ok){ M.son('clic',{ volume:0.18, frequence:300 }); shell.api.say((tr.essais>=2?T.aide(tr):'Ce n\'est pas ça. Relis la question : quelle formule, quels nombres ?')+' Réessaie.','rassurant'); return; }
+  tr.phase='fini'; M.son('cloche',{ volume:0.28 }); shell.api.say(T.bravo(tr),'celebration');
+  if(missionTrajets) missionTrajets.valider(T.id, missionTrajets.objectifs.find(o=>o.id===T.id).points);
+  majTrajet();
+  if(monitrice) monitrice.dire(tr.idx<TRAJETS.length-1?'Juste. Trajet suivant.':'Trois trajets justes. Bien joué.',4);
+  setTimeout(()=>{ if(trajet&&trajet.phase==='fini'&&trajet.idx<TRAJETS.length-1) commencerTrajet(trajet.idx+1); },1800);
+}
+function majTrajet(leger){ let el=document.getElementById('caTrajet');
+  if(!trajet||!missionTrajets||missionTrajets.estFinie()){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.className='ca-panel ca-trajet'; el.id='caTrajet'; el.setAttribute('role','group'); el.setAttribute('aria-label','Trajet en cours'); shell.api.stage.appendChild(el); }
+  const tr=trajet, T=tr.T;
+  const mes=`<div class="mes"><span>Temps <b data-tps>${fmt1(tr.temps)} s</b></span><span>Distance <b data-dist>${T.type==='temps'&&tr.phase!=='fini'?'?':fmt1(tr.phase==='freine'||tr.phase==='reaction'||(tr.phase!=='roule'&&T.type==='freinage'&&tr.dReaction)?tr.dist+tr.dReaction+tr.dFrein:tr.dist)+' m'}</b></span><span>Vitesse <b data-vit>${Math.round(tr.vCur*3.6)} km/h</b></span></div>`;
+  if(leger&&el.dataset.phase===tr.phase){ const t=el.querySelector('[data-tps]'); if(t) t.textContent=fmt1(tr.temps)+' s'; const d=el.querySelector('[data-dist]'); if(d&&T.type!=='temps') d.textContent=fmt1(tr.dist+tr.dReaction+tr.dFrein)+' m'; const vv=el.querySelector('[data-vit]'); if(vv) vv.textContent=Math.round(tr.vCur*3.6)+' km/h'; return; }
+  el.dataset.phase=tr.phase;
+  const tete=`<div class="t"><span>${T.nom} · ${tr.idx+1}/${TRAJETS.length}</span><span>${{reglage:'Réglage',roule:'En route',reaction:'Réaction (1 s)',freine:'Freinage',question:'Calcul',fini:'Validé'}[tr.phase]}</span></div>`;
+  if(tr.phase==='reglage'){
+    const reglage=T.vFixe?`<div class="c">Vitesse fixée : <b>${T.vFixe} km/h</b> = ${fmt1(T.vFixe/3.6)} m/s.</div>`:`<div class="row"><label>Vitesse : <b id="caTrV">${tr.vKmh} km/h = ${fmt1(tr.vKmh/3.6)} m/s</b><input id="caTrSl" type="range" min="${T.vMin}" max="${T.vMax}" step="${T.pas}" value="${tr.vKmh}" aria-label="Vitesse en kilomètres par heure"></label></div>`;
+    el.innerHTML=`${tete}<div class="c">${T.consigne}</div>${reglage}<div class="row actions"><button class="ca-b primary" id="caTrGo">🏁 Partir</button></div>`;
+    const sl=el.querySelector('#caTrSl'); if(sl) sl.oninput=e=>{ tr.vKmh=+e.target.value; el.querySelector('#caTrV').textContent=tr.vKmh+' km/h = '+fmt1(tr.vKmh/3.6)+' m/s'; M.son('clic',{ volume:0.1, frequence:500+tr.vKmh*4 }); };
+    el.querySelector('#caTrGo').onclick=()=>{ shell.sound('click'); partir(); };
+  } else if(tr.phase==='roule'||tr.phase==='reaction'||tr.phase==='freine'){
+    const frein=T.type==='freinage'&&tr.phase==='roule'?`<div class="row"><button class="ca-b primary" id="caTrFrein">🛑 Freiner</button><span class="c">${tr.stopAllume?'Le panneau STOP est allumé : freine !':'Attends le panneau STOP.'}</span></div>`:'';
+    el.innerHTML=`${tete}${mes}${frein}`;
+    const bf=el.querySelector('#caTrFrein'); if(bf) bf.onclick=freiner;
+  } else if(tr.phase==='question'){
+    const bilan=T.type==='freinage'?`<div class="c">Pendant la réaction : <b>${fmt1(tr.dReaction)} m</b> · Freinage : <b>${fmt1(tr.dFrein)} m</b> · Arrêt total : <b>${fmt1(tr.dReaction+tr.dFrein)} m</b>. La distance de freinage grandit beaucoup plus vite que la vitesse : à 25 m/s il faut presque 3 fois plus de mètres qu'à 15 m/s.</div>`:'';
+    el.innerHTML=`${tete}${mes}${bilan}<div class="c"><b>${T.question(tr)}</b></div><div class="row actions"><input id="caTrRep" type="number" step="0.1" inputmode="decimal" aria-label="Ta réponse" placeholder="?"><span class="c">${T.unite}</span><button class="ca-b primary" id="caTrOk">Valider</button></div>`;
+    const inp=el.querySelector('#caTrRep'); el.querySelector('#caTrOk').onclick=()=>repondre(inp.value); inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); repondre(inp.value); } }; setTimeout(()=>{ try{ inp.focus(); }catch(e){} },50);
+  } else { el.innerHTML=`${tete}${mes}<div class="c ok">✓ Réponse juste : ${fmt1(T.attendu(tr))} ${T.unite}.</div>`; }
+}
+function finMission(reussie, secondes, score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  const b=document.getElementById('caMission'); if(b) b.setAttribute('aria-pressed','false');
+  trajet=null; majTrajet(); if(panneauStop) panneauStop.visible=false; shell.api.stage.classList.remove('ca-en-mission');
+  const dv=document.getElementById('caDrive'); if(dv&&modeJeu!=='cours') dv.style.display=''; const h=document.getElementById('caHint'); if(h&&modeJeu!=='cours') h.style.display=''; const q=document.getElementById('caQuiz'); if(q) q.style.display='';
+  if(!reussie){ shell.api.say("La mission s'arrête là. On pourra la reprendre.",'rassurant'); setTimeout(()=>{ if(missionTrajets) missionTrajets.cacher(); },4000); missionLancee=false; return; }
+  M.son('cloche',{ volume:0.25 }); if(monitrice) monitrice.dire('Trois trajets en '+duree+'. Tu sais lire une vitesse.',6);
+  if(modeJeu!=='cours'){ shell.api.win({ score, stars:t>300?2:3, title:'Trois trajets chronométrés en '+duree, learned:shell.cfg.learned.concat(["La vitesse se calcule avec v = d ÷ t ; la distance avec d = v × t. 1 m/s = 3,6 km/h.","Avant de freiner, la voiture roule pendant le temps de réaction ; la distance de freinage grandit bien plus vite que la vitesse."]), buddy:"Une vitesse mesurée, une distance calculée, un freinage compris. C'est exactement la physique du mouvement." }); }
+  else { shell.api.say('Mission réussie en '+duree+' : '+score+' points de plus. Le quiz continue.','fier'); if(shell.api.celebrate) shell.api.celebrate(); setTimeout(()=>{ if(missionTrajets) missionTrajets.cacher(); },9000); }
+}
+/* ---------- marche autour de la voiture (F223) ---------- */
+function assurerMarche(){ if(marche||!M) return marche;
+  marche=M.marcher({ depart:[4,0,5.5], hauteur:1.65, vitesse:3, sol:0, limites:{ xmin:-16, xmax:230, zmin:-14, zmax:14 },
+    collision:(x,z)=> (Math.abs(x-car.position.x)<2.95&&Math.abs(z)<1.5) || (monitrice&&Math.hypot(x-monitrice.position().x,z-monitrice.position().z)<0.6),
+    aide:'Flèches ou ZQSD pour marcher autour de la voiture, glisse pour regarder. Échap : vue libre.',
+    surPas:()=>{ const n=performance.now(); if(n-dernierPas>420){ dernierPas=n; M.son('pas',{ volume:0.16 }); } },
+    surChangement:(on)=>{ const b=document.getElementById('caMarche'); if(b) b.setAttribute('aria-pressed', String(on)); if(on){ flying=false; focusPoint=null; shell.api.say("Tu marches sur la piste. Fais le tour de la voiture, approche-toi de Gwenn ; Échap pour revenir à la vue libre.",'concentre'); } } });
+  return marche;
+}
+/* ---------- ambiance : vent du soir et souffle moteur qui suit la vitesse (F225) ---------- */
+function demarrerAmbiance(){ if(!M||ambVent) return; try{ ambVent=M.ambiance({ fichier:'../assets/3d/audio/vent-parc.mp3', type:'vent', volume:0.07 }); ambMoteur=M.ambiance({ type:'machine', volume:0 }); }catch(e){ ambVent=null; ambMoteur=null; } }
+window.__monde={ lancerMission, partir, freiner, repondre, vitesse:(kmh)=>{ if(trajet) trajet.vKmh=kmh; majTrajet(); }, etat:()=>trajet, mission:()=>missionTrajets, accelerer:(k)=>{ accelTest=k||1; } };
+
 /* ============ SON MOTEUR ============ */
 function startEngineSound(){ if(ac||shell.api.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); engGain=ac.createGain(); engGain.gain.value=0; engGain.connect(ac.destination); engOsc=ac.createOscillator(); engOsc.type=mode==='electrique'?'sine':'sawtooth'; engOsc.frequency.value=60; engLp=ac.createBiquadFilter(); engLp.type='lowpass'; engLp.frequency.value=700; engOsc.connect(engLp); engLp.connect(engGain); engOsc.start(); }catch(e){} }
 function updateEngineSound(){ if(!ac||!engOsc)return; engGain.gain.setTargetAtTime(started&&!shell.api.muted?(mode==='electrique'?0.05:0.13):0,ac.currentTime,.1); engOsc.type=mode==='electrique'?'sine':'sawtooth'; engOsc.frequency.setTargetAtTime(mode==='electrique'?180+speed*5:Math.max(45,rpm/38),ac.currentTime,.08); }
@@ -761,6 +963,13 @@ function animate(){ requestAnimationFrame(animate); const raw=clock.getDelta(); 
   // régime / vitesse
   const targetRpm=started?(mode==='electrique'?600+throttle*8000:800+throttle*5500):0; rpm+=(targetRpm-rpm)*Math.min(1,dt*3);
   const ts=started?(mode==='electrique'?throttle*140:Math.max(0,(rpm-800))/5500*(22+gear*13)):0; speed+=(ts-speed)*Math.min(1,dt*1.4); if(!started&&speed<0.15)speed=Math.max(0,speed-dt*12);
+  if(trajet) tickTrajet(dt*accelTest);
+  // F228 : la voiture avance sur la piste ; la caméra, la lumière et l'ombre de contact la suivent
+  if(!(marche&&marche.estActif())){ const dx=car.position.x-suiviCam; if(Math.abs(dx)>1e-5){ camera.position.x+=dx; controls.target.x+=dx; } } suiviCam=car.position.x;
+  if(keyLight){ keyLight.position.set(car.position.x-14,7,9); keyLight.target.position.set(car.position.x,0,0); }
+  if(contactShadow) contactShadow.position.x=car.position.x;
+  if(ambMoteur){ sonMoteurT+=dt; if(sonMoteurT>0.3){ sonMoteurT=0; ambMoteur.volume(started?0.015+Math.min(1,speed/120)*0.12:0); } }
+  boucles.forEach(f=>{ try{ f(dt,clock.elapsedTime); }catch(e){ /* rien */ } });
   const rpmEl=document.getElementById('caRpm'); if(rpmEl){ rpmEl.textContent=Math.round(rpm); document.getElementById('caSpeed').textContent=Math.round(speed); }
 
   // vue éclatée / coupe (transition en temps réel, robuste à tout framerate)
@@ -777,7 +986,7 @@ function animate(){ requestAnimationFrame(animate); const raw=clock.getDelta(); 
   doorPivots.forEach(p=>{ p.rotation.y=approach(p.rotation.y, doorsOpen?p.userData.sgn*0.8:0, 3); });
 
   // direction (léger balayage auto en marche)
-  const steer=started&&!REDUCED?Math.sin(clock.elapsedTime*0.6)*0.18*Math.min(1,speed/40):0; steerWheels.forEach(p=>p.rotation.y+=((steer)-p.rotation.y)*0.1);
+  const steer=started&&!REDUCED&&!trajet?Math.sin(clock.elapsedTime*0.6)*0.18*Math.min(1,speed/40):0; steerWheels.forEach(p=>p.rotation.y+=((steer)-p.rotation.y)*0.1);
 
   // rotation des roues
   const wspin=(speed/3.6)/WR*dt; wheelSpin.forEach(s=>s.rotation.z-=wspin);

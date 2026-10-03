@@ -76,6 +76,20 @@
   .av-qo:hover{ background:rgba(255,255,255,.3); }
   .av-stall{ position:absolute; top:70px; left:50%; transform:translateX(-50%); z-index:26; background:var(--brand-red); color:#fff; padding:9px 18px; border-radius:999px; font-weight:800; font-size:14px; display:none; letter-spacing:.04em; box-shadow:0 8px 24px rgba(230,51,41,.5); }
   @media (max-width:720px){ .av-left{ width:164px; padding:10px; gap:9px; } .av-fiche{ width:min(290px,86vw); } .av-gauges{ padding:9px 11px; gap:10px; } .av-g .v{ font-size:17px; } .av-drive{ gap:7px; padding:9px 11px; } .av-cockpit{ display:none !important; } }
+  /* F228 : mission « Décollage réussi » : panneau de décollage en bas à gauche, zone de mission sous les jauges */
+  .av-decol{ left:14px; bottom:16px; width:262px; padding:11px 13px; display:flex; flex-direction:column; gap:7px; z-index:25; }
+  .av-decol .t{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); display:flex; justify-content:space-between; gap:8px; }
+  .av-decol .c{ font-size:12.5px; line-height:1.45; }
+  .av-decol .mes{ display:flex; gap:12px; flex-wrap:wrap; font-family:var(--font-data); font-size:12px; color:var(--fg-muted); } .av-decol .mes b{ font-size:15px; color:var(--accent-text); }
+  .av-decol .jg{ height:7px; border-radius:5px; background:var(--surface-2); overflow:hidden; } .av-decol .jg i{ display:block; height:100%; background:var(--brand-teal); transition:width .2s; }
+  .av-decol .row{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .av-decol .sl{ display:flex; flex-direction:column; gap:2px; flex:1; min-width:110px; font-size:11px; color:var(--fg-muted); } .av-decol .sl input{ width:100%; accent-color:var(--accent); min-height:30px; } .av-decol .sl b{ color:var(--accent-text); font-family:var(--font-data); }
+  .av-decol .qo{ font-family:var(--font-body); font-weight:700; font-size:12px; min-height:40px; padding:5px 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; text-align:left; flex:1 1 100%; }
+  .av-decol .ok{ color:var(--brand-teal); font-weight:700; }
+  .av-decol .row.actions{ justify-content:flex-end; }
+  .av-en-mission .av-left{ max-height:calc(100% - 290px); }
+  .mb-mission.av-mz{ top:84px; }
+  @media (max-width:720px){ .av-decol{ left:10px; bottom:12px; width:min(290px,calc(100vw - 20px)); padding:9px 10px; max-height:46%; overflow:auto; } .av-en-mission .av-left, .av-en-mission .av-drive, .av-en-mission .av-hint{ display:none; } .mb-mission.av-mz{ top:74px; max-height:30%; } }
 </style>
 </head>
 <body>
@@ -89,6 +103,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, ciel, textureTexte } from '../monde-base.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============ ÉTAT ============ */
@@ -110,6 +125,10 @@ let stalled=false, hovered=null, focusPoint=null, flying=false;
 let phaseAnim=false, phaseIdx=0, phaseT=0, autoCycle=false, autoTimer=0;
 let ac=null, jetGain=null, jetOsc=null, jetLp=null, windGain=null;
 let course=null, actArmed=true;
+/* F228 : outils communs (mission, marche, personnages, ambiance), voir monde-base.js */
+const boucles=[]; let accelTest=1; let M=null, modeJeu='detente', marche=null, pilote=null, mecano=null, missionDecol=null, missionLancee=false, decollage=null, ambVent=null, ambReacteurs=null, sonReacT=0, dernierPas=0, keyLight=null, contactShadow=null, suiviCam=0, feuxPiste=[], finPiste=null;
+const METRE=116/2000; // 2 000 m de piste = 116 unités de scène
+const DEPART_X=-56, FIN_X=60;
 
 const DEFL=0.55; // déflexion max des gouvernes (rad)
 const WEIGHT=100;
@@ -195,8 +214,8 @@ const shell=window.Konstrio.createGame({
   },
   learned:["Les 4 forces du vol : portance, poids, poussée, traînée.","La portance vient de la déviation de l'air et de la dépression sur l'extrados.","Les 3 axes : roulis (ailerons), tangage (profondeur), lacet (direction).","Volets & becs = portance à basse vitesse ; trop d'incidence = décrochage."],
   onReady:(api)=>init(api),
-  onStart:(m,api)=>{ if(m==='cours'){ api.setScore(0); startCourse(); } else { setDetente(); } },
-  onRestart:(api)=>{ if(shell.api && shell.api.mode==='cours'){ api.setScore(0); startCourse(); } else setDetente(); },
+  onStart:(m,api)=>{ modeJeu=m; demarrerAmbiance(); if(m==='cours'){ api.setScore(0); startCourse(); } else { setDetente(); setTimeout(()=>{ if(modeJeu!=='cours'&&!missionLancee) lancerMission(); },6500); } },
+  onRestart:(api)=>{ if(modeJeu==='cours'){ api.setScore(0); startCourse(); } else setDetente(); },
   onTheme:()=>applyTheme(),
   onHint:(api)=>api.hint(shell.cfg.intro.hint),
   onWhy:(api)=>api.say(shell.cfg.intro.why,'idee'),
@@ -248,13 +267,13 @@ function makeRunwayMarks(){ const w=128,h=1024,c=document.createElement('canvas'
 function init(api){
   shell.api=api; const stage=api.stage; clock=new THREE.Clock();
   scene=new THREE.Scene(); window.Konstrio.declarer3d({ scene: scene }); scene.fog=new THREE.Fog(0x9fc4e0,55,150);
-  camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight,.1,600); camera.position.set(9.5,4.2,11);
+  camera=new THREE.PerspectiveCamera(48, stage.clientWidth/stage.clientHeight,.1,1200); camera.position.set(9.5,4.2,11);
   renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); window.Konstrio.adapterRendu(renderer);
   renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.0;
   renderer.shadowMap.enabled=!REDUCED; renderer.shadowMap.type=THREE.PCFSoftShadowMap; stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
   // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y échoue → chaîne robuste (jamais noir)
-  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  let software=false; try{ software=renduLogiciel(renderer); }catch(e){ try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e2){} }
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
   if(software || REDUCED){
@@ -276,19 +295,25 @@ function init(api){
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bp, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.minDistance=6; controls.maxDistance=34; controls.target.set(0,0.4,0); controls.maxPolarAngle=Math.PI/1.9;
   controls.autoRotate=REDUCED; controls.autoRotateSpeed=.3;
+  // F228 : outils communs branchés sur la boucle de ce monde
+  try{ M=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f) }); }catch(e){ M=null; }
 
-  scene.add(new THREE.HemisphereLight(0xdfeeff,0x33405a,0.9));
-  const key=new THREE.DirectionalLight(0xfff4e0,1.35); key.position.set(9,14,7);
-  if(!REDUCED){ key.castShadow=true; key.shadow.mapSize.set(2048,2048); key.shadow.camera.near=1; key.shadow.camera.far=60; key.shadow.camera.left=-12; key.shadow.camera.right=12; key.shadow.camera.top=12; key.shadow.camera.bottom=-12; key.shadow.bias=-0.0004; }
-  scene.add(key);
-  const fill=new THREE.DirectionalLight(0xbcd0ff,0.4); fill.position.set(-8,6,-7); scene.add(fill);
+  // ciel de soirée : soleil bas et chaud, contre-jour bleu, dôme orangé, brume chaude
+  scene.add(new THREE.HemisphereLight(0xffd9b4,0x3a3448,0.55));
+  const key=new THREE.DirectionalLight(0xffc38e,1.55); key.position.set(-11,6,9); keyLight=key;
+  if(!REDUCED){ key.castShadow=true; key.shadow.mapSize.set(software?1024:2048,software?1024:2048); key.shadow.camera.near=1; key.shadow.camera.far=60; key.shadow.camera.left=-12; key.shadow.camera.right=12; key.shadow.camera.top=12; key.shadow.camera.bottom=-12; key.shadow.bias=-0.0004; }
+  scene.add(key); scene.add(key.target);
+  const fill=new THREE.DirectionalLight(0x8fb4ff,0.45); fill.position.set(9,7,-8); scene.add(fill);
+  scene.fog=new THREE.Fog(0xe6bc9c,60,420);
+  ciel(scene, { haut:0x2f4f8e, horizon:0xffb27c, bas:0x5a4e4a, soleil:[-0.7,0.17,0.55], rayon:900 });
 
   const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
-  new RGBELoader().load('../assets/3d/env/sky_day_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; scene.background=hdr; scene.backgroundBlurriness=0.35; }, undefined, ()=>{ scene.add(makeSky()); });
+  // HDRI de ciel (Poly Haven CC0) pour les reflets du fuselage ; le fond reste le dôme de soirée
+  new RGBELoader().load('../assets/3d/env/sky_day_1k.hdr', hdr=>{ hdr.mapping=THREE.EquirectangularReflectionMapping; scene.environment=pmrem.fromEquirectangular(hdr).texture; scene.environmentIntensity=0.7; hdr.dispose(); }, undefined, ()=>{});
 
-  buildTarmac();
+  buildTarmac(); buildPiste();
   buildClouds();
-  buildPlane(); buildForces(); buildFlow();
+  buildPlane(); buildForces(); buildFlow(); buildEquipage();
   raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
   buildUI(); applyTheme(); applyPhaseConfig(PHASES[0],true);
   renderer.domElement.addEventListener('pointermove',onMove);
@@ -313,7 +338,34 @@ function buildTarmac(){
   marks.rotation.x=-Math.PI/2; marks.rotation.z=Math.PI/2; marks.position.set(0,FLOOR_Y+0.012,0); marks.receiveShadow=false; scene.add(marks);
   // ombre de contact douce sous l'avion (occlusion lisible même en rendu logiciel)
   const cs=new THREE.Mesh(new THREE.PlaneGeometry(9.5,7.5), new THREE.MeshBasicMaterial({map:makeContactShadow(),transparent:true,depthWrite:false,opacity:0.85}));
-  cs.rotation.x=-Math.PI/2; cs.position.set(0,FLOOR_Y+0.02,0); scene.add(cs);
+  cs.rotation.x=-Math.PI/2; cs.position.set(0,FLOOR_Y+0.02,0); scene.add(cs); contactShadow=cs;
+}
+/* F228 : la piste balisée : feux de bord, panneaux de distance, barre de fin de piste */
+function buildPiste(){
+  const feuMat=new THREE.MeshStandardMaterial({ color:0xfff4d0, emissive:0xffe9a8, emissiveIntensity:1.8, roughness:0.4 });
+  const geo=new THREE.SphereGeometry(0.09,8,6);
+  for(let x=-58; x<=60; x+=4){ [4.7,-4.7].forEach(z=>{ const f=new THREE.Mesh(geo,feuMat); f.position.set(x,FLOOR_Y+0.1,z); scene.add(f); feuxPiste.push(f); }); }
+  const poteau=new THREE.MeshStandardMaterial({ color:0x4a515e, metalness:0.6, roughness:0.5 });
+  for(let d=0; d<=2000; d+=500){ const x=DEPART_X+d*METRE; const p=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.0,0.08),poteau); p.position.set(x,FLOOR_Y+0.5,-6.2); scene.add(p);
+    const tex=textureTexte(d+' m',{ taille:30, fond:'rgba(20,30,40,0.86)' }); const sp=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false })); sp.scale.set(0.9*tex.userData.ratio,0.9,1); sp.position.set(x,FLOOR_Y+1.6,-6.2); sp.raycast=()=>{}; scene.add(sp); }
+  finPiste=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.05,9.4), new THREE.MeshStandardMaterial({ color:0xd8352a, emissive:0xff2a1a, emissiveIntensity:0.5, roughness:0.6 })); finPiste.position.set(FIN_X,FLOOR_Y+0.03,0); scene.add(finPiste);
+  finPiste.userData.legende={ nom:'Fin de piste', phrase:'2 000 m après le seuil : il faut avoir décollé avant.' };
+}
+/* F228 : la pilote et le mécanicien au sol, à l'échelle de la maquette */
+function buildEquipage(){ if(!M) return;
+  pilote=M.personnage({ nom:'Enora, pilote', phrase:"Elle fait le tour de l'avion avant le vol et règle la poussée, l'incidence et les volets.", position:[3.6,FLOOR_Y,1.5], taille:0.42, peau:0xe2b899, haut:0x1f2a44, bas:0x1f2a44, cheveux:0x2b1a10, vitesse:0.35, graine:2 });
+  const u=0.42/1.7;
+  { const g=pilote.groupe; const casq=new THREE.Mesh(new THREE.SphereGeometry(0.13*u,20,14,0,Math.PI*2,0,Math.PI*0.5), new THREE.MeshStandardMaterial({ color:0x1f2a44, roughness:0.8 })); casq.position.y=1.62*u; g.add(casq);
+    const visiere=new THREE.Mesh(new THREE.CylinderGeometry(0.15*u,0.15*u,0.02*u,20,1,false,-Math.PI*0.45,Math.PI*0.9), new THREE.MeshStandardMaterial({ color:0x1f2a44, roughness:0.8 })); visiere.position.set(0,1.63*u,0.03*u); g.add(visiere);
+    [[-0.06],[0.06]].forEach(([x])=>{ const galon=new THREE.Mesh(new THREE.BoxGeometry(0.06*u,0.012*u,0.01*u), new THREE.MeshStandardMaterial({ color:0xe8c460, metalness:0.6, roughness:0.4 })); galon.position.set(x*u,1.34*u,0.17*u); g.add(galon); }); }
+  mecano=M.personnage({ nom:'Loïc, mécanicien au sol', phrase:"Il guide l'avion avec ses raquettes et vérifie le train et les volets.", position:[1.4,FLOOR_Y,-2.9], taille:0.42, peau:0xd9a27e, haut:0xff7a1a, bas:0x2b2f3a, cheveux:0x4a2e1a, vitesse:0.35, graine:7 });
+  { const g=mecano.groupe; const giletMat=new THREE.MeshStandardMaterial({ color:0xff8a1a, roughness:0.9, emissive:0x5a2a00, emissiveIntensity:0.3, side:THREE.DoubleSide });
+    const gilet=new THREE.Mesh(new THREE.CylinderGeometry(0.19*u,0.21*u,0.36*u,16,1,true), giletMat); gilet.position.y=1.13*u; g.add(gilet);
+    const bandeMat=new THREE.MeshStandardMaterial({ color:0xe8e8e8, emissive:0xcfcfcf, emissiveIntensity:0.5 }); [1.04,1.2].forEach(y=>{ const b=new THREE.Mesh(new THREE.TorusGeometry(0.205*u,0.012*u,6,20), bandeMat); b.rotation.x=Math.PI/2; b.position.y=y*u; g.add(b); });
+    const casqueMat=new THREE.MeshStandardMaterial({ color:0xf5c518, roughness:0.4 }); const casque=new THREE.Mesh(new THREE.SphereGeometry(0.14*u,18,12,0,Math.PI*2,0,Math.PI*0.52), casqueMat); casque.position.y=1.61*u; g.add(casque);
+    ['brasG','brasD'].forEach(n=>{ const raq=new THREE.Group(); const manche=new THREE.Mesh(new THREE.CylinderGeometry(0.012*u,0.012*u,0.2*u,8), new THREE.MeshStandardMaterial({ color:0x333 })); raq.add(manche); const tete=new THREE.Mesh(new THREE.CylinderGeometry(0.06*u,0.06*u,0.015*u,16), new THREE.MeshStandardMaterial({ color:0xff5a1a, emissive:0xff3a0a, emissiveIntensity:0.9 })); tete.rotation.x=Math.PI/2; tete.position.y=0.15*u; raq.add(tete); raq.position.set(0,-0.6*u,0.05*u); raq.rotation.x=Math.PI/2.2; mecano.membres[n].add(raq); });
+    mecano.membres.brasG.rotation.z=1.2; mecano.membres.brasD.rotation.z=-1.2; }
+  pilote.regarder([0,0,0]); mecano.regarder([0.55,0,-2]);
 }
 function cloudTex(){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const g=x.createRadialGradient(64,64,4,64,64,64); g.addColorStop(0,'rgba(255,255,255,.9)'); g.addColorStop(.5,'rgba(255,255,255,.4)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
 
@@ -515,8 +567,14 @@ function buildUI(){
     <div class="av-grid two">
       <button class="av-t" id="avNot">📚 Notions</button>
       <button class="av-t" id="avFit">↺ Vue</button>
+    </div>
+    <div class="av-grid two">
+      <button class="av-t" id="avMission" aria-pressed="false" style="background:linear-gradient(135deg,#5A6275,#2a3140);border-color:transparent;color:#fff">🛫 Mission</button>
+      <button class="av-t" id="avMarche" aria-pressed="false">🚶 Marcher</button>
     </div>`;
   stage.appendChild(left);
+  left.querySelector('#avMission').onclick=()=>{ shell.sound('click'); lancerMission(); };
+  left.querySelector('#avMarche').onclick=()=>{ if(!marche) assurerMarche(); if(marche){ marche.bascule(); shell.sound('click'); } };
   left.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
   const bind=(id,vid,setter)=>{ left.querySelector('#'+id).oninput=e=>{ const v=+e.target.value; document.getElementById(vid).textContent=(v>0?'+':'')+v; setter(v/100); leaveAuto(); }; };
   bind('avAil','avAilV',v=>aileronIn=v); bind('avElev','avElevV',v=>elevIn=v); bind('avRud','avRudV',v=>rudderIn=v);
@@ -660,6 +718,107 @@ function winCourse(){ const q=document.getElementById('avQuiz'); if(q)q.remove()
   course=null; const dv=document.getElementById('avDrive'); if(dv)dv.style.display='';
 }
 
+/* ============================================================
+   F228 : MISSION « DÉCOLLAGE RÉUSSI » (poussée, incidence, volets, portance contre poids)
+   ============================================================ */
+const QUESTIONS_DECOL=[
+  { id:'q1', q:"Regarde les quatre flèches pendant la course. Laquelle grandit avec la vitesse et finit par dépasser le poids ?", opts:['La portance (vers le haut)','La traînée (vers l\'arrière)','La poussée (vers l\'avant)'], ok:0, expl:"La portance grandit avec le carré de la vitesse : quand elle dépasse le poids, l'avion quitte la piste.", indice:"C'est la flèche bleue, vers le haut, opposée au poids." },
+  { id:'q2', q:"Pourquoi sortir les volets pour décoller ?", opts:['Ils augmentent la portance à basse vitesse : l\'avion décolle plus tôt.','Ils réduisent le poids de l\'avion.','Ils font tourner l\'avion sur la piste.'], ok:0, expl:"Volets sortis, l'aile est plus courbée et plus grande : plus de portance à basse vitesse, donc moins de piste.", indice:"Compare la vitesse de décollage avec et sans volets : les volets agissent sur la portance." },
+];
+function assurerMission(){ if(missionDecol||!M) return missionDecol;
+  missionDecol=M.mission({ titre:'Décollage réussi', cachee:true, chrono:true, chronoCible:240, gagner:false, annonce:false, surFin:finMission, objectifs:[
+    { id:'config', texte:'1. Volets et train sortis', points:60 },
+    { id:'gaz', texte:'2. Pleine poussée', points:60 },
+    { id:'decoller', texte:'3. Décoller avant la fin de piste', points:160 },
+    { id:'q1', texte:'4. Lire les forces', points:100 },
+    { id:'q2', texte:'5. Expliquer les volets', points:100 } ] });
+  missionDecol.zone.classList.add('av-mz'); missionDecol.zone.setAttribute('aria-label','Mission : décollage réussi');
+  return missionDecol;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  const b=document.getElementById('avMission'); if(b) b.setAttribute('aria-pressed','true');
+  if(missionLancee&&!missionDecol.estFinie()){ missionDecol.montrer(); majDecol(); return; }
+  missionLancee=true; missionDecol.montrer(); missionDecol.commencer(); shell.api.stage.classList.add('av-en-mission');
+  leaveAuto(); view='ext'; explodeTarget=0; cutTarget=0; document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.view==='ext'));
+  flaps=false; slats=false; gearDown=true; syncConfigButtons(); throttle=0.06; const thr=document.getElementById('avThr'); if(thr) thr.value=6; elevIn=0; const el=document.getElementById('avElev'); if(el){ el.value=0; document.getElementById('avElevV').textContent='0'; }
+  showForces=true; const bf=document.getElementById('avForces'); if(bf) bf.setAttribute('aria-pressed','true');
+  decollage={ phase:'prepa', v:0, dist:0, essais:0, qIdx:0, erreurs:0, tenteesSansVolets:0 };
+  placerAuSeuil(); flying=false; focusPoint=null;
+  const q=document.getElementById('avQuiz'); if(q) q.style.display='none'; const h=document.getElementById('avHint'); if(h) h.style.display='none'; const f=document.getElementById('avFiche'); if(f) f.classList.remove('show');
+  majDecol(); if(M) M.son('coup',{ volume:0.2 });
+  shell.api.say("Mission : décollage réussi. Sors les volets et vérifie le train, pousse les gaz à fond, puis cabre un peu (incidence) : la portance doit dépasser le poids avant la fin des 2 000 m de piste. Le chrono tourne.",'enthousiaste');
+  // l'équipage rejoint le seuil de piste, à côté de l'avion
+  if(pilote){ pilote.groupe.position.set(DEPART_X+4.2,FLOOR_Y,1.9); pilote.regarder([DEPART_X,0,0]); pilote.allerA([DEPART_X+3.4,FLOOR_Y,1.4]); setTimeout(()=>{ if(decollage) pilote.dire('Volets sortis, train sorti : ensuite plein gaz.',5); },2500); }
+  if(mecano){ mecano.groupe.position.set(DEPART_X+1.4,FLOOR_Y,-2.9); mecano.regarder([DEPART_X+0.55,0,-2]); mecano.dire('Je vérifie le train. Tu peux y aller.',4); }
+}
+function placerAuSeuil(){ plane.position.x=DEPART_X; suiviCam=DEPART_X; if(contactShadow) contactShadow.position.x=DEPART_X; alt=0; vs=0; speed=0; lift=0;
+  if(!(marche&&marche.estActif())){ camera.position.set(DEPART_X+9.5,3.6,10.5); controls.target.set(DEPART_X+0.5,0.4,0); } }
+function partir(){ if(!decollage||decollage.phase!=='prepa') return; if(!(flaps&&gearDown)){ shell.api.say("Avant de partir : sors les volets et garde le train sorti.",'rassurant'); if(M) M.son('clic',{ volume:0.18, frequence:300 }); return; }
+  decollage.phase='roulage'; decollage.v=0; decollage.dist=0; missionDecol.valider('config',60); if(M) M.son('tic',{ volume:0.2, frequence:900 }); majDecol();
+  shell.api.say("Course au décollage. Pousse les gaz à fond, puis tire sur la profondeur (incidence) vers 8 à 10° quand la vitesse monte.",'concentre'); }
+function tickDecollage(dt){ const D=decollage; if(!D) return;
+  if(D.phase==='prepa'){ speed=0; return; }
+  if(D.phase==='roulage'||D.phase==='envol'){
+    if(D.phase==='roulage'){ D.v=Math.max(0, D.v+(throttle*1.9-0.0003*D.v*D.v)*dt); D.dist+=D.v*dt; plane.position.x=DEPART_X+D.dist*METRE; speed=D.v*3.6;
+      if(throttle>=0.95&&!missionDecol.objectifs.find(o=>o.id==='gaz').fait){ missionDecol.valider('gaz',60); if(M) M.son('tic',{ volume:0.2, frequence:1100 }); if(pilote) pilote.dire('Pleine poussée. Surveille la portance.',4); }
+      if(lift>WEIGHT&&D.v>20){ D.phase='envol'; D.vDecol=D.v; D.distDecol=D.dist; if(M) M.son('cloche',{ volume:0.3 }); shell.sound('good'); shell.api.say('Portance supérieure au poids : rotation, l\'avion quitte la piste à '+Math.round(D.v*3.6)+' km/h après '+Math.round(D.dist)+' m.','celebration'); if(mecano) mecano.dire('Décollé.',3); }
+      else if(D.dist>=2000){ D.phase='prepa'; D.essais++; plane.position.x=DEPART_X; D.v=0; D.dist=0; speed=0; placerAuSeuil(); if(M) M.son('coup',{ volume:0.35 });
+        const sansVolets=!flaps; shell.api.say(sansVolets?"Fin de piste sans décoller : à cette incidence et sans volets, la portance reste sous le poids. Sors les volets et cabre un peu, puis repars du seuil.":"Fin de piste sans décoller : il manquait de portance. Augmente l'incidence (vers 8 à 10°) avec les gaz à fond, puis repars du seuil.",'rassurant'); if(pilote) pilote.dire(sansVolets?'Sans volets, la piste est trop courte.':'Cabre davantage, et plein gaz.',5); }
+    } else { D.v=Math.max(D.v, D.v+(throttle*1.2)*dt); D.dist+=D.v*dt; plane.position.x=DEPART_X+D.dist*METRE; speed=D.v*3.6; if(accelTest>1) alt=Math.min(12500, alt+Math.max(0,lift-WEIGHT)*dt*1.4);
+      if(alt>=60){ D.phase='questions'; missionDecol.valider('decoller',160); shell.api.say('Soixante mètres d\'altitude : décollage réussi. Deux questions pour finir.','fier'); if(pilote) pilote.dire('Train rentré bientôt. Réponds aux deux questions.',5); } }
+  }
+  if(D.phase==='questions'||D.phase==='fini'){ speed=approach2(speed, 300, dt); alt=Math.min(alt+dt*6, 400); }
+  if(Math.floor(D.dist/25)!==Math.floor((D.dist-D.v*dt)/25)||D.phase!=='roulage') majDecol(true);
+}
+function approach2(cur,tgt,dt){ return cur+(tgt-cur)*Math.min(1,dt*0.8); }
+function repondreDecol(i){ const D=decollage; if(!D||D.phase!=='questions') return; const Q=QUESTIONS_DECOL[D.qIdx]; if(!Q) return;
+  if(i!==Q.ok){ D.erreurs++; if(M) M.son('clic',{ volume:0.18, frequence:300 }); shell.api.say((D.erreurs>=2?'Indice : '+Q.indice:'Ce n\'est pas ça. Regarde les flèches et relis la question.')+' Réessaie.','rassurant'); return; }
+  if(M) M.son('cloche',{ volume:0.24 }); shell.api.say('Exact. '+Q.expl,'celebration'); missionDecol.valider(Q.id,100); if(!decollage) return; D.qIdx++; D.erreurs=0; if(D.qIdx>=QUESTIONS_DECOL.length) D.phase='fini'; majDecol(); }
+function majDecol(leger){ let el=document.getElementById('avDecol');
+  if(!decollage||!missionDecol||missionDecol.estFinie()){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.className='av-panel av-decol'; el.id='avDecol'; el.setAttribute('role','group'); el.setAttribute('aria-label','Décollage en cours'); shell.api.stage.appendChild(el); }
+  const D=decollage; const pct=Math.round(lift/WEIGHT*100);
+  const mes=`<div class="mes"><span>Vitesse <b data-v>${Math.round(speed)} km/h</b></span><span>Piste <b data-d>${Math.round(D.dist)} m</b></span><span>Portance <b data-l>${pct} %</b> du poids</span></div>`;
+  if(leger&&el.dataset.phase===D.phase){ const v=el.querySelector('[data-v]'); if(v) v.textContent=Math.round(speed)+' km/h'; const d=el.querySelector('[data-d]'); if(d) d.textContent=Math.round(D.dist)+' m'; const l=el.querySelector('[data-l]'); if(l) l.textContent=pct+' %'; const j=el.querySelector('.jg i'); if(j) j.style.width=Math.min(100,D.dist/20)+'%'; return; }
+  el.dataset.phase=D.phase;
+  const reglages=`<div class="row"><button class="av-b" id="avDcFlaps" aria-pressed="${flaps}">🛬 Volets</button><button class="av-b" id="avDcGear" aria-pressed="${gearDown}">🛞 Train</button></div>
+    <div class="row"><label class="sl">Gaz (poussée) <b id="avDcThrV">${Math.round(throttle*100)} %</b><input id="avDcThr" type="range" min="0" max="100" value="${Math.round(throttle*100)}" aria-label="Gaz"></label><label class="sl">Incidence <b id="avDcElV">${Math.round(2+elevIn*8)}°</b><input id="avDcEl" type="range" min="-100" max="100" value="${Math.round(elevIn*100)}" aria-label="Profondeur, incidence"></label></div>`;
+  const tete=`<div class="t"><span>Décollage · piste 2 000 m</span><span>${{prepa:'Préparation',roulage:'Course',envol:'Envol',questions:'Questions',fini:'Validé'}[D.phase]}</span></div>`;
+  if(D.phase==='prepa'){ el.innerHTML=`${tete}<div class="c">Sors les <b>volets</b>, garde le <b>train</b> sorti, puis pars du seuil. Pendant la course : gaz à fond et incidence vers 8 à 10°.</div>${reglages}<div class="row actions"><button class="av-b primary" id="avDcGo">🛫 Partir du seuil</button></div>`; }
+  else if(D.phase==='roulage'||D.phase==='envol'){ el.innerHTML=`${tete}${mes}<div class="jg"><i style="width:${Math.min(100,D.dist/20)}%"></i></div><div class="c">${D.phase==='envol'?'Portance > poids : l\'avion monte.':'Portance < poids : la piste défile. Gaz à fond, puis cabre.'}</div>${reglages}`; }
+  else if(D.phase==='questions'){ const Q=QUESTIONS_DECOL[D.qIdx]; const ordre=(D.ordre&&D.ordreIdx===D.qIdx)?D.ordre:(D.ordre=Q.opts.map((o,i)=>[o,i]).sort(()=>Math.random()-0.5)); D.ordreIdx=D.qIdx;
+    el.innerHTML=`${tete}<div class="c"><b>${Q.q}</b></div><div class="row">${ordre.map(([o,i])=>`<button type="button" class="qo" data-rep="${i}">${o}</button>`).join('')}</div>`;
+    el.querySelectorAll('[data-rep]').forEach(b=>{ b.onclick=()=>repondreDecol(+b.dataset.rep); }); }
+  else { el.innerHTML=`${tete}<div class="c ok">✓ Décollage réussi, forces lues, volets expliqués.</div>`; }
+  const bF=el.querySelector('#avDcFlaps'); if(bF) bF.onclick=()=>{ flaps=!flaps; slats=flaps; syncConfigButtons(); bF.setAttribute('aria-pressed',flaps); shell.sound('pop'); if(decollage&&decollage.phase==='prepa') shell.api.say(flaps?"Volets sortis : l'aile porte plus à basse vitesse.":"Volets rentrés : il faudra beaucoup plus de vitesse pour décoller.",'concentre'); };
+  const bG=el.querySelector('#avDcGear'); if(bG) bG.onclick=()=>{ gearDown=!gearDown; syncConfigButtons(); bG.setAttribute('aria-pressed',gearDown); shell.sound('pop'); };
+  const sT=el.querySelector('#avDcThr'); if(sT) sT.oninput=e=>{ throttle=+e.target.value/100; const t=document.getElementById('avThr'); if(t) t.value=e.target.value; document.getElementById('avDcThrV').textContent=e.target.value+' %'; };
+  const sE=el.querySelector('#avDcEl'); if(sE) sE.oninput=e=>{ elevIn=+e.target.value/100; const o=document.getElementById('avElev'); if(o){ o.value=e.target.value; document.getElementById('avElevV').textContent=(elevIn>0?'+':'')+e.target.value; } document.getElementById('avDcElV').textContent=Math.round(2+elevIn*8)+'°'; };
+  const go=el.querySelector('#avDcGo'); if(go) go.onclick=()=>{ shell.sound('click'); partir(); };
+}
+function finMission(reussie, secondes, score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  const b=document.getElementById('avMission'); if(b) b.setAttribute('aria-pressed','false');
+  decollage=null; majDecol(); shell.api.stage.classList.remove('av-en-mission');
+  const q=document.getElementById('avQuiz'); if(q) q.style.display=''; const h=document.getElementById('avHint'); if(h&&modeJeu!=='cours') h.style.display='';
+  if(!reussie){ shell.api.say("La mission s'arrête là. On pourra la reprendre.",'rassurant'); setTimeout(()=>{ if(missionDecol) missionDecol.cacher(); },4000); missionLancee=false; return; }
+  if(M) M.son('cloche',{ volume:0.25 }); if(pilote) pilote.dire('Décollage réussi en '+duree+'. Belle rotation.',6);
+  if(modeJeu!=='cours'){ shell.api.win({ score, stars:t>240?2:3, title:'Décollage réussi en '+duree, learned:shell.cfg.learned.concat(["Au décollage, la portance doit dépasser le poids : elle grandit avec la vitesse, l'incidence et les volets.","Poussée contre traînée, portance contre poids : quatre forces, deux à deux opposées."]), buddy:"Volets, poussée, incidence, portance : tu as fait décoller 80 tonnes avec les bonnes forces." }); }
+  else { shell.api.say('Mission réussie en '+duree+' : '+score+' points de plus. Le quiz continue.','fier'); if(shell.api.celebrate) shell.api.celebrate(); setTimeout(()=>{ if(missionDecol) missionDecol.cacher(); },9000); }
+}
+/* ---------- marche sur le tarmac (F223), à l'échelle de l'équipage ---------- */
+function assurerMarche(){ if(marche||!M) return marche;
+  marche=M.marcher({ depart:[plane.position.x+5,0,5.5], hauteur:0.46, vitesse:1.3, sol:FLOOR_Y, limites:{ xmin:-62, xmax:64, zmin:-9, zmax:9 },
+    collision:(x,z)=>{ const px=x-plane.position.x; if(Math.abs(px)<3.6&&Math.abs(z)<0.75) return true; if(Math.abs(px-0.2)<1.1&&Math.abs(z)<4.3&&alt<2) return true; if((Math.hypot(px-0.55,z-2)<0.55||Math.hypot(px-0.55,z+2)<0.55)&&alt<2) return true;
+      return (pilote&&Math.hypot(x-pilote.position().x,z-pilote.position().z)<0.25)||(mecano&&Math.hypot(x-mecano.position().x,z-mecano.position().z)<0.25); },
+    aide:'Flèches ou ZQSD pour marcher sur le tarmac, glisse pour regarder. Échap : vue libre.',
+    surPas:()=>{ const n=performance.now(); if(n-dernierPas>420){ dernierPas=n; M.son('pas',{ volume:0.14 }); } },
+    surChangement:(on)=>{ const b=document.getElementById('avMarche'); if(b) b.setAttribute('aria-pressed', String(on)); if(on){ flying=false; focusPoint=null; shell.api.say("Tu marches sur le tarmac, à la taille de l'équipage. Fais le tour de l'avion, passe sous l'aile ; Échap pour revenir à la vue libre.",'concentre'); } } });
+  return marche;
+}
+/* ---------- ambiance : vent de piste et souffle des réacteurs qui suit les gaz (F225) ; le son existant reste ---------- */
+function demarrerAmbiance(){ if(!M||ambVent) return; try{ ambVent=M.ambiance({ fichier:'../assets/3d/audio/vent-parc.mp3', type:'vent', volume:0.07 }); ambReacteurs=M.ambiance({ type:'machine', volume:0 }); }catch(e){ ambVent=null; ambReacteurs=null; } }
+window.__monde={ lancerMission, partir, repondre:repondreDecol, regler:(o)=>{ if(o.flaps!=null){ flaps=o.flaps; slats=flaps; } if(o.gear!=null) gearDown=o.gear; if(o.gaz!=null){ throttle=o.gaz; const t=document.getElementById('avThr'); if(t) t.value=Math.round(throttle*100); } if(o.elev!=null) elevIn=o.elev; syncConfigButtons(); majDecol(); }, etat:()=>decollage, mission:()=>missionDecol, accelerer:(k)=>{ accelTest=k||1; }, mesures:()=>({ speed, alt, lift, aoa, flaps, throttle }) };
+
 /* ============ SON ============ */
 function startSound(){ if(ac||shell.api.muted)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)();
   jetGain=ac.createGain(); jetGain.gain.value=0; jetGain.connect(ac.destination); jetOsc=ac.createOscillator(); jetOsc.type='sawtooth'; jetOsc.frequency.value=110; jetLp=ac.createBiquadFilter(); jetLp.type='bandpass'; jetLp.frequency.value=820; jetLp.Q.value=0.6; jetOsc.connect(jetLp); jetLp.connect(jetGain); jetOsc.start();
@@ -697,6 +856,7 @@ function animate(){ requestAnimationFrame(animate); const raw=clock.getDelta(); 
   if(phaseAnim){ throttle=approach(throttle,p.thr,1.4); const thrEl=document.getElementById('avThr'); if(thrEl) thrEl.value=Math.round(throttle*100); }
   const targetSpeed = phaseAnim ? p.spd : throttle*1100;
   speed=approach(speed,targetSpeed,0.5);
+  if(decollage) tickDecollage(dt*accelTest);
   const targetAoa = (phaseAnim?p.aoa:2) + elevIn*8;
   aoa=approach(aoa,targetAoa,2.2);
   // portance : cl selon incidence (décrochage > 16°) + volets
@@ -719,8 +879,14 @@ function animate(){ requestAnimationFrame(animate); const raw=clock.getDelta(); 
   yawAtt=approach(yawAtt, rudderIn*0.35, 3);
   const buffet=stalled&&!REDUCED?Math.sin(clock.elapsedTime*22)*0.03:0;
   plane.rotation.set(roll+buffet, yawAtt, pitchAtt);
-  plane.position.y=0.35+(REDUCED?0:Math.sin(clock.elapsedTime*0.6)*0.06);
+  plane.position.y=0.35+(REDUCED?0:Math.sin(clock.elapsedTime*0.6)*0.06)+(decollage?Math.min(7,alt*0.035):0);
   plane.updateMatrixWorld();
+  // F228 : la caméra, la lumière et l'ombre de contact suivent l'avion sur la piste
+  if(!(marche&&marche.estActif())){ const dx=plane.position.x-suiviCam; if(Math.abs(dx)>1e-5){ camera.position.x+=dx; controls.target.x+=dx; } } suiviCam=plane.position.x;
+  if(keyLight){ keyLight.position.set(plane.position.x-11,6,9); keyLight.target.position.set(plane.position.x,0,0); }
+  if(contactShadow){ contactShadow.position.x=plane.position.x; contactShadow.material.opacity=0.85*Math.max(0,1-(decollage?alt/150:0)); }
+  if(ambReacteurs){ sonReacT+=dt; if(sonReacT>0.3){ sonReacT=0; ambReacteurs.volume(0.01+throttle*0.11); } }
+  boucles.forEach(f=>{ try{ f(dt,clock.elapsedTime); }catch(e){ /* rien */ } });
 
   // ADI cockpit
   const adiR=document.getElementById('adiRoll'), adiP=document.getElementById('adiPitch');

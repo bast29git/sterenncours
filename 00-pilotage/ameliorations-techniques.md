@@ -478,3 +478,16 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 - [x] F219 Sonde du rendu logiciel et environnement provisoire avant la première image dans les mondes 22 à 24 : les matériaux ne compilent qu'une fois.
 - [x] F220 Dans les jeux, la bulle d'Opale se replie seule sur petit écran neuf secondes après un message, sauf toucher récent ; largeur bornée. Le texte d'embarquement du globe reçoit un fond lisible.
 - [x] F221 Les trente mondes passent l'audit automatique (démarrage, gestes communs, défis ou banque jusqu'à l'écran de fin, bureau et mobile, sans erreur).
+- [x] F222 Onglet « Mondes 3D » de la page Jeux (`#/jeux/mondes`) : les trente mondes par matière avec le meilleur score et la leçon rattachée.
+- [x] F223 Socle 3D : marche à la première personne (`marcher`) au clavier, flèches ou ZQSD, Maj pour courir, joystick tactile, regard au doigt, collisions et sol en fonction de la position, Échap rend la vue libre.
+- [x] F224 Socle 3D : mission (`mission`) à objectifs vérifiés ou validés, chrono et chrono cible, jauge, bandeau à droite, une seule fin par partie (bouton en mode cours, automatique en détente).
+- [x] F225 Socle 3D : ambiance sonore (`ambiance`) par fichier ou par synthèse (vent, pluie, foule, machine, eau, feu, ville, salle, espace, forêt) et sons brefs (`son`), démarrés au premier geste, qui suivent le bouton muet de la coquille.
+- [x] F226 Socle 3D : personnage articulé (`personnage`) bâti sur des capsules, marche animée, regard, bulle de parole sur fond sombre lue par Opale, habillage (chapeau, jupe, tablier).
+- [x] F227 Socle 3D : chargement de modèles glTF (`chargerModele`) avec mélangeur d'animations ; chargeurs GLTF et DRACO vendus avec three.
+- [x] F228 Les outils du socle (`outils(ctx)`) s'emploient aussi dans les mondes 01 à 20 qui gardent leur propre scène ; styles de mission et de joystick injectés dans les deux cas.
+- [x] F229 Six vrais portraits du domaine public (Wikimedia Commons) dans les cadres du musée des Lumières, avec attribution.
+- [x] F230 Sons d'ambiance enregistrés libres (CC0, OpenGameArt) : oiseaux et vent du parc, mer, feu qui crépite, avec `audio/ATTRIBUTIONS.md`.
+- [x] F231 Mondes 21 à 30 : un personnage ou un guide par monde (guide de musée, faiseuse de livres, apothicaire, peintre, technicien, professeure d'atelier, observatrice, passants du XIXᵉ), une mission chronométrée, la marche avec collisions et une ambiance.
+- [x] F232 Mondes 01 à 10 : sonde-guide, professeures, nanorobot, électricien, technicienne, robot gardien, architecte, avion de ligne, témoins d'époque ; missions chronométrées (Saturne, bouchée, trois réactions, cellule, maison à câbler, salle en route, trois attaques, maquette, tour du monde, ordre des événements).
+- [x] F233 Mondes 11 à 20 : personnages et missions sur le même modèle (moteur, chaîne alimentaire, réseau de neurones, lancers, éruption, trajets, puissance de la centrale, fouille, décollage, descente en paliers).
+- [x] F234 Les bulles de texte 3D ne passent plus par le mappage de tons et prennent un fond sombre : lisibles sous bloom.

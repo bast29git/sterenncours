@@ -125,14 +125,26 @@ quelque chose, pas seulement signaler l'erreur.
 - **Messagerie** (`site/messagerie.js`) : émojis par groupes, mise en forme légère
   (option), réactions animées, fils par matière (`messages.fil`, table `reactions`).
 - **Jeux** (`site/learning/`) : 30 mondes 3D et 58 jeux 2D rattachés aux leçons
-  (`site/data/jeux.js`), score envoyé à `/api/learning/game-score`. Les mondes 21 à 30 reposent sur
-  `site/learning/monde-base.js` (chaîne de rendu avec occlusion ambiante au cran haut sur GPU réel,
-  bloom discret, SMAA, sortie ACES ; HDRI par défaut ; sol et murs PBR depuis
-  `assets/3d/pbr2k/` ; dôme de ciel ; `matPhysique` pour verre, laque et métal) : décors complets,
-  objets touchables légendés, neuf défis par monde, panneaux lisibles à 390 px. Le système solaire
-  (3d-01) reste la référence de rendu. `npm run audit:mondes` rejoue chaque monde jusqu'à l'écran de
-  fin ; `npm run audit:jeux` passe les 88 jeux à axe-core. Dans les jeux, la bulle d'Opale se replie
-  seule sur petit écran. Textures et HDRI : Poly Haven, CC0 (`pbr2k/ATTRIBUTIONS.md`).
+  (`site/data/jeux.js`), score envoyé à `/api/learning/game-score`. L'onglet « Mondes 3D » de la
+  page Jeux (`#/jeux/mondes`) liste les trente mondes par matière avec le meilleur score. Les mondes
+  21 à 30 reposent sur `site/learning/monde-base.js` (chaîne de rendu avec occlusion ambiante au
+  cran haut sur GPU réel, bloom discret, SMAA, sortie ACES ; HDRI par défaut ; sol et murs PBR depuis
+  `assets/3d/pbr2k/` ; dôme de ciel ; `matPhysique` pour verre, laque et métal) ; les mondes 01 à 20
+  gardent leur scène propre et branchent `outils(ctx)` du même socle. Le socle fournit à tous :
+  `marcher` (première personne au clavier, flèches ou ZQSD, joystick tactile, regard au doigt, Échap),
+  `mission` (objectifs vérifiés ou validés, chrono, jauge, une seule fin par partie : bouton en mode
+  cours, lancement automatique en détente), `ambiance` (fichier ou synthèse : vent, pluie, foule,
+  machine, eau, feu, ville, salle, espace, forêt, qui suit le bouton muet) et `son` (pas, clic, cloche,
+  splash, tic, souffle, coup), `personnage` (capsules articulées, marche animée, bulle sur fond
+  sombre lue par Opale) et `chargerModele` (glTF). Chaque monde a un personnage ou un guide à son
+  échelle, une mission chronométrée et une ambiance ; neuf défis par monde dans les mondes 21 à 30,
+  objets touchables légendés, panneaux lisibles à 390 px. Le musée des Lumières accroche six vrais
+  portraits du domaine public (`assets/3d/portraits/`, Wikimedia Commons). Sons enregistrés CC0
+  d'OpenGameArt dans `assets/3d/audio/` (`ATTRIBUTIONS.md`), le reste en synthèse WebAudio. Le
+  système solaire (3d-01) reste la référence de rendu. `npm run audit:mondes` rejoue chaque monde
+  jusqu'à l'écran de fin ; `npm run audit:jeux` passe les 88 jeux à axe-core. Dans les jeux, la bulle
+  d'Opale se replie seule sur petit écran. Textures et HDRI : Poly Haven, CC0
+  (`pbr2k/ATTRIBUTIONS.md`).
 - **Accès et déblocages** (`/api/acces`, page « Accès et déblocages ») : trois états par élément
   (cours, révision, exercices, série, évaluation, jeu) : automatique, ouvert, fermé, avec date de
   fermeture facultative. Le serveur calcule les verrous des leçons (`/api/etat`) et ne sert le

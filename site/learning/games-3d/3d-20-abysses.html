@@ -85,6 +85,18 @@
   @media (prefers-reduced-motion: reduce){ .ab-marker.show{ animation:none; } }
   @media (max-width:720px){ .ab-gauge{width:150px;padding:12px;left:66px} .ab-depth{font-size:30px} .ab-info{width:min(300px,84vw)} .ab-col{height:56%} .ab-slider{width:96px} }
   @media (max-width:520px){ .ab-col{display:none} .ab-gauge{left:14px} }
+  /* F228 : mission « Descente en quatre paliers » : panneau de palier sous la jauge, zone de mission sous la fiche */
+  .ab-mis { left:70px; top:236px; width:262px; padding:11px 13px; display:flex; flex-direction:column; gap:7px; z-index:21; }
+  .ab-mis .t { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); display:flex; justify-content:space-between; gap:8px; }
+  .ab-mis .c { font-size:12.5px; line-height:1.45; }
+  .ab-mis .row { display:flex; flex-wrap:wrap; gap:6px; }
+  .ab-mis .qo { font-family:var(--font-body); font-weight:700; font-size:12px; min-height:40px; padding:5px 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; text-align:left; flex:1 1 100%; }
+  .ab-mis .qo:hover { border-color:var(--accent); }
+  .ab-mis .qo small { display:block; font-weight:500; color:var(--fg-muted); }
+  .ab-mis .ok { color:var(--brand-teal); font-weight:700; }
+  .mb-mission.ab-mz { top:14px; }
+  @media (max-width:720px){ .ab-ctrl { left:10px; right:10px; transform:none; width:auto; flex-wrap:wrap; justify-content:center; border-radius:18px; gap:6px; padding:8px; bottom:10px; } .ab-slider { width:80px; }
+    .ab-mis { left:10px; top:auto; bottom:142px; width:min(300px,calc(100vw - 20px)); padding:9px 10px; max-height:38%; overflow:auto; } .ab-en-mission .ab-hint, .ab-en-mission .ab-cbn { display:none !important; } .mb-mission.ab-mz { max-height:30%; } }
 </style>
 </head>
 <body>
@@ -97,6 +109,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { outils, renduLogiciel, matPBR, preparerAo, textureTexte } from '../monde-base.js';
 let composer, bloom;
 const REDUCED = window.Konstrio.REDUCED;
 
@@ -187,6 +200,8 @@ let creatureGroup=[], vents=[];
 let raycaster,pointer,marker,curZoneIdx=-1,selected=null,targetTween=null;
 let ac=null, ambGain=null, expedition=null, bubbleT=0, sceneReady=false;
 let cours=null;
+/* F228 : outils communs (mission, guide, ambiance), voir monde-base.js */
+const boucles=[]; let M=null, modeJeu='detente', missionDescente=null, missionLancee=false, descente=null, ambEau=null, sonarT=0, sousMarin=null, bulleSub=null, bulleSubT=0, projecteurs=[], faisceauxSub=[], hublotLum=null;
 
 /* E14 : légendes des objets pour le socle commun des mondes. */
 function LEGENDE_OPALINE(ob){ const p=ob.userData&&SPECIES[ob.userData.key]; return p?{nom:p.n,phrase:p.sub}:null; }
@@ -225,7 +240,7 @@ function init(api){
   renderer.setSize(stage.clientWidth,stage.clientHeight); stage.appendChild(renderer.domElement);
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1;
   // garde-fou CRUCIAL : scène sombre PAR DESIGN → rendu logiciel (SwiftShader/llvmpipe) ou mode réduit = pas de GTAO (l'AO écran casserait le rendu). La pénombre voulue reste, jamais un rendu cassé.
-  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  let software=false; try{ software=renduLogiciel(renderer); }catch(e){ try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e2){} }
   const W=stage.clientWidth, H=stage.clientHeight;
   // pipeline post : rendu → (AO écran si GPU réel : relief du fond/fumeurs) → bloom (bioluminescence + phare) → SMAA → sortie ACES/sRGB
   composer=new EffectComposer(renderer); composer.addPass(new RenderPass(scene,camera));
@@ -243,6 +258,8 @@ function init(api){
   controls.enableZoom=true; controls.enablePan=false; controls.rotateSpeed=-0.4;
   controls.minDistance=0.1; controls.enableDamping=true; controls.dampingFactor=0.08;
   controls.target.set(0,0,-5); controls.update();
+  // F228 : outils communs (mission, ambiance, sons) branchés sur la boucle de ce monde ; pas de marche : on est dans le bathyscaphe
+  try{ M=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f) }); }catch(e){ M=null; }
 
   ambient=new THREE.AmbientLight(0xcfeaff,0.95); scene.add(ambient);
   topLight=new THREE.DirectionalLight(0xddf4ff,0.7); topLight.castShadow=true; topLight.shadow.mapSize.set(1024,1024); topLight.position.set(0,10,2); scene.add(topLight);
@@ -255,7 +272,7 @@ function init(api){
   surface=makeSurface(); scene.add(surface);
   godrays=makeGodrays(); scene.add(godrays);
   snow=makeSnow(); scene.add(snow);
-  buildSeabed();
+  buildSeabed(); buildSousMarin();
 
   raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
   marker=document.createElement('div'); marker.className='ab-marker'; stage.appendChild(marker);
@@ -303,10 +320,14 @@ function makeBeam(){ const geo=new THREE.ConeGeometry(6.5,26,28,1,true); geo.tra
 
 /* ---------- fonds marins + sources hydrothermales ---------- */
 function buildSeabed(){ seabed=new THREE.Object3D(); seabed.position.y=-12; seabed.visible=false; scene.add(seabed);
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(140,140,36,36), new THREE.MeshStandardMaterial({color:0x0e151d,roughness:1,flatShading:true}));
+  // fond marin en roche réelle (Poly Haven CC0), teintée sombre, relief doux + AO bakée
+  const fondMat=matPBR('rocky_terrain',{ repetition:18, couleur:0x3c4652, rugosite:1 });
+  const fondGeo=preparerAo(new THREE.PlaneGeometry(140,140,36,36));
+  const floor=new THREE.Mesh(fondGeo, fondMat);
   const pa=floor.geometry.attributes.position; for(let i=0;i<pa.count;i++){ pa.setZ(i, Math.random()*1.6); }
-  floor.geometry.computeVertexNormals(); floor.rotation.x=-Math.PI/2; seabed.add(floor);
-  for(let i=0;i<24;i++){ const r=new THREE.Mesh(new THREE.DodecahedronGeometry(0.4+Math.random()*1.2,0), new THREE.MeshStandardMaterial({color:0x151d26,roughness:1,flatShading:true}));
+  floor.geometry.computeVertexNormals(); floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; seabed.add(floor);
+  const rocheMat=matPBR('rock_boulder_dry',{ repetition:1, couleur:0x3a3f4a, rugosite:1 });
+  for(let i=0;i<24;i++){ const r=new THREE.Mesh(preparerAo(new THREE.DodecahedronGeometry(0.4+Math.random()*1.2,1)), rocheMat);
     r.position.set((Math.random()-.5)*80,Math.random()*0.6,-6-Math.random()*52); r.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3); seabed.add(r); }
   [[-10,-18],[6,-27],[16,-12]].forEach(([x,z])=>{ const ch=new THREE.Object3D(); ch.position.set(x,0,z);
     const chim=new THREE.Mesh(new THREE.CylinderGeometry(0.5,1.2,3.6,9), new THREE.MeshStandardMaterial({color:0x1a1410,roughness:1,emissive:0x551505,emissiveIntensity:.3,flatShading:true})); chim.position.y=1.8; ch.add(chim);
@@ -401,8 +422,8 @@ function applyDepth(){
   ambient.intensity = Math.max(0.03, 0.95*lightFrac);
   topLight.intensity = 0.7*lightFrac;
   headlight.intensity = lights ? (depth>150?2.8:0.5) : 0;
-  beam.material.opacity = (lights && depth>150 && !REDUCED) ? 0.10 : 0;
-  bloom.strength = 0.55 + 0.7*(1-lightFrac);
+  beam.material.opacity = (lights && depth>150 && !REDUCED) ? 0.035 : 0; // F228 : plus discret, le cône vu de l'intérieur blanchissait toute l'image
+  bloom.strength = 0.55 + 0.45*(1-lightFrac);
   // surface & god-rays s'estompent en profondeur
   const surfF=Math.max(0,1-depth/600);
   surface.material.opacity=0.5*surfF; surface.visible=surfF>0.01;
@@ -410,7 +431,7 @@ function applyDepth(){
   // HUD
   document.getElementById('abDepth').innerHTML = Math.round(depth).toLocaleString('fr-FR')+' <small>m</small>';
   document.getElementById('abZone').textContent = Z.name+' · '+Z.label;
-  const press=1+depth/10, temp=Math.max(1.8,(22-depth/320)), lum=Math.round(100*lightFrac);
+  const press=1+depth/10, temp=2+20*Math.exp(-depth/420), lum=Math.round(100*lightFrac);
   document.getElementById('abPress').textContent = press.toLocaleString('fr-FR',{maximumFractionDigits:0})+' bar';
   document.getElementById('abTemp').textContent = temp.toFixed(1)+' °C';
   document.getElementById('abLum').textContent = lum+' %';
@@ -456,8 +477,10 @@ function buildUI(){
     <button class="ab-cb" id="abLight" aria-pressed="true" title="Phares (L)" aria-label="Phares">🔦</button>
     <button class="ab-cb" id="abSonar" title="Sonar (écholocation)" aria-label="Sonar">📡</button>
     <button class="ab-cb" id="abNot" title="Notions" aria-label="Notions">📚</button>
-    <button class="ab-cb" id="abExp" title="Expédition guidée" aria-label="Expédition guidée">🎬</button>`;
+    <button class="ab-cb" id="abExp" title="Expédition guidée" aria-label="Expédition guidée">🎬</button>
+    <button class="ab-cb" id="abMission" title="Mission : descente en quatre paliers" aria-label="Mission" aria-pressed="false">🎯</button>`;
   stage.appendChild(ctrl);
+  ctrl.querySelector('#abMission').onclick=()=>{ shell.sound('click'); lancerMission(); };
   // fiche, expédition, hint, bannière cours
   const info=document.createElement('div'); info.className='ab-info'; info.id='abInfo'; stage.appendChild(info);
   const ep=document.createElement('div'); ep.className='ab-exp'; ep.id='abExpP'; stage.appendChild(ep);
@@ -525,7 +548,8 @@ function onKey(e){ if(e.key==='ArrowDown'){ depth=Math.min(11000,depth+300); syn
 function syncSlider(){ const s=document.getElementById('abSlider'); if(s)s.value=depth; }
 
 /* ============================================================ MODES ============ */
-function startMode(m,api){ startAmbient();
+function startMode(m,api){ startAmbient(); modeJeu=m; demarrerAmbiance();
+  if(m!=='cours') setTimeout(()=>{ if(modeJeu!=='cours'&&!missionLancee) lancerMission(); },6500);
   const hint=document.getElementById('abHint'); const cbn=document.getElementById('abCbn');
   document.getElementById('abInfo').classList.remove('show'); selected=null; marker.classList.remove('show');
   if(m==='cours'){ if(cbn)cbn.classList.add('show'); if(hint)hint.style.display='none'; startCours(); }
@@ -646,8 +670,121 @@ function animate(t){ requestAnimationFrame(animate); const dt=lastT?Math.min(.05
   beam.position.copy(camera.position).add(dir.clone().multiplyScalar(0.4)); beam.quaternion.copy(camera.quaternion);
   // tween d'orientation vers une créature
   if(targetTween){ targetTween.t+=dt; const k=Math.min(1,targetTween.t/targetTween.dur); const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; controls.target.lerpVectors(targetTween.from,targetTween.to,e); if(k>=1)targetTween=null; }
+  boucles.forEach(f=>{ try{ f(dt,t/1000); }catch(e){ /* rien */ } });
+  majSousMarin(dt,t/1000); if(descente) tickDescente();
+  if(M&&(targetVel||depthTarget!=null)){ sonarT+=dt; if(sonarT>3.5){ sonarT=0; M.son('tic',{ volume:0.07, frequence:1250 }); } }
   updateMarker(); controls.update(); composer.render();
 }
+
+/* ============================================================
+   F228 : LE SOUS-MARIN GUIDE, LA MISSION « DESCENTE EN QUATRE PALIERS »
+   ============================================================ */
+const SUB_POS=new THREE.Vector3(-3.4,-1.6,-9.5);
+function buildSousMarin(){
+  sousMarin=new THREE.Group(); sousMarin.position.copy(SUB_POS); scene.add(sousMarin);
+  const coque=new THREE.MeshPhysicalMaterial({ color:0xf2c531, metalness:0.35, roughness:0.35, clearcoat:0.8, clearcoatRoughness:0.15, emissive:0x7a5a12, emissiveIntensity:0.35 });
+  const lampeSub=new THREE.PointLight(0xffe2b0,1.2,7,1.8); lampeSub.position.set(0,1.4,-0.2); sousMarin.add(lampeSub);
+  const corps=new THREE.Mesh(new THREE.CapsuleGeometry(0.55,1.9,8,18), coque); corps.rotation.x=Math.PI/2; sousMarin.add(corps);
+  const kiosque=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.34,0.5,16), coque); kiosque.position.set(0,0.7,0.2); sousMarin.add(kiosque);
+  const noir=new THREE.MeshStandardMaterial({ color:0x1b1f27, roughness:0.6, metalness:0.3 });
+  [-0.5,0.5].forEach(x=>{ const patin=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.1,2.0), noir); patin.position.set(x,-0.72,0); sousMarin.add(patin); const pied=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.35,0.08), noir); pied.position.set(x,-0.5,0); sousMarin.add(pied); });
+  const helice=new THREE.Group(); helice.position.set(0,0,1.65); sousMarin.add(helice); for(let i=0;i<3;i++){ const pale=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.5,0.03), noir); pale.position.y=0.22; const g=new THREE.Group(); g.add(pale); g.rotation.z=i*Math.PI*2/3; helice.add(g); } sousMarin.userData.helice=helice;
+  const anneau=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.05,8,24), noir); anneau.position.set(0,0,1.65); sousMarin.add(anneau);
+  // hublot : sphère de verre à l'avant, éclairée de l'intérieur
+  const hublot=new THREE.Mesh(new THREE.SphereGeometry(0.34,22,16), new THREE.MeshPhysicalMaterial({ color:0xbfe6ff, metalness:0, roughness:0.04, transparent:true, opacity:0.45, clearcoat:1, clearcoatRoughness:0.03, envMapIntensity:1.5 })); hublot.position.set(0,0.05,-1.3); sousMarin.add(hublot);
+  const cadre=new THREE.Mesh(new THREE.TorusGeometry(0.36,0.05,8,28), noir); cadre.position.set(0,0.05,-1.3); sousMarin.add(cadre);
+  hublotLum=new THREE.PointLight(0xffd9a6,0.9,4,2); hublotLum.position.set(0,0.05,-1.1); sousMarin.add(hublotLum);
+  const interieur=new THREE.Mesh(new THREE.SphereGeometry(0.2,12,10), new THREE.MeshStandardMaterial({ color:0xffe3b8, emissive:0xffc070, emissiveIntensity:1.2 })); interieur.position.set(0,0.05,-1.2); sousMarin.add(interieur);
+  // deux projecteurs réels (lumières) et leurs faisceaux
+  [-0.55,0.55].forEach(x=>{ const boitier=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.14,0.22,14), noir); boitier.rotation.x=Math.PI/2; boitier.position.set(x,0.35,-1.0); sousMarin.add(boitier);
+    const lentille=new THREE.Mesh(new THREE.CircleGeometry(0.11,14), new THREE.MeshStandardMaterial({ color:0xfff6d8, emissive:0xfff0c0, emissiveIntensity:2.2 })); lentille.position.set(x,0.35,-1.12); lentille.rotation.y=Math.PI; sousMarin.add(lentille);
+    const sp=new THREE.SpotLight(0xfff0d0,0,40,Math.PI/7,0.5,1.2); sp.position.set(x,0.35,-1.05); sp.target.position.set(x*2,0,-24); sousMarin.add(sp); sousMarin.add(sp.target); projecteurs.push(sp);
+    const geo=new THREE.ConeGeometry(3.2,18,20,1,true); geo.translate(0,-9,0); geo.rotateX(-Math.PI/2); const f=new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:0xffe9b8, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide })); f.position.set(x,0.35,-1.1); f.raycast=()=>{}; sousMarin.add(f); faisceauxSub.push(f); });
+  const bande=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.3,1.4), new THREE.MeshStandardMaterial({ color:0x1457A8, roughness:0.5 })); bande.position.set(0.555,0.1,0); sousMarin.add(bande); const bande2=bande.clone(); bande2.position.x=-0.555; sousMarin.add(bande2);
+  sousMarin.traverse(o=>{ if(o.isMesh) o.userData.legende={ nom:'Nautile, sous-marin d\'exploration', phrase:'Deux projecteurs, un hublot en sphère : il descend avec toi et te guide par étiquette.' }; });
+}
+function direSub(texte, secondes){ if(!sousMarin) return; if(bulleSub){ scene.remove(bulleSub); bulleSub=null; }
+  const tex=textureTexte(texte,{ taille:26, fond:'rgba(10,22,38,0.92)', couleur:'#eaf4ff' }); bulleSub=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, fog:false })); bulleSub.scale.set(0.5*tex.userData.ratio,0.5,1); bulleSub.raycast=()=>{}; scene.add(bulleSub); bulleSubT=performance.now()+(secondes||5)*1000;
+  shell.api.say(texte,'concentre'); }
+function majSousMarin(dt,t){ if(!sousMarin) return;
+  const vel=(depthTarget!=null?(depthTarget-depth):0)+targetVel;
+  sousMarin.position.x=SUB_POS.x+Math.sin(t*0.5)*0.3; sousMarin.position.y=SUB_POS.y+Math.sin(t*0.8)*0.15; sousMarin.rotation.y=1.05+Math.sin(t*0.3)*0.05;
+  sousMarin.rotation.x+=((vel>5?0.28:vel<-5?-0.28:0)-sousMarin.rotation.x)*Math.min(1,dt*2);
+  if(sousMarin.userData.helice) sousMarin.userData.helice.rotation.z+=dt*(2+Math.min(12,Math.abs(vel)/40));
+  const sombre=Math.min(1,Math.max(0,(depth-150)/300)); projecteurs.forEach(p=>{ p.intensity=lights?2.6*sombre:0; }); faisceauxSub.forEach(f=>{ f.material.opacity=(lights&&!REDUCED)?0.045*sombre:0; }); if(hublotLum) hublotLum.intensity=0.4+0.6*sombre;
+  if(bulleSub){ bulleSub.position.copy(sousMarin.position).add(new THREE.Vector3(0,1.5,0)); if(performance.now()>bulleSubT){ scene.remove(bulleSub); bulleSub=null; } }
+}
+const PALIERS_AB=[
+  { d:200, nom:'200 m', zone:'la fin de la zone éclairée', lire:{ q:"Lis la jauge : quelle est la pression ici, à 200 m ?", opts:['21 bar','2 bar','201 bar'], ok:0, expl:"1 bar en surface, puis +1 bar tous les 10 m : 1 + 200 ÷ 10 = 21 bar.", indice:"Compte : 1 bar + un bar par tranche de 10 m." },
+    animaux:['thon','baudroie','vers'], bon:'thon', adapt:{ q:"Par quoi le banc de poissons est-il adapté à cette zone ?", opts:["Il vit près de la surface, où la lumière fait pousser le plancton dont il se nourrit, et se protège en banc.","Il porte un leurre lumineux pour chasser dans le noir.","Il se nourrit grâce à des bactéries, sans Soleil."], ok:0, expl:"Dans les 200 premiers mètres, la lumière permet la photosynthèse du plancton : c'est la zone la plus riche en vie." } },
+  { d:1000, nom:'1 000 m', zone:'le début de la nuit permanente', lire:{ q:"Lis la jauge : quelle lumière du Soleil reste-t-il à 1 000 m ?", opts:['Presque aucune (0 %)','Environ la moitié','Toute la lumière'], ok:0, expl:"L'eau absorbe la lumière : à 1 000 m, il n'en reste rien, c'est le noir total. La pression vaut déjà 101 bar.", indice:"Regarde la barre « Lumière » de la jauge : elle est vide." },
+    animaux:['lanterne','thon','vers'], bon:'lanterne', adapt:{ q:"Par quoi le poisson-lanterne est-il adapté à la pénombre ?", opts:["Des photophores sous le ventre imitent la faible lueur d'en haut : sa silhouette disparaît (contre-éclairage).","Il respire de l'air en surface toutes les heures.","Il a des nageoires qui servent de pattes."], ok:0, expl:"Le contre-éclairage efface sa silhouette vue d'en dessous : un camouflage par la lumière." } },
+  { d:3000, nom:'3 000 m', zone:'la nuit permanente', lire:{ q:"Lis la jauge : quelle est la température de l'eau à 3 000 m ?", opts:['Environ 2 °C','Environ 12 °C','Environ 22 °C'], ok:0, expl:"Sous 1 000 m, l'eau reste glacée toute l'année, autour de 2 °C, loin du Soleil.", indice:"La ligne « Température » de la jauge est tout en bas de l'échelle." },
+    animaux:['baudroie','thon','baleine'], bon:'baudroie', adapt:{ q:"Par quoi la baudroie abyssale est-elle adaptée au noir total ?", opts:["Un leurre lumineux, éclairé par des bactéries, attire les proies jusqu'à sa gueule.","Ses grands yeux voient la lumière du Soleil.","Elle remonte chaque nuit manger du plancton en surface."], ok:0, expl:"Dans le noir, fabriquer de la lumière pour attirer une proie économise l'énergie : la nourriture est rare." } },
+  { d:6000, nom:'6 000 m', zone:'la zone abyssale, 600 fois la pression de la surface', lire:{ q:"Lis la jauge : quelle est la pression à 6 000 m ?", opts:['601 bar','61 bar','6 bar'], ok:0, expl:"1 + 6 000 ÷ 10 = 601 bar : six cents fois la pression de l'air que tu respires.", indice:"Même règle : +1 bar tous les 10 m, et 6 000 m font 600 tranches." },
+    animaux:['ogre','baleine','thon'], bon:'ogre', adapt:{ q:"Par quoi le poisson-ogre est-il adapté aux grands fonds ?", opts:["Un métabolisme très lent et d'énormes dents : il dépense peu et ne rate aucune proie, car la nourriture est rarissime.","Une poche d'air qui le protège de la pression.","Une peau qui fait de la photosynthèse."], ok:0, expl:"Sans poche d'air, un corps mou n'est pas écrasé ; et dans un désert de nourriture, chaque proie compte." } },
+];
+function assurerMission(){ if(missionDescente||!M) return missionDescente;
+  const obj=[]; PALIERS_AB.forEach((P,k)=>{ obj.push({ id:'desc'+k, texte:(k*2+1)+'. Descendre à '+P.nom, points:40 }); obj.push({ id:'pal'+k, texte:(k*2+2)+'. '+P.nom+' : lire, reconnaître, expliquer', points:120 }); });
+  missionDescente=M.mission({ titre:'Quatre paliers', cachee:true, chrono:true, chronoCible:360, gagner:false, annonce:false, objectifs:obj, surFin:finMission });
+  missionDescente.zone.classList.add('ab-mz'); missionDescente.zone.setAttribute('aria-label','Mission : descente en quatre paliers');
+  return missionDescente;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  const b=document.getElementById('abMission'); if(b) b.setAttribute('aria-pressed','true');
+  if(missionLancee&&!missionDescente.estFinie()){ missionDescente.montrer(); majDescente(); return; }
+  missionLancee=true; missionDescente.montrer(); missionDescente.commencer(); shell.api.stage.classList.add('ab-en-mission');
+  descente={ k:0, etape:'descendre', erreurs:0, tropProfond:false };
+  if(expedition) endExpedition(); depthTarget=null; targetVel=0; depth=0; syncSlider(); applyDepth(); setAmbientDepth();
+  document.getElementById('abInfo').classList.remove('show'); const h=document.getElementById('abHint'); if(h) h.style.display='none'; const q=document.getElementById('abQuiz'); if(q) q.style.display='none'; const cbn=document.getElementById('abCbn'); if(cbn) cbn.style.display='none';
+  majDescente(); if(M) M.son('souffle',{ volume:0.3 });
+  shell.api.say("Mission : descente en quatre paliers. Le Nautile descend avec toi. À chaque palier, lis la jauge, reconnais l'animal adapté parmi trois et dis par quoi il est adapté. Le chrono tourne.",'enthousiaste');
+  setTimeout(()=>{ if(descente) direSub('Premier palier : 200 m. Descends avec ▼ ou le curseur.',6); },2500);
+}
+function tickDescente(){ const D=descente; if(!D||D.etape!=='descendre') return; const P=PALIERS_AB[D.k];
+  if(depth>=P.d*0.97&&depth<=P.d*1.3){ D.etape='lire'; D.erreurs=0; targetVel=0; depthTarget=null; if(M) M.son('souffle',{ volume:0.35 }); bubble(); missionDescente.valider('desc'+D.k,40);
+    direSub('Palier '+P.nom+' : '+P.zone+'. Lis la jauge.',6); majDescente(); }
+  else if(depth>P.d*1.3&&!D.tropProfond){ D.tropProfond=true; direSub('Trop profond : remonte vers '+P.nom+'.',5); }
+  else if(depth<=P.d*1.3) D.tropProfond=false;
+}
+function repondreDescente(i){ const D=descente; if(!D) return; const P=PALIERS_AB[D.k];
+  if(D.etape==='lire'||D.etape==='adapt'){ const Q=D.etape==='lire'?P.lire:P.adapt;
+    if(i!==Q.ok){ D.erreurs++; if(M) M.son('clic',{ volume:0.18, frequence:300 }); shell.api.say((D.erreurs>=2&&Q.indice?'Indice : '+Q.indice:D.erreurs>=2?'Indice : '+Q.expl:'Ce n\'est pas ça. Relis la jauge et la question.')+' Réessaie.','rassurant'); return; }
+    if(M) M.son('cloche',{ volume:0.24, frequence:D.etape==='lire'?760:900 }); shell.api.say('Exact. '+Q.expl,'celebration'); D.erreurs=0;
+    if(D.etape==='lire'){ D.etape='animal'; spawnAnimauxPalier(P); }
+    else { missionDescente.valider('pal'+D.k,120); if(!descente) return; D.k++; if(D.k<PALIERS_AB.length){ D.etape='descendre'; D.tropProfond=false; direSub('Palier suivant : '+PALIERS_AB[D.k].nom+'. On descend.',5); } else D.etape='fini'; }
+    majDescente(); return; }
+  if(D.etape==='animal'){ const key=P.animaux[i]; if(key!==P.bon){ D.erreurs++; if(M) M.son('clic',{ volume:0.18, frequence:300 }); const sp=SPECIES[key]; shell.api.say((sp?sp.n+' vit plutôt vers '+sp.depthTxt+'. ':'')+(D.erreurs>=2?'Cherche l\'animal dont la fiche donne cette profondeur.':'Ce n\'est pas l\'animal de ce palier.')+' Réessaie.','rassurant'); return; }
+    if(M) M.son('cloche',{ volume:0.24, frequence:820 }); shell.api.say('Oui : '+SPECIES[key].n+', '+SPECIES[key].depthTxt+'. Et par quoi est-il adapté ?','fier'); D.etape='adapt'; D.erreurs=0; majDescente(); }
+}
+function spawnAnimauxPalier(P){ // les trois animaux proposés nagent devant le hublot, le bon compris
+  P.animaux.forEach((key,i)=>{ if(creatureGroup.some(c=>c.userData.key===key)) return; const c=makeCreature(key); c.position.set(-6+i*6,(Math.random()-.5)*4,-10-Math.random()*6); c.userData.vx=(Math.random()-.5)*.4; c.userData.vy=0; c.userData.phase=Math.random()*Math.PI*2; const target=0.9; c.userData.tScale=target; c.scale.setScalar(0.01); scene.add(c); creatureGroup.push(c); });
+}
+function majDescente(){ let el=document.getElementById('abMis');
+  if(!descente||!missionDescente||missionDescente.estFinie()){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.className='ab-panel ab-mis'; el.id='abMis'; el.setAttribute('role','group'); el.setAttribute('aria-label','Palier en cours'); shell.api.stage.appendChild(el); }
+  const D=descente; const P=PALIERS_AB[D.k];
+  if(D.etape==='fini'){ el.innerHTML=`<div class="t"><span>Mission</span></div><div class="c ok">✓ Quatre paliers lus, quatre animaux reconnus et expliqués.</div>`; return; }
+  const tete=`<div class="t"><span>Palier ${D.k+1}/4 · ${P.nom}</span><span>${{descendre:'Descente',lire:'Lecture',animal:'Animal',adapt:'Adaptation'}[D.etape]}</span></div>`;
+  if(D.etape==='descendre'){ el.innerHTML=`${tete}<div class="c">Descends jusqu'à <b>${P.nom}</b> avec ▼, ↓ ou le curseur, puis arrête-toi. Le Nautile t'accompagne.</div>`; return; }
+  const Q=D.etape==='lire'?P.lire:D.etape==='adapt'?P.adapt:null;
+  if(Q){ const ordre=(D.ordre&&D.ordreCle===D.k+D.etape)?D.ordre:(D.ordre=Q.opts.map((o,i)=>[o,i]).sort(()=>Math.random()-0.5)); D.ordreCle=D.k+D.etape;
+    el.innerHTML=`${tete}<div class="c"><b>${Q.q}</b></div><div class="row">${ordre.map(([o,i])=>`<button type="button" class="qo" data-rep="${i}">${o}</button>`).join('')}</div>`; }
+  else { el.innerHTML=`${tete}<div class="c"><b>Quel animal est adapté à ce palier ?</b> Clique une fiche dans la scène si tu hésites.</div><div class="row">${P.animaux.map((k,i)=>`<button type="button" class="qo" data-rep="${i}">${SPECIES[k].n}<small>${SPECIES[k].sub}</small></button>`).join('')}</div>`; }
+  el.querySelectorAll('[data-rep]').forEach(b=>{ b.onclick=()=>repondreDescente(+b.dataset.rep); });
+}
+function finMission(reussie, secondes, score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  const b=document.getElementById('abMission'); if(b) b.setAttribute('aria-pressed','false');
+  descente=null; majDescente(); shell.api.stage.classList.remove('ab-en-mission');
+  const h=document.getElementById('abHint'); if(h&&modeJeu!=='cours') h.style.display=''; const q=document.getElementById('abQuiz'); if(q) q.style.display=''; const cbn=document.getElementById('abCbn'); if(cbn) cbn.style.display='';
+  if(!reussie){ shell.api.say("La mission s'arrête là. On pourra la reprendre.",'rassurant'); setTimeout(()=>{ if(missionDescente) missionDescente.cacher(); },4000); missionLancee=false; return; }
+  if(M) M.son('cloche',{ volume:0.25 }); direSub('Quatre paliers en '+duree+'. Belle plongée.',6);
+  if(modeJeu!=='cours'){ shell.api.win({ score, stars:t>360?2:3, title:'Quatre paliers en '+duree, learned:shell.cfg.learned.concat(["Chaque milieu impose ses conditions (pression, température, lumière) : les êtres vivants qui y vivent y sont adaptés."]), buddy:"Pression, température, lumière : tu as lu les conditions de vie de quatre milieux et reconnu qui y vit." }); }
+  else { shell.api.say('Mission réussie en '+duree+' : '+score+' points de plus. Les défis continuent.','fier'); if(shell.api.celebrate) shell.api.celebrate(); setTimeout(()=>{ if(missionDescente) missionDescente.cacher(); },9000); }
+}
+/* ---------- ambiance : eau profonde (F225), tic du sonar pendant la descente, souffle à chaque palier ---------- */
+function demarrerAmbiance(){ if(!M||ambEau) return; try{ ambEau=M.ambiance({ type:'eau', volume:0.06 }); }catch(e){ ambEau=null; } }
+window.__monde={ lancerMission, plonger:(d)=>{ depth=Math.max(0,Math.min(11000,d)); syncSlider(); applyDepth(); setAmbientDepth(); }, repondre:repondreDescente, etat:()=>descente, mission:()=>missionDescente, mesures:()=>({ depth, lights }) };
 </script>
 </body>
 </html>

@@ -85,6 +85,23 @@
     .nu-sl { min-width:124px; }
     .nu-hint { bottom:120px; }
   }
+  /* F228 : mission « Tenir la puissance » : panneau d'étape sous la télémétrie, zone de mission sous la fiche */
+  .nu-mis { top:272px; left:14px; width:250px; padding:11px 13px; display:flex; flex-direction:column; gap:7px; z-index:22; }
+  .nu-mis .t { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); display:flex; justify-content:space-between; gap:8px; }
+  .nu-mis .c { font-size:12.5px; line-height:1.45; }
+  .nu-mis .jg { height:7px; border-radius:5px; background:var(--surface-2); overflow:hidden; } .nu-mis .jg i { display:block; height:100%; background:var(--brand-teal); transition:width .2s; }
+  .nu-mis .row { display:flex; flex-wrap:wrap; gap:6px; }
+  .nu-mis .ch { font-family:var(--font-body); font-weight:700; font-size:12px; min-height:40px; padding:4px 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; text-align:left; flex:1 1 45%; }
+  .nu-mis .ch[disabled] { opacity:.55; background:var(--accent-weak); cursor:default; }
+  .nu-mis .ch small { display:block; font-weight:500; color:var(--fg-muted); }
+  .nu-mis .lu { font-family:var(--font-data); font-size:12px; color:var(--accent-text); }
+  .nu-mis .ok { color:var(--brand-teal); font-weight:700; }
+  .mb-mission.nu-mz { top:14px; }
+  @media (max-width:720px){ .nu-mis { top:auto; bottom:212px; left:10px; width:min(250px,70vw); padding:9px 10px; } .nu-mis .c { font-size:12px; } .nu-en-mission .nu-hint { display:none; } .mb-mission.nu-mz { max-height:32%; }
+    /* barre de commande compacte : deux curseurs côte à côte, boutons sur trois colonnes */
+    .nu-ctrl { left:10px; right:10px; transform:none; max-width:none; width:auto; bottom:10px; gap:6px; padding:8px; }
+    .nu-b { font-size:11.5px; min-height:38px; padding:0 8px; flex:1 1 28%; justify-content:center; }
+    .nu-sl { min-width:0; flex:1 1 42%; } .nu-sl .sub { display:none; } .nu-sl label { font-size:9px; } }
   @media (prefers-reduced-motion: reduce){ .nu-info,.nu-tour { transition:none; } .nu-warn { animation:none; } }
 </style>
 </head>
@@ -99,6 +116,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, matPBR, preparerAo } from '../monde-base.js';
 
 const REDUCED = window.Konstrio.REDUCED;
 
@@ -170,6 +188,8 @@ let neutrons = [], flashes = [], flashPool = [], steam = [], flow = [], cityWind
 let mode = 'detente', challenge = null, quizTier = 'debutant', tour = null, camAnim = null;
 let ac = null, humGain = null, telAcc = 0;
 let maxAniso = 8, software = false, skyDome = null;
+/* F228 : outils communs (mission, marche, personnage, ambiance), voir monde-base.js */
+const boucles = []; let accelTest = 1; let M = null, modeJeu = 'detente', marche = null, operatrice = null, missionPuissance = null, missionLancee = false, tenue = null, ambMachine = null, sonMachineT = 0, alarmeT = 2, dernierPas = 0, dernierCentaine = 0, salle = null, voyants = [], synoptique = null, synoT = 0;
 
 /* E14 : légendes des objets pour le socle commun des mondes. */
 function LEGENDE_OPALINE(ob){ const p=ob.userData&&EQUIP[ob.userData.part]; return p?{nom:p.name,phrase:p.sub}:null; }
@@ -215,7 +235,7 @@ function init(){
   stage.appendChild(renderer.domElement);
   maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 8);
   // Détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y échoue → chaîne robuste, AO bakées, jamais noir.
-  try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : ''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  try{ software = renduLogiciel(renderer); }catch(e){ try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : ''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e2){} }
 
   const W = stage.clientWidth, H = stage.clientHeight;
   composer = new EffectComposer(renderer);
@@ -237,6 +257,8 @@ function init(){
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
   controls.minDistance = 8; controls.maxDistance = 70; controls.maxPolarAngle = Math.PI * 0.495;
   controls.target.set(-1, 2.5, 0); controls.autoRotate = REDUCED; controls.autoRotateSpeed = .3;
+  // F228 : outils communs branchés sur la boucle de ce monde
+  try{ M = outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f) }); }catch(e){ M = null; }
 
   // Lumières : soleil + hémisphère + IBL ciel
   scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x38434f, 0.7));
@@ -263,6 +285,7 @@ function init(){
   buildCircuits();
   buildFissionPool();
   buildPylons();
+  buildSalleCommande(); buildOperatrice();
 
   raycaster = new THREE.Raycaster();
   pointer = new THREE.Vector2(-2, -2);
@@ -630,8 +653,12 @@ function buildUI(){
     <button class="nu-b" id="nuCut" aria-pressed="false">🔬 Coupe</button>
     <button class="nu-b" id="nuNot">📚 Notions</button>
     <button class="nu-b" id="nuLabels" aria-pressed="true">🏷️ Étiquettes</button>
-    <button class="nu-b" id="nuView">↺ Vue</button>`;
+    <button class="nu-b" id="nuView">↺ Vue</button>
+    <button class="nu-b" id="nuMission" aria-pressed="false" style="background:linear-gradient(135deg,#5A6275,#2a3140);border-color:transparent;color:#fff">🎛️ Mission</button>
+    <button class="nu-b" id="nuMarche" aria-pressed="false">🚶 Marcher</button>`;
   stage.appendChild(c);
+  c.querySelector('#nuMission').onclick = ()=>{ shell.sound('click'); lancerMission(); };
+  c.querySelector('#nuMarche').onclick = ()=>{ if(!marche) assurerMarche(); if(marche){ marche.bascule(); shell.sound('click'); } };
   c.querySelector('#nuRods').oninput = e=>{ setRods(+e.target.value); };
   c.querySelector('#nuCool').oninput = e=>{ cooling = +e.target.value; document.getElementById('nuCoolV').textContent = cooling+'%'; };
   c.querySelector('#nuScram').onclick = doScram;
@@ -746,6 +773,7 @@ function onDown(e){ setP(e); const h = pick(); if(!h.length) return;
 }
 function onKey(e){
   if(document.querySelector('.ksh-accueil') && !document.querySelector('.ksh-accueil').hidden) return;
+  if(marche && marche.estActif()) return;
   if(e.key==='ArrowUp'){ setRods(Math.max(0, rods-4)); e.preventDefault(); }
   else if(e.key==='ArrowDown'){ setRods(Math.min(100, rods+4)); e.preventDefault(); }
   else if(e.code==='Space'){ doScram(); e.preventDefault(); }
@@ -769,7 +797,7 @@ const TOUR = [
     txt:"Le <b>condenseur</b> recondense la vapeur (circuit bleu), et les <b>tours de refroidissement</b> évacuent la chaleur restante : le panache blanc est de la <b>vapeur d'eau</b>. L'électricité file vers la <b>ville</b> qui s'allume.",
     say:"Et voilà : la ville s'illumine. De l'atome à l'ampoule, tu as suivi tout le chemin !" },
 ];
-function moveCam(p, l, dur=1.7){ camAnim = { t:0, dur, p0:camera.position.clone(), l0:controls.target.clone(), p1:new THREE.Vector3(...p), l1:new THREE.Vector3(...l) }; }
+function moveCam(p, l, dur=1.7){ camAnim = { t:0, dur, t0:performance.now(), p0:camera.position.clone(), l0:controls.target.clone(), p1:new THREE.Vector3(...p), l1:new THREE.Vector3(...l) }; }
 function startTour(){ if(tour) return; startHum(); tour = { i:-1 }; controls.autoRotate = false; scram = false;
   document.getElementById('nuHint').style.display = 'none'; document.getElementById('nuInfo').classList.remove('show');
   if(!cutaway){ cutaway = true; document.getElementById('nuCut').setAttribute('aria-pressed','true'); applyCutaway(); }
@@ -800,7 +828,8 @@ const CHALLS = [
   { type:'click', target:'pressurizer', tier:2, title:'Garder l\'eau liquide', ask:"Clique le composant qui maintient la pression du circuit primaire.", done:"Exact : le pressuriseur garde l'eau liquide malgré la chaleur." },
 ];
 function startMode(m){
-  mode = m; startHum();
+  mode = m; modeJeu = m; startHum(); demarrerAmbiance();
+  if(m !== 'cours') setTimeout(()=>{ if(modeJeu !== 'cours' && !missionLancee) lancerMission(); }, 6500);
   document.getElementById('nuHint').style.display = (m==='cours') ? 'none' : '';
   const info = document.getElementById('nuInfo'); if(info) info.classList.remove('show');
   if(m==='cours'){ shell.setScore(0); chooseDifficulty(); } else { clearQuiz(); shell.setLevel('libre'); }
@@ -864,6 +893,186 @@ function winQuiz(){
 }
 function clearQuiz(){ const b = document.getElementById('nuQuiz'); if(b) b.remove(); challenge = null; }
 
+/* ============================================================
+   F228 : SALLE DE COMMANDE, OPÉRATRICE, MISSION « TENIR LA PUISSANCE »
+   ============================================================ */
+const SALLE_POS = new THREE.Vector3(0, 0, -10.5);
+function texSynoptique(){ const c = document.createElement('canvas'); c.width = 1024; c.height = 320; const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return { c, t }; }
+function dessinerSynoptique(){ if(!synoptique) return; const { c, t } = synoptique; const x = c.getContext('2d');
+  x.fillStyle = '#07142a'; x.fillRect(0,0,1024,320); x.strokeStyle = 'rgba(120,160,220,0.14)'; x.lineWidth = 1; for(let i=0;i<1024;i+=64){ x.beginPath(); x.moveTo(i,0); x.lineTo(i,320); x.stroke(); } for(let j=0;j<320;j+=64){ x.beginPath(); x.moveTo(0,j); x.lineTo(1024,j); x.stroke(); }
+  x.fillStyle = '#9fc4ff'; x.font = '700 26px Nunito, Arial, sans-serif'; x.textAlign = 'left'; x.fillText('SALLE DE COMMANDE · TRANCHE 1', 28, 44);
+  const col = temp > 360 ? '#ff5a4a' : temp > 330 ? '#ffb24a' : '#4de3a3';
+  x.font = '800 86px Nunito, Arial, sans-serif'; x.fillStyle = '#ffffff'; x.fillText(Math.round(power).toLocaleString('fr-FR') + ' MW', 28, 150);
+  x.font = '700 30px Nunito, Arial, sans-serif'; x.fillStyle = col; x.fillText('Cœur : ' + Math.round(temp) + ' °C', 28, 205); x.fillStyle = '#9fc4ff'; x.fillText('Primaire : ' + Math.round(pressure) + ' bar · Barres : ' + Math.round(rods) + ' %', 28, 250);
+  x.fillStyle = 'rgba(255,255,255,0.12)'; x.fillRect(28, 272, 420, 22); x.fillStyle = col; x.fillRect(28, 272, Math.max(4, Math.min(420, power/1450*420)), 22);
+  // chaîne énergétique
+  const boites = [['NUCLÉAIRE','noyaux'],['THERMIQUE','vapeur'],['MÉCANIQUE','turbine'],['ÉLECTRIQUE','réseau']]; const cols = ['#ff8a5a','#ffd27a','#8fd3ff','#ffe070'];
+  boites.forEach(([n, d], i)=>{ const bx = 520 + i*124, by = 92; x.fillStyle = 'rgba(255,255,255,0.08)'; x.fillRect(bx, by, 108, 96); x.strokeStyle = cols[i]; x.lineWidth = 3; x.strokeRect(bx, by, 108, 96); x.fillStyle = cols[i]; x.font = '800 15px Nunito, Arial, sans-serif'; x.textAlign = 'center'; x.fillText(n, bx+54, by+40); x.fillStyle = '#cfe0ff'; x.font = '600 15px Nunito, Arial, sans-serif'; x.fillText(d, bx+54, by+70); if(i<3){ x.fillStyle = '#9fc4ff'; x.font = '800 24px Nunito, Arial, sans-serif'; x.fillText('→', bx+116, by+58); } });
+  x.textAlign = 'left'; x.fillStyle = '#9fc4ff'; x.font = '700 22px Nunito, Arial, sans-serif'; x.fillText(scram ? 'ARRÊT D\'URGENCE' : temp > 360 ? 'ALARME : SURCHAUFFE' : power > 50 ? 'RÉACTEUR CRITIQUE · STABLE' : 'RÉACTEUR AU RALENTI', 520, 250);
+  t.needsUpdate = true; }
+function buildSalleCommande(){
+  salle = new THREE.Group(); salle.position.copy(SALLE_POS); scene.add(salle);
+  const sol = matPBR('concrete_floor_02', { repetition:3, couleur:0xd0d4da }); const solM = new THREE.Mesh(preparerAo(new THREE.BoxGeometry(9.4, 0.16, 6.4)), sol); solM.position.y = 0.08; solM.receiveShadow = true; salle.add(solM);
+  const beton = matPBR('plastered_wall_02', { repetition:2, couleur:0xdfe2e7 });
+  const fond = new THREE.Mesh(preparerAo(new THREE.BoxGeometry(9.4, 3.4, 0.25)), beton); fond.position.set(0, 1.78, -3.1); fond.castShadow = fond.receiveShadow = true; salle.add(fond);
+  [-4.6, 4.6].forEach(x=>{ const m = new THREE.Mesh(preparerAo(new THREE.BoxGeometry(0.25, 3.4, 6.4)), beton); m.position.set(x, 1.78, 0); m.castShadow = m.receiveShadow = true; salle.add(m); });
+  const toit = new THREE.Mesh(new THREE.BoxGeometry(9.6, 0.2, 6.6), mat(0x8e96a2, 0.3, 0.7)); toit.position.y = 3.55; toit.castShadow = true; salle.add(toit);
+  // baie vitrée côté centrale, montants et porte ouverte à droite
+  const verre = new THREE.MeshPhysicalMaterial({ color:0xd8ecff, metalness:0, roughness:0.04, transparent:true, opacity:0.2, clearcoat:1, clearcoatRoughness:0.03, envMapIntensity:1.4, side:THREE.DoubleSide, depthWrite:false });
+  const baie = new THREE.Mesh(new THREE.PlaneGeometry(7.4, 2.6), verre); baie.position.set(-0.9, 1.9, 3.15); salle.add(baie);
+  const cadre = mat(0x3d4552, 0.6, 0.5); [-4.5, -2.0, 0.6, 2.8].forEach(x=>{ const m = new THREE.Mesh(new THREE.BoxGeometry(0.1, 3.4, 0.14), cadre); m.position.set(x, 1.78, 3.15); salle.add(m); });
+  const linteau = new THREE.Mesh(new THREE.BoxGeometry(9.4, 0.4, 0.14), cadre); linteau.position.set(0, 3.25, 3.15); salle.add(linteau);
+  const porte = new THREE.Mesh(new THREE.BoxGeometry(1.1, 2.4, 0.06), mat(0x5d7fa6, 0.4, 0.6)); porte.position.set(4.35, 1.3, 3.6); porte.rotation.y = -1.1; salle.add(porte);
+  // grand écran synoptique, lu en direct
+  synoptique = texSynoptique(); const ecran = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 2.0), new THREE.MeshStandardMaterial({ map:synoptique.t, emissiveMap:synoptique.t, emissive:0xffffff, emissiveIntensity:1.0, color:0x000000, roughness:0.5 })); ecran.position.set(0, 2.05, -2.95); salle.add(ecran);
+  const cadreE = new THREE.Mesh(new THREE.BoxGeometry(6.6, 2.2, 0.06), mat(0x2a303a, 0.5, 0.6)); cadreE.position.set(0, 2.05, -2.99); salle.add(cadreE);
+  // deux pupitres en tôle (Poly Haven CC0), plan incliné couvert de voyants et deux écrans chacun
+  const tole = matPBR('metal_plate', { repetition:2, couleur:0xaab2be, metal:0.55, rugosite:0.5 });
+  const voyMat = (c)=>new THREE.MeshStandardMaterial({ color:c, emissive:c, emissiveIntensity:0.15, roughness:0.4 });
+  [[-2.0, 0.28], [2.0, -0.28]].forEach(([x, ry], k)=>{ const g = new THREE.Group(); g.position.set(x, 0, -0.9); g.rotation.y = ry; salle.add(g);
+    const corps = new THREE.Mesh(preparerAo(new THREE.BoxGeometry(2.6, 0.9, 0.95)), tole); corps.position.y = 0.61; corps.castShadow = corps.receiveShadow = true; g.add(corps);
+    const plan = new THREE.Group(); plan.position.set(0, 1.08, -0.05); plan.rotation.x = -0.42; g.add(plan);
+    const dessus = new THREE.Mesh(preparerAo(new THREE.BoxGeometry(2.6, 0.06, 0.95)), tole); dessus.receiveShadow = true; plan.add(dessus);
+    for(let i=0;i<12;i++) for(let j=0;j<3;j++){ const c = j===0 ? 0x3ae68a : j===1 ? 0xffb347 : 0xff4d4d; const v = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.1), voyMat(c)); v.position.set(-1.15 + i*0.19, 0.05, -0.3 + j*0.18); plan.add(v); voyants.push({ m:v, i, j, k }); }
+    [-0.7, 0.7].forEach(ex=>{ const e = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.3), new THREE.MeshStandardMaterial({ color:0x061428, emissive:0x1b4d8a, emissiveIntensity:0.9, roughness:0.4 })); e.position.set(ex, 0.04, 0.33); e.rotation.x = -Math.PI/2; plan.add(e); });
+    const chaise = new THREE.Group(); chaise.position.set(0, 0, 0.95); g.add(chaise);
+    const assise = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.5), mat(0x2f3a4a, 0.2, 0.8)); assise.position.y = 0.5; chaise.add(assise);
+    const dossier = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.55, 0.08), mat(0x2f3a4a, 0.2, 0.8)); dossier.position.set(0, 0.8, 0.24); chaise.add(dossier);
+    const pied = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45, 8), mat(0x8a93a0, 0.8, 0.3)); pied.position.y = 0.25; chaise.add(pied);
+    reg(corps, 'rods'); });
+  // armoires électriques au fond, néons et lumière froide
+  for(let i=0;i<4;i++){ const arm = new THREE.Mesh(preparerAo(new THREE.BoxGeometry(0.8, 2.2, 0.5)), tole); arm.position.set(-3.6 + (i>1 ? 5.6 : 0) + (i%2)*0.9, 1.1, -2.7); arm.castShadow = arm.receiveShadow = true; salle.add(arm);
+    for(let j=0;j<4;j++){ const v = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.03), voyMat(j%2 ? 0xffb347 : 0x3ae68a)); v.position.set(arm.position.x - 0.2 + (j%2)*0.4, 1.7 - Math.floor(j/2)*0.3, -2.43); salle.add(v); voyants.push({ m:v, i:j, j:1, k:2 }); } }
+  const neonMat = new THREE.MeshStandardMaterial({ color:0xeaf4ff, emissive:0xd8ecff, emissiveIntensity:2.0, roughness:0.4 });
+  [-1.8, 1.8].forEach(z=>{ const n = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.08, 0.16), neonMat); n.position.set(0, 3.42, z); salle.add(n); });
+  const froide = new THREE.PointLight(0xcfe3ff, 1.8, 13, 1.6); froide.position.set(0, 3.1, 0); salle.add(froide);
+  const ecranLum = new THREE.PointLight(0x5a8ad8, 0.9, 8, 1.8); ecranLum.position.set(0, 2.0, -2.2); salle.add(ecranLum);
+  const panneau = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.5, 0.06), mat(0x1f2a3c, 0.3, 0.6)); panneau.position.set(-2.4, 3.0, 3.26); salle.add(panneau);
+  salle.traverse(o=>{ if(o.isMesh && !o.userData.part) o.userData.legende = { nom:'Salle de commande', phrase:'Pupitres, voyants et écran synoptique : c\'est ici que l\'on pilote le réacteur.' }; });
+}
+function buildOperatrice(){ if(!M) return;
+  operatrice = M.personnage({ nom:'Maëlle, opératrice', phrase:"Elle surveille la puissance et la température, et te guide sur les barres de contrôle.", position:[SALLE_POS.x - 1.1, 0.16, SALLE_POS.z + 0.4], taille:1.7, peau:0xd7a98b, haut:0x3a6fb0, bas:0x2a3140, cheveux:0x1e1410, vitesse:1.2, graine:9 });
+  const u = 1; const g = operatrice.groupe;
+  // casque blanc à visière courte
+  const casqueMat = new THREE.MeshStandardMaterial({ color:0xf5f6f8, roughness:0.35, metalness:0.05 });
+  const casque = new THREE.Mesh(new THREE.SphereGeometry(0.14*u, 20, 14, 0, Math.PI*2, 0, Math.PI*0.52), casqueMat); casque.position.y = 1.61*u; casque.scale.set(1, 1.05, 1.02); g.add(casque);
+  const bord = new THREE.Mesh(new THREE.TorusGeometry(0.145*u, 0.014*u, 8, 24), casqueMat); bord.rotation.x = Math.PI/2; bord.position.y = 1.605*u; g.add(bord);
+  const visiere = new THREE.Mesh(new THREE.CylinderGeometry(0.16*u, 0.16*u, 0.02*u, 20, 1, false, -Math.PI*0.4, Math.PI*0.8), casqueMat); visiere.position.set(0, 1.6*u, 0.03*u); g.add(visiere);
+  // badge sur la poitrine
+  const badge = new THREE.Mesh(new THREE.BoxGeometry(0.07*u, 0.09*u, 0.008*u), new THREE.MeshStandardMaterial({ color:0xfafafa, roughness:0.6 })); badge.position.set(-0.08*u, 1.2*u, 0.172*u); g.add(badge);
+  const bande = new THREE.Mesh(new THREE.BoxGeometry(0.07*u, 0.025*u, 0.009*u), new THREE.MeshStandardMaterial({ color:0x2e7fd6, roughness:0.6 })); bande.position.set(-0.08*u, 1.232*u, 0.173*u); g.add(bande);
+  // tablette dans la main gauche
+  const tablette = new THREE.Mesh(new THREE.BoxGeometry(0.14*u, 0.2*u, 0.012*u), new THREE.MeshStandardMaterial({ color:0x20262e, roughness:0.4, emissive:0x1b4d8a, emissiveIntensity:0.5 })); tablette.position.set(0.02*u, -0.56*u, 0.09*u); tablette.rotation.x = -0.5; operatrice.membres.brasG.add(tablette);
+  operatrice.regarder([SALLE_POS.x, 0, SALLE_POS.z - 3]);
+}
+function majSalle(dt){ if(!salle) return;
+  synoT += dt; if(synoT > 0.5){ synoT = 0; dessinerSynoptique(); }
+  const nb = Math.round(Math.min(1, power/1450) * 12); const alarme = temp > 360; const amb = temp > 330; const clign = Math.floor(clock.elapsedTime*3) % 2 === 0;
+  voyants.forEach(v=>{ const m = v.m.material; let on = false; if(v.j === 0) on = v.i < nb; else if(v.j === 1) on = amb && v.i < nb; else on = alarme && clign; m.emissiveIntensity = on ? 1.6 : 0.12; });
+}
+const PALIERS = [
+  { id:'palier1', mw:300, tol:50, tenir:5, texte:'1. 300 MW, tenir 5 s', consigne:"Remonte un peu les barres de contrôle : vise 300 MW (entre 250 et 350) et tiens 5 secondes.", bravo:"300 MW tenus. Les barres sorties laissent passer plus de neutrons : la réaction accélère." },
+  { id:'palier2', mw:900, tol:50, tenir:8, texte:'2. 900 MW, tenir 8 s', consigne:"Continue à sortir les barres : vise 900 MW (850 à 950) et tiens 8 secondes. Garde la température sous 330 °C.", bravo:"900 MW tenus : la réaction est critique, stable. Chaque fission libère de la chaleur, régulière." },
+  { id:'palier3', mw:1300, tol:50, tenir:8, texte:'3. 1 300 MW sous 330 °C, 8 s', consigne:"Dernier palier : 1 300 MW (1 250 à 1 350) avec le cœur sous 330 °C pendant 8 secondes. Si ça chauffe trop, monte le refroidissement.", bravo:"1 300 MW avec un cœur frais : tu as pris plus de chaleur avec le refroidissement. C'est exactement le métier." },
+];
+const CHAINE = [ { id:'nucleaire', nom:'Énergie nucléaire', det:'les noyaux d\'uranium se cassent' }, { id:'thermique', nom:'Énergie thermique', det:'l\'eau chauffe, la vapeur monte' }, { id:'mecanique', nom:'Énergie mécanique', det:'la turbine tourne' }, { id:'electrique', nom:'Énergie électrique', det:'l\'alternateur alimente le réseau' } ];
+const CONV = [
+  { id:'conv1', q:"La centrale produit 900 MW. Combien de watts ?", opts:['900 000 000 W', '900 000 W', '9 000 W'], ok:0, expl:"1 MW = 1 000 000 W, donc 900 MW = 900 000 000 W.", indice:"Méga veut dire million : 1 MW = 1 000 000 W." },
+  { id:'conv2', q:"900 MW pendant 1 h : quelle énergie, en kWh ? Rappel : E = P × t et 1 MW = 1 000 kW.", opts:['900 000 kWh', '900 kWh', '9 000 kWh'], ok:0, expl:"900 MW = 900 000 kW ; 900 000 kW × 1 h = 900 000 kWh.", indice:"Convertis d'abord 900 MW en kW, puis multiplie par 1 h." },
+  { id:'conv3', q:"1 kWh, c'est combien de joules ? Rappel : 1 kW = 1 000 W et 1 h = 3 600 s.", opts:['3 600 000 J', '3 600 J', '1 000 J'], ok:0, expl:"1 000 W × 3 600 s = 3 600 000 J : un kilowattheure vaut 3,6 millions de joules.", indice:"E = P × t avec P en watts et t en secondes : 1 000 × 3 600." },
+];
+function assurerMission(){ if(missionPuissance || !M) return missionPuissance;
+  const obj = PALIERS.map(p=>({ id:p.id, texte:p.texte, points:p.id==='palier1' ? 80 : p.id==='palier2' ? 100 : 120 }));
+  obj.push({ id:'chaine', texte:'4. Chaîne énergétique', points:120 });
+  CONV.forEach((c, i)=>obj.push({ id:c.id, texte:(5+i)+'. Conversion '+(i+1)+'/3', points:100 }));
+  missionPuissance = M.mission({ titre:'Tenir la puissance', cachee:true, chrono:true, chronoCible:360, gagner:false, annonce:false, objectifs:obj, surFin:finMission });
+  missionPuissance.zone.classList.add('nu-mz'); missionPuissance.zone.setAttribute('aria-label', 'Mission : tenir la puissance');
+  return missionPuissance;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  const b = document.getElementById('nuMission'); if(b) b.setAttribute('aria-pressed', 'true');
+  if(missionLancee && !missionPuissance.estFinie()){ missionPuissance.montrer(); majTenue(); return; }
+  missionLancee = true; missionPuissance.montrer(); missionPuissance.commencer(); shell.stage.classList.add('nu-en-mission');
+  tenue = { etape:0, hold:0, chaineEtape:0, convIdx:0, ordreChaine:CHAINE.slice().sort(()=>Math.random()-0.5), erreurs:0 };
+  // la maintenance a baissé le refroidissement : il faudra le remonter au dernier palier
+  scram = false; setRods(88); cooling = 40; const cs = document.getElementById('nuCool'); if(cs) cs.value = 40; const cv = document.getElementById('nuCoolV'); if(cv) cv.textContent = '40%';
+  if(tour) endTour(); document.getElementById('nuInfo').classList.remove('show'); const h = document.getElementById('nuHint'); if(h) h.style.display = 'none'; const q = document.getElementById('nuQuiz'); if(q) q.style.display = 'none';
+  controls.minDistance = 2.5; controls.autoRotate = false;
+  if(!(marche && marche.estActif())) moveCam([SALLE_POS.x + 1.6, 3.0, SALLE_POS.z + 3.0], [SALLE_POS.x - 0.4, 1.4, SALLE_POS.z - 2.4], 2.2);
+  majTenue(); if(M) M.son('coup', { volume:0.2 });
+  shell.say("Mission : tenir la puissance. Depuis la salle de commande, monte la réaction par paliers avec les barres, garde le cœur dans la zone verte, lis la chaîne énergétique, puis réponds à trois conversions. Le chrono tourne.", 'enthousiaste');
+  if(operatrice) setTimeout(()=>{ if(tenue) operatrice.dire('Premier palier : 300 MW. Sors les barres doucement.', 5); }, 2500);
+}
+function tickTenue(dt){ const T = tenue; if(!T || T.etape >= PALIERS.length) return; const P = PALIERS[T.etape];
+  const ok = Math.abs(power - P.mw) <= P.tol && temp <= 330 && !scram;
+  const avant = T.hold; T.hold = ok ? T.hold + dt : 0;
+  if(T.hold >= P.tenir){ T.hold = 0; T.etape++; if(M) M.son('cloche', { volume:0.26, frequence:720 + T.etape*120 }); shell.say(P.bravo, 'celebration');
+    missionPuissance.valider(P.id, missionPuissance.objectifs.find(o=>o.id===P.id).points);
+    if(operatrice) operatrice.dire(T.etape < PALIERS.length ? 'Palier tenu. Suivant : ' + PALIERS[T.etape].mw.toLocaleString('fr-FR') + ' MW.' : 'Puissance tenue. Lis la chaîne de l\'énergie.', 5);
+    majTenue(); return; }
+  if(Math.floor(T.hold*2) !== Math.floor(avant*2) || (ok !== T.okAvant)) { T.okAvant = ok; majTenue(true); }
+}
+function cliquerChaine(id){ const T = tenue; if(!T || T.etape !== PALIERS.length || !missionPuissance || missionPuissance.estFinie()) return;
+  const att = CHAINE[T.chaineEtape]; if(!att) return;
+  if(id !== att.id){ if(M) M.son('clic', { volume:0.18, frequence:300 }); shell.say(['Tout part des noyaux d\'uranium qui se cassent : énergie nucléaire.', 'Après la fission vient la chaleur : l\'eau chauffe, c\'est l\'énergie thermique.', 'La vapeur fait tourner la turbine : énergie mécanique.', 'Pour finir, l\'alternateur produit le courant : énergie électrique.'][T.chaineEtape], 'rassurant'); return; }
+  T.chaineEtape++; if(M) M.son('cloche', { volume:0.2, frequence:660 + T.chaineEtape*110 });
+  if(T.chaineEtape >= CHAINE.length){ shell.say("Chaîne complète : nucléaire, thermique, mécanique, électrique. À chaque étape une part se perd en chaleur : une centrale convertit environ un tiers de l'énergie nucléaire en électricité.", 'fier'); missionPuissance.valider('chaine', 120); T.etape++; if(operatrice) operatrice.dire('Trois conversions, et c\'est gagné.', 4); }
+  else shell.say(['Oui : énergie nucléaire. Ensuite ?', 'Oui : énergie thermique. Et après ?', 'Oui : énergie mécanique. Et à la sortie ?'][T.chaineEtape-1], 'concentre');
+  majTenue();
+}
+function repondreConv(i){ const T = tenue; if(!T || T.etape !== PALIERS.length + 1 || !missionPuissance || missionPuissance.estFinie()) return; const C = CONV[T.convIdx]; if(!C) return;
+  if(i !== C.ok){ T.erreurs++; if(M) M.son('clic', { volume:0.18, frequence:300 }); shell.say((T.erreurs >= 2 ? C.indice : 'Ce n\'est pas ça. Relis les rappels.') + ' Réessaie.', 'rassurant'); return; }
+  if(M) M.son('cloche', { volume:0.24 }); shell.say('Exact. ' + C.expl, 'celebration'); missionPuissance.valider(C.id, 100); T.convIdx++; T.erreurs = 0;
+  if(T.convIdx >= CONV.length) T.etape++;
+  majTenue();
+}
+function majTenue(leger){ let el = document.getElementById('nuMis');
+  if(!tenue || !missionPuissance || missionPuissance.estFinie()){ if(el) el.remove(); return; }
+  if(!el){ el = document.createElement('div'); el.className = 'nu-panel nu-mis'; el.id = 'nuMis'; el.setAttribute('role', 'group'); el.setAttribute('aria-label', 'Étape de la mission'); shell.stage.appendChild(el); }
+  const T = tenue;
+  if(T.etape < PALIERS.length){ const P = PALIERS[T.etape]; const ok = Math.abs(power - P.mw) <= P.tol && temp <= 330 && !scram;
+    if(leger && el.dataset.etape === 'p'+T.etape){ const j = el.querySelector('.jg i'); if(j) j.style.width = Math.min(100, T.hold/P.tenir*100)+'%'; const st = el.querySelector('[data-st]'); if(st) st.textContent = ok ? 'Dans la zone : tiens ' + Math.max(0, Math.ceil(P.tenir - T.hold)) + ' s' : (temp > 330 ? 'Trop chaud : monte le refroidissement' : power < P.mw - P.tol ? 'Pas assez de puissance : sors les barres' : 'Trop de puissance : rentre les barres'); return; }
+    el.dataset.etape = 'p'+T.etape;
+    el.innerHTML = `<div class="t"><span>Palier ${T.etape+1}/3 · ${P.mw.toLocaleString('fr-FR')} MW</span><span>cœur ≤ 330 °C</span></div><div class="c">${P.consigne}</div><div class="jg"><i style="width:${Math.min(100, T.hold/P.tenir*100)}%"></i></div><div class="c" data-st>${ok ? 'Dans la zone : tiens ' + Math.ceil(P.tenir - T.hold) + ' s' : 'Règle les barres avec le curseur en bas.'}</div>`;
+  } else if(T.etape === PALIERS.length){ el.dataset.etape = 'chaine';
+    const lu = CHAINE.slice(0, T.chaineEtape).map(c=>c.nom.replace('Énergie ', '')).join(' → ');
+    el.innerHTML = `<div class="t"><span>Chaîne énergétique</span><span>${T.chaineEtape}/4</span></div><div class="c">Dans quel ordre l'énergie se transforme-t-elle ? Clique la première forme, puis la deuxième, et ainsi de suite. L'écran du fond peut t'aider.</div><div class="row">${T.ordreChaine.map(c=>`<button type="button" class="ch" data-chaine="${c.id}" ${CHAINE.indexOf(c) < T.chaineEtape ? 'disabled' : ''}>${c.nom}<small>${c.det}</small></button>`).join('')}</div><div class="lu">${lu || '…'}${T.chaineEtape > 0 && T.chaineEtape < 4 ? ' → ?' : ''}</div>`;
+    el.querySelectorAll('[data-chaine]').forEach(b=>{ b.onclick = ()=>cliquerChaine(b.dataset.chaine); });
+  } else if(T.etape === PALIERS.length + 1){ const C = CONV[T.convIdx]; el.dataset.etape = 'c'+T.convIdx;
+    if(!T.ordreConv || T.ordreConvIdx !== T.convIdx){ T.ordreConv = C.opts.map((o, i)=>[o, i]).sort(()=>Math.random()-0.5); T.ordreConvIdx = T.convIdx; }
+    el.innerHTML = `<div class="t"><span>Conversion ${T.convIdx+1}/3</span><span>E = P × t</span></div><div class="c"><b>${C.q}</b></div><div class="row">${T.ordreConv.map(([o, i])=>`<button type="button" class="ch" data-conv="${i}">${o}</button>`).join('')}</div>`;
+    el.querySelectorAll('[data-conv]').forEach(b=>{ b.onclick = ()=>repondreConv(+b.dataset.conv); });
+  } else { el.innerHTML = `<div class="t"><span>Mission</span></div><div class="c ok">✓ Puissance tenue, chaîne lue, conversions justes.</div>`; }
+}
+function finMission(reussie, secondes, score){ const t = Math.round(secondes); const duree = Math.floor(t/60)+' min '+(t%60)+' s';
+  const b = document.getElementById('nuMission'); if(b) b.setAttribute('aria-pressed', 'false');
+  tenue = null; majTenue(); shell.stage.classList.remove('nu-en-mission'); controls.minDistance = 8;
+  const h = document.getElementById('nuHint'); if(h && modeJeu !== 'cours') h.style.display = ''; const q = document.getElementById('nuQuiz'); if(q) q.style.display = '';
+  if(!reussie){ shell.say("La mission s'arrête là. On pourra la reprendre.", 'rassurant'); setTimeout(()=>{ if(missionPuissance) missionPuissance.cacher(); }, 4000); missionLancee = false; return; }
+  if(M) M.son('cloche', { volume:0.25 }); if(operatrice) operatrice.dire('Tranche pilotée en ' + duree + '. Bien joué.', 6);
+  if(modeJeu !== 'cours'){ shell.win({ score, stars:t > 360 ? 2 : 3, title:'Puissance tenue en ' + duree, learned:shell.cfg.learned.concat(["La chaîne énergétique : nucléaire, thermique, mécanique, électrique.", "E = P × t : 1 MW = 1 000 000 W, 1 kWh = 3 600 000 J."]), buddy:"Trois paliers tenus, une chaîne énergétique lue, trois conversions justes : tu sais lire une centrale." }); }
+  else { shell.say('Mission réussie en ' + duree + ' : ' + score + ' points de plus. Les défis continuent.', 'fier'); if(shell.celebrate) shell.celebrate(); setTimeout(()=>{ if(missionPuissance) missionPuissance.cacher(); }, 9000); }
+}
+/* ---------- marche dans la salle de commande et sur le site (F223) ---------- */
+function assurerMarche(){ if(marche || !M) return marche;
+  const S = SALLE_POS; const dansSalle = (x, z)=> Math.abs(x - S.x) < 4.7 && z > S.z - 3.2 && z < S.z + 3.2;
+  marche = M.marcher({ depart:[S.x, 0, S.z + 1.6], yaw:0, hauteur:1.65, vitesse:2.6, solA:(x, z)=>(dansSalle(x, z) ? 0.16 : 0.03), limites:{ xmin:-16, xmax:17, zmin:S.z - 2.9, zmax:6 },
+    collision:(x, z)=>{
+      if(dansSalle(x, z)){ if(Math.abs(x - S.x) > 4.3) return true; if(Math.abs(z - (S.z + 3.15)) < 0.3 && !(x > S.x + 3.3 && x < S.x + 4.4)) return true;
+        if(Math.hypot(x - (S.x - 2.0), z - (S.z - 0.9)) < 1.5 || Math.hypot(x - (S.x + 2.0), z - (S.z - 0.9)) < 1.5) return true; if(z < S.z - 2.5) return true; }
+      else if(z < S.z + 3.5 && z > S.z - 3.5 && Math.abs(x - S.x) < 4.9 && Math.abs(x - S.x) > 4.3) return true;
+      if(Math.hypot(x + 9, z) < 3.8) return true; if(x > -3.2 && x < 6.4 && z > -1.9 && z < 2.7) return true;
+      if(Math.hypot(x - 9.5, z + 4.5) < 2.9 || Math.hypot(x - 13, z - 3) < 2.9) return true; if(Math.hypot(x + 6, z + 1.9) < 1.2) return true;
+      return operatrice && Math.hypot(x - operatrice.position().x, z - operatrice.position().z) < 0.6; },
+    aide:'Flèches ou ZQSD pour marcher dans la salle de commande, glisse pour regarder. Échap : vue libre.',
+    surPas:()=>{ const n = performance.now(); if(n - dernierPas > 420){ dernierPas = n; M.son('pas', { volume:0.14 }); } },
+    surChangement:(on)=>{ const b = document.getElementById('nuMarche'); if(b) b.setAttribute('aria-pressed', String(on)); if(on){ camAnim = null; shell.say("Tu es dans la salle de commande. Regarde l'écran du fond et les pupitres, sors par la porte à droite pour voir le site ; Échap pour revenir à la vue libre.", 'concentre'); } } });
+  return marche;
+}
+/* ---------- ambiance : souffle grave de la salle des machines (F225), le bourdon existant reste ---------- */
+function demarrerAmbiance(){ if(!M || ambMachine) return; try{ ambMachine = M.ambiance({ type:'machine', volume:0.03 }); }catch(e){ ambMachine = null; } }
+window.__monde = { lancerMission, regler:(r, c)=>{ if(r != null) setRods(r); if(c != null){ cooling = c; const cs = document.getElementById('nuCool'); if(cs) cs.value = c; const cv = document.getElementById('nuCoolV'); if(cv) cv.textContent = c + '%'; } }, chaine:cliquerChaine, repondre:repondreConv, etat:()=>tenue, mission:()=>missionPuissance, accelerer:(k)=>{ accelTest = k || 1; }, mesures:()=>({ power, temp, rods, cooling }), camera:()=>camera, cible:()=>controls.target };
+
 /* ====== THÈME / RESIZE ====== */
 function applyTheme(){ const dark = document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x0a1424:0xbcd0e6, 1); if(scene.fog) scene.fog.color.setHex(dark?0x1a2740:0x9fb4cf); }
 function onResize(){ const s = shell.stage; if(!s.clientWidth) return; camera.aspect = s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth, s.clientHeight); composer.setSize(s.clientWidth, s.clientHeight); }
@@ -915,11 +1124,18 @@ function stepPhysics(dt){
 /* ====== ANIMATION ====== */
 function animate(){
   requestAnimationFrame(animate); const dt = Math.min(0.05, clock.getDelta()); const t = clock.elapsedTime;
-  stepPhysics(dt);
+  stepPhysics(dt * accelTest);
+  if(tenue) tickTenue(dt * accelTest);
+  boucles.forEach(f=>{ try{ f(dt, t); }catch(e){ /* rien */ } });
+  // F225 : souffle grave qui suit la puissance, tic des instruments à chaque centaine de MW, coup d'alarme en surchauffe
+  if(ambMachine){ sonMachineT += dt; if(sonMachineT > 0.3){ sonMachineT = 0; ambMachine.volume(0.03 + Math.min(1, power/1450)*0.12); } }
+  { const c = Math.floor(power/100); if(c !== dernierCentaine){ dernierCentaine = c; if(M && power > 50) M.son('tic', { volume:0.09, frequence:1500 }); } }
+  if(temp > 360 && !scram){ alarmeT += dt; if(alarmeT >= 2){ alarmeT = 0; if(M) M.son('coup', { volume:0.35 }); } } else alarmeT = 2;
+  majSalle(dt);
   const reactivity = (100-rods)/100;
 
   // Caméra guidée
-  if(camAnim){ camAnim.t = Math.min(1, camAnim.t + dt/camAnim.dur); const e = 1-Math.pow(1-camAnim.t,3);
+  if(camAnim){ camAnim.t = Math.min(1, (performance.now() - camAnim.t0) / (camAnim.dur*1000)); const e = 1-Math.pow(1-camAnim.t,3);
     camera.position.lerpVectors(camAnim.p0, camAnim.p1, e); controls.target.lerpVectors(camAnim.l0, camAnim.l1, e); if(camAnim.t>=1) camAnim = null; }
 
   // Barres : enfoncées descendent dans le cœur

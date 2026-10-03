@@ -82,6 +82,22 @@
   .dn-legend b { display:inline-flex; align-items:center; gap:5px; font-weight:700; }
   .dn-legend .d { width:9px; height:9px; border-radius:999px; }
   @media (max-width:720px){ .dn-info{width:min(290px,86vw)} .dn-legend{display:none} .dn-species{bottom:12px} .dn-tools{bottom:70px} }
+  /* F228 : mission « Fouille et datation » : panneau de fouille à gauche, frise des ères, zone de mission sous la fiche */
+  .dn-fouille { position:absolute; left:14px; top:88px; width:300px; max-width:84vw; z-index:21; background:color-mix(in srgb,var(--surface) 92%,transparent); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-lg); backdrop-filter:blur(10px); padding:11px 14px 13px; display:flex; flex-direction:column; gap:8px; }
+  .dn-fouille .t { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); display:flex; justify-content:space-between; gap:8px; }
+  .dn-fouille .c { font-size:12.5px; line-height:1.45; }
+  .dn-fouille .jg { height:7px; border-radius:5px; background:var(--surface-2); overflow:hidden; } .dn-fouille .jg i { display:block; height:100%; background:var(--brand-amber); transition:width .2s; }
+  .dn-frise { display:flex; height:44px; border-radius:9px; overflow:hidden; border:1px solid var(--border); }
+  .dn-frise button { flex:1; border:none; font-family:var(--font-body); font-weight:800; font-size:11.5px; color:#fff; cursor:pointer; text-shadow:0 1px 3px rgba(0,0,0,.5); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; min-height:44px; padding:0 2px; }
+  .dn-frise button small { font-weight:600; font-size:8.5px; opacity:.95; white-space:nowrap; }
+  .dn-frise button[data-place="1"] { outline:3px solid #fff; outline-offset:-3px; }
+  .dn-fouille .row { display:flex; flex-wrap:wrap; gap:6px; }
+  .dn-fouille .qo { font-family:var(--font-body); font-weight:700; font-size:12px; min-height:40px; padding:5px 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; text-align:left; flex:1 1 100%; }
+  .dn-fouille .qo:hover { border-color:var(--accent); }
+  .dn-fouille .ok { color:var(--brand-teal); font-weight:700; }
+  .mb-mission.dn-mz { top:88px; }
+  .dn-en-mission .dn-tools .dn-tb:not(#dnMission):not(#dnMarche) { display:none; }
+  @media (max-width:720px){ .dn-fouille { top:auto; bottom:74px; left:10px; width:min(300px,calc(100vw - 100px)); padding:9px 10px; max-height:44%; overflow:auto; } .dn-en-mission .dn-tools, .dn-en-mission .dn-species, .dn-en-mission .dn-hint { display:none !important; } .mb-mission.dn-mz { top:88px; max-height:30%; } }
 </style>
 </head>
 <body>
@@ -95,6 +111,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, matPBR, preparerAo } from '../monde-base.js';
 let composer;
 const REDUCED=window.Konstrio.REDUCED;
 
@@ -180,6 +197,9 @@ let scene,camera,renderer,controls,raycaster,pointer,ground,human,volcano,smoke,
 let vegGroups={}, dinoMeshes={}, clock, quiz=null, hovered=null;
 let tour=null, camAnim=null, ac=null, ambGain=null;
 const U=0.5; // 1 mètre = 0.5 unité
+/* F228 : outils communs (mission, marche, personnage, ambiance), voir monde-base.js */
+const boucles=[]; let M=null, modeJeu='detente', marche=null, paleo=null, missionFouille=null, missionLancee=false, fouille=null, ambVent=null, ambForet=null, dernierPas=0, chantier=null, poussieres=[];
+const FOSSILES=[]; // remplis par buildChantier
 const tmpV=new THREE.Vector3();
 
 /* E14 : légendes des objets pour le socle commun des mondes. */
@@ -199,7 +219,7 @@ const shell=window.Konstrio.createGame({
   },
   learned:["Trois grandes ères : Trias, Jurassique, Crétacé, sur plus de 165 millions d'années.","Certains dinosaures avaient des plumes (Vélociraptor, Archæopteryx) : les oiseaux en descendent.","La science distingue ce qui est confirmé par les fossiles de ce qui reste une hypothèse d'artiste."],
   onReady:(api)=>init(api),
-  onStart:(m,api)=>{ mode=m; syncSpeciesBar(); if(m==='cours'){ api.setScore(0); startQuiz(); } else api.setLevel('libre'); },
+  onStart:(m,api)=>{ mode=m; modeJeu=m; syncSpeciesBar(); demarrerAmbiance(); if(m==='cours'){ api.setScore(0); startQuiz(); } else { api.setLevel('libre'); setTimeout(()=>{ if(modeJeu!=='cours'&&!missionLancee) lancerMission(); },6500); } },
   onRestart:(api)=>{ if(mode==='cours'){ api.setScore(0); startQuiz(); } },
 });
 
@@ -213,7 +233,7 @@ function init(api){
   renderer.shadowMap.enabled=!REDUCED; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   _maxAniso=Math.min(8,renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
   // Garde-fou runtime : détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produirait du noir → chaîne robuste sans GTAO (l'occlusion vient des cartes AO bakées)
-  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render|mesa|microsoft basic/i.test(rn); }catch(e){}
+  let software=false; try{ software=renduLogiciel(renderer); }catch(e){ try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render|mesa|microsoft basic/i.test(rn); }catch(e2){} }
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
   if(software || REDUCED){
@@ -229,6 +249,8 @@ function init(api){
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.06; controls.maxPolarAngle=Math.PI/2.08; controls.minDistance=2.4; controls.maxDistance=95; controls.target.set(0,4,0); controls.autoRotate=REDUCED; controls.autoRotateSpeed=.25;
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bp, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
+  // F228 : outils communs branchés sur la boucle de ce monde
+  try{ M=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f) }); }catch(e){ M=null; }
 
   // Éclairage cinématique : ciel/sol + soleil directionnel (ombres douces) + contre-jour bleuté
   hemi=new THREE.HemisphereLight(0xffffff,0x55503a,0.85); scene.add(hemi);
@@ -245,7 +267,7 @@ function init(api){
 
   buildSky(); buildGround(); buildScenery();
   human=makeHuman(); human.visible=false; scene.add(human);
-  buildDinos();
+  buildDinos(); buildChantier(); buildPaleontologue();
   raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
   buildUI(); setEra(1,true);
   renderer.domElement.addEventListener('pointermove',onMove); renderer.domElement.addEventListener('pointerdown',onDown);
@@ -594,9 +616,12 @@ function buildGround(){
   const geo=new THREE.PlaneGeometry(360,360,90,90); const p=geo.attributes.position;
   for(let i=0;i<p.count;i++){ const x=p.getX(i), y=p.getY(i); const r=Math.hypot(x,y);
     let h=Math.sin(x*0.05)*Math.cos(y*0.045)*1.1 + Math.sin(x*0.13+y*0.07)*0.5;
+    h*=Math.min(1,Math.max(0,(r-6)/4)); // F228 : le centre est plat, c'est le chantier de fouille
     if(r>60) h+=(r-60)*0.06; p.setZ(i,h); }
   geo.computeVertexNormals(); geo.rotateX(-Math.PI/2); enableAOuv(geo);
   groundMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,metalness:0,envMapIntensity:0.55});
+  // F228 : le chantier de fouille est un trou rectangulaire découpé dans le sol (plans de coupe, intersection)
+  groundMat.clippingPlanes=[ new THREE.Plane(new THREE.Vector3(1,0,0),-4.3), new THREE.Plane(new THREE.Vector3(-1,0,0),-4.3), new THREE.Plane(new THREE.Vector3(0,0,1),-3.2), new THREE.Plane(new THREE.Vector3(0,0,-1),-3.2) ]; groundMat.clipIntersection=true; renderer.localClippingEnabled=true;
   ground=new THREE.Mesh(geo,groundMat); ground.receiveShadow=true; scene.add(ground);
   setGroundEra(era);
 }
@@ -663,8 +688,12 @@ function buildUI(){
     <button class="dn-tb bone" id="dnSkel" aria-pressed="false">🦴 Voir le squelette</button>
     <button class="dn-tb" id="dnScale" aria-pressed="false">📏 Comparer à un humain</button>
     <button class="dn-tb" id="dnLabels" aria-pressed="true">🏷️ Étiquettes</button>
-    <button class="dn-tb danger" id="dnImpact" aria-pressed="false" disabled>☄️ Impact de l'astéroïde</button>`;
+    <button class="dn-tb danger" id="dnImpact" aria-pressed="false" disabled>☄️ Impact de l'astéroïde</button>
+    <button class="dn-tb" id="dnMission" aria-pressed="false" style="background:linear-gradient(135deg,#7a5a3a,#3a2818);border-color:transparent;color:#fff">⛏️ Mission</button>
+    <button class="dn-tb" id="dnMarche" aria-pressed="false">🚶 Marcher</button>`;
   stage.appendChild(tools);
+  tools.querySelector('#dnMission').onclick=()=>{ shell.sound('click'); lancerMission(); };
+  tools.querySelector('#dnMarche').onclick=()=>{ if(!marche) assurerMarche(); if(marche){ marche.bascule(); shell.sound('click'); } };
   tools.querySelector('#dnTour').onclick=startTour;
   const info=document.createElement('div'); info.className='dn-info'; info.id='dnInfo'; stage.appendChild(info);
   const tp=document.createElement('div'); tp.className='dn-tour'; tp.id='dnTourP'; stage.appendChild(tp);
@@ -724,7 +753,7 @@ function onResize(){ const s=shell.api.stage; if(!s.clientWidth)return; camera.a
 function setPointer(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
 function pickDino(){ raycaster.setFromCamera(pointer,camera); const vis=Object.values(dinoMeshes).filter(g=>g.visible); const hits=raycaster.intersectObjects(vis,true); if(!hits.length)return null; let o=hits[0].object; while(o.parent && !o.userData.species) o=o.parent; return o.userData.species?o:null; }
 function onMove(e){ setPointer(e); const g=pickDino(); hovered=g?g.userData.key:null; renderer.domElement.style.cursor=g?'pointer':'grab'; }
-function onDown(e){ setPointer(e); const o=pickDino(); if(o){ openInfo(o.userData.species,o.userData.key); focusDino(o); if(scaleHuman){ human.position.set(o.position.x,0,o.position.z+2); } checkQuiz(o.userData.key); } else if(mode==='detente'){ clearFocus(); } }
+function onDown(e){ setPointer(e); if(fouille&&brosserAuPointeur()) return; const o=pickDino(); if(o){ openInfo(o.userData.species,o.userData.key); focusDino(o); if(scaleHuman){ human.position.set(o.position.x,0,o.position.z+2); } checkQuiz(o.userData.key); } else if(mode==='detente'){ clearFocus(); } }
 // mode inspection : cadrage serré (rayon englobant) + l'animal se fige pour l'admirer
 function focusDino(g){ focusKey=g.userData.key; Object.values(dinoMeshes).forEach(o=>o.userData.focused=false); g.userData.focused=true; syncSpeciesBar();
   g.updateWorldMatrix(true,true);
@@ -857,8 +886,158 @@ function animate(){ requestAnimationFrame(animate); const t=clock.getElapsedTime
     updateLabel(g);
   });
   if(hovered&&dinoMeshes[hovered]&&!dinoMeshes[hovered].visible) hovered=null;
+  boucles.forEach(f=>{ try{ f(dt,t); }catch(e){ /* rien */ } });
+  for(let i=poussieres.length-1;i>=0;i--){ const pp=poussieres[i]; pp.userData.vie-=dt*1.6; if(pp.userData.vie<=0){ scene.remove(pp); poussieres.splice(i,1); continue; } pp.position.y+=dt*0.5; pp.material.opacity=pp.userData.vie*0.7; const sc=0.5+(1-pp.userData.vie)*1.2; pp.scale.set(sc,sc,1); }
   controls.update(); composer.render();
 }
+
+/* ============================================================
+   F228 : CHANTIER DE FOUILLE, PALÉONTOLOGUE, MISSION « FOUILLE ET DATATION »
+   ============================================================ */
+const ERES_FRISE=[ { id:0, nom:'Trias', dates:'−252 à −201 Ma', col:'#b8653a' }, { id:1, nom:'Jurassique', dates:'−201 à −145 Ma', col:'#8a9a6a' }, { id:2, nom:'Crétacé', dates:'−145 à −66 Ma', col:'#5f8a5a' } ];
+// trois fossiles, du haut (le plus récent) vers le bas (le plus ancien) : chaque couche porte son ère
+const FOUILLES=[
+  { id:1, era:2, nom:'Corne de Tricératops', couche:'couche du haut', y:-0.5, pos:[-1.6,-0.5,0.9],
+    question:"Ce fossile est dans la couche du haut, la plus récente. Après −66 millions d'années, plus aucun fossile de Tricératops. Pourquoi ?",
+    opts:["Une extinction massive (l'astéroïde) a fait disparaître l'espèce.","Les Tricératops ont appris à voler.","Les couches du haut ne gardent jamais de fossiles."], ok:0,
+    expl:"Il y a 66 millions d'années, un astéroïde provoque une extinction massive : 75 % des espèces disparaissent, dont tous les grands dinosaures." },
+  { id:2, era:1, nom:'Archæopteryx (plume et os)', couche:'couche du milieu', y:-1.0, pos:[0.4,-1.0,-0.3],
+    question:"Archæopteryx a des plumes comme un oiseau, mais aussi des dents et une longue queue osseuse comme un dinosaure. Qu'est-ce que cela montre ?",
+    opts:["Un lien de parenté entre dinosaures et oiseaux : les oiseaux descendent de dinosaures à plumes.","Que les oiseaux existaient avant les dinosaures.","Que les plumes servaient seulement à nager."], ok:0,
+    expl:"Des caractères des deux groupes dans un même animal : c'est la trace d'une parenté. Les oiseaux d'aujourd'hui sont des dinosaures à plumes." },
+  { id:3, era:0, nom:'Squelette de Cœlophysis', couche:'couche du bas', y:-1.5, pos:[0.2,-1.5,0.2],
+    question:"Ce fossile est dans la couche la plus profonde. Que peut-on en conclure ?",
+    opts:["C'est le plus ancien des trois : une couche se dépose sur celles qui existent déjà, donc le bas est plus vieux que le haut.","C'est le plus récent : les fossiles s'enfoncent avec le temps.","On ne peut rien dire : la profondeur ne compte pas."], ok:0,
+    expl:"Les sédiments se déposent en couches successives : la couche du bas est la plus ancienne. C'est la datation relative." },
+];
+let strateMats=null;
+function buildChantier(){
+  chantier=new THREE.Group(); chantier.position.set(0,0,0); scene.add(chantier);
+  // trois strates colorées (roche et sable Poly Haven CC0) : Crétacé en haut, Jurassique au milieu, Trias en bas
+  strateMats=[ matPBR('rock_boulder_dry',{ repetition:2, couleur:0xd86f45, rugosite:1 }), matPBR('rocky_terrain',{ repetition:2, couleur:0xf2e4b6, rugosite:1 }), matPBR('aerial_grass_rock',{ repetition:2, couleur:0x9aa3a6, rugosite:1 }) ];
+  const niveaux=[ { w:7.0, d:5.0, y:-0.5, era:2 }, { w:5.0, d:3.4, y:-1.0, era:1 }, { w:3.0, d:2.0, y:-1.5, era:0 } ];
+  let prev={ w:8.6, d:6.4, y:0 };
+  niveaux.forEach((n)=>{ const matS=strateMats[n.era]; const h=prev.y-n.y;
+    // la terrasse (sol de la couche)
+    const sol=new THREE.Mesh(preparerAo(new THREE.BoxGeometry(n.w,0.08,n.d)),matS); sol.position.y=n.y-0.04; sol.receiveShadow=true; chantier.add(sol);
+    // les parois : quatre murs entre la terrasse précédente et celle-ci
+    [[0,-(n.d/2),prev.w,0],[0,(n.d/2),prev.w,0],[-(n.w/2),0,0,prev.d],[(n.w/2),0,0,prev.d]].forEach(([x,z,wx,wz],i)=>{ const geo=preparerAo(i<2?new THREE.BoxGeometry(wx,h,(prev.d-n.d)/2):new THREE.BoxGeometry((prev.w-n.w)/2,h,wz));
+      const m=new THREE.Mesh(geo,matS); m.position.set(i<2?0:(x<0?-(n.w/2+(prev.w-n.w)/4):(n.w/2+(prev.w-n.w)/4)), n.y+h/2, i<2?(z<0?-(n.d/2+(prev.d-n.d)/4):(n.d/2+(prev.d-n.d)/4)):0); m.castShadow=m.receiveShadow=true; chantier.add(m); });
+    prev={ w:n.w, d:n.d, y:n.y };
+  });
+  // margelle de terre autour, piquets et cordeau du carroyage
+  [[0,3.5,9.6,0.4],[0,-3.5,9.6,0.4],[4.6,0,0.4,7.6],[-4.6,0,0.4,7.6]].forEach(([x,z,w,d])=>{ const bord=new THREE.Mesh(preparerAo(new THREE.BoxGeometry(w,0.14,d)),strateMats[2]); bord.position.set(x,0.03,z); bord.receiveShadow=true; chantier.add(bord); });
+  const piquet=new THREE.MeshStandardMaterial({ color:0x9b6a3a, roughness:0.9 }); const corde=new THREE.LineBasicMaterial({ color:0xf0e6c8 });
+  const coins=[[-4.5,-3.4],[4.5,-3.4],[4.5,3.4],[-4.5,3.4]]; coins.forEach(([x,z])=>{ const pq=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.05,0.7,8),piquet); pq.position.set(x,0.35,z); pq.castShadow=true; chantier.add(pq); });
+  chantier.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(coins.map(([x,z])=>new THREE.Vector3(x,0.62,z))),corde));
+  // la tente et la caisse de l'équipe
+  const tente=new THREE.Mesh(new THREE.ConeGeometry(1.6,1.4,4,1,true),new THREE.MeshStandardMaterial({ color:0xb9a37e, roughness:0.95, side:THREE.DoubleSide })); tente.position.set(-6.6,0.7,-2.4); tente.rotation.y=Math.PI/4; tente.castShadow=true; chantier.add(tente);
+  const caisse=new THREE.Mesh(preparerAo(new THREE.BoxGeometry(1.0,0.5,0.6)),matPBR('worn_planks',{ repetition:1, couleur:0xc9a36a })); caisse.position.set(5.6,0.27,2.6); caisse.castShadow=true; chantier.add(caisse);
+  chantier.traverse(o=>{ if(o.isMesh) o.userData.legende={ nom:'Chantier de fouille', phrase:'Trois couches de roche : la plus profonde est la plus ancienne.' }; });
+  // les trois fossiles, en matériau os, sous un sédiment à dégager au pinceau
+  const os=new THREE.MeshStandardMaterial({ color:0xe9dfc6, roughness:0.62, metalness:0 }); const osSombre=new THREE.MeshStandardMaterial({ color:0x5a4a3a, roughness:0.8 });
+  FOUILLES.forEach((F)=>{ const g=new THREE.Group(); g.position.fromArray(F.pos); chantier.add(g);
+    if(F.id===1){ const corne=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.7,10),os); corne.rotation.z=Math.PI/2.3; corne.position.set(0,0.1,0); g.add(corne); const base=new THREE.Mesh(new THREE.SphereGeometry(0.16,12,10),os); base.position.set(-0.3,0.08,0); base.scale.set(1,0.5,1); g.add(base); }
+    else if(F.id===2){ const dalle=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.06,0.7),osSombre); dalle.position.y=0.03; g.add(dalle); const plume=new THREE.Mesh(new THREE.PlaneGeometry(0.22,0.5),new THREE.MeshStandardMaterial({ color:0xd8d0c0, alphaMap:featherTex(), transparent:true, alphaTest:0.4, side:THREE.DoubleSide, roughness:0.8 })); plume.rotation.x=-Math.PI/2; plume.rotation.z=0.5; plume.position.set(-0.15,0.065,0); g.add(plume);
+      for(let i=0;i<5;i++){ const v=new THREE.Mesh(new THREE.SphereGeometry(0.035,8,6),os); v.position.set(0.1+i*0.08,0.075,0.12-i*0.03); g.add(v); } const cr=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.05,0.08),os); cr.position.set(0.1,0.075,0.2); g.add(cr); }
+    else { for(let i=0;i<9;i++){ const v=new THREE.Mesh(new THREE.SphereGeometry(0.05-i*0.003,8,6),os); v.position.set(-0.55+i*0.13,0.05,Math.sin(i*0.6)*0.06); g.add(v); } for(let i=1;i<6;i++){ const c=new THREE.Mesh(new THREE.TorusGeometry(0.1,0.012,5,10,Math.PI),os); c.position.set(-0.55+i*0.13,0.05,0); c.rotation.y=Math.PI/2; c.rotation.z=Math.PI; g.add(c); }
+      const crane=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.08,0.09),os); crane.position.set(0.7,0.05,0.02); g.add(crane); [-0.2,0.15].forEach(x=>{ const pa=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.3,6),os); pa.rotation.z=1.2; pa.position.set(x,0.05,0.18); g.add(pa); }); }
+    g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.userData.legende={ nom:F.nom, phrase:'Fossile de la '+F.couche+'.' }; } });
+    // le sédiment qui le recouvre : il s'amincit à chaque coup de pinceau
+    const sed=new THREE.Mesh(preparerAo(new THREE.BoxGeometry(1.5,0.22,1.1)),strateMats[F.era].clone()); sed.position.set(0,0.11,0); sed.castShadow=sed.receiveShadow=true; sed.userData.fossile=F.id; sed.userData.legende={ nom:F.couche.charAt(0).toUpperCase()+F.couche.slice(1), phrase:'Quelque chose affleure. Pinceau en main, dégage-le.' }; g.add(sed);
+    F.groupe=g; F.sediment=sed; F.coups=0; FOSSILES.push(F); });
+  // une lumière chaude posée au-dessus du chantier
+  const chaude=new THREE.PointLight(0xffd9a6,2.6,20,1.4); chaude.position.set(0.5,3.4,0.5); chantier.add(chaude);
+}
+function buildPaleontologue(){ if(!M) return;
+  paleo=M.personnage({ nom:'Awena, paléontologue', phrase:"Elle dégage les fossiles au pinceau et les replace sur la frise des temps géologiques.", position:[-4.2,0.08,4.2], taille:1.7*U, peau:0xd8a98a, haut:0xc9b48c, bas:0x6a5a44, cheveux:0x3a2416, chapeau:0xb08a5a, vitesse:0.7, graine:4 });
+  const u=U; const g=paleo.groupe;
+  // pinceau dans la main droite, loupe à la ceinture
+  const manche=new THREE.Mesh(new THREE.CylinderGeometry(0.012*u,0.014*u,0.26*u,8),new THREE.MeshStandardMaterial({ color:0x8a5a2b, roughness:0.8 })); manche.position.set(0.02*u,-0.6*u,0.07*u); manche.rotation.x=Math.PI/2.3; paleo.membres.brasD.add(manche);
+  const poils=new THREE.Mesh(new THREE.BoxGeometry(0.05*u,0.07*u,0.025*u),new THREE.MeshStandardMaterial({ color:0xe8d8b0, roughness:1 })); poils.position.set(0,0.16*u,0); manche.add(poils);
+  const loupe=new THREE.Mesh(new THREE.TorusGeometry(0.05*u,0.01*u,6,16),new THREE.MeshStandardMaterial({ color:0xc8a040, metalness:0.7, roughness:0.3 })); loupe.position.set(0.18*u,0.88*u,0.05*u); g.add(loupe);
+  paleo.regarder([0,0,0]);
+}
+function assurerMission(){ if(missionFouille||!M) return missionFouille;
+  const obj=[]; FOUILLES.forEach((F,i)=>{ obj.push({ id:'deg'+F.id, texte:(i*2+1)+'. Pinceau : '+F.couche, points:80 }); obj.push({ id:'dat'+F.id, texte:(i*2+2)+'. Dater, expliquer', points:120 }); });
+  missionFouille=M.mission({ titre:'Fouille et datation', cachee:true, chrono:true, chronoCible:300, gagner:false, annonce:false, objectifs:obj, surFin:finMission });
+  missionFouille.zone.classList.add('dn-mz'); missionFouille.zone.setAttribute('aria-label','Mission : fouille et datation');
+  return missionFouille;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  const b=document.getElementById('dnMission'); if(b) b.setAttribute('aria-pressed','true');
+  if(missionLancee&&!missionFouille.estFinie()){ missionFouille.montrer(); majFouille(); return; }
+  missionLancee=true; missionFouille.montrer(); missionFouille.commencer(); shell.api.stage.classList.add('dn-en-mission');
+  fouille={ idx:0, phase:'degager', era:null, essais:0 };
+  FOUILLES.forEach(F=>{ F.coups=0; F.sediment.visible=true; F.sediment.scale.set(1,1,1); F.sediment.position.y=0.11; F.date=null; });
+  if(tour) endTour(); document.getElementById('dnInfo').classList.remove('show'); const q=document.getElementById('dnQuiz'); if(q) q.style.display='none'; clearFocus();
+  if(!(marche&&marche.estActif())) moveCam([2.8,5.6,5.8],[0,-0.9,0],2.0);
+  majFouille(); if(M) M.son('coup',{ volume:0.2 });
+  shell.api.say("Mission : fouille et datation. Trois fossiles dorment dans trois couches de roche. Dégage chacun au pinceau en cliquant sur la couche, place-le sur la frise des ères, puis réponds à une question. Le chrono tourne.",'enthousiaste');
+  if(paleo){ paleo.allerA([-2.2,0.08,3.6]); setTimeout(()=>{ if(fouille) paleo.dire('On commence par le haut : clique la couche du haut, trois coups de pinceau.',5); },2500); }
+}
+function brosserAuPointeur(){ if(!fouille||fouille.phase!=='degager') return false; const F=FOUILLES[fouille.idx]; if(!F) return false;
+  raycaster.setFromCamera(pointer,camera); const hits=raycaster.intersectObjects(FOUILLES.map(x=>x.sediment).filter(x=>x.visible),false); if(!hits.length) return false;
+  const id=hits[0].object.userData.fossile; if(id!==F.id){ if(M) M.son('clic',{ volume:0.18, frequence:300 }); shell.api.say("Pas cette couche : on fouille d'abord la "+F.couche+". On enlève une couche à la fois, de haut en bas.",'rassurant'); return true; }
+  brosser(); return true; }
+function brosser(){ if(!fouille||fouille.phase!=='degager') return; const F=FOUILLES[fouille.idx]; if(!F) return;
+  F.coups++; if(M) M.son('coup',{ volume:0.3 }); shell.sound('pop');
+  const k=1-F.coups/3; F.sediment.scale.set(Math.max(0.05,k),Math.max(0.05,k*0.8+0.1),Math.max(0.05,k)); F.sediment.position.y=0.11*Math.max(0.2,k);
+  const pf=new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex(), color:0xd9b98a, transparent:true, opacity:0.7, depthWrite:false })); pf.position.copy(F.groupe.position).add(new THREE.Vector3((Math.random()-0.5)*0.4,0.3,(Math.random()-0.5)*0.4)); pf.scale.set(0.5,0.5,1); pf.userData.vie=1; scene.add(pf); poussieres.push(pf);
+  if(F.coups>=3){ F.sediment.visible=false; fouille.phase='dater'; if(M) M.son('cloche',{ volume:0.22, frequence:760 }); missionFouille.valider('deg'+F.id,80);
+    shell.api.say(F.nom+' dégagé. Dans quelle ère vivait cet animal ? Regarde la couche : clique son ère sur la frise.','celebration'); if(paleo) paleo.dire('Beau travail. Maintenant, place-le sur la frise.',4); }
+  else shell.api.say(F.coups===1?'Le sédiment s\'effrite. Encore deux coups de pinceau.':'Une forme apparaît. Un dernier coup.','concentre');
+  majFouille();
+}
+function dater(era){ if(!fouille||fouille.phase!=='dater') return; const F=FOUILLES[fouille.idx]; if(!F) return;
+  if(era!==F.era){ fouille.essais++; if(M) M.son('clic',{ volume:0.18, frequence:300 }); shell.api.say((fouille.essais>=2?'Indice : la couche du haut est la plus récente, celle du bas la plus ancienne. Cette '+F.couche+' correspond '+(F.era===2?'au Crétacé':F.era===1?'au Jurassique':'au Trias')+'.':'Pas cette ère. Les couches se lisent de bas en haut, du plus ancien au plus récent.')+' Réessaie.','rassurant'); return; }
+  F.date=era; fouille.phase='question'; fouille.essais=0; if(M) M.son('cloche',{ volume:0.26, frequence:880 });
+  shell.api.say('Juste : '+ERES_FRISE[era].nom+', '+ERES_FRISE[era].dates+'. Une question avant le fossile suivant.','fier'); majFouille();
+}
+function repondre(i){ if(!fouille||fouille.phase!=='question') return; const F=FOUILLES[fouille.idx]; if(!F) return;
+  if(i!==F.ok){ fouille.essais++; if(M) M.son('clic',{ volume:0.18, frequence:300 }); shell.api.say((fouille.essais>=2?'Indice : '+F.expl:'Ce n\'est pas ça. Relis la question et regarde la frise.')+' Réessaie.','rassurant'); return; }
+  if(M) M.son('cloche',{ volume:0.26 }); shell.api.say('Exact. '+F.expl,'celebration'); missionFouille.valider('dat'+F.id,120);
+  if(!fouille) return; // dernier fossile : la mission vient de se terminer
+  fouille.idx++; fouille.phase='degager'; fouille.essais=0;
+  if(fouille.idx<FOUILLES.length){ const N=FOUILLES[fouille.idx]; if(paleo){ paleo.allerA([fouille.idx===1?2.6:-2.6,0.08,3.4]); paleo.dire('Fossile suivant : la '+N.couche+'.',4); } if(!(marche&&marche.estActif())) moveCam(fouille.idx===1?[2.4,4.6,4.8]:[-1.8,4.2,4.2],[N.pos[0],N.pos[1],N.pos[2]],1.6); }
+  else { fouille.phase='fini'; }
+  majFouille();
+}
+function majFouille(){ let el=document.getElementById('dnFouille');
+  if(!fouille||!missionFouille||missionFouille.estFinie()){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.className='dn-fouille'; el.id='dnFouille'; el.setAttribute('role','group'); el.setAttribute('aria-label','Fouille en cours'); shell.api.stage.appendChild(el); }
+  const F=FOUILLES[fouille.idx];
+  const frise=`<div class="dn-frise" role="group" aria-label="Frise des ères">${ERES_FRISE.map(e=>`<button type="button" data-era="${e.id}" data-place="${FOSSILES.some(x=>x.date===e.id)?1:0}" style="background:${e.col}" ${fouille.phase==='dater'?'':'disabled'}>${e.nom}${FOSSILES.filter(x=>x.date===e.id).map(()=>' 🦴').join('')}<small>${e.dates}</small></button>`).join('')}</div>`;
+  if(fouille.phase==='fini'){ el.innerHTML=`<div class="t"><span>Fouille terminée</span></div>${frise}<div class="c ok">✓ Trois fossiles dégagés, datés et expliqués.</div>`; return; }
+  const tete=`<div class="t"><span>Fossile ${fouille.idx+1}/3 · ${F.couche}</span><span>${{degager:'Pinceau',dater:'Frise',question:'Question'}[fouille.phase]}</span></div>`;
+  if(fouille.phase==='degager'){ el.innerHTML=`${tete}<div class="c">Clique la <b>${F.couche}</b> du chantier avec le pinceau : trois coups dégagent le fossile.</div><div class="jg"><i style="width:${F.coups/3*100}%"></i></div>${frise}`; }
+  else if(fouille.phase==='dater'){ el.innerHTML=`${tete}<div class="c"><b>${F.nom}</b>, trouvé dans la ${F.couche}. Clique l'ère de ce fossile sur la frise. Rappel : une couche se dépose sur les couches plus anciennes.</div>${frise}`; }
+  else { const ordre=fouille.ordre&&fouille.ordreIdx===fouille.idx?fouille.ordre:(fouille.ordre=F.opts.map((o,i)=>[o,i]).sort(()=>Math.random()-0.5)); fouille.ordreIdx=fouille.idx;
+    el.innerHTML=`${tete}${frise}<div class="c"><b>${F.question}</b></div><div class="row">${ordre.map(([o,i])=>`<button type="button" class="qo" data-rep="${i}">${o}</button>`).join('')}</div>`;
+    el.querySelectorAll('[data-rep]').forEach(b=>{ b.onclick=()=>repondre(+b.dataset.rep); }); }
+  el.querySelectorAll('[data-era]').forEach(b=>{ b.onclick=()=>dater(+b.dataset.era); });
+}
+function finMission(reussie, secondes, score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  const b=document.getElementById('dnMission'); if(b) b.setAttribute('aria-pressed','false');
+  fouille=null; majFouille(); shell.api.stage.classList.remove('dn-en-mission'); const q=document.getElementById('dnQuiz'); if(q) q.style.display='';
+  if(!reussie){ shell.api.say("La mission s'arrête là. On pourra la reprendre.",'rassurant'); setTimeout(()=>{ if(missionFouille) missionFouille.cacher(); },4000); missionLancee=false; return; }
+  if(M) M.son('cloche',{ volume:0.25 }); if(paleo) paleo.dire('Trois fossiles en '+duree+'. Une vraie fouille.',6);
+  if(modeJeu!=='cours'){ shell.api.win({ score, stars:t>300?2:3, title:'Trois fossiles datés en '+duree, learned:shell.cfg.learned.concat(["Datation relative : une couche se dépose sur les plus anciennes, donc le bas est plus vieux que le haut.","Un fossile qui mêle des caractères de deux groupes (plumes et dents) montre une parenté : les oiseaux descendent de dinosaures."]), buddy:"Dégager, dater, expliquer : tu as fait le travail d'une paléontologue." }); }
+  else { shell.api.say('Mission réussie en '+duree+' : '+score+' points de plus. Le quiz continue.','fier'); if(shell.api.celebrate) shell.api.celebrate(); setTimeout(()=>{ if(missionFouille) missionFouille.cacher(); },9000); }
+}
+/* ---------- marche sur le chantier, marches de fouille (F223) ---------- */
+function hauteurChantier(x,z){ if(Math.abs(x)<1.5&&Math.abs(z)<1.0) return -1.5; if(Math.abs(x)<2.5&&Math.abs(z)<1.7) return -1.0; if(Math.abs(x)<3.5&&Math.abs(z)<2.5) return -0.5; return 0.06; }
+function assurerMarche(){ if(marche||!M) return marche;
+  marche=M.marcher({ depart:[0,0,7.5], hauteur:1.7*U, vitesse:1.6, solA:hauteurChantier, limites:{ xmin:-11, xmax:11, zmin:-9, zmax:11 },
+    collision:(x,z)=> (paleo&&Math.hypot(x-paleo.position().x,z-paleo.position().z)<0.45) || (Math.hypot(x+6.6,z+2.4)<1.6) || (Math.hypot(x-5.6,z-2.6)<0.7),
+    aide:'Flèches ou ZQSD pour marcher sur le chantier et descendre les marches de fouille, glisse pour regarder. Échap : vue libre.',
+    surPas:()=>{ const n=performance.now(); if(n-dernierPas>420){ dernierPas=n; M.son('pas',{ volume:0.14 }); } },
+    surChangement:(on)=>{ const b=document.getElementById('dnMarche'); if(b) b.setAttribute('aria-pressed', String(on)); if(on){ camAnim=null; shell.api.say("Tu marches sur le chantier. Descends les trois marches de fouille, une couche par marche ; Échap pour revenir à la vue libre.",'concentre'); } } });
+  return marche;
+}
+/* ---------- ambiance : vent et forêt très bas (F225) ; le bourdon et les cris existants restent ---------- */
+function demarrerAmbiance(){ if(!M||ambVent) return; try{ ambVent=M.ambiance({ fichier:'../assets/3d/audio/vent-parc.mp3', type:'vent', volume:0.05 }); ambForet=M.ambiance({ type:'foret', volume:0.035 }); }catch(e){ ambVent=null; ambForet=null; } }
+window.__monde={ lancerMission, brosser, dater, repondre, etat:()=>fouille, mission:()=>missionFouille, fossiles:()=>FOSSILES.map(F=>({ id:F.id, coups:F.coups, date:F.date })), camera:()=>camera, cible:()=>controls.target };
 </script>
 </body>
 </html>
