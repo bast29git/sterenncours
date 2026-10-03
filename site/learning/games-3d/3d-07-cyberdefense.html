@@ -86,6 +86,27 @@
   .cy-qrow { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-top:2px; }
   .cy-qo { font-family:var(--font-body); font-weight:700; font-size:13px; min-height:42px; padding:0 14px; border-radius:10px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.18); color:#fff; cursor:pointer; }
   .cy-qo:hover { background:rgba(255,255,255,.32); }
+  /* Mission : trois attaques à bloquer (situation et parades) */
+  .cy-mq { bottom:16px; left:50%; transform:translateX(-50%); z-index:24; width:min(540px,94vw); padding:12px 14px 13px; display:none; flex-direction:column; gap:9px; }
+  .cy-mq.on { display:flex; }
+  .cy-mq .hd { display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--fg-muted); }
+  .cy-mq .hd b { font-family:var(--font-title); font-size:15px; letter-spacing:0; text-transform:none; color:var(--fg); }
+  .cy-mq .sit { font-size:13.5px; line-height:1.45; color:var(--fg); }
+  .cy-mq .ops { display:flex; flex-direction:column; gap:7px; }
+  .cy-mq .op { font-family:var(--font-body); font-weight:700; font-size:13px; text-align:left; min-height:44px; padding:8px 12px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; display:flex; gap:9px; align-items:center; line-height:1.3; }
+  .cy-mq .op i { flex:none; width:22px; height:22px; border-radius:999px; background:var(--surface); display:grid; place-items:center; font-style:normal; font-size:12px; font-weight:800; }
+  .cy-mq .op:focus-visible { outline:none; box-shadow:var(--ring); }
+  .cy-mq .op[disabled] { opacity:.6; cursor:default; }
+  .cy-mq .op.bon { background:var(--accent); border-color:var(--accent); color:#fff; } .cy-mq .op.bon i { background:#fff; color:var(--accent); }
+  .cy-mq .op.faux { border-color:#E63329; }
+  .cy-mq .ex { font-size:12.5px; line-height:1.45; color:var(--accent-text); background:var(--accent-weak); border-radius:10px; padding:8px 11px; }
+  .cy-mbtn { width:100%; margin-top:2px; font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:40px; padding:0 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; }
+  .cy-mbtn[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .cy-mission-on .cy-dock, .cy-mission-on .cy-hint { display:none; }
+  @media (max-width:760px){
+    .cy-mq { padding:10px 11px; gap:7px; } .cy-mq .sit { font-size:12.5px; } .cy-mq .op { font-size:12px; min-height:40px; }
+    .cy-mission-on .cy-tel, .cy-mission-on .cy-actions { display:none; }
+  }
   @media (max-width:760px){
     .cy-tel { width:158px; padding:10px; gap:8px; }
     .cy-post .num { font-size:21px; }
@@ -107,6 +128,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, textureTexte } from '../monde-base.js';
 
 const REDUCED = window.Konstrio.REDUCED;
 
@@ -193,9 +215,11 @@ let coreFlash = 0, wave = null, demo = null;
 let ac = null, humGain = null;
 let mode = 'detente', labelsOn = true;
 let challenge = null, quizTier = 'debutant';
+/* F228 : outils de jeu ; le robot gardien, la mission des trois attaques */
+let M = null; const boucles = []; let robot = null, bulleRobot = null, bulleT = 0, mission = null, missionLancee = false, attaque = 0, erreursAttaque = 0, ambianceSalle = null, menaceMission = null, reponduAttaque = false;
 
 /* E14 : légendes des objets pour le socle commun des mondes. */
-const AUTRES_OPALINE={internet:{name:'Internet',sub:'Le réseau extérieur, d\'où viennent les menaces'},core:{name:'Cœur du réseau',sub:'Les serveurs à protéger'}};
+const AUTRES_OPALINE={internet:{name:'Internet',sub:'Le réseau extérieur, d\'où viennent les menaces'},core:{name:'Cœur du réseau',sub:'Les serveurs à protéger'},robot:{name:'Octet, robot gardien du réseau',sub:'Il explique chaque attaque et vérifie ta parade'}};
 function LEGENDE_OPALINE(ob){ const k=ob.userData&&ob.userData.equip; const p=k&&(DEFBYID[k]||AUTRES_OPALINE[k]); return p?{nom:p.name,phrase:p.sub}:null; }
 function LEGENDES_OPALINE(){ return DEF.map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
@@ -240,8 +264,7 @@ function init(){
 
   // Chaîne cinématique : RenderPass → (GTAO si GPU réel) → Bloom calé → SMAA → OutputPass (ACES + sRGB)
   // GARDE-FOU : rendu logiciel (SwiftShader/llvmpipe) ou mode réduit → PAS d'AO écran (produirait du noir)
-  let software = false;
-  try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : ''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){ software = true; }
+  const software = renduLogiciel(renderer);
   const W = stage.clientWidth, H = stage.clientHeight;
   composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
   if(!software && !REDUCED){
@@ -249,13 +272,14 @@ function init(){
     try{ gtao.updateGtaoMaterial({ radius:0.6, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
     composer.addPass(gtao); composer.gtao = gtao;
   }
-  const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.75, 0.55, 0.82);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.45, 0.5, 0.86);   // bloom contrôlé : les nœuds émissifs brillent, le reste reste net
   composer.addPass(bloom); composer.bloom = bloom;
   composer.addPass(new SMAAPass(W, H));
   composer.addPass(new OutputPass());
 
   controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = .07;
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
+  M = outils({ scene, camera, renderer, controls, stage, boucle: (f) => boucles.push(f), etiquette: etiquetteBulle });
   controls.minDistance = 8; controls.maxDistance = 52; controls.maxPolarAngle = Math.PI * 0.49;
   controls.target.set(0, 2, 0); controls.autoRotate = REDUCED; controls.autoRotateSpeed = .3;
 
@@ -277,6 +301,7 @@ function init(){
   buildShields();
   buildInternet();
   buildPools();
+  buildRobot();
 
   raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = 0.3;
   pointer = new THREE.Vector2(-2, -2);
@@ -295,6 +320,13 @@ function init(){
 /* ====== MATÉRIAUX & TEXTURES ====== */
 const mat = (c, metal, rough, o={}) => new THREE.MeshStandardMaterial(Object.assign({ color:c, metalness:metal, roughness:rough, envMapIntensity:1.0 }, o));
 function emiss(c){ return new THREE.MeshBasicMaterial({ color:c }); }
+/* Un nœud de verre : transmission, léger éclat intérieur, reflets du studio. */
+function verre(c, transmission){ return new THREE.MeshPhysicalMaterial({ color:c, roughness:0.12, metalness:0, transmission:transmission, thickness:1.0, ior:1.45, transparent:true, opacity:0.96, emissive:new THREE.Color(c).multiplyScalar(0.18), emissiveIntensity:0.5, envMapIntensity:1.3, clearcoat:0.6, clearcoatRoughness:0.15 }); }
+/* Une bulle de parole repliée sur plusieurs lignes, toujours lisible. */
+function etiquetteBulle(texte, position, opt){ opt = opt || {}; const mots = String(texte).split(' '); const lignes = []; let l = '';
+  mots.forEach(m=>{ if((l + ' ' + m).trim().length > 34 && l){ lignes.push(l); l = m; } else l = (l ? l + ' ' : '') + m; }); if(l) lignes.push(l);
+  const tex = textureTexte(lignes.join('\n'), opt); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, depthTest:false, toneMapped:false }));
+  const h = (opt.hauteur || 0.42) * lignes.length * 0.78 + 0.25; sp.scale.set(h * tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.renderOrder = 20; sp.raycast = ()=>{}; scene.add(sp); return sp; }
 function glowTex(hex){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const col=new THREE.Color(hex); const g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.35,`rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},.75)`); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
 function floorTex(){
   const c = document.createElement('canvas'); c.width = c.height = 512; const x = c.getContext('2d');
@@ -327,7 +359,7 @@ function buildCore(){
   // socle
   const base = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.5, 0.5, 40), mat(0x1a2338, 0.6, 0.4)); base.position.y = 0.25; base.receiveShadow = true; coreGroup.add(base);
   // baie de données centrale
-  const vault = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.4, 1.7), mat(0x162033, 0.7, 0.35, { envMapIntensity:1.2 })); vault.position.y = 1.7; vault.castShadow = true; coreGroup.add(vault);
+  const vault = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.4, 1.7), verre(0x9fd8ff, 0.7)); vault.position.y = 1.7; vault.castShadow = true; coreGroup.add(vault);
   for(let i=0;i<6;i++){ const led = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.08,0.05), emiss(0x35E08A)); led.position.set(0, 0.9+i*0.28, 0.86); coreGroup.add(led); led.userData.coreLed = true; }
   // noyau de données lumineux
   coreCore = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 1), new THREE.MeshStandardMaterial({ color:0x35E08A, emissive:0x1E8C7A, emissiveIntensity:0.9, roughness:0.3 }));
@@ -360,7 +392,7 @@ function buildShields(){
     const px = Math.cos(d.ang)*d.r, pz = Math.sin(d.ang)*d.r;
     const tower = new THREE.Group(); tower.position.set(px, 0, pz);
     const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.7,0.3,20), mat(0x1c2438,0.6,0.45)); foot.position.y=0.15; foot.castShadow=true; tower.add(foot);
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.7,1.7,0.7), mat(0x222c42,0.65,0.4,{envMapIntensity:1.1})); body.position.y=1.05; body.castShadow=true; tower.add(body);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.7,1.7,0.7), verre(col.getHex(), 0.45)); body.position.y=1.05; body.castShadow=true; tower.add(body);
     const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.52,0.4), emiss(col.getHex())); screen.position.set(0,1.25,0.36); screen.lookAt(0,1.25,4); tower.add(screen); screen.userData.towerScreen = true;
     const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.22,18,18), new THREE.MeshStandardMaterial({ color:col, emissive:col, emissiveIntensity:0.7, roughness:0.3 })); beacon.position.y=2.1; tower.add(beacon);
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex(col.getHex()), transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.0 })); halo.scale.setScalar(2.4); halo.position.y=2.1; tower.add(halo);
@@ -427,8 +459,11 @@ function buildUI(){
     <div class="cy-metric"><div class="cy-mrow"><span class="k">Menaces bloquées</span><span class="v" id="cyBlk" style="color:#35E08A">0</span></div></div>
     <div class="cy-metric"><div class="cy-mrow"><span class="k">Intrusions au cœur</span><span class="v" id="cyBr" style="color:#ff6a5a">0</span></div></div>
     <div class="cy-metric"><div class="cy-mrow"><span class="k">Niveau de risque</span><span class="v" id="cyRisk">Élevé</span></div></div>
-    <div class="cy-status" id="cyStatus">Active des remparts pour protéger le cœur.</div>`;
+    <div class="cy-status" id="cyStatus">Active des remparts pour protéger le cœur.</div>
+    <button class="cy-mbtn" id="cyMission" aria-pressed="false">🤖 Mission : trois attaques</button>`;
   stage.appendChild(tel);
+  tel.querySelector('#cyMission').onclick = ()=> lancerMission();
+  const mq = document.createElement('div'); mq.className = 'cy-panel cy-mq'; mq.id = 'cyMq'; mq.setAttribute('aria-live', 'polite'); stage.appendChild(mq);
   // Barre d'actions (haut-centre) : visible en Détente
   const act = document.createElement('div'); act.className='cy-panel cy-actions'; act.id='cyActions';
   act.innerHTML = `
@@ -590,13 +625,13 @@ function blockThreat(slot, d){
   blocked++;
   d.flash = 1.0;
   spawnBurst(slot.mesh.position, d.color, 6);
-  shell.sound('good');
+  shell.sound('good'); if(M) M.son('tic',{ volume:0.08 });
   recycleThreat(slot);
 }
 function coreHit(slot){
   breaches++; coreFlash = 1.0;
   spawnBurst(slot.mesh.position, 0xff3b30, 8);
-  shell.sound('bad');
+  shell.sound('bad'); if(M) M.son('coup',{ volume:0.18 });
   postureTarget = Math.max(0, postureTarget - 2);
   recycleThreat(slot);
 }
@@ -713,6 +748,7 @@ function onDown(e){ setP(e); const h = pick(); if(!h.length) return;
   let o = h[0].object; let p = o; while(p && !p.userData.equip) p = p.parent;
   const id = p ? p.userData.equip : (o.userData.equip || null); if(!id) return;
   if(DEFBYID[id]){ toggleDefense(id); }
+  else if(id==='robot'){ robotDire(missionLancee && mission && !mission.estFinie() ? "Lis la situation en bas, puis choisis la parade. Si tu te trompes, je t'explique pourquoi." : CONSEILS[Math.floor(Math.random()*CONSEILS.length)], 6); shell.sound('pop'); }
   else { openFiche(id); shell.sound('pop'); }
 }
 
@@ -735,6 +771,10 @@ function startMode(m){
   wave = null; demo = null;
   if(m==='cours'){ DEF.forEach(d=>d.active=false); syncChips(); updatePostureTarget(); shell.setScore(0); chooseDifficulty(); }
   else { clearQuiz(); DEF.forEach(d=>d.active=false); setDefense('firewall',true,true); setDefense('av',true,true); syncChips(); shell.setLevel('libre'); shell.say(shell.cfg.intro.greet,'joyeux'); }
+  if(!ambianceSalle && M){ try{ ambianceSalle = M.ambiance({ type:'salle', volume:0.05 }); }catch(e){} }
+  assurerMission();
+  setTimeout(()=>{ robotDire(m==='cours' ? 'Je suis Octet, le gardien du réseau. Quand tu veux, lance la mission : trois attaques à bloquer.' : 'Je suis Octet, le gardien du réseau. Trois attaques arrivent dans quelques secondes : à nous de les bloquer.', 6); }, 1500);
+  if(m!=='cours') setTimeout(()=>{ if(!missionLancee) lancerMission(); }, 8000);
 }
 function chooseDifficulty(){
   clearQuiz(); let b = document.getElementById('cyQuiz');
@@ -793,6 +833,118 @@ function winQuiz(){
 }
 function clearQuiz(){ const b = document.getElementById('cyQuiz'); if(b) b.remove(); challenge = null; }
 
+/* ============================================================
+   OCTET, LE ROBOT GARDIEN DU RÉSEAU : primitives, visière lumineuse, écran de poitrine, antenne ; il flotte près du cœur et parle par étiquette
+   ============================================================ */
+const CONSEILS = [
+  "Un message pressé qui demande de cliquer vite : c'est presque toujours un piège.",
+  "Un mot de passe long et différent pour chaque compte, plus la double authentification : voilà la base.",
+  "Dans un lieu public, demande le nom exact du wifi et regarde le cadenas https.",
+  "Les mises à jour referment des failles connues : on ne les repousse pas.",
+];
+function buildRobot(){
+  robot = new THREE.Group(); robot.position.set(3.8, 0, 3.6);
+  const ms = (c,o)=> new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:0.35, metalness:0.25 }, o||{}));
+  const add = (geo, m, p, parent)=>{ const x = new THREE.Mesh(geo, m); x.position.set(p[0],p[1],p[2]); x.castShadow = true; (parent||robot).add(x); return x; };
+  const corps = new THREE.Group(); corps.position.y = 0.3; robot.add(corps); robot.userData.corps = corps;
+  add(new THREE.CylinderGeometry(0.42,0.5,0.12,24), ms(0x1c2438,{ metalness:0.6, roughness:0.3 }), [0,0.06,0], corps);           // socle flottant
+  const anneau = add(new THREE.TorusGeometry(0.5,0.035,8,40), new THREE.MeshStandardMaterial({ color:0x29B6E0, emissive:0x29B6E0, emissiveIntensity:1.2, roughness:0.3 }), [0,0.06,0], corps); anneau.rotation.x = Math.PI/2; robot.userData.anneau = anneau;
+  add(THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.34,0.5,6,18) : new THREE.CylinderGeometry(0.34,0.34,1.1,18), ms(0xe4ebf4,{ roughness:0.3, metalness:0.15 }), [0,0.72,0], corps); // tronc
+  const ecran = add(new THREE.PlaneGeometry(0.34,0.22), new THREE.MeshBasicMaterial({ color:0x29B6E0 }), [0,0.78,0.345], corps); robot.userData.ecran = ecran;
+  add(new THREE.CylinderGeometry(0.08,0.1,0.12,12), ms(0x9aa8bb), [0,1.3,0], corps);                                            // cou
+  const tete = new THREE.Group(); tete.position.y = 1.62; corps.add(tete); robot.userData.tete = tete;
+  add(new THREE.SphereGeometry(0.3,24,18), ms(0xe4ebf4,{ roughness:0.3, metalness:0.15 }), [0,0,0], tete);
+  const visiere = add(new THREE.BoxGeometry(0.4,0.12,0.08), new THREE.MeshStandardMaterial({ color:0x35E08A, emissive:0x35E08A, emissiveIntensity:1.4, roughness:0.2 }), [0,0.02,0.27], tete); robot.userData.visiere = visiere;
+  add(new THREE.CylinderGeometry(0.015,0.015,0.3,8), ms(0x9aa8bb), [0,0.42,0], tete);                                           // antenne
+  const pointe = add(new THREE.SphereGeometry(0.045,12,10), new THREE.MeshStandardMaterial({ color:0xff5a45, emissive:0xff5a45, emissiveIntensity:1.5 }), [0,0.58,0], tete); robot.userData.pointe = pointe;
+  [[-1,'brasG'],[1,'brasD']].forEach(([sg])=>{ const piv = new THREE.Group(); piv.position.set(sg*0.4, 1.05, 0); corps.add(piv); const b = add(new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.06,0.34,4,10) : new THREE.CylinderGeometry(0.06,0.06,0.46,10), ms(0xc9d3df), [0,-0.22,0], piv); b.rotation.z = sg*0.15; });
+  const ecusson = add(new THREE.CylinderGeometry(0.13,0.13,0.03,6), ms(0x29B6E0,{ emissive:0x0a3a4a, emissiveIntensity:0.6 }), [-0.42,1.08,0.06], corps); ecusson.rotation.z = Math.PI/2; // écusson d'épaule
+  robot.traverse(o=>{ if(o.isMesh){ o.userData.equip = 'robot'; clickMeshes.push(o); } });
+  scene.add(robot);
+  boucles.push((dt, t)=>{ if(!robot) return; corps.position.y = 0.3 + Math.sin(t*1.6)*0.06; robot.userData.anneau.rotation.z += dt*0.8;
+    robot.userData.pointe.material.emissiveIntensity = 1 + Math.abs(Math.sin(t*3))*1.2;
+    const cx = camera.position.x - robot.position.x, cz = camera.position.z - robot.position.z; const cible = Math.atan2(cx, cz); let d = cible - robot.rotation.y; while(d > Math.PI) d -= 2*Math.PI; while(d < -Math.PI) d += 2*Math.PI; robot.rotation.y += d*Math.min(1, dt*2);
+    if(bulleRobot){ bulleRobot.position.set(robot.position.x, corps.position.y + 2.35, robot.position.z); if(performance.now() > bulleT){ scene.remove(bulleRobot); bulleRobot = null; } } });
+}
+function robotDire(texte, secondes){ if(!robot) return; if(bulleRobot) scene.remove(bulleRobot);
+  bulleRobot = etiquetteBulle(texte, [robot.position.x, 2.7, robot.position.z], { taille:26, hauteur:0.42, fond:'rgba(255,255,255,0.95)', couleur:'#1e2733' }); bulleT = performance.now() + (secondes || 5)*1000;
+  if(robot.userData.visiere) robot.userData.visiere.material.emissiveIntensity = 2.2; setTimeout(()=>{ if(robot && robot.userData.visiere) robot.userData.visiere.material.emissiveIntensity = 1.4; }, 600);
+  shell.say(texte, 'concentre'); }
+
+/* ============================================================
+   MISSION « TROIS ATTAQUES À BLOQUER » : hameçonnage, mot de passe faible, faux réseau wifi ; une parade juste parmi trois, la fausse explique
+   ============================================================ */
+const ATTAQUES = [
+  { id:'phish', titre:'Hameçonnage', menace:'phishing', rempart:'awareness', situation:"Un courriel arrive : « Ton compte sera fermé ce soir. Clique ici pour le garder. » L'adresse de l'expéditeur est service-compte@secur1te-mail.com.",
+    parades:[
+      { t:"Je clique vite sur le lien pour garder mon compte.", ok:false, ex:"C'est exactement ce que veut le piège : créer l'urgence pour que tu cliques sans réfléchir. Un message pressé est un signal d'alerte, pas une raison d'agir." },
+      { t:"Je ne clique pas. Je vérifie l'adresse de l'expéditeur, puis je vais sur le vrai site en tapant son adresse moi-même.", ok:true, ex:"Le lien du courriel mène vers une fausse page qui copie la vraie pour voler ton mot de passe. Passer par le vrai site coupe le piège : c'est la vigilance qui bloque l'hameçonnage." },
+      { t:"Je réponds au courriel pour demander si c'est vrai.", ok:false, ex:"Répondre confirme que ton adresse est lue par quelqu'un, et le pirate te répondra ce qui l'arrange. On ne discute pas avec un courriel douteux : on le signale et on le supprime." } ] },
+  { id:'mdp', titre:'Mot de passe faible', menace:'creds', rempart:'mfa', situation:"Ton mot de passe est « sterenn2012 ». Un programme de pirate teste des millions de combinaisons par seconde, en commençant par les prénoms et les années.",
+    parades:[
+      { t:"Je le garde : personne ne me connaît.", ok:false, ex:"Un prénom suivi d'une année fait partie des tout premiers essais d'un programme de pirate. Il tombe en quelques secondes, même sans te connaître." },
+      { t:"J'ajoute un point d'exclamation à la fin.", ok:false, ex:"« sterenn2012! » reste court et prévisible : les programmes essaient aussi les signes à la fin. Il faut changer la longueur et la logique, pas ajouter un caractère." },
+      { t:"Je crée une phrase de passe longue et différente pour chaque compte, et j'active la double authentification.", ok:true, ex:"Une phrase longue demande des milliards d'années de calcul, et la double authentification bloque le pirate même s'il finit par la trouver." } ] },
+  { id:'wifi', titre:'Faux réseau wifi', menace:'sniff', rempart:'crypto', situation:"Au café, ton téléphone voit deux réseaux : « Cafe_Breizh », avec un mot de passe, et « Cafe_Breizh_GRATUIT_RAPIDE », sans mot de passe.",
+    parades:[
+      { t:"Je prends le gratuit et rapide : pas besoin de demander.", ok:false, ex:"Un réseau au nom alléchant et sans mot de passe est le piège classique : celui qui l'a créé voit passer tout ce que tu envoies, mots de passe compris." },
+      { t:"Je demande au café le nom exact de son réseau, et je n'ouvre que des sites en https (le cadenas).", ok:true, ex:"Le bon réseau est celui que le café annonce. Et le https chiffre tes données : même interceptées, elles restent illisibles. C'est le chiffrement qui te protège." },
+      { t:"Je me connecte aux deux pour voir lequel marche le mieux.", ok:false, ex:"Se connecter au faux réseau, même une minute, suffit pour que tes données soient lues. On ne teste pas un réseau inconnu : on vérifie d'abord." } ] },
+];
+function assurerMission(){ if(mission || !M) return mission;
+  mission = M.mission({ titre:'Trois attaques à bloquer', cachee:true, chrono:true, chronoCible:200, gagner:false, annonce:false,
+    objectifs:ATTAQUES.map((a,i)=>({ id:a.id, texte:(i+1)+'. '+a.titre })),
+    surFin:(reussie, secondes, score)=> finMission(reussie, secondes, score) });
+  mission.zone.setAttribute('aria-label', 'Mission : trois attaques à bloquer');
+  return mission;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  if(missionLancee && !mission.estFinie()){ robotDire('La mission est déjà lancée : lis la situation en bas et choisis la parade.', 5); mission.montrer(); return; }
+  missionLancee = true; attaque = 0; erreursAttaque = 0; reponduAttaque = false; wave = null;
+  const b = document.getElementById('cyMission'); if(b) b.setAttribute('aria-pressed','true');
+  shell.stage.classList.add('cy-mission-on'); const info = document.getElementById('cyInfo'); if(info) info.classList.remove('show');
+  mission.montrer(); mission.commencer(); M.son('clic',{ volume:0.2 });
+  robotDire("Trois attaques arrivent. Pour chacune, choisis la bonne parade parmi trois. Une erreur n'enlève rien : je t'explique pourquoi. Le chrono tourne.", 7);
+  setTimeout(montrerAttaque, 1200);
+}
+function montrerAttaque(){ if(!missionLancee || !mission || mission.estFinie()) return; const a = ATTAQUES[attaque]; if(!a) return;
+  reponduAttaque = false; erreursAttaque = 0;
+  menaceMission = spawnThreat(a.menace); if(menaceMission) menaceMission.speed = 0.03;   // la menace approche lentement, le temps de choisir
+  rendreMq(a, null); robotDire('Attaque ' + (attaque+1) + ' sur 3 : ' + a.titre.toLowerCase() + '. Lis la situation, puis choisis.', 6);
+}
+function rendreMq(a, etat){ const el = document.getElementById('cyMq'); if(!el) return;
+  if(!a){ el.classList.remove('on'); el.innerHTML = ''; return; }
+  el.classList.add('on');
+  el.innerHTML = `<div class="hd"><span>Attaque ${attaque+1} / 3</span><b>${a.titre}</b></div><div class="sit">${a.situation}</div>
+    <div class="ops">${a.parades.map((p,i)=>`<button class="op" type="button" data-i="${i}"><i>${i+1}</i><span>${p.t}</span></button>`).join('')}</div>${etat ? `<div class="ex">${etat}</div>` : ''}`;
+  el.querySelectorAll('[data-i]').forEach(bt=>{ bt.onclick = ()=> repondre(+bt.dataset.i); });
+}
+function repondre(i){ if(!missionLancee || !mission || mission.estFinie() || reponduAttaque) return; const a = ATTAQUES[attaque]; const p = a && a.parades[i]; if(!p) return;
+  const el = document.getElementById('cyMq'); const bt = el && el.querySelector(`[data-i="${i}"]`);
+  if(p.ok){ reponduAttaque = true; const d = DEFBYID[a.rempart]; if(d){ setDefense(d.id, true, true); syncChips(); }
+    if(menaceMission && menaceMission.active){ blockThreat(menaceMission, d || DEFBYID.firewall); menaceMission = null; }
+    if(bt) bt.classList.add('bon'); el && el.querySelectorAll('.op').forEach(x=>{ x.disabled = true; });
+    const pts = Math.max(60, 150 - 40*erreursAttaque); mission.valider(a.id, pts);
+    const ex = el && el.querySelector('.ex'); const bloc = document.createElement('div'); bloc.className = 'ex'; bloc.textContent = 'Attaque bloquée. ' + p.ex; if(ex) ex.replaceWith(bloc); else if(el) el.appendChild(bloc);
+    robotDire('Bloquée. ' + p.ex, 7);
+    attaque++; setTimeout(()=>{ if(!missionLancee || !mission || mission.estFinie()) return; if(attaque < ATTAQUES.length) montrerAttaque(); }, 3200);
+  } else { erreursAttaque++;
+    if(menaceMission && menaceMission.active){ coreHit(menaceMission); menaceMission = spawnThreat(a.menace); if(menaceMission) menaceMission.speed = 0.03; } else M.son('coup',{ volume:0.18 });
+    if(bt){ bt.classList.add('faux'); bt.disabled = true; }
+    const ex = el && el.querySelector('.ex'); const bloc = document.createElement('div'); bloc.className = 'ex'; bloc.textContent = "L'attaque est passée. " + p.ex + ' Choisis une autre parade.'; if(ex) ex.replaceWith(bloc); else if(el) el.appendChild(bloc);
+    robotDire(p.ex, 8);
+  }
+}
+function finMission(reussie, secondes, score){ const t = Math.round(secondes); const duree = Math.floor(t/60) + ' min ' + (t%60) + ' s';
+  const b = document.getElementById('cyMission'); if(b) b.setAttribute('aria-pressed','false');
+  shell.stage.classList.remove('cy-mission-on'); rendreMq(null); menaceMission = null;
+  if(!reussie){ setTimeout(()=>{ if(mission) mission.cacher(); }, 4000); return; }
+  M.son('cloche',{ volume:0.22 }); robotDire('Trois attaques bloquées en ' + duree + '. Vigilance, mot de passe solide, réseau vérifié : tu as les bons réflexes.', 8);
+  if(shell.mode !== 'cours'){ shell.win({ score, stars: t > 200 ? 2 : 3, title:'Trois attaques bloquées en ' + duree, learned:shell.cfg.learned, buddy:"Hameçonnage, mot de passe faible, faux wifi : tu sais maintenant reconnaître ces trois pièges et choisir la parade." }); }
+  else { shell.say('Mission réussie en ' + duree + ' : ' + score + ' points de plus. Le quiz continue.', 'fier'); if(shell.celebrate) shell.celebrate(); setTimeout(()=>{ if(mission) mission.cacher(); }, 9000); }
+}
+window.__monde = { lancerMission, repondre, mission:()=>mission, attaque:()=>attaque, erreurs:()=>erreursAttaque, robot:()=>robot, defi:()=>challenge, attaques:ATTAQUES, bloquees:()=>blocked, intrusions:()=>breaches };
+
 /* ====== THÈME / RESIZE ====== */
 function applyTheme(){ const dark = document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x05070e:0x0a0f1c, 1); if(scene.fog) scene.fog.color.setHex(dark?0x05070e:0x0a0f1c); }
 function onResize(){ const s = shell.stage; if(!s.clientWidth) return; camera.aspect = s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth, s.clientHeight); composer.setSize(s.clientWidth, s.clientHeight); }
@@ -808,7 +960,7 @@ function animate(){
   // Remparts : rendu selon activation + flash de blocage
   DEF.forEach(d=>{
     if(d.flash > 0) d.flash = Math.max(0, d.flash - dt*1.8);
-    const base = d.active ? 0.16 : 0.03;
+    const base = d.active ? 0.1 : 0.025;
     const puls = d.active && !REDUCED ? 0.05*Math.abs(Math.sin(t*1.5 + d.ang)) : 0;
     d._domeMat.opacity = base + puls + d.flash*0.6;
     d._ringMat.opacity = (d.active ? 0.7 : 0.2) + d.flash*0.5;
@@ -848,6 +1000,7 @@ function animate(){
   // Télémétrie
   telAcc += dt; if(telAcc > 0.15){ telAcc = 0; refreshTelemetry(); }
 
+  for(const f of boucles){ try{ f(dt, t); }catch(e){ /* une boucle ne casse pas le rendu */ } }
   controls.update(); updateLabels(); composer.render();
 }
 </script>

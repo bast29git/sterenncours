@@ -91,6 +91,15 @@
   .gl-b:focus-visible { outline:2px solid #7ec8ff; outline-offset:2px; }
   .gl-b.primary { border:none; background:linear-gradient(135deg,#F5A623,#E63329); color:#fff; box-shadow:0 8px 24px rgba(230,51,41,.4); }
   .gl-b.next { border:none; background:linear-gradient(135deg,#29B6E0,#6E6BFF); color:#fff; }
+  /* ====== TOUR DU MONDE EN HUIT ESCALES (mission guidée par l'avion) ====== */
+  .gl-ask { position:absolute; bottom:52px; left:50%; transform:translateX(-50%); z-index:23; width:min(520px,94vw); padding:11px 14px 12px; display:none; flex-direction:column; gap:7px; }
+  .gl-ask.on { display:flex; }
+  .gl-ask .hd { display:flex; justify-content:space-between; gap:8px; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--fg-muted); }
+  .gl-ask .q { font-weight:800; font-size:14px; line-height:1.4; color:var(--fg); }
+  .gl-ask .q small { display:block; font-weight:600; font-size:12.5px; color:var(--fg-muted); margin-top:3px; }
+  .gl-ask .ex { font-size:12.5px; line-height:1.45; color:var(--accent-text); background:var(--accent-weak); border-radius:10px; padding:7px 11px; }
+  .gl-tour-on .gl-hint, .gl-tour-on .gl-search { display:none; }
+  @media (max-width:720px){ .gl-ask { bottom:14px; padding:9px 11px; } .gl-ask .q { font-size:13px; } .gl-tour-on .gl-modes { display:none; } }
   @media (prefers-reduced-motion: reduce){ .gl-end-card,.gl-hero-globe{animation:none} .gl-info{transition:none} }
   @media (max-width:720px){ .gl-modes{width:150px} .gl-info{width:min(300px,84vw)} .gl-m-title{font-size:18px} .gl-end-h{font-size:21px} .gl-hero{height:140px} .gl-hero-globe{width:92px;height:92px} .gl-meds{grid-template-columns:repeat(3,1fr)} }
 </style>
@@ -105,6 +114,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { outils, renduLogiciel, textureTexte, arcSphere } from '../monde-base.js';
 const REDUCED=window.Konstrio.REDUCED;
 const COUNTRIES=[
   { id:"afghanistan", name:"Afghanistan", cap:"Kabul", lat:33.93, lon:67.68, cont:"Asie", flag:"🇦🇫" },
@@ -380,9 +390,12 @@ const CONTCOL={'Europe':'#1B82E0','Asie':'#E0892B','Afrique':'#23A06E','Amériqu
 let hoveredMarker=null, selectedId=null;
 let scene,camera,renderer,composer,controls,clock,globeGroup,earth,clouds,sunLight,raycaster,pointer,markers=[],hovered=null,targetRotY=null,labelEls={};
 let earthU=null, realSun=false, baseSunDir=new THREE.Vector3(1,.25,.6).normalize(), targetCamDist=null, targetPhi=null, mission=null;
+/* F228 : outils de jeu ; l'avion guide, le tour du monde en huit escales */
+let M=null; const boucles=[]; let avion=null, avionMeshes=[], bulleAvion=null, bulleT=0, tour=null, missionTour=null, vol=null, ambianceVent=null, aidePin=null; const R_VOL=2.14;
+const AVION_LEGENDE={ nom:'Plume, avion de ligne', phrase:'Il suit la route du tour du monde, escale après escale.' };
 
 /* E14 : légendes des objets pour le socle commun des mondes. */
-function LEGENDE_OPALINE(ob){ const m=markers.find(x=>x.pin===ob||x.halo===ob); return m&&m.c?{nom:m.c.name,phrase:'Capitale : '+m.c.cap+' · '+m.c.cont}:null; }
+function LEGENDE_OPALINE(ob){ if(ob&&ob.userData&&ob.userData.avion) return AVION_LEGENDE; const m=markers.find(x=>x.pin===ob||x.halo===ob); return m&&m.c?{nom:m.c.name,phrase:'Capitale : '+m.c.cap+' · '+m.c.cont}:null; }
 function LEGENDES_OPALINE(){ return markers.filter(m=>m.c&&m.c.star).map(m=>({nom:m.c.name,phrase:'Capitale : '+m.c.cap})); }
 const shell=window.Konstrio.createGame({
   id:'3d-09-globe', code:'3D·09', title:'Globe géographique interactif', type:'3D',
@@ -405,7 +418,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   camera=new THREE.PerspectiveCamera(50, stage.clientWidth/stage.clientHeight, .01, 1000); camera.position.set(0,1.2,5.2);
   renderer=new THREE.WebGLRenderer({antialias:true}); window.Konstrio.declarer3d({ renderer: renderer }); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; window.Konstrio.adapterRendu(renderer); renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.1; stage.appendChild(renderer.domElement);
   // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y produirait du noir → chaîne robuste sans GTAO
-  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const software=renduLogiciel(renderer);
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer); composer.addPass(new RenderPass(scene,camera));
   // GPU réel uniquement : occlusion ambiante en espace-écran (creuse le contact atmosphère/relief)
@@ -417,12 +430,13 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.minDistance=2.6; controls.maxDistance=12; controls.autoRotate=true; controls.autoRotateSpeed=REDUCED?0.12:0.4;
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
+  M=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f), etiquette:etiquetteBulle });
   scene.add(new THREE.AmbientLight(0x2a3b58,0.35)); sunLight=new THREE.DirectionalLight(0xfff2dc,2.4); sunLight.castShadow=true; sunLight.shadow.mapSize.set(1024,1024); scene.add(sunLight);
   scene.add(makeSky());
   globeGroup=new THREE.Object3D(); scene.add(globeGroup);
   // ---- Terre photoréaliste : shader jour/nuit (terminateur, spéculaire océans, fresnel) ----
   const proc=buildProceduralEarth();
-  earthU={ dayMap:{value:proc.day}, nightMap:{value:proc.night}, sunDir:{value:new THREE.Vector3(1,.25,.6).normalize()}, nightBoost:{value:1.0} };
+  earthU={ dayMap:{value:proc.day}, nightMap:{value:proc.night}, sunDir:{value:new THREE.Vector3(1,.25,.6).normalize()}, nightBoost:{value:1.25} };
   earth=new THREE.Mesh(new THREE.SphereGeometry(2,128,96), earthShaderMat(earthU)); globeGroup.add(earth);
   clouds=new THREE.Mesh(new THREE.SphereGeometry(2.035,64,48), new THREE.MeshLambertMaterial({ map:proc.clouds, alphaMap:proc.clouds, transparent:true, opacity:.85, depthWrite:false })); globeGroup.add(clouds);
   const atmo=new THREE.Mesh(new THREE.SphereGeometry(2.22,64,48), atmoMat()); globeGroup.add(atmo); globeGroup.userData.atmo=atmo;
@@ -434,6 +448,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
     let halo=null; if(c.star){ halo=new THREE.Sprite(new THREE.SpriteMaterial({ map:hTex, color:0xffcf4a, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending })); halo.scale.setScalar(0.24); halo.position.copy(pos); globeGroup.add(halo); }
     markers.push({pin,halo,c}); });
   raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
+  buildAvion();
   loadTextures(); buildUI(); applyTheme();
   renderer.domElement.addEventListener('pointermove',onMove); renderer.domElement.addEventListener('pointerdown',onDown);
   controls.addEventListener('start',()=>{ targetRotY=null; targetPhi=null; targetCamDist=null; }); // le geste de l'enfant garde la main
@@ -548,7 +563,7 @@ function buildUI(){ const stage=shell.stage;
   function rs(q){ active=-1; const list=q?COUNTRIES.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())||c.cap.toLowerCase().includes(q.toLowerCase())).slice(0,8):COUNTRIES.slice(0,8); if(!list.length){ sugg.classList.remove('show'); return; } sugg.innerHTML=list.map(c=>`<button data-id="${c.id}">${c.name}<span class="k">${c.cont}</span></button>`).join(''); sugg.classList.add('show'); sugg.querySelectorAll('button').forEach(b=> b.onclick=()=>{ const c=COUNTRIES.find(x=>x.id===b.dataset.id); focusCountry(c); inp.value=''; sugg.classList.remove('show'); }); }
   inp.addEventListener('input',()=>rs(inp.value)); inp.addEventListener('focus',()=>rs(inp.value)); inp.addEventListener('blur',()=>setTimeout(()=>sugg.classList.remove('show'),200));
   inp.addEventListener('keydown',e=>{ const bs=[...sugg.querySelectorAll('button')]; if(e.key==='ArrowDown')active=Math.min(bs.length-1,active+1); else if(e.key==='ArrowUp')active=Math.max(0,active-1); else if(e.key==='Enter'){ if(bs[active])bs[active].click(); else if(bs[0])bs[0].click(); return;} else return; bs.forEach((b,i)=>b.classList.toggle('active',i===active)); e.preventDefault(); });
-  const m=document.createElement('div'); m.className='gl-panel gl-modes'; m.innerHTML=`<h3>Calques</h3>
+  const m=document.createElement('div'); m.className='gl-panel gl-modes'; m.innerHTML=`<button class="gl-tg" id="glTour" aria-pressed="false" style="background:var(--accent-weak);color:var(--accent-text)">✈️ Tour du monde : huit escales</button><h3>Calques</h3>
     <button class="gl-tg" data-k="night" aria-pressed="false">🌙 Face nuit (villes)</button>
     <button class="gl-tg" data-k="sun" aria-pressed="false">🕐 Soleil réel</button>
     <button class="gl-tg" data-k="clouds" aria-pressed="true">☁️ Nuages</button>
@@ -556,7 +571,9 @@ function buildUI(){ const stage=shell.stage;
     <button class="gl-tg" data-k="markers" aria-pressed="true">📍 Capitales</button>
     <button class="gl-tg" data-k="grat" aria-pressed="false">🌐 Grille (équateur)</button>
     <button class="gl-tg" data-k="spin" aria-pressed="true">↻ Rotation auto</button>`; stage.appendChild(m);
-  m.querySelectorAll('.gl-tg').forEach(b=> b.onclick=()=>{ const k=b.dataset.k; const on=b.getAttribute('aria-pressed')!=='true'; b.setAttribute('aria-pressed',on); shell.sound('click');
+  m.querySelector('#glTour').onclick=()=>lancerMission();
+  const ask=document.createElement('div'); ask.className='gl-panel gl-ask'; ask.id='glAsk'; ask.setAttribute('aria-live','polite'); stage.appendChild(ask);
+  m.querySelectorAll('.gl-tg[data-k]').forEach(b=> b.onclick=()=>{ const k=b.dataset.k; const on=b.getAttribute('aria-pressed')!=='true'; b.setAttribute('aria-pressed',on); shell.sound('click');
     if(k==='night'){ night=on; shell.say(on?"Côté nuit : le Soleil passe derrière la Terre : regarde les lumières des grandes villes briller depuis l'espace !":"Retour au jour.",'enthousiaste'); }
     if(k==='sun'){ realSun=on; if(on&&night){ night=false; m.querySelector('[data-k="night"]').setAttribute('aria-pressed',false); } shell.say(on?"Soleil réel : le globe montre le vrai jour et la vraie nuit de maintenant, comme les satellites les voient.":"Soleil libre.",'curieux'); }
     if(k==='clouds'){ showClouds=on; clouds.visible=on; }
@@ -586,6 +603,8 @@ function continentAt(lat,lon){ if(lat<-60)return 'Antarctique'; const n=nearestC
 function localTime(lon){ const off=Math.round(lon/15); const d=new Date(); const h=(d.getUTCHours()+off+24)%24; return h+' h '+String(d.getUTCMinutes()).padStart(2,'0')+' (UTC'+(off>=0?'+':'')+off+')'; }
 function fmtKm(k){ return k<100?Math.round(k)+' km':(k<9500?(Math.round(k/50)*50).toLocaleString('fr-FR'):(Math.round(k/100)*100).toLocaleString('fr-FR'))+' km'; }
 function onDown(e){ setP(e); const m=pick();
+  if(avionMeshes.length){ raycaster.setFromCamera(pointer,camera); if(raycaster.intersectObjects(avionMeshes,false).length){ avionDire(tour&&tour.active ? 'Lis les indices en bas, puis touche le pays sur le globe.' : "Je suis Plume. Lance le tour du monde : huit escales à retrouver avec des indices."); shell.sound('pop'); return; } }
+  if(tour&&tour.active){ tourClick(m?{lat:m.c.lat,lon:m.c.lon,c:m.c}:pickEarth()); return; }
   if(mission&&mission.active){ missionClick(m?{lat:m.c.lat,lon:m.c.lon,c:m.c}:pickEarth()); return; }
   if(m){ focusCountry(m.c); return; }
   const g=pickEarth(); if(!g)return;
@@ -628,7 +647,11 @@ const GPHASES=[
 const TOTAL_STEPS=18;
 function shuffle(a){ return a.slice().sort(()=>Math.random()-.5); }
 function startMode(m){ const hint=document.getElementById('glHint'); if(hint)hint.style.display=m==='cours'?'none':'';
-  if(m==='cours')missionStart(); else missionEnd(); }
+  if(m==='cours')missionStart(); else missionEnd();
+  if(!ambianceVent&&M){ try{ ambianceVent=M.ambiance({ type:'vent', volume:0.04 }); }catch(e){} }
+  assurerMission();
+  setTimeout(()=>{ avionDire(m==='cours' ? "Je suis Plume. Après le tour guidé, lance mes huit escales depuis le panneau Calques." : "Je suis Plume, ton avion. Dans quelques secondes, on part pour huit escales autour du monde."); }, 1500);
+  if(m!=='cours') setTimeout(()=>{ if(!tour) lancerMission(); }, 8000); }
 function setPanels(v){ document.querySelectorAll('.gl-search,.gl-modes').forEach(p=>p.style.display=v?'':'none'); }
 function missionStart(){ missionEnd(); shell.setScore(0); shell.setStars(0); shell.setProgress(0); shell.setLevel('1/3');
   document.getElementById('glInfo').classList.remove('show'); setPanels(false);
@@ -746,8 +769,98 @@ function animate(){ requestAnimationFrame(animate); const dt=clock.getDelta();
   const tt=clock.elapsedTime;
   markers.forEach(m=>{ if(!m.halo)return; const s=REDUCED?0.24:0.2+Math.sin(tt*3+m.c.lat)*0.05; m.halo.scale.setScalar(showMarkers?s:0); });
   if(mission&&mission.helpPin)mission.helpPin.scale.setScalar(REDUCED?0.55:0.45+Math.sin(tt*4)*0.15);
+  if(aidePin)aidePin.scale.setScalar(REDUCED?0.55:0.45+Math.sin(tt*4)*0.15);
+  for(const f of boucles){ try{ f(dt, tt); }catch(e){ /* une boucle ne casse pas le rendu */ } }
   controls.update(); updateLabels(); composer.render();
 }
+
+/* ============================================================
+   PLUME, L'AVION DE LIGNE : primitives, feux de position ; il tourne au-dessus du globe, puis trace la route des escales
+   ============================================================ */
+function etiquetteBulle(texte, position, opt){ opt = opt || {}; const mots = String(texte).split(' '); const lignes = []; let l = '';
+  mots.forEach(m=>{ if((l + ' ' + m).trim().length > 32 && l){ lignes.push(l); l = m; } else l = (l ? l + ' ' : '') + m; }); if(l) lignes.push(l);
+  const tex = textureTexte(lignes.join('\n'), opt); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, depthTest:false, toneMapped:false }));
+  const h = ((opt.hauteur || 0.42) * lignes.length * 0.78 + 0.25) * 0.3; sp.scale.set(h * tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.renderOrder = 20; sp.raycast = ()=>{}; scene.add(sp); return sp; }
+function buildAvion(){
+  avion=new THREE.Group(); const blanc=new THREE.MeshStandardMaterial({ color:0xf4f7fb, roughness:0.35, metalness:0.25 }); const bleu=new THREE.MeshStandardMaterial({ color:0x1b6fd0, roughness:0.4, metalness:0.2 });
+  const add=(geo,m,p,rot)=>{ const x=new THREE.Mesh(geo,m); x.position.set(p[0],p[1],p[2]); if(rot) x.rotation.set(rot[0],rot[1],rot[2]); x.castShadow=true; x.userData.avion=true; avion.add(x); avionMeshes.push(x); return x; };
+  add(THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.028,0.16,6,14) : new THREE.CylinderGeometry(0.028,0.028,0.2,14), blanc, [0,0,0], [Math.PI/2,0,0]);   // fuselage, nez vers +z
+  add(new THREE.BoxGeometry(0.3,0.006,0.05), blanc, [0,-0.006,0.01]);                                                                                      // ailes
+  add(new THREE.BoxGeometry(0.008,0.055,0.045), bleu, [0,0.035,-0.095]);                                                                                   // dérive
+  add(new THREE.BoxGeometry(0.11,0.005,0.03), bleu, [0,0.012,-0.1]);                                                                                       // empennage
+  [-0.08,0.08].forEach(x=>{ add(new THREE.CylinderGeometry(0.012,0.012,0.04,10), bleu, [x,-0.016,0.02], [Math.PI/2,0,0]); });                              // réacteurs
+  add(new THREE.SphereGeometry(0.006,8,6), new THREE.MeshBasicMaterial({ color:0xff3b30 }), [-0.15,-0.004,0.01]);                                           // feu rouge (gauche)
+  add(new THREE.SphereGeometry(0.006,8,6), new THREE.MeshBasicMaterial({ color:0x35E08A }), [0.15,-0.004,0.01]);                                            // feu vert (droite)
+  avion.traverse(o=>{ o.userData.legende=AVION_LEGENDE; });
+  globeGroup.add(avion); poserAvion(PARIS.lat, PARIS.lon, 40);
+  boucles.push((dt,t)=>{ if(!avion) return;
+    if(vol){ vol.t=Math.min(1, vol.t+dt/vol.duree); const p=vol.courbe.getPointAt(vol.t); const q=vol.courbe.getPointAt(Math.min(1,vol.t+0.01)); avion.position.copy(p); avion.up.copy(p.clone().normalize()); avion.lookAt(q); if(vol.t>=1){ const fin=vol.apres; vol=null; if(fin) fin(); } }
+    else if(!tour||!tour.active){ avion.userData.lon=(avion.userData.lon||0)+dt*(REDUCED?2:5); poserAvion(28, avion.userData.lon, (avion.userData.lon+5)); }   // en attente : il tourne au-dessus du globe
+    if(bulleAvion){ const wp=new THREE.Vector3(); avion.getWorldPosition(wp); const up=wp.clone().normalize(); bulleAvion.position.copy(wp).addScaledVector(up,0.22); if(performance.now()>bulleT){ scene.remove(bulleAvion); bulleAvion=null; } } });
+}
+function poserAvion(lat,lon,lonSuivante){ if(!avion) return; const p=latlon(lat,lon,R_VOL); avion.position.copy(p); avion.up.copy(p.clone().normalize()); avion.lookAt(latlon(lat,lonSuivante==null?lon+5:lonSuivante,R_VOL)); avion.userData.lat=lat; avion.userData.lon=lon; }
+function avionDire(texte, secondes){ if(!avion) return; if(bulleAvion) scene.remove(bulleAvion);
+  const wp=new THREE.Vector3(); avion.getWorldPosition(wp); bulleAvion=etiquetteBulle(texte, [wp.x,wp.y+0.3,wp.z], { taille:26, hauteur:0.42, fond:'rgba(255,255,255,0.95)', couleur:'#1e2733' }); bulleT=performance.now()+(secondes||5)*1000;
+  shell.say(texte,'concentre'); }
+/* Le vol d'une escale à l'autre : un arc au-dessus du globe, puis la route reste tracée. */
+function volerVers(lat,lon,apres){ const a=latlon(avion.userData.lat==null?PARIS.lat:avion.userData.lat, avion.userData.lon==null?PARIS.lon:avion.userData.lon, R_VOL); const b=latlon(lat,lon,R_VOL);
+  const courbe=arcSphere(a,b,R_VOL,0.12,64); const dist=a.angleTo(b); vol={ courbe, t:0, duree:REDUCED?0.6:Math.max(1.4, dist*2.2), apres:()=>{ avion.userData.lat=lat; avion.userData.lon=lon; const trace=new THREE.Mesh(new THREE.TubeGeometry(courbe,64,0.006,6,false), new THREE.MeshBasicMaterial({ color:0xffcf4a })); globeGroup.add(trace); tour&&tour.traces.push(trace); if(apres) apres(); } }; }
+
+/* ============================================================
+   MISSION « TOUR DU MONDE EN HUIT ESCALES » : retrouver huit pays à partir d'indices (continent, hémisphère, climat), dans l'ordre
+   ============================================================ */
+const ESCALES=[
+  { id:'egypt', indice:"Afrique, hémisphère Nord, climat désertique. Un grand fleuve la traverse du sud au nord : le Nil.", fait:"L'Égypte : presque tous ses habitants vivent le long du Nil, au milieu du désert." },
+  { id:'kenya', indice:"Afrique, sur l'équateur, climat de savane. Grands animaux et grande migration.", fait:"Le Kenya : l'équateur le traverse, et ses savanes accueillent la grande migration des gnous." },
+  { id:'india', indice:"Asie, hémisphère Nord, climat de mousson avec de fortes pluies d'été. Le pays le plus peuplé du monde.", fait:"L'Inde : la mousson apporte chaque été les pluies qui font pousser le riz." },
+  { id:'japan', indice:"Asie, hémisphère Nord, un archipel au climat tempéré, avec des volcans et des séismes.", fait:"Le Japon : plus de 6 800 îles sur la ceinture de feu du Pacifique." },
+  { id:'australia', indice:"Océanie, hémisphère Sud, un intérieur désertique et des côtes plus douces. Un pays qui est aussi un continent.", fait:"L'Australie : quand c'est l'hiver en France, c'est l'été là-bas." },
+  { id:'brazil', indice:"Amérique du Sud, traversé par l'équateur, climat équatorial chaud et humide : la forêt amazonienne.", fait:"Le Brésil : l'Amazonie couvre une grande partie du pays." },
+  { id:'united-states', indice:"Amérique du Nord, hémisphère Nord, presque tous les climats, de l'Alaska glacé à la Floride tropicale.", fait:"Les États-Unis : six fuseaux horaires d'un bout à l'autre." },
+  { id:'iceland', indice:"Europe, hémisphère Nord, tout près du cercle polaire : climat froid, volcans et glaciers.", fait:"L'Islande : du feu sous la glace, et des aurores en hiver." },
+];
+function assurerMission(){ if(missionTour||!M) return missionTour;
+  missionTour=M.mission({ titre:'Tour du monde en huit escales', cachee:true, chrono:true, chronoCible:300, gagner:false, annonce:false,
+    objectifs:ESCALES.map((e,i)=>({ id:e.id, texte:(i+1)+'. '+COUNTRIES.find(c=>c.id===e.id).name })).concat([{ id:'retour', texte:'9. Retour à Paris' }]),
+    surFin:(reussie,secondes,score)=>finMission(reussie,secondes,score) });
+  missionTour.zone.setAttribute('aria-label','Mission : tour du monde en huit escales'); return missionTour; }
+function lancerMission(){ if(!assurerMission()) return;
+  if(tour&&tour.active){ avionDire('Le tour est déjà lancé : lis les indices en bas et touche le pays.'); missionTour.montrer(); return; }
+  if(mission&&mission.active) missionEnd();
+  tour={ active:true, idx:0, erreurs:0, traces:[] }; vol=null; poserAvion(PARIS.lat, PARIS.lon, PARIS.lon+5);
+  const b=document.getElementById('glTour'); if(b) b.setAttribute('aria-pressed','true'); shell.stage.classList.add('gl-tour-on');
+  document.getElementById('glInfo').classList.remove('show'); controls.autoRotate=false; const sp=document.querySelector('[data-k="spin"]'); if(sp) sp.setAttribute('aria-pressed',false);
+  missionTour.montrer(); missionTour.commencer(); M.son('clic',{ volume:0.2 });
+  aimAt(PARIS.lat, PARIS.lon, 4.6);
+  shell.say("Tour du monde : huit escales à retrouver sur le globe avec trois indices à chaque fois, le continent, l'hémisphère et le climat. Touche le pays, Plume y vole et trace la route. Le chrono tourne.",'enthousiaste');
+  setTimeout(demanderEscale, 1800); }
+function escaleCourante(){ return tour ? ESCALES[tour.idx] : null; }
+function demanderEscale(){ if(!tour||!tour.active) return; const e=escaleCourante(); if(!e) return; tour.erreurs=0; enleverAide(); rendreAsk(null);
+  avionDire('Escale '+(tour.idx+1)+' sur 8. '+e.indice, 7); }
+function rendreAsk(etat){ const el=document.getElementById('glAsk'); if(!el) return; const e=escaleCourante();
+  if(!tour||!tour.active||!e){ el.classList.remove('on'); el.innerHTML=''; return; }
+  el.classList.add('on'); el.innerHTML=`<div class="hd"><span>Escale ${tour.idx+1} / 8</span><span>Touche le pays sur le globe</span></div><div class="q">${e.indice}<small>Fais tourner le globe pour chercher. Trois indices : continent, hémisphère, climat.</small></div>${etat?`<div class="ex">${etat}</div>`:''}`; }
+function tourClick(g){ if(!g||!tour||!tour.active||vol) return; const e=escaleCourante(); if(!e) return; const t=COUNTRIES.find(c=>c.id===e.id);
+  const hit=(g.c&&g.c.id===t.id)||distKm(g,t)<=tolKm(t);
+  if(hit){ const pts=tour.erreurs===0?150:tour.erreurs===1?100:60; enleverAide(); M.son('tic',{ volume:0.22 }); missionTour.valider(e.id, pts);
+    rendreAsk('Exact : '+t.name+' '+(t.flag||'')+'. '+e.fait); shell.say('Exact : '+t.name+'. '+e.fait,'celebration'); focusCountry(t,true);
+    const idx=tour.idx; volerVers(t.lat,t.lon,()=>{ if(!tour||!tour.active) return; tour.idx=idx+1; if(tour.idx<ESCALES.length){ setTimeout(demanderEscale, 600); } else { retourParis(); } }); }
+  else { tour.erreurs++; M.son('coup',{ volume:0.1 }); const n=g.c?{c:g.c,km:0}:nearestCountry(g.lat,g.lon); const la=n.km<650?('Ça, c\'est '+n.c.name+' '+(n.c.flag||'')+', en '+n.c.cont+'. '):'';
+    const hemi=t.lat>=0?'hémisphère Nord':'hémisphère Sud'; const aide=tour.erreurs>=3 ? "Regarde : la zone clignote en vert. Touche-la." : ('Cherche '+dirHint(g,t)+', en '+t.cont+' ('+hemi+').');
+    if(tour.erreurs>=3) montrerAide(t);
+    rendreAsk(la+'Pas encore. '+aide); shell.say(la+'Pas encore. '+aide,'rassurant'); } }
+function retourParis(){ rendreAsk('Huit escales bouclées. Plume rentre à Paris.'); shell.say('Huit escales bouclées. Dernier vol : retour à Paris.','fier'); const fr=COUNTRIES.find(c=>c.id==='france'); aimAt(PARIS.lat,PARIS.lon,4.6);
+  volerVers(PARIS.lat, PARIS.lon, ()=>{ if(!tour||!tour.active) return; M.son('cloche',{ volume:0.22 }); missionTour.valider('retour', 100); if(fr) focusCountry(fr,true); }); }
+function montrerAide(t){ enleverAide(); aimAt(t.lat,t.lon,4.2); const s=new THREE.Sprite(new THREE.SpriteMaterial({ map:haloTex(), color:0x7ef5b0, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending })); s.position.copy(latlon(t.lat,t.lon,2.07)); s.scale.setScalar(0.5); globeGroup.add(s); aidePin=s; }
+function enleverAide(){ if(aidePin){ globeGroup.remove(aidePin); aidePin=null; } }
+function finMission(reussie,secondes,score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  const b=document.getElementById('glTour'); if(b) b.setAttribute('aria-pressed','false'); shell.stage.classList.remove('gl-tour-on'); enleverAide();
+  if(tour) tour.active=false; rendreAsk(null);
+  if(!reussie){ setTimeout(()=>{ if(missionTour) missionTour.cacher(); }, 4000); return; }
+  avionDire('Tour du monde bouclé en '+duree+'. Huit pays retrouvés avec leurs indices.', 7);
+  if(shell.mode!=='cours'){ shell.win({ score, stars:t>300?2:3, title:'Tour du monde en '+duree, learned:shell.cfg.learned, buddy:"Continent, hémisphère, climat : trois indices suffisent pour retrouver un pays sur le globe." }); }
+  else { shell.say('Tour du monde réussi en '+duree+' : '+score+' points de plus.','fier'); if(shell.celebrate) shell.celebrate(); setTimeout(()=>{ if(missionTour) missionTour.cacher(); }, 9000); } }
+window.__monde={ lancerMission, toucher:(id)=>{ const c=COUNTRIES.find(x=>x.id===id); if(c) tourClick({ lat:c.lat, lon:c.lon, c }); }, toucherLatLon:(lat,lon)=>tourClick({ lat, lon }), mission:()=>missionTour, tour:()=>tour, escales:ESCALES, enVol:()=>!!vol, finirVol:()=>{ if(vol) vol.t=1; }, avion:()=>avion };
 function updateLabels(){ const stage=shell.stage; markers.forEach(m=>{ let el=labelEls[m.c.id]; const want = showMarkers && (m===hoveredMarker || m.c.id===selectedId); if(!want){ if(el)el.style.display='none'; return; } const wp=new THREE.Vector3(); m.pin.getWorldPosition(wp); const cam=camera.position.clone().normalize(); const facing=wp.clone().normalize().dot(cam); const v=wp.clone().project(camera); if(facing<0.1||v.z>1){ if(el)el.style.display='none'; return; } if(!el){ el=document.createElement('div'); el.className='gl-mk'; el.style.cssText='position:absolute;bottom:auto;font-family:var(--font-mono);font-size:11px;font-weight:700;white-space:nowrap;color:var(--fg);background:color-mix(in srgb,var(--surface) 88%,transparent);padding:2px 8px;border-radius:6px;border:1px solid var(--border);pointer-events:none;z-index:14;transform:translate(-50%,-150%)'; el.textContent=(m.c.flag?m.c.flag+' ':'')+m.c.cap; stage.appendChild(el); labelEls[m.c.id]=el; } el.style.display='block'; el.style.left=((v.x*.5+.5)*stage.clientWidth)+'px'; el.style.top=((-v.y*.5+.5)*stage.clientHeight)+'px'; }); }
 /* hook e2e (audit auto) : n'expose que de la lecture + actions de jeu */
 window.__g09={ get mission(){ return mission; }, missionClick, focusCountry, openContinent, aimAt, COUNTRIES, CONTINENTS, get shell(){ return shell; } };

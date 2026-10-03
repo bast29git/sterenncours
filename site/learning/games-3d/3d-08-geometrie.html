@@ -70,6 +70,24 @@
   .gg-tip { position:absolute; left:50%; bottom:16px; transform:translateX(-50%); z-index:18; font-size:12px; color:var(--fg-muted); background:color-mix(in srgb,var(--surface) 86%,transparent); border:1px solid var(--border); padding:7px 15px; border-radius:999px; pointer-events:none; max-width:88%; text-align:center; }
   .gg-flash { position:absolute; left:50%; top:16px; transform:translateX(-50%); z-index:26; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-lg); border-radius:12px; padding:9px 16px; font-weight:700; font-size:13.5px; color:var(--fg); opacity:0; transition:.3s; pointer-events:none; }
   .gg-flash.show { opacity:1; }
+  /* Mission : construire la maquette (question, choix, explication) */
+  .gg-mq { position:absolute; top:16px; left:50%; transform:translateX(-50%); z-index:24; width:min(440px,92vw); padding:12px 14px 13px; display:none; flex-direction:column; gap:8px; }
+  .gg-mq.on { display:flex; }
+  .gg-mq .hd { font-family:var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--fg-muted); display:flex; justify-content:space-between; gap:8px; }
+  .gg-mq .q { font-weight:800; font-size:14px; line-height:1.4; color:var(--fg); }
+  .gg-mq .q small { display:block; font-weight:600; font-size:12.5px; color:var(--fg-muted); margin-top:3px; }
+  .gg-mq .ops { display:flex; gap:7px; flex-wrap:wrap; }
+  .gg-mq .op { flex:1 1 90px; font-family:var(--font-data); font-weight:700; font-size:14.5px; min-height:42px; padding:0 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; }
+  .gg-mq .op:focus-visible { outline:none; box-shadow:var(--ring); }
+  .gg-mq .op[disabled] { opacity:.6; cursor:default; } .gg-mq .op.bon { background:var(--accent); border-color:var(--accent); color:#fff; } .gg-mq .op.faux { border-color:#e05656; }
+  .gg-mq .ex { font-size:12.5px; line-height:1.45; color:var(--accent-text); background:var(--accent-weak); border-radius:10px; padding:8px 11px; }
+  @media (max-width:760px){
+    .gg-mq { top:12px; left:8px; right:8px; width:auto; transform:none; padding:10px 11px; }
+    .gg-mission-on .gg-right { display:none; }
+    .gg-mission-on .gg-left { top:188px; max-height:calc(100% - 200px); }
+    .gg-mission-on .mb-mission { top:188px; }
+    .gg-mission-on .gg-left .gg-sec:not(.gg-sec-solide):not(.gg-sec-mission) { display:none; }
+  }
   @media (max-width:760px){
     .gg-left{ width:186px; padding:11px; gap:11px }
     .gg-right{ width:160px; padding:12px }
@@ -88,6 +106,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, textureTexte, matPBR, preparerAo } from '../monde-base.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============================================================
@@ -127,6 +146,10 @@ let envReady=false;
 let quiz=null;
 let contactShadow=null, maxAniso=8;
 const tmp = new THREE.Vector3();
+/* F228 : outils de jeu ; l'architecte, la table, la maquette et la mission */
+const ECH = 2.2;                                  // l'architecte et la marche sont à l'échelle de la table (le solide est grand)
+const FLOOR_Y = -4.7;                             // le sol de l'atelier ne bouge plus : seule la table s'ajuste au solide
+let M=null; const boucles=[]; let archi=null, marche=null, mission=null, missionLancee=false, etapeM=0, erreursM=0, reponduM=false, table=null, tableY=-2.6, maquette=null, pieces={}, ambianceSalle=null, tempsPas=0;
 
 /* ============================================================ TEXTURES PBR CC0 (Poly Haven) */
 const texLoader = new THREE.TextureLoader();
@@ -179,7 +202,11 @@ const shell = window.Konstrio.createGame({
     "Cylindre, cône et sphère sont des solides de révolution : une courbe qui tourne autour d'un axe."
   ],
   onReady:(api)=>init(api),
-  onStart:(m,api)=>{ st.mode=m; resetScene(); if(m==='cours'){ api.setScore(0); api.setStars(0); startQuiz(); } else { api.setLevel('libre'); tip("Explore librement : matière, coupe, patron, transformations…"); } },
+  onStart:(m,api)=>{ st.mode=m; resetScene(); if(m==='cours'){ api.setScore(0); api.setStars(0); startQuiz(); } else { api.setLevel('libre'); tip("Explore librement : matière, coupe, patron, transformations…"); }
+    if(!ambianceSalle&&M){ try{ ambianceSalle=M.ambiance({ type:'salle', volume:0.08 }); }catch(e){} }
+    assurerMission();
+    setTimeout(()=>{ if(archi) archi.dire(m==='cours' ? 'Bonjour, je suis Gwenn, architecte. Quand tu veux, lance la mission : construire la maquette de la maison.' : 'Bonjour, je suis Gwenn, architecte. Dans quelques secondes, on construit ensemble la maquette d\'une maison.', 6); }, 1500);
+    if(m!=='cours') setTimeout(()=>{ if(!missionLancee) lancerMission(); }, 8000); },
   onRestart:(api)=>{ if(st.mode==='cours'){ api.setScore(0); api.setStars(0); startQuiz(); } },
   onTheme:()=>{ applyTheme(); rebuild(); },
 });
@@ -200,8 +227,7 @@ function init(api){
   maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 8);
 
   // détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y échoue → chaîne robuste + AO bakée
-  let software = false;
-  try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const software = renduLogiciel(renderer);
   const W=stage.clientWidth, H=stage.clientHeight;
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
@@ -218,6 +244,7 @@ function init(api){
 
   controls = new OrbitControls(camera, renderer.domElement);
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bp, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
+  M = outils({ scene, camera, renderer, controls, stage, boucle: (f) => boucles.push(f), etiquette: etiquetteBulle });
   controls.enableDamping = true; controls.dampingFactor = .08;
   controls.minDistance = 3.4; controls.maxDistance = 22; controls.maxPolarAngle = Math.PI*0.92;
   controls.target.set(0, 0.2, 0);
@@ -250,11 +277,13 @@ function init(api){
   applyPBR(floorMat, 'concrete_tiles', '1k', { repeat:7, normal:0.85, ao:true, aoInt:1.0 });
   const fgeo = new THREE.CircleGeometry(16, 96); enableAO(fgeo);
   floor = new THREE.Mesh(fgeo, floorMat);
-  floor.rotation.x = -Math.PI/2; floor.position.y = -2.6; floor.receiveShadow = true; scene.add(floor);
-  gridHelper = new THREE.GridHelper(20, 20, 0x6f7bbf, 0x3a4270); gridHelper.position.y = -2.58;
+  floor.rotation.x = -Math.PI/2; floor.position.y = FLOOR_Y; floor.receiveShadow = true; scene.add(floor);
+  gridHelper = new THREE.GridHelper(20, 20, 0x6f7bbf, 0x3a4270); gridHelper.position.y = FLOOR_Y + 0.02;
   gridHelper.material.transparent = true; gridHelper.material.opacity = 0.22; scene.add(gridHelper);
+  buildTable();
   contactShadow = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.MeshBasicMaterial({ map:makeContactShadow(), transparent:true, depthWrite:false, opacity:0.85 }));
   contactShadow.rotation.x = -Math.PI/2; contactShadow.position.y = -2.58; scene.add(contactShadow);
+  buildArchitecte(); buildMarche();
 
   axesGroup = buildAxes(); axesGroup.visible = false; scene.add(axesGroup);
 
@@ -308,8 +337,8 @@ function solidMaterial(){
     return new THREE.MeshBasicMaterial({ color:c, wireframe:true });
   }
   // plein : plastique coloré premium
-  return new THREE.MeshPhysicalMaterial({ color:c, metalness:0.04, roughness:0.34, envMapIntensity:1.1,
-    clearcoat:0.6, clearcoatRoughness:0.25, side:THREE.DoubleSide });
+  return new THREE.MeshPhysicalMaterial({ color:c, metalness:0.02, roughness:0.58, envMapIntensity:0.9,
+    clearcoat:0.15, clearcoatRoughness:0.5, side:THREE.DoubleSide });
 }
 
 /* Construit la géométrie + méta (dimensions lisibles) selon la taille */
@@ -390,8 +419,8 @@ function rebuild(){
   positionOnFloor(g);
   updateReadout();
 }
-function positionOnFloor(g){ g.computeBoundingBox(); const minY=g.boundingBox.min.y; floor.position.y = -Math.max(2.2, -minY + 0.35); gridHelper.position.y = floor.position.y + 0.02;
-  if(contactShadow){ const sz=g.boundingBox.getSize(tmp); const foot=Math.max(sz.x,sz.z); contactShadow.position.y = floor.position.y + 0.015; contactShadow.scale.setScalar(Math.max(1.1, foot*0.9)); } }
+function positionOnFloor(g){ g.computeBoundingBox(); const minY=g.boundingBox.min.y; tableY = -Math.max(2.2, -minY + 0.35); placerTable();
+  if(contactShadow){ const sz=g.boundingBox.getSize(tmp); const foot=Math.max(sz.x,sz.z); contactShadow.position.y = tableY + 0.015; contactShadow.scale.setScalar(Math.max(1.1, foot*0.9)); } }
 
 function updateClip(){
   if(!clip) return;
@@ -556,7 +585,9 @@ function buildUI(){
   const stage=shell.api.stage;
   const left=document.createElement('div'); left.className='gg-panel gg-left';
   left.innerHTML=`
-    <div class="gg-sec"><h3>◆ Solide</h3><div class="gg-solids" id="ggSolids"></div></div>
+    <div class="gg-sec gg-sec-mission"><h3>Mission</h3><button class="gg-btn" id="ggMission" aria-pressed="false">🏠 Construire la maquette</button>
+      <button class="gg-btn" id="ggMarche" aria-pressed="false" style="margin-top:6px">🚶 Marcher autour de la table</button></div>
+    <div class="gg-sec gg-sec-solide"><h3>◆ Solide</h3><div class="gg-solids" id="ggSolids"></div></div>
     <div class="gg-sec"><h3>Matière</h3><div class="gg-mat" id="ggMat">
       <button class="gg-m" data-m="plein" aria-pressed="true">Plein</button>
       <button class="gg-m" data-m="verre" aria-pressed="false">Verre</button>
@@ -596,6 +627,9 @@ function buildUI(){
   stage.appendChild(right);
 
   const tip=document.createElement('div'); tip.className='gg-tip'; tip.id='ggTip'; stage.appendChild(tip);
+  const mq=document.createElement('div'); mq.className='gg-panel gg-mq'; mq.id='ggMq'; mq.setAttribute('aria-live','polite'); stage.appendChild(mq);
+  left.querySelector('#ggMission').onclick=()=>lancerMission();
+  left.querySelector('#ggMarche').onclick=()=>{ if(marche) marche.bascule(); };
   const flash=document.createElement('div'); flash.className='gg-flash'; flash.id='ggFlash'; stage.appendChild(flash);
 
   // solides
@@ -640,6 +674,7 @@ function setSolid(k, silent){
   const cs=document.getElementById('ggCut'); if(cs){cs.value=0;document.getElementById('ggCutV').textContent='0 %';}
   document.querySelectorAll('#ggSolids .gg-s').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));
   syncNetBtn(); rebuild();
+  if(!silent && missionLancee && mission && !mission.estFinie()){ missionSolide(k); return; }
   if(!silent){ shell.sound('click'); shell.api.say(`${SOLIDS[k].name} : observe ses faces, coupe-le, déplie-le, et lis son volume.`,'concentre'); }
 }
 function resetScene(){ clearGhost(); clearRev(); st.netOn=false; st.cut=0; solidGroup.visible=true; const cs=document.getElementById('ggCut'); if(cs){cs.value=0;document.getElementById('ggCutV').textContent='0 %';} syncNetBtn(); rebuild(); }
@@ -677,11 +712,133 @@ function applyTheme(){ const dark=themeDark();
   if(composer&&composer.bloom) composer.bloom.strength = dark?0.4:0.28;
 }
 function onResize(){ const s=shell.api.stage; if(!s.clientWidth) return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); if(composer) composer.setSize(s.clientWidth,s.clientHeight); }
-function animate(){ requestAnimationFrame(animate); const now=performance.now(); controls.update();
+function animate(){ requestAnimationFrame(animate); const now=performance.now(); const dt=Math.min(0.05, clock.getDelta()); const t=clock.elapsedTime;
+  if(!(marche && marche.estActif())) controls.update();
   updateGhost(now); updateRev(now);
   if(capMesh && st.cut>0) capMesh.position.y = clip.constant;
+  for(const f of boucles){ try{ f(dt, t); }catch(e){ /* une boucle ne casse pas le rendu */ } }
   composer.render();
 }
+
+/* ============================================================
+   LA TABLE DE L'ATELIER (bois PBR), L'ARCHITECTE, LA MARCHE, LA MAQUETTE ET LA MISSION
+   ============================================================ */
+function etiquetteBulle(texte, position, opt){ opt = opt || {}; const mots = String(texte).split(' '); const lignes = []; let l = '';
+  mots.forEach(m=>{ if((l + ' ' + m).trim().length > 34 && l){ lignes.push(l); l = m; } else l = (l ? l + ' ' : '') + m; }); if(l) lignes.push(l);
+  const tex = textureTexte(lignes.join('\n'), opt); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, depthTest:false, toneMapped:false }));
+  const h = ((opt.hauteur || 0.42) * lignes.length * 0.78 + 0.25) * 1.15; sp.scale.set(h * tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.renderOrder = 20; sp.raycast = ()=>{}; scene.add(sp); return sp; }
+function buildTable(){
+  table = new THREE.Group(); scene.add(table);
+  const bois = matPBR('wood_table_001', { repetition:1.4, rugosite:0.72, normale:0.9 });
+  const plateau = new THREE.Mesh(preparerAo(new THREE.BoxGeometry(6.6, 0.16, 4.4)), bois); plateau.position.y = -0.08; plateau.castShadow = true; plateau.receiveShadow = true; table.add(plateau); table.userData.plateau = plateau;
+  const piedMat = new THREE.MeshStandardMaterial({ color:0x4a3222, roughness:0.8 });
+  [[-2.95,-1.85],[2.95,-1.85],[-2.95,1.85],[2.95,1.85]].forEach(([x,z])=>{ const pied = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,1,12), piedMat); pied.position.set(x,-0.5,z); pied.castShadow = true; table.add(pied); table.userData.pieds = (table.userData.pieds||[]).concat(pied); });
+  table.traverse(o=>{ if(o.isMesh) o.userData.legende = { nom:'Table de l\'atelier', phrase:'Le solide étudié est posé dessus, la maquette se construit dans le coin.' }; });
+  placerTable();
+}
+function placerTable(){ if(!table) return; table.position.y = tableY; const h = tableY - 0.16 - FLOOR_Y;
+  (table.userData.pieds||[]).forEach(p=>{ p.scale.y = h; p.position.y = -0.16 - h/2; });
+  if(maquette) maquette.position.y = tableY; }
+function buildArchitecte(){ if(!M) return;
+  archi = M.personnage({ nom:'Gwenn, architecte', phrase:'Elle construit la maquette de la maison avec les bons solides.', position:[-4.8, FLOOR_Y, -0.6], taille:1.7*ECH, peau:0xe2b797, haut:0x3c4a5e, bas:0x2a2e38, cheveux:0x2b1d14, vitesse:1.1*ECH, graine:4 });
+  const u = ECH; const g = archi.groupe; const ms = (c,o)=> new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:0.6 }, o||{}));
+  const add = (geo, m, p, parent)=>{ const x = new THREE.Mesh(geo, m); x.position.set(p[0],p[1],p[2]); x.castShadow = true; (parent||g).add(x); return x; };
+  add(new THREE.SphereGeometry(0.15*u, 24, 16, 0, Math.PI*2, 0, Math.PI*0.52), ms(0xf5c518,{ roughness:0.45 }), [0,1.6*u,0]);       // casque de chantier
+  add(new THREE.CylinderGeometry(0.175*u,0.175*u,0.018*u,24), ms(0xf5c518,{ roughness:0.45 }), [0,1.6*u,0.02*u]);                     // visière du casque
+  add(new THREE.BoxGeometry(0.06*u,0.02*u,0.12*u), ms(0xe8e8e8), [0,1.73*u,0]);                                                     // arête du casque
+  const plans = add(new THREE.CylinderGeometry(0.04*u,0.04*u,0.46*u,14), ms(0xfbfaf2,{ roughness:0.9 }), [0.02*u,-0.56*u,0.1*u], archi.membres.brasG); plans.rotation.x = Math.PI/2;  // plans roulés
+  add(new THREE.TorusGeometry(0.042*u,0.008*u,6,16), ms(0xd04848), [0.02*u,-0.56*u,0.1*u], archi.membres.brasG).rotation.x = Math.PI/2; // élastique rouge
+  archi.membres.brasG.rotation.x = -0.6;
+  archi.regarder([0, FLOOR_Y, 2]);
+}
+function collisionAtelier(x, z){ if(Math.abs(x) < 3.6 && Math.abs(z) < 2.6) return true; if(archi && Math.hypot(x - archi.position().x, z - archi.position().z) < 1.1) return true; return false; }
+function buildMarche(){ if(!M) return;
+  marche = M.marcher({ depart:[0,0,8.5], hauteur:1.62*ECH, sol:FLOOR_Y, vitesse:2.4*ECH, limites:{ xmin:-11, xmax:11, zmin:-11, zmax:11 }, collision:collisionAtelier,
+    aide:'Flèches ou ZQSD pour marcher, glisse pour regarder. Échap : vue libre.',
+    surPas:(dt)=>{ tempsPas += dt; if(tempsPas > 0.5){ tempsPas = 0; M.son('pas',{ volume:0.1 }); } },
+    surChangement:(actif)=>{ controls.autoRotate = false; controls.enableRotate = !actif; controls.enableZoom = !actif; const b = document.getElementById('ggMarche'); if(b){ b.setAttribute('aria-pressed', String(actif)); b.textContent = actif ? '↩ Revenir à la vue libre' : '🚶 Marcher autour de la table'; }
+      const rb = document.getElementById('ggRot'); if(rb) rb.setAttribute('aria-pressed','false'); st.autorotate = false;
+      if(actif) shell.api.say('Tu marches dans l\'atelier. Flèches ou joystick pour avancer, glisse pour regarder, Échap pour revenir à la vue libre.', 'joyeux'); } });
+}
+/* La maquette : chaque pièce apparaît dans le coin de la table quand son solide est choisi. */
+function buildMaquette(){ if(maquette) return maquette;
+  maquette = new THREE.Group(); maquette.position.set(2.35, tableY, 1.35); maquette.scale.setScalar(0.38); scene.add(maquette);
+  const mp = (c)=> new THREE.MeshStandardMaterial({ color:c, roughness:0.7 });
+  const piece = (geo, c, p, rot)=>{ const m = new THREE.Mesh(geo, mp(c)); m.position.set(p[0],p[1],p[2]); if(rot) m.rotation.set(rot[0],rot[1],rot[2]); m.castShadow = true; m.receiveShadow = true; m.visible = false; m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 20), new THREE.LineBasicMaterial({ color:0x2a2f5c }))); maquette.add(m); return m; };
+  pieces.murs = piece(new THREE.BoxGeometry(2.4, 1.2, 1.6), 0xe9d9b8, [0,0.6,0]);
+  pieces.toit = piece(new THREE.CylinderGeometry(0.95, 0.95, 2.5, 3), 0xb8564a, [0,1.52,0], [Math.PI/2, 0, Math.PI/2]);
+  pieces.tour = piece(new THREE.CylinderGeometry(0.42,0.42,2,28), 0xd9cdb0, [1.75,1,0]);
+  pieces.chapeau = piece(new THREE.ConeGeometry(0.5, 0.8, 28), 0x6a7fa8, [1.75,2.4,0]);
+  pieces.lanterne = piece(new THREE.ConeGeometry(0.28, 0.42, 4), 0xf5c518, [0,2.42,0], [0,Math.PI/4,0]);
+  maquette.traverse(o=>{ if(o.isMesh) o.userData.legende = { nom:'Maquette de la maison', phrase:'Pavé, prisme, cylindre, cône, pyramide : cinq solides pour une maison.' }; });
+  return maquette;
+}
+function poserPiece(id){ buildMaquette(); const m = pieces[id]; if(!m) return; m.visible = true; const y0 = m.position.y; m.position.y = y0 + 2; const t0 = performance.now();
+  const pas = ()=>{ const k = Math.min(1, (performance.now()-t0)/(REDUCED?80:520)); m.position.y = y0 + 2*(1-k)*(1-k); if(k < 1) requestAnimationFrame(pas); else if(M) M.son('coup',{ volume:0.2 }); }; pas(); }
+const MAQUETTE = [
+  { id:'murs', type:'solide', attendu:'pave', piece:'murs', texte:'1. Les murs : un pavé', question:"Les murs de la maison : 6 m de long, 4 m de large, 3 m de haut, des angles droits partout.", consigne:'Choisis le solide dans la liste « Solide », à gauche.',
+    faux:{ cube:"Un cube a toutes ses arêtes égales : 6, 4 et 3 ne sont pas égaux. Il faut un pavé droit.", prisme:"Un prisme à base triangulaire ferait des murs penchés. Les murs sont droits : un pavé.", cylindre:"Un cylindre donne une tour ronde, pas des murs droits à angles.", _:"Regarde la forme : six faces rectangulaires et des angles droits partout. C'est un pavé droit." }, ok:"Un pavé droit : six faces rectangulaires, douze arêtes, huit sommets." },
+  { id:'toit', type:'solide', attendu:'prisme', piece:'toit', texte:'2. Le toit : un prisme', question:"Le toit à deux pentes, posé sur les murs : sa face avant est un triangle, et il est aussi long que la maison.", consigne:'Choisis le solide à gauche.',
+    faux:{ pyramide:"Une pyramide a une pointe au sommet. Ce toit a une arête en haut, d'un bout à l'autre : c'est un prisme à base triangulaire.", cone:"Un cône est rond. Ce toit a des faces planes.", _:"Un triangle devant, le même triangle derrière, trois rectangles entre les deux : c'est un prisme à base triangulaire." }, ok:"Un prisme à base triangulaire : deux triangles et trois rectangles." },
+  { id:'faces', type:'qcm', texte:'3. Compter les faces du toit', question:"Ce prisme à base triangulaire : combien de faces ?", options:['5','6','8'], bonne:'5',
+    ex:{ '5':"Deux triangles (devant et derrière) et trois rectangles : 2 + 3 = 5 faces.", '6':"Six, c'est le cube ou le pavé. Ici : deux triangles et trois rectangles, donc 5.", '8':"Huit, c'est l'octaèdre. Ici, deux triangles et trois rectangles seulement : 5." } },
+  { id:'tour', type:'solide', attendu:'cylindre', piece:'tour', texte:'4. La tour ronde : un cylindre', question:"La tour ronde accolée à la maison : 2 m de diamètre en bas comme en haut, 5 m de haut.", consigne:'Choisis le solide à gauche.',
+    faux:{ cone:"Un cône se termine en pointe. La tour a le même diamètre en bas et en haut : un cylindre.", sphere:"Une sphère ne tient pas debout et n'a pas de hauteur droite : un cylindre.", _:"Deux disques (en bas et en haut) et une surface courbe entre les deux : c'est un cylindre." }, ok:"Un cylindre : deux disques et une surface courbe." },
+  { id:'chapeau', type:'solide', attendu:'cone', piece:'chapeau', texte:'5. Le toit de la tour : un cône', question:"Le toit pointu de la tour ronde, posé sur le cylindre.", consigne:'Choisis le solide à gauche.',
+    faux:{ pyramide:"Une pyramide a une base carrée. La tour est ronde : son toit est un cône.", cylindre:"Un cylindre ne finit pas en pointe. Il faut un cône.", _:"Une base ronde et une pointe : c'est un cône." }, ok:"Un cône : une base ronde, une pointe." },
+  { id:'lanterne', type:'solide', attendu:'pyramide', piece:'lanterne', texte:'6. La lanterne : une pyramide', question:"La petite lanterne au sommet du toit : une base carrée et quatre faces triangulaires qui se rejoignent en un point.", consigne:'Choisis le solide à gauche.',
+    faux:{ cone:"Un cône a une base ronde. Ici la base est carrée : une pyramide.", tetra:"Un tétraèdre a une base triangulaire. Ici elle est carrée : une pyramide à base carrée.", _:"Base carrée, quatre triangles, un sommet : c'est une pyramide." }, ok:"Une pyramide à base carrée : 5 faces, 8 arêtes, 5 sommets." },
+  { id:'volume', type:'qcm', texte:'7. Le volume des murs', question:"Volume des murs : un pavé de 6 m × 4 m × 3 m. Quel volume ?", options:['72 m³','13 m³','144 m³'], bonne:'72 m³',
+    ex:{ '72 m³':"6 × 4 × 3 = 72. Le volume d'un pavé, c'est longueur × largeur × hauteur.", '13 m³':"13, c'est 6 + 4 + 3 : on a additionné. Le volume se calcule en multipliant : 6 × 4 × 3 = 72.", '144 m³':"144, c'est le double : 6 × 4 × 3 = 72, pas 144." } },
+];
+function assurerMission(){ if(mission || !M) return mission;
+  mission = M.mission({ titre:'Construire la maquette', cachee:true, chrono:true, chronoCible:240, gagner:false, annonce:false,
+    objectifs:MAQUETTE.map(e=>({ id:e.id, texte:e.texte })), surFin:(reussie,secondes,score)=>finMission(reussie,secondes,score) });
+  mission.zone.setAttribute('aria-label', 'Mission : construire la maquette');
+  return mission; }
+function lancerMission(){ if(!assurerMission()) return;
+  if(missionLancee && !mission.estFinie()){ shell.api.say('La mission est déjà lancée : lis la question en haut et réponds.', 'concentre'); mission.montrer(); return; }
+  missionLancee = true; etapeM = 0; erreursM = 0; reponduM = false;
+  buildMaquette(); Object.values(pieces).forEach(m=>{ m.visible = false; });
+  clearGhost(); clearRev(); if(st.netOn){ st.netOn=false; syncNetBtn(); rebuild(); }
+  const b = document.getElementById('ggMission'); if(b) b.setAttribute('aria-pressed','true'); shell.api.stage.classList.add('gg-mission-on');
+  mission.montrer(); mission.commencer(); M.son('clic',{ volume:0.2 });
+  shell.api.say("Mission : construire la maquette d'une maison. Pour chaque partie, choisis le bon solide dans la liste de gauche, ou réponds à la question. Une erreur n'enlève rien : elle explique. Le chrono tourne.", 'concentre');
+  if(archi){ archi.regarder([0, FLOOR_Y, 0]); setTimeout(()=>{ if(archi && missionLancee) archi.dire('On commence par les murs. Quel solide a six faces rectangulaires et des angles droits ?', 6); }, 2200); }
+  rendreMq(null);
+}
+function etapeCourante(){ return MAQUETTE[etapeM]; }
+function rendreMq(etat){ const el = document.getElementById('ggMq'); if(!el) return; const e = etapeCourante();
+  if(!missionLancee || !mission || mission.estFinie() || !e){ el.classList.remove('on'); el.innerHTML=''; return; }
+  el.classList.add('on');
+  const ops = e.type==='qcm' ? `<div class="ops">${e.options.map((o,i)=>`<button class="op" type="button" data-i="${i}">${o}</button>`).join('')}</div>` : '';
+  el.innerHTML = `<div class="hd"><span>Étape ${etapeM+1} / ${MAQUETTE.length}</span><span>${e.type==='qcm' ? 'Réponds' : 'Choisis le solide'}</span></div><div class="q">${e.question}${e.consigne ? `<small>${e.consigne}</small>` : ''}</div>${ops}${etat ? `<div class="ex">${etat}</div>` : ''}`;
+  el.querySelectorAll('[data-i]').forEach(bt=>{ bt.onclick = ()=> repondreM(+bt.dataset.i); });
+}
+function missionSolide(k){ const e = etapeCourante(); if(!e || e.type!=='solide' || reponduM) return;
+  if(k === e.attendu){ reponduM = true; const pts = Math.max(60, 150 - 40*erreursM); mission.valider(e.id, pts); poserPiece(e.piece);
+    rendreMq('Bien vu. ' + e.ok); if(archi) archi.dire(e.ok, 5); shell.api.say('Exact. ' + e.ok, 'celebration');
+    suivant();
+  } else { erreursM++; M.son('souffle',{ volume:0.2 }); const why = e.faux[k] || e.faux._; rendreMq('Pas celui-ci. ' + why); if(archi) archi.dire(why, 6); else shell.api.say(why, 'rassurant'); }
+}
+function repondreM(i){ const e = etapeCourante(); if(!e || e.type!=='qcm' || reponduM) return; const choix = e.options[i]; const el = document.getElementById('ggMq'); const bt = el && el.querySelector(`[data-i="${i}"]`);
+  if(choix === e.bonne){ reponduM = true; const pts = Math.max(60, 150 - 40*erreursM); mission.valider(e.id, pts); M.son('clic',{ volume:0.25 });
+    if(bt) bt.classList.add('bon'); el && el.querySelectorAll('.op').forEach(x=>{ x.disabled = true; });
+    const bloc = document.createElement('div'); bloc.className='ex'; bloc.textContent = 'Exact. ' + e.ex[choix]; el && el.appendChild(bloc);
+    if(archi) archi.dire(e.ex[choix], 5); shell.api.say('Exact. ' + e.ex[choix], 'celebration'); suivant();
+  } else { erreursM++; M.son('souffle',{ volume:0.2 }); if(bt){ bt.classList.add('faux'); bt.disabled = true; }
+    const old = el && el.querySelector('.ex'); const bloc = document.createElement('div'); bloc.className='ex'; bloc.textContent = 'Pas celle-ci. ' + e.ex[choix] + ' Choisis une autre réponse.'; if(old) old.replaceWith(bloc); else if(el) el.appendChild(bloc);
+    if(archi) archi.dire(e.ex[choix], 6); else shell.api.say(e.ex[choix], 'rassurant'); }
+}
+function suivant(){ setTimeout(()=>{ if(!missionLancee || !mission || mission.estFinie()) return; etapeM++; erreursM = 0; reponduM = false; const e = etapeCourante(); if(e){ rendreMq(null); if(archi) archi.dire(e.question, 6); } }, 2600); }
+function finMission(reussie, secondes, score){ const t = Math.round(secondes); const duree = Math.floor(t/60)+' min '+(t%60)+' s';
+  const b = document.getElementById('ggMission'); if(b) b.setAttribute('aria-pressed','false'); shell.api.stage.classList.remove('gg-mission-on'); rendreMq(null);
+  if(!reussie){ setTimeout(()=>{ if(mission) mission.cacher(); }, 4000); return; }
+  M.son('cloche',{ volume:0.22 }); if(archi) archi.dire('Maquette terminée en ' + duree + '. Pavé, prisme, cylindre, cône, pyramide : tu sais reconnaître chaque solide.', 7);
+  if(st.mode!=='cours'){ shell.api.win({ score, stars: t>240 ? 2 : 3, title:'Maquette construite en ' + duree, learned:shell.cfg.learned, buddy:"Cinq solides bien choisis, les faces comptées, le volume calculé : la maquette tient debout." }); }
+  else { shell.api.say('Mission réussie en ' + duree + ' : ' + score + ' points de plus. Le quiz continue.', 'fier'); if(shell.api.celebrate) shell.api.celebrate(); setTimeout(()=>{ if(mission) mission.cacher(); }, 9000); }
+}
+window.__monde = { lancerMission, choisir:(k)=>setSolid(k,false), repondre:repondreM, mission:()=>mission, etape:()=>etapeM, erreurs:()=>erreursM, archi:()=>archi, marche:()=>marche, quiz:()=>quiz, etapes:MAQUETTE, pieces:()=>Object.keys(pieces).filter(k=>pieces[k].visible) };
 
 /* ============================================================ MODE COURS */
 function mkIntOpts(correct, n){ const s=new Set([correct]); let guard=0; while(s.size<n && guard++<40){ const d=correct+(Math.random()<.5?-1:1)*(1+Math.floor(Math.random()*4)); if(d>0) s.add(d); } return [...s].sort(()=>Math.random()-.5); }

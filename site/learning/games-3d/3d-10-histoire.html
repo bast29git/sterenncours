@@ -85,6 +85,20 @@
   .hi-quiz .qo.good{ background:var(--ok); border-color:var(--ok-fg); color:var(--ok-fg); }
   .hi-quiz .qo.bad{ background:color-mix(in srgb,var(--brand-red) 16%,transparent); border-color:var(--brand-red); }
   .hi-quiz .find{ font-size:13px; color:var(--fg-muted); font-family:var(--font-body); }
+  /* --- mission : l'ordre des événements, puis une question par témoin --- */
+  .hi-mq{ position:absolute; bottom:112px; left:50%; transform:translateX(-50%); z-index:23; width:min(520px,94vw); padding:11px 14px 12px; display:none; flex-direction:column; gap:8px; }
+  .hi-mq.on{ display:flex; }
+  .hi-mq .hd{ display:flex; justify-content:space-between; gap:8px; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--fg-muted); }
+  .hi-mq .q{ font-weight:800; font-size:14px; line-height:1.4; color:var(--fg); }
+  .hi-mq .q small{ display:block; font-weight:600; font-size:12.5px; color:var(--fg-muted); margin-top:3px; }
+  .hi-mq .ops{ display:flex; flex-direction:column; gap:7px; }
+  .hi-mq .op{ font-family:var(--font-body); font-weight:700; font-size:13px; text-align:left; min-height:42px; padding:8px 12px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; display:flex; gap:9px; align-items:center; line-height:1.3; }
+  .hi-mq .op i{ flex:none; width:22px; height:22px; border-radius:999px; background:var(--surface); display:grid; place-items:center; font-style:normal; font-size:12px; font-weight:800; }
+  .hi-mq .op:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .hi-mq .op[disabled]{ opacity:.6; cursor:default; } .hi-mq .op.bon{ background:var(--accent); border-color:var(--accent); color:#fff; } .hi-mq .op.bon i{ background:#fff; color:var(--accent); } .hi-mq .op.faux{ border-color:var(--brand-red,#E63329); }
+  .hi-mq .ex{ font-size:12.5px; line-height:1.45; color:var(--accent-text); background:var(--accent-weak); border-radius:10px; padding:7px 11px; }
+  .hi-mission-on .hi-hint, .hi-mission-on .hi-label{ display:none; }
+  @media (max-width:720px){ .hi-mq{ bottom:100px; padding:9px 11px; } .hi-mq .q{ font-size:13px; } .hi-mission-on .hi-tools{ display:none; } .hi-mission-on .hi-info{ display:none; } }
   @media (max-width:720px){
     .hi-info{ width:min(300px,86vw) } .hi-tools{ max-width:168px } .hi-tb{ font-size:11.5px; padding:9px 10px }
     .hi-time{ padding:9px 10px } .hi-erabox .era{ font-size:15px }
@@ -103,6 +117,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, textureTexte } from '../monde-base.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============================================================
@@ -219,9 +234,11 @@ let stations=[], pickables=[], labelEls=[], smokeSystems=[], fire=null, fireligh
 let pyCore=[], pyCasing=null, pyCap=null, pyReveal=0;   // construction de la pyramide
 let ac=null, ambNode=null;
 const tmpV=new THREE.Vector3();
+/* F228 : outils de jeu ; les trois témoins, les stèles des événements, la marche et la mission */
+let MO=null; const boucles=[]; let temoins={}, marche=null, missionH=null, missionLancee=false, ordre=0, erreursO=0, steles=[], questionIdx=-1, reponduQ=false, erreursQ=0, ambFoule=null, ambMachine=null, tempsPas=0, forge=null;
 
 /* E14 : légendes des objets pour le socle commun des mondes. */
-function LEGENDE_OPALINE(ob){ const f=ob.userData&&FICHES[ob.userData.fiche]; return f?{nom:f.name,phrase:f.sub}:null; }
+function LEGENDE_OPALINE(ob){ if(ob&&ob.userData&&ob.userData.legende) return ob.userData.legende; const f=ob.userData&&FICHES[ob.userData.fiche]; return f?{nom:f.name,phrase:f.sub}:null; }
 function LEGENDES_OPALINE(){ return Object.values(FICHES).map(f=>({nom:f.name,phrase:f.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-10-histoire', code:'3D·10', title:'Voyage dans le temps', type:'3D',
@@ -251,7 +268,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   renderer.setSize(stage.clientWidth,stage.clientHeight); renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.12; stage.appendChild(renderer.domElement);
   maxAniso=Math.min(8, renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():8);
   // GARDE-FOU : détecte un rendu logiciel (SwiftShader/llvmpipe) où l'AO écran (GTAO) produit du noir → chaîne robuste (AO bakée seule)
-  let software=false; try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const software=renduLogiciel(renderer);
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene,camera));
@@ -267,6 +284,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   composer.addPass(new OutputPass());
   controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.07;
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
+  MO=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f), etiquette:etiquetteBulle });
   controls.minDistance=7; controls.maxDistance=60; controls.maxPolarAngle=Math.PI/2.04; controls.autoRotate=REDUCED; controls.autoRotateSpeed=.3;
 
   hemi=new THREE.HemisphereLight(0xffffff,0x555044,1.0); scene.add(hemi);
@@ -278,6 +296,7 @@ function init(){ const stage=shell.stage; clock=new THREE.Clock();
   }catch(e){}
 
   buildSky(); buildStations();
+  buildTemoins(); buildSteles(); buildMarche();
   raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
   buildUI();
   renderer.domElement.addEventListener('pointermove',onMove); renderer.domElement.addEventListener('pointerdown',onDown);
@@ -556,8 +575,13 @@ function buildUI(){ const stage=shell.stage;
   const tools=document.createElement('div'); tools.className='hi-tools';
   tools.innerHTML=`<button class="hi-tb accent" id="hiTour"><span class="ic">🎬</span> Voyage guidé</button>
     <button class="hi-tb" id="hiBuildBtn"><span class="ic">🏗️</span> Construire la pyramide</button>
-    <button class="hi-tb" id="hiLabels" aria-pressed="true"><span class="ic">🏷️</span> Étiquettes des époques</button>`;
+    <button class="hi-tb" id="hiLabels" aria-pressed="true"><span class="ic">🏷️</span> Étiquettes des époques</button>
+    <button class="hi-tb" id="hiMission" aria-pressed="false"><span class="ic">🕰️</span> Mission : l'ordre des événements</button>
+    <button class="hi-tb" id="hiMarche" aria-pressed="false"><span class="ic">🚶</span> Marcher sur la frise</button>`;
   stage.appendChild(tools);
+  tools.querySelector('#hiMission').onclick=()=>lancerMission();
+  tools.querySelector('#hiMarche').onclick=()=>{ if(marche) marche.bascule(); };
+  const mq=document.createElement('div'); mq.className='hi-panel hi-mq'; mq.id='hiMq'; mq.setAttribute('aria-live','polite'); stage.appendChild(mq);
   tools.querySelector('#hiTour').onclick=startTour;
   tools.querySelector('#hiBuildBtn').onclick=startBuild;
   tools.querySelector('#hiLabels').onclick=()=>{ labelsOn=!labelsOn; tools.querySelector('#hiLabels').setAttribute('aria-pressed',labelsOn); shell.sound('click'); };
@@ -591,7 +615,8 @@ function goTo(i,animateCam){ i=Math.max(0,Math.min(ERAS.length-1,i)); cur=i; con
   document.getElementById('hiPrev').disabled=(i===0); document.getElementById('hiNext').disabled=(i===ERAS.length-1);
   document.querySelectorAll('#hiTicks button').forEach((b,k)=>b.setAttribute('aria-current',k===i?'true':'false'));
   const target=[sx(i),c[3],0], camP=[sx(i)+c[0],c[1],c[2]];
-  if(animateCam!==false) moveCam(camP,target,1.3); else { camera.position.set(...camP); controls.target.set(...target); }
+  if(marche&&marche.estActif()){ /* à pied, la caméra reste à hauteur d'homme */ }
+  else if(animateCam!==false) moveCam(camP,target,1.3); else { camera.position.set(...camP); controls.target.set(...target); }
   if(!build && !tour){ shell.say(tourSay(i),'enthousiaste'); shell.sound('pop'); }
 }
 function tourSay(i){ return ERAS[i].tour.say; }
@@ -606,6 +631,7 @@ function applyAmbient(f){ const a=Math.floor(ambPos), b=Math.min(ERAS.length-1,a
   if(skyDome){ skyDome.material.color.copy(lerpHex(A.sky,B.sky,fr,_cO)).multiplyScalar(dark?0.5:1); }
   hemi.color.copy(lerpHex(A.hemiS,B.hemiS,fr,_cO)).multiplyScalar(dk); hemi.groundColor.copy(lerpHex(A.hemiG,B.hemiG,fr,_cO)); hemi.intensity=(0.7+0.3*(1))*(dark?0.6:1);
   sunLight.color.copy(lerpHex(A.sun,B.sun,fr,_cO)); sunLight.intensity=THREE.MathUtils.lerp(A.sunI,B.sunI,fr)*(dark?0.5:1);
+  if('environmentIntensity' in scene) scene.environmentIntensity=THREE.MathUtils.lerp(0.45+0.5*A.sunOp,0.45+0.5*B.sunOp,fr)*(dark?0.6:1);
   if(sunSprite){ sunSprite.material.opacity=THREE.MathUtils.lerp(A.sunOp,B.sunOp,fr)*(dark?0.5:1); sunSprite.material.color.copy(lerpHex(A.sun,B.sun,fr,_cO)); }
 }
 
@@ -678,11 +704,13 @@ function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x
 function pick(){ raycaster.setFromCamera(pointer,camera); const h=raycaster.intersectObjects(pickables,true); if(!h.length)return null; let o=h[0].object; while(o&&o.userData.fiche===undefined)o=o.parent; return o; }
 function onMove(e){ setP(e); renderer.domElement.style.cursor=pick()?'pointer':'grab'; }
 function onDown(e){ if(build)return; setP(e); const o=pick(); if(!o)return; const key=o.userData.fiche, era=o.userData.era;
+  if(o.userData.evenement!=null){ choisirEvenement(o.userData.evenement); return; }
+  if(o.userData.temoin){ temoinParle(o.userData.temoin); return; }
   if(era!==undefined && era!==cur) goTo(era,true);
   if(mode==='cours'){ checkFind(key,era); return; }
   openFiche(key); const f=FICHES[key]; if(f) shell.say(f.imp,'idee'); shell.sound('pop'); startAmb();
 }
-function onKey(e){ if(build||tour)return; if(e.key==='ArrowRight'){ goTo(cur+1,true); } else if(e.key==='ArrowLeft'){ goTo(cur-1,true); } }
+function onKey(e){ if(build||tour||(marche&&marche.estActif()))return; if(e.key==='ArrowRight'){ goTo(cur+1,true); } else if(e.key==='ArrowLeft'){ goTo(cur-1,true); } }
 
 /* ================= MODE COURS (quiz) ================= */
 function startMode(m){ mode=m; startAmb();
@@ -691,6 +719,10 @@ function startMode(m){ mode=m; startAmb();
   if(bb) bb.style.display = m==='cours'?'none':''; if(tb) tb.style.display = m==='cours'?'none':'';
   if(build) endBuild(); if(tour) endTour();
   if(m==='cours'){ shell.setScore(0); startQuiz(); } else { clearQuiz(); shell.say("Mode Détente : voyage librement dans le temps et clique les monuments.",'joyeux'); }
+  if(MO&&!ambFoule){ try{ ambFoule=MO.ambiance({ type:'foule', volume:0.04 }); ambMachine=MO.ambiance({ type:'machine', volume:0 }); }catch(e){} }
+  assurerMission();
+  setTimeout(()=>{ const t=temoins.citoyenne; if(t) t.dire(m==='cours' ? 'Trois témoins t\'attendent à la station de l\'usine. Quand tu veux, lance la mission : l\'ordre des événements.' : 'Trois témoins t\'attendent à la station de l\'usine. La mission commence dans quelques secondes.', 6); }, 1500);
+  if(m!=='cours') setTimeout(()=>{ if(!missionLancee) lancerMission(); }, 8000);
 }
 function eraOpts(correct){ const idxs=[correct]; while(idxs.length<4){ const r=Math.floor(Math.random()*ERAS.length); if(!idxs.includes(r)) idxs.push(r); } return idxs.sort(()=>Math.random()-0.5).map(i=>({l:ERAS[i].name, ok:i===correct})); }
 function buildBank(){ const Q=[];
@@ -753,8 +785,151 @@ function animate(){ requestAnimationFrame(animate); const dt=Math.min(0.05,clock
   // drapeaux
   flags.forEach((c,i)=> c.rotation.y=Math.sin(t*2+i)*0.25 );
   updateLabels();
-  controls.update(); composer.render();
+  for(const f of boucles){ try{ f(dt, t); }catch(e){ /* une boucle ne casse pas le rendu */ } }
+  majAmbianceUsine(dt);
+  if(!(marche&&marche.estActif())) controls.update(); composer.render();
 }
+
+/* ============================================================
+   LES TROIS TÉMOINS : un ouvrier de 1850, une citoyenne de 1789, un philosophe des Lumières ; chacun à sa station, il parle au toucher
+   ============================================================ */
+function etiquetteBulle(texte, position, opt){ opt = opt || {}; const mots = String(texte).split(' '); const lignes = []; let l = '';
+  mots.forEach(m=>{ if((l + ' ' + m).trim().length > 34 && l){ lignes.push(l); l = m; } else l = (l ? l + ' ' : '') + m; }); if(l) lignes.push(l);
+  const tex = textureTexte(lignes.join('\n'), opt); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, depthTest:false, toneMapped:false }));
+  const h = ((opt.hauteur || 0.42) * lignes.length * 0.78 + 0.25) * 1.4; sp.scale.set(h * tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.renderOrder = 20; sp.raycast = ()=>{}; scene.add(sp); return sp; }
+const TEMOINS={
+  philosophe:{ nom:'Antoine, philosophe des Lumières (1751)', phrase:'Il écrit pour l\'Encyclopédie et défend la raison.', an:'1751', position:[sx(6)-18,0,-7],
+    dit:"Je suis Antoine, philosophe. En 1751 paraît le premier volume de l'Encyclopédie : nous voulons rassembler tous les savoirs et les faire discuter par la raison, pas par la peur.",
+    question:"Que défendent les philosophes des Lumières, comme Voltaire, Rousseau ou Diderot ?", options:["La raison, la tolérance et la liberté de penser","Le pouvoir absolu du roi, sans discussion","Le retour aux croyances d'autrefois, sans les examiner"], bonne:0,
+    ex:["Les Lumières veulent éclairer le monde par la raison : discuter, comparer, douter, et laisser chacun penser librement.","C'est l'inverse : Montesquieu propose de séparer les pouvoirs pour que personne ne décide seul.","Les philosophes critiquent justement les idées admises sans preuve : ils veulent tout examiner."] },
+  citoyenne:{ nom:'Louise, citoyenne de 1789', phrase:'Elle porte la cocarde et a vu la Bastille tomber.', an:'1789', position:[sx(6)-18,0,6],
+    dit:"Je suis Louise, citoyenne. En juillet 1789, Paris a pris la Bastille ; en août, l'Assemblée a déclaré que les hommes naissent libres et égaux en droits. Ma cocarde porte les couleurs de Paris et du roi.",
+    question:"Que proclame la Déclaration des droits de l'homme et du citoyen, en août 1789 ?", options:["Les hommes naissent et demeurent libres et égaux en droits","Le roi tient son pouvoir de Dieu seul","Seuls les nobles peuvent voter"], bonne:0,
+    ex:["C'est son premier article. La loi devient la même pour tous : les privilèges de naissance disparaissent.","C'est l'idée de la monarchie absolue, que la Révolution renverse justement.","La Déclaration dit le contraire : la loi est l'expression de la volonté générale, celle de tous les citoyens."] },
+  ouvrier:{ nom:'Yann, ouvrier d\'usine (1850)', phrase:'Il travaille douze heures par jour près de la machine à vapeur.', an:'1850', position:[sx(6)-5.5,0,7.5],
+    dit:"Je suis Yann, ouvrier. Dans l'usine, la machine à vapeur ne s'arrête jamais : douze heures par jour, six jours sur sept, au bruit des métiers et dans la fumée du charbon.",
+    question:"Quelle énergie fait tourner les machines de mon usine, en 1850 ?", options:["La vapeur, produite en brûlant du charbon","L'électricité du réseau","Le vent, avec des ailes de moulin"], bonne:0,
+    ex:["Le charbon chauffe l'eau, la vapeur pousse le piston, le volant entraîne les machines.","L'électricité n'arrive dans les usines qu'à la fin du XIXe siècle. En 1850, c'est la vapeur.","Le vent faisait tourner les moulins d'avant ; l'usine a besoin d'une force régulière : la vapeur."] },
+};
+const ORDRE_TEMOINS=['philosophe','citoyenne','ouvrier'];
+function buildTemoins(){ if(!MO) return;
+  const ms=(c,o)=> new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:0.7 }, o||{}));
+  const add=(geo,m,p,parent)=>{ const x=new THREE.Mesh(geo,m); x.position.set(p[0],p[1],p[2]); x.castShadow=true; parent.add(x); return x; };
+  const stationDe=(t,p,an)=>{ const socle=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,0.3,24), woodPlank(0x8a6a40,1)); socle.position.set(p[0],0.15,p[2]); socle.receiveShadow=true; scene.add(socle);
+    const et=etiquetteBulle(an, [p[0],3.0,p[2]], { taille:30, hauteur:0.3, fond:'rgba(40,30,20,0.85)', couleur:'#ffe7b0' }); et.scale.multiplyScalar(0.7); return socle; };
+  // Le philosophe : habit sombre, culotte claire, perruque blanche, lunettes, un livre
+  const ph=MO.personnage({ nom:TEMOINS.philosophe.nom, phrase:TEMOINS.philosophe.phrase, position:[TEMOINS.philosophe.position[0],0.3,TEMOINS.philosophe.position[2]], taille:1.72, peau:0xe6c4a8, haut:0x2f3b5e, bas:0xd9d2c0, cheveux:0xe8e4dc, graine:1 });
+  add(new THREE.BoxGeometry(0.16,0.2,0.04), ms(0x6b3a2a), [0.02,-0.5,0.08], ph.membres.brasG).rotation.x=-0.3; ph.membres.brasG.rotation.x=-0.9;    // livre
+  [-0.045,0.045].forEach(x=> add(new THREE.TorusGeometry(0.03,0.004,6,16), ms(0x3a3a3a,{ metalness:0.6 }), [x,1.6,0.11], ph.groupe));              // lunettes
+  add(new THREE.BoxGeometry(0.1,0.09,0.03), ms(0xf4f0e6), [0,1.36,0.17], ph.groupe);                                                               // jabot
+  ph.regarder([sx(6),0,0]); temoins.philosophe=ph; stationDe(ph, TEMOINS.philosophe.position, '1751');
+  // La citoyenne : chemise claire, jupe rouge sombre, bonnet, cocarde tricolore
+  const ci=MO.personnage({ nom:TEMOINS.citoyenne.nom, phrase:TEMOINS.citoyenne.phrase, position:[TEMOINS.citoyenne.position[0],0.3,TEMOINS.citoyenne.position[2]], taille:1.66, peau:0xe8c8ae, haut:0xf1e7d6, bas:0x7a3b4a, cheveux:0x4a2f1e, jupe:0x7a3b4a, graine:2 });
+  [[0x1b4fd0,0.05],[0xffffff,0.035],[0xd0202a,0.02]].forEach(([c,r])=>{ const d=add(new THREE.CircleGeometry(r,20), ms(c), [-0.1,1.3,0.178], ci.groupe); d.position.z+=r*0.1; });   // cocarde
+  add(new THREE.SphereGeometry(0.13,20,14,0,Math.PI*2,0,Math.PI*0.5), ms(0xf7f2e6), [0,1.6,0], ci.groupe);                                        // bonnet
+  ci.regarder([sx(6),0,0]); temoins.citoyenne=ci; stationDe(ci, TEMOINS.citoyenne.position, '1789');
+  // L'ouvrier : chemise grise, tablier de cuir, casquette, outil à la main
+  const ou=MO.personnage({ nom:TEMOINS.ouvrier.nom, phrase:TEMOINS.ouvrier.phrase, position:[TEMOINS.ouvrier.position[0],0.3,TEMOINS.ouvrier.position[2]], taille:1.7, peau:0xd9b08a, haut:0x6b6f75, bas:0x3b3630, cheveux:0x2b1d14, chapeau:0x3a3a3a, tablier:0x5a4a3a, graine:3 });
+  const cle=add(new THREE.BoxGeometry(0.035,0.42,0.035), ms(0x7a7f88,{ metalness:0.8, roughness:0.35 }), [0,-0.5,0.03], ou.membres.brasD); cle.rotation.x=0.4;    // clé à molette
+  add(new THREE.BoxGeometry(0.08,0.06,0.035), ms(0x7a7f88,{ metalness:0.8, roughness:0.35 }), [0,-0.7,0.1], ou.membres.brasD);
+  ou.regarder([sx(6)-9.5,0,4]); temoins.ouvrier=ou; stationDe(ou, TEMOINS.ouvrier.position, '1850');
+  Object.keys(temoins).forEach(id=>{ const g=temoins[id].groupe; g.traverse(o=>{ o.userData.temoin=id; o.userData.fiche='temoin'; o.userData.era=6; }); pickables.push(g); });
+  // La lueur de la forge, près de la machine à vapeur
+  forge=new THREE.PointLight(0xff9a3a, 1.2, 16, 1.6); forge.position.set(sx(6)-9.5, 2.4, 4.5); scene.add(forge);
+}
+function temoinParle(id){ const t=temoins[id], d=TEMOINS[id]; if(!t||!d) return; t.regarder(camera.position); t.dire(d.dit, 9); shell.sound('pop'); if(cur!==6) goTo(6,true); }
+
+/* ============================================================
+   LES SIX STÈLES : des événements sans leur date, à toucher dans l'ordre chronologique
+   ============================================================ */
+const EVENEMENTS=[
+  { an:'1751', titre:"Premier volume\nde l'Encyclopédie", fait:"1751 : Diderot et d'Alembert publient le premier volume ; vingt-sept autres suivront." },
+  { an:'14 juillet 1789', titre:"Prise de\nla Bastille", fait:"14 juillet 1789 : le peuple de Paris prend la forteresse royale, symbole de l'arbitraire." },
+  { an:'26 août 1789', titre:"Déclaration des droits\nde l'homme et du citoyen", fait:"26 août 1789 : l'Assemblée nationale proclame les droits de tous les citoyens." },
+  { an:'2 décembre 1804', titre:"Napoléon sacré\nempereur", fait:"2 décembre 1804 : Napoléon se couronne empereur à Notre-Dame de Paris." },
+  { an:'27 avril 1848', titre:"Abolition de l'esclavage\ndans les colonies", fait:"27 avril 1848 : la Deuxième République abolit l'esclavage dans les colonies françaises." },
+  { an:'1881 et 1882', titre:"École gratuite,\nlaïque et obligatoire", fait:"1881 et 1882 : les lois de Jules Ferry rendent l'école gratuite, puis obligatoire et laïque." },
+];
+function buildSteles(){
+  const places=[0,1,2,3,4,5].sort(()=>Math.random()-0.5);
+  EVENEMENTS.forEach((ev,i)=>{ const k=places[i]; const x=sx(6)-12.5+k*5, z=15.5+(k%2)*1.4;
+    const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=(x-sx(6))*-0.02;
+    const m=stoneCut(0xd6cdb8,1.2); const slab=new THREE.Mesh(new THREE.BoxGeometry(2.8,2.3,0.32), m); slab.position.y=1.35; slab.castShadow=true; slab.receiveShadow=true; g.add(slab);
+    g.add(box(3.2,0.4,0.9, stoneRough(0x9a9080,1), 0,0.2,0));
+    const tex=textureTexte(ev.titre, { taille:34, fond:'none', couleur:'#2a2218' }); const ratio=tex.userData.ratio; const plan=new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5/ratio), new THREE.MeshBasicMaterial({ map:tex, transparent:true, toneMapped:false })); plan.position.set(0,1.45,0.165); g.add(plan);
+    const num=etiquetteBulle('', [x,2.95,z], { taille:30, hauteur:0.3, fond:'rgba(30,110,70,0.95)', couleur:'#ffffff' }); num.visible=false; scene.remove(num);
+    g.traverse(o=>{ o.userData.evenement=i; o.userData.fiche='evenement'; o.userData.era=6; o.userData.legende={ nom:ev.titre.replace('\n',' '), phrase:'Un événement à replacer dans l\'ordre.' }; });
+    scene.add(g); pickables.push(g); steles.push({ g, slab, mat:m, x, z, numero:null, fait:false }); });
+  enableAOall();
+}
+function marquerStele(i, n){ const st=steles[i]; if(!st) return; st.fait=true; st.mat.emissive=new THREE.Color(0x3a2a10); st.mat.emissiveIntensity=0.6;
+  const tex=textureTexte(String(n)+'  ·  '+EVENEMENTS[i].an, { taille:30, fond:'rgba(30,110,70,0.95)', couleur:'#ffffff' }); const sp=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, toneMapped:false })); const h=0.75; sp.scale.set(h*tex.userData.ratio,h,1); sp.position.set(st.x,3.1,st.z); sp.raycast=()=>{}; scene.add(sp); st.numero=sp; }
+function effacerSteles(){ steles.forEach(st=>{ st.fait=false; st.mat.emissive=new THREE.Color(0x000000); if(st.numero){ scene.remove(st.numero); st.numero=null; } }); }
+
+/* ============================================================
+   MARCHER SUR LA FRISE : première personne, d'une station à l'autre par les passerelles
+   ============================================================ */
+function collisionFrise(x,z){ const i=Math.max(0,Math.min(ERAS.length-1,Math.round(x/GAP))); const dx=x-sx(i);
+  if(dx*dx+z*z<23.2*23.2){ for(const id in temoins){ const p=temoins[id].position(); if(Math.hypot(x-p.x,z-p.z)<0.9) return true; } for(const st of steles){ if(Math.abs(x-st.x)<1.7&&Math.abs(z-st.z)<0.6) return true; } return false; }
+  return Math.abs(z)>1.1;   // entre deux stations, seule la passerelle porte
+}
+function buildMarche(){ if(!MO) return;
+  marche=MO.marcher({ depart:[sx(6),0,19], yaw:0, hauteur:1.65, sol:0, vitesse:3.2, limites:{ xmin:-23, xmax:sx(ERAS.length-1)+23, zmin:-23, zmax:23 }, collision:collisionFrise,
+    aide:'Flèches ou ZQSD pour marcher, glisse pour regarder. Échap : vue libre.',
+    surPas:(dt)=>{ tempsPas+=dt; if(tempsPas>0.5){ tempsPas=0; MO.son('pas',{ volume:0.1 }); } },
+    surChangement:(actif)=>{ controls.autoRotate=false; controls.enableRotate=!actif; controls.enableZoom=!actif; const b=document.getElementById('hiMarche'); if(b){ b.setAttribute('aria-pressed',String(actif)); b.querySelector('.ic').textContent=actif?'↩':'🚶'; b.lastChild.textContent=actif?' Revenir à la vue libre':' Marcher sur la frise'; }
+      if(actif){ camAnim=null; shell.say('Tu marches sur la frise. Flèches ou joystick pour avancer, glisse pour regarder, Échap pour revenir à la vue libre. Les passerelles relient les époques.','joyeux'); } else goTo(cur,true); } });
+  boucles.push(()=>{ if(!marche||!marche.estActif()) return; const i=Math.max(0,Math.min(ERAS.length-1,Math.round(camera.position.x/GAP))); if(i!==cur) goTo(i,false); });
+}
+let accUsine=0;
+function majAmbianceUsine(dt){ if(!ambMachine) return; accUsine+=dt; if(accUsine<0.5) return; accUsine=0; const d=Math.abs(camera.position.x-sx(6)); ambMachine.volume(0.14*Math.max(0,1-d/45)); }
+
+/* ============================================================
+   MISSION « REMETTRE LES ÉVÉNEMENTS DANS L'ORDRE » : six stèles dans l'ordre chronologique, puis une question par témoin
+   ============================================================ */
+function assurerMission(){ if(missionH||!MO) return missionH;
+  missionH=MO.mission({ titre:"L'ordre des événements", cachee:true, chrono:true, chronoCible:300, gagner:false, annonce:false,
+    objectifs:EVENEMENTS.map((e,i)=>({ id:'ev'+i, texte:(i+1)+'. '+e.titre.replace('\n',' ') })).concat(ORDRE_TEMOINS.map((id,i)=>({ id:'q-'+id, texte:(7+i)+'. Question de '+TEMOINS[id].nom.split(',')[0] }))),
+    surFin:(reussie,secondes,score)=>finMission(reussie,secondes,score) });
+  missionH.zone.setAttribute('aria-label',"Mission : l'ordre des événements"); return missionH; }
+function lancerMission(){ if(!assurerMission()) return;
+  if(missionLancee&&!missionH.estFinie()){ shell.say(ordre<6?'La mission est déjà lancée : touche la stèle de l\'événement le plus ancien parmi ceux qui restent.':'La mission est déjà lancée : réponds à la question du témoin.','concentre'); missionH.montrer(); return; }
+  if(build) endBuild(); if(tour) endTour();
+  missionLancee=true; ordre=0; erreursO=0; questionIdx=-1; reponduQ=false; erreursQ=0; effacerSteles();
+  const b=document.getElementById('hiMission'); if(b) b.setAttribute('aria-pressed','true'); shell.stage.classList.add('hi-mission-on');
+  document.getElementById('hiInfo').classList.remove('show'); goTo(6,true);
+  missionH.montrer(); missionH.commencer(); MO.son('clic',{ volume:0.2 }); rendreMq();
+  shell.say("Mission : six stèles portent des événements, sans leur date. Touche-les dans l'ordre chronologique, du plus ancien au plus récent. Ensuite, chaque témoin te pose une question. Le chrono tourne.",'concentre');
+  setTimeout(()=>{ if(missionLancee&&temoins.philosophe) temoins.philosophe.dire('Commence par le plus ancien. Un indice : il est de mon siècle, celui des Lumières.', 6); }, 2500); }
+function rendreMq(etat){ const el=document.getElementById('hiMq'); if(!el) return;
+  if(!missionLancee||!missionH||missionH.estFinie()){ el.classList.remove('on'); el.innerHTML=''; return; }
+  el.classList.add('on');
+  if(ordre<EVENEMENTS.length){ el.innerHTML=`<div class="hd"><span>Événement ${ordre+1} / 6</span><span>Touche une stèle</span></div><div class="q">Touche l'événement le plus ancien parmi ceux qui restent.<small>Les stèles sont devant l'usine, sans leur date. La date s'affiche quand la stèle est bien placée.</small></div>${etat?`<div class="ex">${etat}</div>`:''}`; return; }
+  const id=ORDRE_TEMOINS[questionIdx]; const d=TEMOINS[id]; if(!d){ el.classList.remove('on'); return; }
+  el.innerHTML=`<div class="hd"><span>Question ${questionIdx+1} / 3</span><span>${d.nom}</span></div><div class="q">${d.question}</div><div class="ops">${d.options.map((o,i)=>`<button class="op" type="button" data-i="${i}"><i>${i+1}</i><span>${o}</span></button>`).join('')}</div>${etat?`<div class="ex">${etat}</div>`:''}`;
+  el.querySelectorAll('[data-i]').forEach(bt=>{ bt.onclick=()=>repondreTemoin(+bt.dataset.i); }); }
+function choisirEvenement(i){ if(!missionLancee||!missionH||missionH.estFinie()||ordre>=EVENEMENTS.length) return; const ev=EVENEMENTS[i]; const st=steles[i]; if(!ev||st.fait) return;
+  if(i===ordre){ const pts=Math.max(60,150-40*erreursO); erreursO=0; ordre++; marquerStele(i, ordre); MO.son('cloche',{ volume:0.2, frequence:660+ordre*60 }); missionH.valider('ev'+i, pts);
+    rendreMq('Bien placé. '+ev.fait); shell.say('Bien placé. '+ev.fait,'celebration');
+    if(ordre>=EVENEMENTS.length){ setTimeout(()=>{ if(!missionLancee) return; questionIdx=0; reponduQ=false; erreursQ=0; rendreMq(); poserQuestion(); }, 2600); }
+  } else { erreursO++; MO.son('coup',{ volume:0.14 }); const plusTard=i>ordre; const msg=plusTard ? "Pas encore : « "+ev.titre.replace('\n',' ')+" » vient plus tard. Il reste un événement plus ancien." : "Celui-ci est déjà placé.";
+    rendreMq(msg); shell.say(msg,'rassurant'); } }
+function poserQuestion(){ const id=ORDRE_TEMOINS[questionIdx]; const t=temoins[id], d=TEMOINS[id]; if(!t||!d) return; t.regarder(camera.position); t.dire(d.question, 8); }
+function repondreTemoin(i){ if(!missionLancee||!missionH||missionH.estFinie()||reponduQ||questionIdx<0) return; const id=ORDRE_TEMOINS[questionIdx]; const d=TEMOINS[id]; const t=temoins[id]; if(!d) return;
+  const el=document.getElementById('hiMq'); const bt=el&&el.querySelector(`[data-i="${i}"]`);
+  if(i===d.bonne){ reponduQ=true; const pts=Math.max(60,150-40*erreursQ); missionH.valider('q-'+id, pts); MO.son('cloche',{ volume:0.2 });
+    if(bt) bt.classList.add('bon'); el&&el.querySelectorAll('.op').forEach(x=>{ x.disabled=true; }); const bloc=document.createElement('div'); bloc.className='ex'; bloc.textContent='Exact. '+d.ex[i]; el&&el.appendChild(bloc);
+    if(t) t.dire(d.ex[i], 6); shell.say('Exact. '+d.ex[i],'celebration');
+    setTimeout(()=>{ if(!missionLancee||!missionH||missionH.estFinie()) return; questionIdx++; reponduQ=false; erreursQ=0; if(questionIdx<ORDRE_TEMOINS.length){ rendreMq(); poserQuestion(); } }, 2800);
+  } else { erreursQ++; MO.son('coup',{ volume:0.14 }); if(bt){ bt.classList.add('faux'); bt.disabled=true; } const old=el&&el.querySelector('.ex'); const bloc=document.createElement('div'); bloc.className='ex'; bloc.textContent='Pas celle-ci. '+d.ex[i]+' Choisis une autre réponse.'; if(old) old.replaceWith(bloc); else if(el) el.appendChild(bloc);
+    if(t) t.dire(d.ex[i], 6); else shell.say(d.ex[i],'rassurant'); } }
+function finMission(reussie,secondes,score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  const b=document.getElementById('hiMission'); if(b) b.setAttribute('aria-pressed','false'); shell.stage.classList.remove('hi-mission-on'); rendreMq();
+  if(!reussie){ setTimeout(()=>{ if(missionH) missionH.cacher(); }, 4000); return; }
+  MO.son('cloche',{ volume:0.24, frequence:1046 }); if(temoins.ouvrier) temoins.ouvrier.dire('Six événements dans l\'ordre et trois questions en '+duree+'. Tu sais lire le siècle qui va des Lumières à l\'école pour tous.', 8);
+  if(shell.mode!=='cours'){ shell.win({ score, stars:t>300?2:3, title:'Les événements dans l\'ordre en '+duree, learned:["1751 : l'Encyclopédie ; 1789 : la Bastille puis la Déclaration des droits ; 1804 : le sacre de Napoléon ; 1848 : l'abolition de l'esclavage ; 1881-1882 : l'école de Jules Ferry.","Les Lumières défendent la raison, la tolérance et la liberté de penser.","La Déclaration de 1789 proclame que les hommes naissent libres et égaux en droits.","En 1850, la vapeur du charbon fait tourner les usines."], buddy:"De l'Encyclopédie à l'école pour tous : tu as remis un siècle et demi d'histoire dans l'ordre." }); }
+  else { shell.say('Mission réussie en '+duree+' : '+score+' points de plus. Le quiz continue.','fier'); if(shell.celebrate) shell.celebrate(); setTimeout(()=>{ if(missionH) missionH.cacher(); }, 9000); } }
+window.__monde={ lancerMission, choisirEvenement, repondre:repondreTemoin, temoinParle, camera:()=>camera, controls:()=>controls, mission:()=>missionH, ordre:()=>ordre, question:()=>questionIdx, erreurs:()=>erreursO, temoins:()=>temoins, marche:()=>marche, quiz:()=>quiz, evenements:EVENEMENTS, temoinsData:TEMOINS, ordreTemoins:ORDRE_TEMOINS };
 </script>
 </body>
 </html>

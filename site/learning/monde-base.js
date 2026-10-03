@@ -215,7 +215,7 @@ export function outils(ctx) {
   const boucles = []; const boucle = ctx.boucle || ((f) => boucles.push(f));
   if (!ctx.boucle) { const clock = new THREE.Clock(); const pas = () => { const dt = Math.min(0.05, clock.getDelta()); boucles.forEach((f) => { try { f(dt, clock.elapsedTime); } catch (e) { /* rien */ } }); requestAnimationFrame(pas); }; requestAnimationFrame(pas); }
   const legender = ctx.legender || ((objet, nom, phrase) => { objet.userData.legende = { nom, phrase }; objet.traverse((c) => { if (c !== objet) c.userData.legende = objet.userData.legende; }); return objet; });
-  const etiquette = ctx.etiquette || ((texte, position, opt) => { opt = opt || {}; const tex = textureTexte(texte, opt); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false })); const h = opt.hauteur || 0.6; sp.scale.set(h * tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.raycast = () => {}; scene.add(sp); return sp; });
+  const etiquette = ctx.etiquette || ((texte, position, opt) => { opt = opt || {}; const tex = textureTexte(texte, opt); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, toneMapped: false, depthWrite: false })); const h = opt.hauteur || 0.6; sp.scale.set(h * tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.raycast = () => {}; scene.add(sp); return sp; });
   /* ---------- F223 : la marche à la première personne (clavier, flèches, joystick tactile, regard au doigt) ---------- */
   function marcher(o) {
     o = o || {};
@@ -346,7 +346,7 @@ export function outils(ctx) {
       allerA: (p, v) => { cibleMarche = p.isVector3 ? p.clone() : new THREE.Vector3(p[0], g.position.y, p[2]); if (v) vitesse = v; },
       marcherSurPlace: (oui) => { enMarche = oui; },
       regarder: (p) => { const v = (p.isVector3 ? p : new THREE.Vector3(...p)).clone().sub(g.position); g.rotation.y = Math.atan2(v.x, v.z); },
-      dire: (texte, secondes) => { if (bulle) scene.remove(bulle); bulle = etiquette(texte, [0, 0, 0], { taille: 26, hauteur: 0.42, fond: 'rgba(255,255,255,0.95)', couleur: '#1e2733' }); bulle.position.copy(g.position).add(new THREE.Vector3(0, 1.98 * u, 0)); bulleT = performance.now() + (secondes || 4) * 1000; if (window.__kshApi && o.voix !== false) window.__kshApi.say(texte, 'joyeux'); },
+      dire: (texte, secondes) => { if (bulle) scene.remove(bulle); bulle = etiquette(texte, [0, 0, 0], { taille: 26, hauteur: 0.42, fond: 'rgba(22, 30, 42, 0.9)', couleur: '#ffffff' }); bulle.position.copy(g.position).add(new THREE.Vector3(0, 1.98 * u, 0)); bulleT = performance.now() + (secondes || 4) * 1000; if (window.__kshApi && o.voix !== false) window.__kshApi.say(texte, 'joyeux'); },
       position: () => g.position,
     };
   }
@@ -470,7 +470,7 @@ export function creerMonde(shell, o) {
   /** Une étiquette texte flottante (sprite), toujours face à la caméra. */
   function etiquette(texte, position, opt) {
     opt = opt || {}; const tex = textureTexte(texte, opt);
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: opt.profondeur !== false }));
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, toneMapped: false, depthWrite: false, depthTest: opt.profondeur !== false }));
     const h = opt.hauteur || 0.6; sp.scale.set(h * tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.renderOrder = 10; sp.raycast = () => {};
     scene.add(sp); return sp;
   }

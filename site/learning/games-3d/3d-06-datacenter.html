@@ -63,6 +63,25 @@
   .dc-qrow { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
   .dc-qo { font-family:var(--font-body); font-weight:700; font-size:13px; min-height:40px; padding:0 14px; border-radius:10px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.18); color:#fff; cursor:pointer; }
   .dc-qo:hover { background:rgba(255,255,255,.32); }
+  /* Mission : remettre la salle en route (branchements et température de la baie) */
+  .dc-mq { top:262px; left:14px; z-index:23; width:210px; padding:11px 13px 12px; display:none; flex-direction:column; gap:8px; }
+  .dc-mq.on { display:flex; }
+  .dc-mq .t { font-weight:800; font-size:13.5px; line-height:1.35; }
+  .dc-mq .t small { display:block; font-weight:600; font-size:12px; color:var(--fg-muted); margin-top:2px; }
+  .dc-mq .row { display:flex; gap:7px; flex-wrap:wrap; }
+  .dc-mq .pb { flex:1 1 100%; font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:44px; padding:6px 10px; border-radius:11px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+  .dc-mq .pb:focus-visible { outline:none; box-shadow:var(--ring); }
+  .dc-mq .pb[disabled] { opacity:.55; cursor:default; background:var(--accent-weak); color:var(--accent-text); border-color:transparent; }
+  .dc-mq .temp { display:flex; justify-content:space-between; align-items:baseline; font-size:12px; color:var(--fg-muted); font-family:var(--font-mono); }
+  .dc-mq .temp b { font-family:var(--font-data); font-size:15px; color:var(--fg); }
+  .dc-mq .dc-gauge { height:7px; }
+  @media (max-width:720px){
+    .dc-mq { bottom:auto; top:10px; left:10px; transform:none; width:min(230px,46vw); padding:9px 10px; }
+    .dc-mq .pb { flex:1 1 100%; min-height:40px; font-size:12px; }
+    .dc-mq .t { font-size:12.5px; }
+    .dc-mission-on .dc-tel { display:none; }
+    .dc-mission-on .dc-hint { display:none; }
+  }
   @media (max-width:720px){
     .dc-tel { width:160px; padding:10px; gap:8px; }
     .dc-mrow .v { font-size:13px; }
@@ -83,6 +102,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, textureTexte } from '../monde-base.js';
 
 const REDUCED = window.Konstrio.REDUCED;
 
@@ -154,6 +174,8 @@ let packets = [], packetPool = [], packetAcc = 0;
 let ac = null, fanGain = null;
 let mode = 'detente', labelsOn = true;
 let challenge = null;                 // mode Cours
+/* F228 : outils de jeu (marche, mission, personnage, sons) ; la technicienne, la baie en panne et sa température */
+let M = null; const boucles = []; let tech = null, marche = null, mission = null, missionLancee = false, panne = null, etapeBranche = 0, baieTemp = 24, ambianceSalle = null, balise = null, baliseLum = null, tempsPas = 0, lampe = null, lampeLum = null;
 
 /* E14 : légendes des objets pour le socle commun des mondes. */
 function LEGENDE_OPALINE(ob){ const p=ob.userData&&EQUIP[ob.userData.equip]; return p?{nom:p.name,phrase:p.sub}:null; }
@@ -201,8 +223,7 @@ function init(){
   initMaterials();
 
   // Détecte un rendu logiciel (SwiftShader/llvmpipe) : l'AO écran (GTAO) y rend noir → chaîne robuste
-  let software = false;
-  try{ const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : ''; software = /swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e){}
+  const software = renduLogiciel(renderer);
   const W = stage.clientWidth, H = stage.clientHeight;
   composer = new EffectComposer(renderer);
   if(software){
@@ -221,11 +242,15 @@ function init(){
 
   controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = .07;
   window.Konstrio.monde3d({ THREE, scene, camera, renderer, controls, bloom: () => bloom, composer: () => composer, legende: LEGENDE_OPALINE, legendes: LEGENDES_OPALINE });
+  M = outils({ scene, camera, renderer, controls, stage, boucle: (f) => boucles.push(f), etiquette: etiquetteBulle });
   controls.minDistance = 6; controls.maxDistance = 46; controls.maxPolarAngle = Math.PI * 0.495;
   controls.target.set(0, 2, -2); controls.autoRotate = REDUCED; controls.autoRotateSpeed = .35;
+  // Brouillard froid léger : l'air de l'allée froide se devine en bleu, le fond de salle s'estompe.
+  scene.fog = new THREE.Fog(0x0b1626, 22, 64);
+  const froid = new THREE.PointLight(0x4fb8ff, 0.9, 18, 2); froid.position.set(0, 0.6, -1); scene.add(froid);
 
   // Lumières : IBL + hémisphère + clé + néons
-  scene.add(new THREE.HemisphereLight(0xbcd2ff, 0x1a2236, 0.65));
+  scene.add(new THREE.HemisphereLight(0xbcd2ff, 0x1a2236, 0.95));
   const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(10, 18, 8); key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048); key.shadow.camera.near = 1; key.shadow.camera.far = 60;
   key.shadow.camera.left = -22; key.shadow.camera.right = 22; key.shadow.camera.top = 22; key.shadow.camera.bottom = -22;
@@ -251,6 +276,9 @@ function init(){
   buildCables();
   buildFlowGraph();
   buildPacketPool();
+  buildTechnicienne();
+  buildBalise();
+  buildMarche();
 
   raycaster = new THREE.Raycaster(); raycaster.params.Line.threshold = 0.3;
   pointer = new THREE.Vector2(-2, -2);
@@ -261,6 +289,12 @@ function init(){
   window.addEventListener('resize', onResize); new ResizeObserver(onResize).observe(stage);
   animate();
 }
+
+/* Une bulle de parole : le texte est replié sur plusieurs lignes pour rester lisible dans la salle. */
+function etiquetteBulle(texte, position, opt){ opt = opt || {}; const mots = String(texte).split(' '); const lignes = []; let l = '';
+  mots.forEach(m=>{ if((l + ' ' + m).trim().length > 34 && l){ lignes.push(l); l = m; } else l = (l ? l + ' ' : '') + m; }); if(l) lignes.push(l);
+  const tex = textureTexte(lignes.join('\n'), opt); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false, depthTest:false, toneMapped:false }));
+  const h = (opt.hauteur || 0.42) * lignes.length * 0.78 + 0.25; sp.scale.set(h * tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.renderOrder = 20; sp.raycast = ()=>{}; scene.add(sp); return sp; }
 
 /* ====== MATÉRIAUX & TEXTURES ====== */
 const mat = (c, metal, rough, o={}) => new THREE.MeshStandardMaterial(Object.assign({ color:c, metalness:metal, roughness:rough, envMapIntensity:1.0 }, o));
@@ -290,8 +324,8 @@ function initMaterials(){
   applyPBR(floorPBRMat, 'concrete_tiles', '1k', { repeat:14, normal:1.0, ao:true, aoInt:1.0 });
   // Baies serveurs : acier peint charcoal (semi-métal → le grain de la tôle + l'AO restent lisibles,
   // au lieu d'un miroir noir qui « avale » la lumière de la salle sombre)
-  rackMetalMat = mat(0x3a4353, 0.45, 0.52, { envMapIntensity:1.35 });
-  applyPBR(rackMetalMat, 'metal_plate_02', '1k', { repeat:2, normal:0.9, ao:true, aoInt:1.0, color:0x3a4353 });
+  rackMetalMat = mat(0x4c5668, 0.55, 0.48, { envMapIntensity:1.5 });
+  applyPBR(rackMetalMat, 'metal_plate_02', '1k', { repeat:2, normal:0.9, ao:true, aoInt:1.0, color:0x4c5668 });
   // Cœur réseau / stockage : acier peint bleuté
   cabinetMetalMat = mat(0x3e4a63, 0.45, 0.5, { envMapIntensity:1.4 });
   applyPBR(cabinetMetalMat, 'metal_plate', '1k', { repeat:2, normal:0.85, ao:true, aoInt:1.0, color:0x3e4a63 });
@@ -562,8 +596,14 @@ function buildUI(){
     <button class="dc-b" id="dcRepair">🛠️ Réparer</button>
     <button class="dc-b" id="dcNot">📚 Notions</button>
     <button class="dc-b" id="dcLabels" aria-pressed="true">🏷️ Étiquettes</button>
-    <button class="dc-b" id="dcView">↺ Vue</button>`;
+    <button class="dc-b" id="dcView">↺ Vue</button>
+    <button class="dc-b" id="dcMarche" aria-pressed="false">🚶 Marcher</button>
+    <button class="dc-b" id="dcMission" aria-pressed="false">🛠️ Mission</button>`;
   stage.appendChild(c);
+  c.querySelector('#dcMarche').onclick = ()=>{ if(marche) marche.bascule(); };
+  c.querySelector('#dcMission').onclick = ()=> lancerMission();
+  // Panneau de la mission : les trois branchements et la température de la baie
+  const mq = document.createElement('div'); mq.className = 'dc-panel dc-mq'; mq.id = 'dcMq'; mq.setAttribute('aria-live', 'polite'); stage.appendChild(mq);
   c.querySelector('#dcLoad').oninput = e=>{ load = +e.target.value; document.getElementById('dcLoadV').textContent = load+'%'; updateFan(); if(mode==='cours') evalChallenge(); };
   c.querySelector('#dcCool').oninput = e=>{ cooling = +e.target.value; document.getElementById('dcCoolV').textContent = cooling+'%'; };
   c.querySelector('#dcFail').onclick = triggerFailure;
@@ -690,8 +730,10 @@ function onMove(e){ setP(e); const h = pick(); renderer.domElement.style.cursor 
 function onDown(e){ setP(e); const h = pick(); if(!h.length) return;
   let o = h[0].object;
   // baie de serveurs : clic simple = fiche ; double = bascule panne
-  if(o.userData.rack){ const rack = o.userData.rack; openFiche('rack'); shell.sound('pop'); if(mode==='cours') checkClick('rack');
-    if(o.userData.rack._t && Date.now()-o.userData.rack._t < 400) toggleRack(rack); o.userData.rack._t = Date.now(); return; }
+  if(o.userData.rack){ const rack = o.userData.rack;
+    if(missionLancee && mission && !mission.estFinie() && panne && !panne.trouvee){ choisirBaie(rack); return; }
+    openFiche('rack'); shell.sound('pop'); if(mode==='cours') checkClick('rack');
+    if(o.userData.rack._t && Date.now()-o.userData.rack._t < 400 && !(panne && panne.rack===rack)) toggleRack(rack); o.userData.rack._t = Date.now(); return; }
   let p = o; while(p && !p.userData.equip) p = p.parent;
   const id = p ? p.userData.equip : (o.userData.equip || null);
   if(id){ openFiche(id); shell.sound('pop'); if(mode==='cours') checkClick(id); }
@@ -714,6 +756,10 @@ function startMode(m){
   document.getElementById('dcHint').style.display = (m==='cours') ? 'none' : '';
   const info = document.getElementById('dcInfo'); if(info) info.classList.remove('show');
   if(m==='cours'){ shell.setScore(0); chooseDifficulty(); } else { clearQuiz(); shell.setLevel('libre'); }
+  if(!ambianceSalle && M){ try{ ambianceSalle = M.ambiance({ type:'machine', volume:0.07 }); }catch(e){} }
+  assurerMission();
+  setTimeout(()=>{ if(tech) tech.dire(m==='cours' ? 'Bonjour, je suis Nolwenn. Quand tu veux, lance la mission : remettre la salle en route.' : 'Bonjour, je suis Nolwenn, technicienne de cette salle. Une baie va tomber en panne : on la remet en route ensemble.', 6); }, 1500);
+  if(m!=='cours') setTimeout(()=>{ if(!missionLancee) lancerMission(); }, 8000);
 }
 function chooseDifficulty(){
   clearQuiz(); let b = document.getElementById('dcQuiz');
@@ -785,6 +831,140 @@ function updateLabels(){
   });
 }
 
+/* ============================================================
+   LA TECHNICIENNE : badge, lampe torche, polo de la salle ; elle marche jusqu'à la baie en panne
+   ============================================================ */
+function buildTechnicienne(){ if(!M) return;
+  tech = M.personnage({ nom:'Nolwenn, technicienne de la salle serveurs', phrase:'Elle remet la salle en route quand une baie tombe en panne.', position:[0, 0, 10.5], taille:1.7, peau:0xd9b08a, haut:0x2f6fb5, bas:0x2a2f3a, cheveux:0x4a2f1e, vitesse:1.3, graine:2 });
+  const g = tech.groupe; const ms = (c,o)=> new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:0.6 }, o||{}));
+  const add = (geo, m, p, parent)=>{ const x = new THREE.Mesh(geo, m); x.position.set(p[0],p[1],p[2]); x.castShadow = true; (parent||g).add(x); return x; };
+  add(new THREE.BoxGeometry(0.075,0.05,0.01), ms(0xffffff), [0.09,1.25,0.175]);            // badge
+  add(new THREE.BoxGeometry(0.075,0.012,0.012), ms(0x29B6E0), [0.09,1.262,0.182]);         // bande bleue du badge
+  add(new THREE.BoxGeometry(0.3,0.02,0.02), ms(0xf5a623), [0,1.4,0.17]);                   // cordon du badge
+  const lampeG = new THREE.Group(); lampeG.position.set(0,-0.6,0.05); tech.membres.brasD.add(lampeG);
+  add(new THREE.CylinderGeometry(0.035,0.035,0.22,12), ms(0x1f242c,{ roughness:0.35, metalness:0.6 }), [0,0,0], lampeG).rotation.x = Math.PI/2;
+  lampe = add(new THREE.CircleGeometry(0.034,16), new THREE.MeshBasicMaterial({ color:0x332a10 }), [0,0,0.115], lampeG);
+  lampeLum = new THREE.SpotLight(0xfff1c0, 0, 9, 0.5, 0.6, 1.2); lampeLum.position.set(0,0,0.12); lampeLum.target.position.set(0,0,3); lampeG.add(lampeLum); lampeG.add(lampeLum.target);
+  tech.membres.brasD.rotation.x = -0.35;
+  tech.regarder([0,0,-6]);
+}
+function allumerLampe(oui){ if(lampe){ lampe.material.color.setHex(oui ? 0xfff1c0 : 0x332a10); } if(lampeLum) lampeLum.intensity = oui ? 6 : 0; }
+
+/* La balise rouge posée sur la baie en panne : un gyrophare, visible de loin dans l'allée. */
+function buildBalise(){
+  balise = new THREE.Group(); balise.visible = false;
+  const pied = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.2,0.1,16), mat(0x2a2f3a,0.6,0.5)); pied.position.y = 0.05; balise.add(pied);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.17,18,14), new THREE.MeshStandardMaterial({ color:0xff3b30, emissive:0xff2a20, emissiveIntensity:1.6, roughness:0.3, transparent:true, opacity:0.92 })); dome.position.y = 0.2; balise.add(dome); balise.userData.dome = dome;
+  baliseLum = new THREE.PointLight(0xff3b30, 0, 12, 2); baliseLum.position.y = 0.6; balise.add(baliseLum);
+  scene.add(balise);
+}
+
+/* ============================================================
+   MARCHER DANS LES ALLÉES : première personne, collisions avec les baies et les armoires
+   ============================================================ */
+function collisionSalle(x, z){
+  for(const r of racks){ if(Math.abs(x - r.x) < 1.35 && Math.abs(z - r.z) < 1.65) return true; }
+  if(Math.abs(x) < 1.9 && z < -9.9) return true;                 // cœur réseau
+  if(Math.abs(x + 6.5) < 1.6 && z < -9.9) return true;           // baie de stockage
+  if(x < -10.8) return true;                                     // onduleur, générateur, groupes froids
+  if(tech && Math.hypot(x - tech.position().x, z - tech.position().z) < 0.75) return true;
+  return false;
+}
+function buildMarche(){ if(!M) return;
+  marche = M.marcher({ depart:[0,0,12], hauteur:1.62, sol:0, vitesse:2.4, limites:{ xmin:-10.5, xmax:10.5, zmin:-13.5, zmax:13.5 }, collision:collisionSalle,
+    aide:'Flèches ou ZQSD pour marcher, glisse pour regarder. Échap : vue libre.',
+    surPas:(dt)=>{ tempsPas += dt; if(tempsPas > 0.5){ tempsPas = 0; M.son('pas',{ volume:0.1 }); } },
+    surChangement:(actif)=>{ controls.autoRotate = false; controls.enableRotate = !actif; controls.enableZoom = !actif; const b = document.getElementById('dcMarche'); if(b){ b.setAttribute('aria-pressed', String(actif)); b.textContent = actif ? '↩ Vue libre' : '🚶 Marcher'; }
+      if(actif) shell.say('Tu marches dans la salle. Flèches ou joystick pour avancer, glisse pour regarder, Échap pour revenir à la vue libre.', 'joyeux'); } });
+}
+
+/* ============================================================
+   MISSION « REMETTRE LA SALLE EN ROUTE » : trouver la baie en panne, rebrancher dans l'ordre, vérifier la température
+   ============================================================ */
+const ORDRE = [
+  { id:'alim', nom:'Alimentation', ic:'⚡', fait:"Le courant revient : les voyants s'allument un à un. Sans électricité, rien d'autre ne pouvait démarrer.", faux:"Pas encore : la baie n'a pas de courant. Sans électricité, ni le réseau ni les ventilateurs ne peuvent fonctionner. Commence par l'alimentation." },
+  { id:'reseau', nom:'Réseau', ic:'🔌', fait:"Le câble réseau relie la baie au switch : les serveurs redeviennent joignables et la supervision lit de nouveau leur température.", faux:"Pas encore : la baie est allumée, mais personne ne la voit sur le réseau. La supervision a besoin du câble réseau pour lire la température des serveurs. Branche le réseau avant le refroidissement." },
+  { id:'froid', nom:'Refroidissement', ic:'❄️', fait:"Les ventilateurs repartent : l'air froid de l'allée traverse les serveurs. Regarde la température redescendre.", faux:"Pas encore : le refroidissement se relance en dernier, quand la baie est alimentée et visible sur le réseau." },
+];
+function assurerMission(){ if(mission || !M) return mission;
+  mission = M.mission({ titre:'Remettre la salle en route', cachee:true, chrono:true, chronoCible:180, gagner:false, annonce:false,
+    objectifs:[
+      { id:'trouver', texte:'1. Trouver la baie en panne (voyant rouge)' },
+      { id:'alim', texte:"2. Rebrancher l'alimentation" },
+      { id:'reseau', texte:'3. Rebrancher le réseau' },
+      { id:'froid', texte:'4. Relancer le refroidissement' },
+      { id:'temp', texte:'5. Vérifier : la température redescend sous 30 °C', verifier:()=> missionLancee && etapeBranche >= 3 && baieTemp < 30, points:150 },
+    ],
+    surFin:(reussie, secondes, score)=> finMission(reussie, secondes, score) });
+  mission.zone.setAttribute('aria-label', 'Mission : remettre la salle en route');
+  return mission;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  if(missionLancee && !mission.estFinie()){ shell.say(panne && !panne.trouvee ? 'La mission est déjà lancée : cherche la baie au voyant rouge.' : 'La mission est déjà lancée : continue les branchements.', 'concentre'); mission.montrer(); return; }
+  missionLancee = true; etapeBranche = 0; baieTemp = 44;
+  const candidats = racks.filter(r=>!r.failed); const rack = candidats[Math.floor(Math.random()*candidats.length)] || racks[0];
+  racks.forEach(r=>{ r.failed = false; }); rack.failed = true;
+  panne = { rack, trouvee:false, erreurs:0, erreursBranche:0 };
+  balise.visible = true; balise.position.set(rack.x, 4.42, rack.z); baliseLum.intensity = 3;
+  const b = document.getElementById('dcMission'); if(b) b.setAttribute('aria-pressed','true');
+  shell.stage.classList.add('dc-mission-on');
+  const info = document.getElementById('dcInfo'); if(info) info.classList.remove('show');
+  mission.montrer(); mission.commencer(); M.son('clic',{ volume:0.2 });
+  rendreMq();
+  shell.say("Mission : une baie vient de tomber en panne. Première étape : trouve-la. Son voyant est rouge et une balise clignote dessus. Clique la baie. Le chrono tourne.", 'concentre');
+  if(tech){ tech.dire('Une baie est tombée. Je prends ma lampe, suis-moi : cherche le voyant rouge.', 6); allumerLampe(true);
+    const cote = rack.x < 0 ? 2.4 : -2.4; setTimeout(()=>{ if(missionLancee && tech) tech.allerA([rack.x + cote, 0, rack.z + 0.4], 1.4); }, 1800); }
+}
+function choisirBaie(rack){ if(!panne || panne.trouvee) return;
+  if(rack === panne.rack){ panne.trouvee = true; mission.valider('trouver', Math.max(60, 150 - 40*panne.erreurs)); M.son('clic',{ volume:0.25 });
+    if(tech){ tech.regarder([rack.x, 0, rack.z]); tech.dire("C'est elle. Ses trois câbles ont sauté : alimentation, réseau, refroidissement. Dans quel ordre on rebranche ?", 7); }
+    shell.say("Baie trouvée. Maintenant, rebranche ses trois câbles dans le bon ordre. Si tu te trompes, Nolwenn t'explique pourquoi.", 'fier'); rendreMq();
+  } else { panne.erreurs++; M.son('coup',{ volume:0.12 });
+    const msg = rack.servers.some(s=>s.lit) ? "Pas celle-ci : ses voyants sont verts, donc ses serveurs répondent. La baie en panne a des voyants rouges." : "Pas celle-ci : elle est simplement éteinte faute de charge, ses voyants ne sont pas rouges. Cherche le rouge qui clignote.";
+    if(tech) tech.dire(msg, 6); else shell.say(msg, 'rassurant'); }
+}
+function brancher(id){ if(!panne || !panne.trouvee || !mission || mission.estFinie() || etapeBranche >= 3) return;
+  const attendu = ORDRE[etapeBranche];
+  if(id === attendu.id){ etapeBranche++; mission.valider(id, Math.max(60, 150 - 40*panne.erreursBranche)); panne.erreursBranche = 0; M.son('clic',{ volume:0.3, frequence: 500 + etapeBranche*120 });
+    if(tech) tech.dire(attendu.fait, 6); else shell.say(attendu.fait, 'fier');
+    if(etapeBranche === 3) shell.say("Tout est rebranché. Dernière étape : vérifie que la température de la baie redescend sous 30 °C. Elle s'affiche dans le panneau.", 'concentre');
+  } else { panne.erreursBranche++; M.son('coup',{ volume:0.14 }); if(tech) tech.dire(attendu.faux, 7); else shell.say(attendu.faux, 'rassurant'); }
+  rendreMq();
+}
+function rendreMq(){ const el = document.getElementById('dcMq'); if(!el) return;
+  if(!missionLancee || !mission || mission.estFinie()){ el.classList.remove('on'); return; }
+  el.classList.add('on');
+  if(!panne.trouvee){ el.innerHTML = `<div class="t">Trouve la baie en panne.<small>Dix baies dans l'allée : une seule a des voyants rouges et une balise qui clignote. Clique-la.</small></div>`; return; }
+  const boutons = ORDRE.map((o,i)=>`<button class="pb" type="button" data-b="${o.id}" ${i < etapeBranche ? 'disabled' : ''}>${o.ic} ${o.nom}${i < etapeBranche ? ' ✓' : ''}</button>`).join('');
+  const tc = baieTemp > 36 ? '#E63329' : baieTemp > 30 ? '#F5A623' : '#35E08A';
+  el.innerHTML = `<div class="t">${etapeBranche < 3 ? 'Rebranche dans le bon ordre.' : 'Tout est rebranché : la température redescend.'}<small>${etapeBranche < 3 ? 'Un câble à la fois. Une erreur ne fait pas perdre : elle explique.' : 'Objectif : sous 30 °C.'}</small></div>
+    <div class="row">${boutons}</div>
+    <div class="temp"><span>Température de la baie</span><b data-temp>${baieTemp.toFixed(1)} °C</b></div><div class="dc-gauge"><i data-jauge style="width:${Math.round(Math.max(2,Math.min(100,(baieTemp-14)/32*100)))}%;background:${tc}"></i></div>`;
+  el.querySelectorAll('[data-b]').forEach(b=>{ b.onclick = ()=> brancher(b.dataset.b); });
+}
+let tempAcc = 0;
+function majPanne(dt, t){
+  if(balise && balise.visible){ const p = REDUCED ? 1 : 0.5 + 0.5*Math.abs(Math.sin(t*5)); balise.userData.dome.material.emissiveIntensity = 0.6 + 1.6*p; if(baliseLum) baliseLum.intensity = 1 + 3*p; }
+  if(!missionLancee || !mission || mission.estFinie()) return;
+  // La température de la baie : elle grimpe tant que le froid n'est pas relancé, puis redescend vers l'allée froide.
+  const cible = etapeBranche >= 3 ? 23 : 44; const vitesse = etapeBranche >= 3 ? 3.2 : 0.4;
+  baieTemp += Math.sign(cible - baieTemp) * Math.min(Math.abs(cible - baieTemp), vitesse * dt);
+  tempAcc += dt; if(tempAcc > 0.25){ tempAcc = 0; const el = document.getElementById('dcMq'); const tv = el && el.querySelector('[data-temp]'); const j = el && el.querySelector('[data-jauge]');
+    if(tv) tv.textContent = baieTemp.toFixed(1) + ' °C'; if(j){ j.style.width = Math.round(Math.max(2,Math.min(100,(baieTemp-14)/32*100))) + '%'; j.style.background = baieTemp > 36 ? '#E63329' : baieTemp > 30 ? '#F5A623' : '#35E08A'; } }
+  // Les voyants de la baie : rouges tant que le courant manque, orange ensuite, verts quand le froid est revenu.
+  if(panne && panne.rack){ panne.rack.failed = etapeBranche < 1; }
+}
+function finMission(reussie, secondes, score){ const t = Math.round(secondes); const duree = Math.floor(t/60) + ' min ' + (t%60) + ' s';
+  const b = document.getElementById('dcMission'); if(b) b.setAttribute('aria-pressed','false');
+  shell.stage.classList.remove('dc-mission-on'); rendreMq();
+  if(panne && panne.rack) panne.rack.failed = false; if(balise){ balise.visible = false; baliseLum.intensity = 0; } allumerLampe(false);
+  if(!reussie){ setTimeout(()=>{ if(mission) mission.cacher(); }, 4000); return; }
+  M.son('cloche',{ volume:0.22 }); if(tech){ tech.dire('Salle remise en route en ' + duree + '. Alimentation, réseau, refroidissement : tu connais l\'ordre.', 7); setTimeout(()=>{ if(tech) tech.allerA([0,0,10.5], 1.2); }, 3000); }
+  if(shell.mode !== 'cours'){ shell.win({ score, stars: t > 180 ? 2 : 3, title:'Salle remise en route en ' + duree, learned:shell.cfg.learned, buddy:"Baie trouvée, câbles rebranchés dans l'ordre, température revenue sous 30 °C : la salle tourne de nouveau." }); }
+  else { shell.say('Mission réussie en ' + duree + ' : ' + score + ' points de plus. Le quiz continue.', 'fier'); if(shell.celebrate) shell.celebrate(); setTimeout(()=>{ if(mission) mission.cacher(); }, 9000); }
+}
+window.__monde = { lancerMission, choisirBaie:(i)=>choisirBaie(typeof i==='number' ? racks[i] : i), brancher, mission:()=>mission, panne:()=>panne, racks:()=>racks, etape:()=>etapeBranche, temp:()=>baieTemp, tech:()=>tech, marche:()=>marche, defi:()=>challenge, forcerTemp:(v)=>{ baieTemp = v; } };
+
 /* ====== ANIMATION ====== */
 let telAcc = 0;
 function animate(){
@@ -833,7 +1013,11 @@ function animate(){
   computeTelemetry();
   telAcc += dt; if(telAcc > 0.2){ telAcc = 0; refreshTelemetry(); }
 
-  controls.update(); updateLabels(); composer.render();
+  // Outils de jeu (marche, mission, personnage) puis la baie en panne : balise, lampe, température
+  for(const f of boucles){ try{ f(dt, t); }catch(e){ /* une boucle ne casse pas le rendu */ } }
+  majPanne(dt, t);
+
+  if(!(marche && marche.estActif())) controls.update(); updateLabels(); composer.render();
 }
 </script>
 </body>
