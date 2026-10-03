@@ -276,10 +276,9 @@ function init(api){
   let software=false; try{ software=renduLogiciel(renderer); }catch(e){ try{ const gl=renderer.getContext(); const dbg=gl.getExtension('WEBGL_debug_renderer_info'); const rn=dbg?String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)):''; software=/swiftshader|llvmpipe|software|basic render/i.test(rn); }catch(e2){} }
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
-  if(software || REDUCED){
-    // rendu logiciel : pas d'AO écran (produirait du noir) : l'occlusion vient des cartes AO bakées + ombre de contact
-    composer.addPass(new RenderPass(scene,camera));
-  } else {
+  // La passe de rendu ouvre toujours la chaîne : l'occlusion écran s'applique sur l'image, jamais sur un tampon vide (F237).
+  composer.addPass(new RenderPass(scene, camera));
+  if(!(software || REDUCED)){
     // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu produit
     const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=1.0;
     try{ gtao.updateGtaoMaterial({ radius:0.5, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}

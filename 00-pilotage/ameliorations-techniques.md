@@ -237,6 +237,7 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 ### Suite (B201 et au-delà)
 
 - [x] B201 La limite entre deux farces respecte la durée de vie minimale du stockage clé-valeur (une minute) : l'heure du dernier envoi est comparée à `FARCE_DELAI` ; avant, toute farce répondait 500. Test unitaire sur toutes les durées de vie.
+- [x] B202 `POST /api/learning/rendu` : le diagnostic de rendu d'un monde 3D (carte graphique, WebGL 2, mobile, étapes de dégradation, images par seconde) va au journal (`quoi=rendu3d`).
 
 ## Site : 200 améliorations (F001 à F200)
 
@@ -493,3 +494,4 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 - [x] F234 Les bulles de texte 3D ne passent plus par le mappage de tons et prennent un fond sombre : lisibles sous bloom.
 - [x] F235 Le bandeau « Trophée débloqué » des jeux passe en ambre foncé : contraste 4,5:1 sur fond clair (l'audit des 88 jeux le relevait quand un trophée tombe au chargement).
 - [x] F236 Panneau de confort des jeux : identifiants, libellés et commentaires neutres (lecture facilitée, concentration, sérénité, grands caractères, lettres espacées), anciennes valeurs enregistrées ramenées au neutre ou à la police aérée.
+- [x] F237 Garde de rendu des mondes 3D : lecture de quelques pixels après chaque image, passes de post-traitement coupées puis chaîne contournée si l'écran reste noir alors que la scène rend, écran de reprise sur contexte WebGL perdu, erreurs de shader comptées ; six mondes qui lançaient l'occlusion écran sans passe de rendu sur GPU réel (écran noir sur téléphone) corrigés ; pas d'occlusion écran sur mobile.

@@ -94,6 +94,7 @@ export function arcSphere(a, b, r, hauteur, n) {
 
 /** Le rendu est-il logiciel (SwiftShader, llvmpipe) ? Alors pas d'occlusion ambiante écran : jamais de rendu noir. */
 export function renduLogiciel(renderer) {
+  try { if (localStorage.getItem('opaline.forcerGPU') === '1') return false; } catch (e) { /* essais */ }
   try { const gl = renderer.getContext(); const dbg = gl.getExtension('WEBGL_debug_renderer_info'); const rn = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : ''; return /swiftshader|llvmpipe|software|basic render/i.test(rn); } catch (e) { return false; }
 }
 

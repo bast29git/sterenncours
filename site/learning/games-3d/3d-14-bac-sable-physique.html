@@ -216,10 +216,9 @@ function init(){
 
   const W=stage.clientWidth, H=stage.clientHeight;
   composer=new EffectComposer(renderer);
-  if(software){
-    // rendu logiciel : pas de GTAO (noir) : l'occlusion vient des cartes AO bakées + ombre de contact
-    composer.addPass(new RenderPass(scene,camera));
-  } else {
+  // La passe de rendu ouvre toujours la chaîne : l'occlusion écran s'applique sur l'image, jamais sur un tampon vide (F237).
+  composer.addPass(new RenderPass(scene, camera));
+  if(!(software)){
     const gtao=new GTAOPass(scene,camera,W,H); gtao.blendIntensity=1.0;
     try{ gtao.updateGtaoMaterial({ radius:0.6, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
     composer.addPass(gtao); composer.gtao=gtao;

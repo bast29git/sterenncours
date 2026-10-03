@@ -239,10 +239,9 @@ function init(){
 
   const W = stage.clientWidth, H = stage.clientHeight;
   composer = new EffectComposer(renderer);
-  if(software || REDUCED){
-    // Rendu logiciel : pas d'AO écran (produirait du noir) : l'occlusion vient des cartes AO bakées.
-    composer.addPass(new RenderPass(scene, camera));
-  } else {
+  // La passe de rendu ouvre toujours la chaîne : l'occlusion écran s'applique sur l'image, jamais sur un tampon vide (F237).
+  composer.addPass(new RenderPass(scene, camera));
+  if(!(software || REDUCED)){
     // GPU : occlusion ambiante en espace-écran (GTAO) pour un rendu béton/métal réaliste.
     const gtao = new GTAOPass(scene, camera, W, H); gtao.blendIntensity = 0.85;
     try{ gtao.updateGtaoMaterial({ radius:0.6, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}

@@ -783,6 +783,102 @@
    *     exposition, hdri, RGBELoader, brouillard: { couleur, densite }, lisser, BufferGeometryUtils,
    *     legende: (objet) => ({ nom, phrase }) | null, legendes: [{ nom, phrase }], surQualite: (cran) => {} })
    */
+
+  /**
+   * F237 : la garde de rendu. Après chaque image, pendant les quinze premières secondes, quelques pixels de l'écran
+   * sont lus : s'ils sont tous noirs trois fois de suite alors qu'un rendu direct de la scène ne l'est pas, la chaîne
+   * de post-traitement est coupable : ses passes intermédiaires sont coupées, puis la chaîne entière est contournée.
+   * Un contexte WebGL perdu affiche un écran de reprise. Les erreurs de shader sont comptées. Le diagnostic part au
+   * journal (POST /api/learning/rendu) dès qu'une dégradation ou une perte a lieu, et une fois en fin de garde.
+   */
+  function gardeRendu(renderer, scene, camera, composerLire, api, mobile) {
+    const gl = renderer.getContext(); const dom = renderer.domElement;
+    const diag = { jeu: api.cfg && api.cfg.id, ecran: window.innerWidth + 'x' + window.innerHeight, gpu: '', webgl2: !!(renderer.capabilities && renderer.capabilities.isWebGL2), mobile, ratio: renderer.getPixelRatio(), etapes: [], shaders: 0, contexte: 0, verifs: 0, noir: false, envoye: false };
+    try { const dbg = gl.getExtension('WEBGL_debug_renderer_info'); diag.gpu = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)).slice(0, 80) : ''; } catch (e) { /* inconnu */ }
+    try { renderer.debug.onShaderError = (g, prog, vs, fs) => { diag.shaders += 1; try { diag.erreur = String(g.getShaderInfoLog(fs) || g.getShaderInfoLog(vs) || '').slice(0, 160); } catch (e) { /* rien */ } }; } catch (e) { /* pas de debug */ }
+    let envoiT = null;
+    function envoyer(raison) {
+      diag.raison = raison; diag.ips = ETAT.ips.length ? Math.round(ETAT.ips.reduce((a, b) => a + b, 0) / ETAT.ips.length) : null;
+      clearTimeout(envoiT); envoiT = setTimeout(() => { try { fetch('/api/learning/rendu', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(diag) }).catch(() => {}); } catch (e) { /* hors ligne */ } }, 400);
+    }
+    /* La perte du contexte : un écran de reprise, jamais une page noire muette. */
+    let perteEcran = null;
+    dom.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault(); diag.contexte += 1; envoyer('contexte perdu');
+      if (!perteEcran) {
+        perteEcran = document.createElement('div'); perteEcran.className = 'ksh-screen ksh-perte';
+        perteEcran.innerHTML = '<div class="ksh-card" role="alertdialog" aria-label="Rendu interrompu"><h2 class="ksh-h">Le rendu 3D s\'est interrompu</h2><p class="ksh-sub">L\'appareil a libéré la carte graphique. On recharge le monde : ta progression est gardée.</p><div class="ksh-row"><button class="ksh-b primary ksh-recharger" type="button">Recharger</button></div></div>';
+        perteEcran.querySelector('.ksh-recharger').onclick = () => location.reload();
+        document.querySelector('.ksh-root').appendChild(perteEcran);
+      }
+      perteEcran.hidden = false;
+    }, false);
+    dom.addEventListener('webglcontextrestored', () => { if (perteEcran) perteEcran.hidden = true; }, false);
+    /* La lecture de l'écran : une grille de sept points sur sept, juste après le rendu, dans la même tâche. */
+    const buf = new Uint8Array(4);
+    function lirePoints() {
+      const w = gl.drawingBufferWidth; const h = gl.drawingBufferHeight; let clairs = 0;
+      for (let i = 0; i < 7; i += 1) for (let j = 0; j < 7; j += 1) {
+        gl.readPixels(Math.min(w - 1, Math.floor((i + 0.5) * w / 7)), Math.min(h - 1, Math.floor((j + 0.5) * h / 7)), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+        if (buf[0] + buf[1] + buf[2] > 9) clairs += 1;
+      }
+      return clairs;
+    }
+    let c = null; let rendreOrig = null; let contourne = false; let images = 0; let noirs = 0; let simuler = false; let finie = false;
+    const estRenderPass = (p) => !!(p && p.scene && p.camera && p.gtaoMaterial === undefined && !('_toneMapping' in p));
+    const estSortie = (p) => !!(p && '_toneMapping' in p);
+    function degrader() {
+      diag.noir = true;
+      if (c && diag.etapes.length === 0) {
+        let coupees = 0; c.passes.forEach((p) => { if (!estRenderPass(p) && !estSortie(p) && p.enabled) { p.enabled = false; coupees += 1; } });
+        diag.etapes.push('passes coupées (' + coupees + ')'); noirs = 0; envoyer('écran noir');
+        if (coupees) return;
+      }
+      if (!contourne) { contourne = true; diag.etapes.push('chaîne contournée'); noirs = 0; envoyer('écran noir'); return; }
+      if (!diag.etapes.includes('sans environnement')) { try { scene.environment = null; } catch (e) { /* rien */ } diag.etapes.push('sans environnement'); noirs = 0; envoyer('écran noir'); return; }
+      finie = true; diag.etapes.push('abandon'); envoyer('écran noir persistant');
+      api.toast('Le rendu 3D ne s\'affiche pas sur cet appareil. Essaie la qualité basse (touche Q) ou un autre navigateur.', 6000);
+    }
+    let derniere = 0;
+    function verifier() {
+      if (finie) return; images += 1;
+      const maintenant = performance.now(); if (images < 3 || maintenant - derniere < 400) return; derniere = maintenant;
+      diag.verifs += 1;
+      if (diag.verifs > 45) {
+        finie = true;
+        // Un rendu normal n'est signalé qu'une fois par jour et par appareil ; une dégradation l'est toujours.
+        let deja = false; try { const cle = 'opaline.rendu.' + new Date().toISOString().slice(0, 10); deja = !!localStorage.getItem(cle); if (!deja) localStorage.setItem(cle, '1'); } catch (e) { /* rien */ }
+        if (diag.noir || diag.shaders || !deja) envoyer(diag.noir ? 'dégradé puis stable' : 'rendu normal');
+        return;
+      }
+      let clairs = 0; try { clairs = lirePoints(); } catch (e) { finie = true; return; }
+      if (clairs > 0) { noirs = 0; return; }
+      noirs += 1; if (noirs < 3) return;
+      // Trois lectures noires : la scène elle-même rendrait-elle quelque chose ? Si non, c'est un décor noir légitime.
+      let direct = 0; try { renderer.setRenderTarget(null); renderer.render(scene, camera); direct = lirePoints(); } catch (e) { direct = 0; }
+      if (direct > 0 || simuler) degrader(); else noirs = 0;
+    }
+    function brancher() {
+      const cc = composerLire(); if (!cc || cc.__garde) return !!(cc && cc.__garde);
+      c = cc; rendreOrig = cc.render.bind(cc); cc.__garde = true; declarer3d({ composer: cc });
+      cc.render = function (dt) {
+        if (contourne) { renderer.setRenderTarget(null); renderer.render(scene, camera); } else rendreOrig(dt);
+        if (simuler && !contourne) { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); }
+        verifier();
+      };
+      return true;
+    }
+    if (!brancher()) {
+      // Sans chaîne : on surveille le rendu direct.
+      const orig = renderer.render.bind(renderer);
+      renderer.render = function (sc, cam) { orig(sc, cam); if (sc === scene) verifier(); };
+      let essais = 0; const t = setInterval(() => { essais += 1; if (brancher() || essais > 20) clearInterval(t); }, 500);
+    }
+    const garde = { diag, simulerNoir: (oui) => { simuler = oui !== false; noirs = 0; finie = false; }, contourne: () => contourne, etat: () => ({ contourne, etapes: diag.etapes.slice(), verifs: diag.verifs, noir: diag.noir }) };
+    declarer3d({ garde });
+    return garde;
+  }
+
   function monde3d(o) {
     const api = window.__kshApi; const THREE = o.THREE; const scene = o.scene; const camera = o.camera; const renderer = o.renderer;
     if (!api || !THREE || !scene || !camera || !renderer) return null;
@@ -791,6 +887,11 @@
     const lire = (g) => { try { return typeof g === 'function' ? g() : g; } catch (e) { return null; } };
     const bloom = () => lire(o.bloom); const composer = () => lire(o.composer);
     const stage = api.stage;
+
+    /* F237 : la garde de rendu et le profil mobile (pas d'occlusion ambiante écran hors cran haut sur GPU réel). */
+    declarer3d({ scene, camera, renderer });
+    const garde = gardeRendu(renderer, scene, camera, composer, api, mobile);
+    const gtaoPasses = () => { const c = composer(); return c && c.passes ? c.passes.filter((p) => p && p.gtaoMaterial !== undefined) : []; };
 
     /* E3 : correction des couleurs unifiée. */
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -848,6 +949,7 @@
         if (l.shadow.mapSize.x !== voulu) { l.shadow.mapSize.set(voulu, voulu); if (l.shadow.map) { l.shadow.map.dispose(); l.shadow.map = null; } }
       });
       const b = bloom(); if (b) b.enabled = cran > 1 && !REDUCED;
+      gtaoPasses().forEach((p) => { p.enabled = cran === 3 && !mobile && !REDUCED; });
       if (o.surQualite) { try { o.surQualite(cran); } catch (e) {} }
       if (!silencieux) api.toast('Qualité : ' + ['basse', 'moyenne', 'haute'][cran - 1] + '. Touche Q pour changer.', 2200);
       document.querySelectorAll('.ksh-qualite-choix button').forEach((x) => x.setAttribute('aria-pressed', String(Number(x.getAttribute('data-cran')) === cran)));
@@ -958,7 +1060,7 @@
       });
     }, 0);
 
-    return { appliquerQualite, recentrer, legende: montrerLegende, journal: ETAT.journal };
+    return { appliquerQualite, recentrer, legende: montrerLegende, journal: ETAT.journal, garde };
   }
 
   /** E9 : un rayon de lumière volumétrique simple (cône additif), pour les mondes extérieurs. */
