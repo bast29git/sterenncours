@@ -91,6 +91,20 @@
   .aiw-gterm { padding:9px 0; border-bottom:1px solid var(--border); }
   .aiw-gterm b { font-family:var(--font-title); font-size:13.5px; color:var(--accent-text); }
   .aiw-gterm p { margin:3px 0 0; font-size:13px; line-height:1.5; color:var(--fg); }
+  /* ---- mission « Entraîner le réseau » : frontière à régler sur dix exemples ---- */
+  .aiw-front { left:14px; bottom:78px; width:236px; padding:10px 12px; display:flex; flex-direction:column; gap:7px; z-index:24; }
+  .aiw-front .t { font-family:var(--font-mono); font-size:9.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--fg-muted); }
+  .aiw-front canvas { width:100%; aspect-ratio:1; display:block; border-radius:10px; border:1px solid var(--border); background:color-mix(in srgb,var(--surface-2,var(--surface)) 80%,transparent); }
+  .aiw-front .lbl { display:flex; justify-content:space-between; font-size:11.5px; } .aiw-front .lbl b { font-family:var(--font-data); color:var(--accent-text); }
+  .aiw-front input[type=range] { width:100%; accent-color:var(--accent); height:24px; }
+  .aiw-score { font-family:var(--font-data); font-weight:700; font-size:14px; text-align:center; padding:5px 8px; border-radius:9px; background:var(--accent-weak); color:var(--accent-text); }
+  .aiw-front .q { font-size:12px; line-height:1.4; }
+  .aiw-front .opts { display:flex; flex-wrap:wrap; gap:5px; }
+  .aiw-front .opts button { font-family:var(--font-body); font-weight:700; font-size:12px; min-height:36px; padding:0 11px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; flex:1; }
+  .aiw-front .opts button:hover { background:var(--accent-weak); } .aiw-front .opts button:focus-visible { outline:none; box-shadow:var(--ring); }
+  body .mb-mission { top:122px; right:14px; width:246px; }
+  .aiw-b.mission { background:linear-gradient(135deg,#8B5BE0,#5a3aa8); border:none; color:#fff; }
+  @media (max-width:760px){ body .mb-mission { width:180px; top:118px; right:10px; max-height:40%; } .aiw-front { width:180px; left:10px; bottom:84px; padding:8px 9px; } .aiw-front .q { font-size:11px; } }
   @media (prefers-reduced-motion: reduce){ .aiw-fiche,.aiw-hd .chev { transition:none; } }
   @media (max-width:760px){
     .aiw-left,.aiw-right { width:180px; }
@@ -111,6 +125,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, textureTexte } from '../monde-base.js';
 
 const REDUCED = window.Konstrio.REDUCED;
 
@@ -119,6 +134,10 @@ let scene, camera, renderer, controls, composer, clock, raycaster, pointer;
 let netGroup, floorGrid, motePool = [], moteIdx = 0, dataMotes = null;
 let mode = 'detente';
 let hovered = null;
+/* F228 : outils communs (mission, personnage-guide, ambiance) */
+let M = null; const boucles = []; let drone = null, droneBulle = null, droneBulleT = 0, missionReseau = null, missionLancee = false, ambSalle = null, logiciel = false;
+/* frontière à régler : dix exemples séparables, une droite d'angle et de décalage réglables */
+let fr = null; // { angle, decal, ex:[{x,y,c}], bons, bouge:{angle,decal}, k, ordreQ }
 
 /* réseau + données + réglages pédagogiques */
 const ARCH = { dataset:'moons', hidden:2, perLayer:5, activation:'tanh', lr:0.05 };
@@ -169,7 +188,7 @@ const shell = window.Konstrio.createGame({
     "La couche de sortie la plus active donne la classe prédite.",
   ],
   onReady:(api)=>init(api),
-  onStart:(m,api)=>{ mode=m; api.mode=m; if(m==='cours'){ api.setScore(0); startCours(); } else { clearQuiz(); api.setLevel('libre'); shell.api.say("Mode Détente : explore, propage un signal, entraîne, change les réglages. Commence par toucher un objet.",'joyeux'); } },
+  onStart:(m,api)=>{ mode=m; api.mode=m; demarrerAmbiance(); if(m==='cours'){ api.setScore(0); startCours(); } else { clearQuiz(); api.setLevel('libre'); shell.api.say("Mode Détente : explore, propage un signal, entraîne, change les réglages. Commence par toucher un objet.",'joyeux'); setTimeout(()=>{ if(mode!=='cours'&&!missionLancee) lancerMission(); },6500); } },
   onRestart:(api)=>{ if(mode==='cours'){ api.setScore(0); startCours(); } },
   onTheme:()=>{ applyTheme(); drawLoss(); drawPad(); },
 });
@@ -198,7 +217,8 @@ function init(api){
     try{ gtao.updateGtaoMaterial({ radius:0.5, distanceExponent:1, thickness:1, scale:1, samples:16, distanceFallOff:1 }); }catch(e){}
     composer.addPass(gtao); composer.gtao = gtao;
   }
-  const bp = new UnrealBloomPass(new THREE.Vector2(W, H), REDUCED?0.5:0.85, 0.5, 0.62);
+  logiciel = software;
+  const bp = new UnrealBloomPass(new THREE.Vector2(W, H), REDUCED?0.5:0.8, 0.5, 0.58);
   composer.addPass(bp); composer.bloom = bp;
   composer.addPass(new SMAAPass(W, H));
   composer.addPass(new OutputPass());
@@ -226,6 +246,8 @@ function init(api){
   buildEnvironment();
   buildMotePool();
   buildNet();          // construit réseau + données + visuel 3D
+  try{ M = outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f) }); }catch(e){ M = null; }
+  buildDrone();
   raycaster = new THREE.Raycaster(); pointer = new THREE.Vector2(-2,-2);
   buildUI(); applyTheme(); refreshMetrics(); updateStatus();
 
@@ -374,7 +396,9 @@ function buildNet(){
   sizes.forEach((n, li)=>{
     for(let i=0;i<n;i++){
       const isOut = li===L-1, isIn = li===0;
-      const mat = new THREE.MeshStandardMaterial({ color:COL.n0, emissive:0x000000, metalness:0.35, roughness:0.32, envMapIntensity:1.1 });
+      // verre émissif : transmission sur GPU réel, vernis seul en rendu logiciel (la transmission y coûte trop)
+      const mat = logiciel ? new THREE.MeshPhysicalMaterial({ color:COL.n0, emissive:0x000000, metalness:0.1, roughness:0.18, envMapIntensity:1.2, clearcoat:0.9, clearcoatRoughness:0.08 })
+        : new THREE.MeshPhysicalMaterial({ color:COL.n0, emissive:0x000000, metalness:0, roughness:0.12, envMapIntensity:1.3, transmission:0.55, thickness:0.6, ior:1.45, clearcoat:0.6, clearcoatRoughness:0.1 });
       const m = new THREE.Mesh(isOut?OUT_GEO:NEURON_GEO, mat);
       m.position.copy(neuronPos(li,i,n));
       m.userData = { layer:li, idx:i, isOut, isIn, role: isIn?'entrée':(isOut?'sortie':'cachée'), glow:0, base:new THREE.Color(COL.n0) };
@@ -523,6 +547,7 @@ function trainEpoch(){
   syncEdges();
   refreshMetrics(); drawLoss();
   if(train.epoch % 3 === 0) drawPad();
+  if(fr){ const acc = document.getElementById('aiwFrontAcc'); if(acc) acc.textContent = Math.round(train.acc)+' %'; }
   // lueur douce « shimmer » d'apprentissage sur les cachées
   if(!wave){ neurons.forEach(nm=>{ if(!nm.userData.isOut && !nm.userData.isIn) nm.userData.glow = 0.12 + Math.random()*0.18; }); }
   // messages pédagogiques
@@ -592,6 +617,126 @@ function onPadClick(e){
   shell.sound('click');
   if(mode==='cours') evalAction('classify');
 }
+
+/* ====================== PIXEL, LE DRONE DE DONNÉES (guide) ====================== */
+function buildDrone(){
+  drone = new THREE.Group(); drone.position.set(3.5, 6.8, 2.0);
+  const blanc = new THREE.MeshPhysicalMaterial({ color:0xf2f4ff, roughness:0.2, metalness:0.1, clearcoat:0.8, clearcoatRoughness:0.1, envMapIntensity:1.2 });
+  const corps = new THREE.Mesh(new THREE.SphereGeometry(0.34, 24, 18), blanc); corps.scale.set(1, 0.8, 1); drone.add(corps);
+  const anneau = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.045, 10, 36), new THREE.MeshStandardMaterial({ color:0x29B6E0, emissive:0x29B6E0, emissiveIntensity:1.4, roughness:0.4 })); anneau.rotation.x = Math.PI/2; drone.add(anneau);
+  const oeil = new THREE.Mesh(new THREE.SphereGeometry(0.1, 14, 12), new THREE.MeshStandardMaterial({ color:0x8B5BE0, emissive:0x8B5BE0, emissiveIntensity:2.2 })); oeil.position.set(0, 0.02, 0.3); drone.add(oeil); drone.userData.oeil = oeil;
+  const bras = new THREE.MeshStandardMaterial({ color:0x2b3557, roughness:0.5, metalness:0.6 }); drone.userData.rotors = [];
+  [[0.5,0.5],[-0.5,0.5],[0.5,-0.5],[-0.5,-0.5]].forEach(([x,z])=>{ const b = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 0.05), bras); b.position.set(x*0.5, 0.15, z*0.5); b.rotation.y = Math.atan2(z, x); drone.add(b);
+    const r = new THREE.Mesh(new THREE.CircleGeometry(0.22, 18), new THREE.MeshBasicMaterial({ color:0x9fd8ff, transparent:true, opacity:0.35, side:THREE.DoubleSide })); r.rotation.x = -Math.PI/2; r.position.set(x, 0.2, z); drone.add(r); drone.userData.rotors.push(r); });
+  drone.userData.legende = { nom:'Pixel, drone de données', phrase:"Le petit drone qui t'explique le réseau et t'accompagne dans la mission." };
+  drone.traverse((c)=>{ if(c!==drone) c.userData.legende = drone.userData.legende; });
+  scene.add(drone);
+  boucles.push((dt, t)=>{
+    drone.position.y = 6.8 + Math.sin(t*1.3)*0.25; drone.rotation.y = Math.sin(t*0.4)*0.5; drone.rotation.z = Math.sin(t*0.9)*0.06;
+    if(!REDUCED) drone.userData.rotors.forEach((r, i)=>{ r.rotation.z += dt*(18+i*2); });
+    drone.userData.oeil.material.emissiveIntensity = 1.6 + Math.sin(t*5)*0.6;
+    if(droneBulle){ droneBulle.position.copy(drone.position).add(new THREE.Vector3(0, 0.95, 0)); if(performance.now() > droneBulleT){ scene.remove(droneBulle); droneBulle = null; } }
+  });
+}
+function droneDire(texte, secondes){
+  if(droneBulle) scene.remove(droneBulle);
+  const tex = textureTexte(texte, { taille:26, fond:'rgba(255,255,255,0.95)', couleur:'#1e2733' });
+  droneBulle = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false })); const h = 0.5; droneBulle.scale.set(h*tex.userData.ratio, h, 1); droneBulle.raycast = ()=>{};
+  droneBulle.position.copy(drone.position).add(new THREE.Vector3(0, 0.95, 0)); scene.add(droneBulle); droneBulleT = performance.now() + (secondes||4)*1000;
+  shell.api.say(texte, 'joyeux');
+}
+function demarrerAmbiance(){ if(ambSalle||!M) return; try{ ambSalle = M.ambiance({ type:'salle', volume:0.05 }); }catch(e){ ambSalle = null; } }
+
+/* ====================== MISSION : entraîner le réseau (F224) ====================== */
+function genererExemples(){
+  const th0 = Math.random()*Math.PI, n0 = [Math.cos(th0), Math.sin(th0)], d0 = (Math.random()-0.5)*1.4; const ex = [];
+  let garde = 0;
+  while(ex.length < 10 && garde < 4000){ garde++; const x = (Math.random()-0.5)*4.4, y = (Math.random()-0.5)*4.4; const s = n0[0]*x + n0[1]*y - d0; if(Math.abs(s) < 0.5) continue; const c = s > 0 ? 0 : 1;
+    if(ex.filter(e=>e.c===c).length >= 5) continue; if(ex.some(e=>Math.hypot(e.x-x, e.y-y) < 0.45)) continue; ex.push({ x, y, c }); }
+  return { ex, th0 };
+}
+function classerFront(){ if(!fr) return 0; const th = fr.angle*Math.PI/180, nx = Math.cos(th), ny = Math.sin(th); let bons = 0; fr.ex.forEach(e=>{ e.p = (nx*e.x + ny*e.y - fr.decal) > 0 ? 0 : 1; if(e.p===e.c) bons++; }); return bons; }
+function assurerMission(){ if(missionReseau||!M) return missionReseau;
+  const obj = [
+    { id:'angle', texte:'1. Tourner la frontière (angle)', points:80, verifier:()=>fr&&fr.bouge.angle },
+    { id:'decal', texte:'2. Déplacer la frontière (décalage)', points:80, verifier:()=>fr&&fr.bouge.decal },
+    { id:'sept', texte:'3. Bien classer au moins 7 exemples sur 10', points:120, verifier:()=>fr&&fr.bons>=7, apres:()=>{ droneDire('7 sur 10. Encore un peu : vise 9 sur 10.', 4); } },
+    { id:'neuf', texte:'4. Atteindre 9 sur 10 au moins (90 %)', points:150, verifier:()=>fr&&fr.bons>=9, apres:()=>{ fr.k = fr.bons; fr.ordreQ = [0,1,2].sort(()=>Math.random()-0.5); M.son('cloche',{ volume:0.2 }); droneDire('Frontière réglée. Maintenant lis la proportion.', 4); majFront(); } },
+    { id:'proportion', texte:'5. Lire la proportion de bonnes réponses', points:150 },
+    { id:'reseau', texte:'6. Entraîner le vrai réseau jusqu\'à 90 %', points:170, verifier:()=>fr&&fr.k!=null&&missionReseau.objectifs[4].fait&&train.epoch>0&&train.acc>=90, apres:()=>{ M.son('cloche',{ volume:0.22, frequence:990 }); } },
+  ];
+  missionReseau = M.mission({ titre:'Entraîner le réseau', cachee:true, chrono:true, chronoCible:300, gagner:false, annonce:false, objectifs:obj, surFin:finMission });
+  missionReseau.zone.setAttribute('aria-label','Mission : entraîner le réseau');
+  return missionReseau;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  const b = document.getElementById('aiwMission'); if(b) b.setAttribute('aria-pressed','true');
+  if(missionLancee && !missionReseau.estFinie()){ missionReseau.montrer(); majFront(); return; }
+  const gen = genererExemples();
+  // la frontière part perpendiculaire à la bonne séparation : environ la moitié des exemples sont mal classés
+  missionLancee = true; fr = { angle:Math.round((gen.th0*180/Math.PI + 90) % 180), decal:0, ex:gen.ex, bons:0, bouge:{ angle:false, decal:false }, k:null, ordreQ:null }; fr.bons = classerFront();
+  document.querySelector('.aiw-left').classList.add('collapsed'); document.querySelector('.aiw-right').classList.add('collapsed');
+  missionReseau.montrer(); missionReseau.commencer(); M.son('tic',{ volume:0.25 }); majFront();
+  shell.api.say("Mission : entraîner le réseau. D'abord à la main : dix exemples, bleus et ambre, et une frontière. Tourne-la et déplace-la pour bien classer au moins 9 exemples sur 10. Puis tu liras la proportion, et tu feras faire le même travail au vrai réseau. Le chrono tourne.", 'enthousiaste');
+  setTimeout(()=>{ if(fr) droneDire('Chaque exemple bien classé fait un petit tic.', 5); }, 2500);
+}
+function reglerFront(angle, decal){ if(!fr) return; const avant = fr.bons;
+  if(angle!=null && angle!==fr.angle){ fr.angle = angle; fr.bouge.angle = true; } if(decal!=null && decal!==fr.decal){ fr.decal = decal; fr.bouge.decal = true; }
+  fr.bons = classerFront(); if(fr.bons > avant && M){ M.son('tic',{ volume:0.2, frequence:1200+fr.bons*60 }); }
+  majFront(false);
+}
+function repondreProportion(i){ if(!fr||fr.k==null||!missionReseau||missionReseau.objectifs[4].fait) return;
+  if(i!==0){ M.son('clic',{ volume:0.18, frequence:300 }); shell.api.say('Une proportion compare le nombre de réussites au total : '+fr.k+' sur 10, c\'est '+fr.k+' dixièmes, donc '+(fr.k*10)+' pour cent.', 'rassurant'); return; }
+  M.son('cloche',{ volume:0.2 }); missionReseau.valider('proportion', 150); majFront();
+  shell.api.say('Exact : '+fr.k+' sur 10 = '+(fr.k*10)+' %. Dernière étape : clique « Entraîner » et attends que la précision du vrai réseau atteigne 90 %.', 'fier');
+  droneDire('À ton tour de regarder le réseau apprendre : 90 % à atteindre.', 5);
+}
+function majFront(tout){ let el = document.getElementById('aiwFront');
+  if(!fr||!missionReseau||missionReseau.estFinie()){ if(el) el.remove(); return; }
+  if(!el){ el = document.createElement('div'); el.className = 'aiw-panel aiw-front'; el.id = 'aiwFront'; el.setAttribute('role','group'); el.setAttribute('aria-label','Frontière à régler'); shell.api.stage.appendChild(el); tout = true; }
+  const fini4 = missionReseau.objectifs[3].fait, fini5 = missionReseau.objectifs[4].fait;
+  if(tout!==false){
+    let bas = '';
+    if(fini4 && !fini5){ const opts = [fr.k*10+' %', fr.k+' %', (10-fr.k)*10+' %']; bas = `<div class="q">Tu as <b>${fr.k} bien classés sur 10</b>. Quelle proportion cela fait-il ?</div><div class="opts">${fr.ordreQ.map(i=>`<button type="button" data-prop="${i}">${opts[i]}</button>`).join('')}</div>`; }
+    else if(fini5){ bas = `<div class="q">Clique <b>🎓 Entraîner</b> en bas : le vrai réseau règle ses poids tout seul. Précision : <b id="aiwFrontAcc">${Math.round(train.acc)} %</b>, objectif 90 %.</div>`; }
+    el.innerHTML = `<div class="t">Dix exemples, une frontière</div><canvas id="aiwFrontCv" width="212" height="212"></canvas>
+      <div class="aiw-score" id="aiwFrontScore"></div>
+      ${fini4 ? '' : `<div><div class="lbl"><span>Angle</span><b id="aiwFrontAv">${fr.angle}°</b></div><input type="range" id="aiwFrontA" min="0" max="180" step="1" value="${fr.angle}" aria-label="Angle de la frontière"></div>
+      <div><div class="lbl"><span>Décalage</span><b id="aiwFrontDv">${fr.decal.toFixed(1)}</b></div><input type="range" id="aiwFrontD" min="-2" max="2" step="0.1" value="${fr.decal}" aria-label="Décalage de la frontière"></div>`}
+      ${bas}`;
+    const a = el.querySelector('#aiwFrontA'), d = el.querySelector('#aiwFrontD');
+    if(a) a.oninput = ()=>{ el.querySelector('#aiwFrontAv').textContent = a.value+'°'; reglerFront(+a.value, null); };
+    if(d) d.oninput = ()=>{ el.querySelector('#aiwFrontDv').textContent = (+d.value).toFixed(1); reglerFront(null, +d.value); };
+    el.querySelectorAll('[data-prop]').forEach(b=>{ b.onclick = ()=>repondreProportion(+b.dataset.prop); });
+  }
+  const sc = el.querySelector('#aiwFrontScore'); if(sc) sc.textContent = `Bien classés : ${fr.bons}/10 = ${fr.bons*10} %`;
+  const acc = el.querySelector('#aiwFrontAcc'); if(acc) acc.textContent = Math.round(train.acc)+' %';
+  dessinerFront();
+}
+function dessinerFront(){ const cv = document.getElementById('aiwFrontCv'); if(!cv||!fr) return; const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, R = 2.5;
+  const px = (x)=>(x+R)/(2*R)*W, py = (y)=>(R-y)/(2*R)*H;
+  ctx.clearRect(0,0,W,H);
+  const th = fr.angle*Math.PI/180, nx = Math.cos(th), ny = Math.sin(th);
+  // deux demi-plans teintés
+  const img = ctx.createImageData(W,H); const c0 = [0x29,0xB6,0xE0], c1 = [0xF5,0xA6,0x23];
+  for(let j=0;j<H;j++) for(let i=0;i<W;i++){ const x = -R + (i+0.5)/W*2*R, y = R - (j+0.5)/H*2*R; const c = (nx*x+ny*y-fr.decal) > 0 ? c0 : c1; const o = (j*W+i)*4; img.data[o]=c[0]; img.data[o+1]=c[1]; img.data[o+2]=c[2]; img.data[o+3]=70; }
+  ctx.putImageData(img,0,0);
+  // la droite frontière : points à distance decal le long de la normale, direction perpendiculaire
+  const cx = nx*fr.decal, cy = ny*fr.decal, dx = -ny, dy = nx;
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(px(cx-dx*6), py(cy-dy*6)); ctx.lineTo(px(cx+dx*6), py(cy+dy*6)); ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px(cx-dx*6), py(cy-dy*6)); ctx.lineTo(px(cx+dx*6), py(cy+dy*6)); ctx.stroke();
+  fr.ex.forEach(e=>{ const X = px(e.x), Y = py(e.y); ctx.beginPath(); ctx.arc(X, Y, 6.5, 0, 7); ctx.fillStyle = CLASS_HEX[e.c]; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = e.p===e.c ? '#ffffff' : '#E63329'; ctx.stroke();
+    if(e.p!==e.c){ ctx.strokeStyle = '#E63329'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X-10,Y-10); ctx.lineTo(X+10,Y+10); ctx.moveTo(X+10,Y-10); ctx.lineTo(X-10,Y+10); ctx.stroke(); } });
+}
+function finMission(reussie, secondes, score){ const t = Math.round(secondes); const duree = Math.floor(t/60)+' min '+(t%60)+' s';
+  const b = document.getElementById('aiwMission'); if(b) b.setAttribute('aria-pressed','false');
+  fr = null; majFront();
+  if(!reussie){ shell.api.say("La mission s'arrête là. On pourra la reprendre.", 'rassurant'); setTimeout(()=>{ if(missionReseau) missionReseau.cacher(); }, 4000); missionLancee = false; return; }
+  M.son('cloche',{ volume:0.25 }); droneDire('Réseau entraîné en '+duree+'. Bien joué.', 6);
+  if(mode!=='cours'){ shell.api.win({ score, stars:t>300?2:3, title:'Réseau entraîné en '+duree, learned:shell.cfg.learned, buddy:"Une frontière réglée à la main, une proportion lue, puis le réseau qui apprend seul : c'est exactement l'apprentissage automatique." }); }
+  else { shell.api.say('Mission réussie en '+duree+' : '+score+' points de plus. Le parcours continue.', 'fier'); if(shell.api.celebrate) shell.api.celebrate(); setTimeout(()=>{ if(missionReseau) missionReseau.cacher(); }, 9000); }
+}
+window.__monde = { lancerMission, regler:reglerFront, proportion:repondreProportion, entrainer:(n)=>{ for(let i=0;i<(n||1);i++) trainEpoch(); }, mission:()=>missionReseau, front:()=>fr, drone:()=>drone, acc:()=>train.acc, camera:()=>camera };
 
 /* ====================== UI ====================== */
 function buildUI(){
@@ -668,7 +813,8 @@ function buildUI(){
     <button class="aiw-b primary" id="aiwTrain">🎓 Entraîner</button>
     <button class="aiw-b" id="aiwStep">⏭ Pas à pas</button>
     <button class="aiw-b" id="aiwReset">↺ Réinitialiser</button>
-    <button class="aiw-b" id="aiwGloss">📘 Notions</button>`;
+    <button class="aiw-b" id="aiwGloss">📘 Notions</button>
+    <button class="aiw-b mission" id="aiwMission" aria-pressed="false">🛰 Mission</button>`;
   stage.appendChild(ctrl);
 
   // glossaire
@@ -688,6 +834,7 @@ function buildUI(){
   document.getElementById('aiwReset').onclick = ()=> resetTraining(true);
   document.getElementById('aiwGloss').onclick = ()=>{ document.getElementById('aiwGlossWrap').classList.add('show'); shell.sound('click'); };
   document.getElementById('aiwGlossClose').onclick = ()=> document.getElementById('aiwGlossWrap').classList.remove('show');
+  document.getElementById('aiwMission').onclick = ()=>{ shell.sound('click'); lancerMission(); };
   gloss.addEventListener('click', e=>{ if(e.target===gloss) gloss.classList.remove('show'); });
 
   document.getElementById('aiwLeftHd').onclick = ()=> left.classList.toggle('collapsed');
@@ -901,6 +1048,7 @@ function animate(){
   if(dataMotes && !REDUCED){ dataMotes.rotation.y += dt*0.02; }
   updateLayerTags();
   controls.update();
+  for(const f of boucles){ try{ f(dt, clock.elapsedTime); }catch(err){ /* une boucle ne casse pas le rendu */ } }
   composer.render();
 }
 </script>

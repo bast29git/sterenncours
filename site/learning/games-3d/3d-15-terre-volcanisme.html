@@ -17,7 +17,7 @@
 <style>
   .te-panel{ position:absolute; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); backdrop-filter:blur(12px); }
   .te-modes{ top:14px; left:50%; transform:translateX(-50%); padding:6px; display:flex; gap:5px; flex-wrap:wrap; justify-content:center; max-width:94vw; }
-  .te-m{ font-family:var(--font-body); font-weight:700; font-size:13px; padding:9px 15px; border-radius:10px; border:none; background:transparent; color:var(--fg-muted); cursor:pointer; transition:background .15s,color .15s; display:inline-flex; align-items:center; gap:6px; min-height:40px; }
+  .te-m{ font-family:var(--font-body); font-weight:700; font-size:13px; padding:9px 12px; border-radius:10px; border:none; background:transparent; color:var(--fg-muted); cursor:pointer; transition:background .15s,color .15s; display:inline-flex; align-items:center; gap:6px; min-height:40px; }
   .te-m[aria-pressed="true"]{ background:var(--accent); color:#fff; }
   .te-m:focus-visible{ outline:none; box-shadow:var(--ring); }
   .te-tools{ top:70px; left:14px; width:186px; padding:12px; display:flex; flex-direction:column; gap:9px; }
@@ -63,8 +63,25 @@
   .te-choices button{ font-family:var(--font-body); font-weight:700; font-size:13.5px; padding:10px 16px; border-radius:11px; border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.14); color:#fff; cursor:pointer; min-height:42px; transition:.15s; }
   .te-choices button:hover{ background:rgba(255,255,255,.26); }
   .te-choices button:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+  /* mission « Prévoir l'éruption » : station de surveillance */
+  body .mb-mission{ top:254px; left:14px; right:auto; width:220px; }
+  .te-station{ right:14px; top:70px; width:262px; padding:11px 13px; display:flex; flex-direction:column; gap:8px; z-index:21; max-height:calc(100% - 160px); overflow:auto; }
+  .te-station .t{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); }
+  .te-jauge{ display:flex; flex-direction:column; gap:3px; font-size:12px; } .te-jauge .l{ display:flex; justify-content:space-between; } .te-jauge .l b{ font-family:var(--font-data); color:var(--accent-text); }
+  .te-jauge .b{ height:8px; border-radius:5px; background:color-mix(in srgb,var(--border) 70%,transparent); overflow:hidden; } .te-jauge .b i{ display:block; height:100%; background:linear-gradient(90deg,#1E8C7A,#F5A623,#E63329); transition:width .3s; }
+  .te-jauge.lu .l{ color:var(--fg); } .te-jauge.lu .l::after{ content:'✓'; color:var(--accent-text); font-weight:800; margin-left:6px; }
+  .te-station .c{ font-size:12.5px; line-height:1.45; }
+  .te-station .opts{ display:flex; flex-direction:column; gap:5px; }
+  .te-station .opts button{ text-align:left; min-height:36px; padding:7px 11px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--fg); font-size:12.5px; font-weight:600; cursor:pointer; }
+  .te-station .opts button:hover{ background:var(--accent-weak); } .te-station .opts button:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .te-station .opts button.ok{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .te-station .opts button[disabled]{ opacity:.5; cursor:default; }
+  .te-station .analyse{ background:var(--accent-weak); color:var(--accent-text); border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.45; }
+  .te-m.mission{ background:linear-gradient(135deg,#ff7a2a,#e63329); color:#fff; }
   @media (prefers-reduced-motion: reduce){ .te-info{ transition:none; } }
-  @media (max-width:720px){ .te-tools{ display:none; } .te-info{ width:min(300px,88vw); } .te-ph-title{ font-size:20px; } }
+  @media (max-width:720px){ .te-tools{ display:none; } .te-info{ width:min(300px,88vw); } .te-ph-title{ font-size:20px; }
+    .te-modes{ padding:4px; gap:3px; } .te-m{ font-size:11px; padding:6px 8px; min-height:34px; gap:3px; }
+    body .mb-mission{ top:122px; left:8px; width:46vw; max-height:34%; } .te-station{ top:122px; right:8px; width:48vw; padding:8px 9px; max-height:44%; } .te-station .c, .te-station .opts button{ font-size:11.5px; } }
 </style>
 </head>
 <body>
@@ -78,6 +95,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, textureTexte } from '../monde-base.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ======================= DONNÉES PÉDAGOGIQUES ======================= */
@@ -141,6 +159,15 @@ let mode='explore', showLabels=true, spin=false;
 let quiz=null, quizTier='debutant';
 let erupt=null, quakeT=0, ac=null;
 const labelDefs=[];
+/* F228 : outils communs (mission, marche, personnage, ambiance) */
+let M=null; const boucles=[]; let volcanologue=null, missionErupt=null, missionLancee=false, marche=null, ambVent=null, ambGronde=null, ambFeu=null, dernierPas=0, dernierCoup=0;
+let capteurs=[], zoneMesh=null, braises=null, lumieresCoulee=[];
+const VH=1.95, VRB=1.5, VRT=0.42;
+/* station de surveillance : trois signes qui montent avant l'éruption, puis l'analyse du magma */
+const SIGNES={ sismo:{ nom:'Sismicité', unite:'secousses par jour', de:2, a:38, max:50, lu:false, texte:"Sismomètre : 38 secousses aujourd'hui contre 2 d'habitude. Le magma qui monte fissure la roche : chaque fissure fait une petite secousse." },
+  gonfle:{ nom:'Gonflement', unite:'mm', de:0, a:12, max:15, lu:false, texte:"Inclinomètre : le flanc s'est soulevé de 12 mm. La chambre se remplit de magma et pousse la montagne vers le haut." },
+  gaz:{ nom:'Gaz (dioxyde de soufre)', unite:'t par jour', de:50, a:900, max:1000, lu:false, texte:"Capteur de gaz : 900 tonnes de dioxyde de soufre par jour, contre 50. Le magma proche de la surface libère ses gaz." } };
+let station=null; // { t, magma:'fluide'|'visqueux', type:null, zone:null }
 
 /* E14 : légendes des objets pour le socle commun des mondes. */
 function LEGENDE_OPALINE(ob){ const f=ob.userData&&FICHE[ob.userData.fiche]; return f?{nom:f.name,phrase:f.sub}:null; }
@@ -264,6 +291,10 @@ function init(){
 
   buildEarth(TL,B); buildVolcano(); buildTecto(); buildAtmosphere();
   defineLabels();
+  // bulles de dialogue à l'échelle de la maquette (la volcanologue mesure 0,42 unité)
+  const etiquetteMini=(texte, position, opt)=>{ opt=opt||{}; const tex=textureTexte(texte, opt); const sp=new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false })); const h=0.17; sp.scale.set(h*tex.userData.ratio, h, 1); sp.position.fromArray(position); sp.raycast=()=>{}; scene.add(sp); return sp; };
+  try{ M=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f), etiquette:etiquetteMini }); }catch(e){ M=null; }
+  buildCapteurs(); buildBraises(); buildVolcanologue();
 
   raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
   buildUI(); applyTheme(); setMode('explore');
@@ -272,9 +303,129 @@ function init(){
   renderer.domElement.addEventListener('pointerdown', onDown);
   window.addEventListener('resize', onResize);
   window.addEventListener('keydown', onKey);
+  document.addEventListener('keydown',(e)=>{ if(marche&&marche.estActif()&&/^Arrow(Left|Right|Up|Down)$/.test(e.key)) e.preventDefault(); },true);
   new ResizeObserver(onResize).observe(stage);
   animate();
 }
+
+/* ======================= STATION, CAPTEURS, VOLCANOLOGUE, BRAISES (F228) ======================= */
+/* hauteur du sol (monde) autour du volcan : cratère, flanc, replat rocheux, puis la courbure du globe */
+function solVolcan(x,z){ const r=Math.hypot(x,z); let loc;
+  if(r<VRT+0.05) loc=VH+0.02; else if(r<VRB) loc=VH*(VRB-r)/(VRB-VRT); else if(r<VRB*1.55) loc=0.02; else loc=Math.sqrt(Math.max(0,R*R-r*r))-(R-0.05);
+  return (R-0.05)+loc; }
+function buildCapteurs(){
+  const metalM=new THREE.MeshStandardMaterial({ color:0xd8dde6, roughness:0.4, metalness:0.7 }); const jaune=new THREE.MeshStandardMaterial({ color:0xf0b429, roughness:0.6 });
+  const mk=(id,nom,phrase,a,r,build)=>{ const g=new THREE.Group(); const x=Math.cos(a)*r, z=Math.sin(a)*r; g.position.set(x, solVolcan(x,z)-(R-0.05), z); build(g); g.userData={ capteur:id }; g.traverse(c=>{ c.userData.capteur=id; c.userData.legende={ nom, phrase }; c.castShadow=true; }); volcano.add(g); capteurs.push(g); return g; };
+  // sismomètre : boîtier et aiguille, sur le replat
+  mk('sismo','Sismomètre',"Il compte les secousses : le magma qui monte fissure la roche.", 1.05, 1.95, (g)=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.1,0.12), jaune); b.position.y=0.05; g.add(b); const e=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.06,0.005), new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xcccccc, emissiveIntensity:0.3 })); e.position.set(0,0.06,0.062); g.add(e); const aig=new THREE.Mesh(new THREE.BoxGeometry(0.003,0.04,0.003), new THREE.MeshBasicMaterial({ color:0xE63329 })); aig.position.set(0,0.06,0.066); g.add(aig); g.userData.aiguille=aig; const ant=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.16,6), metalM); ant.position.set(0.06,0.18,0); g.add(ant); });
+  // inclinomètre sur trépied, sur le flanc
+  mk('gonfle','Inclinomètre',"Il mesure le gonflement du flanc quand la chambre se remplit.", 2.6, 1.08, (g)=>{ for(let i=0;i<3;i++){ const p=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.26,6), metalM); const aa=i*2.1; p.position.set(Math.cos(aa)*0.07,0.12,Math.sin(aa)*0.07); p.rotation.z=Math.cos(aa)*0.35; p.rotation.x=-Math.sin(aa)*0.35; g.add(p); } const d=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.03,16), jaune); d.position.y=0.26; g.add(d); const l=new THREE.Mesh(new THREE.SphereGeometry(0.02,10,8), new THREE.MeshStandardMaterial({ color:0x1E8C7A, emissive:0x1E8C7A, emissiveIntensity:1.2 })); l.position.y=0.3; g.add(l); g.userData.lampe=l; });
+  // capteur de gaz près du cratère : cylindre et cheminée
+  mk('gaz','Capteur de gaz',"Il mesure le dioxyde de soufre qui s'échappe du cratère.", -1.0, 0.66, (g)=>{ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.07,0.14,14), metalM); c.position.y=0.07; g.add(c); const ch=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.12,8), jaune); ch.position.set(0,0.2,0); g.add(ch); const grille=new THREE.Mesh(new THREE.TorusGeometry(0.05,0.008,6,16), jaune); grille.rotation.x=Math.PI/2; grille.position.y=0.14; g.add(grille); });
+  // zone d'évacuation : anneau au sol, posé quand l'élève choisit
+  zoneMesh=new THREE.Mesh(new THREE.RingGeometry(0.5,2.3,48,1), new THREE.MeshBasicMaterial({ color:0xE63329, transparent:true, opacity:0.22, side:THREE.DoubleSide, depthWrite:false })); zoneMesh.rotation.x=-Math.PI/2; zoneMesh.position.y=0.035; zoneMesh.visible=false; volcano.add(zoneMesh);
+  // lumières de la lave sur le sol, au pied de chaque coulée
+  for(let i=0;i<3;i++){ const a=(i/3)*Math.PI*2+0.6; const l=new THREE.PointLight(0xff5a1e,0,3.2,2); l.position.set(Math.cos(a)*(VRB+0.1), 0.25, Math.sin(a)*(VRB+0.1)); volcano.add(l); lumieresCoulee.push(l); }
+}
+function buildBraises(){
+  const n=REDUCED?40:120; const pos=new Float32Array(n*3); const g=new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  braises=new THREE.Points(g, new THREE.PointsMaterial({ color:0xffa040, size:0.045, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false }));
+  braises.userData.v=[]; for(let i=0;i<n;i++){ braises.userData.v.push({ x:0, y:-1, z:0, vx:0, vy:0, vz:0, vie:0 }); } braises.position.y=VH; braises.raycast=()=>{}; volcano.add(braises);
+}
+function buildVolcanologue(){
+  if(!M) return; const x=-0.95, z=-0.85;
+  volcanologue=M.personnage({ nom:'Gwenn, volcanologue', phrase:"Elle lit les capteurs avec toi et prévoit l'éruption.", position:[x, solVolcan(x,z), z], taille:0.42, peau:0xd9a98a, haut:0xc9ccd4, bas:0xc9ccd4, cheveux:0x3a2a1e, vitesse:0.35, graine:9 });
+  const g=volcanologue.groupe; const u=0.42/1.7;
+  const casque=new THREE.Mesh(new THREE.SphereGeometry(0.145*u,20,14,0,Math.PI*2,0,Math.PI*0.55), new THREE.MeshPhysicalMaterial({ color:0xf0b429, roughness:0.35, clearcoat:0.8 })); casque.position.y=1.6*u; casque.scale.set(1,1.05,1); g.add(casque);
+  const lampe=new THREE.Mesh(new THREE.CylinderGeometry(0.03*u,0.03*u,0.03*u,12), new THREE.MeshStandardMaterial({ color:0xfff4cc, emissive:0xffe9a0, emissiveIntensity:1.5 })); lampe.rotation.x=Math.PI/2; lampe.position.set(0,1.68*u,0.13*u); g.add(lampe);
+  const bande=new THREE.Mesh(new THREE.TorusGeometry(0.17*u,0.012*u,6,20), new THREE.MeshStandardMaterial({ color:0xE63329, emissive:0xE63329, emissiveIntensity:0.5 })); bande.position.y=1.0*u; bande.rotation.x=Math.PI/2; g.add(bande);
+  volcanologue.regarder([0,R+1,0]);
+  boucles.push(()=>{ if(!volcanologue) return; const p=volcanologue.groupe.position; p.y=solVolcan(p.x,p.z)+volcano.position.y-(R-0.05); });
+}
+
+/* ======================= MISSION : prévoir l'éruption (F224) ======================= */
+function assurerMission(){ if(missionErupt||!M) return missionErupt;
+  const obj=[
+    { id:'sismo', texte:'1. Lire le sismomètre', points:100 }, { id:'gonfle', texte:'2. Lire le gonflement du flanc', points:100 }, { id:'gaz', texte:'3. Lire le capteur de gaz', points:100 },
+    { id:'type', texte:"4. Choisir le type d'éruption d'après la viscosité du magma", points:150 },
+    { id:'zone', texte:'5. Placer la zone à évacuer', points:150 },
+    { id:'eruption', texte:"6. Déclencher l'éruption et la suivre jusqu'au bout", points:150, verifier:()=>station&&station.declenchee&&erupt&&erupt.done, apres:()=>{ M.son('cloche',{ volume:0.25 }); } },
+  ];
+  missionErupt=M.mission({ titre:"Prévoir l'éruption", cachee:true, chrono:true, chronoCible:300, gagner:false, annonce:false, objectifs:obj, surFin:finMission });
+  missionErupt.zone.setAttribute('aria-label',"Mission : prévoir l'éruption");
+  return missionErupt;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  if(missionLancee&&!missionErupt.estFinie()){ missionErupt.montrer(); majStation(); return; }
+  missionLancee=true; Object.values(SIGNES).forEach(x=>{ x.lu=false; }); station={ t:0, magma:Math.random()<0.5?'fluide':'visqueux', type:null, zone:null, declenchee:false, ordreZ:[0,1,2].sort(()=>Math.random()-0.5) };
+  if(mode==='defi'&&quiz){ shell.say("Finis d'abord le défi en cours : la mission vient ensuite, ou en mode détente.",'concentre'); missionLancee=false; station=null; return; }
+  if(mode==='erupt'){ setMode('explore'); reflectModeBtns(); } endErupt(); zoneMesh.visible=false;
+  camera.position.set(-4.6,R+2.6,-4.9); controls.target.set(0,R+0.6,0); controls.update();
+  missionErupt.montrer(); missionErupt.commencer(); M.son('tic',{ volume:0.25 }); majStation();
+  if(ambGronde) ambGronde.volume(0.05);
+  shell.say("Mission : prévoir l'éruption. Trois capteurs sont posés sur le volcan : clique chacun, ou son nom dans la station, pour lire son signe. Ensuite tu choisiras le type d'éruption d'après le magma, la zone à évacuer, et tu déclencheras l'éruption. Le chrono tourne.",'enthousiaste');
+  if(volcanologue) setTimeout(()=>{ if(station) volcanologue.dire('Commence par le sismomètre, sur le replat.',5); },2200);
+}
+function valeurSigne(k){ const S=SIGNES[k]; const p=station?Math.min(1,station.t/5):0; const e=p*p*(3-2*p); return Math.round(S.de+(S.a-S.de)*e); }
+function lireCapteur(id){ if(!station||!missionErupt||missionErupt.estFinie()) return; const S=SIGNES[id]; if(!S||S.lu) return;
+  if(station.t<4.5){ M.son('clic',{ volume:0.18, frequence:400 }); shell.say('Le '+S.nom.toLowerCase()+' est encore en train de monter : regarde la jauge de la station, puis reviens.','concentre'); return; }
+  S.lu=true; M.son('tic',{ volume:0.25, frequence:1300 }); missionErupt.valider(id,100); shell.say(S.texte,'celebration'); majStation();
+  const restant=Object.keys(SIGNES).filter(k=>!SIGNES[k].lu);
+  if(restant.length){ if(volcanologue) volcanologue.dire('Signe suivant : '+SIGNES[restant[0]].nom.toLowerCase()+'.',4); }
+  else { if(ambGronde) ambGronde.volume(0.1); setTimeout(()=>{ if(station) shell.say(station.magma==='fluide'?"Trois signes réunis : l'éruption approche. L'analyse du magma dit : fluide, pauvre en silice, à 1 100 degrés. Avec un magma fluide, les gaz s'échappent facilement : quel type d'éruption prévois-tu ?":"Trois signes réunis : l'éruption approche. L'analyse du magma dit : visqueux, riche en silice, à 800 degrés. Un magma épais garde ses gaz prisonniers : quel type d'éruption prévois-tu ?",'concentre'); },1500); }
+}
+function choisirType(t){ if(!station||station.type||!Object.values(SIGNES).every(x=>x.lu)) return;
+  const bon=station.magma==='fluide'?'effusive':'explosive';
+  if(t!==bon){ M.son('clic',{ volume:0.2, frequence:300 }); shell.say(station.magma==='fluide'?"Pense à la viscosité : un magma fluide laisse sortir ses gaz, la lave coule tranquillement. Ce n'est pas une explosion.":"Pense à la viscosité : un magma épais bloque ses gaz, la pression monte jusqu'à l'explosion. Ce n'est pas une coulée tranquille.",'rassurant'); return; }
+  station.type=t; M.son('cloche',{ volume:0.22 }); missionErupt.valider('type',150); majStation();
+  shell.say(t==='effusive'?"Exact : éruption effusive. Le magma fluide sort en coulées de lave qui descendent les pentes, lentement. Danger surtout sur le chemin de la coulée.":"Exact : éruption explosive. Les gaz prisonniers font exploser le magma en cendres et en nuées ardentes qui dévalent tous les flancs. Danger dans toutes les directions.",'fier');
+  if(volcanologue) volcanologue.dire('Maintenant la zone à évacuer.',4);
+}
+const ZONES=[ { id:'petite', nom:'Petite zone : le flanc sous la coulée' }, { id:'grande', nom:'Grande zone : tout autour, jusqu\'à 10 km' }, { id:'aucune', nom:"Aucune évacuation" } ];
+function choisirZone(id){ if(!station||!station.type||station.zone) return;
+  const bon=station.type==='effusive'?'petite':'grande';
+  if(id!==bon){ M.son('clic',{ volume:0.2, frequence:300 }); shell.say(id==='aucune'?"Trois signes clairs : il faut évacuer. Reste à choisir la bonne taille de zone.":(bon==='petite'?"Une coulée de lave suit la pente, comme une rivière : on évacue surtout le flanc où elle va couler.":"Une explosion envoie cendres et nuées ardentes dans toutes les directions, sur des kilomètres : il faut une grande zone tout autour."),'rassurant'); return; }
+  station.zone=id; M.son('cloche',{ volume:0.22, frequence:990 }); missionErupt.valider('zone',150);
+  zoneMesh.geometry.dispose(); zoneMesh.geometry=bon==='petite'?new THREE.RingGeometry(VRT+0.2,2.3,24,1,-0.6-0.5,1.0):new THREE.RingGeometry(0.5,2.3,48,1); zoneMesh.material.color.setHex(bon==='petite'?0xF5A623:0xE63329); zoneMesh.visible=true;
+  majStation(); shell.say((bon==='petite'?"Zone posée sur le flanc où la lave va couler.":"Grande zone posée tout autour du volcan.")+" Les habitants partent avant l'éruption : c'est tout l'intérêt de la prévision. Déclenche l'éruption et suis les quatre étapes.",'fier');
+  if(volcanologue) volcanologue.dire("Tout le monde est parti. Déclenche l'éruption.",5);
+}
+function declencherMission(){ if(!station||!station.zone||station.declenchee) return; station.declenchee=true; majStation();
+  if(mode==='explore'){ setMode('erupt'); reflectModeBtns(); } startErupt(); }
+function majStation(){ let el=document.getElementById('teStation');
+  if(!station||!missionErupt||missionErupt.estFinie()){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.className='te-panel te-station'; el.id='teStation'; el.setAttribute('role','group'); el.setAttribute('aria-label','Station de surveillance du volcan'); shell.stage.appendChild(el); }
+  const jauges=Object.keys(SIGNES).map(k=>{ const S=SIGNES[k]; const v=valeurSigne(k); return `<div class="te-jauge ${S.lu?'lu':''}"><div class="l"><span>${S.nom}</span><b id="teJ-${k}">${v} ${S.unite}</b></div><div class="b"><i style="width:${Math.round(v/S.max*100)}%"></i></div></div>`; }).join('');
+  const tousLus=Object.values(SIGNES).every(x=>x.lu);
+  let suite='';
+  if(!tousLus){ suite=`<div class="c">Clique chaque capteur sur le volcan, ou son nom ici, pour lire le signe.</div><div class="opts">${Object.keys(SIGNES).map(k=>`<button type="button" data-capteur="${k}" ${SIGNES[k].lu?'disabled':''}>${SIGNES[k].lu?'✓ ':''}${SIGNES[k].nom}</button>`).join('')}</div>`; }
+  else if(!station.type){ suite=`<div class="analyse">Analyse du magma : <b>${station.magma==='fluide'?'fluide, pauvre en silice, 1 100 °C':'visqueux, riche en silice, 800 °C'}</b></div><div class="c">Quel type d'éruption prévois-tu ?</div><div class="opts"><button type="button" data-type="effusive">Effusive : coulées de lave</button><button type="button" data-type="explosive">Explosive : cendres et nuées ardentes</button></div>`; }
+  else if(!station.zone){ suite=`<div class="analyse">Éruption prévue : <b>${station.type}</b></div><div class="c">Quelle zone faut-il évacuer ?</div><div class="opts">${station.ordreZ.map(i=>`<button type="button" data-zone="${ZONES[i].id}">${ZONES[i].nom}</button>`).join('')}</div>`; }
+  else if(!station.declenchee){ suite=`<div class="analyse">Éruption ${station.type}, zone évacuée.</div><div class="opts"><button type="button" class="ok" id="teDeclencher">🌋 Déclencher l'éruption</button></div>`; }
+  else suite=`<div class="c">Éruption ${station.type} en cours : suis les quatre étapes.</div>`;
+  el.innerHTML=`<div class="t">Station de surveillance</div>${jauges}${suite}`;
+  el.querySelectorAll('[data-capteur]').forEach(b=>{ b.onclick=()=>lireCapteur(b.dataset.capteur); });
+  el.querySelectorAll('[data-type]').forEach(b=>{ b.onclick=()=>choisirType(b.dataset.type); });
+  el.querySelectorAll('[data-zone]').forEach(b=>{ b.onclick=()=>choisirZone(b.dataset.zone); });
+  const d=el.querySelector('#teDeclencher'); if(d) d.onclick=declencherMission;
+}
+function finMission(reussie,secondes,score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  station=null; majStation(); if(ambGronde) ambGronde.volume(0);
+  if(!reussie){ shell.say("La mission s'arrête là. On pourra la reprendre.",'rassurant'); setTimeout(()=>{ if(missionErupt) missionErupt.cacher(); },4000); missionLancee=false; return; }
+  if(volcanologue) volcanologue.dire('Éruption prévue et suivie en '+duree+'.',6);
+  if(modeJeu!=='cours'){ shell.win({ score, stars:t>300?2:3, title:"Éruption prévue en "+duree, learned:shell.cfg.learned, buddy:"Trois signes lus, le bon type d'éruption d'après la viscosité, une zone évacuée à temps : c'est le travail d'une volcanologue." }); }
+  else { shell.say('Mission réussie en '+duree+' : '+score+' points de plus. Le défi continue.','fier'); if(shell.celebrate) shell.celebrate(); setTimeout(()=>{ if(missionErupt) missionErupt.cacher(); },9000); }
+}
+/* ---------- marche sur le flanc (F223), à l'échelle de la maquette ---------- */
+function assurerMarche(){ if(marche||!M) return marche;
+  marche=M.marcher({ depart:[1.6,0,-1.4], hauteur:0.3, vitesse:0.9, limites:{ xmin:-2.3, xmax:2.3, zmin:-2.3, zmax:2.3 }, solA:(x,z)=>solVolcan(x,z),
+    collision:(x,z)=>{ const r=Math.hypot(x,z); if(r<VRT+0.12||r>2.25) return true; if(volcanologue){ const p=volcanologue.position(); if(Math.hypot(p.x-x,p.z-z)<0.2) return true; } return false; },
+    aide:'Flèches ou ZQSD pour marcher sur le flanc, glisse pour regarder. Échap : vue libre.',
+    surPas:()=>{ const n=performance.now(); if(n-dernierPas>480){ dernierPas=n; M.son('pas',{ volume:0.12 }); } },
+    surChangement:(on)=>{ document.querySelectorAll('[data-m="marche"]').forEach(b=>b.setAttribute('aria-pressed',String(on))); if(on) shell.say("Tu marches sur le flanc du volcan, à l'échelle de la maquette. Le cratère et le bord du replat t'arrêtent ; Échap pour revenir à la vue libre.",'concentre'); } });
+  return marche;
+}
+window.__monde={ lancerMission, lire:lireCapteur, type:choisirType, zone:choisirZone, declencher:declencherMission, mission:()=>missionErupt, station:()=>station, avancerStation:(sec)=>{ if(station) station.t+=sec; majStation(); }, erupt:()=>erupt, finirEruption:()=>{ if(erupt){ erupt.i=PHASES.length-1; erupt.t=PHASES[erupt.i].dur; } }, marche:()=>marche, camera:()=>camera, volcanologue:()=>volcanologue };
 
 /* ======================= TERRE EN COUPE ======================= */
 function buildEarth(TL,B){
@@ -401,9 +552,9 @@ function defineLabels(){
 function buildUI(){
   const stage=shell.stage;
   const md=document.createElement('div'); md.className='te-panel te-modes';
-  md.innerHTML=`<button class="te-m" data-m="explore" aria-pressed="true">🔎 Explorer</button><button class="te-m" data-m="erupt">🌋 Éruption</button><button class="te-m" data-m="defi">🎯 Défi</button>`;
+  md.innerHTML=`<button class="te-m" data-m="explore" aria-pressed="true">🔎 Explorer</button><button class="te-m" data-m="erupt">🌋 Éruption</button><button class="te-m" data-m="defi">🎯 Défi</button><button class="te-m mission" data-m="mission" aria-pressed="false">🧭 Mission</button><button class="te-m" data-m="marche" aria-pressed="false">🚶 Marcher</button>`;
   stage.appendChild(md);
-  md.querySelectorAll('[data-m]').forEach(b=> b.onclick=()=>{ setMode(b.dataset.m); md.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.m===mode)); shell.sound('click'); });
+  md.querySelectorAll('[data-m]').forEach(b=> b.onclick=()=>{ const k=b.dataset.m; shell.sound('click'); if(k==='mission'){ lancerMission(); return; } if(k==='marche'){ if(!marche) assurerMarche(); if(marche) marche.bascule(); return; } setMode(k); reflectModeBtns(); });
 
   const tl=document.createElement('div'); tl.className='te-panel te-tools';
   tl.innerHTML=`<h3>Affichage</h3>
@@ -426,9 +577,12 @@ function buildUI(){
 }
 
 /* ======================= MODES ======================= */
-function onStart(m){ startAmb(); if(m==='cours'){ shell.setScore(0); setMode('defi'); reflectModeBtns(); } else { setMode('explore'); reflectModeBtns(); } }
+let modeJeu='detente';
+function onStart(m){ modeJeu=m; startAmb(); demarrerAmbiances(); if(m==='cours'){ shell.setScore(0); setMode('defi'); reflectModeBtns(); } else { setMode('explore'); reflectModeBtns(); setTimeout(()=>{ if(modeJeu!=='cours'&&!missionLancee) lancerMission(); },6500); } }
+/* F225 : vent d'altitude (enregistrement CC0), grondement grave avant l'éruption, feu crépitant pendant */
+function demarrerAmbiances(){ if(ambVent||!M) return; try{ ambVent=M.ambiance({ type:'vent', fichier:'../assets/3d/audio/vent-parc.mp3', volume:0.08 }); ambGronde=M.ambiance({ type:'machine', volume:0 }); ambFeu=M.ambiance({ type:'feu', fichier:'../assets/3d/audio/feu-crepitant.ogg', volume:0 }); }catch(e){ ambVent=null; } }
 function onRestart(){ shell.setScore(0); shell.setProgress(0); shell.setStars(0); quiz=null; endErupt(); setMode('explore'); reflectModeBtns(); }
-function reflectModeBtns(){ document.querySelectorAll('.te-modes [data-m]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.m===mode)); }
+function reflectModeBtns(){ document.querySelectorAll('.te-modes [data-m]').forEach(x=>{ if(x.dataset.m==='mission'||x.dataset.m==='marche') return; x.setAttribute('aria-pressed', x.dataset.m===mode); }); }
 
 function setMode(m){
   mode=m; const act=document.getElementById('teAct'), hint=document.getElementById('teHint');
@@ -572,10 +726,11 @@ function sfxRumble(){ if(shell.muted) return; try{ if(!ac) ac=new (window.AudioC
 
 /* ======================= INTERACTION ======================= */
 function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
-function pickList(){ return [...crossFaces, ...layerMeshes, chamberMesh, ...tecto.children.filter(c=>c.userData.fiche), ...volcano.children.filter(c=>c.userData.fiche), ...flows]; }
-function onMove(e){ setP(e); raycaster.setFromCamera(pointer,camera); const h=raycaster.intersectObjects(pickList(),false); renderer.domElement.style.cursor=h.length?'pointer':'grab';
+function pickList(){ return [...capteurs, ...crossFaces, ...layerMeshes, chamberMesh, ...tecto.children.filter(c=>c.userData.fiche), ...volcano.children.filter(c=>c.userData.fiche), ...flows]; }
+function onMove(e){ if(marche&&marche.estActif()) return; setP(e); raycaster.setFromCamera(pointer,camera); const h=raycaster.intersectObjects(pickList(),true); renderer.domElement.style.cursor=h.length?'pointer':'grab';
   const obj=h.length?h[0].object:null; hovered = obj && layerMeshes.includes(obj)? obj:null; }
-function onDown(e){ setP(e); raycaster.setFromCamera(pointer,camera); const h=raycaster.intersectObjects(pickList(),false); if(!h.length) return; const hit=h[0], ud=hit.object.userData;
+function onDown(e){ if(marche&&marche.estActif()) return; setP(e); raycaster.setFromCamera(pointer,camera); const h=raycaster.intersectObjects(pickList(),true); if(!h.length) return; const hit=h[0], ud=hit.object.userData;
+  if(ud.capteur){ if(station) lireCapteur(ud.capteur); else { shell.say(hit.object.userData.legende?hit.object.userData.legende.nom+' : '+hit.object.userData.legende.phrase:'Un capteur de surveillance.','curieux'); } return; }
   if(ud.cross){ pickFiche(layerAtRadius(hit.point.length()), hit.point); }
   else if(ud.fiche){ pickFiche(ud.fiche, hit.point); } }
 function onKey(e){ if(e.target && /input|textarea/i.test(e.target.tagName)) return;
@@ -626,9 +781,10 @@ function animate(){ requestAnimationFrame(animate); const dt=Math.min(.04, clock
   // séquence d'éruption
   if(erupt && erupt.i>=0){ const ph=PHASES[erupt.i]; erupt.t+=dt; const p=Math.min(1,erupt.t/ph.dur);
     if(ph.id==='pressure'){ conduitMesh.material.emissiveIntensity=p*1.4; quakeT=0.12*p; craterLight.intensity=0.6+p*1.4; }
-    else if(ph.id==='blast'){ conduitMesh.material.emissiveIntensity=1.4; craterLight.intensity=3.2; quakeT=0.18*(1-p*0.4);
-      // fontaine de lave
-      const rate=REDUCED?1:3; if(erupt.t<ph.dur*0.9){ for(let k=0;k<rate;k++){ const m=new THREE.Mesh(new THREE.SphereGeometry(0.06+Math.random()*0.09,6,6), new THREE.MeshStandardMaterial({color:0xff7a2a,emissive:0xff8a3a,emissiveIntensity:1.6,roughness:.5}));
+    else if(ph.id==='blast'){ const explosive=!(station&&station.type==='effusive'); conduitMesh.material.emissiveIntensity=1.4; craterLight.intensity=explosive?3.2:2.0; quakeT=(explosive?0.18:0.08)*(1-p*0.4);
+      if(M&&explosive&&performance.now()-dernierCoup>380){ dernierCoup=performance.now(); M.son('coup',{ volume:0.28 }); }
+      // fontaine de lave : bien plus fournie si l'éruption est explosive
+      const rate=REDUCED?1:(explosive?4:1); if(erupt.t<ph.dur*0.9){ for(let k=0;k<rate;k++){ const m=new THREE.Mesh(new THREE.SphereGeometry(0.06+Math.random()*0.09,6,6), new THREE.MeshStandardMaterial({color:0xff7a2a,emissive:0xff8a3a,emissiveIntensity:1.6,roughness:.5}));
         m.position.copy(volcano.getWorldPosition(new THREE.Vector3())).add(new THREE.Vector3(0,1.98,0)); scene.add(m);
         fountain.push({mesh:m,v:new THREE.Vector3((Math.random()-.5)*2.4, 3.4+Math.random()*2.2, (Math.random()-.5)*2.4),life:2.2}); } }
     }
@@ -644,6 +800,20 @@ function animate(){ requestAnimationFrame(animate); const dt=Math.min(.04, clock
       act.querySelector('#teBackEx').onclick=()=>{ setMode('explore'); reflectModeBtns(); }; } }
   }
 
+  // braises : points qui jaillissent du cratère pendant l'explosion puis retombent
+  if(braises){ const explosive=!(station&&station.type==='effusive'); const actif=erupt&&erupt.i>=0&&(PHASES[erupt.i].id==='blast'||(PHASES[erupt.i].id==='flow'&&erupt.t<1.0)); const pos=braises.geometry.attributes.position; const V=braises.userData.v;
+    for(let i=0;i<V.length;i++){ const b=V[i]; if(b.vie<=0){ if(actif&&Math.random()<(explosive?0.25:0.06)){ b.x=(Math.random()-.5)*0.2; b.y=0.05; b.z=(Math.random()-.5)*0.2; b.vx=(Math.random()-.5)*(explosive?1.6:0.6); b.vy=1.6+Math.random()*(explosive?2.4:1.0); b.vz=(Math.random()-.5)*(explosive?1.6:0.6); b.vie=1.2+Math.random()*0.8; } else { pos.setXYZ(i,0,-5,0); continue; } }
+      b.vy-=4.5*dt; b.x+=b.vx*dt; b.y+=b.vy*dt; b.z+=b.vz*dt; b.vie-=dt; pos.setXYZ(i,b.x,b.y,b.z); }
+    pos.needsUpdate=true; braises.material.opacity+=(((actif||V.some(b=>b.vie>0))?0.9:0)-braises.material.opacity)*0.1; }
+  // lueur de la lave sur le sol au pied des coulées
+  if(lumieresCoulee.length){ const enCoulee=erupt&&erupt.i>=0&&PHASES[erupt.i].id==='flow'; const refroidit=erupt&&erupt.i>=0&&PHASES[erupt.i].id==='cool'; const cible=enCoulee?1.6:(refroidit?1.6*(1-erupt.t/PHASES[erupt.i].dur):0);
+    lumieresCoulee.forEach((l,i)=>{ l.intensity+=((cible*(0.8+Math.sin(now*7+i)*0.2))-l.intensity)*0.15; }); }
+  // ambiances : grondement avant, feu pendant
+  if(ambGronde&&ambFeu){ const ph=erupt&&erupt.i>=0?PHASES[erupt.i].id:null; const g=ph==='pressure'?0.16:(ph==='blast'?0.12:(station&&!station.declenchee&&Object.values(SIGNES).every(x=>x.lu)?0.08:(station?0.04:0)));
+    const f=ph==='blast'||ph==='flow'?0.26:(ph==='cool'?0.1:0); if(Math.abs((ambGronde._v||0)-g)>0.01){ ambGronde._v=g; ambGronde.volume(g); } if(Math.abs((ambFeu._v||0)-f)>0.01){ ambFeu._v=f; ambFeu.volume(f); } }
+  // station : les trois signes montent pendant cinq secondes, le sismomètre s'agite
+  if(station&&station.t<5.2){ station.t+=dt; if(Math.floor(station.t*3)!==Math.floor((station.t-dt)*3)){ Object.keys(SIGNES).forEach(k=>{ const e=document.getElementById('teJ-'+k); if(e){ e.textContent=valeurSigne(k)+' '+SIGNES[k].unite; const b=e.closest('.te-jauge').querySelector('.b i'); if(b) b.style.width=Math.round(valeurSigne(k)/SIGNES[k].max*100)+'%'; } }); } }
+  capteurs.forEach(c=>{ if(c.userData.aiguille){ const amp=station?Math.min(1,station.t/5)*0.5:0.05; c.userData.aiguille.rotation.z=Math.sin(now*(station?14:3))*amp; } if(c.userData.lampe){ c.userData.lampe.material.emissiveIntensity=0.6+(Math.sin(now*4)>0?0.8:0); } });
   // fontaine physique
   fountain.forEach(o=>{ o.v.y-=9.2*dt; o.mesh.position.addScaledVector(o.v,dt); o.life-=dt; o.mesh.material.emissiveIntensity=Math.max(0,o.life*0.9); });
   fountain=fountain.filter(o=>{ if(o.life<=0||o.mesh.position.y<R-0.5){ scene.remove(o.mesh); o.mesh.geometry.dispose(); return false; } return true; });
@@ -651,7 +821,9 @@ function animate(){ requestAnimationFrame(animate); const dt=Math.min(.04, clock
   // secousse (séisme visuel pendant montée/explosion)
   if(quakeT>0.001 && !REDUCED){ const s=quakeT; earth.position.x=(Math.random()-.5)*s*0.4; earth.position.z=(Math.random()-.5)*s*0.4; volcano.position.x=(Math.random()-.5)*s; } else { earth.position.x*=0.8; earth.position.z*=0.8; volcano.position.x*=0.8; }
 
-  updateLabels(); controls.update(); composer.render();
+  updateLabels(); if(!(marche&&marche.estActif())) controls.update();
+  for(const f of boucles){ try{ f(dt, now); }catch(err){ /* une boucle ne casse pas le rendu */ } }
+  composer.render();
 }
 </script>
 </body>

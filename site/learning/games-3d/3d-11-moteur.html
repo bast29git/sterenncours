@@ -82,8 +82,24 @@
     .mo-info { width:min(320px,90vw); }
     .mo-phase { padding:9px 13px; min-width:auto; max-width:64vw; }
     .mo-phase .ph { font-size:15px; } .mo-phase .d { display:none; }
-    .mo-b { font-size:12px; padding:0 12px; }
+    .mo-b { font-size:12px; padding:0 12px; flex:none; }
+    /* une seule rangée qui défile : la barre ne mange plus l'écran */
+    .mo-ctrl { flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start; padding:8px 10px; max-width:94%; scrollbar-width:thin; }
+    .mo-rpm { flex:none; }
   }
+  /* --- mission « Remonter le moteur » : chariot de pièces et chaîne énergétique --- */
+  .mo-remontage { position:absolute; z-index:23; left:50%; transform:translateX(-50%); bottom:122px; display:flex; flex-direction:column; gap:7px; align-items:center; padding:9px 12px; max-width:min(560px,94vw); }
+  .mo-remontage .t { font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); }
+  .mo-remontage .c { font-size:12.5px; line-height:1.4; text-align:center; max-width:520px; }
+  .mo-remontage .row { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .mo-piece { font-family:var(--font-body); font-weight:700; font-size:12.5px; min-height:40px; padding:0 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+  .mo-piece:hover { background:var(--accent-weak); }
+  .mo-piece:focus-visible { outline:none; box-shadow:var(--ring); }
+  .mo-piece[disabled] { opacity:.45; cursor:default; }
+  .mo-piece.pose { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .mo-chaine { font-family:var(--font-data); font-weight:700; font-size:13px; color:var(--accent-text); }
+  body .mb-mission { top:14px; right:14px; }
+  @media (max-width:720px){ .mo-remontage { left:8px; right:8px; transform:none; max-width:none; bottom:86px; padding:7px 9px; } .mo-remontage .c { display:none; } .mo-piece { font-size:11.5px; min-height:36px; padding:0 10px; } body .mb-mission { width:min(190px,48vw); max-height:34%; } }
   @media (prefers-reduced-motion: reduce){ .mo-info { transition:none; } }
 </style>
 </head>
@@ -98,6 +114,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, renduLogiciel, matPBR, preparerAo } from '../monde-base.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============================================================
@@ -209,6 +226,23 @@ let pistons=[], valves=[], sparks=[], gasVols=[], puffs=[], parts=[], hovered=nu
 let cyclesDone=0, lastFocusStroke=-1;
 let ac=null, engGain=null, engOsc=null, engLp=null;
 let maxAniso=8;
+/* F228 : outils communs des mondes (mission, marche, personnage, ambiance) ; voir monde-base.js */
+let M=null; const boucles=[];
+let meca=null, missionMoteur=null, missionLancee=false, ambianceAtelier=null, marche=null, chariot=null, camTween=null;
+/* montage de chaque famille de pièces : 1 = en place dans le moteur, 0 = posée sur le chariot */
+const MONTAGE={ piston:1, bielle:1, vilebrequin:1, soupapes:1, bougie:1 }; const MONTAGE_CIBLE={ piston:1, bielle:1, vilebrequin:1, soupapes:1, bougie:1 };
+let remontage=null, crankFige=0, dernierPas=0, lastRegimeClic=0;
+const Q_COUCHE=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1), Math.PI/2);
+const ORDRE_PIECES=['piston','bielle','vilebrequin','soupapes','bougie'];
+const PIECES={
+  piston:{ nom:'Piston', ico:'🔩', pose:"Le piston d'abord : c'est lui qui reçoit la poussée de la combustion et descend dans le cylindre.", avant:"le piston : la pièce qui reçoit la poussée de l'explosion" },
+  bielle:{ nom:'Bielle', ico:'🦴', pose:"La bielle ensuite : elle relie le piston au vilebrequin et transmet sa poussée.", avant:"la bielle : la tige qui relie le piston au vilebrequin" },
+  vilebrequin:{ nom:'Vilebrequin', ico:'🌀', pose:"Le vilebrequin : il transforme le va-et-vient des pistons en rotation. Le mouvement passe piston, bielle, vilebrequin.", avant:"le vilebrequin : l'axe qui transforme le va-et-vient en rotation" },
+  soupapes:{ nom:'Soupapes', ico:'🔵', pose:"Les soupapes : la bleue laisse entrer l'air et le carburant, la rouge laisse sortir les gaz brûlés.", avant:"les soupapes : les portes d'entrée et de sortie des gaz" },
+  bougie:{ nom:'Bougie', ico:'⚡', pose:"La bougie pour finir : son étincelle enflamme le mélange comprimé. Le moteur est complet.", avant:"la bougie : l'étincelle qui enflamme le mélange" },
+};
+const CHAINE=[ { id:'chimique', nom:'Énergie chimique', det:'dans le carburant' }, { id:'thermique', nom:'Énergie thermique', det:'la combustion chauffe les gaz' }, { id:'mecanique', nom:'Énergie mécanique', det:'le vilebrequin tourne' } ];
+let chaineEtape=0;
 
 /* géométrie moteur (constantes) */
 const NC=4, DX=2.15, CRANK_R=0.82, ROD_L=2.7, CRANK_Y=0.0, BASE_TOP=3.4;
@@ -321,6 +355,9 @@ function init(){
   });
 
   buildEngine();
+  // F228 : outils communs (mission, marche, personnage, sons) branchés sur la boucle de ce monde
+  try{ M=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f) }); }catch(e){ M=null; }
+  buildChariot(); buildAtelierLumiere(); buildMecanicienne();
   raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-3,-3);
   buildUI(); applyTheme();
 
@@ -328,6 +365,8 @@ function init(){
   renderer.domElement.addEventListener('pointerdown', onDown);
   window.addEventListener('resize', onResize);
   window.addEventListener('keydown', onKey);
+  // pendant la marche, les flèches font avancer : elles ne tournent plus la caméra de la coquille
+  document.addEventListener('keydown', (e)=>{ if(marche&&marche.estActif()&&/^Arrow(Left|Right|Up|Down)$/.test(e.key)) e.preventDefault(); }, true);
   new ResizeObserver(onResize).observe(stage);
   applyEngineType(true);
   animate();
@@ -340,6 +379,8 @@ function makeBackdrop(){ const c=document.createElement('canvas'); c.width=c.hei
 /* ------- matériaux ------- */
 function metal(color, rough=0.32, met=0.95){ return new THREE.MeshStandardMaterial({color, roughness:rough, metalness:met, envMapIntensity:1.3}); }
 function paint(color, rough=0.5){ return new THREE.MeshStandardMaterial({color, roughness:rough, metalness:0.45, envMapIntensity:1.05}); }
+// métal usiné et poli (pistons, bielles, manetons) : matériau physique avec vernis fin, reflets du studio
+function metalPoli(color, rough=0.22){ return new THREE.MeshPhysicalMaterial({color, roughness:rough, metalness:0.95, envMapIntensity:1.4, clearcoat:0.55, clearcoatRoughness:0.18}); }
 
 /* ------- textures PBR CC0 (Poly Haven) ------- */
 const texLoader=new THREE.TextureLoader();
@@ -415,7 +456,7 @@ function buildEngine(){
     cw.rotation.z=Math.PI/2; cw.position.set(x,0,0); pin.add(cw);
     const throwArm=new THREE.Mesh(new THREE.BoxGeometry(0.5,CRANK_R,0.5), metal(0x8a90a4,0.35,0.9));
     throwArm.position.set(x, CRANK_R/2, 0); pin.add(throwArm);
-    const journal=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.7,14), metal(0xc2c8d6,0.2,1));
+    const journal=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.7,14), metalPoli(0xc2c8d6,0.18));
     journal.rotation.z=Math.PI/2; journal.position.set(x, CRANK_R, 0); pin.add(journal);
   }
   // volant moteur (un côté)
@@ -454,12 +495,12 @@ function buildEngine(){
     const bore=new THREE.Mesh(new THREE.CylinderGeometry(0.82,0.82,2.9,32,1,true), boreMat.clone());
     bore.position.set(x,3.0,0); engineGroup.add(bore); bore.userData.boreMat=true;
 
-    const pis=new THREE.Mesh(new THREE.CylinderGeometry(0.78,0.78,0.9,28), metal(0xccd2e0,0.24,0.95));
+    const pis=new THREE.Mesh(new THREE.CylinderGeometry(0.78,0.78,0.9,28), metalPoli(0xccd2e0,0.22));
     pis.position.set(x, BASE_TOP, 0); pis.castShadow=true; engineGroup.add(pis); reg(pis,'piston', new THREE.Vector3(x+1.0, BASE_TOP,0));
     // segments (déco)
     for(let s=0;s<3;s++){ const seg=new THREE.Mesh(new THREE.TorusGeometry(0.79,0.03,8,28), metal(0x2a2f3a,0.5,0.8)); seg.rotation.x=Math.PI/2; seg.position.set(x, BASE_TOP+0.32-s*0.16, 0); pis.add(seg); seg.position.sub(pis.position); }
 
-    const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.19, ROD_L, 12), metal(0xbfc5d3,0.3,0.9));
+    const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.19, ROD_L, 12), metalPoli(0xbfc5d3,0.28));
     rod.userData.baseLen=ROD_L; rod.position.set(x, 1.7, 0); engineGroup.add(rod); reg(rod,'bielle', new THREE.Vector3(x-1.0,1.9,0));
 
     // gaz dans la chambre (change de couleur selon le temps)
@@ -475,9 +516,9 @@ function buildEngine(){
 
     // bougie (essence) + injecteur (diesel) : l'un ou l'autre visible
     const plug=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.15,0.7,12), metal(0xe8c24a,0.3,0.9));
-    plug.position.set(x,4.85,0); engineGroup.add(plug); reg(plug,'bougie', new THREE.Vector3(x,5.1,0)); plug.userData.plug=true;
+    plug.position.set(x,4.85,0); engineGroup.add(plug); reg(plug,'bougie', new THREE.Vector3(x,5.1,0)); plug.userData.plug=true; plug.userData.cyl=i;
     const inj=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.12,0.7,12), metal(0x7ec8a0,0.3,0.9));
-    inj.position.set(x,4.85,0); inj.visible=false; engineGroup.add(inj); reg(inj,'injecteur', new THREE.Vector3(x,5.1,0)); inj.userData.inj=true;
+    inj.position.set(x,4.85,0); inj.visible=false; engineGroup.add(inj); reg(inj,'injecteur', new THREE.Vector3(x,5.1,0)); inj.userData.inj=true; inj.userData.cyl=i;
 
     // étincelle / flamme d'allumage
     const spark=new THREE.Sprite(new THREE.SpriteMaterial({map:sparkTex(), color:0xffd24a, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0}));
@@ -522,6 +563,147 @@ function smokeTex(){ const c=document.createElement('canvas'); c.width=c.height=
   x.fillStyle=g; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); }
 
 /* ============================================================
+   ATELIER : servante à pièces, néons, mécanicienne (F228)
+   ============================================================ */
+const CHARIOT_POS=new THREE.Vector3(-9.6,-2.6,6.0); const CHARIOT_TOP=1.42; // hauteur du plateau au-dessus du sol
+function slotChariot(lx,lz,ly){ return new THREE.Vector3(CHARIOT_POS.x+lx, CHARIOT_POS.y+CHARIOT_TOP+(ly||0), CHARIOT_POS.z+lz); }
+function buildChariot(){
+  chariot=new THREE.Group(); chariot.position.copy(CHARIOT_POS); scene.add(chariot);
+  // caisson rouge laqué, tiroirs, roues : une servante d'atelier classique
+  const laque=new THREE.MeshPhysicalMaterial({ color:0x9b2b2b, roughness:0.35, metalness:0.4, clearcoat:0.8, clearcoatRoughness:0.15, envMapIntensity:1.1 });
+  const corps=new THREE.Mesh(new THREE.BoxGeometry(5.6,1.0,2.4), laque); corps.position.y=0.78; corps.castShadow=true; corps.receiveShadow=true; chariot.add(corps);
+  for(let i=0;i<3;i++){ const poignee=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.06,0.06), metal(0xd8dde8,0.3,0.9)); poignee.position.set(-1.8+i*1.8,0.78,1.24); chariot.add(poignee); }
+  const plateauGeo=preparerAo(new THREE.BoxGeometry(5.8,0.12,2.6));
+  const plateau=new THREE.Mesh(plateauGeo, matPBR('metal_plate',{ repetition:2, couleur:0xb8bfcc, rugosite:0.45, metal:0.9 })); plateau.position.y=CHARIOT_TOP-0.06; plateau.castShadow=true; plateau.receiveShadow=true; chariot.add(plateau);
+  const roueMat=metal(0x1c1e26,0.8,0.2);
+  [[-2.4,-0.95],[2.4,-0.95],[-2.4,0.95],[2.4,0.95]].forEach(([x,z])=>{ const r=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.12,16), roueMat); r.rotation.x=Math.PI/2; r.position.set(x,0.16,z); r.castShadow=true; chariot.add(r); });
+  // tapis caoutchouc sur le plateau : les pièces ne glissent pas
+  const tapis=new THREE.Mesh(preparerAo(new THREE.PlaneGeometry(5.4,2.3)), matPBR('rubber_tiles',{ repetition:3, couleur:0x2a2d33, rugosite:1 })); tapis.rotation.x=-Math.PI/2; tapis.position.y=CHARIOT_TOP+0.005; tapis.receiveShadow=true; chariot.add(tapis);
+  chariot.userData.legende={ nom:'Servante d\'atelier', phrase:'Le chariot où l\'on pose les pièces démontées, dans l\'ordre.' };
+  chariot.traverse(c=>{ if(c!==chariot) c.userData.legende=chariot.userData.legende; });
+}
+function buildAtelierLumiere(){
+  // deux tubes néon au plafond : lumière froide d'atelier, le bloom les fait briller
+  const neonMat=new THREE.MeshStandardMaterial({ color:0xeaf2ff, emissive:0xdfe9ff, emissiveIntensity:2.2, roughness:0.4 });
+  [[-2.5,-3.5],[-2.5,4.5]].forEach(([x,z])=>{ const tube=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,8,12), neonMat); tube.rotation.z=Math.PI/2; tube.position.set(x,9.6,z); scene.add(tube);
+    const bac=new THREE.Mesh(new THREE.BoxGeometry(8.3,0.14,0.5), metal(0x5a6170,0.6,0.6)); bac.position.set(x,9.72,z); scene.add(bac); });
+  // lampe chaude au-dessus de la servante : les pièces posées restent lisibles
+  const lampe=new THREE.PointLight(0xffd9a0, 1.4, 16, 1.8); lampe.position.set(CHARIOT_POS.x, 4.2, CHARIOT_POS.z); scene.add(lampe);
+  const abat=new THREE.Mesh(new THREE.ConeGeometry(0.6,0.5,20,1,true), new THREE.MeshStandardMaterial({ color:0x2a2f3a, roughness:0.5, metalness:0.7, side:THREE.DoubleSide })); abat.position.set(CHARIOT_POS.x,4.45,CHARIOT_POS.z); scene.add(abat);
+  const ampoule=new THREE.Mesh(new THREE.SphereGeometry(0.14,12,10), new THREE.MeshStandardMaterial({ color:0xfff1d0, emissive:0xffc070, emissiveIntensity:2.5 })); ampoule.position.set(CHARIOT_POS.x,4.2,CHARIOT_POS.z); scene.add(ampoule);
+}
+function buildMecanicienne(){
+  if(!M) return;
+  meca=M.personnage({ nom:'Nolwenn, mécanicienne', phrase:"Elle remonte le moteur avec toi, pièce par pièce, clé à molette en main.", position:[-6.4,-2.6,3.6], taille:1.7, peau:0xd9a98a, haut:0x3b5a8a, bas:0x3b5a8a, cheveux:0x2b1d14, vitesse:1.3, graine:3 });
+  const u=1; const g=meca.groupe;
+  // casquette d'atelier
+  const casq=new THREE.Mesh(new THREE.SphereGeometry(0.13*u,20,14,0,Math.PI*2,0,Math.PI*0.5), new THREE.MeshStandardMaterial({ color:0x9b2b2b, roughness:0.8 })); casq.position.y=1.62*u; g.add(casq);
+  const visiere=new THREE.Mesh(new THREE.CylinderGeometry(0.15*u,0.15*u,0.02*u,20,1,false,-Math.PI*0.45,Math.PI*0.9), new THREE.MeshStandardMaterial({ color:0x9b2b2b, roughness:0.8 })); visiere.position.set(0,1.63*u,0.03*u); g.add(visiere);
+  // poches et fermeture de la combinaison
+  const ferm=new THREE.Mesh(new THREE.BoxGeometry(0.02*u,0.42*u,0.01*u), metal(0xd8dde8,0.3,0.9)); ferm.position.set(0,1.1*u,0.17*u); g.add(ferm);
+  [[-0.1],[0.1]].forEach(([x])=>{ const poche=new THREE.Mesh(new THREE.BoxGeometry(0.1*u,0.1*u,0.01*u), new THREE.MeshStandardMaterial({ color:0x2f4a74, roughness:0.9 })); poche.position.set(x*u,0.98*u,0.165*u); g.add(poche); });
+  // clé à molette dans la main droite
+  const cle=new THREE.Group(); const acier=metalPoli(0xb9c0cc,0.3);
+  const manche=new THREE.Mesh(new THREE.BoxGeometry(0.035*u,0.38*u,0.025*u), acier); cle.add(manche);
+  const tete=new THREE.Mesh(new THREE.BoxGeometry(0.11*u,0.07*u,0.03*u), acier); tete.position.y=0.21*u; cle.add(tete);
+  const machoire=new THREE.Mesh(new THREE.BoxGeometry(0.03*u,0.06*u,0.03*u), acier); machoire.position.set(-0.04*u,0.28*u,0); cle.add(machoire);
+  const machoire2=machoire.clone(); machoire2.position.x=0.04*u; cle.add(machoire2);
+  cle.position.set(0.02*u,-0.62*u,0.08*u); cle.rotation.x=Math.PI/2.4; cle.rotation.z=0.2; meca.membres.brasD.add(cle);
+  meca.regarder([0,0,0]);
+}
+
+/* ============================================================
+   MISSION : remonter le moteur dans l'ordre du mouvement (F224)
+   ============================================================ */
+function slotsPieces(){
+  const s={ piston:[], bielle:[], soupapes:[], bougie:[] };
+  for(let i=0;i<NC;i++){ s.piston.push(slotChariot(-2.2+i*0.95,-0.75,0.45)); s.bielle.push(slotChariot(-2.0+i*0.9,0.0,0.19)); s.bougie.push(slotChariot(1.95,-0.9+i*0.5,0.12)); }
+  for(let k=0;k<NC*2;k++){ s.soupapes.push(slotChariot(-2.2+k*0.52,0.9,0.22)); }
+  s.vilebrequin=slotChariot(0.0,-0.3,0.72); // posé en travers, sur ses contrepoids
+  return s;
+}
+const SLOTS=slotsPieces();
+function assurerMission(){ if(missionMoteur||!M) return missionMoteur;
+  const obj=ORDRE_PIECES.map((k,i)=>({ id:k, texte:(i+1)+'. Poser '+PIECES[k].nom.toLowerCase(), points:120 }));
+  obj.push({ id:'regime', texte:'6. Démarrer et régler le régime entre 2 800 et 3 200 tr/min', points:150, verifier:()=>remontage&&remontage.etape>=5&&playing&&!stepping&&rpm>=2800&&rpm<=3200,
+    apres:()=>{ M.son('clic',{ volume:0.25, frequence:900 }); shell.say("Régime réglé : à 3 000 tr/min, le vilebrequin fait 50 tours par seconde et chaque piston change de sens 100 fois par seconde. Dernière étape : la chaîne énergétique.",'celebration'); if(meca) meca.dire("Écoute-le tourner rond. Reste la chaîne de l'énergie.",5); setTimeout(majRemontage,400); } });
+  obj.push({ id:'chaine', texte:'7. Lire la chaîne énergétique : chimique, thermique, mécanique', points:150 });
+  missionMoteur=M.mission({ titre:'Remonter le moteur', cachee:true, chrono:true, chronoCible:240, gagner:false, annonce:false, objectifs:obj, surFin:finMission });
+  missionMoteur.zone.setAttribute('aria-label','Mission : remonter le moteur');
+  return missionMoteur;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  const b=document.getElementById('moMission'); if(b) b.setAttribute('aria-pressed','true');
+  if(missionLancee&&!missionMoteur.estFinie()){ missionMoteur.montrer(); majRemontage(); return; }
+  missionLancee=true; chaineEtape=0; remontage={ etape:0 };
+  playing=false; stepping=false; const pb=document.getElementById('moPlay'); if(pb) pb.textContent='▶ Démarrer'; updateEngineSound();
+  cutaway=true; const cb=document.getElementById('moCut'); if(cb) cb.setAttribute('aria-pressed','true');
+  exploded=false; const eb=document.getElementById('moExp'); if(eb) eb.setAttribute('aria-pressed','false');
+  if(engType!=='essence'){ engType='essence'; document.querySelectorAll('#moType button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.t===engType)); applyEngineType(true); }
+  crankFige=angle; ORDRE_PIECES.forEach(k=>{ MONTAGE_CIBLE[k]=0; });
+  if(!(marche&&marche.estActif())) camTween={ t:0, dur:1.4, c0:camera.position.clone(), c1:new THREE.Vector3(3.5,6.8,16.5), t0:controls.target.clone(), t1:new THREE.Vector3(-2.8,1.0,2.2) };
+  missionMoteur.montrer(); missionMoteur.commencer(); M.son('coup',{ volume:0.25 }); majRemontage();
+  const h=document.getElementById('moHint'); if(h) h.style.display='none';
+  shell.say("Mission : remonter le moteur. Nolwenn a démonté cinq familles de pièces sur la servante. Repose-les dans l'ordre du mouvement : le piston pousse la bielle, la bielle fait tourner le vilebrequin ; puis les soupapes et la bougie. Clique une pièce sur le chariot ou dans la liste. Le chrono tourne.",'enthousiaste');
+  if(meca){ meca.allerA([-7.0,-2.6,4.2]); setTimeout(()=>{ if(remontage) meca.dire('Première pièce : celle qui reçoit la poussée de la combustion.',5); },2000); }
+}
+function familleDe(part){ if(part==='piston'||part==='bielle'||part==='vilebrequin') return part; if(part==='volant'||part==='distribution') return null; if(part==='soupape_adm'||part==='soupape_ech') return 'soupapes'; if(part==='bougie'||part==='injecteur') return 'bougie'; return null; }
+function poserPiece(k){ if(!remontage||!missionMoteur||missionMoteur.estFinie()) return; if(remontage.etape>=ORDRE_PIECES.length) return;
+  const attendu=ORDRE_PIECES[remontage.etape];
+  if(k!==attendu){ if(MONTAGE_CIBLE[k]===1){ shell.say(PIECES[k].nom+' est déjà en place.','rassurant'); return; }
+    M.son('clic',{ volume:0.18, frequence:300 }); shell.say('Pas encore '+PIECES[k].nom.toLowerCase()+'. Il faut d\'abord poser '+PIECES[attendu].avant+'.','rassurant'); return; }
+  MONTAGE_CIBLE[k]=1; remontage.etape++; M.son('coup',{ volume:0.32 }); shell.say(PIECES[k].pose,'celebration');
+  if(meca){ meca.allerA(remontage.etape%2? [-4.6,-2.6,4.6] : [-7.0,-2.6,4.2]); }
+  missionMoteur.valider(k, 120); majRemontage();
+  if(remontage.etape>=ORDRE_PIECES.length){ setTimeout(()=>{ if(!remontage) return; shell.say("Moteur remonté. Maintenant démarre-le et règle le régime entre 2 800 et 3 200 tr/min avec le curseur.",'concentre'); if(meca) meca.dire('Démarre-le et monte le régime vers 3 000.',5); },1500); }
+}
+function cliquerChaine(id){ if(!remontage||!missionMoteur||missionMoteur.estFinie()||remontage.etape<5) return;
+  const att=CHAINE[chaineEtape]; if(!att) return;
+  if(id!==att.id){ M.son('clic',{ volume:0.18, frequence:300 }); shell.say(chaineEtape===0?"Tout part du carburant : l'énergie qu'il contient est chimique.":chaineEtape===1?"Après le carburant vient la combustion : les gaz chauffent, c'est de l'énergie thermique.":"Pour finir, la poussée fait tourner le vilebrequin : énergie mécanique.",'rassurant'); return; }
+  chaineEtape++; M.son('cloche',{ volume:0.2, frequence:660+chaineEtape*120 }); majRemontage();
+  if(chaineEtape>=CHAINE.length){ shell.say("Chaîne énergétique complète : chimique (carburant), thermique (combustion), mécanique (rotation). Une grande part de la chaleur est perdue : le rendement d'un moteur thermique reste autour de 35 %.",'fier'); missionMoteur.valider('chaine',150); }
+  else shell.say(chaineEtape===1?"Oui : l'énergie chimique du carburant. Ensuite ?":"Oui : la combustion donne de l'énergie thermique. Et à la sortie ?",'concentre');
+}
+function majRemontage(){ let el=document.getElementById('moRemontage');
+  if(!remontage||!missionMoteur||missionMoteur.estFinie()){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.className='mo-panel mo-remontage'; el.id='moRemontage'; el.setAttribute('role','group'); el.setAttribute('aria-label','Pièces à remonter'); shell.stage.appendChild(el); }
+  if(remontage.etape<ORDRE_PIECES.length){
+    const ordre=remontage.ordreAffiche||(remontage.ordreAffiche=ORDRE_PIECES.slice().sort(()=>Math.random()-0.5));
+    el.innerHTML=`<div class="t">Pièces sur la servante · ${remontage.etape}/${ORDRE_PIECES.length} posées</div><div class="row">${ordre.map(k=>`<button type="button" class="mo-piece ${MONTAGE_CIBLE[k]===1?'pose':''}" data-piece="${k}" ${MONTAGE_CIBLE[k]===1?'disabled':''}>${PIECES[k].ico} ${PIECES[k].nom}</button>`).join('')}</div><div class="c">Repose-les dans l'ordre du mouvement. Tu peux aussi cliquer la pièce sur le chariot.</div>`;
+    el.querySelectorAll('[data-piece]').forEach(b=>{ b.onclick=()=>poserPiece(b.dataset.piece); });
+  } else if(!missionMoteur.objectifs.find(o=>o.id==='regime').fait){
+    el.innerHTML=`<div class="t">Régime</div><div class="c">Appuie sur <b>▶ Démarrer</b>, puis règle le curseur entre <b>2 800</b> et <b>3 200</b> tr/min. Régime actuel : <span class="mo-chaine">${playing?rpm:0} tr/min</span>.</div>`;
+  } else {
+    const ordre=remontage.ordreChaine||(remontage.ordreChaine=CHAINE.slice().sort(()=>Math.random()-0.5));
+    const lu=CHAINE.slice(0,chaineEtape).map(c=>c.nom.replace('Énergie ','')).join(' → ');
+    el.innerHTML=`<div class="t">Chaîne énergétique</div><div class="c">Dans quel ordre l'énergie se transforme-t-elle dans ce moteur ? Clique la première forme, puis la deuxième, puis la troisième.</div><div class="row">${ordre.map(c=>`<button type="button" class="mo-piece ${CHAINE.indexOf(c)<chaineEtape?'pose':''}" data-chaine="${c.id}" ${CHAINE.indexOf(c)<chaineEtape?'disabled':''}>${c.nom}<small style="opacity:.75">(${c.det})</small></button>`).join('')}</div><div class="mo-chaine">${lu||'…'}${chaineEtape>0&&chaineEtape<3?' → ?':''}</div>`;
+    el.querySelectorAll('[data-chaine]').forEach(b=>{ b.onclick=()=>cliquerChaine(b.dataset.chaine); });
+  }
+}
+function finMission(reussie, secondes, score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  const b=document.getElementById('moMission'); if(b) b.setAttribute('aria-pressed','false');
+  remontage=null; majRemontage(); ORDRE_PIECES.forEach(k=>{ MONTAGE_CIBLE[k]=1; }); const h=document.getElementById('moHint'); if(h&&mode!=='cours') h.style.display='';
+  if(!reussie){ shell.say("La mission s'arrête là. On pourra la reprendre.",'rassurant'); setTimeout(()=>{ if(missionMoteur) missionMoteur.cacher(); },4000); missionLancee=false; return; }
+  M.son('cloche',{ volume:0.25 }); if(meca) meca.dire('Moteur remonté en '+duree+'. Beau travail.',6);
+  if(mode!=='cours'){ shell.win({ score, stars:t>240?2:3, title:'Moteur remonté en '+duree, learned:shell.cfg.learned, buddy:"Cinq pièces dans l'ordre du mouvement, un régime réglé, une chaîne énergétique lue. Belle mécanique." }); }
+  else { shell.say('Mission réussie en '+duree+' : '+score+' points de plus. Le quiz continue.','fier'); if(shell.celebrate) shell.celebrate(); setTimeout(()=>{ if(missionMoteur) missionMoteur.cacher(); },9000); }
+}
+/* positions des pièces entre moteur et servante, après le calcul cinématique de chaque image */
+function appliquerMontage(dt){
+  let anime=false;
+  ORDRE_PIECES.forEach(k=>{ const c=MONTAGE_CIBLE[k]; if(Math.abs(MONTAGE[k]-c)>0.0005){ MONTAGE[k]+= (c-MONTAGE[k])*Math.min(1,dt*(REDUCED?12:3.2)); if(Math.abs(MONTAGE[k]-c)<0.002) MONTAGE[k]=c; anime=true; } });
+  if(ORDRE_PIECES.every(k=>MONTAGE[k]===1)) return;
+  collectMeshes();
+  const lisse=(m)=>m*m*(3-2*m);
+  const mp=lisse(MONTAGE.piston), mb=lisse(MONTAGE.bielle), mv=lisse(MONTAGE.vilebrequin), ms=lisse(MONTAGE.soupapes), mg=lisse(MONTAGE.bougie);
+  for(let i=0;i<NC;i++){ const pis=_pisMeshes[i]; if(pis&&mp<1){ pis.position.lerpVectors(SLOTS.piston[i], pis.position, mp); }
+    const rod=_rodMeshes[i]; if(rod&&mb<1){ rod.position.lerpVectors(SLOTS.bielle[i], rod.position, mb); rod.quaternion.slerp(Q_COUCHE, 1-mb); } }
+  if(mv<1){ const p=crankGroup.position; const s=SLOTS.vilebrequin; p.set(s.x+(0-s.x)*mv, s.y+(p.y-s.y)*mv, s.z+(0-s.z)*mv); crankGroup.rotation.x=crankFige+(angle-crankFige)*mv; }
+  if(ms<1){ valves.forEach((v,k)=>{ const s=SLOTS.soupapes[k]; if(s) v.group.position.lerpVectors(s, v.group.position, ms); }); }
+  if(mg<1){ parts.forEach(p=>{ if(p.userData.plug||p.userData.inj){ const s=SLOTS.bougie[p.userData.cyl]; if(s) p.position.lerpVectors(new THREE.Vector3(s.x,s.y,s.z+(p.userData.inj?0.25:0)), p.position, mg); } }); }
+}
+
+/* ============================================================
    INTERFACE (panneaux verre)
    ============================================================ */
 function buildUI(){ const stage=shell.stage;
@@ -561,7 +743,9 @@ function buildUI(){ const stage=shell.stage;
     <button class="mo-b" id="moCut" aria-pressed="false">✂️ Coupe</button>
     <button class="mo-b" id="moExp" aria-pressed="false">💥 Éclatée</button>
     <button class="mo-b" id="moLbl" aria-pressed="false">🏷️ Étiquettes</button>
-    <button class="mo-b" id="moNot">📚 Notions</button>`;
+    <button class="mo-b" id="moNot">📚 Notions</button>
+    <button class="mo-b" id="moMission" aria-pressed="false" style="background:linear-gradient(135deg,#5A6275,#2a3140);border-color:transparent;color:#fff">🔧 Mission</button>
+    <button class="mo-b" id="moMarche" aria-pressed="false">🚶 Marcher</button>`;
   stage.appendChild(c);
 
   // fiche
@@ -572,16 +756,28 @@ function buildUI(){ const stage=shell.stage;
   // events
   const $=s=>c.querySelector(s);
   $('#moPlay').onclick=()=>{ playing=!playing; stepping=false; $('#moPlay').textContent=playing?'⏸ Arrêter':'▶ Démarrer'; if(playing){ startEngineSound(); } updateEngineSound(); shell.sound('click'); };
-  $('#moRpm').oninput=e=>{ rpm=+e.target.value; document.getElementById('moRpmV').textContent=rpm; updateEngineSound(); };
+  $('#moRpm').oninput=e=>{ rpm=+e.target.value; document.getElementById('moRpmV').textContent=rpm; updateEngineSound(); if(M&&remontage&&performance.now()-lastRegimeClic>140){ lastRegimeClic=performance.now(); M.son('clic',{ volume:0.12, frequence:500+rpm/14 }); } if(remontage) majRemontage(); };
   $('#moStep').onclick=()=>stepOnce();
   $('#moSlow').onclick=()=>{ slow=!slow; $('#moSlow').setAttribute('aria-pressed',slow); shell.sound('click'); shell.say(slow?"Ralenti activé : suis chaque temps tranquillement.":"Vitesse normale.",'concentre'); };
   $('#moCut').onclick=()=>{ cutaway=!cutaway; $('#moCut').setAttribute('aria-pressed',cutaway); shell.sound('click'); shell.say(cutaway?"Coupe : le bloc devient transparent, tu vois les pistons dans les cylindres et la couleur du gaz changer à chaque temps.":"Bloc refermé.",'curieux'); };
   $('#moExp').onclick=()=>{ exploded=!exploded; $('#moExp').setAttribute('aria-pressed',exploded); shell.sound('click'); shell.say(exploded?"Vue éclatée : les organes s'écartent pour montrer comment ils s'emboîtent, de la culasse au vilebrequin.":"Vue assemblée.",'concentre'); };
   $('#moLbl').onclick=()=>{ labelsOn=!labelsOn; $('#moLbl').setAttribute('aria-pressed',labelsOn); shell.sound('click'); if(!labelsOn) clearLabels(); };
   $('#moNot').onclick=()=>openNotions();
+  $('#moMission').onclick=()=>{ shell.sound('click'); lancerMission(); };
+  $('#moMarche').onclick=()=>{ if(!marche) assurerMarche(); if(marche){ marche.bascule(); shell.sound('click'); } };
 
   // type
   left.querySelectorAll('#moType button').forEach(b=>b.onclick=()=>{ if(engType===b.dataset.t)return; engType=b.dataset.t; left.querySelectorAll('#moType button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.t===engType)); applyEngineType(); shell.sound('click'); });
+}
+
+/* ---------- marche autour de l'établi (F223) ---------- */
+function assurerMarche(){ if(marche||!M) return marche;
+  marche=M.marcher({ depart:[7.5,0,9.5], hauteur:1.65, vitesse:3, sol:-2.6, limites:{ xmin:-14, xmax:14, zmin:-6.6, zmax:16 },
+    collision:(x,z)=> (Math.abs(x)<6.6&&Math.abs(z)<3.4) || (x>CHARIOT_POS.x-3.3&&x<CHARIOT_POS.x+3.3&&z>CHARIOT_POS.z-1.7&&z<CHARIOT_POS.z+1.7) || (meca&&Math.hypot(x-meca.position().x,z-meca.position().z)<0.7),
+    aide:'Flèches ou ZQSD pour marcher autour du moteur, glisse pour regarder. Échap : vue libre.',
+    surPas:()=>{ const n=performance.now(); if(n-dernierPas>420){ dernierPas=n; M.son('pas',{ volume:0.16 }); } },
+    surChangement:(on)=>{ const b=document.getElementById('moMarche'); if(b) b.setAttribute('aria-pressed', String(on)); if(on){ camTween=null; shell.say("Tu marches dans l'atelier. Approche-toi du moteur ou de la servante ; Échap pour revenir à la vue libre.",'concentre'); } } });
+  return marche;
 }
 
 /* ============================================================
@@ -639,15 +835,20 @@ function openNotions(){ const el=document.getElementById('moInfo');
 function setP(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
 function pick(){ raycaster.setFromCamera(pointer,camera); const vis=parts.filter(p=>p.visible!==false); const h=raycaster.intersectObjects(vis,false); if(!h.length)return null; let o=h[0].object; return o.userData.part?o:null; }
 function onMove(e){ setP(e); const o=pick(); renderer.domElement.style.cursor=o?'pointer':'grab'; hovered=o; }
-function onDown(e){ setP(e); const o=pick(); if(!o)return; const k=o.userData.part; const d=PARTS[k]; if(d){ openFiche(d); shell.say(d.desc[0].replace(/<[^>]+>/g,''),'concentre'); shell.sound('pop'); if(course) checkFind(k); } }
+function onDown(e){ if(marche&&marche.estActif()) return; setP(e); const o=pick(); if(!o)return; const k=o.userData.part; const d=PARTS[k]; if(!d) return;
+  const fam=remontage?familleDe(k):null;
+  if(fam&&MONTAGE_CIBLE[fam]===0){ poserPiece(fam); return; }
+  openFiche(d); shell.say(d.desc[0].replace(/<[^>]+>/g,''),'concentre'); shell.sound('pop'); if(course) checkFind(k); }
 
 /* ============================================================
    MODES
    ============================================================ */
-function startMode(m){ mode=m; startEngineSound();
+function startMode(m){ mode=m; startEngineSound(); demarrerAmbiance();
   if(m==='cours'){ startCourse(); }
-  else { setDetente(); }
+  else { setDetente(); setTimeout(()=>{ if(mode!=='cours'&&!missionLancee) lancerMission(); },6500); }
 }
+/* F225 : bruit d'atelier qui suit le régime, en plus de la synthèse moteur de ce monde */
+function demarrerAmbiance(){ if(ambianceAtelier||!M) return; try{ ambianceAtelier=M.ambiance({ type:'machine', volume:0.05 }); }catch(e){ ambianceAtelier=null; } }
 function setDetente(){ clearCourse(); const h=document.getElementById('moHint'); if(h)h.style.display=''; shell.setLevel && shell.setLevel('libre'); }
 
 /* --------- MODE COURS --------- */
@@ -777,8 +978,13 @@ function animate(){ requestAnimationFrame(animate); const raw=clock.getDelta(); 
   applyCut();
 
   updateEngine(dt);
+  appliquerMontage(dt);
   updateLabels();
-  controls.update(); composer.render();
+  if(camTween){ camTween.t+=dt; const k=Math.min(1,camTween.t/camTween.dur); const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; camera.position.lerpVectors(camTween.c0,camTween.c1,e); controls.target.lerpVectors(camTween.t0,camTween.t1,e); if(k>=1) camTween=null; }
+  if(ambianceAtelier){ const v=playing?0.03+0.09*(rpm/7000):0.02; if(Math.abs((ambianceAtelier._v||0)-v)>0.005){ ambianceAtelier._v=v; ambianceAtelier.volume(v); } }
+  if(!(marche&&marche.estActif())) controls.update();
+  for(const f of boucles){ try{ f(dt, clock.elapsedTime); }catch(err){ /* une boucle ne casse pas le rendu */ } }
+  composer.render();
 }
 
 function applyExplode(){ const e=expAmt;
@@ -869,6 +1075,8 @@ function updatePistons(){ collectMeshes();
   parts.forEach(p=>{ if(p.material&&p.material.emissive&&!gasVols.includes(p)){ p.material.emissive.setHex(p===hovered?0x2a2410:0x000000); } });
 }
 
+/* crochet de test et de pilotage : window.__monde */
+window.__monde={ lancerMission, poser:poserPiece, chaine:cliquerChaine, regler:(r)=>{ rpm=r; const s=document.getElementById('moRpm'); if(s){ s.value=r; } document.getElementById('moRpmV').textContent=r; playing=true; stepping=false; updateEngineSound(); if(remontage) majRemontage(); }, mission:()=>missionMoteur, etape:()=>remontage?remontage.etape:-1, montage:()=>Object.assign({},MONTAGE), meca:()=>meca, marche:()=>marche, camera:()=>camera, controls:()=>controls };
 function twoStrokeIndex(cycle){ if(engType==='deuxtemps'){ return Math.floor(cycle/Math.PI)%2; } return Math.floor(cycle/Math.PI)%4; }
 
 function updateTelemetry(){ const E=ENGINES[engType];

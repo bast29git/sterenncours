@@ -77,6 +77,18 @@
     .ph-hint{ bottom:120px; font-size:11px; }
   }
   body.cours .ph-demos, body.cours .ph-hint{ display:none !important; }
+  /* ---- mission « Trois défis de lancer » ---- */
+  body .mb-mission{ top:14px; left:50%; right:auto; transform:translateX(-50%); width:300px; }
+  .ph-mission{ left:50%; bottom:92px; transform:translateX(-50%); width:min(380px,92vw); padding:11px 14px; display:flex; flex-direction:column; gap:8px; z-index:23; }
+  .ph-mission .t{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-muted); }
+  .ph-mission .c{ font-size:12.5px; line-height:1.45; }
+  .ph-mission .opts{ display:flex; flex-direction:column; gap:5px; }
+  .ph-mission .opts button{ text-align:left; min-height:36px; padding:7px 11px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--fg); font-size:12.5px; font-weight:600; cursor:pointer; }
+  .ph-mission .opts button:hover{ background:var(--accent-weak); } .ph-mission .opts button:focus-visible{ outline:none; box-shadow:var(--ring); }
+  .ph-mission .mes{ font-family:var(--font-data); font-size:12.5px; display:grid; grid-template-columns:1fr 1fr; gap:3px 10px; } .ph-mission .mes b{ color:var(--accent-text); }
+  body.cours .ph-mission{ left:auto; right:14px; transform:none; bottom:14px; width:300px; }
+  .ph-b.mission{ background:linear-gradient(135deg,#F5A623,#c97d10); border-color:transparent; color:#fff; }
+  @media (max-width:760px){ body .mb-mission{ top:auto; bottom:172px; left:8px; right:8px; transform:none; width:auto; max-height:24%; } .ph-mission, body.cours .ph-mission{ bottom:12px; left:8px; right:8px; transform:none; width:auto; padding:8px 10px; max-height:150px; overflow:auto; } body.ph-mission-on .ph-demos, body.ph-mission-on .ph-hint{ display:none; } body.ph-mission-on .ph-ctrl{ max-height:46%; } }
   @media (prefers-reduced-motion: reduce){ .ph-card{ transition:none; } }
 </style>
 </head>
@@ -91,6 +103,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { outils, matPBR, preparerAo } from '../monde-base.js';
 const REDUCED = window.Konstrio.REDUCED;
 
 /* ============================================================
@@ -144,6 +157,15 @@ let launchAngle=45, launchForce=15, lockLauncher=false;
 
 /* défis (mode cours) */
 let chIndex=0, chActive=null;
+/* F228 : outils communs (mission, marche, personnage, ambiance) */
+let M=null; const boucles=[]; let prof=null, missionLancer=null, missionLancee=false, ambVent=null, marche=null, dernierPas=0, cibles=[], impactRing=null, impactLabel=null;
+/* le projectile : trois masses, une même poussée du lanceur (une impulsion), donc trois vitesses de départ */
+const MASSES={ leger:{ nom:'Balle en caoutchouc', court:'caoutchouc', m:1, col:0xE63329, tex:'rubber_tiles' }, moyen:{ nom:'Boule en bois', court:'bois', m:2, col:0xC98A3C, tex:'wood_table_001' }, lourd:{ nom:'Boulet en métal', court:'métal', m:3, col:0xb9c0cc, metal:true } };
+let masseKey='moyen'; let dernier=null; // { v0, m, angle, d, masse, tir }
+const CIBLES=[ { id:'c1', pos:[4.5,2.6,0], texte:'1. Cible proche : un lancer libre', masse:null, say:"Première cible, assez proche. Choisis une masse, une force et un angle, puis lance." },
+  { id:'c2', pos:[9,6,0], texte:'2. Cible haute avec la boule en bois', masse:'moyen', say:"Deuxième cible, haute. Il faut la boule en bois : un angle plus grand fait monter la trajectoire." },
+  { id:'c3', pos:[13.5,1.8,0], texte:'3. Cible lointaine avec le boulet en métal', masse:'lourd', say:"Troisième cible, loin, avec le boulet en métal. Même poussée, plus de masse : il part moins vite. Pousse la force au maximum et vise près de 45 degrés." } ];
+let defiCible=0; let questionLire=null;
 
 /* ============================================================
    SHELL
@@ -223,7 +245,9 @@ function init(){
   raycaster=new THREE.Raycaster(); pointer=new THREE.Vector2(-2,-2);
   dragPlane=new THREE.Plane();
   arrowGroup=new THREE.Group(); scene.add(arrowGroup);
-  buildTrajLine(); buildTarget();
+  buildTrajLine(); buildTarget(); buildCibles();
+  try{ M=outils({ scene, camera, renderer, controls, stage, boucle:(f)=>boucles.push(f) }); }catch(e){ M=null; }
+  buildProf();
 
   // IBL HDRI studio réel (PMREM) : reflets crédibles sur billes/caisses, chargé en tâche de fond
   const pmrem=new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
@@ -239,6 +263,7 @@ function init(){
   dom.addEventListener('pointermove',onMove);
   window.addEventListener('pointerup',onUp);
   document.addEventListener('keydown',onKey);
+  document.addEventListener('keydown',(e)=>{ if(marche&&marche.estActif()&&/^Arrow(Left|Right|Up|Down)$/.test(e.key)) e.preventDefault(); },true);
   window.addEventListener('resize',onResize); new ResizeObserver(onResize).observe(stage);
 
   loadPreset('pendule');   // scène d'accueil vivante
@@ -290,6 +315,38 @@ function buildTarget(){
   target.add(ring);
   const glow=new THREE.Mesh(new THREE.CircleGeometry(1.3,32), new THREE.MeshBasicMaterial({color:0xF5A623,transparent:true,opacity:.12,side:THREE.DoubleSide}));
   target.add(glow); target.userData.ring=ring;
+}
+
+/* ---------- les trois cibles de la mission : anneaux turquoise numérotés ---------- */
+function buildCibles(){
+  CIBLES.forEach((c,i)=>{ const g=new THREE.Group(); g.position.fromArray(c.pos); g.visible=false; scene.add(g);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(1.5,0.26,14,40), new THREE.MeshStandardMaterial({ color:0x1E8C7A, emissive:0x1E8C7A, emissiveIntensity:0.5, roughness:0.4, metalness:0.3 })); ring.castShadow=true; g.add(ring); g.userData.ring=ring;
+    const disque=new THREE.Mesh(new THREE.CircleGeometry(1.3,32), new THREE.MeshBasicMaterial({ color:0x29B6E0, transparent:true, opacity:0.1, side:THREE.DoubleSide })); g.add(disque);
+    const pied=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,c.pos[1],10), new THREE.MeshStandardMaterial({ color:0x8792a6, roughness:0.5, metalness:0.6 })); pied.position.y=-c.pos[1]/2; pied.castShadow=true; g.add(pied);
+    const num=new THREE.Mesh(new THREE.CircleGeometry(0.42,24), new THREE.MeshBasicMaterial({ color:0xffffff })); num.position.set(0,2.05,0); g.add(num);
+    const chiffre=new THREE.Mesh(new THREE.TorusGeometry(0.2,0.07,8,20,Math.PI*2), new THREE.MeshBasicMaterial({ color:0x1E8C7A })); chiffre.position.set(0,2.05,0.01); chiffre.scale.set(1,1,0.2); g.add(chiffre); g.userData.chiffre=chiffre; g.userData.idx=i;
+    g.userData.legende={ nom:'Cible '+(i+1), phrase:c.texte.replace(/^\d\. /,'') }; g.traverse(x=>{ if(x!==g) x.userData.legende=g.userData.legende; });
+    cibles.push(g); });
+  impactRing=new THREE.Mesh(new THREE.RingGeometry(0.5,0.72,32), new THREE.MeshBasicMaterial({ color:0xF5A623, transparent:true, opacity:0.85, side:THREE.DoubleSide, depthWrite:false })); impactRing.rotation.x=-Math.PI/2; impactRing.position.y=0.02; impactRing.visible=false; scene.add(impactRing);
+}
+function montrerCibles(on){ cibles.forEach((g,i)=>{ g.visible=on; g.userData.ring.material.emissiveIntensity=(i===defiCible)?1.1:0.35; }); }
+/* ---------- le professeur de physique, chronomètre au cou ---------- */
+function buildProf(){
+  if(!M) return;
+  prof=M.personnage({ nom:'Erwan, professeur de physique', phrase:"Il chronomètre chaque lancer et lit avec toi la vitesse et la distance.", position:[-11.5,0,7.6], taille:1.75, peau:0xe6c3a6, haut:0x3a4a6b, bas:0x2a2f3a, cheveux:0x6b6b6b, vitesse:1.2, graine:11 });
+  const g=prof.groupe; const u=1.75/1.7;
+  // lunettes
+  const verre=new THREE.MeshPhysicalMaterial({ color:0xcfe3ff, roughness:0.05, metalness:0, transparent:true, opacity:0.45, clearcoat:1 });
+  [[-0.045],[0.045]].forEach(([x])=>{ const l=new THREE.Mesh(new THREE.CircleGeometry(0.03*u,14), verre); l.position.set(x*u,1.6*u,0.115*u); g.add(l); const mont=new THREE.Mesh(new THREE.TorusGeometry(0.031*u,0.004*u,6,16), new THREE.MeshStandardMaterial({ color:0x222933, metalness:0.6, roughness:0.4 })); mont.position.copy(l.position); g.add(mont); });
+  // chronomètre au bout d'un cordon, tenu dans la main gauche
+  const chrono=new THREE.Group(); const boitier=new THREE.Mesh(new THREE.CylinderGeometry(0.06*u,0.06*u,0.025*u,20), new THREE.MeshStandardMaterial({ color:0xf2f2f2, roughness:0.3, metalness:0.2 })); boitier.rotation.x=Math.PI/2; chrono.add(boitier);
+  const cadran=new THREE.Mesh(new THREE.CircleGeometry(0.045*u,20), new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xdddddd, emissiveIntensity:0.3 })); cadran.position.z=0.014*u; chrono.add(cadran);
+  const aiguille=new THREE.Mesh(new THREE.BoxGeometry(0.004*u,0.04*u,0.002*u), new THREE.MeshBasicMaterial({ color:0xE63329 })); aiguille.position.set(0,0.015*u,0.016*u); chrono.add(aiguille); chrono.userData.aiguille=aiguille;
+  const bouton=new THREE.Mesh(new THREE.CylinderGeometry(0.012*u,0.012*u,0.02*u,10), new THREE.MeshStandardMaterial({ color:0x9aa0b0, metalness:0.7, roughness:0.3 })); bouton.position.y=0.07*u; chrono.add(bouton);
+  chrono.position.set(0,-0.62*u,0.07*u); chrono.rotation.x=-0.5; prof.membres.brasG.add(chrono);
+  const cordon=new THREE.Mesh(new THREE.TorusGeometry(0.13*u,0.006*u,6,24), new THREE.MeshStandardMaterial({ color:0x222933, roughness:0.9 })); cordon.position.set(0,1.36*u,0.06*u); cordon.rotation.x=Math.PI/2.3; g.add(cordon);
+  prof.regarder([-2,1,0]);
+  boucles.push((dt,t)=>{ aiguille.rotation.z=-t*2.1; if(prof){ const d=dernier&&dernier.tir&&!dernier.impact?1:0; prof.membres.brasG.rotation.x += ((d?-1.2:0)-prof.membres.brasG.rotation.x)*0.15; } });
 }
 
 /* ============================================================
@@ -475,7 +532,11 @@ const BALLCOL=[0x29B6E0,0x6E6BFF,0x1E8C7A,0xF5A623,0xE63329,0xE8618C];
 let colIdx=0;
 function mkSphere(pos,r,col,opts={}){
   const metal=!!opts.metal;   // bille métal : reflète le HDRI (studio)
-  const m=new THREE.Mesh(new THREE.SphereGeometry(r,26,20), new THREE.MeshStandardMaterial({color:col,roughness:metal?.2:.28,metalness:metal?.92:.3,envMapIntensity:1.25,emissive:col,emissiveIntensity:metal?0:.04}));
+  let mat;
+  if(opts.tex){ mat=matPBR(opts.tex,{ repetition:opts.rep||2, couleur:col, rugosite:opts.tex==='rubber_tiles'?1:0.75 }); }
+  else mat=new THREE.MeshStandardMaterial({color:col,roughness:metal?.2:.28,metalness:metal?.92:.3,envMapIntensity:1.25,emissive:col,emissiveIntensity:metal?0:.04});
+  const geo=new THREE.SphereGeometry(r,26,20); if(opts.tex) preparerAo(geo);
+  const m=new THREE.Mesh(geo, mat);
   scene.add(m);
   return addBody(Object.assign({type:'sphere',mesh:m,pos,r,density:opts.density||1},opts));
 }
@@ -503,9 +564,24 @@ function addObject(kind){
 }
 function launch(){
   if(countDynamic()>=MAXBODIES){ const first=bodies.find(b=>b.invMass>0&&!b.permanent&&!b.pendulum&&!b.spring); if(first) removeBody(first); }
-  const a=launchAngle*Math.PI/180; const v=new THREE.Vector3(Math.cos(a)*launchForce,Math.sin(a)*launchForce,0);
-  const s=mkSphere(LAUNCH.clone(),0.5,0xE63329,{rest:0.5,metal:true}); s.vel.copy(v); tracked=s;
-  sfx(240,0.05); shell.sound('pop'); afterChange();
+  const MA=MASSES[masseKey]||MASSES.moyen;
+  // le lanceur donne toujours la même poussée (une impulsion I = force × 2) : v0 = I / m
+  const v0=Math.min(MAXSPEED, launchForce*2/MA.m);
+  const a=launchAngle*Math.PI/180; const v=new THREE.Vector3(Math.cos(a)*v0,Math.sin(a)*v0,0);
+  const s=mkSphere(LAUNCH.clone(),0.5,MA.col,{rest:MA.metal?0.5:(masseKey==='leger'?0.75:0.45),metal:!!MA.metal,tex:MA.tex,mass:MA.m}); s.vel.copy(v); tracked=s; s.lance=true; s.masse=masseKey; s.t0=performance.now();
+  dernier={ v0, m:MA.m, angle:launchAngle, force:launchForce, masse:masseKey, d:null, impact:false, tir:s };
+  if(impactRing) impactRing.visible=false; if(impactLabel){ scene.remove(impactLabel); impactLabel=null; }
+  const tv=document.getElementById('telV0'); if(tv) tv.textContent=v0.toFixed(1)+' m/s'; const td=document.getElementById('telD'); if(td) td.textContent='…';
+  if(prof&&!REDUCED){ prof.regarder(LAUNCH); }
+  sfx(240,0.05); shell.sound('pop'); afterChange(); majMissionPanneau();
+}
+/* premier contact du projectile avec le sol : distance mesurée, repère au sol, son et lecture du professeur */
+function surImpact(b){ if(!dernier||dernier.tir!==b||dernier.impact) return; dernier.impact=true; dernier.d=Math.max(0,b.pos.x-LAUNCH.x);
+  if(M) M.son('coup',{ volume:0.3 });
+  if(impactRing){ impactRing.position.set(b.pos.x,0.02,b.pos.z); impactRing.visible=true; }
+  const td=document.getElementById('telD'); if(td) td.textContent=dernier.d.toFixed(1)+' m';
+  if(prof&&!(missionLancer&&missionLancer.estFinie())){ prof.dire('Impact à '+dernier.d.toFixed(1)+' m, parti à '+dernier.v0.toFixed(1)+' m/s.',4); }
+  majMissionPanneau();
 }
 function removeBody(b){ const i=bodies.indexOf(b); if(i<0) return; if(b.mesh){ scene.remove(b.mesh); b.mesh.geometry&&b.mesh.geometry.dispose&&b.mesh.geometry.dispose(); } if(velArrows.has(b)){ arrowGroup.remove(velArrows.get(b)); velArrows.delete(b); } bodies.splice(i,1); if(tracked===b) tracked=null; }
 function clearDynamic(keepDemoStatic=false){
@@ -653,7 +729,21 @@ function finishCourse(){
     buddy:"Tu as manipulé la gravité, l'énergie et la quantité de mouvement comme une physicienne !",
     onNext:()=>{ chIndex=0; document.querySelector('.ksh-score').textContent='0'; shell.setScore(0); startChallenge(0); }, nextLabel:'Rejouer les défis' });
 }
+function checkMission(){
+  if(dernier&&dernier.tir&&!dernier.impact){ const b=dernier.tir; if(!bodies.includes(b)) dernier.impact=true; else if(performance.now()-b.t0>250&&b.vel.y<=0&&b.pos.y<=b.r+0.06) surImpact(b); }
+  if(!missionLancer||missionLancer.estFinie()||defiCible>=CIBLES.length) return;
+  const c=CIBLES[defiCible], g=cibles[defiCible]; if(!g) return;
+  for(const b of bodies){ if(b.invMass>0&&b.type==='sphere'&&b.lance&&!b.compte&&b.pos.distanceTo(g.position)<1.25){ b.compte=true;
+    if(c.masse&&b.masse!==c.masse){ M.son('clic',{ volume:0.2, frequence:300 }); shell.say('Cible '+(defiCible+1)+' touchée, mais avec '+MASSES[b.masse].nom.toLowerCase()+'. Ce défi demande '+MASSES[c.masse].nom.toLowerCase()+'.','rassurant'); continue; }
+    M.son('cloche',{ volume:0.25, frequence:700+defiCible*120 }); g.userData.ring.material.emissiveIntensity=2.2; missionLancer.valider(c.id,150); defiCible++;
+    const lu='Vitesse de départ '+dernier.v0.toFixed(1)+' m/s, masse '+MASSES[b.masse].m+' kg.';
+    if(defiCible<CIBLES.length){ montrerCibles(true); shell.say('Cible '+defiCible+' atteinte. '+lu+' '+CIBLES[defiCible].say,'celebration'); if(prof) prof.dire('Cible '+defiCible+' ! Suivante : la '+(defiCible+1)+'.',4); if(CIBLES[defiCible].masse){ choisirMasse(CIBLES[defiCible].masse,true); } }
+    else { shell.say('Trois cibles atteintes. '+lu+' Maintenant, lis ta dernière mesure et explique la trajectoire.','celebration'); if(prof) prof.dire('Trois sur trois. Regarde les mesures.',4); preparerQuestions(); }
+    majMissionPanneau(); break; }
+  }
+}
 function checkChallenge(){
+  checkMission();
   if(mode!=='cours'||!chActive||chActive.done) return; const C=chActive.def;
   if(C.type==='aim'){ for(const b of bodies){ if(b.invMass>0&&b.type==='sphere'&&target.visible&&b.pos.distanceTo(target.position)<1.5){ if(C.lock&&gravKey==='terre'){ /* infaisable sur Terre : ne devrait pas arriver */ } markChallengeDone(); pulseTarget(); break; } } }
   else if(C.type==='dominos'){ const doms=chActive._doms||[]; if(doms.length){ const fallen=doms.filter(d=>Math.abs(d.quat.x)+Math.abs(d.quat.z)>0.4||d.pos.y<0.9).length; if(fallen>=doms.length-1) markChallengeDone(); } }
@@ -667,6 +757,7 @@ function pulseTarget(){ if(target.userData.ring) target.userData.ring.material.e
 let grabbed=null, grabHist=[], grabPlaneN=new THREE.Vector3();
 function pointerNDC(e){ const r=renderer.domElement.getBoundingClientRect(); pointer.x=((e.clientX-r.left)/r.width)*2-1; pointer.y=-((e.clientY-r.top)/r.height)*2+1; }
 function onDown(e){
+  if(marche&&marche.estActif()) return;
   pointerNDC(e); raycaster.setFromCamera(pointer,camera);
   const meshes=bodies.filter(b=>b.invMass>0&&b.mesh).map(b=>b.mesh);
   const hit=raycaster.intersectObjects(meshes,false)[0];
@@ -711,8 +802,10 @@ function buildUI(){
     <div class="ph-grp"><h3>🎯 Lanceur</h3>
       <div class="ph-sl"><label>Angle <b id="phAv">${launchAngle}</b>°</label><input id="phA" type="range" min="10" max="80" value="${launchAngle}"></div>
       <div class="ph-sl"><label>Force <b id="phLv">${launchForce}</b></label><input id="phL" type="range" min="6" max="26" value="${launchForce}"></div>
+      <div class="ph-seg g3" id="phMasse">${Object.keys(MASSES).map(k=>`<button class="ph-sb" data-m="${k}" aria-pressed="${k===masseKey}">${MASSES[k].court}<small>${MASSES[k].m} kg</small></button>`).join('')}</div>
       <button class="ph-b primary" id="phLaunch">🎯 Lancer</button>
     </div>
+    <div class="ph-seg g2"><button class="ph-b mission" id="phMission" aria-pressed="false">🏹 Mission</button><button class="ph-b" id="phMarche" aria-pressed="false">🚶 Marcher</button></div>
     <div class="ph-grp"><h3>👁️ Affichage</h3><div class="ph-tglrow">
       <button class="ph-tgl" id="tgVel" aria-pressed="false">➡ Vitesse</button>
       <button class="ph-tgl" id="tgTraj" aria-pressed="true">⤴ Trajectoire</button>
@@ -733,6 +826,8 @@ function buildUI(){
     <div class="sep"></div>
     <div class="r">Vitesse suivie <b id="telV">0.0 m/s</b></div>
     <div class="r">Hauteur <b id="telH">0.0 m</b></div>
+    <div class="r">Départ du tir <b id="telV0">…</b></div>
+    <div class="r">Distance au sol <b id="telD">…</b></div>
     <div class="r">Chronomètre <b id="telT">0.00 s</b></div>
     <div class="bar"><i id="telKe" style="background:#E63329;width:50%"></i><i id="telPe" style="background:#29B6E0;width:50%"></i></div>
     <div class="bk"><span>cinétique</span><span>potentielle</span></div>`;
@@ -757,6 +852,9 @@ function buildUI(){
   c.querySelector('#phA').oninput=e=>{ if(lockLauncher){ e.target.value=launchAngle; return; } launchAngle=+e.target.value; document.getElementById('phAv').textContent=launchAngle; };
   c.querySelector('#phL').oninput=e=>{ if(lockLauncher){ e.target.value=launchForce; return; } launchForce=+e.target.value; document.getElementById('phLv').textContent=launchForce; };
   c.querySelector('#phLaunch').onclick=launch;
+  c.querySelector('#phMasse').addEventListener('click',e=>{ const b=e.target.closest('[data-m]'); if(!b)return; choisirMasse(b.dataset.m); });
+  c.querySelector('#phMission').onclick=()=>{ shell.sound('click'); lancerMission(); };
+  c.querySelector('#phMarche').onclick=()=>{ if(!marche) assurerMarche(); if(marche){ marche.bascule(); shell.sound('click'); } };
   c.querySelector('#phAddS').onclick=()=>addObject('sphere');
   c.querySelector('#phAddB').onclick=()=>addObject('box');
   c.querySelector('#phAddD').onclick=()=>addObject('domino');
@@ -768,6 +866,67 @@ function buildUI(){
   c.querySelector('#tgAir').onclick=function(){ air=!air; this.setAttribute('aria-pressed',air); shell.say(air?"Air activé : les objets légers (plume) sont freinés par les frottements.":"Air coupé : vide parfait, tout tombe pareil (Galilée).", 'idee'); };
   dm.querySelector('#phDemos').addEventListener('click',e=>{ const b=e.target.closest('[data-p]'); if(!b)return; if(mode==='cours'){ shell.toast('Termine les défis, ou passe en mode Détente.'); return; } loadPreset(b.dataset.p); });
 }
+function choisirMasse(k,silencieux){ if(!MASSES[k]) return; masseKey=k; document.querySelectorAll('#phMasse [data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===k)); if(!silencieux){ shell.sound('click'); const MA=MASSES[k]; shell.say(MA.nom+' : '+MA.m+' kg. Pour la même poussée du lanceur, la vitesse de départ sera de '+(Math.min(MAXSPEED,launchForce*2/MA.m)).toFixed(1)+' m/s.','idee'); } updateTraj(); }
+
+/* ============================================================
+   MISSION : trois défis de lancer (F224)
+   ============================================================ */
+function assurerMission(){ if(missionLancer||!M) return missionLancer;
+  const obj=CIBLES.map(c=>({ id:c.id, texte:c.texte, points:150 }));
+  obj.push({ id:'lire', texte:'4. Lire la vitesse de départ du dernier tir', points:120 });
+  obj.push({ id:'traj', texte:'5. Expliquer la forme de la trajectoire', points:150 });
+  missionLancer=M.mission({ titre:'Trois défis de lancer', cachee:true, chrono:true, chronoCible:300, gagner:false, annonce:false, objectifs:obj, surFin:finMission });
+  missionLancer.zone.setAttribute('aria-label','Mission : trois défis de lancer');
+  return missionLancer;
+}
+function lancerMission(){ if(!assurerMission()) return;
+  const b=document.getElementById('phMission'); if(b) b.setAttribute('aria-pressed','true');
+  if(missionLancee&&!missionLancer.estFinie()){ missionLancer.montrer(); majMissionPanneau(); return; }
+  missionLancee=true; defiCible=0; questionLire=null; dernier=null;
+  if(mode!=='cours'){ clearDynamic(); target.visible=false; setChip(null); hint(''); } lockLauncher=false; syncLauncherUI();
+  showTraj=true; syncTogglesUI(); if(gravKey!=='terre') setGravity('terre'); wind=0; const w=document.getElementById('phW'); if(w){ w.value=0; document.getElementById('phWv').textContent='0.0'; }
+  montrerCibles(true); document.body.classList.add('ph-mission-on');
+  missionLancer.montrer(); missionLancer.commencer(); M.son('cloche',{ volume:0.18 }); majMissionPanneau();
+  shell.say("Mission : trois cibles à atteindre avec le lanceur. Règle la masse, la force et l'angle, puis lance ; à chaque impact tu lis la vitesse de départ et la distance au sol. "+CIBLES[0].say+" Le chrono tourne.",'enthousiaste');
+  if(prof){ prof.dire('Je chronomètre. Vise la cible 1.',5); prof.allerA([-9.5,0,7.6]); }
+}
+function preparerQuestions(){ if(!dernier) return; const v=dernier.v0; const vals=[v, v*2, v/2].map(x=>x.toFixed(1)+' m/s'); const ordre=[0,1,2].sort(()=>Math.random()-0.5);
+  questionLire={ vals, ordre, bonne:0, faite:false, traj:{ ordre:[0,1,2].sort(()=>Math.random()-0.5), faite:false } }; }
+function repondreLire(i){ if(!questionLire||questionLire.faite||!missionLancer) return;
+  if(i!==0){ M.son('clic',{ volume:0.2, frequence:300 }); shell.say('Regarde la ligne « Départ du tir » dans la télémétrie : c\'est la vitesse au moment où la bille quitte le lanceur.','rassurant'); return; }
+  questionLire.faite=true; M.son('cloche',{ volume:0.22 }); missionLancer.valider('lire',120); shell.say('Exact : '+dernier.v0.toFixed(1)+' m/s au départ, pour '+dernier.m+' kg. La distance au sol a été de '+(dernier.d!=null?dernier.d.toFixed(1):'…')+' m. Dernière question : la forme de la trajectoire.','fier'); majMissionPanneau(); }
+const TRAJ_REP=["La gravité la tire vers le bas pendant qu'elle avance à vitesse constante : la courbe est une parabole","Le vent la pousse vers le haut puis vers le bas","Elle perd de la masse en vol, donc elle tombe"];
+function repondreTraj(i){ if(!questionLire||questionLire.traj.faite||!missionLancer) return;
+  if(i!==0){ M.son('clic',{ volume:0.2, frequence:300 }); shell.say(i===1?"Il n'y a pas de vent ici (curseur à zéro). Pense à la seule force qui agit sur la bille en vol.":"La masse ne change pas pendant le vol. Pense à la force qui agit sur la bille.",'rassurant'); return; }
+  questionLire.traj.faite=true; M.son('cloche',{ volume:0.25, frequence:990 }); missionLancer.valider('traj',150); majMissionPanneau(); }
+function majMissionPanneau(){ let el=document.getElementById('phMission2');
+  if(!missionLancer||missionLancer.estFinie()||!missionLancee){ if(el) el.remove(); document.body.classList.remove('ph-mission-on'); return; }
+  if(!el){ el=document.createElement('div'); el.className='ph-panel ph-mission'; el.id='phMission2'; el.setAttribute('role','group'); el.setAttribute('aria-label','Mission : trois défis de lancer'); shell.stage.appendChild(el); }
+  const mes=dernier?`<div class="mes"><span>Masse : <b>${dernier.m} kg</b></span><span>Angle : <b>${dernier.angle}°</b></span><span>Départ : <b>${dernier.v0.toFixed(1)} m/s</b></span><span>Distance : <b>${dernier.d!=null?dernier.d.toFixed(1)+' m':'en vol…'}</b></span></div>`:'<div class="c">Aucun tir pour l\'instant.</div>';
+  if(defiCible<CIBLES.length){ const c=CIBLES[defiCible]; el.innerHTML=`<div class="t">Cible ${defiCible+1} sur ${CIBLES.length}</div><div class="c">${c.texte.replace(/^\d\. /,'')}${c.masse?' : choisis <b>'+MASSES[c.masse].nom.toLowerCase()+'</b>.':'.'}</div>${mes}`; }
+  else if(questionLire&&!questionLire.faite){ el.innerHTML=`<div class="t">Lecture</div><div class="c">Quelle était la <b>vitesse de départ</b> de ta dernière bille ?</div>${mes}<div class="opts">${questionLire.ordre.map(i=>`<button type="button" data-lire="${i}">${questionLire.vals[i]}</button>`).join('')}</div>`; el.querySelectorAll('[data-lire]').forEach(b=>{ b.onclick=()=>repondreLire(+b.dataset.lire); }); }
+  else if(questionLire&&!questionLire.traj.faite){ el.innerHTML=`<div class="t">Explication</div><div class="c">Pourquoi la bille suit-elle une courbe et non une ligne droite ?</div><div class="opts">${questionLire.traj.ordre.map(i=>`<button type="button" data-traj="${i}">${TRAJ_REP[i]}</button>`).join('')}</div>`; el.querySelectorAll('[data-traj]').forEach(b=>{ b.onclick=()=>repondreTraj(+b.dataset.traj); }); }
+  else el.innerHTML=`<div class="t">Mission</div>${mes}`;
+}
+function finMission(reussie,secondes,score){ const t=Math.round(secondes); const duree=Math.floor(t/60)+' min '+(t%60)+' s';
+  const b=document.getElementById('phMission'); if(b) b.setAttribute('aria-pressed','false');
+  montrerCibles(false); majMissionPanneau(); document.body.classList.remove('ph-mission-on');
+  if(!reussie){ shell.say("La mission s'arrête là. On pourra la reprendre.",'rassurant'); setTimeout(()=>{ if(missionLancer) missionLancer.cacher(); },4000); missionLancee=false; return; }
+  M.son('cloche',{ volume:0.25 }); if(prof) prof.dire('Trois cibles en '+duree+'. Belle série.',6);
+  if(mode!=='cours'){ shell.win({ score, stars:t>300?2:3, title:'Trois cibles atteintes en '+duree, learned:shell.cfg.learned, buddy:"Masse, force, angle : tu as réglé les trois et lu la vitesse et la distance. La trajectoire est une parabole, à cause de la gravité." }); }
+  else { shell.say('Mission réussie en '+duree+' : '+score+' points de plus. Les défis continuent.','fier'); if(shell.celebrate) shell.celebrate(); setTimeout(()=>{ if(missionLancer) missionLancer.cacher(); },9000); }
+}
+/* ---------- marche sur le terrain, autour du bac (F223) ---------- */
+function assurerMarche(){ if(marche||!M) return marche;
+  marche=M.marcher({ depart:[-17.5,0,7.8], hauteur:1.65, vitesse:3.2, sol:0, limites:{ xmin:-19.2, xmax:19.2, zmin:-8.6, zmax:8.6 },
+    collision:(x,z)=> (Math.abs(x)<TRAY.maxX+0.9&&Math.abs(z)<TRAY.maxZ+0.9) || (prof&&Math.hypot(x-prof.position().x,z-prof.position().z)<0.8),
+    aide:'Flèches ou ZQSD pour marcher autour du bac, glisse pour regarder. Échap : vue libre.',
+    surPas:()=>{ const n=performance.now(); if(n-dernierPas>430){ dernierPas=n; M.son('pas',{ volume:0.15 }); } },
+    surChangement:(on)=>{ const b=document.getElementById('phMarche'); if(b) b.setAttribute('aria-pressed',String(on)); if(on) shell.say("Tu marches autour du bac. Les parois de verre t'arrêtent ; Échap pour revenir à la vue libre.",'concentre'); } });
+  return marche;
+}
+window.__monde={ lancerMission, lancer:(m,a,f)=>{ if(m) choisirMasse(m,true); if(a!=null) launchAngle=a; if(f!=null) launchForce=f; syncLauncherUI(); launch(); }, mission:()=>missionLancer, defi:()=>defiCible, dernier:()=>dernier, lire:repondreLire, traj:repondreTraj, cibles:()=>CIBLES, prof:()=>prof, marche:()=>marche, camera:()=>camera, corps:()=>bodies.length, avancer:(sec)=>{ let acc=sec; while(acc>1e-4){ const h=Math.min(SUBSTEP,acc); substep(h); acc-=h; } for(const b of bodies){ if(b.invMass>0) syncMesh(b); } checkMission(); } };
+
 function pushFirst(){
   // pousse le premier domino / la première caisse debout
   let best=null,bx=Infinity; for(const b of bodies){ if(b.invMass>0&&b.type==='box'&&!b.permanent){ if(b.pos.x<bx){ bx=b.pos.x; best=b; } } }
@@ -786,7 +945,8 @@ function updateTraj(){
   if(!trajLine) return;
   const on=showTraj && !(mode==='cours'&&chActive&&chActive.def.type==='quiz');
   trajLine.visible=on; if(!on) return;
-  const a=launchAngle*Math.PI/180, vx=Math.cos(a)*launchForce, vy=Math.sin(a)*launchForce, gg=gMag||0.001;
+  const MA=MASSES[masseKey]||MASSES.moyen; const v0=Math.min(MAXSPEED,launchForce*2/MA.m);
+  const a=launchAngle*Math.PI/180, vx=Math.cos(a)*v0, vy=Math.sin(a)*v0, gg=gMag||0.001;
   const pts=[]; for(let t=0;t<=4;t+=0.06){ const x=LAUNCH.x+vx*t, y=LAUNCH.y+vy*t-0.5*gg*t*t; if(y<0.4&&t>0.2)break; pts.push(new THREE.Vector3(x,y,0)); if(x>TRAY.maxX)break; }
   trajLine.geometry.setFromPoints(pts); trajLine.computeLineDistances();
 }
@@ -827,13 +987,16 @@ function updateTelemetry(){
    ============================================================ */
 function applyTheme(){ const dark=document.documentElement.getAttribute('data-theme')==='dark'; renderer.setClearColor(dark?0x080b12:0x0d121c,1); const sky=scene&&scene.getObjectByName('sky'); }
 function onResize(){ const s=shell.stage; if(!s.clientWidth)return; camera.aspect=s.clientWidth/s.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(s.clientWidth,s.clientHeight); composer.setSize(s.clientWidth,s.clientHeight); }
-function startMode(m){ mode=m;
+function startMode(m){ mode=m; demarrerAmbiance();
   document.body.classList.toggle('cours',m==='cours');
   document.getElementById('phCard').classList.remove('show');
   const sk=document.getElementById('phScoreK'), sv=document.getElementById('phScoreV');
   if(m==='cours'){ if(sk)sk.textContent='Score'; shell.setScore(0); if(sv)sv.textContent='0'; startChallenge(0); }
-  else { lockLauncher=false; syncLauncherUI(); if(sk)sk.textContent='Objets dans le bac'; chActive=null; loadPreset('pendule'); afterChange(); shell.say("Mode Détente : explore librement ! Choisis une démo en bas ou joue avec les réglages.",'joyeux'); }
+  else { lockLauncher=false; syncLauncherUI(); if(sk)sk.textContent='Objets dans le bac'; chActive=null; loadPreset('pendule'); afterChange(); shell.say("Mode Détente : explore librement ! Choisis une démo en bas ou joue avec les réglages.",'joyeux');
+    setTimeout(()=>{ if(mode!=='cours'&&!missionLancee) lancerMission(); },6500); }
 }
+/* F225 : vent léger du terrain (enregistrement CC0) */
+function demarrerAmbiance(){ if(ambVent||!M) return; try{ ambVent=M.ambiance({ type:'vent', fichier:'../assets/3d/audio/vent-parc.mp3', volume:0.1 }); }catch(e){ ambVent=null; } }
 let audioCtx=null;
 function sfx(freq,vol){ if(shell.muted)return; try{ const ac=audioCtx||(audioCtx=new (window.AudioContext||window.webkitAudioContext)()); const o=ac.createOscillator(),gg=ac.createGain(); o.type='sine'; o.frequency.value=freq; gg.gain.setValueAtTime(vol,ac.currentTime); gg.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.15); o.connect(gg); gg.connect(ac.destination); o.start(); o.stop(ac.currentTime+0.16); }catch(e){} }
 
@@ -850,7 +1013,10 @@ function animate(){ requestAnimationFrame(animate);
   if(target.visible){ target.rotation.z+=dt*0.6; if(target.userData.ring) target.userData.ring.material.emissiveIntensity=Math.max(.55,target.userData.ring.material.emissiveIntensity-dt*1.5); }
   updateTelemetry(); checkChallenge();
   if(mode==='detente') afterChange();
-  controls.update(); composer.render();
+  if(cibles.length&&cibles[0].visible){ const tt=performance.now()*0.001; cibles.forEach((g,i)=>{ g.rotation.y=Math.sin(tt*0.6+i)*0.25; g.userData.ring.material.emissiveIntensity=Math.max(i===defiCible?0.9:0.3, g.userData.ring.material.emissiveIntensity-dt*1.5); }); }
+  if(!(marche&&marche.estActif())) controls.update();
+  for(const f of boucles){ try{ f(dt, clock.elapsedTime); }catch(err){ /* une boucle ne casse pas le rendu */ } }
+  composer.render();
 }
 </script>
 </body>
