@@ -20,7 +20,16 @@
   .mb-panneau .mb-mesures b { text-align: right; }
   .pa-progres { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
   .pa-progres i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s linear; }
-  @media (max-width: 720px) { .mb-etapes { gap: 3px; } .mb-etapes .mb-bouton { min-height: 30px; padding: 2px 8px; font-size: 12px; } .mb-etapes .mb-bouton i { width: 18px; height: 18px; font-size: 11px; } }
+  .pa-gestes { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .pa-gestes .mb-bouton { min-height: 34px; padding: 4px 8px; text-align: center; font-size: 12.5px; }
+  .pa-gestes .mb-bouton.suivant { box-shadow: inset 0 0 0 2px var(--accent); }
+  @media (max-width: 720px) {
+    .mb-etapes { gap: 3px; } .mb-etapes .mb-bouton { min-height: 30px; padding: 2px 8px; font-size: 12px; } .mb-etapes .mb-bouton i { width: 18px; height: 18px; font-size: 11px; }
+    div.mb-panneau { width: min(196px, 50vw); max-height: 46%; }
+    section.mb-mission { width: min(168px, 43vw); font-size: 11.5px; } section.mb-mission li { padding: 3px 5px; }
+    div.mb-stick { bottom: 118px; width: 104px; height: 104px; } div.mb-stick i { left: 27px; top: 27px; }
+    div.mb-aide-marche { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -39,21 +48,27 @@ let fibres = 100; const EAU_L = 5; let vitesse = 5; let etape = null; let feuill
 let M, panneau, stations = {}, feuilles = [], bande, bandeTex;
 let formeG, feuilleForme, feuilleTransit, platine, vis, barreVis, pile = [], gouttes = [], roues = [], volant, bielle, tige, crosse, manivelle, moteurG, vapeur = [], plafond, poussiere;
 let sequence = null; let vise = null; let vueDessus = false; let lumiereOmbre = null; let logicielGlobal = false;
+let faiseuse = null, artisan = null, marche = null, mission = null, modeJeu = 'detente', apiJeu = null;
+let attendu = 0; let commande = null; const sons = {}; let tempsPas = 0, tSon = 0;
+const NOMS_GESTES = ['Puiser', 'Plonger', 'Égoutter', 'Coucher', 'Presser', 'Sécher'];
+const COMMANDE = { feuilles: 3, secondes: 240, cible: 120 };
 /** L'ombre de la lanterne (six rendus par image) : seulement au cran haut, jamais en rendu logiciel. */
 function ombresPonctuelles(actif) { if (lumiereOmbre) lumiereOmbre.castShadow = !!actif && !logicielGlobal; }
 const LEGENDES = ETAPES.map((e) => ({ nom: e.nom, phrase: e.texte.split('. ')[0] + '.' })).concat([
   { nom: 'Machine à vapeur', phrase: 'La chaudière chauffe l\'eau, la vapeur pousse le piston, le volant entraîne la machine par une courroie.' },
   { nom: 'Lanterne', phrase: 'Une flamme protégée par du verre : la seule lumière de l\'atelier quand le jour baisse.' },
   { nom: 'Livres reliés', phrase: 'Le but de tout l\'atelier : des feuilles assemblées, cousues et reliées, comme ceux que fabrique Myne.' },
+  { nom: 'La faiseuse de livres', phrase: 'Elle travaille à la cuve et connaît chaque geste. Touche-la : elle t\'explique la station où elle se trouve.' },
+  { nom: 'L\'artisan', phrase: 'Il surveille la machine à vapeur et la machine à papier : le volant, la courroie, la toile sans fin.' },
 ]);
 const shell = window.Konstrio.createGame({
   id: '3d-22-atelier-papier', code: '3D·22', title: 'L\'atelier de la Faiseuse de livres', type: '3D', duree: '12 min',
   domain: { label: 'Histoire · Physique', color: '#B9541D' },
   intro: {
-    greet: 'Des chiffons à la feuille, puis de la feuille à la machine : l\'atelier où l\'on fabrique le papier, avant et après la révolution industrielle.',
+    greet: 'Des chiffons à la feuille, puis de la feuille à la machine : l\'atelier où l\'on fabrique le papier, avant et après la révolution industrielle. La faiseuse de livres et l\'artisan t\'attendent.',
     rule: 'Suis les six étapes de la fabrication du papier. Prépare la pâte avec la bonne proportion de fibres, fabrique une feuille à la main, puis compare avec la machine à vapeur.',
-    how: ['Touche une station de l\'atelier, ou choisis-la dans le panneau.', 'Règle la masse de fibres dans la cuve et lis la proportion.', 'Lance « Fabriquer une feuille » et suis la feuille de la cuve au séchoir.', 'Règle la vitesse de la machine à vapeur et compare avec le travail à la main.'],
-    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    how: ['Touche une station de l\'atelier, ou choisis-la dans le panneau. La faiseuse de livres t\'y rejoint et explique.', 'Règle la masse de fibres dans la cuve et lis la proportion.', 'Lance « Fabriquer une feuille » et suis la feuille de la cuve au séchoir.', 'Règle la vitesse de la machine à vapeur et compare avec le travail à la main.', '« Commande de papier » : enchaîne les six gestes dans le bon ordre, trois feuilles, puis livre-les au pupitre, montre en main.', '« Marcher dans l\'atelier » : flèches ou joystick pour avancer, glisse pour regarder.'],
+    keys: 'Flèches : tourner (ou marcher) · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Décrire la fabrication du papier, calculer une proportion et une masse avec la masse volumique, et expliquer ce que l\'usine change au XIXᵉ siècle.',
     hint: 'Pâte à 2 % : 100 g de fibres pour 5 L d\'eau, soit 5 kg d\'eau.',
     why: 'La machine à papier fait passer d\'un artisanat lent à une production industrielle : c\'est le même mouvement que le textile ou la métallurgie.',
@@ -142,7 +157,7 @@ function init() {
   for (let x = -10.9; x <= 12; x += 2.3) if (FENETRES.every((fx) => Math.abs(x - fx) > 1.05)) muet(boite(0.2, 3.9, 0.36, poutreMat, [x, 3.2, -4.15]));
   for (const x of [-9.75, 8.65, 10.9]) { const e = muet(boite(0.14, 3.1, 0.3, poutreMat, [x, 3.15, -4.13])); e.rotation.z = x < 0 ? 0.62 : -0.62; }
   plafond = new THREE.Group(); scene.add(plafond);
-  const plafondM = muet(meshPBR(new THREE.PlaneGeometry(23.4, 11.4), 'brown_planks_09', { couleur: 0x7d5e40, repetition: 8, rugosite: 0.95 }, [0.5, 5.2, 1.4], plafond)); plafondM.rotation.x = Math.PI / 2;
+  const plafondM = muet(meshPBR(new THREE.PlaneGeometry(23.4, 17.4), 'brown_planks_09', { couleur: 0x7d5e40, repetition: 8, rugosite: 0.95 }, [0.5, 5.2, 4.4], plafond)); plafondM.rotation.x = Math.PI / 2;
   for (let x = -10.9; x <= 12; x += 2.3) muet(boite(0.3, 0.32, 11.4, poutreMat, [x, 5.0, 1.4], plafond));
   muet(boite(23.4, 0.34, 0.34, poutreMat, [0.5, 4.98, 1.3], plafond));
   plafond.traverse((c) => { c.castShadow = false; }); // le soleil entre comme si le toit était de verre : la pièce reste lisible
@@ -339,11 +354,56 @@ function init() {
   stations.machine = s6;
   ETAPES.forEach((e, i) => { etiquette((i + 1) + '. ' + e.nom, [e.x, 3.05, 0.3], { hauteur: 0.4 }); });
 
+  // une lumière d'appoint chaude au centre de l'atelier : les bois et les visages restent lisibles loin des fenêtres
+  { const l = new THREE.PointLight(0xfff0dc, 4, 15, 2); l.position.set(0.5, 4.3, 2.2); l.castShadow = false; scene.add(l); }
+
+  /* ---------- Les personnages : la faiseuse de livres à la cuve, l'artisan à la machine ---------- */
+  faiseuse = M.personnage({ nom: 'La faiseuse de livres', phrase: LEGENDES[9].phrase, position: [-2.3, 0, 1.15], taille: 1.52, peau: 0xf1d6c0, haut: 0x7a5a45, bas: 0x4a3a30, cheveux: 0x1c2550, jupe: 0x6b4f3e, tablier: 0xece4d2, vitesse: 1.25, graine: 1 });
+  {
+    const u = 1.52 / 1.7; const g = faiseuse.groupe; const chev = mat(0x1c2550, { rugosite: 0.9 });
+    // les cheveux bleu nuit, attachés en deux nattes qui tombent sur les épaules, et un ruban clair
+    [-1, 1].forEach((s) => { const n = mesh(new THREE.CapsuleGeometry(0.03 * u, 0.26 * u, 4, 8), chev, [s * 0.1 * u, 1.36 * u, -0.06 * u], g); n.rotation.z = s * 0.12; mesh(new THREE.SphereGeometry(0.022 * u, 8, 6), mat(0xe9d9b0, { rugosite: 0.8 }), [s * 0.12 * u, 1.2 * u, -0.07 * u], g); });
+    mesh(new THREE.BoxGeometry(0.2 * u, 0.025 * u, 0.02 * u), mat(0xe9d9b0, { rugosite: 0.8 }), [0, 1.64 * u, 0.1 * u], g);
+    // les manches retroussées, et les mains mouillées (un peu brillantes)
+    ['brasG', 'brasD'].forEach((n) => { mesh(new THREE.CylinderGeometry(0.06 * u, 0.058 * u, 0.06 * u, 10), mat(0xece4d2, { rugosite: 0.9 }), [0, -0.28 * u, 0], faiseuse.membres[n]); mesh(new THREE.SphereGeometry(0.05 * u, 10, 8), mat(0xf1d6c0, { rugosite: 0.35 }), [0, -0.6 * u, 0], faiseuse.membres[n]); });
+    faiseuse.regarder([-3.5, 0, 0]);
+  }
+  artisan = M.personnage({ nom: 'L\'artisan', phrase: LEGENDES[10].phrase, position: [6.0, 0, 1.4], taille: 1.78, peau: 0xd9b48f, haut: 0x3a4a6a, bas: 0x2f2a28, cheveux: 0x3a2a1e, chapeau: 0x5a4632, tablier: 0x6b5a48, vitesse: 1.0, graine: 4 });
+  artisan.regarder([7.4, 0, 0]);
+  const rondeArtisan = [[6.0, 0, 1.4], [9.4, 0, 0.3], [7.8, 0, 1.6]]; let etapeRonde = 0; let prochaineRonde = 9;
+
+  /* ---------- La marche dans l'atelier : murs, stations, meubles ---------- */
+  function collision(x, z) {
+    for (const [sx, r] of [[-6, 1.6], [-3.5, 1.45], [-1, 1.1], [1.5, 1.2]]) if (Math.hypot(x - sx, z) < r) return true; // chiffons, cuve, forme, presse
+    if (Math.abs(x - 4) < 1.7 && Math.abs(z) < 0.9) return true; // séchoir
+    if (x > 5.3 && x < 11.3 && z > -3.5 && z < 0.9) return true; // machine à papier et machine à vapeur
+    if (Math.hypot(x + 9.3, z - 2.0) < 1.25) return true; // tonneaux
+    if (x < -8.3 && z > -3.2 && z < -1.1) return true; // pupitre et tabouret
+    return false;
+  }
+  marche = M.marcher({ depart: [0.5, 0, 4.6], hauteur: 1.6, vitesse: 2.6, limites: { xmin: -10.4, xmax: 11.4, zmin: -3.5, zmax: 5.6 }, collision,
+    aide: 'Flèches ou ZQSD pour marcher, Maj pour presser le pas, glisse pour regarder. Échap : vue libre.',
+    surPas: (dt) => { tempsPas += dt; if (tempsPas > 0.5) { tempsPas = 0; M.son('pas', { volume: 0.1 }); } },
+    surChangement: (actif) => { M.controls.enableRotate = !actif; M.controls.enableZoom = !actif; vise = null; if (actif && vueDessus) basculerDessus(false); const b = panneau && panneau.querySelector('#pa-marcher'); if (b) { b.setAttribute('aria-pressed', String(actif)); b.textContent = actif ? 'Revenir à la vue libre' : 'Marcher dans l\'atelier'; } if (actif) shell.say('Tu marches dans l\'atelier. Flèches ou joystick pour avancer, glisse pour regarder.', 'concentre'); } });
+  document.addEventListener('keydown', (e) => { if (!marche.estActif()) return; if (/^Arrow(Left|Right|Up|Down)$/.test(e.key)) e.preventDefault(); if (e.key === 'Escape') { e.stopPropagation(); marche.desactiver(); } }, true);
+
+  /* ---------- L'ambiance : l'eau de la cuve, la machine et son feu, en fondu selon l'endroit où l'on est ---------- */
+  sons.eau = M.ambiance({ type: 'eau', volume: 0.22 }); sons.machine = M.ambiance({ type: 'machine', volume: 0.05 }); sons.feu = M.ambiance({ type: 'feu', fichier: '../assets/3d/audio/feu-crepitant.ogg', volume: 0.04 });
+
   /* ---------- Le panneau ---------- */
-  panneau = M.panneau(`<h3>Les six étapes</h3>
-    <div class="mb-etapes">${ETAPES.map((e, i) => `<button class="mb-bouton" data-etape="${e.id}" aria-pressed="false"><i>${i + 1}</i>${e.nom}</button>`).join('')}</div>
-    <p class="mb-carte" id="pa-texte">Touche une station, ou choisis-la ici.</p>
-    <details open><summary>Fabriquer une feuille</summary><div>
+  const petit = window.matchMedia('(max-width: 720px)').matches;
+  panneau = M.panneau(`<h3>L'atelier</h3>
+    <p class="mb-carte" id="pa-texte">Touche une station, ou choisis-la ici. La faiseuse de livres t'y rejoint.</p>
+    <div class="mb-groupe"><button class="mb-bouton primaire" id="pa-mission" type="button">Commande de papier</button><button class="mb-bouton" id="pa-marcher" type="button" aria-pressed="false">Marcher dans l'atelier</button></div>
+    <details id="pa-det-gestes" open><summary>Les gestes, dans l'ordre</summary><div>
+      <div class="pa-gestes" role="group" aria-label="Gestes">${NOMS_GESTES.map((n, i) => `<button class="mb-bouton" type="button" data-geste="${i}">${i + 1}. ${n}</button>`).join('')}</div>
+      <div class="mb-mesures"><span>Geste suivant</span><b id="pa-suivant">Puiser</b><span>Feuilles de la commande</span><b id="pa-cmd">0 / ${COMMANDE.feuilles}</b><span>Erreurs d'ordre</span><b id="pa-err">0</b></div>
+      <button class="mb-bouton" id="pa-livrer" type="button" disabled>Livrer au pupitre</button>
+    </div></details>
+    <details id="pa-det-etapes" ${petit ? '' : 'open'}><summary>Les six étapes</summary><div>
+      <div class="mb-etapes">${ETAPES.map((e, i) => `<button class="mb-bouton" data-etape="${e.id}" aria-pressed="false"><i>${i + 1}</i>${e.nom}</button>`).join('')}</div>
+    </div></details>
+    <details ${petit ? '' : 'open'}><summary>Fabriquer une feuille</summary><div>
       <button class="mb-bouton primaire" id="pa-faire">Fabriquer une feuille</button>
       <div class="pa-progres" aria-hidden="true"><i id="pa-barre"></i></div>
       <div class="mb-mesures"><span>Geste en cours</span><b id="pa-geste">Prête</b><span>Feuilles faites</span><b id="pa-n">0</b></div>
@@ -366,8 +426,12 @@ function init() {
   panneau.querySelector('#pa-vs').addEventListener('input', (e) => { vitesse = Number(e.target.value); majMachine(); });
   panneau.querySelector('#pa-faire').addEventListener('click', fabriquer);
   panneau.querySelector('#pa-dessus').addEventListener('click', () => basculerDessus(!vueDessus));
-  panneau.querySelector('#pa-ensemble').addEventListener('click', () => { basculerDessus(false); vise = { pos: new THREE.Vector3(1, 4.8, 12), cible: new THREE.Vector3(0.5, 1.2, 0) }; });
-  majPate(); majMachine(); majPile();
+  panneau.querySelector('#pa-ensemble').addEventListener('click', () => { if (marche.estActif()) marche.desactiver(); basculerDessus(false); vise = { pos: new THREE.Vector3(1, 4.8, 12), cible: new THREE.Vector3(0.5, 1.2, 0) }; });
+  panneau.querySelectorAll('[data-geste]').forEach((b) => b.addEventListener('click', () => geste(Number(b.getAttribute('data-geste')))));
+  panneau.querySelector('#pa-mission').addEventListener('click', lancerMission);
+  panneau.querySelector('#pa-marcher').addEventListener('click', () => marche.bascule());
+  panneau.querySelector('#pa-livrer').addEventListener('click', livrer);
+  majPate(); majMachine(); majPile(); majGestes();
   stationParLegende();
   M.renderer.domElement.addEventListener('pointerdown', () => { vise = null; });
 
@@ -388,24 +452,40 @@ function init() {
     lanternes.forEach((l, i) => { const f = 1 + 0.12 * Math.sin(t * 9 + i * 2) + 0.06 * Math.sin(t * 23 + i); l.lum.intensity = l.base * f; l.flamme.material.emissiveIntensity = 3.2 * f; });
     if (moteurG) { moteurG.userData.foyer.material.emissiveIntensity = 2.2 + 0.5 * Math.sin(t * 6.3); moteurG.userData.feu.intensity = 5 + 1.5 * Math.sin(t * 6.3); }
     if (poussiere) { const p = poussiere.geometry.attributes.position; for (let i = 0; i < p.count; i += 1) { p.setY(i, p.getY(i) + Math.sin(t * 0.4 + i) * 0.0006); p.setX(i, p.getX(i) + Math.cos(t * 0.3 + i * 0.7) * 0.0005); } p.needsUpdate = true; }
-    if (vise) { const k = 1 - Math.exp(-4.5 * dt); M.camera.position.lerp(vise.pos, k); M.controls.target.lerp(vise.cible, k); if (M.camera.position.distanceTo(vise.pos) < 0.02) vise = null; }
+    if (vise && !marche.estActif()) { const k = 1 - Math.exp(-4.5 * dt); M.camera.position.lerp(vise.pos, k); M.controls.target.lerp(vise.cible, k); if (M.camera.position.distanceTo(vise.pos) < 0.02) vise = null; }
     if (sequence) avancerSequence(dt);
+    // la faiseuse remue la pâte quand elle est à la cuve ; l'artisan fait sa ronde autour de la machine
+    if (faiseuse && Math.hypot(faiseuse.position().x + 2.3, faiseuse.position().z - 1.15) < 0.2 && !sequence) { faiseuse.membres.brasD.rotation.x = -0.9 + 0.3 * Math.sin(t * 2.4); faiseuse.membres.brasG.rotation.x = -0.6 + 0.2 * Math.sin(t * 2.4 + 1.2); }
+    if (artisan) { prochaineRonde -= dt; if (prochaineRonde < 0) { etapeRonde = (etapeRonde + 1) % rondeArtisan.length; artisan.allerA(rondeArtisan[etapeRonde]); prochaineRonde = 9 + Math.random() * 6; } }
+    // le fondu des ambiances selon l'endroit : l'eau près de la cuve, la machine et son feu à droite
+    tSon += dt; if (tSon > 0.4) { tSon = 0; const x = M.camera.position.x; const k = Math.max(0, Math.min(1, (x - 1.5) / 5)); sons.eau.volume(0.04 + 0.2 * (1 - k)); sons.machine.volume(0.04 + 0.26 * k * Math.min(1, vitesse / 8 + 0.4)); sons.feu.volume(0.03 + 0.14 * k); }
     void tmp;
   });
+  // pour les essais automatiques : toucher un objet par son nom de légende, faire un geste, lire la mission
+  window.__monde = { avancer: (s) => { for (let k = 0; k < Math.ceil((s || 1) / 0.05) && sequence; k += 1) avancerSequence(0.05); }, toucher, geste, livrer, lancerMission, collision, mission: () => mission, marche: () => marche, faiseuse: () => faiseuse, artisan: () => artisan, attendu: () => attendu, sequence: () => sequence };
 }
 
 /* ---------- Choisir une station : par le panneau ou en touchant sa légende ---------- */
 function stationParLegende() {
-  M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; const e = ETAPES.find((x) => x.nom === nom); if (e) choisir(e.id, true); }, 30); });
+  M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; toucher(nom); }, 30); });
+}
+/* Ce qui est touché dans l'atelier : une station, un personnage, le pupitre de livraison. */
+function toucher(nom) {
+  const e = ETAPES.find((x) => x.nom === nom); if (e) { choisir(e.id, true); return; }
+  if (nom === 'La faiseuse de livres' && faiseuse) { const s = ETAPES.find((x) => x.id === etape); faiseuse.dire(s ? s.texte.split('. ').slice(0, 2).join('. ') + '.' : 'Bonjour. Choisis une station : je t\'y rejoins et je t\'explique.', 6); return; }
+  if (nom === 'L\'artisan' && artisan) { artisan.regarder(M.camera.position); artisan.dire(sequence || !commande ? 'La vapeur pousse le piston, le volant tourne, la courroie entraîne la toile : le papier sort sans fin.' : 'Trois feuilles à la main, ça se mérite. Ma machine, elle, n\'a pas de gestes à apprendre.', 6); return; }
+  if (nom === 'Pupitre') livrer();
 }
 function choisir(id, sansCamera) {
   etape = id; const e = ETAPES.find((x) => x.id === id);
   panneau.querySelectorAll('[data-etape]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-etape') === id)));
   panneau.querySelector('#pa-texte').textContent = e.texte;
-  if (!sansCamera && !vueDessus) vise = { pos: new THREE.Vector3(e.x + 2.6, 3.0, 5.4), cible: new THREE.Vector3(e.x, 1.1, 0) };
-  shell.say(e.texte, 'concentre');
+  if (!sansCamera && !vueDessus && !marche.estActif()) vise = { pos: new THREE.Vector3(e.x + 2.6, 3.0, 5.4), cible: new THREE.Vector3(e.x, 1.1, 0) };
+  if (faiseuse) { faiseuse.allerA([e.x + (id === 'machine' ? -2.4 : 1.2), 0, 1.15]); const attendre = () => { const p = faiseuse.position(); if (Math.abs(p.x - (e.x + (id === 'machine' ? -2.4 : 1.2))) > 0.1) { setTimeout(attendre, 120); return; } faiseuse.regarder(M.camera.position); faiseuse.dire(e.texte.split('. ')[0] + '.', 5); }; setTimeout(attendre, 150); }
+  else shell.say(e.texte, 'concentre');
 }
 function basculerDessus(actif) {
+  if (actif && marche.estActif()) marche.desactiver();
   vueDessus = actif; plafond.visible = !actif;
   panneau.querySelector('#pa-dessus').setAttribute('aria-pressed', String(actif));
   if (actif) vise = { pos: new THREE.Vector3(0.6, 17, 1.6), cible: new THREE.Vector3(0.5, 0, 0.2) };
@@ -442,8 +522,42 @@ const GESTES = [
 ];
 function fabriquer() {
   if (sequence) return;
+  if (commande && mission && !mission.estFinie()) { shell.toast ? shell.toast('Pendant la commande, c\'est toi qui fais les gestes, un par un.', 2600) : shell.say('Pendant la commande, c\'est toi qui fais les gestes, un par un.', 'concentre'); return; }
   sequence = { i: 0, t: 0 }; panneau.querySelector('#pa-faire').disabled = true; panneau.querySelector('#pa-faire').textContent = 'Fabrication en cours';
   choisirGeste(0);
+}
+/* Un geste à la fois, dans l'ordre : Puiser, Plonger, Égoutter, Coucher, Presser, Sécher. Le mauvais compte une erreur. */
+function geste(i) {
+  if (sequence) { shell.say('Attends la fin du geste en cours.', 'concentre'); return false; }
+  if (i !== attendu) {
+    if (commande) commande.erreurs += 1; M.son('coup', { volume: 0.2 }); majGestes();
+    const msg = 'Pas encore : le geste suivant, c\'est « ' + NOMS_GESTES[attendu] + ' ».';
+    if (faiseuse) faiseuse.dire(msg, 3); else shell.say(msg, 'rassurant');
+    return false;
+  }
+  M.son(i === 1 ? 'splash' : i === 4 ? 'coup' : 'clic', { volume: i === 1 ? 0.25 : 0.15 });
+  sequence = { i, t: 0, seul: true }; choisirGeste(i);
+  if (faiseuse && i === 0) { faiseuse.allerA([-2.3, 0, 1.15]); }
+  return true;
+}
+function majGestes() {
+  panneau.querySelector('#pa-suivant').textContent = NOMS_GESTES[attendu];
+  panneau.querySelectorAll('[data-geste]').forEach((b) => b.classList.toggle('suivant', Number(b.getAttribute('data-geste')) === attendu));
+  panneau.querySelector('#pa-cmd').textContent = (commande ? commande.feuilles : 0) + ' / ' + COMMANDE.feuilles;
+  panneau.querySelector('#pa-err').textContent = String(commande ? commande.erreurs : 0);
+  panneau.querySelector('#pa-livrer').disabled = !(commande && commande.feuilles >= COMMANDE.feuilles && mission && !mission.estFinie());
+}
+function feuilleTerminee() {
+  feuillesFaites += 1; majPile(); attendu = 0;
+  formeG.position.copy(REPOS); formeG.rotation.z = 0.22; feuilleForme.visible = false; feuilleTransit.visible = false;
+  panneau.querySelector('#pa-geste').textContent = 'Feuille au séchoir'; panneau.querySelector('#pa-barre').style.width = '100%';
+  if (commande && mission && !mission.estFinie() && commande.feuilles < COMMANDE.feuilles) {
+    commande.feuilles += 1; const pts = Math.max(40, 100 - 20 * (commande.erreurs - commande.erreursComptees)); commande.erreursComptees = commande.erreurs;
+    mission.valider('f' + commande.feuilles, pts);
+    const reste = COMMANDE.feuilles - commande.feuilles;
+    if (faiseuse) faiseuse.dire(reste > 0 ? 'Une de faite. Encore ' + reste + ' feuille' + (reste > 1 ? 's' : '') + ', dans le même ordre.' : 'Les trois feuilles sont au séchoir. Porte-les au pupitre, à gauche.', 5);
+  } else shell.say('Une feuille de plus au séchoir. Six gestes pour une feuille : la machine, elle, ne s\'arrête jamais.', 'fier');
+  majGestes();
 }
 function choisirGeste(i) {
   const g = GESTES[i]; panneau.querySelector('#pa-geste').textContent = g.nom;
@@ -455,19 +569,53 @@ function avancerSequence(dt) {
   panneau.querySelector('#pa-barre').style.width = Math.round((sequence.i + p) / GESTES.length * 100) + '%';
   if (p >= 1) {
     if (g.fin) g.fin();
+    if (sequence.seul) {
+      const fait = sequence.i; sequence = null;
+      if (fait >= GESTES.length - 1) feuilleTerminee();
+      else { attendu = fait + 1; panneau.querySelector('#pa-geste').textContent = 'Suivant : ' + NOMS_GESTES[attendu]; majGestes(); }
+      return;
+    }
     sequence.i += 1; sequence.t = 0;
     if (sequence.i >= GESTES.length) {
-      sequence = null; feuillesFaites += 1; majPile();
-      formeG.position.copy(REPOS); formeG.rotation.z = 0.22; feuilleForme.visible = false; feuilleTransit.visible = false;
+      sequence = null;
       const b = panneau.querySelector('#pa-faire'); b.disabled = false; b.textContent = 'Fabriquer une feuille';
-      panneau.querySelector('#pa-geste').textContent = 'Feuille au séchoir'; panneau.querySelector('#pa-barre').style.width = '100%';
-      shell.say('Une feuille de plus au séchoir. Cinq gestes pour une feuille : la machine, elle, ne s\'arrête jamais.', 'fier');
+      feuilleTerminee();
     } else choisirGeste(sequence.i);
   }
 }
+/* ---------- La commande de papier : trois feuilles à la main, dans l'ordre, puis la livraison au pupitre ---------- */
+function lancerMission() {
+  if (mission && !mission.estFinie()) { shell.say('La commande est en cours : ' + (COMMANDE.feuilles - commande.feuilles) + ' feuille(s) à faire.', 'concentre'); mission.montrer(); return; }
+  if (sequence) { shell.say('Attends la fin du geste en cours.', 'concentre'); return; }
+  if (!mission) {
+    mission = M.mission({
+      titre: 'Commande de papier', cachee: true, chrono: true, chronoMax: COMMANDE.secondes, chronoCible: COMMANDE.cible, gagner: modeJeu !== 'cours',
+      intro: 'Commande : trois feuilles à la main en quatre minutes. Six gestes dans l\'ordre pour chaque feuille : puiser, plonger, égoutter, coucher, presser, sécher. Puis livre-les au pupitre.',
+      objectifs: [{ id: 'f1', texte: 'Feuille 1 sur 3' }, { id: 'f2', texte: 'Feuille 2 sur 3' }, { id: 'f3', texte: 'Feuille 3 sur 3' }, { id: 'livrer', texte: 'Livrer au pupitre' }],
+      bravo: 'Commande livrée : six gestes, trois fois, sans se tromper d\'ordre ou presque.',
+      surFin: (reussie, secondes, score) => {
+        const t = Math.round(secondes); const err = commande ? commande.erreurs : 0;
+        const txt = reussie ? 'Commande livrée en ' + Math.floor(t / 60) + ' min ' + (t % 60) + ' s, ' + err + ' erreur' + (err > 1 ? 's' : '') + ' d\'ordre.' : 'Le temps est écoulé : la commande attendra.';
+        if (faiseuse) faiseuse.dire(reussie ? 'Merci. Trois feuilles, c\'est un début de livre.' : 'Pas grave : on recommencera la commande.', 6);
+        if (modeJeu === 'cours' && apiJeu) { apiJeu.say(txt + ' ' + score + ' points de plus.', reussie ? 'fier' : 'rassurant'); if (reussie) apiJeu.celebrate(); setTimeout(() => mission.cacher(), 9000); }
+        majGestes();
+      },
+    });
+  }
+  commande = { feuilles: 0, erreurs: 0, erreursComptees: 0 }; attendu = 0; mission.montrer(); mission.commencer(); majGestes();
+  if (faiseuse) { faiseuse.allerA([-2.3, 0, 1.15]); faiseuse.dire('Trois feuilles. Commence par puiser la pâte avec la forme.', 5); }
+}
+function livrer() {
+  if (!commande || !mission || mission.estFinie()) { shell.say('Il n\'y a pas de commande en cours. Lance « Commande de papier ».', 'concentre'); return false; }
+  if (commande.feuilles < COMMANDE.feuilles) { const r = COMMANDE.feuilles - commande.feuilles; shell.say('Il manque encore ' + r + ' feuille' + (r > 1 ? 's' : '') + ' avant de livrer.', 'concentre'); return false; }
+  if (faiseuse) faiseuse.allerA([-8.0, 0, -1.0]);
+  mission.valider('livrer', 100); majGestes(); return true;
+}
 
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Visite les six stations dans l\'ordre, fabrique une feuille, puis règle la pâte et la machine.', 'joyeux'); return; }
+  modeJeu = mode; apiJeu = api;
+  if (faiseuse) { faiseuse.regarder(M.camera.position); setTimeout(() => faiseuse.dire('Bienvenue dans l\'atelier. Touche une station, je t\'explique.', 5), 900); }
+  if (mode !== 'cours') { api.say('Visite les six stations dans l\'ordre, fabrique une feuille, puis règle la pâte et la machine. La commande de papier démarre dans quelques secondes.', 'joyeux'); setTimeout(() => { if (!mission || mission.estFinie()) lancerMission(); }, 7000); return; }
   const ouvrir = (id) => () => { const d = panneau.querySelector(id); if (d) d.open = true; };
   api.defis([
     { type: 'toucher', texte: 'Touche la <b>forme</b>, le tamis qui donne sa forme à la feuille.', cible: 'Forme (tamis)', explication: 'La forme retient les fibres et laisse passer l\'eau : c\'est elle qui fait la feuille, une à la fois.' },

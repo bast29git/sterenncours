@@ -20,7 +20,16 @@
   .mb-panneau .mb-mesures b { text-align: right; }
   .ap-couches { display: flex; flex-direction: column-reverse; gap: 2px; border: 1px solid var(--border); border-radius: 8px; padding: 4px; min-height: 30px; background: var(--surface-2); }
   .ap-couches span { display: flex; justify-content: space-between; padding: 3px 8px; border-radius: 5px; font-size: 12px; font-weight: 700; color: #1a1200; }
-  @media (max-width: 720px) { .mb-groupe .mb-bouton { font-size: 12px; min-height: 32px; padding: 3px 6px; } }
+  .ap-ordre { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+  .ap-ordre .mb-bouton { min-height: 36px; padding: 4px 6px; text-align: center; font-size: 12.5px; }
+  .ap-ordre .mb-bouton.fait { opacity: .55; }
+  @media (max-width: 720px) {
+    .mb-groupe .mb-bouton { font-size: 12px; min-height: 32px; padding: 3px 6px; }
+    div.mb-panneau { width: min(196px, 50vw); max-height: 46%; }
+    section.mb-mission { width: min(168px, 43vw); font-size: 11.5px; } section.mb-mission li { padding: 3px 5px; }
+    div.mb-stick { bottom: 118px; width: 104px; height: 104px; } div.mb-stick i { left: 27px; top: 27px; }
+    div.mb-aide-marche { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -37,6 +46,15 @@ let total = 200, pourcent = 15, liquide = 'eau', volume = 100, plante = 'menthe'
 let M, panneau, bocaux = {}, flacon, balance, bol, contenuBol, tas, poidsMeshes = [], boitePoids, pesee = null, equilibre = 0;
 let bocalDensites, couches = {}, dansBocal = { eau: false, huile: false, miel: false };
 let four, chauffe = null, cuisson = 0, sucre, vapeurs = [], bougie, feu, lumiereOmbre = null, logicielGlobal = false;
+let apothicaire = null, clients = [], marche = null, mission = null, modeJeu = 'detente', apiJeu = null, horloge = null;
+let peseeFaite = null; let melange = { etapes: [], liquide: null, volume: 0, remue: 0, plante: null, masse: 0 }; let liquideBol = null; let cuillereBol = null;
+let numCommande = -1; let erreurs = 0; const sons = {}; let tempsPas = 0; let phaseTic = 1;
+/* Les trois commandes des clients : une plante, une masse totale et un pourcentage à peser, un liquide et un volume à verser. */
+const COMMANDES = [
+  { plante: 'menthe', total: 200, pct: 15, liquide: 'eau', volume: 100, nom: 'sirop de menthe', texte: 'Un sirop de menthe pour la digestion : 200 g à 15 % de plante, à mélanger dans 100 mL d\'eau.' },
+  { plante: 'camomille', total: 300, pct: 10, liquide: 'miel', volume: 50, nom: 'préparation de camomille', texte: 'Une préparation de camomille pour le sommeil : 300 g à 10 % de plante, dans 50 mL de miel.' },
+  { plante: 'thym', total: 250, pct: 20, liquide: 'huile', volume: 150, nom: 'baume au thym', texte: 'Un baume au thym pour la toux : 250 g à 20 % de plante, dans 150 mL d\'huile.' },
+];
 /** L'ombre de la bougie (six rendus par image) : seulement au cran haut, jamais en rendu logiciel. */
 function ombresPonctuelles(actif) { if (lumiereOmbre) lumiereOmbre.castShadow = !!actif && !logicielGlobal; }
 const LEGENDES = [
@@ -52,15 +70,19 @@ const LEGENDES = [
   { nom: 'Flacons', phrase: 'Des teintures : une plante qui a macéré dans un liquide. Un mélange, qu\'on peut filtrer.' },
   { nom: 'Herbes séchées', phrase: 'Les plantes sèchent la tête en bas, à l\'abri du soleil, avant d\'être rangées.' },
   { nom: 'Bougie', phrase: 'La cire fond (changement d\'état) puis brûle (transformation chimique) : deux phénomènes dans une flamme.' },
+  { nom: 'L\'apothicaire', phrase: 'Derrière le comptoir, elle pèse, dose et mélange. Touche-la : elle commente la pesée en cours.' },
+  { nom: 'Le client', phrase: 'Il entre, demande un remède, attend sa préparation et repart. Touche-le : il répète sa commande.' },
+  { nom: 'Horloge', phrase: 'Le balancier bat la seconde : on compte le temps de cuisson d\'un sirop à l\'horloge.' },
+  { nom: 'Porte', phrase: 'La porte de la boutique : une clochette sonne quand un client entre.' },
 ]);
 const shell = window.Konstrio.createGame({
   id: '3d-23-apothicairerie', code: '3D·23', title: 'L\'apothicairerie', type: '3D', duree: '12 min',
   domain: { label: 'Physique · Maths', color: '#1E8C7A' },
   intro: {
-    greet: 'Une étagère de plantes, une balance, une éprouvette. Dose un sirop en pourcentage et pèse un liquide avec sa masse volumique.',
+    greet: 'Une étagère de plantes, une balance, une éprouvette, et l\'apothicaire derrière son comptoir. Dose un sirop en pourcentage et pèse un liquide avec sa masse volumique.',
     rule: 'Règle la masse totale du sirop et le pourcentage de plante : la balance te dit combien peser, et les poids le prouvent. Choisis un liquide et un volume : la masse volumique donne la masse. Verse trois liquides dans un même bocal, et chauffe du sucre au fourneau.',
-    how: ['Touche un bocal, la balance, l\'éprouvette ou le fourneau : chaque objet a sa légende.', 'Règle la masse totale et le pourcentage, puis pèse avec les poids.', 'Choisis un liquide et un volume : lis la masse pesée.', 'Verse eau, huile et miel dans le bocal des densités, et chauffe le sucre.'],
-    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    how: ['Touche un bocal, la balance, l\'éprouvette ou le fourneau : chaque objet a sa légende. L\'apothicaire commente.', 'Règle la masse totale et le pourcentage, puis pèse avec les poids.', 'Choisis un liquide et un volume : lis la masse pesée.', 'Verse eau, huile et miel dans le bocal des densités, et chauffe le sucre.', '« Commandes des clients » : trois clients entrent l\'un après l\'autre. Règle, pèse, verse la plante puis le liquide, remue, et donne la préparation, montre en main.', '« Marcher dans la boutique » : flèches ou joystick pour avancer, glisse pour regarder.'],
+    keys: 'Flèches : tourner (ou marcher) · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Calculer un pourcentage d\'une masse, utiliser une masse volumique, distinguer mélange et transformation chimique.',
     hint: 'Masse = masse volumique × volume. 15 % de 200 g, c\'est 200 × 15 ÷ 100.',
     why: 'Un pharmacien dose encore ainsi : une proportion, une masse volumique, une balance.',
@@ -285,9 +307,75 @@ function init() {
   meshPBR(new THREE.CylinderGeometry(0.34, 0.26, 0.4, 16, 1, true), 'brown_planks_09', { couleur: 0xb08a5c, repetition: 3, rugosite: 1 }, [0, 0.2, 0], panier).material.side = THREE.DoubleSide; cyl(0.26, 0.26, 0.03, 16, boisMoyen, [0, 0.015, 0], panier);
   for (let i = 0; i < 6; i += 1) { const r = cyl(0.03, 0.02, 0.4, 7, mat(0x9a7a4a, { rugosite: 1 }), [(Math.random() - 0.5) * 0.3, 0.42, (Math.random() - 0.5) * 0.3], panier); r.rotation.set((Math.random() - 0.5) * 1.2, Math.random() * 3, (Math.random() - 0.5) * 1.2); }
   panier.traverse((c) => { c.userData.legende = panier.userData.legende; });
+  // le liquide dans le bol de mélange, et la cuillère qui remue (cachés tant qu'on n'a rien versé)
+  liquideBol = mesh(new THREE.CylinderGeometry(0.42, 0.34, 0.1, 24), matPhysique({ couleur: LIQUIDES.eau.couleur, transmission: 0.5, rugosite: 0.1, epaisseur: 0.2, opacite: 0.9 }), [0, 0.27, 0], bol); liquideBol.visible = false; liquideBol.castShadow = false;
+  cuillereBol = bol.children.find((c) => c.isGroup);
+
+  // une lumière d'appoint chaude au-dessus du comptoir : la balance, le bol et les mains restent lisibles
+  { const l = new THREE.PointLight(0xfff0dc, 5, 10, 2); l.position.set(-0.4, 3.5, 1.2); l.castShadow = false; scene.add(l); }
+
+  /* ---------- La porte de la boutique, à droite, et son carillon ---------- */
+  const porte = new THREE.Group(); scene.add(porte); porte.position.set(5.84, 0, 3.6); porte.rotation.y = -Math.PI / 2; legender(porte, 'Porte', LEGENDES[18].phrase);
+  muet(boite(1.1, 2.3, 0.06, mat(0x2a2420, { rugosite: 1 }), [0, 1.15, 0.02], porte));
+  muet(boite(1.3, 0.12, 0.2, boisFonce, [0, 2.36, 0.06], porte)); for (const dx of [-0.6, 0.6]) muet(boite(0.12, 2.4, 0.2, boisFonce, [dx, 1.2, 0.06], porte));
+  const battant = meshPBR(new THREE.BoxGeometry(1.0, 2.2, 0.06), 'wood_table_001', boisTable(1, false), [0, 0, 0], porte); battant.geometry.translate(0.5, 1.1, 0); battant.position.set(-0.52, 0, 0.1); battant.rotation.y = -1.2;
+  mesh(new THREE.SphereGeometry(0.035, 10, 8), laiton, [0.9, 1.1, 0.06], battant);
+  const carillon = mesh(new THREE.ConeGeometry(0.06, 0.09, 12, 1, true), laiton, [0.4, 2.2, 0.16], porte); carillon.material.side = THREE.DoubleSide; porte.userData.carillon = carillon;
+
+  /* ---------- L'horloge à balancier, sur le mur de gauche ---------- */
+  horloge = new THREE.Group(); scene.add(horloge); horloge.position.set(-5.83, 2.75, -0.2); horloge.rotation.y = Math.PI / 2; legender(horloge, 'Horloge', LEGENDES[17].phrase);
+  meshPBR(new THREE.BoxGeometry(0.42, 1.0, 0.14), 'wood_table_001', boisTable(1, false), [0, -0.1, 0], horloge);
+  cyl(0.15, 0.15, 0.02, 24, mat(0xf4ecd8, { rugosite: 0.5 }), [0, 0.22, 0.075], horloge).rotation.x = Math.PI / 2;
+  mesh(new THREE.TorusGeometry(0.15, 0.012, 6, 24), laiton, [0, 0.22, 0.08], horloge);
+  const aigH = boite(0.012, 0.09, 0.008, mat(0x1a1a1a, { rugosite: 0.5 }), [0, 0.26, 0.09], horloge); aigH.rotation.z = -0.8;
+  const aigM = boite(0.01, 0.13, 0.008, mat(0x1a1a1a, { rugosite: 0.5 }), [0, 0.28, 0.092], horloge); aigM.rotation.z = 0.3;
+  const balancier = new THREE.Group(); balancier.position.set(0, 0.05, 0.06); horloge.add(balancier); horloge.userData.balancier = balancier;
+  cyl(0.006, 0.006, 0.5, 6, laiton, [0, -0.25, 0], balancier); cyl(0.05, 0.05, 0.015, 16, laiton, [0, -0.5, 0], balancier).rotation.x = Math.PI / 2;
+
+  /* ---------- Les personnages : l'apothicaire derrière le comptoir, trois clients qui entreront par la porte ---------- */
+  apothicaire = M.personnage({ nom: 'L\'apothicaire', phrase: LEGENDES[15].phrase, position: [-1.7, 0, -1.35], taille: 1.66, peau: 0xf0d4bc, haut: 0x4a6a5e, bas: 0x3a4a44, cheveux: 0x241a18, jupe: 0x3f5048, tablier: 0xeee6d6, vitesse: 1.1, graine: 3 });
+  {
+    const u = 1.66 / 1.7; const g = apothicaire.groupe; const chev = mat(0x241a18, { rugosite: 0.9 });
+    // les cheveux sombres relevés en chignon, deux mèches qui tombent, un ruban vert et un petit sachet de plantes à la ceinture
+    mesh(new THREE.SphereGeometry(0.07 * u, 12, 10), chev, [0, 1.66 * u, -0.08 * u], g);
+    [-1, 1].forEach((s) => { const m = mesh(new THREE.CapsuleGeometry(0.02 * u, 0.16 * u, 4, 8), chev, [s * 0.11 * u, 1.5 * u, 0.04 * u], g); m.rotation.z = s * 0.1; });
+    mesh(new THREE.BoxGeometry(0.16 * u, 0.02 * u, 0.02 * u), mat(0x6fae8a, { rugosite: 0.8 }), [0, 1.665 * u, 0.0], g);
+    mesh(new THREE.SphereGeometry(0.05 * u, 10, 8), mat(0xb8a070, { rugosite: 1 }), [-0.16 * u, 0.9 * u, 0.1 * u], g).scale.set(1, 1.3, 0.7);
+    ['brasG', 'brasD'].forEach((n) => mesh(new THREE.CylinderGeometry(0.06 * u, 0.058 * u, 0.06 * u, 10), mat(0xeee6d6, { rugosite: 0.9 }), [0, -0.3 * u, 0], apothicaire.membres[n]));
+    apothicaire.regarder([0, 0, 6]);
+  }
+  const tenues = [{ haut: 0x5a3a2a, bas: 0x2f2a28, cheveux: 0x4a3a2a, chapeau: 0x3a2a1e, peau: 0xe6c3a5, taille: 1.76 }, { haut: 0x6b4a7a, bas: 0x3a3a4a, cheveux: 0xd8cfc0, jupe: 0x5a3f6a, peau: 0xf0d6c0, taille: 1.62 }, { haut: 0x2e5a7a, bas: 0x4a3a30, cheveux: 0x1e1a18, peau: 0xc99a74, taille: 1.4 }];
+  clients = tenues.map((t, i) => { const c = M.personnage(Object.assign({ nom: 'Le client', phrase: LEGENDES[16].phrase, position: [5.4, 0, 3.6], vitesse: 1.2, graine: 5 + i }, t)); c.groupe.visible = false; return c; });
+
+  /* ---------- La marche dans la boutique : murs, comptoir, fourneau, meubles ---------- */
+  function collision(x, z) {
+    if (Math.abs(x) < 4.3 && Math.abs(z) < 1.3) return true; // le comptoir
+    if (z < -1.55) return true; // le meuble à tiroirs
+    if (Math.hypot(x - 4.9, z + 1.3) < 1.05) return true; // le fourneau
+    if (Math.hypot(x + 4.6, z - 1.6) < 0.45) return true; // le tabouret
+    if (Math.hypot(x - 4.9, z - 1.4) < 0.5) return true; // le panier
+    return false;
+  }
+  marche = M.marcher({ depart: [0.6, 0, 5.4], hauteur: 1.6, vitesse: 2.4, limites: { xmin: -5.5, xmax: 5.5, zmin: -2.3, zmax: 6.8 }, collision,
+    aide: 'Flèches ou ZQSD pour marcher, Maj pour presser le pas, glisse pour regarder. Échap : vue libre.',
+    surPas: (dt) => { tempsPas += dt; if (tempsPas > 0.5) { tempsPas = 0; M.son('pas', { volume: 0.1 }); } },
+    surChangement: (actif) => { M.controls.enableRotate = !actif; M.controls.enableZoom = !actif; const b = panneau && panneau.querySelector('#ap-marcher'); if (b) { b.setAttribute('aria-pressed', String(actif)); b.textContent = actif ? 'Revenir à la vue libre' : 'Marcher dans la boutique'; } if (actif) shell.say('Tu marches dans la boutique. Flèches ou joystick pour avancer, glisse pour regarder.', 'concentre'); } });
+  document.addEventListener('keydown', (e) => { if (!marche.estActif()) return; if (/^Arrow(Left|Right|Up|Down)$/.test(e.key)) e.preventDefault(); if (e.key === 'Escape') { e.stopPropagation(); marche.desactiver(); } }, true);
+
+  /* ---------- L'ambiance : une salle calme, le feu du fourneau, le balancier, la clochette de la porte ---------- */
+  sons.salle = M.ambiance({ type: 'salle', volume: 0.1 }); sons.feu = M.ambiance({ type: 'feu', fichier: '../assets/3d/audio/feu-crepitant.ogg', volume: 0.08 });
 
   /* ---------- Le panneau ---------- */
-  panneau = M.panneau(`<h3>Le sirop</h3>
+  const petit = window.matchMedia('(max-width: 720px)').matches;
+  panneau = M.panneau(`<h3>La boutique</h3>
+    <div class="mb-groupe"><button class="mb-bouton primaire" id="ap-mission" type="button">Commandes des clients</button><button class="mb-bouton" id="ap-marcher" type="button" aria-pressed="false">Marcher dans la boutique</button></div>
+    <details id="ap-det-cmd" open><summary>La commande en cours</summary><div>
+      <p class="mb-carte" id="ap-commande">Aucun client pour l'instant. Lance les commandes : le premier entre.</p>
+      <div class="ap-ordre" role="group" aria-label="Mélange, dans l'ordre"><button class="mb-bouton" type="button" data-mel="plante">1. Plante</button><button class="mb-bouton" type="button" data-mel="liquide">2. Liquide</button><button class="mb-bouton" type="button" data-mel="remuer">3. Remuer</button></div>
+      <div class="mb-mesures"><span>Dans le bol</span><b id="ap-bol">vide</b><span>Erreurs</span><b id="ap-err">0</b></div>
+      <button class="mb-bouton" id="ap-donner" type="button">Donner au client</button>
+    </div></details>
+    <h3>Le sirop</h3>
     <div class="mb-groupe" role="group" aria-label="Plante">${PLANTES.map((p) => `<button class="mb-bouton" data-plante="${p.id}" aria-pressed="${p.id === plante}">${p.nom}</button>`).join('')}</div>
     <label>Masse totale <span class="mb-val" id="ap-t">${total} g</span><input class="mb-plage" id="ap-ts" type="range" min="100" max="500" step="10" value="${total}" aria-label="Masse totale du sirop"></label>
     <label>Part de plante <span class="mb-val" id="ap-p">${pourcent} %</span><input class="mb-plage" id="ap-ps" type="range" min="5" max="30" step="1" value="${pourcent}" aria-label="Pourcentage de plante"></label>
@@ -318,7 +406,13 @@ function init() {
   panneau.querySelector('#ap-vs').addEventListener('input', (e) => { volume = Number(e.target.value); maj(false); });
   panneau.querySelector('#ap-peser').addEventListener('click', peser);
   panneau.querySelector('#ap-chauffer').addEventListener('click', chaufferOuRemettre);
-  maj(true); majBocal(); majFour();
+  panneau.querySelectorAll('[data-mel]').forEach((b) => b.addEventListener('click', () => verser(b.getAttribute('data-mel'))));
+  panneau.querySelector('#ap-mission').addEventListener('click', lancerMission);
+  panneau.querySelector('#ap-marcher').addEventListener('click', () => marche.bascule());
+  panneau.querySelector('#ap-donner').addEventListener('click', donner);
+  if (petit) ['#ap-det-liq', '#ap-det-dens', '#ap-det-four'].forEach((id) => { panneau.querySelector(id).open = false; });
+  M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; toucher(nom); }, 30); });
+  maj(true); majBocal(); majFour(); majMelange();
 
   /* ---------- La boucle : flammes, pesée, cuisson, vapeur ---------- */
   M.boucle((dt, t) => {
@@ -329,7 +423,117 @@ function init() {
     Object.values(plateaux).forEach((p) => { p.rotation.z = -fleau.rotation.z; });
     if (chauffe) { cuisson = Math.min(1, cuisson + dt / 7); majFour(); if (cuisson >= 1) { chauffe = null; majFour(); } }
     const actif = cuisson > 0.15; vapeurs.forEach((v, i) => { const ph = ((t * 0.45 + i * 0.4) % 2); v.position.set(0.1 * Math.sin(t + i), 1.42 + ph * 0.9, 0.08 * Math.cos(t * 0.7 + i)); v.scale.setScalar(0.6 + ph * 0.8); v.material.opacity = actif ? 0.3 * (1 - ph / 2) * Math.min(1, (cuisson - 0.15) * 4) : 0; });
+    // le balancier bat la seconde ; le feu s'entend plus fort quand on chauffe
+    if (horloge) { const b = horloge.userData.balancier; b.rotation.z = 0.22 * Math.sin(t * Math.PI); const ph = Math.sign(Math.cos(t * Math.PI)); if (ph !== phaseTic) { phaseTic = ph; M.son('tic', { volume: 0.035, frequence: ph > 0 ? 1500 : 1250 }); } }
+    if (sons.feu && Math.floor(t * 2) !== Math.floor((t - dt) * 2)) sons.feu.volume(chauffe ? 0.2 : 0.08);
+    // l'apothicaire pile au mortier quand elle n'a rien d'autre à faire ; la cuillère remue
+    if (apothicaire && !pesee && !melange.remue) { apothicaire.membres.brasD.rotation.x = -1.0 + 0.18 * Math.sin(t * 5); apothicaire.membres.brasG.rotation.x = -0.5; }
+    if (melange.remue > 0) { cuillereBol.rotation.y += dt * 6; cuillereBol.position.x = 0.15 * Math.cos(t * 6); cuillereBol.position.z = 0.15 * Math.sin(t * 6); remuer(dt); }
   });
+  // pour les essais automatiques : toucher par nom de légende, régler les curseurs, verser, donner
+  window.__monde = { avancer: (s) => { for (let k = 0; k < Math.ceil((s || 1) / 0.05); k += 1) { if (pesee) avancerPesee(0.05); remuer(0.05); } }, toucher, verser, donner, lancerMission, peser, regler, collision, mission: () => mission, marche: () => marche, apothicaire: () => apothicaire, clients: () => clients, etat: () => ({ total, pourcent, plante, liquide, volume, pesee: !!pesee, peseeFaite, melange: melange.etapes.slice(), numCommande, erreurs }) };
+}
+/* Régler les curseurs comme le ferait la main (les essais s'en servent aussi). */
+function regler(o) {
+  if (o.plante) { plante = o.plante; panneau.querySelectorAll('[data-plante]').forEach((x) => x.setAttribute('aria-pressed', String(x.getAttribute('data-plante') === plante))); const c = PLANTES.find((p) => p.id === plante).couleur; contenuBol.material.color.set(c); tas.material.color.set(c); }
+  if (o.total != null) { total = o.total; panneau.querySelector('#ap-ts').value = String(total); }
+  if (o.pourcent != null) { pourcent = o.pourcent; panneau.querySelector('#ap-ps').value = String(pourcent); }
+  if (o.liquide) { liquide = o.liquide; panneau.querySelectorAll('[data-liq]').forEach((x) => x.setAttribute('aria-pressed', String(x.getAttribute('data-liq') === liquide))); }
+  if (o.volume != null) { volume = o.volume; panneau.querySelector('#ap-vs').value = String(volume); }
+  maj(o.plante != null || o.total != null || o.pourcent != null);
+}
+/* Ce qui est touché dans la boutique : l'apothicaire commente, le client répète, le fourneau et la balance ont leur légende. */
+function toucher(nom) {
+  if (nom === 'L\'apothicaire' && apothicaire) {
+    apothicaire.regarder(M.camera.position);
+    const c = COMMANDES[numCommande]; const txt = pesee ? 'Patience : les poids se posent un par un, du plus lourd au plus léger.' : peseeFaite ? 'La plante est pesée : ' + f1(massePlante()) + ' g. Maintenant la plante dans le bol, puis le liquide, puis on remue.' : c && mission && !mission.estFinie() ? 'Pour ' + c.nom + ' : ' + c.total + ' g à ' + c.pct + ' %, cela fait ' + f1(c.total * c.pct / 100) + ' g de plante à peser.' : 'Règle la masse totale et le pourcentage : la balance te dit combien de plante peser.';
+    apothicaire.dire(txt, 5); return;
+  }
+  if (nom === 'Le client') { const c = COMMANDES[numCommande]; const cl = clients[numCommande]; if (c && cl && cl.groupe.visible) cl.dire(c.texte, 5); return; }
+}
+/* ---------- Le mélange dans le bol : la plante, puis le liquide, puis remuer ---------- */
+function verser(quoi) {
+  const ordre = ['plante', 'liquide', 'remuer']; const attendu = ordre[melange.etapes.length];
+  if (!attendu) { shell.say('Le bol est prêt. Donne-le au client, ou vide-le en lançant une nouvelle commande.', 'concentre'); return false; }
+  if (quoi !== attendu) {
+    erreurs += 1; M.son('coup', { volume: 0.2 }); majMelange();
+    const msg = quoi === 'remuer' ? 'Pas encore : on remue à la fin, quand tout est dans le bol.' : quoi === 'liquide' ? 'D\'abord la plante pesée, le liquide ensuite.' : 'La plante est déjà dans le bol.';
+    if (apothicaire) apothicaire.dire(msg, 4); else shell.say(msg, 'rassurant');
+    return false;
+  }
+  if (quoi === 'plante') {
+    if (!peseeFaite) { const msg = 'Pèse d\'abord la plante avec les poids : on ne verse pas au jugé.'; if (apothicaire) apothicaire.dire(msg, 4); else shell.say(msg, 'rassurant'); erreurs += 1; majMelange(); return false; }
+    melange.etapes.push('plante'); melange.plante = plante; melange.masse = massePlante(); contenuBol.visible = true; contenuBol.material.color.set(PLANTES.find((p) => p.id === plante).couleur); M.son('souffle', { volume: 0.2 });
+    if (apothicaire) apothicaire.dire(f1(massePlante()) + ' g de ' + PLANTES.find((p) => p.id === plante).nom.toLowerCase() + ' dans le bol. Le liquide, maintenant.', 4);
+  } else if (quoi === 'liquide') {
+    melange.etapes.push('liquide'); melange.liquide = liquide; melange.volume = volume;
+    liquideBol.visible = true; liquideBol.material.color.set(LIQUIDES[liquide].couleur); liquideBol.material.transmission = liquide === 'eau' ? 0.6 : 0.3; liquideBol.scale.y = 0.5 + volume / 250; liquideBol.position.y = 0.22 + 0.05 * liquideBol.scale.y;
+    M.son('splash', { volume: 0.22 });
+    if (apothicaire) apothicaire.dire(volume + ' mL d\'' + LIQUIDES[liquide].nom + ', soit ' + f1(masseLiquide()) + ' g. Remue bien.', 4);
+  } else { melange.remue = 1.6; M.son('clic', { volume: 0.12 }); }
+  majMelange(); return true;
+}
+/* Le remuage dure un peu plus d'une seconde ; à la fin, le mélange est prêt. */
+function remuer(dt) {
+  if (melange.remue <= 0) return; melange.remue -= dt; if (melange.remue > 0) return;
+  melange.remue = 0; if (cuillereBol) cuillereBol.position.set(0.2, 0.3, 0.1);
+  if (!melange.etapes.includes('remuer')) { melange.etapes.push('remuer'); majMelange(); if (apothicaire) apothicaire.dire('Bien remué : un mélange, rien n\'a changé de nature. Tu peux le donner.', 4); }
+}
+function viderBol() { melange = { etapes: [], liquide: null, volume: 0, remue: 0, plante: null, masse: 0 }; liquideBol.visible = false; contenuBol.visible = false; majMelange(); }
+function majMelange() {
+  const z = panneau.querySelector('#ap-bol'); if (!z) return;
+  z.textContent = melange.etapes.length === 0 ? 'vide' : melange.etapes.map((e) => (e === 'plante' ? 'plante' : e === 'liquide' ? melange.volume + ' mL d\'' + LIQUIDES[melange.liquide].nom : 'remué')).join(' + ');
+  panneau.querySelectorAll('[data-mel]').forEach((b) => b.classList.toggle('fait', melange.etapes.includes(b.getAttribute('data-mel'))));
+  panneau.querySelector('#ap-err').textContent = String(erreurs);
+}
+/* ---------- Les commandes des clients : trois clients, chacun entre, demande, attend et repart ---------- */
+function quandArrive(perso, point, cb) { const attendre = () => { const p = perso.position(); if (Math.hypot(p.x - point[0], p.z - point[2]) > 0.12) { setTimeout(attendre, 120); return; } cb(); }; setTimeout(attendre, 150); }
+function entreeClient(i) {
+  numCommande = i; const c = COMMANDES[i]; const cl = clients[i];
+  cl.groupe.position.set(5.4, 0, 3.6); cl.groupe.visible = true; M.son('cloche', { volume: 0.3 });
+  viderBol(); peseeFaite = null; poidsMeshes.forEach(rangerPoids); equilibre = Math.min(0.2, 0.05 + massePlante() / 600);
+  panneau.querySelector('#ap-commande').innerHTML = '<b>Client ' + (i + 1) + ' sur 3.</b> ' + c.texte + ' À peser : ' + f1(c.total * c.pct / 100) + ' g de plante.';
+  cl.allerA([0.5 + (i - 1) * 0.6, 0, 2.0]);
+  quandArrive(cl, [0.5 + (i - 1) * 0.6, 0, 2.0], () => { cl.regarder(apothicaire.position()); cl.dire(c.texte, 6); apothicaire.regarder(cl.position()); setTimeout(() => apothicaire.dire('Je m\'en occupe. ' + c.total + ' × ' + c.pct + ' ÷ 100 = ' + f1(c.total * c.pct / 100) + ' g de ' + c.plante + ' à peser.', 5), 2200); });
+}
+function sortieClient(i, apres) { const cl = clients[i]; cl.dire('Merci. Bonne journée.', 3); cl.allerA([5.4, 0, 3.6]); quandArrive(cl, [5.4, 0, 3.6], () => { cl.groupe.visible = false; M.son('cloche', { volume: 0.2 }); }); if (apres) setTimeout(apres, 2600); }
+function lancerMission() {
+  if (mission && !mission.estFinie()) { shell.say('Les commandes sont en cours : client ' + (numCommande + 1) + ' sur 3.', 'concentre'); mission.montrer(); return; }
+  if (!mission) {
+    mission = M.mission({
+      titre: 'Commandes des clients', cachee: true, chrono: true, chronoMax: 420, chronoCible: 240, gagner: modeJeu !== 'cours',
+      intro: 'Trois clients vont entrer. Pour chacun : règle la masse et le pourcentage, pèse la plante avec les poids, verse la plante puis le liquide dans le bol, remue, et donne la préparation.',
+      objectifs: COMMANDES.map((c, i) => ({ id: 'c' + (i + 1), texte: 'Client ' + (i + 1) + ' : ' + c.nom })),
+      bravo: 'Trois clients servis : des pourcentages, des masses volumiques et des mélanges, sans se tromper d\'ordre ou presque.',
+      surFin: (reussie, secondes, score) => {
+        const t = Math.round(secondes);
+        const txt = reussie ? 'Trois commandes servies en ' + Math.floor(t / 60) + ' min ' + (t % 60) + ' s, ' + erreurs + ' erreur' + (erreurs > 1 ? 's' : '') + '.' : 'Le temps est écoulé : la boutique ferme.';
+        if (apothicaire) apothicaire.dire(reussie ? 'La boutique est servie. Chaque remède était juste.' : 'On rouvrira demain : les clients reviendront.', 6);
+        if (!reussie && numCommande >= 0 && clients[numCommande].groupe.visible) sortieClient(numCommande);
+        if (modeJeu === 'cours' && apiJeu) { apiJeu.say(txt + ' ' + score + ' points de plus.', reussie ? 'fier' : 'rassurant'); if (reussie) apiJeu.celebrate(); setTimeout(() => mission.cacher(), 9000); }
+      },
+    });
+  }
+  erreurs = 0; numCommande = -1; mission.montrer(); mission.commencer(); majMelange();
+  setTimeout(() => entreeClient(0), 1200);
+}
+/* Donner la préparation : tout est vérifié, et ce qui manque est dit clairement. */
+function donner() {
+  const c = COMMANDES[numCommande];
+  if (!c || !mission || mission.estFinie()) { shell.say('Aucun client n\'attend. Lance « Commandes des clients ».', 'concentre'); return false; }
+  const manques = [];
+  if (plante !== c.plante) manques.push('la plante : ' + c.plante);
+  if (total !== c.total || pourcent !== c.pct) manques.push('les réglages : ' + c.total + ' g à ' + c.pct + ' %');
+  if (!peseeFaite || peseeFaite.plante !== c.plante || peseeFaite.total !== c.total || peseeFaite.pourcent !== c.pct) manques.push('la pesée avec les poids');
+  if (!melange.etapes.includes('plante') || melange.plante !== c.plante || Math.abs(melange.masse - c.total * c.pct / 100) > 0.01) manques.push('la plante pesée dans le bol');
+  if (!melange.etapes.includes('liquide') || melange.liquide !== c.liquide || melange.volume !== c.volume) manques.push('le liquide : ' + c.volume + ' mL d\'' + c.liquide);
+  if (!melange.etapes.includes('remuer')) manques.push('remuer');
+  if (manques.length) { erreurs += 1; majMelange(); M.son('coup', { volume: 0.2 }); const msg = 'Pas encore. Il manque ' + manques.join(', ') + '.'; if (apothicaire) apothicaire.dire(msg, 5); shell.say(msg, 'rassurant'); return false; }
+  const pts = Math.max(50, 150 - 25 * erreurs); const i = numCommande; mission.valider('c' + (i + 1), pts);
+  panneau.querySelector('#ap-commande').textContent = 'Client ' + (i + 1) + ' servi : ' + c.nom + ', ' + f1(c.total * c.pct / 100) + ' g de ' + c.plante + ' dans ' + c.volume + ' mL d\'' + c.liquide + ' (' + f1(LIQUIDES[c.liquide].rho * c.volume) + ' g).';
+  apothicaire.dire('Voilà votre ' + c.nom + '.', 3);
+  sortieClient(i, () => { if (i + 1 < COMMANDES.length && mission && !mission.estFinie()) entreeClient(i + 1); });
+  return true;
 }
 
 /* ---------- Mise à jour des mesures : sirop, liquide, éprouvette, bol. `nouvellePesee` : la masse de plante a changé, les poids retournent dans la boîte. ---------- */
@@ -341,7 +545,8 @@ function maj(nouvellePesee) {
   const liq = flacon.userData.liq; liq.scale.y = Math.max(0.02, volume / 250 * 1.1); liq.position.y = 0.07 + liq.scale.y / 2; liq.material.color.set(LIQUIDES[liquide].couleur); liq.material.transmission = liquide === 'eau' ? 0.6 : 0.3;
   contenuBol.scale.setScalar(0.6 + massePlante() / 150); tas.scale.set(0.5 + massePlante() / 120, 0.25 + massePlante() / 250, 0.5 + massePlante() / 120);
   if (!nouvellePesee) return;
-  if (pesee) pesee = null;
+  if (pesee) pesee = null; peseeFaite = null;
+  if (melange.etapes.length && panneau.querySelector('#ap-bol')) { viderBol(); if (apothicaire) apothicaire.dire('Les réglages ont changé : je vide le bol, on recommence le mélange.', 4); }
   poidsMeshes.forEach(rangerPoids);
   equilibre = Math.min(0.2, 0.05 + massePlante() / 600);
   panneau.querySelector('#ap-pesee').textContent = 'À peser : ' + f1(massePlante()) + ' g de ' + PLANTES.find((p) => p.id === plante).nom.toLowerCase() + '. Pose les poids sur le plateau de droite jusqu\'à l\'équilibre.';
@@ -352,6 +557,7 @@ function peser() {
   if (pesee) return;
   const choix = decomposer(massePlante()); poidsMeshes.forEach(rangerPoids);
   pesee = { choix, i: 0, t: 0, angle: equilibre, poses: 0 };
+  if (apothicaire) apothicaire.dire(f1(massePlante()) + ' g à peser : ' + choix.map((j) => f1(POIDS[j]) + ' g').join(' + ') + '. Du plus lourd au plus léger.', 5);
   panneau.querySelector('#ap-pesee').textContent = 'La plante fait pencher le plateau de gauche. Les poids arrivent un par un…';
 }
 function avancerPesee(dt) {
@@ -366,7 +572,7 @@ function avancerPesee(dt) {
     const liste = pesee.choix.slice(0, pesee.i).map((j) => f1(POIDS[j]) + ' g').join(' + ');
     panneau.querySelector('#ap-pesee').textContent = 'Posés : ' + liste + ' = ' + f1(pesee.poses) + ' g.' + (pesee.i >= pesee.choix.length ? ' Le fléau est horizontal : équilibre.' : '');
   }
-  if (pesee.i >= pesee.choix.length) { pesee.angle = 0; if (pesee.t > 0.8) { equilibre = 0; const ecart = Math.abs(pesee.poses - massePlante()) > 0.01; panneau.querySelector('#ap-pesee').textContent = 'Équilibre : ' + f1(massePlante()) + ' g ' + (ecart ? '≈' : '=') + ' ' + pesee.choix.map((j) => f1(POIDS[j]) + ' g').join(' + ') + (ecart ? ' (au demi-gramme près, le plus petit poids de la boîte).' : '.') + ' La masse de plante est pesée.'; panneau.querySelector('#ap-pesee').style.borderLeft = '6px solid #2AA98C'; pesee = null; } }
+  if (pesee.i >= pesee.choix.length) { pesee.angle = 0; if (pesee.t > 0.8) { equilibre = 0; const ecart = Math.abs(pesee.poses - massePlante()) > 0.01; panneau.querySelector('#ap-pesee').textContent = 'Équilibre : ' + f1(massePlante()) + ' g ' + (ecart ? '≈' : '=') + ' ' + pesee.choix.map((j) => f1(POIDS[j]) + ' g').join(' + ') + (ecart ? ' (au demi-gramme près, le plus petit poids de la boîte).' : '.') + ' La masse de plante est pesée.'; panneau.querySelector('#ap-pesee').style.borderLeft = '6px solid #2AA98C'; pesee = null; peseeFaite = { plante, total, pourcent }; M.son('clic', { volume: 0.12 }); if (apothicaire) apothicaire.dire('Le fléau est droit : ' + f1(massePlante()) + ' g de plante, pesés juste.', 4); } }
 }
 /* ---------- Le bocal des densités : les couches se classent toutes seules ---------- */
 function majBocal() {
@@ -398,7 +604,9 @@ function majFour() {
 }
 
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Touche les bocaux, la balance, l\'éprouvette et le fourneau. Puis dose un sirop, pèse-le avec les poids, et verse les trois liquides dans le bocal.', 'joyeux'); return; }
+  modeJeu = mode; apiJeu = api;
+  if (apothicaire) { apothicaire.regarder(M.camera.position); setTimeout(() => apothicaire.dire('Bienvenue. Touche un bocal ou la balance : je t\'explique.', 5), 900); }
+  if (mode !== 'cours') { api.say('Touche les bocaux, la balance, l\'éprouvette et le fourneau. Puis dose un sirop, pèse-le avec les poids, et verse les trois liquides dans le bocal. Le premier client arrive dans quelques secondes.', 'joyeux'); setTimeout(() => { if (!mission || mission.estFinie()) lancerMission(); }, 7000); return; }
   const ouvrir = (id) => () => { const d = panneau.querySelector(id); if (d) d.open = true; };
   api.defis([
     { type: 'verifier', texte: 'Prépare 200 g de sirop à 15 % de plante : règle la masse totale et le pourcentage.', bouton: 'C\'est réglé', verifier: () => total === 200 && pourcent === 15, indice: 'Curseur « Masse totale » sur 200 g, curseur « Part de plante » sur 15 %.', explication: 'La balance indique 30 g de plante : 200 × 15 ÷ 100 = 30.' },

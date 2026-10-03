@@ -9,6 +9,22 @@
 <script type="importmap">{ "imports": { "three": "/learning/vendor/three.module.js", "three/addons/": "/learning/vendor/jsm/" } }</script>
 <script src="../konstrio.js"></script>
 <script src="../shell.js"></script>
+<style>
+  .mb-panneau details { border-top: 1px solid var(--border); padding-top: 6px; }
+  .mb-panneau details > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-muted); min-height: 28px; }
+  .mb-panneau details > summary::-webkit-details-marker { display: none; }
+  .mb-panneau details > summary::after { content: '▸'; font-size: 12px; }
+  .mb-panneau details[open] > summary::after { content: '▾'; }
+  .mb-panneau details > div { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+  @media (max-width: 720px) {
+    div.mb-panneau { width: min(196px, 50vw); max-height: 46%; }
+    section.mb-mission { width: min(168px, 43vw); font-size: 11.5px; }
+    section.mb-mission li { padding: 3px 5px; }
+    div.mb-stick { bottom: 118px; width: 104px; height: 104px; } div.mb-stick i { left: 27px; top: 27px; }
+    div.mb-aide-marche { display: none; }
+    .mb-etapes .mb-bouton { min-height: 30px; padding: 2px 8px; font-size: 12px; }
+  }
+</style>
 </head>
 <body>
 <script type="module">
@@ -17,46 +33,63 @@ import { creerMonde, THREE, textureTexte } from '../monde-base.js';
 /*
    Monde 29 : le musée des Lumières.
    Une salle de musée : parquet, murs rouge sombre à cimaises et lambris, verrière au plafond, lustre à
-   bougies. Cinq portraits en silhouette (la mode du XVIIIᵉ siècle) dans des cadres dorés en relief, un
-   cartel sous chacun ; un salon (table de marbre, bergères, chandelier) ; une vitrine avec l'Encyclopédie ;
-   une presse à bras qui imprime une feuille à la demande ; une carte des correspondances.
-   Faits vérifiés : Montesquieu 1689-1755, De l'esprit des lois 1748. Voltaire 1694-1778, Traité sur la
-   tolérance 1763, affaire Calas 1762 (réhabilitation 1765). Rousseau 1712-1778, Du contrat social 1762.
-   Diderot 1713-1784 et d'Alembert 1717-1783, Encyclopédie 1751-1772 : 17 volumes de texte et 11 de
-   planches, 71 818 articles, 2 885 planches. Émilie du Châtelet 1706-1749, traduction des Principia parue
-   en 1759. Diderot chez Catherine II à Saint-Pétersbourg en 1773-1774 ; Voltaire à Ferney à partir de 1759.
-   Une presse à bras tire environ 200 à 250 feuilles à l'heure (estimation courante pour le XVIIIᵉ siècle).
+   bougies. Six portraits peints du XVIIIᵉ siècle (reproductions du domaine public, voir
+   ../assets/3d/portraits/ATTRIBUTIONS.md) dans des cadres dorés taillés au format de chaque toile, un
+   cartel sous chacun avec le nom du peintre ; un cordon de velours ; un salon (table de marbre, bergères,
+   chandelier) ; une vitrine avec l'Encyclopédie ; une presse à bras qui imprime une feuille à la demande ;
+   une carte des correspondances. Un guide en habit du XVIIIᵉ accueille et mène la visite.
+   Jeu : la chasse aux indices, cinq objets liés aux œuvres cachés dans la salle, avec chrono ; la marche
+   dans la salle à la première personne.
+   Faits vérifiés : Montesquieu 1689-1755, Lettres persanes 1721, De l'esprit des lois 1748. Voltaire
+   1694-1778, Traité sur la tolérance 1763, affaire Calas 1762 (réhabilitation 1765). Rousseau 1712-1778,
+   Du contrat social 1762. Diderot 1713-1784 et d'Alembert 1717-1783, Encyclopédie 1751-1772 : 17 volumes de
+   texte et 11 de planches, 71 818 articles, 2 885 planches. Émilie du Châtelet 1706-1749, traduction des
+   Principia parue en 1759. Diderot chez Catherine II à Saint-Pétersbourg en 1773-1774 ; Voltaire à Ferney
+   à partir de 1759. Une presse à bras tire environ 200 à 250 feuilles à l'heure.
 */
+const PORTRAITS = '../assets/3d/portraits/';
 const PENSEURS = [
-  { id: 'montesquieu', nom: 'Montesquieu', dates: '1689 à 1755', annee: 1748, oeuvre: 'De l\'esprit des lois (1748)', idee: 'Séparer les trois pouvoirs, législatif, exécutif et judiciaire, pour empêcher la tyrannie.', couleur: '#2E7FC2', profil: { nez: 1.0, menton: 1.0, coiffure: 'rouleaux', robe: false } },
-  { id: 'voltaire', nom: 'Voltaire', dates: '1694 à 1778', annee: 1763, oeuvre: 'Traité sur la tolérance (1763)', idee: 'Défend la tolérance religieuse et la liberté de pensée, après l\'affaire Calas (1762).', couleur: '#B9541D', profil: { nez: 1.25, menton: 1.2, coiffure: 'queue', robe: false } },
-  { id: 'rousseau', nom: 'Rousseau', dates: '1712 à 1778', annee: 1762, oeuvre: 'Du contrat social (1762)', idee: 'La souveraineté appartient au peuple : la loi est l\'expression de la volonté générale.', couleur: '#1E8C7A', profil: { nez: 1.1, menton: 0.9, coiffure: 'queue', robe: false } },
-  { id: 'diderot', nom: 'Diderot et d\'Alembert', dates: '1713 à 1784', annee: 1751, oeuvre: 'L\'Encyclopédie (1751 à 1772)', idee: 'Rassembler tous les savoirs en 28 volumes, pour les diffuser et faire reculer l\'ignorance.', couleur: '#8A4FD3', profil: { nez: 0.95, menton: 1.0, coiffure: 'libre', robe: false } },
-  { id: 'chatelet', nom: 'Émilie du Châtelet', dates: '1706 à 1749', annee: 1759, oeuvre: 'Traduction des Principia de Newton (1759)', idee: 'Physicienne et mathématicienne : elle explique la physique de Newton aux Français.', couleur: '#B03A8A', profil: { nez: 0.9, menton: 0.9, coiffure: 'chignon', robe: true } },
+  { id: 'montesquieu', nom: 'Montesquieu', dates: '1689 à 1755', annee: 1748, oeuvre: 'De l\'esprit des lois (1748)', idee: 'Séparer les trois pouvoirs, législatif, exécutif et judiciaire, pour empêcher la tyrannie.', couleur: '#2E7FC2', toiles: [{ fichier: 'montesquieu.jpg', ratio: 752 / 909, peintre: 'd\'après Jacques-Antoine Dassier', nom: 'Montesquieu' }] },
+  { id: 'voltaire', nom: 'Voltaire', dates: '1694 à 1778', annee: 1763, oeuvre: 'Traité sur la tolérance (1763)', idee: 'Défend la tolérance religieuse et la liberté de pensée, après l\'affaire Calas (1762).', couleur: '#B9541D', toiles: [{ fichier: 'voltaire.jpg', ratio: 960 / 1200, peintre: 'atelier de Nicolas de Largillière', nom: 'Voltaire' }] },
+  { id: 'rousseau', nom: 'Rousseau', dates: '1712 à 1778', annee: 1762, oeuvre: 'Du contrat social (1762)', idee: 'La souveraineté appartient au peuple : la loi est l\'expression de la volonté générale.', couleur: '#1E8C7A', toiles: [{ fichier: 'rousseau.jpg', ratio: 960 / 1337, peintre: 'Maurice Quentin de La Tour', nom: 'Jean-Jacques Rousseau' }] },
+  { id: 'diderot', nom: 'Diderot et d\'Alembert', dates: '1713 à 1784', annee: 1751, oeuvre: 'L\'Encyclopédie (1751 à 1772)', idee: 'Rassembler tous les savoirs en 28 volumes, pour les diffuser et faire reculer l\'ignorance.', couleur: '#8A4FD3', toiles: [{ fichier: 'diderot.jpg', ratio: 960 / 1198, peintre: 'Louis-Michel van Loo', nom: 'Denis Diderot', dates: '1713 à 1784' }, { fichier: 'dalembert.jpg', ratio: 960 / 1200, peintre: 'Maurice Quentin de La Tour', nom: 'Jean le Rond d\'Alembert', dates: '1717 à 1783' }] },
+  { id: 'chatelet', nom: 'Émilie du Châtelet', dates: '1706 à 1749', annee: 1759, oeuvre: 'Traduction des Principia de Newton (1759)', idee: 'Physicienne et mathématicienne : elle explique la physique de Newton aux Français.', couleur: '#B03A8A', toiles: [{ fichier: 'chatelet.jpg', ratio: 817 / 944, peintre: 'd\'après Marianne Loir', nom: 'Émilie du Châtelet' }] },
+];
+/* Les cinq indices de la chasse : un objet par œuvre, caché dans la salle. */
+const INDICES = [
+  { id: 'lettre', nom: 'Lettres persanes', phrase: 'Montesquieu, 1721 : deux voyageurs persans découvrent Paris et s\'étonnent de tout. Un roman par lettres qui critique la France en douceur.', guide: 'La lettre d\'Usbek : les Lettres persanes, le premier succès de Montesquieu, en 1721.' },
+  { id: 'traite', nom: 'Traité sur la tolérance', phrase: 'Voltaire, 1763 : une brochure sortie de la presse, écrite après l\'exécution injuste de Jean Calas.', guide: 'La brochure de Voltaire, imprimée à Genève : le Traité sur la tolérance, 1763.' },
+  { id: 'contrat', nom: 'Du contrat social', phrase: 'Rousseau, 1762 : le peuple est souverain, la loi exprime la volonté générale. Interdit à Paris et à Genève dès sa sortie.', guide: 'Du contrat social, de Rousseau : un livre interdit, et pourtant lu partout.' },
+  { id: 'planche', nom: 'Planche de l\'Encyclopédie', phrase: 'Une des 2 885 planches gravées : les outils et les gestes d\'un métier, dessinés pour que chacun comprenne.', guide: 'Une planche de l\'Encyclopédie : Diderot a fait dessiner les ateliers pour montrer les métiers.' },
+  { id: 'principia', nom: 'Principes mathématiques (traduction)', phrase: 'Émilie du Châtelet traduit du latin les Principia de Newton et les commente. Le livre paraît en 1759, dix ans après sa mort.', guide: 'La traduction de Newton par Émilie du Châtelet, parue en 1759 : la seule en français pendant deux siècles.' },
 ];
 const LEGENDES = PENSEURS.map((p) => ({ nom: p.nom, phrase: p.oeuvre + '. ' + p.idee })).concat([
   { nom: 'Salon', phrase: 'Chez Madame Geoffrin ou Madame du Deffand, philosophes et savants discutent le soir : les idées circulent.' },
   { nom: 'Encyclopédie', phrase: '28 volumes, 71 818 articles, 2 885 planches : le grand projet des Lumières, censuré puis achevé en 1772.' },
   { nom: 'Presse d\'imprimerie', phrase: 'Livres, journaux, brochures, souvent imprimés hors du royaume pour échapper à la censure. Environ 200 feuilles à l\'heure.' },
   { nom: 'Feuille imprimée', phrase: 'Une feuille sortie de la presse : pliée, elle devient des pages de livre ou de brochure.' },
-  { nom: 'Cartel', phrase: 'La petite plaque sous un tableau : le nom, les dates, l\'œuvre. Lis-la avant de regarder le portrait.' },
+  { nom: 'Cartel', phrase: 'La petite plaque sous un tableau : le nom, les dates, l\'œuvre et le peintre. Lis-la avant de regarder le portrait.' },
   { nom: 'Banquette', phrase: 'Pour regarder les portraits en prenant son temps : un musée est un lieu calme.' },
   { nom: 'Lustre', phrase: 'Des bougies : au XVIIIᵉ siècle, les salons se tiennent le soir, à la lumière des chandelles.' },
   { nom: 'Verrière', phrase: 'La lumière du jour tombe du plafond : les musées éclairent souvent par le haut pour ne pas éblouir les tableaux.' },
   { nom: 'Carte des correspondances', phrase: 'Les lettres relient Paris, Londres, Amsterdam, Genève, Berlin et Saint-Pétersbourg : une Europe des idées.' },
   { nom: 'Chandelier', phrase: 'Trois bougies sur la table du salon : on lit, on écrit et on discute à leur lumière.' },
-]);
+  { nom: 'Le guide', phrase: 'Il connaît chaque tableau de la salle. Appuie sur « Suivant » : il te mène de portrait en portrait.' },
+  { nom: 'Cordon', phrase: 'Un cordon de velours tient les visiteurs à un pas des toiles : on regarde, on ne touche pas la peinture.' },
+  { nom: 'Pupitre de lecture', phrase: 'Un livre ouvert, à lire debout : au XVIIIᵉ siècle, les bibliothèques en ont pour les grands volumes.' },
+]).concat(INDICES.map((i) => ({ nom: i.nom, phrase: i.phrase })));
 const ETAPES = PENSEURS.map((p) => p.id).concat(['salon', 'encyclopedie', 'presse']);
 let M, panneau, cadres = {}, vue = null, etape = -1, soiree = false, chrono = false, impression = null, feuilles = 0;
+let guide = null, marche = null, mission = null, modeJeu = 'detente', apiJeu = null, trouves = 0, tempsPas = 0;
 const L = {}; // lumières et objets réglables : soleil, hemi, ciel, lustre, bougies, flammes, presse
 const shell = window.Konstrio.createGame({
   id: '3d-29-musee-lumieres', code: '3D·29', title: 'Le musée des Lumières', type: '3D', duree: '12 min',
   domain: { label: 'Histoire', color: '#B9541D' },
   intro: {
-    greet: 'Une salle de musée : cinq portraits, un salon, une presse, l\'Encyclopédie sous vitrine. Chaque penseur des Lumières a son idée et son livre.',
-    rule: 'Touche un portrait pour lire l\'idée et l\'œuvre. Suis la visite guidée, imprime une feuille, passe en soirée. Puis réponds aux questions : une par penseur.',
-    how: ['Glisse pour tourner dans la salle, molette pour avancer.', 'Touche un portrait, son cartel, la presse, le salon, la vitrine, le lustre ou la carte.', '« Suivant » mène d\'une étape à l\'autre ; « Imprimer une feuille » fait fonctionner la presse ; « Soirée » éteint la verrière et allume les bougies.'],
-    keys: 'Flèches : tourner · + et - : zoom · F : la fiche · Échap : pause.',
+    greet: 'Une salle de musée : six portraits peints, un salon, une presse, l\'Encyclopédie sous vitrine. Un guide t\'attend. Chaque penseur des Lumières a son idée et son livre.',
+    rule: 'Touche un portrait pour lire l\'idée et l\'œuvre. Suis la visite guidée, imprime une feuille, passe en soirée. Puis réponds aux questions : une par penseur. Et lance la chasse aux indices : cinq objets à retrouver dans la salle, montre en main.',
+    how: ['Glisse pour tourner dans la salle, molette pour avancer. « Marcher » te fait avancer avec les flèches ou le joystick.', 'Touche un portrait, son cartel, la presse, le salon, la vitrine, le lustre, la carte ou le guide.', '« Suivant » mène d\'une étape à l\'autre ; « Imprimer une feuille » fait fonctionner la presse ; « Soirée » éteint la verrière et allume les bougies.', '« Chasse aux indices » : retrouve les cinq objets liés aux œuvres, le plus vite possible.'],
+    keys: 'Flèches : tourner (ou marcher) · + et - : zoom · F : la fiche · Échap : pause.',
     objectif: 'Associer chaque philosophe des Lumières à son idée et à son œuvre, et expliquer comment les idées circulent.',
     hint: 'Montesquieu : les pouvoirs. Voltaire : la tolérance. Rousseau : le peuple souverain. Diderot : l\'Encyclopédie.',
     why: 'Ces idées, nées au XVIIIᵉ siècle, nourrissent la Révolution de 1789 et nos constitutions.',
@@ -66,43 +99,6 @@ const shell = window.Konstrio.createGame({
 });
 const ease = (f) => (f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2);
 
-/* Un portrait en silhouette (mode du XVIIIᵉ siècle) : profil noir sur un ovale clair, dans un fond peint sombre. */
-function texturePortrait(p) {
-  const c = document.createElement('canvas'); c.width = 512; c.height = 640; const x = c.getContext('2d');
-  const fond = x.createRadialGradient(256, 300, 60, 256, 320, 420); fond.addColorStop(0, '#4a3a2a'); fond.addColorStop(1, '#120d08'); x.fillStyle = fond; x.fillRect(0, 0, 512, 640);
-  x.save(); x.beginPath(); x.ellipse(256, 300, 190, 240, 0, 0, Math.PI * 2); x.closePath();
-  const ovale = x.createLinearGradient(0, 60, 0, 540); ovale.addColorStop(0, '#efe3c8'); ovale.addColorStop(1, '#d8c7a4'); x.fillStyle = ovale; x.fill();
-  x.fillStyle = p.couleur; x.globalAlpha = 0.12; x.fill(); x.globalAlpha = 1;
-  const q = p.profil; const nz = q.nez; const mt = q.menton;
-  // le profil, tourné vers la gauche : nuque, crâne, front, nez, lèvres, menton, cou, épaules
-  x.fillStyle = '#17120d'; x.beginPath();
-  x.moveTo(300, 560);
-  x.quadraticCurveTo(296, 470, 318, 420); // nuque
-  x.quadraticCurveTo(372, 380, 368, 280); // arrière du crâne
-  x.quadraticCurveTo(360, 150, 262, 142); // sommet
-  x.quadraticCurveTo(205, 150, 196, 215); // front
-  x.quadraticCurveTo(190, 250, 200, 268); // arcade
-  x.quadraticCurveTo(186, 300, 170 - 14 * (nz - 1) * 4, 318 + 10 * (nz - 1)); // dos du nez
-  x.quadraticCurveTo(160 - 14 * (nz - 1) * 4, 334, 190, 342); // dessous du nez
-  x.quadraticCurveTo(200, 352, 192, 362); // lèvre supérieure
-  x.quadraticCurveTo(206, 374, 194, 386); // lèvre inférieure
-  x.quadraticCurveTo(190 - 8 * (mt - 1) * 5, 410, 218, 418 + 6 * (mt - 1) * 5); // menton
-  x.quadraticCurveTo(250, 420, 262, 455); // dessous du menton
-  x.quadraticCurveTo(262, 480, 250, 500); // gorge
-  x.quadraticCurveTo(150, 520, 120, 600); // épaule avant
-  x.lineTo(410, 600); x.quadraticCurveTo(392, 530, 300, 560); x.closePath(); x.fill();
-  // la coiffure
-  x.fillStyle = '#17120d';
-  if (q.coiffure === 'rouleaux') { [[318, 300], [326, 338], [330, 374]].forEach((r) => { x.beginPath(); x.arc(r[0], r[1], 24, 0, Math.PI * 2); x.fill(); }); x.beginPath(); x.ellipse(372, 440, 22, 40, 0.3, 0, Math.PI * 2); x.fill(); }
-  if (q.coiffure === 'queue') { x.beginPath(); x.ellipse(376, 430, 22, 48, -0.2, 0, Math.PI * 2); x.fill(); x.beginPath(); x.ellipse(320, 330, 28, 20, 0, 0, Math.PI * 2); x.fill(); }
-  if (q.coiffure === 'chignon') { x.beginPath(); x.ellipse(330, 150, 70, 46, -0.3, 0, Math.PI * 2); x.fill(); x.beginPath(); x.ellipse(372, 268, 26, 50, 0.2, 0, Math.PI * 2); x.fill(); }
-  if (q.robe) { x.fillStyle = '#efe3c8'; x.beginPath(); x.moveTo(236, 500); x.quadraticCurveTo(290, 540, 330, 600); x.lineTo(236, 600); x.closePath(); x.fill(); x.fillStyle = '#17120d'; x.beginPath(); x.moveTo(250, 500); x.quadraticCurveTo(292, 548, 318, 600); x.lineTo(300, 600); x.quadraticCurveTo(286, 560, 246, 522); x.closePath(); x.fill(); }
-  else { x.fillStyle = '#efe3c8'; x.beginPath(); x.moveTo(252, 500); x.quadraticCurveTo(262, 560, 236, 600); x.lineTo(286, 600); x.quadraticCurveTo(280, 540, 266, 500); x.closePath(); x.fill(); }
-  x.restore();
-  x.strokeStyle = 'rgba(201,164,74,0.9)'; x.lineWidth = 6; x.beginPath(); x.ellipse(256, 300, 190, 240, 0, 0, Math.PI * 2); x.stroke();
-  x.fillStyle = '#e9dcc0'; x.font = '700 40px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(p.nom, 256, 590);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
-}
 function textureCarte() {
   const c = document.createElement('canvas'); c.width = 1024; c.height = 720; const x = c.getContext('2d');
   x.fillStyle = '#e9dcc0'; x.fillRect(0, 0, c.width, c.height);
@@ -136,6 +132,33 @@ function texturePage() {
   x.fillStyle = '#3a3029'; for (let i = 0; i < 6; i += 1) x.fillRect(70, 240 + i * 18, 372 * (0.8 + Math.random() * 0.2), 6);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
+/* Une page de titre ou une couverture dessinée : titre, sous-titre, lignes de texte. */
+function textureLivre(titre, sous, fond, encre) {
+  const c = document.createElement('canvas'); c.width = 384; c.height = 512; const x = c.getContext('2d');
+  x.fillStyle = fond || '#f1e8d2'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = encre || '#1f1a14'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.strokeStyle = encre || '#1f1a14'; x.lineWidth = 3; x.strokeRect(24, 24, 336, 464);
+  x.font = '800 34px Georgia, serif'; String(titre).split('\n').forEach((l, i) => x.fillText(l, 192, 110 + i * 44));
+  x.font = 'italic 600 22px Georgia, serif'; String(sous).split('\n').forEach((l, i) => x.fillText(l, 192, 250 + i * 32));
+  for (let i = 0; i < 5; i += 1) x.fillRect(70, 360 + i * 20, 244 * (0.7 + Math.random() * 0.3), 5);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+/* Une planche gravée de l'Encyclopédie : un atelier dessiné au trait, numéroté. */
+function texturePlanche() {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 640; const x = c.getContext('2d');
+  x.fillStyle = '#efe6d2'; x.fillRect(0, 0, 512, 640); x.strokeStyle = '#2a2420'; x.lineWidth = 2; x.strokeRect(28, 28, 456, 584);
+  x.fillStyle = '#2a2420'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '700 26px Georgia, serif'; x.fillText('Imprimerie en lettres, l\'opération de la casse', 256, 60);
+  x.font = 'italic 600 18px Georgia, serif'; x.fillText('Pl. I', 256, 92);
+  // la scène : un plancher, deux casses inclinées, un ouvrier au trait, des outils numérotés
+  x.lineWidth = 1.5; x.beginPath(); x.moveTo(50, 330); x.lineTo(462, 330); x.stroke();
+  for (let i = 0; i < 12; i += 1) { x.beginPath(); x.moveTo(50 + i * 36, 330); x.lineTo(100 + i * 36, 400); x.stroke(); }
+  x.strokeRect(80, 230, 150, 100); for (let r = 0; r < 4; r += 1) for (let k = 0; k < 6; k += 1) x.strokeRect(84 + k * 24, 234 + r * 24, 22, 22);
+  x.strokeRect(290, 230, 150, 100); for (let r = 0; r < 4; r += 1) for (let k = 0; k < 6; k += 1) x.strokeRect(294 + k * 24, 234 + r * 24, 22, 22);
+  x.beginPath(); x.arc(256, 190, 16, 0, Math.PI * 2); x.stroke(); x.beginPath(); x.moveTo(256, 206); x.lineTo(256, 290); x.moveTo(256, 230); x.lineTo(226, 262); x.moveTo(256, 230); x.lineTo(290, 258); x.moveTo(256, 290); x.lineTo(236, 330); x.moveTo(256, 290); x.lineTo(278, 330); x.stroke();
+  const outils = [[90, 450, 'composteur'], [230, 450, 'galée'], [370, 450, 'visorum']];
+  outils.forEach((o, i) => { x.strokeRect(o[0] - 40, o[1] - 14, 80, 28 + i * 6); x.font = '600 16px Georgia, serif'; x.fillText('Fig. ' + (i + 1) + '. ' + o[2], o[0], o[1] + 40); });
+  x.font = '600 15px Georgia, serif'; x.fillText('Gravé d\'après nature, pour l\'Encyclopédie, 1751 à 1772', 256, 585);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
 
 function init() {
   M = creerMonde(shell, {
@@ -143,8 +166,8 @@ function init() {
     sol: { taille: 9.5, texture: 'wood_floor_deck', repetition: 5, carre: true, couleur: 0xd9c6a8, rugosite: 0.7 },
     ambiance: 0.45, soleil: { position: [3, 14, 3.5], intensite: 2.0, couleur: 0xfff3e0, etendue: 11 },
     camera: { position: [0, 2.8, 6.0], cible: [0, 2.0, -1.0], fov: 50, min: 1.5, max: 7.5 },
-    rendu: { bloom: { force: 0.28, rayon: 0.5, seuil: 0.95 } },
-    legendes: LEGENDES, libelle: 'Une salle de musée : cinq portraits dans des cadres dorés, un salon, une vitrine et une presse d\'imprimerie',
+    rendu: { bloom: { force: 0.26, rayon: 0.5, seuil: 0.94 } },
+    legendes: LEGENDES, libelle: 'Une salle de musée : six portraits peints dans des cadres dorés, un guide en habit, un salon, une vitrine et une presse d\'imprimerie',
   });
   const { scene, mesh, mat, legender, etiquette, meshPBR, pbr, matPhysique } = M;
   M.controls.minPolarAngle = 1.05; M.controls.minAzimuthAngle = -1.25; M.controls.maxAzimuthAngle = 1.25;
@@ -159,7 +182,6 @@ function init() {
   const ZF = -6.15, ZA = 7.25; // faces intérieures des murs du fond et de devant
   ignorer(mesh(new THREE.BoxGeometry(18.6, H, 0.3), rouge, [0, H / 2, ZF - 0.15])); ignorer(mesh(new THREE.BoxGeometry(18.6, H, 0.3), rouge, [0, H / 2, ZA + 0.15]));
   ignorer(mesh(new THREE.BoxGeometry(0.3, H, 13.7), rouge, [-9.15, H / 2, 0.55])); ignorer(mesh(new THREE.BoxGeometry(0.3, H, 13.7), rouge, [9.15, H / 2, 0.55]));
-  // lambris (1,1 de haut) et plinthes, cimaise à 4,9
   [[18, 0.1, 0, ZF + 0.05, 0], [18, 0.1, 0, ZA - 0.05, 0], [0.1, 13.4, -8.95, 0.55, 0], [0.1, 13.4, 8.95, 0.55, 0]].forEach((w) => {
     const horizontal = w[0] > w[1]; const geo = horizontal ? new THREE.BoxGeometry(w[0], 1.1, 0.1) : new THREE.BoxGeometry(0.1, 1.1, w[1]);
     ignorer(mesh(geo, ivoire, [w[2], 0.55, w[3]])); ignorer(mesh(horizontal ? new THREE.BoxGeometry(w[0], 0.22, 0.14) : new THREE.BoxGeometry(0.14, 0.22, w[1]), boisSombre, [w[2], 0.11, w[3]]));
@@ -169,7 +191,6 @@ function init() {
   const plafondMat = mat(0xf3eee4, { rugosite: 0.95 });
   ignorer(mesh(new THREE.BoxGeometry(5, 0.3, 13.7), plafondMat, [-6.5, H + 0.15, 0.55])); ignorer(mesh(new THREE.BoxGeometry(5, 0.3, 13.7), plafondMat, [6.5, H + 0.15, 0.55]));
   ignorer(mesh(new THREE.BoxGeometry(8, 0.3, 4.3), plafondMat, [0, H + 0.15, -4.15])); ignorer(mesh(new THREE.BoxGeometry(8, 0.3, 5.4), plafondMat, [0, H + 0.15, 4.55]));
-  // la verrière : bordure, vitre, et le jour au-dessus
   const verriere = new THREE.Group(); scene.add(verriere); verriere.position.set(0, H, 0);
   [[8.4, 0, -2.1], [8.4, 0, 2.1], [0.2, -4.1, 0], [0.2, 4.1, 0]].forEach((b) => { const geo = b[0] > 1 ? new THREE.BoxGeometry(8.4, 0.5, 0.2) : new THREE.BoxGeometry(0.2, 0.5, 4.4); ignorer(mesh(geo, ivoire, [b[1] || 0, 0.25, b[2] || 0], verriere)); });
   for (let k = -3; k <= 3; k += 1) ignorer(mesh(new THREE.BoxGeometry(0.06, 0.08, 4), mat(0x3a3a3a, { metal: 0.6, rugosite: 0.4 }), [k * 1.14, 0.42, 0], verriere)).castShadow = false;
@@ -177,27 +198,65 @@ function init() {
   L.ciel = new THREE.MeshStandardMaterial({ color: 0xdff0ff, emissive: 0xdff0ff, emissiveIntensity: 1.2, roughness: 1 });
   const ciel = ignorer(mesh(new THREE.PlaneGeometry(11, 7), L.ciel, [0, 1.3, 0], verriere)); ciel.rotation.x = Math.PI / 2; ciel.castShadow = false; ciel.receiveShadow = false;
   legender(verriere, 'Verrière', LEGENDES[12].phrase);
-  // le titre de la salle, au-dessus des portraits
   const titre = ignorer(mesh(new THREE.PlaneGeometry(7.2, 0.62), new THREE.MeshStandardMaterial({ map: textureTexte('LE SIÈCLE DES LUMIÈRES', { taille: 34, fond: 'none', couleur: '#d9b25a', police: 'Georgia, serif' }), transparent: true, roughness: 0.4, metalness: 0.6 }), [0, 5.5, ZF + 0.02])); titre.castShadow = false;
+  // lumières d'appoint : deux lampes chaudes dans les angles hauts, pour relever les ors et le parquet
+  [[-6, 4.6, 3.5], [6, 4.6, 3.5]].forEach((p) => { const l = new THREE.PointLight(0xffe4c0, 5, 11, 2); l.position.fromArray(p); l.castShadow = false; scene.add(l); });
 
-  /* ---- Les cinq portraits : cadre doré en relief, toile, ornements, cartel, lampe de tableau ---- */
+  /* ---- Les six portraits : toiles peintes (domaine public), cadres dorés au format de chaque image, cartels, lampes ---- */
   const or = mat(0xd4af4f, { metal: 0.85, rugosite: 0.3 }); const orSombre = mat(0xa8842f, { metal: 0.85, rugosite: 0.4 });
-  PENSEURS.forEach((p, i) => {
-    const g = new THREE.Group(); scene.add(g); g.position.set(-7.2 + i * 3.6, 3.1, ZF + 0.07);
-    mesh(new THREE.BoxGeometry(2.5, 3.1, 0.14), or, [0, 0, 0], g);
-    mesh(new THREE.BoxGeometry(2.24, 2.84, 0.2), orSombre, [0, 0, 0.02], g);
-    const toile = mesh(new THREE.PlaneGeometry(2.0, 2.6), new THREE.MeshStandardMaterial({ map: texturePortrait(p), roughness: 0.85 }), [0, 0, 0.125], g); toile.castShadow = false;
-    [[-1.12, 1.42], [1.12, 1.42], [-1.12, -1.42], [1.12, -1.42]].forEach((c) => mesh(new THREE.SphereGeometry(0.12, 14, 10), or, [c[0], c[1], 0.1], g));
-    mesh(new THREE.TorusGeometry(0.16, 0.04, 8, 20), or, [0, 1.62, 0.08], g);
+  const chargeur = new THREE.TextureLoader(); const HT = 2.4; const MARGE = 0.3; const ECART = 0.95; const ENTRE = 0.22;
+  const largeurGroupe = (p) => p.toiles.reduce((s, t) => s + t.ratio * HT, 0) + (p.toiles.length - 1) * ENTRE + 2 * MARGE;
+  const totalL = PENSEURS.reduce((s, p) => s + largeurGroupe(p), 0) + (PENSEURS.length - 1) * ECART; let xCur = -totalL / 2;
+  const ornementGeo = new THREE.SphereGeometry(0.11, 14, 10); const feuilleGeo = new THREE.TorusGeometry(0.15, 0.035, 8, 20);
+  /* Construit le cadre doré, les toiles et les cartels d'un groupe ; rappelé si une image n'a pas le rapport attendu. */
+  function construireCadre(p, g) {
+    while (g.children.length) { const c = g.children.pop(); c.traverse((m) => { if (m.geometry && m.geometry !== ornementGeo && m.geometry !== feuilleGeo) m.geometry.dispose(); }); }
+    const W = largeurGroupe(p); const Hc = HT + 2 * MARGE;
+    mesh(new THREE.BoxGeometry(W, Hc, 0.14), or, [0, 0, 0], g);
+    mesh(new THREE.BoxGeometry(W - 0.3, Hc - 0.3, 0.2), orSombre, [0, 0, 0.02], g);
+    [[-W / 2 + 0.16, Hc / 2 - 0.16], [W / 2 - 0.16, Hc / 2 - 0.16], [-W / 2 + 0.16, -Hc / 2 + 0.16], [W / 2 - 0.16, -Hc / 2 + 0.16]].forEach((c) => mesh(ornementGeo, or, [c[0], c[1], 0.1], g));
+    mesh(feuilleGeo, or, [0, Hc / 2 + 0.05, 0.08], g);
+    let x = -W / 2 + MARGE;
+    p.toiles.forEach((t, k) => {
+      const w = t.ratio * HT; const cx = x + w / 2;
+      mesh(new THREE.BoxGeometry(w + 0.1, HT + 0.1, 0.22), orSombre, [cx, 0, 0.0], g);
+      const matToile = t.materiau || (t.materiau = new THREE.MeshPhysicalMaterial({ color: 0x3a2a1e, roughness: 0.62, clearcoat: 0.25, clearcoatRoughness: 0.35 }));
+      const toile = mesh(new THREE.PlaneGeometry(w, HT), matToile, [cx, 0, 0.125], g); toile.castShadow = false; t.toile = toile;
+      if (k > 0) mesh(new THREE.BoxGeometry(0.14, Hc - 0.3, 0.24), or, [x - ENTRE / 2, 0, 0.02], g);
+      // le cartel : nom, dates, œuvre, peintre
+      const cartel = mesh(new THREE.PlaneGeometry(1.5, 0.62), new THREE.MeshStandardMaterial({ map: textureTexte(t.nom + '\n' + (t.dates || p.dates) + '\n' + p.oeuvre + '\n' + 'Peinture : ' + t.peintre, { taille: 17, fond: '#efe6d2', couleur: '#1a1512', police: 'Georgia, serif' }), roughness: 0.6 }), [cx, -Hc / 2 - 0.5, -0.04], g); cartel.castShadow = false;
+      legender(cartel, 'Cartel', LEGENDES[9].phrase); cartel.userData.penseur = p.id;
+      x += w + ENTRE;
+    });
     // la lampe de tableau en laiton
-    mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8), or, [0, 1.75, 0.3], g).rotation.x = Math.PI / 2;
-    const tube = mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.3, 12), or, [0, 1.78, 0.55], g); tube.rotation.z = Math.PI / 2;
-    mesh(new THREE.BoxGeometry(1.2, 0.02, 0.08), new THREE.MeshStandardMaterial({ color: 0xfff1d0, emissive: 0xffe6b8, emissiveIntensity: 0.5 }), [0, 1.72, 0.55], g).castShadow = false;
-    legender(g, p.nom, LEGENDES[i].phrase); cadres[p.id] = g;
-    const cartel = mesh(new THREE.PlaneGeometry(1.7, 0.56), new THREE.MeshStandardMaterial({ map: textureTexte(p.nom + '\n' + p.dates + '\n' + p.oeuvre, { taille: 20, fond: '#efe6d2', couleur: '#1a1512', police: 'Georgia, serif' }), roughness: 0.6 }), [g.position.x, 1.2, ZF + 0.03]); cartel.castShadow = false;
-    legender(cartel, 'Cartel', LEGENDES[9].phrase); cartel.userData.penseur = p.id;
+    mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8), or, [0, Hc / 2 + 0.2, 0.3], g).rotation.x = Math.PI / 2;
+    const tube = mesh(new THREE.CylinderGeometry(0.06, 0.06, Math.min(1.6, W - 0.6), 12), or, [0, Hc / 2 + 0.23, 0.55], g); tube.rotation.z = Math.PI / 2;
+    mesh(new THREE.BoxGeometry(Math.min(1.5, W - 0.7), 0.02, 0.08), new THREE.MeshStandardMaterial({ color: 0xfff1d0, emissive: 0xffe6b8, emissiveIntensity: 0.5 }), [0, Hc / 2 + 0.17, 0.55], g).castShadow = false;
+    g.traverse((c) => { if (c !== g && !c.userData.legende) c.userData.legende = g.userData.legende; });
+  }
+  PENSEURS.forEach((p, i) => {
+    const g = new THREE.Group(); scene.add(g); const W = largeurGroupe(p); g.position.set(xCur + W / 2, 3.1, ZF + 0.07); xCur += W + ECART;
+    legender(g, p.nom, LEGENDES[i].phrase); cadres[p.id] = g; construireCadre(p, g);
+    p.toiles.forEach((t) => {
+      chargeur.load(PORTRAITS + t.fichier, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+        const r = tex.image && tex.image.height ? tex.image.width / tex.image.height : t.ratio;
+        if (Math.abs(r - t.ratio) > 0.02) { t.ratio = r; construireCadre(p, g); }
+        t.materiau.map = tex; t.materiau.color.set(0xffffff); t.materiau.needsUpdate = true;
+      }, undefined, () => {});
+    });
     const l = new THREE.SpotLight(0xffe2b0, 7, 9, Math.PI / 6.5, 0.6, 1.2); l.position.set(g.position.x, 5.0, ZF + 1.3); l.target.position.set(g.position.x, 3.0, ZF); l.castShadow = false; scene.add(l); scene.add(l.target);
   });
+
+  /* ---- Le cordon de velours devant les portraits : poteaux de laiton instanciés, cordes rouges ---- */
+  const cordon = new THREE.Group(); scene.add(cordon); legender(cordon, 'Cordon', LEGENDES[16].phrase);
+  const XP = [-7, -3.5, 0, 3.5, 7]; const ZC = -4.0;
+  const poteau = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.025, 0.025, 0.95, 10), or, XP.length); const socle = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.18, 0.04, 16), or, XP.length); const pomme = new THREE.InstancedMesh(new THREE.SphereGeometry(0.05, 12, 10), or, XP.length);
+  const tmpM = new THREE.Matrix4();
+  XP.forEach((x, i) => { poteau.setMatrixAt(i, tmpM.makeTranslation(x, 0.5, ZC)); socle.setMatrixAt(i, tmpM.makeTranslation(x, 0.02, ZC)); pomme.setMatrixAt(i, tmpM.makeTranslation(x, 1.0, ZC)); });
+  [poteau, socle, pomme].forEach((m) => { m.castShadow = true; m.receiveShadow = true; cordon.add(m); });
+  const veloursCorde = mat(0x8e2f3f, { rugosite: 0.95 });
+  for (let i = 0; i < XP.length - 1; i += 1) { const a = new THREE.Vector3(XP[i], 0.93, ZC); const b = new THREE.Vector3(XP[i + 1], 0.93, ZC); const courbe = new THREE.CatmullRomCurve3([a, a.clone().lerp(b, 0.5).setY(0.72), b]); mesh(new THREE.TubeGeometry(courbe, 16, 0.022, 8, false), veloursCorde, [0, 0, 0], cordon).castShadow = false; }
 
   /* ---- La carte des correspondances, sur le mur gauche ---- */
   const carte = new THREE.Group(); scene.add(carte); carte.position.set(-8.93, 3.1, -1.5); carte.rotation.y = Math.PI / 2;
@@ -221,9 +280,9 @@ function init() {
   L.lustre.shadow.mapSize.set(1024, 1024); L.lustre.shadow.bias = -0.0005; L.lustre.shadow.normalBias = 0.03; L.lustre.shadow.camera.near = 0.3; L.lustre.shadow.camera.far = 12; scene.add(L.lustre); scene.add(L.lustre.target);
 
   /* ---- Les banquettes, devant les portraits ---- */
-  const velours = mat(0x8e2f3f, { rugosite: 0.95 });
+  const velours = mat(0x8e2f3f, { rugosite: 0.95 }); const banquettes = {};
   [-3.6, 3.6].forEach((bx) => {
-    const b = new THREE.Group(); scene.add(b); b.position.set(bx, 0, -2.6);
+    const b = new THREE.Group(); scene.add(b); b.position.set(bx, 0, -2.6); banquettes[bx] = b;
     mesh(new THREE.BoxGeometry(2.8, 0.26, 0.9), velours, [0, 0.58, 0], b); mesh(new THREE.BoxGeometry(2.6, 0.12, 0.74), boisSombre, [0, 0.39, 0], b);
     [[-1.2, -0.32], [1.2, -0.32], [-1.2, 0.32], [1.2, 0.32]].forEach((q) => { mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.34, 10), boisSombre, [q[0], 0.17, q[1]], b); mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.05, 10), or, [q[0], 0.025, q[1]], b); });
     legender(b, 'Banquette', LEGENDES[10].phrase);
@@ -292,7 +351,6 @@ function init() {
   const texBlanche = textureFeuille(false); const texImprimee = textureFeuille(true);
   const feuille = mesh(new THREE.PlaneGeometry(0.78, 0.58), new THREE.MeshStandardMaterial({ map: texBlanche, roughness: 0.9 }), [0, 1.365, 0], coffre); feuille.rotation.x = -Math.PI / 2; feuille.castShadow = false;
   legender(feuille, 'Feuille imprimée', LEGENDES[8].phrase);
-  // tables de côté : feuilles blanches à droite, feuilles imprimées à gauche
   const tablette = (px) => { mesh(new THREE.BoxGeometry(0.9, 0.06, 0.7), chene, [px, 0.9, 0.5], presse); [[-0.4, 0.2], [0.4, 0.2], [-0.4, 0.8], [0.4, 0.8]].forEach((q) => mesh(new THREE.BoxGeometry(0.06, 0.88, 0.06), chene, [px + q[0], 0.44, q[1]], presse)); };
   tablette(1.65); tablette(-1.65);
   mesh(new THREE.BoxGeometry(0.66, 0.14, 0.5), new THREE.MeshStandardMaterial({ color: 0xf3ebd8, roughness: 0.9 }), [1.65, 1.0, 0.5], presse).castShadow = false;
@@ -302,29 +360,114 @@ function init() {
   legender(presse, 'Presse d\'imprimerie', LEGENDES[7].phrase); feuille.userData.legende = { nom: 'Feuille imprimée', phrase: LEGENDES[8].phrase };
   L.presse = { vis, platine, pivot, coffre, feuille, pile, texBlanche, texImprimee };
 
+  /* ---- Les cinq indices de la chasse, posés dans la salle ---- */
+  const papier = (map) => new THREE.MeshStandardMaterial({ map, roughness: 0.9 });
+  const indice = (id, g) => { const d = INDICES.find((x) => x.id === id); legender(g, d.nom, d.phrase); g.userData.indice = id; return g; };
+  { // la lettre persane, sur la table du salon : feuille pliée, cachet de cire
+    const g = new THREE.Group(); salon.add(g); g.position.set(-0.15, 0.835, 0.55); g.rotation.y = -0.35;
+    mesh(new THREE.BoxGeometry(0.3, 0.012, 0.2), papier(textureLivre('Lettres\npersanes', 'Usbek à Rica,\nà Paris, 1721', '#f3ead6')), [0, 0, 0], g).castShadow = false;
+    mesh(new THREE.CylinderGeometry(0.025, 0.028, 0.008, 12), mat(0x9a1e1e, { rugosite: 0.4 }), [0.06, 0.01, 0.03], g);
+    indice('lettre', g);
+  }
+  { // la brochure de Voltaire, sur la banquette de droite
+    const g = new THREE.Group(); banquettes[3.6].add(g); g.position.set(0.8, 0.71, 0.05); g.rotation.y = 0.5;
+    mesh(new THREE.BoxGeometry(0.26, 0.03, 0.36), mat(0xe8dfc8, { rugosite: 0.9 }), [0, 0.015, 0], g);
+    const couv = mesh(new THREE.PlaneGeometry(0.24, 0.34), papier(textureLivre('TRAITÉ\nSUR LA\nTOLÉRANCE', 'M. DCC. LXIII', '#efe6d2')), [0, 0.031, 0], g); couv.rotation.x = -Math.PI / 2; couv.castShadow = false;
+    indice('traite', g);
+  }
+  { // Du contrat social, sur la banquette de gauche
+    const g = new THREE.Group(); banquettes[-3.6].add(g); g.position.set(-0.7, 0.71, -0.05); g.rotation.y = -0.3;
+    mesh(new THREE.BoxGeometry(0.24, 0.06, 0.34), mat(0x3a5a2e, { rugosite: 0.7 }), [0, 0.03, 0], g);
+    mesh(new THREE.BoxGeometry(0.22, 0.05, 0.32), mat(0xf1e8d2, { rugosite: 1 }), [0.012, 0.03, 0], g).castShadow = false;
+    const couv = mesh(new THREE.PlaneGeometry(0.22, 0.32), papier(textureLivre('DU CONTRAT\nSOCIAL', 'par J.-J. Rousseau\nAmsterdam, 1762', '#3a5a2e', '#e8d9a0')), [0, 0.061, 0], g); couv.rotation.x = -Math.PI / 2; couv.castShadow = false;
+    indice('contrat', g);
+  }
+  { // la planche de l'Encyclopédie, encadrée, appuyée contre la vitrine
+    const g = new THREE.Group(); vit.add(g); g.position.set(-0.6, 0.52, 0.78); g.rotation.x = -0.2;
+    mesh(new THREE.BoxGeometry(0.72, 0.9, 0.04), boisSombre, [0, 0, 0], g);
+    mesh(new THREE.PlaneGeometry(0.64, 0.8), papier(texturePlanche()), [0, 0, 0.022], g).castShadow = false;
+    indice('planche', g);
+  }
+  { // la traduction de Newton, ouverte sur un pupitre de lecture près de la carte
+    const pup = new THREE.Group(); scene.add(pup); pup.position.set(-8.1, 0, -3.2); pup.rotation.y = 0.9;
+    mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.05, 16), boisSombre, [0, 0.025, 0], pup); mesh(new THREE.CylinderGeometry(0.05, 0.07, 1.05, 12), boisSombre, [0, 0.55, 0], pup);
+    const plat = mesh(new THREE.BoxGeometry(0.62, 0.04, 0.46), boisSombre, [0, 1.08, 0], pup); plat.rotation.x = -0.45;
+    legender(pup, 'Pupitre de lecture', LEGENDES[17].phrase);
+    const g = new THREE.Group(); pup.add(g); g.position.set(0, 1.11, 0); g.rotation.x = -0.45;
+    mesh(new THREE.BoxGeometry(0.5, 0.05, 0.36), mat(0x6b2b2b, { rugosite: 0.7 }), [0, 0.025, 0], g);
+    [-0.12, 0.12].forEach((px) => mesh(new THREE.BoxGeometry(0.23, 0.03, 0.33), mat(0xf1e8d2, { rugosite: 1 }), [px, 0.065, 0], g).castShadow = false);
+    const page = mesh(new THREE.PlaneGeometry(0.21, 0.3), papier(textureLivre('PRINCIPES\nMATHÉMATIQUES', 'de la philosophie naturelle\npar feue Madame\nla Marquise du Chastellet\n1759', '#f1e8d2')), [0.12, 0.081, 0], g); page.rotation.x = -Math.PI / 2; page.castShadow = false;
+    indice('principia', g);
+  }
+
   etiquette('Salon', [-4.5, 2.35, 1.6], { hauteur: 0.34 }); etiquette('Encyclopédie', [4.5, 2.5, 1.6], { hauteur: 0.34 }); etiquette('Presse', [6.3, 3.7, -2.4], { hauteur: 0.34 });
 
+  /* ---- Le guide, en habit du XVIIIᵉ siècle : justaucorps, culotte, perruque poudrée, tricorne, jabot ---- */
+  guide = M.personnage({ nom: 'Le guide', phrase: LEGENDES[15].phrase, position: [1.6, 0, -4.9], taille: 1.78, peau: 0xe6c3a5, haut: 0x24407a, bas: 0xe9dcc2, cheveux: 0xece8df, vitesse: 1.25, graine: 2 });
+  {
+    const u = 1.78 / 1.7; const g = guide.groupe; const noir = mat(0x15141a, { rugosite: 0.7 }); const blanc = mat(0xf6f3ea, { rugosite: 0.9 });
+    // le tricorne : une calotte et trois bords relevés
+    mesh(new THREE.CylinderGeometry(0.125 * u, 0.135 * u, 0.09 * u, 20), noir, [0, 1.705 * u, 0], g);
+    for (let k = 0; k < 3; k += 1) { const an = k * Math.PI * 2 / 3 + Math.PI / 6; const bord = mesh(new THREE.BoxGeometry(0.3 * u, 0.012 * u, 0.1 * u), noir, [Math.cos(an) * 0.115 * u, 1.69 * u, Math.sin(an) * 0.115 * u], g); bord.rotation.y = -an; bord.rotation.z = 0.5; bord.rotation.order = 'YZX'; }
+    // le jabot, les boutons dorés, les manchettes, les bas blancs
+    const jabot = mesh(new THREE.BoxGeometry(0.09 * u, 0.16 * u, 0.04 * u), blanc, [0, 1.3 * u, 0.17 * u], g); jabot.rotation.x = 0.1;
+    for (let k = 0; k < 5; k += 1) mesh(new THREE.SphereGeometry(0.014 * u, 8, 6), or, [0.05 * u, (1.22 - k * 0.07) * u, 0.175 * u], g);
+    ['brasG', 'brasD'].forEach((n) => mesh(new THREE.CylinderGeometry(0.07 * u, 0.065 * u, 0.08 * u, 12), blanc, [0, -0.55 * u, 0], guide.membres[n]));
+    ['jambeG', 'jambeD'].forEach((n) => mesh(new THREE.CylinderGeometry(0.062 * u, 0.058 * u, 0.3 * u, 12), blanc, [0, -0.6 * u, 0], guide.membres[n]));
+    // la queue de la perruque, nouée d'un ruban noir
+    mesh(new THREE.CapsuleGeometry(0.035 * u, 0.12 * u, 4, 8), mat(0xece8df, { rugosite: 0.9 }), [0, 1.48 * u, -0.11 * u], g);
+    mesh(new THREE.BoxGeometry(0.07 * u, 0.03 * u, 0.02 * u), noir, [0, 1.52 * u, -0.13 * u], g);
+  }
+  guide.regarder([0, 0, 6]);
+
+  /* ---- La marche dans la salle : limites de la pièce, collisions contre le mobilier ---- */
+  function collision(x, z) {
+    if (Math.abs(x) < 7.4 && z < -3.75) return true; // le cordon
+    for (const bx of [-3.6, 3.6]) if (Math.abs(x - bx) < 1.75 && Math.abs(z + 2.6) < 0.85) return true; // banquettes
+    if (Math.hypot(x + 4.5, z - 1.6) < 2.75) return true; // salon
+    if (Math.abs(x - 4.5) < 1.75 && Math.abs(z - 1.6) < 1.15) return true; // vitrine
+    if (Math.hypot(x - 6.3, z + 2.4) < 2.0) return true; // presse
+    if (Math.hypot(x + 8.1, z + 3.2) < 0.7) return true; // pupitre
+    return false;
+  }
+  marche = M.marcher({ depart: [0, 0, 5.6], hauteur: 1.6, vitesse: 2.6, limites: { xmin: -8.5, xmax: 8.5, zmin: -5.6, zmax: 6.7 }, collision,
+    aide: 'Flèches ou ZQSD pour marcher, Maj pour presser le pas, glisse pour regarder. Échap : vue libre.',
+    surPas: (dt) => { tempsPas += dt; if (tempsPas > 0.52) { tempsPas = 0; M.son('pas', { volume: 0.1 }); } },
+    surChangement: (actif) => { M.controls.enableRotate = !actif; M.controls.enableZoom = !actif; vue = null; const b = panneau && panneau.querySelector('#mu-marcher'); if (b) { b.setAttribute('aria-pressed', String(actif)); b.textContent = actif ? 'Revenir à la vue libre' : 'Marcher dans la salle'; } if (actif) shell.say('Tu marches dans la salle. Flèches ou joystick pour avancer, glisse pour regarder autour de toi.', 'concentre'); } });
+  // les flèches servent à marcher, pas à tourner la vue, tant que la marche est active
+  document.addEventListener('keydown', (e) => { if (!marche.estActif()) return; if (/^Arrow(Left|Right|Up|Down)$/.test(e.key)) e.preventDefault(); if (e.key === 'Escape') { e.stopPropagation(); marche.desactiver(); } }, true);
+
+  /* ---- L'ambiance : une salle calme, les pas ---- */
+  M.ambiance({ type: 'salle', volume: 0.16 });
+
   /* ---- Le panneau ---- */
+  const petit = window.matchMedia('(max-width: 720px)').matches;
   panneau = M.panneau(`<h3>Visite guidée</h3>
     <div class="mb-groupe"><button class="mb-bouton" id="mu-prec" type="button">◀ Précédent</button><button class="mb-bouton primaire" id="mu-suiv" type="button">Suivant ▶</button></div>
-    <p class="mb-carte" id="mu-texte">Touche un portrait, ou appuie sur « Suivant » pour commencer la visite.</p>
-    <h3>Les penseurs</h3>
-    <div class="mb-etapes" id="mu-liste">${PENSEURS.map((p, i) => `<button class="mb-bouton" type="button" data-p="${p.id}" style="border-left:6px solid ${p.couleur}"><i>${i + 1}</i><span>${p.nom}</span></button>`).join('')}</div>
-    <button class="mb-bouton" id="mu-chrono" type="button" aria-pressed="false">Classer par date de l'œuvre</button>
-    <h3>La salle</h3>
-    <div class="mb-groupe"><button class="mb-bouton" id="mu-imprimer" type="button">Imprimer une feuille</button><button class="mb-bouton" id="mu-soir" type="button" aria-pressed="false">Soirée</button></div>
-    <p class="mb-carte" id="mu-presse">Aucune feuille imprimée pour l'instant.</p>`);
+    <p class="mb-carte" id="mu-texte">Le guide t'attend devant les portraits. Appuie sur « Suivant », ou touche un tableau.</p>
+    <div class="mb-groupe"><button class="mb-bouton" id="mu-mission" type="button">Chasse aux indices</button><button class="mb-bouton" id="mu-marcher" type="button" aria-pressed="false">Marcher dans la salle</button></div>
+    <details id="mu-det-penseurs" ${petit ? '' : 'open'}><summary>Les penseurs</summary><div>
+      <div class="mb-etapes" id="mu-liste">${PENSEURS.map((p, i) => `<button class="mb-bouton" type="button" data-p="${p.id}" style="border-left:6px solid ${p.couleur}"><i>${i + 1}</i><span>${p.nom}</span></button>`).join('')}</div>
+      <button class="mb-bouton" id="mu-chrono" type="button" aria-pressed="false">Classer par date de l'œuvre</button>
+    </div></details>
+    <details id="mu-det-salle" ${petit ? '' : 'open'}><summary>La salle</summary><div>
+      <div class="mb-groupe"><button class="mb-bouton" id="mu-imprimer" type="button">Imprimer une feuille</button><button class="mb-bouton" id="mu-soir" type="button" aria-pressed="false">Soirée</button></div>
+      <p class="mb-carte" id="mu-presse">Aucune feuille imprimée pour l'instant.</p>
+    </div></details>`);
   panneau.querySelectorAll('[data-p]').forEach((b) => b.addEventListener('click', () => voir(b.getAttribute('data-p'))));
   panneau.querySelector('#mu-suiv').addEventListener('click', () => visiter(1)); panneau.querySelector('#mu-prec').addEventListener('click', () => visiter(-1));
   panneau.querySelector('#mu-chrono').addEventListener('click', (e) => { chrono = !chrono; e.currentTarget.setAttribute('aria-pressed', String(chrono)); e.currentTarget.textContent = chrono ? 'Classer dans l\'ordre des portraits' : 'Classer par date de l\'œuvre'; classer(); });
   panneau.querySelector('#mu-imprimer').addEventListener('click', imprimer);
   panneau.querySelector('#mu-soir').addEventListener('click', (e) => { soiree = !soiree; e.currentTarget.setAttribute('aria-pressed', String(soiree)); e.currentTarget.textContent = soiree ? 'Jour' : 'Soirée'; shell.say(soiree ? 'La verrière s\'éteint, le lustre et les bougies s\'allument : un salon se tenait le soir, à la lumière des chandelles.' : 'Le jour revient par la verrière.', 'concentre'); });
-  M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; const p = PENSEURS.find((x) => x.nom === nom); if (p) voir(p.id, true); }, 30); });
+  panneau.querySelector('#mu-marcher').addEventListener('click', () => marche.bascule());
+  panneau.querySelector('#mu-mission').addEventListener('click', lancerMission);
+  // un objet touché : un portrait ouvre sa fiche, un indice compte pour la chasse
+  M.renderer.domElement.addEventListener('pointerup', () => { setTimeout(() => { const b = document.querySelector('.ksh-legende'); if (!b || b.hidden) return; const nom = b.querySelector('b') && b.querySelector('b').textContent; toucher(nom); }, 30); });
 
   /* ---- La boucle : caméra, éclairage jour ou soirée, flammes, presse ---- */
   const depuis = { pos: new THREE.Vector3(), cible: new THREE.Vector3() }; let kLum = 0;
   M.boucle((dt, t) => {
-    if (vue) { vue.t = Math.min(1, vue.t + dt / 1.1); const k = ease(vue.t); M.camera.position.lerpVectors(depuis.pos, vue.pos, k); M.controls.target.lerpVectors(depuis.cible, vue.cible, k); if (vue.t >= 1) vue = null; }
+    if (vue && !marche.estActif()) { vue.t = Math.min(1, vue.t + dt / 1.1); const k = ease(vue.t); M.camera.position.lerpVectors(depuis.pos, vue.pos, k); M.controls.target.lerpVectors(depuis.cible, vue.cible, k); if (vue.t >= 1) vue = null; }
     const voulu = soiree ? 1 : 0; if (Math.abs(kLum - voulu) > 0.001) {
       kLum += (voulu - kLum) * Math.min(1, dt * 2.5);
       L.soleil.intensity = 2.0 * (1 - kLum); L.hemi.intensity = 0.45 - 0.33 * kLum; scene.environmentIntensity = 0.5 - 0.3 * kLum;
@@ -334,19 +477,35 @@ function init() {
     L.flammes.emissiveIntensity = (1.2 + 2.4 * kLum) * (1 + 0.08 * Math.sin(t * 9.3) + 0.05 * Math.sin(t * 13.7));
     if (impression) animerPresse(dt);
   });
-  function allerA(pos, cible) { depuis.pos.copy(M.camera.position); depuis.cible.copy(M.controls.target); vue = { pos: new THREE.Vector3(...pos), cible: new THREE.Vector3(...cible), t: 0 }; }
+  function allerA(pos, cible) { if (marche.estActif()) return; depuis.pos.copy(M.camera.position); depuis.cible.copy(M.controls.target); vue = { pos: new THREE.Vector3(...pos), cible: new THREE.Vector3(...cible), t: 0 }; }
   M.allerA = allerA;
+  // pour les essais automatiques : toucher un objet par son nom de légende, lire la mission
+  window.__monde = { toucher, lancerMission, collision, mission: () => mission, marche: () => marche, guide: () => guide, voir, visiter };
 }
 const ARRETS = {
-  salon: { pos: [-3.6, 2.7, 6.2], cible: [-4.5, 1.0, 1.6], titre: 'Le salon', texte: 'Chez Madame Geoffrin, le soir : philosophes, savants et artistes discutent autour d\'une table. Les idées circulent de bouche à oreille, puis par lettres dans toute l\'Europe.' },
-  encyclopedie: { pos: [4.2, 2.3, 4.4], cible: [4.5, 1.3, 1.6], titre: 'L\'Encyclopédie', texte: 'Diderot et d\'Alembert dirigent 28 volumes (1751 à 1772) : 71 818 articles et 2 885 planches sur les sciences, les arts et les métiers. Le roi l\'interdit un temps ; elle s\'achève quand même.' },
-  presse: { pos: [1.6, 2.6, 2.6], cible: [6.0, 1.5, -2.2], titre: 'La presse d\'imprimerie', texte: 'Livres, journaux, brochures : la presse multiplie les textes. Les écrits interdits en France s\'impriment à Amsterdam, Genève ou Londres, puis passent la frontière en cachette.' },
+  salon: { pos: [-3.6, 2.7, 6.2], cible: [-4.5, 1.0, 1.6], guide: [-1.4, 0, 2.4], titre: 'Le salon', texte: 'Chez Madame Geoffrin, le soir : philosophes, savants et artistes discutent autour d\'une table. Les idées circulent de bouche à oreille, puis par lettres dans toute l\'Europe.' },
+  encyclopedie: { pos: [4.2, 2.3, 4.4], cible: [4.5, 1.3, 1.6], guide: [2.4, 0, 2.6], titre: 'L\'Encyclopédie', texte: 'Diderot et d\'Alembert dirigent 28 volumes (1751 à 1772) : 71 818 articles et 2 885 planches sur les sciences, les arts et les métiers. Le roi l\'interdit un temps ; elle s\'achève quand même.' },
+  presse: { pos: [1.6, 2.6, 2.6], cible: [6.0, 1.5, -2.2], guide: [3.8, 0, -1.2], titre: 'La presse d\'imprimerie', texte: 'Livres, journaux, brochures : la presse multiplie les textes. Les écrits interdits en France s\'impriment à Amsterdam, Genève ou Londres, puis passent la frontière en cachette.' },
 };
+/* Le guide va se placer à côté de ce qu'il présente, puis se tourne vers la visiteuse et parle. */
+function guideVers(point, phrase) {
+  if (!guide) return;
+  guide.allerA(point);
+  const attendre = () => { const d = guide.position().clone().sub(new THREE.Vector3(point[0], guide.position().y, point[2])); d.y = 0; if (d.length() > 0.08) { setTimeout(attendre, 120); return; } guide.regarder(M.camera.position); if (phrase) guide.dire(phrase, 5); };
+  setTimeout(attendre, 150);
+}
+function toucher(nom) {
+  const p = PENSEURS.find((x) => x.nom === nom); if (p) { voir(p.id, true); return; }
+  const d = INDICES.find((x) => x.nom === nom);
+  if (d && mission && !mission.estFinie() && mission.objectifs.some((o) => o.id === d.id && !o.fait)) { mission.valider(d.id); trouves += 1; if (guide) guide.dire(d.guide, 5); else shell.say(d.guide, 'fier'); return; }
+  if (nom === 'Le guide' && guide) guide.dire(etape < 0 ? 'Bienvenue au musée des Lumières. Appuie sur « Suivant » : je te présente les portraits.' : 'Je te suis : touche un portrait, ou appuie sur « Suivant ».', 4);
+}
 function voir(id, sansCamera) {
   const p = PENSEURS.find((x) => x.id === id); const g = cadres[id]; etape = ETAPES.indexOf(id);
-  panneau.querySelector('#mu-texte').innerHTML = '<b>' + p.nom + '</b> (' + p.dates + '). ' + p.oeuvre + '. ' + p.idee;
+  panneau.querySelector('#mu-texte').innerHTML = '<b>' + p.nom + '</b> (' + p.dates + '). ' + p.oeuvre + '. ' + p.idee + ' Peinture : ' + p.toiles.map((t) => t.peintre).join(' et ') + '.';
   panneau.querySelectorAll('[data-p]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-p') === id)));
   if (!sansCamera) M.allerA([g.position.x, 3.0, -1.8], [g.position.x, 3.0, -5.9]);
+  guideVers([g.position.x + 1.5, 0, -4.9], p.nom + ' : ' + p.idee);
   shell.say(p.nom + ' : ' + p.idee, 'concentre');
 }
 function visiter(sens) {
@@ -354,7 +513,7 @@ function visiter(sens) {
   if (PENSEURS.some((p) => p.id === id)) { voir(id); return; }
   const a = ARRETS[id]; panneau.querySelector('#mu-texte').innerHTML = '<b>' + a.titre + '</b>. ' + a.texte;
   panneau.querySelectorAll('[data-p]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
-  M.allerA(a.pos, a.cible); shell.say(a.texte, 'concentre');
+  M.allerA(a.pos, a.cible); guideVers(a.guide, a.texte.split('. ')[0] + '.'); shell.say(a.texte, 'concentre');
 }
 function classer() {
   const liste = panneau.querySelector('#mu-liste'); const ordre = chrono ? PENSEURS.slice().sort((a, b) => a.annee - b.annee) : PENSEURS;
@@ -363,7 +522,7 @@ function classer() {
 }
 /* La presse : la barre tire, la platine descend, puis le coffre sort avec la feuille imprimée. */
 const PHASES = [0.55, 0.35, 0.6, 0.5];
-function imprimer() { if (impression) return; impression = { phase: 0, t: 0 }; L.presse.feuille.material.map = L.presse.texBlanche; L.presse.feuille.material.needsUpdate = true; shell.say('La barre tire la vis, la platine presse la feuille sur les caractères encrés, puis le coffre ressort.', 'concentre'); }
+function imprimer() { if (impression) return; impression = { phase: 0, t: 0 }; L.presse.feuille.material.map = L.presse.texBlanche; L.presse.feuille.material.needsUpdate = true; M.son('coup', { volume: 0.18 }); shell.say('La barre tire la vis, la platine presse la feuille sur les caractères encrés, puis le coffre ressort.', 'concentre'); }
 function animerPresse(dt) {
   const P = L.presse; const I = impression; I.t += dt; const f = Math.min(1, I.t / PHASES[I.phase]); const e = ease(f);
   if (I.phase === 0) { P.pivot.rotation.y = -1.3 * e; P.vis.position.y = -0.16 * e; }
@@ -379,8 +538,33 @@ function animerPresse(dt) {
     }
   }
 }
+/* ---- La chasse aux indices : cinq objets, un chrono, le guide qui commente ; étoiles en détente, score en mode cours ---- */
+function lancerMission() {
+  if (mission && !mission.estFinie()) { shell.say('La chasse est déjà lancée : il reste ' + mission.objectifs.filter((o) => !o.fait).length + ' objet(s) à trouver.', 'concentre'); mission.montrer(); return; }
+  if (!mission) {
+    mission = M.mission({
+      titre: 'Chasse aux indices', cachee: true, chrono: true, chronoCible: 180, gagner: modeJeu !== 'cours',
+      intro: 'Chasse aux indices : cinq objets liés aux œuvres sont posés dans la salle. Touche-les tous, montre en main. Le guide te dira ce que c\'est.',
+      objectifs: INDICES.map((d) => ({ id: d.id, texte: d.nom })),
+      bravo: 'Les cinq indices trouvés : tu sais maintenant relier chaque penseur à son livre.',
+      surFin: (reussie, secondes, score) => {
+        const t = Math.round(secondes); const txt = reussie ? 'Chasse terminée en ' + Math.floor(t / 60) + ' min ' + (t % 60) + ' s. Les cinq objets sont retrouvés.' : 'La chasse s\'arrête là.';
+        if (guide) guide.dire(reussie ? 'Bravo. Cinq œuvres, cinq objets : la salle n\'a plus de secret pour toi.' : 'On pourra reprendre la chasse plus tard.', 6);
+        if (modeJeu === 'cours' && apiJeu) { apiJeu.say(txt + ' ' + score + ' points de plus.', 'fier'); apiJeu.celebrate(); setTimeout(() => mission.cacher(), 9000); }
+      },
+    });
+  }
+  trouves = 0; mission.montrer(); mission.commencer();
+  if (guide) guide.dire('Cherche bien : une lettre, une brochure, deux livres et une planche gravée.', 5);
+}
 function demarrer(mode, api) {
-  if (mode !== 'cours') { api.say('Approche-toi des portraits. Touche le salon, la presse, l\'Encyclopédie : c\'est ainsi que les idées circulent.', 'joyeux'); return; }
+  modeJeu = mode; apiJeu = api; etape = -1;
+  if (guide) { guide.regarder([0, 0, 6]); setTimeout(() => guide.dire('Bienvenue au musée des Lumières. Je suis ton guide : appuie sur « Suivant ».', 5), 900); }
+  if (mode !== 'cours') {
+    api.say('Approche-toi des portraits. Touche le salon, la presse, l\'Encyclopédie : c\'est ainsi que les idées circulent. La chasse aux indices démarre dans quelques secondes.', 'joyeux');
+    setTimeout(() => { if (!mission || mission.estFinie()) lancerMission(); }, 6000);
+    return;
+  }
   api.defis([
     { type: 'toucher', texte: 'Touche le portrait de <b>Montesquieu</b>.', cible: 'Montesquieu', explication: 'De l\'esprit des lois, 1748 : Montesquieu observe l\'Angleterre et théorise la séparation des pouvoirs.' },
     { type: 'qcm', texte: 'Montesquieu défend…', choix: ['la séparation des pouvoirs législatif, exécutif et judiciaire', 'le pouvoir absolu du roi', 'la suppression des lois', 'le retour à la nature'], reponse: 0, explication: 'Si une seule personne fait la loi, l\'applique et juge, c\'est la tyrannie. Les pouvoirs doivent se limiter les uns les autres.' },
