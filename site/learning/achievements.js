@@ -119,7 +119,7 @@
       .ach-toast{position:fixed;left:20px;bottom:20px;z-index:300;background:var(--surface,#fff);border:1px solid var(--border,#e7e9f3);border-left:5px solid var(--brand-amber,#F5A623);border-radius:14px;box-shadow:0 18px 48px rgba(0,0,0,.25);padding:13px 16px;display:flex;gap:12px;align-items:center;font-family:'Manrope',system-ui,sans-serif;transform:translateY(120%);opacity:0;transition:.45s cubic-bezier(.22,1,.36,1);max-width:300px}
       .ach-toast.show{transform:none;opacity:1}
       .ach-toast .ai{font-size:30px;flex:none}
-      .ach-toast .at{font-family:'Archivo',sans-serif;font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-amber,#F5A623)}
+      .ach-toast .at{font-family:'Archivo',sans-serif;font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9a5b00}
       .ach-toast .an{font-weight:700;font-size:15px;color:var(--fg,#13142b)}
       .ach-toast .ad{font-size:12px;color:var(--fg-muted,#565b75)}`;
     document.head.appendChild(s);

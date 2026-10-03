@@ -491,3 +491,5 @@ et une relecture. Les numéros (B pour le serveur, F pour le site) apparaissent 
 - [x] F232 Mondes 01 à 10 : sonde-guide, professeures, nanorobot, électricien, technicienne, robot gardien, architecte, avion de ligne, témoins d'époque ; missions chronométrées (Saturne, bouchée, trois réactions, cellule, maison à câbler, salle en route, trois attaques, maquette, tour du monde, ordre des événements).
 - [x] F233 Mondes 11 à 20 : personnages et missions sur le même modèle (moteur, chaîne alimentaire, réseau de neurones, lancers, éruption, trajets, puissance de la centrale, fouille, décollage, descente en paliers).
 - [x] F234 Les bulles de texte 3D ne passent plus par le mappage de tons et prennent un fond sombre : lisibles sous bloom.
+- [x] F235 Le bandeau « Trophée débloqué » des jeux passe en ambre foncé : contraste 4,5:1 sur fond clair (l'audit des 88 jeux le relevait quand un trophée tombe au chargement).
+- [x] F236 Panneau de confort des jeux : identifiants, libellés et commentaires neutres (lecture facilitée, concentration, sérénité, grands caractères, lettres espacées), anciennes valeurs enregistrées ramenées au neutre ou à la police aérée.

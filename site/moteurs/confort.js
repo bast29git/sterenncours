@@ -10,7 +10,7 @@
  * Organisation : bouton d'accessibilité universel (pictogramme ISO « personne »)
  * toujours visible + panneau en 2 onglets :
  *  — « Profils » : presets 1-clic (Lecture facilitée, Concentration, Sérénité,
- *    Grand texte/malvoyance, Neutre), modifiables ensuite finement ;
+ *    Grands caractères, Neutre), modifiables ensuite finement ;
  *  — « Réglages fins » : police lisible, taille (4 crans), interligne (3 crans),
  *    lettres espacées, thème (auto/clair/sombre/crème), contraste élevé, moins
  *    d'animations, grand curseur, règle de lecture, masque de lecture, lecture
@@ -33,8 +33,8 @@
   try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
   var DEFAULTS = {
-    profil: '',         // '' | dyslexie | tdah | autisme | malvoyance
-    police: 'defaut',   // defaut | lisible | dys
+    profil: '',         // '' | lecture | concentration | serenite | caracteres
+    police: 'defaut',   // defaut | lisible | aeree
     taille: 0,          // 0..3 (crans ; -1 encore accepté pour compat)
     interligne: 0,      // 0 | 1 | 2 (normal / aéré / très aéré)
     espacement: false,  // lettres & mots espacés
@@ -54,6 +54,9 @@
   function load() {
     var raw = {};
     try { raw = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) { raw = {}; }
+    // Anciennes valeurs enregistrées : un profil inconnu revient au neutre, une police inconnue devient la police aérée.
+    if (raw.profil && ['lecture', 'concentration', 'serenite', 'caracteres'].indexOf(raw.profil) < 0) raw.profil = '';
+    if (raw.police && ['defaut', 'lisible', 'aeree'].indexOf(raw.police) < 0) raw.police = 'aeree';
     var s = Object.assign({}, DEFAULTS, raw);
     // Migration : l'ancien « espacement » gérait aussi l'interligne.
     if (raw.espacement && typeof raw.interligne === 'undefined') s.interligne = 2;
@@ -78,7 +81,7 @@
     'html.cf-scale-3 body{font-size:1.32em}',
     /* Polices lisibles : appliquées au contenu, JAMAIS au panneau (.cf-ui) */
     'html.cf-font-lisible body :not(.cf-ui):not(.cf-ui *){font-family:Verdana,Tahoma,"Segoe UI",system-ui,sans-serif!important}',
-    'html.cf-font-dys body :not(.cf-ui):not(.cf-ui *){font-family:"Comic Sans MS","Trebuchet MS",Verdana,Tahoma,sans-serif!important;letter-spacing:.02em}',
+    'html.cf-font-aeree body :not(.cf-ui):not(.cf-ui *){font-family:"Comic Sans MS","Trebuchet MS",Verdana,Tahoma,sans-serif!important;letter-spacing:.02em}',
     /* Interligne (3 crans) & espacement des lettres */
     'html.cf-lh-1 body :not(.cf-ui):not(.cf-ui *){line-height:1.75!important}',
     'html.cf-lh-2 body :not(.cf-ui):not(.cf-ui *){line-height:2.05!important}',
@@ -183,9 +186,9 @@
     h.classList.remove('cf-scale-n1', 'cf-scale-1', 'cf-scale-2', 'cf-scale-3');
     if (state.taille === -1) h.classList.add('cf-scale-n1');
     else if (state.taille > 0) h.classList.add('cf-scale-' + Math.min(3, state.taille));
-    h.classList.remove('cf-font-lisible', 'cf-font-dys');
+    h.classList.remove('cf-font-lisible', 'cf-font-aeree');
     if (state.police === 'lisible') h.classList.add('cf-font-lisible');
-    else if (state.police === 'dys') h.classList.add('cf-font-dys');
+    else if (state.police === 'aeree') h.classList.add('cf-font-aeree');
     h.classList.remove('cf-lh-1', 'cf-lh-2');
     if (state.interligne > 0) h.classList.add('cf-lh-' + Math.min(2, state.interligne));
     h.classList.toggle('cf-space', !!state.espacement);
@@ -200,7 +203,7 @@
     // Drapeaux publics lisibles par les jeux / leçons.
     if (state.tempsLibre) h.setAttribute('data-confort-temps', 'libre');
     else h.removeAttribute('data-confort-temps');
-    if (state.profil === 'autisme') h.setAttribute('data-confort-previsible', '1');
+    if (state.profil === 'serenite') h.setAttribute('data-confort-previsible', '1');
     else h.removeAttribute('data-confort-previsible');
     if (state.focus) h.setAttribute('data-confort-focus', '1');
     else h.removeAttribute('data-confort-focus');
@@ -390,13 +393,13 @@
 
   // ── Profils 1-clic (presets combinés, modifiables ensuite) ─────────────────
   var PROFILS = [
-    { id: 'dyslexie', color: '#9B2BB0', ic: IC.book, titre: 'Lecture facilitée',
+    { id: 'lecture', color: '#9B2BB0', ic: IC.book, titre: 'Lecture facilitée',
       sub: 'Police lisible, texte grand et aéré, fond crème, règle de lecture.' },
-    { id: 'tdah', color: '#F5A623', ic: IC.focus, titre: 'Concentration',
+    { id: 'concentration', color: '#F5A623', ic: IC.focus, titre: 'Concentration',
       sub: 'Une chose à la fois : décors masqués, rappel de pause toutes les 20 min.' },
-    { id: 'autisme', color: '#1E8C7A', ic: IC.leaf, titre: 'Sérénité',
+    { id: 'serenite', color: '#1E8C7A', ic: IC.leaf, titre: 'Sérénité',
       sub: 'Zéro animation, sons coupés, couleurs douces, étapes annoncées à l\'avance.' },
-    { id: 'malvoyance', color: '#1B6FB8', ic: IC.eye, titre: 'Grands caractères',
+    { id: 'caracteres', color: '#1B6FB8', ic: IC.eye, titre: 'Grands caractères',
       sub: 'Texte très grand, contraste élevé, grand curseur bien visible.' },
     { id: '', color: '#565B75', ic: IC.reset, titre: 'Neutre',
       sub: 'Tout remettre comme au départ.' },
@@ -406,16 +409,16 @@
     var s = Object.assign({}, DEFAULTS);
     s.voix = state.voix;               // préférence de voix conservée
     s.sons = state.sons;
-    if (id === 'dyslexie') {
-      s.profil = 'dyslexie'; s.police = 'dys'; s.taille = 1; s.interligne = 2;
+    if (id === 'lecture') {
+      s.profil = 'lecture'; s.police = 'aeree'; s.taille = 1; s.interligne = 2;
       s.espacement = true; s.theme = 'creme'; s.regle = true;
-    } else if (id === 'tdah') {
-      s.profil = 'tdah'; s.focus = true; s.pause = 0; s.calme = true;
-    } else if (id === 'autisme') {
-      s.profil = 'autisme'; s.calme = true; s.sons = false; s.theme = 'creme';
+    } else if (id === 'concentration') {
+      s.profil = 'concentration'; s.focus = true; s.pause = 0; s.calme = true;
+    } else if (id === 'serenite') {
+      s.profil = 'serenite'; s.calme = true; s.sons = false; s.theme = 'creme';
       s.tempsLibre = true;
-    } else if (id === 'malvoyance') {
-      s.profil = 'malvoyance'; s.taille = 3; s.contraste = true; s.curseur = true;
+    } else if (id === 'caracteres') {
+      s.profil = 'caracteres'; s.taille = 3; s.contraste = true; s.curseur = true;
       s.interligne = 1;
     } else {
       s.sons = true; // Neutre : tout au départ, sons réactivés.
@@ -463,7 +466,7 @@
       segHtml('police', 'Police', [
         { v: 'defaut', t: 'Standard', on: state.police === 'defaut' },
         { v: 'lisible', t: 'Lisible', on: state.police === 'lisible' },
-        { v: 'dys', t: 'Adaptée dys', on: state.police === 'dys' },
+        { v: 'aeree', t: 'Lettres espacées', on: state.police === 'aeree' },
       ]) +
       segHtml('taille', 'Taille du texte', [
         { v: '0', t: 'A', on: state.taille === 0, aria: 'Taille normale' },

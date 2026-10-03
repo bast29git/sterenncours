@@ -384,7 +384,7 @@
       banqueJouee = false; const bandeauGuide = $('.ksh-guide'); if (bandeauGuide) bandeauGuide.hidden = true; api.attenteLegende = null;
       if (cfg.onStart) cfg.onStart(m === 'guide' ? 'detente' : m, api);
       if (m === 'guide') setTimeout(guider, 700);
-      // Prévisibilité (profil autisme/TSA) : annoncer « ce qui va se passer »
+      // Prévisibilité (réglage de confort) : annoncer « ce qui va se passer »
       // avant l'étape, sans jamais bloquer le jeu.
       if (document.documentElement.hasAttribute('data-confort-previsible')) {
         api.toast('Ce qui va se passer : tu joues à ton rythme, puis tu verras tes étoiles. Pause possible à tout moment (Échap).', 5000);
