@@ -51,7 +51,9 @@ for (const f of mondes) {
         if (banqueProvoquee) break;
         banqueProvoquee = true; ligne.mission = true;
         await page.evaluate(() => { if (window.__kshApi && window.__kshApi.win) window.__kshApi.win({ score: 100, stars: 2, title: 'Audit : fin provoquée' }); });
-        await page.waitForTimeout(900); continue;
+        // Le monde lent (rendu logiciel) peut mettre quelques secondes à ouvrir la banque ou l'écran de fin.
+        await page.waitForFunction(() => { const b = document.querySelector('.ksh-banque'); const f = document.querySelector('.ksh-fin'); return (b && !b.hidden) || (f && !f.hidden); }, null, { timeout: 8000 }).catch(() => {});
+        continue;
       }
       if (etat === 'qcm' || etat === 'passer' || etat === 'verifier') ligne.defis += 1;
       if (etat === 'banque') ligne.banque = (ligne.banque || 0) + 1;

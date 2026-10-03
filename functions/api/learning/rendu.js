@@ -19,7 +19,7 @@ export const onRequestPost = gerer(async (context) => {
     gpu: texte(corps.gpu, 80), webgl2: !!corps.webgl2, mobile: !!corps.mobile, ratio: Number(corps.ratio) || null,
     etapes: Array.isArray(corps.etapes) ? corps.etapes.slice(0, 6).map((e) => texte(e, 40)) : [],
     shaders: Math.min(99, Number(corps.shaders) || 0), contexte: Math.min(99, Number(corps.contexte) || 0),
-    verifs: Math.min(999, Number(corps.verifs) || 0), noir: !!corps.noir, ips: Number(corps.ips) || null,
+    verifs: Math.min(999, Number(corps.verifs) || 0), noir: !!corps.noir, blanc: !!corps.blanc, assainis: Math.min(999, Number(corps.assainis) || 0), ips: Number(corps.ips) || null,
     raison: texte(corps.raison, 40), erreur: texte(corps.erreur, 160), ecran: texte(corps.ecran, 20),
   };
   await journaliser(context.env, session, 'rendu3d', jeu, null, diag);

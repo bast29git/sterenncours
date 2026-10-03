@@ -817,12 +817,27 @@
     /* La lecture de l'écran : une grille de sept points sur sept, juste après le rendu, dans la même tâche. */
     const buf = new Uint8Array(4);
     function lirePoints() {
-      const w = gl.drawingBufferWidth; const h = gl.drawingBufferHeight; let clairs = 0;
+      const w = gl.drawingBufferWidth; const h = gl.drawingBufferHeight; let clairs = 0; let blancs = 0;
       for (let i = 0; i < 7; i += 1) for (let j = 0; j < 7; j += 1) {
         gl.readPixels(Math.min(w - 1, Math.floor((i + 0.5) * w / 7)), Math.min(h - 1, Math.floor((j + 0.5) * h / 7)), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, buf);
-        if (buf[0] + buf[1] + buf[2] > 9) clairs += 1;
+        const somme = buf[0] + buf[1] + buf[2];
+        if (somme > 9) clairs += 1; if (somme >= 750) blancs += 1;
       }
-      return clairs;
+      return { clairs, blancs };
+    }
+    /* F240 : sur mobile, le verre à transmission (source de NaN sur certains GPU, que le bloom étale en blanc) devient un verre simple. */
+    const vus = new WeakSet(); diag.assainis = 0;
+    function assainir() {
+      if (!mobile) return;
+      try {
+        scene.traverse((m) => {
+          const mats = Array.isArray(m.material) ? m.material : (m.material ? [m.material] : []);
+          mats.forEach((mt) => {
+            if (!mt || vus.has(mt)) return; vus.add(mt);
+            if (mt.transmission > 0) { mt.transmission = 0; mt.transparent = true; mt.opacity = Math.min(mt.opacity == null ? 1 : mt.opacity, 0.55); mt.thickness = 0; mt.needsUpdate = true; diag.assainis += 1; }
+          });
+        });
+      } catch (e) { /* rien */ }
     }
     let c = null; let rendreOrig = null; let contourne = false; let images = 0; let noirs = 0; let simuler = false; let finie = false;
     const estRenderPass = (p) => !!(p && p.scene && p.camera && p.gtaoMaterial === undefined && !('_toneMapping' in p));
@@ -831,7 +846,7 @@
       diag.noir = true;
       if (c && diag.etapes.length === 0) {
         let coupees = 0; c.passes.forEach((p) => { if (!estRenderPass(p) && !estSortie(p) && p.enabled) { p.enabled = false; coupees += 1; } });
-        diag.etapes.push('passes coupées (' + coupees + ')'); noirs = 0; envoyer('écran noir');
+        diag.etapes.push('passes coupées (' + coupees + ')'); noirs = 0; envoyer(diag.blanc ? 'écran blanc' : 'écran noir');
         if (coupees) return;
       }
       if (!contourne) { contourne = true; diag.etapes.push('chaîne contournée'); noirs = 0; envoyer('écran noir'); return; }
@@ -851,19 +866,22 @@
         if (diag.noir || diag.shaders || !deja) envoyer(diag.noir ? 'dégradé puis stable' : 'rendu normal');
         return;
       }
-      let clairs = 0; try { clairs = lirePoints(); } catch (e) { finie = true; return; }
-      if (clairs > 0) { noirs = 0; return; }
+      let lu = null; try { lu = lirePoints(); } catch (e) { finie = true; return; }
+      const noirTotal = lu.clairs === 0; const blancTotal = lu.blancs >= 44;
+      if (!noirTotal && !blancTotal) { noirs = 0; return; }
       noirs += 1; if (noirs < 3) return;
-      // Trois lectures noires : la scène elle-même rendrait-elle quelque chose ? Si non, c'est un décor noir légitime.
-      let direct = 0; try { renderer.setRenderTarget(null); renderer.render(scene, camera); direct = lirePoints(); } catch (e) { direct = 0; }
-      if (direct > 0 || simuler) degrader(); else noirs = 0;
+      // Trois lectures uniformes : la scène elle-même, rendue sans la chaîne, donne-t-elle autre chose ? Sinon c'est un décor légitime.
+      let direct = null; try { renderer.setRenderTarget(null); renderer.render(scene, camera); direct = lirePoints(); } catch (e) { direct = null; }
+      if (blancTotal) diag.blanc = true;
+      if (simuler || (direct && (noirTotal ? direct.clairs > 0 : direct.blancs < 30))) degrader(); else noirs = 0;
     }
     function brancher() {
       const cc = composerLire(); if (!cc || cc.__garde) return !!(cc && cc.__garde);
       c = cc; rendreOrig = cc.render.bind(cc); cc.__garde = true; declarer3d({ composer: cc });
       cc.render = function (dt) {
+        if (images % 60 === 0) assainir();
         if (contourne) { renderer.setRenderTarget(null); renderer.render(scene, camera); } else rendreOrig(dt);
-        if (simuler && !contourne) { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); }
+        if (simuler && !contourne) { const b = simuler === 'blanc' ? 1 : 0; gl.clearColor(b, b, b, 1); gl.clear(gl.COLOR_BUFFER_BIT); }
         verifier();
       };
       return true;
@@ -871,10 +889,11 @@
     if (!brancher()) {
       // Sans chaîne : on surveille le rendu direct.
       const orig = renderer.render.bind(renderer);
-      renderer.render = function (sc, cam) { orig(sc, cam); if (sc === scene) verifier(); };
+      renderer.render = function (sc, cam) { if (images % 60 === 0) assainir(); orig(sc, cam); if (sc === scene) verifier(); };
       let essais = 0; const t = setInterval(() => { essais += 1; if (brancher() || essais > 20) clearInterval(t); }, 500);
     }
-    const garde = { diag, simulerNoir: (oui) => { simuler = oui !== false; noirs = 0; finie = false; }, contourne: () => contourne, etat: () => ({ contourne, etapes: diag.etapes.slice(), verifs: diag.verifs, noir: diag.noir }) };
+    assainir();
+    const garde = { diag, assainir, simulerNoir: (oui) => { simuler = oui !== false; noirs = 0; finie = false; }, simulerBlanc: (oui) => { simuler = oui === false ? false : 'blanc'; noirs = 0; finie = false; }, contourne: () => contourne, etat: () => ({ contourne, etapes: diag.etapes.slice(), verifs: diag.verifs, noir: diag.noir }) };
     declarer3d({ garde });
     return garde;
   }
