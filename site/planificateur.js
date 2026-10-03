@@ -9,14 +9,16 @@
    qui privilégie celle qui a le plus de blocs restants et qui n'était pas
    là la fois précédente : les paires changent d'une séance à l'autre.
 
-   Une séance sur quatre laisse le choix entre trois leçons. Le planning
-   reste indicatif et modifiable : c'est une base de départ, pas un contrat.
+   Chaque lundi, la deuxième leçon de la séance est au choix de Sterenn parmi
+   trois (une par défaut, qu'elle peut remplacer), première semaine comprise.
+   Le planning reste indicatif et modifiable : c'est une base de départ, pas un
+   contrat.
    ========================================================================= */
 (function () {
   'use strict';
 
   const BLOCS_PAR_LECON = 3;
-  const UNE_SUR = 4; // une séance sur quatre propose un choix
+  const JOUR_CHOIX = 0; // le lundi : la deuxième leçon est au choix de Sterenn
 
   /** Le premier jour de cours de l'année. */
   const RENTREE = '2026-10-05';
@@ -162,13 +164,15 @@
           const pris = consommer(fs.francais);
           if (pris) {
             fs.francais.dernier = numero;
+            // Le premier cours est au choix aussi : le français par défaut, deux autres matières proposées.
+            const choixPremier = creneau.jour === JOUR_CHOIX ? troisChoix(fs, numero, 'francais/' + pris.lecon.ref, ['francais']) : [];
             seances.push({
               date, creneau: creneau.code, type: 'cours',
               debut: creneau.debut, fin: creneau.fin,
               matieres: ['francais'],
               lecons: ['module/decouverte', 'module/positionnement', 'francais/' + pris.lecon.ref],
-              choix: [],
-              objectif: 'Faire connaissance · Où j\'en suis · ' + pris.lecon.titre + ' (' + pris.etape + '/' + BLOCS_PAR_LECON + ')',
+              choix: choixPremier,
+              objectif: 'Faire connaissance · Où j\'en suis · ' + pris.lecon.titre + ' (' + pris.etape + '/' + BLOCS_PAR_LECON + ')' + (choixPremier.length ? ' · à son choix' : ''),
               travail: null,
             });
             numero += 1;
@@ -200,18 +204,9 @@
           titres.push(`${pris.lecon.titre} (${pris.etape}/${BLOCS_PAR_LECON})`);
         }
 
-        // Une séance sur quatre : trois leçons possibles pour la deuxième moitié.
+        // Chaque lundi : trois leçons possibles pour la deuxième moitié, la deuxième retenue par défaut.
         let choix = [];
-        if (numero % UNE_SUR === UNE_SUR - 1 && lecons.length === 2) {
-          const autres = candidats(fs, numero, retenues).slice(0, 2);
-          if (autres.length === 2) {
-            choix = [lecons[1], ...autres.map((id) => {
-              const l = leconCourante(fs[id]);
-              return l ? id + '/' + l.ref : null;
-            })].filter(Boolean);
-            if (choix.length < 3) choix = [];
-          }
-        }
+        if (creneau.jour === JOUR_CHOIX && lecons.length === 2) choix = troisChoix(fs, numero, lecons[1], retenues);
 
         seances.push({
           date, creneau: creneau.code, type: 'cours',
@@ -226,6 +221,14 @@
 
     const restants = Object.values(fs).reduce((n, f) => n + Math.max(0, f.restants), 0);
     return { seances, restants };
+  }
+
+  /** La leçon par défaut et les leçons courantes de deux autres matières ; vide si on ne peut pas en proposer trois. */
+  function troisChoix(fs, numero, defaut, exclure) {
+    const autres = candidats(fs, numero, exclure).slice(0, 2);
+    if (autres.length < 2) return [];
+    const choix = [defaut, ...autres.map((id) => { const l = leconCourante(fs[id]); return l ? id + '/' + l.ref : null; })].filter(Boolean);
+    return choix.length === 3 ? choix : [];
   }
 
   function trouver(ref) {

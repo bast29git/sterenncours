@@ -1052,7 +1052,7 @@
             toute l'année, et se corrige ensuite séance par séance.</p>
           <p class="p-aide">Le générateur répartit les ${N.chiffres().total} leçons en trois blocs chacune, fait tourner
             les matières pour qu'aucune semaine ne se répète, place les temps de travail personnel du mardi et du jeudi,
-            et réserve une séance sur quatre au choix de Sterenn.</p>
+            et laisse chaque lundi la deuxième leçon au choix de Sterenn, première semaine comprise.</p>
           <div class="p-actions" style="display:flex;gap:.4rem">
             <button class="p-bouton p-bouton-fantome" type="submit">Prévisualiser</button>
             <button class="p-bouton" id="g-enregistrer" type="button" disabled>Enregistrer dans le planning</button>
@@ -2553,7 +2553,7 @@
   const ETAPES_ASSISTANT = [
     { cle: 'codes', titre: 'Changer les codes d\'accès', texte: 'Les deux codes d\'entrée sont lisibles dans la page : ce sont des codes d\'usage, pas des mots de passe. Change-les quand même pour que ce soient les tiens.', lien: '#/reglages', bouton: 'Ouvrir les codes', auto: null },
     { cle: 'carte', titre: 'Écrire ta carte et tes trois réponses', texte: 'Sterenn lit ta carte dans son module « Faire connaissance », et découvre tes trois réponses quand elle a écrit les siennes.', lien: '#/sterenn', bouton: 'Ouvrir la page Sterenn', auto: () => !!N.profil('bastien.carte') && !!N.profil('bastien.trois') },
-    { cle: 'planning', titre: 'Générer le planning de l\'année', texte: 'Trois séances par semaine, les 84 leçons réparties, un choix de leçon une séance sur quatre. Tout reste modifiable ensuite, séance par séance.', lien: '#/planning', bouton: 'Ouvrir le générateur', auto: () => N.etat.seances.length > 0 },
+    { cle: 'planning', titre: 'Générer le planning de l\'année', texte: 'Trois séances par semaine, les 84 leçons réparties, un choix de leçon chaque lundi. Tout reste modifiable ensuite, séance par séance.', lien: '#/planning', bouton: 'Ouvrir le générateur', auto: () => N.etat.seances.length > 0 },
     { cle: 'reglages', titre: 'Régler l\'espace de Sterenn', texte: 'Points de pause, tutrice, calculatrice, réactions, mise en forme, fils par matière, félicitations : chaque interrupteur s\'applique chez elle en moins de trente secondes.', lien: '#/reglages', bouton: 'Ouvrir les réglages', auto: null },
     { cle: 'acces', titre: 'Vérifier les accès', texte: 'Par défaut, la règle automatique ouvre une leçon quand la précédente est validée ou programmée. Tu peux ouvrir ou fermer chaque élément à la main.', lien: '#/acces', bouton: 'Ouvrir les accès', auto: null },
     { cle: 'premiere', titre: 'Préparer la première séance', texte: 'Elle porte les modules « Faire connaissance » et « Où j\'en suis ». L\'assistant de préparation te guide : leçons, accès, travail personnel, un mot pour Sterenn.', lien: () => { const s = N.etat.seances.filter((x) => (x.lecons || []).some((r) => r.indexOf('module/') === 0)).sort((a, b) => a.date.localeCompare(b.date))[0] || N.etat.seances.filter((x) => x.type === 'cours').sort((a, b) => a.date.localeCompare(b.date))[0]; return s ? '#/preparer/' + s.id : '#/mois'; }, bouton: 'Préparer la séance', auto: () => N.etat.seances.some((x) => (x.lecons || []).some((r) => r.indexOf('module/') === 0)) },

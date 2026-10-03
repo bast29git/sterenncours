@@ -194,7 +194,7 @@
   function vueChoix(id) {
     const liste = seancesAChoix(N.etat.seances);
     if (!liste.length) {
-      afficher(`<h1>Mon choix</h1><div class="e-carte e-vide"><p>Aucune séance à choisir pour l'instant. Une séance sur quatre, la deuxième leçon est à toi.</p></div>`);
+      afficher(`<h1>Mon choix</h1><div class="e-carte e-vide"><p>Aucune séance à choisir pour l'instant. Chaque lundi, la deuxième leçon est à toi.</p></div>`);
       return;
     }
     let k = liste.findIndex((x) => x.id === id);
@@ -202,7 +202,7 @@
     const s = liste[k];
     const restants = liste.filter((x) => !x.choisi_le).length;
     afficher(`<h1>Mon choix</h1>
-      <p class="e-choix-aide">Une séance sur quatre, la deuxième leçon est à toi : trois leçons du programme, tu cliques sur celle que tu veux. Tu peux changer d'avis jusqu'au jour de la séance.</p>
+      <p class="e-choix-aide">Chaque lundi, la deuxième leçon est à toi : trois leçons du programme, tu cliques sur celle que tu veux. Tu peux changer d'avis jusqu'au jour de la séance.</p>
       <div class="e-choix-pager">
         <button class="e-rond" type="button" data-choix-vers="${k > 0 ? liste[k - 1].id : ''}" ${k > 0 ? '' : 'disabled'} aria-label="Séance précédente">‹</button>
         <span>Séance ${k + 1} sur ${liste.length}${restants ? ` · ${restants} à choisir` : ' · tout est choisi'}</span>
@@ -504,7 +504,7 @@
       ['Que fait Opale ?', 'Elle explique, donne des pistes, pose des questions. Elle ne donne jamais la réponse : c\'est toi qui la trouves. Elle a une calculatrice, sauf en évaluation et en exercices de maths.'],
       ['Comment j\'envoie un devoir ?', 'Dans Messages, le bouton photo. Pour une évaluation, le bloc « Envoyer ma copie » en bas du sujet : trois photos au plus, un seul envoi.'],
       ['Je serai absente, je fais quoi ?', 'Dans Ma semaine, sur la séance, « Je serai absente » et un mot pour Bastien. Il déplace les leçons.'],
-      ['C\'est quoi « À toi de choisir » ?', 'Une séance sur quatre, tu choisis la deuxième leçon parmi trois. Tu peux changer d\'avis jusqu\'au jour de la séance.'],
+      ['C\'est quoi « À toi de choisir » ?', 'Chaque lundi, tu choisis la deuxième leçon parmi trois. Tu peux changer d\'avis jusqu\'au jour de la séance.'],
       ['Où sont mes notes ?', 'Dans « Mes notes » : tout ce que tu as écrit sous les diapositives, rangé par matière. Bastien peut les lire.'],
       ['Je peux changer les couleurs ?', 'Le bouton palette en haut. Certaines palettes s\'ouvrent avec les étoiles. Le bouton lune passe en thème sombre.'],
       ['L\'écran me fatigue.', 'Le bouton accessibilité en haut : taille du texte, police, interligne, calme. Dans une fiche : largeur, une phrase à la fois, lecture à voix haute.'],
@@ -1982,7 +1982,7 @@
       if (N.estValidee(l.m.id, l.l.ref)) etoiles += 3;
       return `<li><span class="e-journal-ico" aria-hidden="true">${N.ic('ic-cible')}</span><span class="e-journal-corps"><b>${l.m.icone} ${N.ech(l.l.titre)}</b><em>Choisie le ${N.ech(N.enFrancais(String(x.choisi_le).slice(0, 10), true))} pour la séance du ${N.ech(N.enFrancais(x.date))}</em></span><span class="e-journal-etoiles">${N.ic('ic-etoile', 'ic-plein')} ${etoiles}</span></li>`;
     }).join('');
-    return `<h2 class="e-titre-section">Tes choix de leçons</h2><p class="e-aide">Une séance sur quatre, c'est toi qui choisis. Voici ce que chaque choix t'a rapporté depuis.</p><ol class="e-journal">${lignes}</ol>`;
+    return `<h2 class="e-titre-section">Tes choix de leçons</h2><p class="e-aide">Chaque lundi, c'est toi qui choisis. Voici ce que chaque choix t'a rapporté depuis.</p><ol class="e-journal">${lignes}</ol>`;
   }
 
   /* ---------- C9 : une seule chose à l'écran ---------- */

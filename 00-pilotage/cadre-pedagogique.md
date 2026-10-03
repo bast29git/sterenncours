@@ -55,8 +55,8 @@ Le vocabulaire, les attentes et les contenus restent ceux de la 4ᵉ.
 Les paires de matières ne sont pas figées : le planning les fait tourner pour qu'aucune semaine ne ressemble exactement à la précédente, tout en respectant le volume horaire de chacune. Chaque leçon occupe **trois blocs** : découverte, application, puis entraînement et bilan.
 :::
 
-::: info Une séance sur quatre, c'est elle qui choisit
-Le planning propose alors **trois leçons possibles** pour la seconde moitié de la séance. Toutes sont au programme, aucune n'est un cadeau : c'est l'ordre qui devient négociable, pas le contenu. Choisir soi-même ce qu'on va travailler change complètement l'entrée dans la tâche.
+::: info Chaque lundi, c'est elle qui choisit
+Le planning propose **trois leçons possibles** pour la seconde moitié de la séance du lundi, l'une d'elles par défaut. Toutes sont au programme, aucune n'est un cadeau : c'est l'ordre qui devient négociable, pas le contenu. Choisir soi-même ce qu'on va travailler change complètement l'entrée dans la tâche.
 :::
 
 ::: info Volume réel

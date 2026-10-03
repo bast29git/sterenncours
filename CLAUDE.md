@@ -258,8 +258,8 @@ quelque chose, pas seulement signaler l'erreur.
   Deux temps de travail personnel entre les cours, mardi et jeudi.
 - **Le planning se pré-génère** : `site/planificateur.js` répartit les 84 leçons
   sur l'année (trois blocs par leçon), fait tourner les matières pour qu'aucune
-  semaine ne se répète, place les temps de travail personnel, et réserve **une
-  séance sur quatre au choix de Sterenn** parmi trois leçons. Tout reste
+  semaine ne se répète, place les temps de travail personnel, et laisse **chaque lundi la
+  deuxième leçon au choix de Sterenn** parmi trois (une par défaut), première semaine comprise. Tout reste
   modifiable séance par séance dans l'espace professeur.
 - **Sur écran avec Bastien, à la main en autonomie.** Chaque exercice porte son
   support en 4ᵉ argument du conteneur : `::: exercice 3 | entrainement | 10 min | ecran`
