@@ -399,7 +399,7 @@ function LEGENDE_OPALINE(ob){ if(ob&&ob.userData&&ob.userData.avion) return AVIO
 function LEGENDES_OPALINE(){ return markers.filter(m=>m.c&&m.c.star).map(m=>({nom:m.c.name,phrase:'Capitale : '+m.c.cap})); }
 const shell=window.Konstrio.createGame({
   id:'3d-09-globe', code:'3D·09', title:'Globe géographique interactif', type:'3D',
-  domain:{ label:'Histoire & Géo', color:'#E0892B' },
+  domain:{ label:'Géographie', color:'#E0892B' },
   intro:{
     greet:"Bienvenue à bord ! Fais tourner la Terre, clique un continent ou une épingle pour sa fiche… ou pars en Tour du monde guidé (mode Cours).",
     rule:"Un globe photoréaliste et vivant : jour/nuit avec les lumières des villes, nuages, atmosphère. En Détente, explore librement : continents, océans et plus de 200 pays sont cliquables. En Cours, un Tour du monde guidé en 3 escales : continents → grands pays → capitales.",

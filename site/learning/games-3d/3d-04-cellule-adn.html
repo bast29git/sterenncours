@@ -112,7 +112,7 @@ function LEGENDE_OPALINE(ob){ const o=ob.userData&&ORG[ob.userData.key]; return 
 function LEGENDES_OPALINE(){ return Object.keys(ORG).filter(k=>vegetal||(k!=='chloro'&&k!=='paroi')).map(k=>({nom:ORG[k].name,phrase:ORG[k].sub})); }
 const shell=window.Konstrio.createGame({
   id:'3d-04-cellule-adn', code:'3D·04', title:'Cellule & ADN', type:'3D',
-  domain:{ label:'Bio & SVT', color:'#2AA98C' },
+  domain:{ label:'SVT · La cellule', color:'#2AA98C' },
   intro:{
     greet:"Plongée dans l'infiniment petit ! Explore une vraie cellule vivante, clique ses organites, puis zoome dans le noyau pour découvrir l'ADN, le code du vivant.",
     rule:"Explore une cellule en 3D façon microscope : clique chaque organite pour découvrir sa fonction. Puis entre dans le noyau pour voir la <b>double hélice d'ADN</b> et comprendre comment les bases A-T / G-C s'apparient.",

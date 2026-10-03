@@ -159,7 +159,7 @@ function LEGENDE_OPALINE(ob){ const p=ob.userData&&PARTS[ob.userData.part]; retu
 function LEGENDES_OPALINE(){ return Object.values(PARTS).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-05-circuits', code:'3D·05', title:'Circuits & électronique', type:'3D',
-  domain:{ label:'Physique', color:'#F5A623' },
+  domain:{ label:'Physique · Électricité', color:'#F5A623' },
   intro:{
     greet:"Bienvenue à l'atelier électronique ! Ferme l'interrupteur, regarde les électrons filer dans les fils de cuivre et l'ampoule s'allumer. Clique chaque composant pour découvrir son rôle.",
     rule:"Un circuit doit être <b>fermé</b> pour que le courant passe. Ferme l'interrupteur, observe les électrons, joue avec la tension et la résistance, et découvre la loi d'Ohm : <b>U = R × I</b>.",

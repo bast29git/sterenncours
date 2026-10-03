@@ -2760,24 +2760,51 @@
     const releve = !!(r && r.maj_le && String(r.maj_le).slice(0, 10) >= lundi && r.meilleur >= 70);
     return { j, releve, lundi };
   }
-  /** F222 : tous les mondes 3D sur un seul écran, par matière, avec le meilleur score. */
-  function vueMondes() {
-    const mondes = (window.JEUX || []).filter((j) => j.type === '3d' && N.accesJeu(j.id));
-    const gagnes = mondes.filter(jeuGagne).length;
-    const parMatiere = PROGRAMME.matieres.map((m) => ({ m, liste: mondes.filter((j) => j.lecons.some((c) => c.split(':')[0] === m.id)) })).filter((x) => x.liste.length);
-    const vus = new Set();
-    const carte = (j, m) => { vus.add(j.id); const r = N.etat.resultats['jeu/' + j.id]; const lecons = j.lecons.filter((c) => c.split(':')[0] === m.id).map((c) => { const l = N.lecon(m, c.split(':')[1]); return l ? l.titre : c.split(':')[1]; }); return `<li class="${jeuGagne(j) ? 'gagne' : ''}"><a href="${j.url}">
-        <span class="ico" aria-hidden="true">${j.ico}</span>
-        <span class="corps"><b>${N.ech(j.titre)}</b><span>${N.ech(lecons.slice(0, 2).join(' · '))}${r && r.meilleur ? ` · meilleur score ${N.ech(String(r.meilleur))}` : ''}</span></span>
-        <span class="etat" aria-label="${jeuGagne(j) ? 'gagné' : 'à jouer'}">${jeuGagne(j) ? N.ic('ic-coche') : N.ic('ic-droite')}</span></a></li>`; };
+  /** F222, F238 : tous les mondes 3D sur un seul écran, groupés par matière, une carte par monde (accroche, leçons, étoiles, score). */
+  const GROUPES_MONDES = [
+    ['physique-chimie', 'Physique-Chimie'], ['svt', 'SVT'], ['maths', 'Mathématiques'],
+    ['histoire-geo', 'Histoire-Géographie'], ['francais', 'Français'], ['emc', 'EMC et numérique'],
+  ];
+  const etoilesJeu = (j) => { const r = N.etat.resultats['jeu/' + j.id]; const m = r ? Number(r.meilleur) || 0 : 0; return m >= 100 ? 3 : m >= 80 ? 2 : m >= 50 ? 1 : 0; };
+  function vueMondes(filtre) {
+    filtre = filtre === 'gagnes' || filtre === 'decouvrir' ? filtre : 'tous';
+    const mondes = (window.JEUX || []).filter((j) => j.type === '3d' && N.accesJeu(j.id)).sort((a, b) => a.id.localeCompare(b.id));
+    const gagnes = mondes.filter(jeuGagne).length; const joues = mondes.filter((j) => N.etat.resultats['jeu/' + j.id]).length;
+    const garder = (j) => filtre === 'tous' || (filtre === 'gagnes' ? jeuGagne(j) : !jeuGagne(j));
+    const groupes = GROUPES_MONDES.map(([id, nom]) => ({ id, nom, liste: mondes.filter((j) => (j.monde || (j.lecons[0] || '').split(':')[0]) === id) })).filter((g) => g.liste.length);
+    const carte = (j) => {
+      const r = N.etat.resultats['jeu/' + j.id]; const et = etoilesJeu(j); const gagne = jeuGagne(j);
+      const lecons = j.lecons.map((c) => { const [mid, ref] = c.split(':'); const m = N.matiere(mid); const l = m ? N.lecon(m, ref) : null; return l ? { mid, titre: l.titre, href: `#/lecon/${mid}/${ref}` } : null; }).filter(Boolean).slice(0, 3);
+      const etat = gagne ? `<span class="e-monde-etoiles" aria-label="${et} étoile${et > 1 ? 's' : ''} sur 3">${[1, 2, 3].map((k) => `<i class="${k <= et ? 'on' : ''}">${N.ic('ic-etoile')}</i>`).join('')}</span>` : r ? '<span class="e-monde-badge essaye">Essayé</span>' : '<span class="e-monde-badge">À découvrir</span>';
+      return `<li class="e-monde ${gagne ? 'gagne' : ''}"><a href="${j.url}">
+        <span class="e-monde-ico" aria-hidden="true">${j.ico}</span>
+        <span class="e-monde-corps">
+          <b>${N.ech(j.titre)}</b>
+          <span class="e-monde-accroche">${N.ech(j.accroche || j.apprend || '')}</span>
+          <span class="e-monde-lecons">${lecons.map((l) => `<span class="e-monde-lecon" data-matiere="${l.mid}">${N.ech(l.titre)}</span>`).join('')}</span>
+        </span>
+        <span class="e-monde-etat">${etat}${r && r.meilleur ? `<small>meilleur ${N.ech(String(r.meilleur))}</small>` : ''}</span></a></li>`;
+    };
+    const blocs = groupes.map((g) => {
+      const liste = g.liste.filter(garder); if (!liste.length) return '';
+      const gg = g.liste.filter(jeuGagne).length;
+      return `<section class="e-mondes-groupe" aria-labelledby="mg-${g.id}">
+        <h2 class="e-mondes-titre" id="mg-${g.id}">${N.gemme(g.id)} <span class="nom">${N.ech(g.nom)}</span> <span class="compte">${gg}/${g.liste.length} gagné${gg > 1 ? 's' : ''}</span></h2>
+        <ul class="e-mondes-liste">${liste.map(carte).join('')}</ul></section>`;
+    }).join('');
     afficher(`<h1>Mondes 3D</h1>
       <nav class="e-filtre-jeux" aria-label="Jeux"><a href="#/jeux">Par matière</a><a href="#/jeux/mondes" class="actif" aria-current="page">Mondes 3D</a></nav>
-      <p class="e-intro">${mondes.length} mondes en trois dimensions, chacun rattaché à une leçon. Tourne, zoome, touche les objets : chacun a sa légende. ${gagnes ? `Déjà ${gagnes} gagné${gagnes > 1 ? 's' : ''}.` : 'Un monde gagné avec deux étoiles vaut une étoile.'}</p>
-      ${parMatiere.map(({ m, liste }) => { const l = liste.filter((j) => !vus.has(j.id)); return l.length ? `<h2 class="e-jeux-titre">${m.icone} ${N.ech(m.nom)} <span>${l.filter(jeuGagne).length}/${l.length} gagné${l.filter(jeuGagne).length > 1 ? 's' : ''}</span></h2><ul class="e-jeux-liste">${l.map((j) => carte(j, m)).join('')}</ul>` : ''; }).join('')}`);
+      <div class="e-mondes-bilan">
+        <p class="e-intro">${mondes.length} mondes en trois dimensions, rangés par matière. Dans chacun, un personnage t'accompagne et une mission t'attend ; tourne, zoome, touche les objets pour lire leur légende. Un monde gagné avec deux étoiles vaut une étoile.</p>
+        <p class="e-mondes-jauge" role="img" aria-label="${gagnes} mondes gagnés sur ${mondes.length}"><i style="width:${mondes.length ? Math.round((gagnes / mondes.length) * 100) : 0}%"></i></p>
+        <p class="e-mondes-chiffres"><b>${gagnes}</b> gagné${gagnes > 1 ? 's' : ''} · <b>${joues - gagnes}</b> essayé${joues - gagnes > 1 ? 's' : ''} · <b>${mondes.length - joues}</b> à découvrir</p>
+        <nav class="e-filtre-jeux e-filtre-mondes" aria-label="Filtrer les mondes">${[['tous', 'Tous'], ['decouvrir', 'À découvrir'], ['gagnes', 'Gagnés']].map(([f, t]) => `<a href="#/jeux/mondes${f === 'tous' ? '' : '/' + f}" class="${filtre === f ? 'actif' : ''}" ${filtre === f ? 'aria-current="page"' : ''}>${t}</a>`).join('')}</nav>
+      </div>
+      ${blocs || '<p class="e-vide">Aucun monde dans ce filtre pour le moment.</p>'}`);
   }
 
   function vueJeux(mid) {
-    if (mid === 'mondes') return vueMondes();
+    if (mid === 'mondes' || (typeof mid === 'string' && mid.indexOf('mondes/') === 0)) return vueMondes(mid === 'mondes' ? 'tous' : mid.slice(7));
     const jeux = window.JEUX || [];
     const gagnes = jeux.filter(jeuGagne).length;
     const matieres = PROGRAMME.matieres.filter((m) => jeuxMatiere(m.id).length);
@@ -2846,7 +2873,7 @@
       case 'decouverte': return module('vueDecouverte', p[1]);
       case 'positionnement': return module('vuePositionnement');
       case 'visite': return visite();
-      case 'jeux': return vueJeux(p[1]);
+      case 'jeux': return vueJeux(p[1] === 'mondes' && p[2] ? 'mondes/' + p[2] : p[1]);
       case 'progres': case 'reussites': return vueReussites(p[1]);
       case 'donnees': return vueDonnees();
       case 'messages': return vueMessages(p[1] ? decodeURIComponent(p.slice(1).join('/')) : null);

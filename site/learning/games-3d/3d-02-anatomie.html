@@ -225,7 +225,7 @@ function LEGENDE_OPALINE(ob){ const p=ob.userData&&PARTS[ob.userData.part]; retu
 function LEGENDES_OPALINE(){ const vus=[]; if(scene) scene.traverse(o=>{ const p=o.visible&&o.userData&&PARTS[o.userData.part]; if(p&&!vus.some(v=>v.nom===p.n)) vus.push({nom:p.n,phrase:p.role||p.s}); }); return vus; }
 const shell = window.Konstrio.createGame({
   id:'3d-02-anatomie', code:'3D·02', title:'Anatomie humaine 3D', type:'3D',
-  domain:{ label:'SVT & Santé', color:'#E63329' },
+  domain:{ label:'SVT · Le corps', color:'#E63329' },
   intro:{
     greet:"Bienvenue dans le corps humain ! Choisis un système : squelette, muscles, cœur, poumons, cerveau, organes : et clique une structure pour découvrir son rôle. Tout en douceur, à ton rythme.",
     rule:"Un atlas 3D vivant : superpose les <b>systèmes</b>, clique une structure pour sa fiche, regarde le <b>cœur battre</b> et les <b>poumons respirer</b>. Coupe la vue pour voir l'intérieur.",

@@ -139,7 +139,7 @@ function LEGENDE_OPALINE(ob){ const p=ob.userData&&SPECIES[ob.userData.kind]; re
 function LEGENDES_OPALINE(){ return Object.values(SPECIES).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell=window.Konstrio.createGame({
   id:'3d-12-ecosysteme', code:'3D·12', title:'Écosystème & biodiversité', type:'3D',
-  domain:{ label:'Écologie', color:'#23A06E' },
+  domain:{ label:'SVT · Écologie', color:'#23A06E' },
   intro:{
     greet:"Bienvenue dans un monde vivant ! Une forêt, une mare, des animaux qui se déplacent. Clique sur un être vivant pour découvrir son rôle, ou joue avec les populations et observe l'équilibre de la nature.",
     rule:"Un écosystème est un équilibre vivant : le <b>Soleil</b> nourrit les <b>plantes</b>, qui nourrissent les <b>herbivores</b>, mangés par les <b>prédateurs</b> ; les <b>décomposeurs</b> recyclent tout. Explore ce petit monde et comprends comment tout est relié.",

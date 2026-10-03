@@ -218,7 +218,7 @@ function LEGENDE_OPALINE(ob){ const u=ob.userData||{}; if(u.el&&u.el.sym&&E[u.el
 function LEGENDES_OPALINE(){ return ['H','C','O','N','Na','Cl','Fe','Cu'].filter(s=>E[s]).map(s=>({nom:E[s][1]+' ('+s+')',phrase:'Numéro atomique '+E[s][0]})); }
 const shell=window.Konstrio.createGame({
   id:'3d-03-chimie-labo', code:'3D·03', title:'Labo de chimie & réactions', type:'3D',
-  domain:{ label:'Chimie', color:'#1E8C7A' },
+  domain:{ label:'Physique-Chimie', color:'#1E8C7A' },
   intro:{
     greet:"Bienvenue dans le labo ! Verse des réactifs dans le bécher pour déclencher de vraies réactions, allume le bec Bunsen pour les tests de flamme, assemble des molécules en 3D et explore les 118 éléments.",
     rule:"Sur la <b>paillasse</b>, mélange deux réactifs dans le bécher : selon les produits, ça <b>mousse</b>, ça <b>change de couleur</b> ou un <b>précipité</b> se forme : l'équation s'affiche. Les <b>sels métalliques</b> colorent la flamme du bec Bunsen. Passe en mode <b>Molécules</b> et <b>Table</b> pour les atomes.",

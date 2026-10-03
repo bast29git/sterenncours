@@ -242,7 +242,7 @@ function LEGENDE_OPALINE(ob){ if(ob&&ob.userData&&ob.userData.legende) return ob
 function LEGENDES_OPALINE(){ return Object.values(FICHES).map(f=>({nom:f.name,phrase:f.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-10-histoire', code:'3D·10', title:'Voyage dans le temps', type:'3D',
-  domain:{ label:'Histoire & Géo', color:'#9B2BB0' },
+  domain:{ label:'Histoire', color:'#9B2BB0' },
   intro:{
     greet:"Embarque pour un voyage dans le temps ! De Stonehenge aux gratte-ciel, remonte la frise et découvre les monuments qui ont marqué l'histoire.",
     rule:"Parcours une <b>frise chronologique en 3D</b> : de la Préhistoire à aujourd'hui, chaque station reconstitue un monument emblématique. Navigue d'époque en époque, clique les monuments pour leur histoire, construis une pyramide pierre par pierre.",

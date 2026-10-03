@@ -182,7 +182,7 @@ function LEGENDE_OPALINE(ob){ const p=ob.userData&&EQUIP[ob.userData.equip]; ret
 function LEGENDES_OPALINE(){ return Object.values(EQUIP).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-06-datacenter', code:'3D·06', title:'Datacenter & infrastructure cloud', type:'3D',
-  domain:{ label:'Réseaux & Systèmes', color:'#29B6E0' },
+  domain:{ label:'EMC · Numérique', color:'#29B6E0' },
   intro:{
     greet:"Bienvenue dans la salle serveur ! Balade-toi dans les allées, clique un équipement pour son rôle, monte la charge, coupe le froid, déclenche une panne et observe le trafic se rerouter tout seul.",
     rule:"Un datacenter, c'est des <b>baies de serveurs</b>, un réseau (<b>switch → routeur → Internet</b>), un <b>pare-feu</b>, du <b>stockage</b>, de l'<b>énergie de secours</b> et du <b>froid</b>. Observe les paquets lumineux circuler, joue avec la <b>charge</b> et le <b>refroidissement</b>, et déclenche un <b>failover</b>.",

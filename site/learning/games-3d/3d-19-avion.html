@@ -202,7 +202,7 @@ function LEGENDE_OPALINE(ob){ const p=ob.userData&&PARTS[ob.userData.part]; retu
 function LEGENDES_OPALINE(){ return Object.values(PARTS).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell=window.Konstrio.createGame({
   id:'3d-19-avion', code:'3D·19', title:'Avion de ligne : comment ça vole', type:'3D',
-  domain:{ label:'Espace & Astro', color:'#29B6E0' },
+  domain:{ label:'Physique · Forces', color:'#29B6E0' },
   intro:{
     greet:"Bienvenue à bord ! Fais tourner l'avion, braque les gouvernes, sors les volets, joue les phases du vol : et découvre pourquoi 80 tonnes tiennent en l'air.",
     rule:"Comprends le vol grâce aux <b>4 forces</b> : portance (haut), poids (bas), poussée (avant), traînée (arrière). Braque les <b>gouvernes</b> (ailerons = roulis, profondeur = tangage, direction = lacet), sors les <b>volets</b>, enchaîne les <b>phases de vol</b>, et passe l'avion en <b>coupe</b> ou <b>vue éclatée</b> pour explorer sa structure.",

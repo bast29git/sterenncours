@@ -196,7 +196,7 @@ function LEGENDE_OPALINE(ob){ const p=ob.userData&&EQUIP[ob.userData.part]; retu
 function LEGENDES_OPALINE(){ return Object.values(EQUIP).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-17-centrale-nucleaire', code:'3D·17', title:'Centrale nucléaire', type:'3D',
-  domain:{ label:'Physique & Énergie', color:'#F5A623' },
+  domain:{ label:'Physique · Énergie', color:'#F5A623' },
   intro:{
     greet:"Bienvenue en salle de commande ! Pilote la réaction avec les barres de contrôle, regarde la vapeur faire tourner la turbine, la ville s'allumer : et garde tout sous contrôle.",
     rule:"Comprends comment une centrale transforme la <b>fission</b> de l'uranium en électricité. Règle les <b>barres de contrôle</b> pour piloter la réaction, suis la chaleur qui devient <b>vapeur → turbine → électricité</b>, et surveille la <b>sûreté</b>.",

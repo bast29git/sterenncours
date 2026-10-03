@@ -11,7 +11,9 @@ window.JEUX = [
    "svt:L01",
    "maths:L02"
   ],
-  "apprend": "Astronomie · Physique"
+  "apprend": "Astronomie · Physique",
+  "monde": "physique-chimie",
+  "accroche": "Avec la Sonde Boréale, rejoins Saturne planète par planète."
  },
  {
   "id": "3d-03-chimie-labo",
@@ -23,7 +25,9 @@ window.JEUX = [
    "physique-chimie:L01",
    "physique-chimie:L02"
   ],
-  "apprend": "Chimie"
+  "apprend": "Chimie",
+  "monde": "physique-chimie",
+  "accroche": "Avec Mme Riou, réussis trois réactions sans oublier la sécurité."
  },
  {
   "id": "3d-04-cellule-adn",
@@ -35,7 +39,9 @@ window.JEUX = [
    "svt:L05",
    "svt:L10"
   ],
-  "apprend": "Biologie · SVT"
+  "apprend": "Biologie · SVT",
+  "monde": "svt",
+  "accroche": "Avec le nanorobot Yuzu, visite la cellule et assemble l'ADN."
  },
  {
   "id": "3d-05-circuits",
@@ -46,7 +52,9 @@ window.JEUX = [
   "lecons": [
    "physique-chimie:L06"
   ],
-  "apprend": "Physique"
+  "apprend": "Physique",
+  "monde": "physique-chimie",
+  "accroche": "Avec Loïc l'électricien, câble la maison sans court-circuit."
  },
  {
   "id": "3d-07-cyberdefense",
@@ -57,7 +65,9 @@ window.JEUX = [
   "lecons": [
    "emc:L04"
   ],
-  "apprend": "Cybersécurité"
+  "apprend": "Cybersécurité",
+  "monde": "emc",
+  "accroche": "Avec le robot Octet, bloque trois attaques du réseau."
  },
  {
   "id": "3d-08-geometrie",
@@ -71,7 +81,9 @@ window.JEUX = [
    "maths:L09",
    "maths:L15"
   ],
-  "apprend": "Mathématiques"
+  "apprend": "Mathématiques",
+  "monde": "maths",
+  "accroche": "Avec Gwenn l'architecte, construis la maquette solide par solide."
  },
  {
   "id": "3d-09-globe",
@@ -86,7 +98,9 @@ window.JEUX = [
    "histoire-geo:G2",
    "histoire-geo:G4"
   ],
-  "apprend": "Géographie"
+  "apprend": "Géographie",
+  "monde": "histoire-geo",
+  "accroche": "Avec l'avion Plume, fais le tour du monde en huit escales."
  },
  {
   "id": "3d-12-ecosysteme",
@@ -98,7 +112,9 @@ window.JEUX = [
    "svt:L06",
    "svt:L07"
   ],
-  "apprend": "Écologie · SVT"
+  "apprend": "Écologie · SVT",
+  "monde": "svt",
+  "accroche": "Avec Awena la garde forestière, reconstitue la chaîne alimentaire."
  },
  {
   "id": "3d-14-bac-sable-physique",
@@ -110,7 +126,9 @@ window.JEUX = [
    "physique-chimie:L04",
    "physique-chimie:L05"
   ],
-  "apprend": "Physique"
+  "apprend": "Physique",
+  "monde": "physique-chimie",
+  "accroche": "Avec Erwan, atteins trois cibles en réglant masse, force et angle."
  },
  {
   "id": "3d-15-terre-volcanisme",
@@ -123,7 +141,9 @@ window.JEUX = [
    "svt:L02",
    "svt:L03"
   ],
-  "apprend": "Géographie · SVT"
+  "apprend": "Géographie · SVT",
+  "monde": "svt",
+  "accroche": "Avec Gwenn la volcanologue, lis les signes et prévois l'éruption."
  },
  {
   "id": "3d-17-centrale-nucleaire",
@@ -134,7 +154,9 @@ window.JEUX = [
   "lecons": [
    "physique-chimie:L07"
   ],
-  "apprend": "Physique · Énergie"
+  "apprend": "Physique · Énergie",
+  "monde": "physique-chimie",
+  "accroche": "Avec Maëlle, tiens la puissance de la centrale palier par palier."
  },
  {
   "id": "3d-20-abysses",
@@ -146,7 +168,9 @@ window.JEUX = [
    "histoire-geo:G5",
    "svt:L06"
   ],
-  "apprend": "Biologie · Océans"
+  "apprend": "Biologie · Océans",
+  "monde": "svt",
+  "accroche": "Avec le Nautile, descends en quatre paliers jusqu'à 6 000 m."
  },
  {
   "id": "2d-01-phishing",
@@ -785,7 +809,9 @@ window.JEUX = [
    "svt:L08",
    "svt:L09"
   ],
-  "apprend": "SVT · Santé"
+  "apprend": "SVT · Santé",
+  "monde": "svt",
+  "accroche": "Avec Mme Le Goff, suis le trajet d'une bouchée dans le corps."
  },
  {
   "id": "3d-06-datacenter",
@@ -796,7 +822,9 @@ window.JEUX = [
   "lecons": [
    "emc:L04"
   ],
-  "apprend": "Informatique · Réseaux"
+  "apprend": "Informatique · Réseaux",
+  "monde": "emc",
+  "accroche": "Avec Nolwenn, remets la salle des serveurs en route."
  },
  {
   "id": "3d-10-histoire",
@@ -809,7 +837,9 @@ window.JEUX = [
    "histoire-geo:H2",
    "histoire-geo:H5"
   ],
-  "apprend": "Histoire"
+  "apprend": "Histoire",
+  "monde": "histoire-geo",
+  "accroche": "Avec trois témoins d'époque, remets les événements dans l'ordre."
  },
  {
   "id": "3d-11-moteur",
@@ -820,7 +850,9 @@ window.JEUX = [
   "lecons": [
    "physique-chimie:L07"
   ],
-  "apprend": "Techno · Mécanique"
+  "apprend": "Techno · Mécanique",
+  "monde": "physique-chimie",
+  "accroche": "Avec Nolwenn la mécanicienne, remonte le moteur pièce par pièce."
  },
  {
   "id": "3d-13-data-neurones",
@@ -832,7 +864,9 @@ window.JEUX = [
    "emc:L04",
    "maths:L12"
   ],
-  "apprend": "IA · Data"
+  "apprend": "IA · Data",
+  "monde": "maths",
+  "accroche": "Avec le drone Pixel, entraîne un réseau jusqu'à 90 % de réussite."
  },
  {
   "id": "3d-16-voiture",
@@ -843,7 +877,9 @@ window.JEUX = [
   "lecons": [
    "physique-chimie:L04"
   ],
-  "apprend": "Techno · Mécanique"
+  "apprend": "Techno · Mécanique",
+  "monde": "physique-chimie",
+  "accroche": "Avec Gwenn la monitrice, chronomètre trois trajets et le freinage."
  },
  {
   "id": "3d-18-dinosaures",
@@ -855,7 +891,9 @@ window.JEUX = [
    "svt:L06",
    "svt:L01"
   ],
-  "apprend": "SVT · Paléontologie"
+  "apprend": "SVT · Paléontologie",
+  "monde": "svt",
+  "accroche": "Avec Awena la paléontologue, dégage et date trois fossiles."
  },
  {
   "id": "3d-19-avion",
@@ -866,7 +904,9 @@ window.JEUX = [
   "lecons": [
    "physique-chimie:L05"
   ],
-  "apprend": "Aéronautique · Physique"
+  "apprend": "Aéronautique · Physique",
+  "monde": "physique-chimie",
+  "accroche": "Avec Enora et Loïc, réussis le décollage avant la fin de la piste."
  },
  {
   "id": "2d-60-cosinus-viser",
@@ -934,7 +974,9 @@ window.JEUX = [
    "physique-chimie:L08",
    "svt:L04"
   ],
-  "apprend": "Physique · Lumière, vent solaire et champ magnétique"
+  "apprend": "Physique · Lumière, vent solaire et champ magnétique",
+  "monde": "physique-chimie",
+  "accroche": "Avec Nolwenn l'observatrice, chasse l'aurore verte, rouge, violette."
  },
  {
   "id": "3d-24-echelle-cosinus",
@@ -947,7 +989,9 @@ window.JEUX = [
    "maths:L08",
    "maths:L14"
   ],
-  "apprend": "Maths · Cosinus et Pythagore dans un triangle rectangle"
+  "apprend": "Maths · Cosinus et Pythagore dans un triangle rectangle",
+  "monde": "maths",
+  "accroche": "Avec Yann le peintre, pose l'échelle au bon angle pour trois fenêtres."
  },
  {
   "id": "3d-25-chambre-echo",
@@ -958,7 +1002,9 @@ window.JEUX = [
   "lecons": [
    "physique-chimie:L09"
   ],
-  "apprend": "Physique · Vitesse du son et écho"
+  "apprend": "Physique · Vitesse du son et écho",
+  "monde": "physique-chimie",
+  "accroche": "Avec le technicien, mesure la vitesse du son dans l'air, l'eau, l'acier."
  },
  {
   "id": "3d-28-volumes",
@@ -970,7 +1016,9 @@ window.JEUX = [
    "maths:L10",
    "maths:L14"
   ],
-  "apprend": "Maths · Volume des pyramides et des cônes"
+  "apprend": "Maths · Volume des pyramides et des cônes",
+  "monde": "maths",
+  "accroche": "Avec Madame Riou, remplis le bécher sans déborder, solide par solide."
  },
  {
   "id": "3d-22-atelier-papier",
@@ -982,7 +1030,9 @@ window.JEUX = [
    "histoire-geo:H4",
    "physique-chimie:L03"
   ],
-  "apprend": "Histoire · Fabrication du papier, proportions et révolution industrielle"
+  "apprend": "Histoire · Fabrication du papier, proportions et révolution industrielle",
+  "monde": "physique-chimie",
+  "accroche": "Avec la faiseuse de livres, fabrique trois feuilles dans l'ordre."
  },
  {
   "id": "3d-23-apothicairerie",
@@ -994,7 +1044,9 @@ window.JEUX = [
    "physique-chimie:L02",
    "maths:L05"
   ],
-  "apprend": "Physique et maths · Pourcentages, masse volumique, mélange et transformation"
+  "apprend": "Physique et maths · Pourcentages, masse volumique, mélange et transformation",
+  "monde": "physique-chimie",
+  "accroche": "Avec l'apothicaire, pèse et prépare les commandes des clients."
  },
  {
   "id": "3d-26-ville-xixe",
@@ -1006,7 +1058,9 @@ window.JEUX = [
    "francais:L11",
    "francais:L14"
   ],
-  "apprend": "Français · Regard panoramique et regard du passant"
+  "apprend": "Français · Regard panoramique et regard du passant",
+  "monde": "francais",
+  "accroche": "Sur le boulevard, retrouve à pied cinq détails décrits par les textes."
  },
  {
   "id": "3d-27-routes-negrieres",
@@ -1018,7 +1072,9 @@ window.JEUX = [
    "histoire-geo:H1",
    "emc:L02"
   ],
-  "apprend": "Histoire · Commerce triangulaire, ports et abolitions"
+  "apprend": "Histoire · Commerce triangulaire, ports et abolitions",
+  "monde": "histoire-geo",
+  "accroche": "Suis un navire d'escale en escale, avec les témoignages de l'époque."
  },
  {
   "id": "3d-29-musee-lumieres",
@@ -1031,7 +1087,9 @@ window.JEUX = [
    "francais:L02",
    "emc:L01"
   ],
-  "apprend": "Histoire · Les philosophes des Lumières et leurs idées"
+  "apprend": "Histoire · Les philosophes des Lumières et leurs idées",
+  "monde": "histoire-geo",
+  "accroche": "Avec le guide, parcours les vrais portraits et retrouve cinq indices."
  },
  {
   "id": "3d-30-migrations",
@@ -1042,6 +1100,8 @@ window.JEUX = [
   "lecons": [
    "histoire-geo:G3"
   ],
-  "apprend": "Géographie · Flux migratoires, réfugiés et migrants économiques"
+  "apprend": "Géographie · Flux migratoires, réfugiés et migrants économiques",
+  "monde": "histoire-geo",
+  "accroche": "Lis la carte : retrouve le flux décrit, puis règle la bonne année."
  }
 ];

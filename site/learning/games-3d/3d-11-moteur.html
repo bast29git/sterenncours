@@ -258,7 +258,7 @@ function LEGENDE_OPALINE(ob){ const p=ob.userData&&PARTS[ob.userData.part]; retu
 function LEGENDES_OPALINE(){ return Object.values(PARTS).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-11-moteur', code:'3D·11', title:'Moteur & mécanique', type:'3D',
-  domain:{ label:'Techno & Méca', color:DOM_COLOR },
+  domain:{ label:'Physique · Énergie', color:DOM_COLOR },
   intro:{
     greet:"Bienvenue au banc d'essai moteur ! Démarre, regarde les pistons danser au rythme des 4 temps, mets en coupe pour voir l'intérieur des cylindres, et accélère : écoute le régime monter.",
     rule:"Explore un vrai <b>moteur à 4 cylindres</b> en 3D. Observe le <b>cycle à 4 temps</b> (admission, compression, explosion, échappement), passe le bloc en <b>coupe</b> ou en <b>vue éclatée</b>, change de <b>régime</b> et bascule <b>essence / diesel / 2 temps</b>. Clique chaque pièce pour son rôle.",

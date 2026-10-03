@@ -174,7 +174,7 @@ function LEGENDE_OPALINE(ob){ const f=ob.userData&&FICHE[ob.userData.fiche]; ret
 function LEGENDES_OPALINE(){ return Object.values(FICHE).map(f=>({nom:f.name,phrase:f.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-15-terre-volcanisme', code:'3D·15', title:'Terre & volcanisme', type:'3D',
-  domain:{ label:'Histoire & Géo', color:'#1E8C7A' },
+  domain:{ label:'SVT · Volcanisme', color:'#1E8C7A' },
   intro:{
     greet:"Voyage au centre de la Terre ! Ouvre-la en coupe pour voir ses couches brûlantes, puis déclenche une vraie éruption, étape par étape.",
     rule:"La Terre est faite de couches : <b>croûte</b>, <b>manteau</b>, <b>noyau externe</b> (liquide) et <b>noyau interne</b> (solide). Le manteau brûlant nourrit les <b>volcans</b>. Explore, déclenche l'éruption, puis relève le défi.",

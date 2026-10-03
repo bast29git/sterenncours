@@ -331,7 +331,7 @@ function LEGENDE_OPALINE(ob){ const b=bodies.find(x=>x.obj===ob); const d=b&&DAT
 function LEGENDES_OPALINE(){ return bodies.map(b=>DATA[b.id]).filter(Boolean).map(d=>({nom:d.name,phrase:d.sub})); }
 const shell = window.Konstrio.createGame({
   id:'3d-01-systeme-solaire', code:'3D·01', title:'Système solaire & exploration spatiale',
-  type:'3D', domain:{ label:'Espace & Astro', color:'#1B82E0' },
+  type:'3D', domain:{ label:'Physique · Astronomie', color:'#1B82E0' },
   intro:{
     greet:"Bienvenue à bord ! Cherche n'importe quel astre, étoile ou constellation, clique une planète pour sa fiche complète, et passe en vue planétarium pour lever les yeux vers le ciel comme sous un dôme.",
     rule:"Explore le système solaire en images réelles : navigue à la souris ou au clavier, cherche planètes, lunes, étoiles, constellations et objets du ciel profond, et plonge dans des fiches détaillées. Le curseur de temps montre les positions du jour.",

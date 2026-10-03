@@ -193,7 +193,7 @@ function LEGENDE_OPALINE(ob){ const p=ob.userData&&PARTS[ob.userData.part]; retu
 function LEGENDES_OPALINE(){ return Object.values(PARTS).map(p=>({nom:p.name,phrase:p.sub})); }
 const shell=window.Konstrio.createGame({
   id:'3d-16-voiture', code:'3D·16', title:'Voiture : fonctionnement complet', type:'3D',
-  domain:{ label:'Techno & Méca', color:'#1B82E0' },
+  domain:{ label:'Physique · Mouvements', color:'#1B82E0' },
   intro:{
     greet:"Bienvenue à l'atelier auto ! Tourne autour de la voiture, ouvre le capot, passe la carrosserie en coupe ou en vue éclatée, et démarre le moteur pour voir le cycle 4 temps. Bascule même en électrique !",
     rule:"Découvre comment marche une voiture. Ouvre le <b>capot</b> et les <b>portes</b>, passe en <b>coupe</b> ou <b>vue éclatée</b> pour révéler moteur, boîte, freins, suspension… Démarre et observe le <b>cycle 4 temps</b>. Bascule <b>thermique ↔ électrique</b> et repeins la carrosserie !",

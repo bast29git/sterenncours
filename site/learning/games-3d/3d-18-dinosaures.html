@@ -207,7 +207,7 @@ function LEGENDE_OPALINE(ob){ const u=ob.userData||{}; const d=u.species||(u.key
 function LEGENDES_OPALINE(){ const vus=[]; if(scene) scene.traverse(o=>{ const d=o.userData&&o.userData.species; if(d&&d.n&&!vus.some(v=>v.nom===d.n)) vus.push({nom:d.n,phrase:d.diet||''}); }); return vus; }
 const shell=window.Konstrio.createGame({
   id:'3d-18-dinosaures', code:'3D·18', title:'Dinosaures : le monde perdu', type:'3D',
-  domain:{ label:'Bio & SVT', color:'#2AA98C' },
+  domain:{ label:'SVT · Évolution', color:'#2AA98C' },
   intro:{
     greet:"Bienvenue à l'ère des dinosaures ! Fais glisser le curseur des ères, clique une créature pour sa fiche scientifique, et ose le bouton 🦴 pour voir son squelette sous la peau.",
     rule:"Voyage du <b>Trias</b> au <b>Crétacé</b> : déplace le curseur des ères et observe la faune, le climat et la végétation changer. Clique chaque créature pour sa fiche, révèle son <b>squelette</b>, compare sa taille à un humain, et déclenche l'extinction !",

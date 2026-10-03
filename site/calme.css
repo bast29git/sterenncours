@@ -185,6 +185,42 @@
 .e-jeux-liste li.gagne .etat .ic { color: var(--e-vif-fonce); }
 .e-filtre-jeux { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 0.4rem; }
 
+/* ---------- Mondes 3D (F238) : un bilan, puis une section par matière, une carte par monde ---------- */
+.e-mondes-bilan { background: var(--e-carte); border: 1px solid var(--e-trait); border-radius: var(--e-r-petit); padding: 0.9rem 1rem 0.8rem; margin: 0 0 1.1rem; }
+.e-mondes-bilan .e-intro { margin: 0 0 0.6rem; }
+.e-mondes-jauge { height: 0.5rem; border-radius: 999px; background: var(--e-fond-doux, #eee6d8); overflow: hidden; margin: 0 0 0.45rem; }
+.e-mondes-jauge i { display: block; height: 100%; background: var(--e-vif); border-radius: 999px; transition: width 0.4s; }
+.e-mondes-chiffres { margin: 0 0 0.6rem; font-size: 0.88rem; color: var(--e-encre-doux); }
+.e-mondes-chiffres b { color: var(--e-encre); }
+.e-filtre-mondes { margin: 0; }
+.e-mondes-groupe { margin: 0 0 1.3rem; }
+.e-mondes-titre { display: flex; align-items: center; gap: 0.55rem; font-size: 1.08rem; margin: 0 0 0.6rem; padding: 0 0 0.4rem; border-bottom: 2px solid var(--e-trait); }
+.e-mondes-titre .e-gemme { width: 1.5rem; height: 1.5rem; flex: none; }
+.e-mondes-titre .nom { flex: 1; min-width: 0; }
+.e-mondes-titre .compte { font-size: 0.78rem; font-weight: 700; color: var(--e-vif-fonce); background: var(--e-vif-pale, #e4f3ef); border-radius: 999px; padding: 0.15rem 0.6rem; white-space: nowrap; }
+.e-mondes-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+.e-monde a { display: grid; grid-template-columns: 2.6rem 1fr auto; align-items: start; gap: 0.7rem; padding: 0.75rem 0.85rem; border-radius: var(--e-r-petit); background: var(--e-carte); border: 1px solid var(--e-trait); color: inherit; text-decoration: none; min-height: 5.4rem; }
+.e-monde a:hover, .e-monde a:focus-visible { border-color: var(--e-vif); }
+.e-monde.gagne a { border-left: 4px solid var(--e-vif); }
+.e-monde-ico { font-size: 1.7rem; line-height: 1; text-align: center; padding-top: 0.15rem; }
+.e-monde-corps { min-width: 0; display: grid; gap: 0.22rem; }
+.e-monde-corps b { font-size: 1rem; line-height: 1.25; }
+.e-monde-accroche { font-size: 0.86rem; color: var(--e-encre); line-height: 1.45; }
+.e-monde-lecons { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.1rem; }
+.e-monde-lecon { font-size: 0.72rem; font-weight: 600; color: var(--e-encre-doux); background: var(--e-fond-doux, #f1ece2); border-radius: 999px; padding: 0.12rem 0.5rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.e-monde-etat { display: grid; justify-items: end; gap: 0.25rem; align-self: start; }
+.e-monde-etat small { font-size: 0.72rem; color: var(--e-encre-doux); white-space: nowrap; }
+.e-monde-badge { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--e-encre-doux); border: 1px solid var(--e-trait); border-radius: 999px; padding: 0.15rem 0.5rem; white-space: nowrap; }
+.e-monde-badge.essaye { color: var(--e-vif-fonce); border-color: var(--e-vif); }
+.e-monde-etoiles { display: inline-flex; gap: 0.1rem; }
+.e-monde-etoiles i { display: inline-flex; }
+.e-monde-etoiles .ic { width: 1rem; height: 1rem; color: var(--e-trait); }
+.e-monde-etoiles i.on .ic { color: var(--e-vif-fonce); }
+@media (max-width: 480px) {
+  .e-monde a { grid-template-columns: 2.2rem 1fr; }
+  .e-monde-etat { grid-column: 2; justify-items: start; grid-auto-flow: column; align-items: center; gap: 0.6rem; }
+}
+
 /* ---------- Mes réussites : le compte d'étoiles, puis trois portes ---------- */
 .e-etoiles-carte { background: var(--e-carte); border: 1px solid var(--e-trait); border-left: 5px solid var(--e-vif); border-radius: var(--e-r-petit); padding: 1rem 1.1rem; margin: 0 0 0.9rem; box-shadow: var(--e-ombre); }
 .e-etoiles-carte .quand { margin: 0; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--e-vif-fonce); }
