@@ -12,7 +12,7 @@ export const onRequest = methodeNonPermise(['POST']);
 export const onRequestPost = gerer(async (context) => {
   const session = await exigerSession(context);
   const corps = await lireCorps(context.request);
-  if (!corps || typeof corps !== 'object') return erreur(MESSAGES.requete_invalide);
+  if (!corps || typeof corps !== 'object' || !Object.keys(corps).length) return erreur(MESSAGES.requete_invalide);
   const jeu = String(corps.jeu || '').replace(/[^a-z0-9-]/gi, '').slice(0, 60) || null;
   const texte = (v, n) => (v == null ? '' : String(v).slice(0, n));
   const diag = {
